@@ -462,7 +462,7 @@
                         <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
                             <div class="flex justify-start">
                                 <button type="submit" id="submitBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

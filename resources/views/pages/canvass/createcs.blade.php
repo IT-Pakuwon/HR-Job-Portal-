@@ -220,11 +220,11 @@
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
-                            @if($doc === 'PO')
-                                Create CS Revision for PO
-                            @else
-                                Create CS
-                            @endif
+                                @if ($doc === 'PO')
+                                    Create CS Revision for PO
+                                @else
+                                    Create CS
+                                @endif
                             </h2>
                         </div>
 
@@ -235,8 +235,8 @@
 
                                 <!-- SPPB/J/K/T -->
                                 <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">   
-                                            SPPB/J/K/T ID
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                        SPPB/J/K/T ID
                                     </label>
                                     <input type="text" value="{{ $docno }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
@@ -341,7 +341,7 @@
                                             <tr data-inventoryid="{{ $row->inventoryid ?? '' }}"
                                                 data-inventory_descr="{{ $row->inventory_descr }}"
                                                 data-uom="{{ $row->uom }}"
-                                                data-lastprice="{{ (float)($row->last_unitcost ?? 0) }}"
+                                                data-lastprice="{{ (float) ($row->last_unitcost ?? 0) }}"
                                                 data-original_qty="{{ (float) $row->qty }}"
                                                 data-note="{{ $row->csnote_detail ?? '' }}">
                                                 <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
@@ -360,7 +360,7 @@
                                                         rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
                                                 </td>
                                                 <td class="border px-3 py-2 text-right font-semibold">
-                                                    {{ number_format((float)($row->last_unitcost ?? 0), 2, ',', '.') }}
+                                                    {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
                                                     <button type="button"
                                                         class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                         title="View Last Price History"
@@ -388,41 +388,46 @@
                     <div id="lastPriceModal" class="fixed inset-0 z-[4000] hidden">
                         <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-                        <div class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                        <div
+                            class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                             <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                                 <div class="flex flex-col">
-                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Last Price
+                                        History</h3>
                                     {{-- <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div> --}}
-                                    <h3 id="lpTitle" class="text-lg font-semibold text-gray-800 dark:text-gray-100"></h3>
+                                    <h3 id="lpTitle" class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                                    </h3>
                                 </div>
                                 <button type="button" id="lastPriceModalClose"
                                     class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="p-4">
-                                <div id="lpLoading" class="hidden mb-3 text-sm text-gray-600 dark:text-gray-300">
+                                <div id="lpLoading" class="mb-3 hidden text-sm text-gray-600 dark:text-gray-300">
                                     Loading...
                                 </div>
 
-                                <div class="max-h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700">
+                                <div
+                                    class="max-h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700">
                                     <table class="min-w-full text-sm">
                                         <thead class="bg-gray-50 dark:bg-gray-700">
                                             <tr>
                                                 <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
                                                 <th class="px-3 py-2 text-left font-semibold">PO Date</th>
                                                 <th class="px-3 py-2 text-left font-semibold">CS ID</th>
-                                                <th class="px-3 py-2 text-left font-semibold">Vendor</th>                                               
+                                                <th class="px-3 py-2 text-left font-semibold">Vendor</th>
                                                 <th class="px-3 py-2 text-right font-semibold">Unit Cost</th>
                                                 <th class="px-3 py-2 text-left font-semibold">Purchaser</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="lpBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                        <tbody id="lpBody"
+                                            class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                             <!-- rows by JS -->
                                         </tbody>
                                     </table>
                                 </div>
 
-                                <div id="lpEmpty" class="hidden mt-3 text-sm text-gray-500 dark:text-gray-300">
+                                <div id="lpEmpty" class="mt-3 hidden text-sm text-gray-500 dark:text-gray-300">
                                     No history found.
                                 </div>
                             </div>
@@ -516,66 +521,69 @@
                             </button>
 
                             <!-- Action Buttons -->
-                            <div class="w-full px-4">
-                                <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                            <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <button id="backBtn" onclick="history.back()"
+                                    class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
 
-                                    <!-- Cancel Button -->
-                                    <div class="flex justify-start">
-                                        <button type="button" id="cancelBtn" 
-                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
-                                            <span id="cancelText">Cancel</span>
-                                            <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span>Back</span>
+                                </button>
 
-                                    <!-- Save Button -->
-                                    <div class="flex justify-start">
-                                        <button type="button" id="saveBtn"
-                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-700 hover:border-gray-700 hover:bg-gray-700 hover:font-medium hover:text-white md:w-auto">
-                                            <span id="saveText">Save CS</span>
-                                            <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
+                                {{-- <!-- Cancel Button -->
+                                <div class="flex justify-start">
+                                    <button type="button" id="cancelBtn"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
+                                        <span id="cancelText">Cancel</span>
+                                        <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div> --}}
+
+                                <!-- Save Button -->
+                                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                    <button type="button" id="saveBtn"
+                                        class="<span id= mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto"
+                                        saveText>Save
+                                        CS</span>
+                                        <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button>
 
                                     <!-- Submit Approval (conditional) -->
                                     @if (in_array($doc, ['SPPB', 'SPPK']) || in_array($prefix2, ['PB', 'PK']))
-                                        <div class="flex justify-start md:justify-end">
-                                            <button type="submit" id="submitBtn"
-                                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white md:w-auto">
-                                                <span id="btnText">Submit Approval</span>
-                                                <svg id="loadingSpinner"
-                                                    class="hidden h-5 w-5 animate-spin text-white"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                    viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8v8z"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                        <button type="submit" id="submitBtn"
+                                            class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                            <span id="btnText">Submit Approval</span>
+                                            <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                        </button>
                                     @endif
 
                                 </div>
+
                             </div>
 
                         </div>
-
-                    </div>
                 </form>
             </div>
 
@@ -1509,235 +1517,238 @@
     </script>
 
     <script>
-    $('#submitBtn').on('click', function(e) {
-        e.preventDefault();
+        $('#submitBtn').on('click', function(e) {
+            e.preventDefault();
 
-        // ==========================================
-        //  VALIDASI FRONTEND
-        // ==========================================
-        const $vendorCols = $('#cvTable thead th[id^="th-vendor-"]');
-        if ($vendorCols.length === 0) {
-            toastr.error('Pilih minimal 1 vendor.');
-            return;
-        }
-
-        let allVendorTotalsZero = true;
-        $vendorCols.each(function() {
-            const vid = String($(this).data('vendor-id'));
-            const total = numFromText($(`#td-sum-${vid} .sum-total`).text());
-            if (total > 0) allVendorTotalsZero = false;
-        });
-
-        if (allVendorTotalsZero) {
-            toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
-            return;
-        }
-
-        if ($('.pick-vendor:checked').length === 0) {
-            toastr.error('Pilih vendor pada minimal satu item.');
-            return;
-        }
-
-        if (!validateQtyLimit()) {
-            toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
-            return;
-        }
-
-        if (!validatePaymentTerms()) return;
-
-
-        // VALIDASI: harga ada tapi vendor tidak dipilih
-        let rowWithoutVendor = false;
-        $('#cvBody tr').each(function() {
-            let hasPrice = false;
-            $(this).find('input.price-input').each(function() {
-                const num = parsePrice($(this).val() || '');
-                if (num > 0) { hasPrice = true; return false; }
-            });
-
-            if (hasPrice && $(this).find('.pick-vendor:checked').length === 0) {
-                rowWithoutVendor = true;
-                return false;
+            // ==========================================
+            //  VALIDASI FRONTEND
+            // ==========================================
+            const $vendorCols = $('#cvTable thead th[id^="th-vendor-"]');
+            if ($vendorCols.length === 0) {
+                toastr.error('Pilih minimal 1 vendor.');
+                return;
             }
-        });
 
-        if (rowWithoutVendor) {
-            toastr.error('Ada baris yang memiliki harga tetapi belum memilih vendor.');
-            return;
-        }
-
-        // ==========================================
-        //  KUMPULKAN VENDOR
-        // ==========================================
-        const vendors = [];
-        $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
-            if (vendors.length >= 6) return;
-
-            const $th = $(this);
-            const vid = String($th.data('vendor-id'));
-            const vcode = String($th.data('vendor-code'));
-            const $sum = $(`#td-sum-${vid}`);
-
-            const total = numFromText($sum.find('.sum-total').text());
-            const ppn = Number($sum.find('.sum-ppn').val() || 0);
-            const pph = Number($sum.find('.sum-pph').val() || 0);
-            const ppnId = $sum.find('.sum-ppn-id').val() || '';
-            const pphId = $sum.find('.sum-pph-id').val() || '';
-
-            const tax = total * (ppn / 100) + total * (pph / 100);
-            const grand = total + tax;
-
-            const selBase = numFromText($sum.find('.sum-selected-base').text());
-            const selTax = selBase * (ppn / 100) + selBase * (pph / 100);
-            const selGrand = selBase + selTax;
-
-            vendors.push({
-                id: vid,
-                vendorid: vcode,
-                vendorname: String($th.data('vendor-name') || ''),
-                vendoralamat: String($th.data('vendor-addr') || ''),
-                vendortelp: String($th.data('vendor-phone') || ''),
-                vendorcp: String($th.data('vendor-cp') || ''),
-                vendortop: $th.find('select.cara-bayar').val() || '',
-                vendornote: '',
-
-                total: round2(total),
-                ppn: round2(ppn),
-                pph: round2(pph),
-                taxcode: [ppnId, pphId].filter(Boolean).join('+'),
-                tax: round2(tax),
-                grand: round2(grand),
-
-                selected_total: round2(selBase),
-                selected_tax: round2(selTax),
-                selected_grand: round2(selGrand),
-            });
-        });
-
-        // ==========================================
-        //  KUMPULKAN DETAIL
-        // ==========================================
-        const details = [];
-        $('#cvBody tr').each(function(rowIdx) {
-            const $tr = $(this);
-            const qty = parseQty($tr.find('.qty-input').val());
-            const uom = $tr.data('uom') || '';
-            const invId = $tr.data('inventoryid') || '';
-            const invDescr = $tr.data('inventory_descr') || '';
-            const lastPrice = Number($tr.data('lastprice') || 0);
-            const csNote = String($tr.find('.note-input').val() || '');
-
-            const row = {
-                inventoryid: invId,
-                inventory_descr: invDescr,
-                qty: round2(qty),
-                uom: uom,
-                inventory_last_price: round2(lastPrice),
-                csnote_detail: csNote,
-                vendor: []
-            };
-
-            const picked = String($tr.find('input.pick-vendor:checked').val() || '');
-
-            $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
-                if (i >= 6) return;
-
-                const vendorId = String($(this).data('vendor-id'));
-                const vendorIdCode = String($(this).data('vendor-code'));
-
-                const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
-                const price = parsePrice($priceInput.val());
-                const total = qty * price;
-
-                row.vendor.push({
-                    id: vendorId,
-                    vendorid: vendorIdCode,
-                    price: round2(price),
-                    total: round2(total),
-                    selected: vendorId === picked
-                });
+            let allVendorTotalsZero = true;
+            $vendorCols.each(function() {
+                const vid = String($(this).data('vendor-id'));
+                const total = numFromText($(`#td-sum-${vid} .sum-total`).text());
+                if (total > 0) allVendorTotalsZero = false;
             });
 
-            details.push(row);
-        });
+            if (allVendorTotalsZero) {
+                toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
+                return;
+            }
 
-        // ==========================================
-        // 1) CEK QTY DULU KE BACKEND
-        // ==========================================
-        const doc = $('input[name="doc"]').val();
-        const srcId = $('input[name="src_id"]').val();
-        console.log('Checking qty for doc', doc, 'src_id', srcId, details);
-        showOverlay('Validating qty');
+            if ($('.pick-vendor:checked').length === 0) {
+                toastr.error('Pilih vendor pada minimal satu item.');
+                return;
+            }
 
-        $.ajax({
-            url: "{{ route('cs.check-qty') }}",
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                doc: doc,
-                src_id: srcId,
-                details: JSON.stringify(details),
-            },
-            success: function(res) {
+            if (!validateQtyLimit()) {
+                toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
+                return;
+            }
 
-                // ==========================================
-                // 2) JIKA LOL0S CEK QTY → SUBMIT CS
-                // ==========================================
+            if (!validatePaymentTerms()) return;
 
-                const fd = new FormData(document.getElementById('csForm'));
-                fd.append('vendors', JSON.stringify(vendors));
-                fd.append('details', JSON.stringify(details));
 
-                showOverlay('Submitting');
-
-                $.ajax({
-                    url: "{{ route('cs.store') }}",
-                    method: 'POST',
-                    data: fd,
-                    processData: false,
-                    contentType: false,
-                    success: function(res2) {
-                        hideOverlay();
-                        toastr.success('CS berhasil disimpan & diajukan.');
-                        window.location.href = "/cslist";
-                    },
-                    error: function(xhr2) {
-                        hideOverlay();
-                        let msg = 'Gagal menyimpan CS.';
-                        if (xhr2.responseJSON && xhr2.responseJSON.message)
-                            msg = xhr2.responseJSON.message;
-
-                        toastr.error(msg);
+            // VALIDASI: harga ada tapi vendor tidak dipilih
+            let rowWithoutVendor = false;
+            $('#cvBody tr').each(function() {
+                let hasPrice = false;
+                $(this).find('input.price-input').each(function() {
+                    const num = parsePrice($(this).val() || '');
+                    if (num > 0) {
+                        hasPrice = true;
+                        return false;
                     }
                 });
-            },
-            error: function(xhr) {
-                hideOverlay();
-                const res = xhr.responseJSON || {};
-                const msg = res.message || 'Qty tidak valid.';
-                toastr.error(msg);
 
-                // highlight baris salah
-                if (Array.isArray(res.errors)) {
-                    res.errors.forEach(function(err) {
-                        $('#cvBody tr').eq(err.row_index).addClass('bg-red-100');
-                    });
+                if (hasPrice && $(this).find('.pick-vendor:checked').length === 0) {
+                    rowWithoutVendor = true;
+                    return false;
                 }
+            });
+
+            if (rowWithoutVendor) {
+                toastr.error('Ada baris yang memiliki harga tetapi belum memilih vendor.');
+                return;
             }
+
+            // ==========================================
+            //  KUMPULKAN VENDOR
+            // ==========================================
+            const vendors = [];
+            $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
+                if (vendors.length >= 6) return;
+
+                const $th = $(this);
+                const vid = String($th.data('vendor-id'));
+                const vcode = String($th.data('vendor-code'));
+                const $sum = $(`#td-sum-${vid}`);
+
+                const total = numFromText($sum.find('.sum-total').text());
+                const ppn = Number($sum.find('.sum-ppn').val() || 0);
+                const pph = Number($sum.find('.sum-pph').val() || 0);
+                const ppnId = $sum.find('.sum-ppn-id').val() || '';
+                const pphId = $sum.find('.sum-pph-id').val() || '';
+
+                const tax = total * (ppn / 100) + total * (pph / 100);
+                const grand = total + tax;
+
+                const selBase = numFromText($sum.find('.sum-selected-base').text());
+                const selTax = selBase * (ppn / 100) + selBase * (pph / 100);
+                const selGrand = selBase + selTax;
+
+                vendors.push({
+                    id: vid,
+                    vendorid: vcode,
+                    vendorname: String($th.data('vendor-name') || ''),
+                    vendoralamat: String($th.data('vendor-addr') || ''),
+                    vendortelp: String($th.data('vendor-phone') || ''),
+                    vendorcp: String($th.data('vendor-cp') || ''),
+                    vendortop: $th.find('select.cara-bayar').val() || '',
+                    vendornote: '',
+
+                    total: round2(total),
+                    ppn: round2(ppn),
+                    pph: round2(pph),
+                    taxcode: [ppnId, pphId].filter(Boolean).join('+'),
+                    tax: round2(tax),
+                    grand: round2(grand),
+
+                    selected_total: round2(selBase),
+                    selected_tax: round2(selTax),
+                    selected_grand: round2(selGrand),
+                });
+            });
+
+            // ==========================================
+            //  KUMPULKAN DETAIL
+            // ==========================================
+            const details = [];
+            $('#cvBody tr').each(function(rowIdx) {
+                const $tr = $(this);
+                const qty = parseQty($tr.find('.qty-input').val());
+                const uom = $tr.data('uom') || '';
+                const invId = $tr.data('inventoryid') || '';
+                const invDescr = $tr.data('inventory_descr') || '';
+                const lastPrice = Number($tr.data('lastprice') || 0);
+                const csNote = String($tr.find('.note-input').val() || '');
+
+                const row = {
+                    inventoryid: invId,
+                    inventory_descr: invDescr,
+                    qty: round2(qty),
+                    uom: uom,
+                    inventory_last_price: round2(lastPrice),
+                    csnote_detail: csNote,
+                    vendor: []
+                };
+
+                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+
+                $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
+                    if (i >= 6) return;
+
+                    const vendorId = String($(this).data('vendor-id'));
+                    const vendorIdCode = String($(this).data('vendor-code'));
+
+                    const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
+                    const price = parsePrice($priceInput.val());
+                    const total = qty * price;
+
+                    row.vendor.push({
+                        id: vendorId,
+                        vendorid: vendorIdCode,
+                        price: round2(price),
+                        total: round2(total),
+                        selected: vendorId === picked
+                    });
+                });
+
+                details.push(row);
+            });
+
+            // ==========================================
+            // 1) CEK QTY DULU KE BACKEND
+            // ==========================================
+            const doc = $('input[name="doc"]').val();
+            const srcId = $('input[name="src_id"]').val();
+            console.log('Checking qty for doc', doc, 'src_id', srcId, details);
+            showOverlay('Validating qty');
+
+            $.ajax({
+                url: "{{ route('cs.check-qty') }}",
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    doc: doc,
+                    src_id: srcId,
+                    details: JSON.stringify(details),
+                },
+                success: function(res) {
+
+                    // ==========================================
+                    // 2) JIKA LOL0S CEK QTY → SUBMIT CS
+                    // ==========================================
+
+                    const fd = new FormData(document.getElementById('csForm'));
+                    fd.append('vendors', JSON.stringify(vendors));
+                    fd.append('details', JSON.stringify(details));
+
+                    showOverlay('Submitting');
+
+                    $.ajax({
+                        url: "{{ route('cs.store') }}",
+                        method: 'POST',
+                        data: fd,
+                        processData: false,
+                        contentType: false,
+                        success: function(res2) {
+                            hideOverlay();
+                            toastr.success('CS berhasil disimpan & diajukan.');
+                            window.location.href = "/cslist";
+                        },
+                        error: function(xhr2) {
+                            hideOverlay();
+                            let msg = 'Gagal menyimpan CS.';
+                            if (xhr2.responseJSON && xhr2.responseJSON.message)
+                                msg = xhr2.responseJSON.message;
+
+                            toastr.error(msg);
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    hideOverlay();
+                    const res = xhr.responseJSON || {};
+                    const msg = res.message || 'Qty tidak valid.';
+                    toastr.error(msg);
+
+                    // highlight baris salah
+                    if (Array.isArray(res.errors)) {
+                        res.errors.forEach(function(err) {
+                            $('#cvBody tr').eq(err.row_index).addClass('bg-red-100');
+                        });
+                    }
+                }
+            });
+
         });
 
-    });
+        // Helpers
+        function numFromText(t) {
+            t = String(t || '').replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
+            const n = parseFloat(t);
+            return isNaN(n) ? 0 : n;
+        }
 
-    // Helpers
-    function numFromText(t) {
-        t = String(t || '').replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
-        const n = parseFloat(t);
-        return isNaN(n) ? 0 : n;
-    }
-
-    function round2(n) {
-        return Math.round((+n + Number.EPSILON) * 100) / 100;
-    }
+        function round2(n) {
+            return Math.round((+n + Number.EPSILON) * 100) / 100;
+        }
     </script>
 
 
@@ -1847,14 +1858,18 @@
     </script>
 
     <script>
-        function formatNumID(n){
+        function formatNumID(n) {
             n = Number(n || 0);
-            return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return n.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
 
         function openLastPriceModal() {
             $('#lastPriceModal').removeClass('hidden');
         }
+
         function closeLastPriceModal() {
             $('#lastPriceModal').addClass('hidden');
             $('#lpBody').empty();
@@ -1864,14 +1879,14 @@
         }
 
         // $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', closeLastPriceModal);
-        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', function(e){
+        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             closeLastPriceModal();
         });
 
-        $(document).on('keydown', function(e){
-            if(e.key === 'Escape') closeLastPriceModal();
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') closeLastPriceModal();
         });
 
         // $(document).on('click', '.btn-lastprice', function(){
@@ -1905,15 +1920,15 @@
 
         //             rows.forEach(r => {
         //                 const tr = `
-        //                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-        //                         <td class="px-3 py-2">${r.ponbr ?? ''}</td>
-        //                         <td class="px-3 py-2">${r.podate ?? ''}</td>
-        //                         <td class="px-3 py-2">${r.csid ?? ''}</td>
-        //                         <td class="px-3 py-2">${r.vendorname ?? ''}</td>                                
-        //                         <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
-        //                         <td class="px-3 py-2">${r.purchaser ?? ''}</td>
-        //                     </tr>
-        //                 `;
+    //                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+    //                         <td class="px-3 py-2">${r.ponbr ?? ''}</td>
+    //                         <td class="px-3 py-2">${r.podate ?? ''}</td>
+    //                         <td class="px-3 py-2">${r.csid ?? ''}</td>
+    //                         <td class="px-3 py-2">${r.vendorname ?? ''}</td>                                
+    //                         <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
+    //                         <td class="px-3 py-2">${r.purchaser ?? ''}</td>
+    //                     </tr>
+    //                 `;
         //                 $('#lpBody').append(tr);
         //             });
         //         },
@@ -1924,7 +1939,7 @@
         //         }
         //     });
         // });
-        $(document).on('click', '.btn-lastprice', function(e){
+        $(document).on('click', '.btn-lastprice', function(e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -1949,12 +1964,14 @@
             $.ajax({
                 url: "{{ route('cs.lastprice.history.entry') }}",
                 method: "GET",
-                data: { inventoryid },
-                success: function(res){
+                data: {
+                    inventoryid
+                },
+                success: function(res) {
                     $('#lpLoading').addClass('hidden');
 
                     const rows = (res && res.data) ? res.data : [];
-                    if(!rows.length){
+                    if (!rows.length) {
                         $('#lpEmpty').removeClass('hidden');
                         return;
                     }
@@ -1973,16 +1990,15 @@
                         $('#lpBody').append(tr);
                     });
                 },
-                error: function(xhr){
+                error: function(xhr) {
                     $('#lpLoading').addClass('hidden');
-                    const msg = (xhr.responseJSON && xhr.responseJSON.message)
-                        ? xhr.responseJSON.message
-                        : 'Gagal ambil history.';
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ?
+                        xhr.responseJSON.message :
+                        'Gagal ambil history.';
                     toastr.error(msg);
                 }
             });
         });
-
     </script>
 
 

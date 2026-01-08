@@ -179,7 +179,8 @@
                             </div> --}}
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
+                                    Type</label>
 
                                 <div class="flex w-full">
                                     {{-- hidden value yang dikirim ke backend --}}
@@ -192,7 +193,8 @@
 
                                     <button type="button" id="btnSearchRequestType"
                                         class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
                                                 clip-rule="evenodd" />
@@ -250,11 +252,10 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">BQ Type</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">BQ
+                                    Type</label>
                                 <select name="bqtype" id="bqtype" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
-                                        focus:border-indigo-500 focus:ring-indigo-500
-                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">-- Pilih BQ Type --</option>
                                     <option value="Jasa">Jasa</option>
                                     <option value="Kontrak">Kontrak</option>
@@ -497,7 +498,7 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2">UoM</th>
                                             <th class="border p-2">Category</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -556,8 +557,10 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="rtCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="rtPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="rtNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button id="rtPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="rtNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -891,26 +894,22 @@
                             </button>
                         </details>
 
+                        <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
 
-                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
-                            <!-- Cancel Button-->
-                            <div class="flex justify-start">
-                                <button id="cancelBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                    <span id="cancelText">Cancel</span>
-                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                        </path>
-                                    </svg>
-                                </button>
-                            </div>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+
+                                <span>Back</span>
+                            </button>
+
                             <div class="flex justify-start md:justify-end">
                                 <button type="submit" id="submitBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1069,7 +1068,7 @@
                 return true;
             }
 
-           $('#sppjForm').on('submit', function(e) {
+            $('#sppjForm').on('submit', function(e) {
                 e.preventDefault();
 
                 clearAllErrors('#sppjForm');
@@ -1079,14 +1078,14 @@
                 // =========================
                 let headerOk = true;
 
-                const $cpny   = $('select[name="cpnyid"]');
-                const $dept   = $('select[name="departementid"]');
-                const $perpost= $('#perpost');
+                const $cpny = $('select[name="cpnyid"]');
+                const $dept = $('select[name="departementid"]');
+                const $perpost = $('#perpost');
                 const $bqtype = $('#bqtype');
-                const $desc   = $('#keperluan');
+                const $desc = $('#keperluan');
 
-                const $rtHidden  = $('#requesttypeid');               // hidden input
-                const $rtDisplay = $('#requesttype_name_display');    // readonly display
+                const $rtHidden = $('#requesttypeid'); // hidden input
+                const $rtDisplay = $('#requesttype_name_display'); // readonly display
 
                 if (!$cpny.val()) {
                     addError($cpny, 'Company wajib dipilih.');
@@ -1124,7 +1123,9 @@
                 if (!headerOk) {
                     const $first = $('#sppjForm .is-invalid').first();
                     if ($first.length) {
-                        $('html,body').animate({ scrollTop: $first.offset().top - 120 }, 300);
+                        $('html,body').animate({
+                            scrollTop: $first.offset().top - 120
+                        }, 300);
                         $first.trigger('focus');
                     }
                     toastr.error('Mohon lengkapi field wajib di bagian header.');
@@ -1150,35 +1151,35 @@
                 const formData = new FormData(document.getElementById('sppjForm'));
 
                 $.ajax({
-                    url: "{{ route('sppjs.store') }}",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                })
-                .done(function(res) {
-                    toastr.success(res.message || "Sppj Requisition Submit Successfully!");
-                    window.location.href = "/sppjs";
-                })
-                .fail(function(xhr) {
-                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                        let msg = 'Mohon periksa input:<br>';
-                        Object.keys(xhr.responseJSON.errors).forEach(k => {
-                            msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
-                        });
-                        toastr.error(msg);
-                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                        toastr.error(xhr.responseJSON.message);
-                    } else {
-                        toastr.error('Error! Please check the input.');
-                    }
-                })
-                .always(function() {
-                    $('#submitBtn').prop('disabled', false);
-                    $('#cancelBtn').prop('disabled', false);
-                    $('#btnText').text('Submit Approval');
-                    hideOverlay();
-                });
+                        url: "{{ route('sppjs.store') }}",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false
+                    })
+                    .done(function(res) {
+                        toastr.success(res.message || "Sppj Requisition Submit Successfully!");
+                        window.location.href = "/sppjs";
+                    })
+                    .fail(function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            let msg = 'Mohon periksa input:<br>';
+                            Object.keys(xhr.responseJSON.errors).forEach(k => {
+                                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+                            });
+                            toastr.error(msg);
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            toastr.error(xhr.responseJSON.message);
+                        } else {
+                            toastr.error('Error! Please check the input.');
+                        }
+                    })
+                    .always(function() {
+                        $('#submitBtn').prop('disabled', false);
+                        $('#cancelBtn').prop('disabled', false);
+                        $('#btnText').text('Submit Approval');
+                        hideOverlay();
+                    });
             });
 
         });
@@ -2532,13 +2533,13 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const DOCTYPE = 'SPPJ';
 
             const $rtModal = $('#requestTypeModal');
             const $rtTbody = $('#rtTableBody');
             const $rtCount = $('#rtCount');
-            const $rtDoc   = $('#rtDocBadge');
+            const $rtDoc = $('#rtDocBadge');
 
             let rtState = {
                 search: '',
@@ -2566,31 +2567,31 @@
             $('#btnSearchRequestType').on('click', openRtModal);
             $('#closeRequestTypeModal').on('click', closeRtModal);
 
-            $(document).on('keydown', function (e) {
+            $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && $rtModal.is(':visible')) closeRtModal();
             });
 
-            $('#rtSearch').on('input', function () {
+            $('#rtSearch').on('input', function() {
                 rtState.search = $(this).val().trim();
                 rtState.page = 1;
                 loadRequestTypes();
             });
 
-            $('#rtRefresh').on('click', function () {
+            $('#rtRefresh').on('click', function() {
                 $('#rtSearch').val('');
                 rtState.search = '';
                 rtState.page = 1;
                 loadRequestTypes();
             });
 
-            $('#rtPrev').on('click', function () {
+            $('#rtPrev').on('click', function() {
                 if (rtState.page > 1) {
                     rtState.page--;
                     loadRequestTypes();
                 }
             });
 
-            $('#rtNext').on('click', function () {
+            $('#rtNext').on('click', function() {
                 const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
                 if (rtState.page < maxPage) {
                     rtState.page++;
@@ -2602,24 +2603,24 @@
                 $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
 
                 $.getJSON("{{ route('requesttypes.byDoctype') }}", {
-                    doctype: rtState.doctype,
-                    search: rtState.search,
-                    page: rtState.page,
-                    per_page: rtState.per_page
-                })
-                .done(function (res) {
-                    // support 2 kemungkinan response:
-                    // A) {data:[...], total:..}
-                    // B) {data:{data:[...], total:..}} (Laravel paginator default)
-                    const payload = res.data?.data ? res.data : res; // detect paginator shape
-                    const list = (payload.data || []);
-                    rtState.total = payload.total || 0;
+                        doctype: rtState.doctype,
+                        search: rtState.search,
+                        page: rtState.page,
+                        per_page: rtState.per_page
+                    })
+                    .done(function(res) {
+                        // support 2 kemungkinan response:
+                        // A) {data:[...], total:..}
+                        // B) {data:{data:[...], total:..}} (Laravel paginator default)
+                        const payload = res.data?.data ? res.data : res; // detect paginator shape
+                        const list = (payload.data || []);
+                        rtState.total = payload.total || 0;
 
-                    const rowsArr = list.map(item => {
-                        const id = item.requesttypeid ?? item.id ?? '';
-                        const name = item.requesttype_name ?? item.name ?? id;
+                        const rowsArr = list.map(item => {
+                            const id = item.requesttypeid ?? item.id ?? '';
+                            const name = item.requesttype_name ?? item.name ?? id;
 
-                        return `
+                            return `
                             <tr>
                                 <td class="border p-2">${id}</td>
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
@@ -2633,26 +2634,29 @@
                                 </td>
                             </tr>
                         `;
+                        });
+
+                        $rtTbody.html(rowsArr.join('') ||
+                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                        const showing = list.length;
+                        $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
+
+                        const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                        $('#rtPrev').prop('disabled', rtState.page <= 1);
+                        $('#rtNext').prop('disabled', rtState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $rtTbody.html(
+                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $rtCount.text('');
+                        $('#rtPrev, #rtNext').prop('disabled', true);
                     });
-
-                    $rtTbody.html(rowsArr.join('') || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
-
-                    const showing = list.length;
-                    $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
-
-                    const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
-                    $('#rtPrev').prop('disabled', rtState.page <= 1);
-                    $('#rtNext').prop('disabled', rtState.page >= maxPage);
-                })
-                .fail(function () {
-                    $rtTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                    $rtCount.text('');
-                    $('#rtPrev, #rtNext').prop('disabled', true);
-                });
             }
 
             // choose -> set value ke form
-            $(document).on('click', '.chooseRequestType', function () {
+            $(document).on('click', '.chooseRequestType', function() {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
 
@@ -2663,7 +2667,7 @@
                 $('#requesttype_name_display').removeClass('is-invalid').next('.error-feedback').remove();
 
                 closeRtModal();
-            });          
+            });
 
         });
     </script>

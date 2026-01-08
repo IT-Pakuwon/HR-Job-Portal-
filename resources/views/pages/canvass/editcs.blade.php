@@ -378,7 +378,7 @@
                                                         rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
                                                 </td>
                                                 <td class="border px-3 py-2 text-right font-semibold">
-                                                    {{ number_format((float)($row->last_unitcost ?? 0), 2, ',', '.') }}
+                                                    {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
                                                     <button type="button"
                                                         class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                         title="View Last Price History"
@@ -542,55 +542,59 @@
                                 </button>
                             </details>
                             <!-- Action Buttons -->
-                            <div class="w-full px-4">
-                                <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                            <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <button id="backBtn" onclick="history.back()"
+                                    class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
 
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span>Back</span>
+                                </button>
+
+                                <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                     <!-- Cancel -->
-                                    <div class="flex justify-start">
-                                        <button type="button" id="cancelBtn"
-                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
-                                            <span id="cancelText">Cancel</span>
-                                            <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
+                                    <button type="button" id="cancelBtn"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white md:w-auto">
+                                        <span id="cancelText">Cancel</span>
+                                        <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button>
 
                                     <!-- Save -->
-                                    <div class="flex justify-start">
-                                        <button type="button" id="saveBtn"
-                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-700 hover:border-gray-700 hover:bg-gray-700 hover:font-medium hover:text-white md:w-auto">
-                                            <span id="saveText">Save CS</span>
-                                            <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
-
+                                    <button type="button" id="saveBtn"
+                                        class="<span id= mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto"saveText">Save
+                                        CS</span>
+                                        <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button>
                                     <!-- Submit Approval -->
+                                    <button type="submit" id="submitBtn"
+                                        class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <span id="btnText">Submit Approval</span>
+                                        <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button>
+
                                     <div class="flex justify-start md:justify-end">
-                                        <button type="submit" id="submitBtn"
-                                            class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white md:w-auto">
-                                            <span id="btnText">Submit Approval</span>
-                                            <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
+
                                     </div>
                                 </div>
                             </div>
@@ -678,7 +682,8 @@
             <div id="lastPriceModal" class="fixed inset-0 z-[4000] hidden">
                 <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-                <div class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                <div
+                    class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                         <div class="flex flex-col">
                             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
@@ -690,7 +695,7 @@
                     </div>
 
                     <div class="p-4">
-                        <div id="lpLoading" class="hidden mb-3 text-sm text-gray-600 dark:text-gray-300">
+                        <div id="lpLoading" class="mb-3 hidden text-sm text-gray-600 dark:text-gray-300">
                             Loading...
                         </div>
 
@@ -701,18 +706,19 @@
                                         <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
                                         <th class="px-3 py-2 text-left font-semibold">PO Date</th>
                                         <th class="px-3 py-2 text-left font-semibold">CS ID</th>
-                                        <th class="px-3 py-2 text-left font-semibold">Vendor</th>                                               
+                                        <th class="px-3 py-2 text-left font-semibold">Vendor</th>
                                         <th class="px-3 py-2 text-right font-semibold">Unit Cost</th>
                                         <th class="px-3 py-2 text-left font-semibold">Purchaser</th>
                                     </tr>
                                 </thead>
-                                <tbody id="lpBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                <tbody id="lpBody"
+                                    class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                     <!-- rows by JS -->
                                 </tbody>
                             </table>
                         </div>
 
-                        <div id="lpEmpty" class="hidden mt-3 text-sm text-gray-500 dark:text-gray-300">
+                        <div id="lpEmpty" class="mt-3 hidden text-sm text-gray-500 dark:text-gray-300">
                             No history found.
                         </div>
                     </div>
@@ -1678,7 +1684,10 @@
 
                 $(this).find('input.price-input').each(function() {
                     const num = parsePrice($(this).val() || '');
-                    if (num > 0) { hasPrice = true; return false; }
+                    if (num > 0) {
+                        hasPrice = true;
+                        return false;
+                    }
                 });
 
                 if (hasPrice && $(this).find('.pick-vendor:checked').length === 0) {
@@ -1850,7 +1859,8 @@
 
                         error: function(xhr) {
                             hideOverlay();
-                            toastr.error(xhr.responseJSON?.message || 'Gagal menyimpan CS.');
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Gagal menyimpan CS.');
                         }
                     });
                 },
@@ -1879,7 +1889,7 @@
         function round2(n) {
             return Math.round((+n + Number.EPSILON) * 100) / 100;
         }
-        </script>
+    </script>
 
 
     <script>
@@ -2096,63 +2106,68 @@
             e.preventDefault();
 
             Swal.fire({
-            title: 'Cancel CS?',
-            text: 'CS akan dibatalkan (Cancel). Proses ini tidak bisa dibatalkan.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Cancel',
-            cancelButtonText: 'No',
-            reverseButtons: true
-            }).then((result) => {
-            if (!result.isConfirmed) return;
-
-            // optional: minta alasan cancel
-            Swal.fire({
-                title: 'Reason (optional)',
-                input: 'text',
-                inputPlaceholder: 'Tulis alasan cancel...',
+                title: 'Cancel CS?',
+                text: 'CS akan dibatalkan (Cancel). Proses ini tidak bisa dibatalkan.',
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Submit Cancel',
-                cancelButtonText: 'Back'
-            }).then((r2) => {
-                if (!r2.isConfirmed) return;
+                confirmButtonText: 'Yes, Cancel',
+                cancelButtonText: 'No',
+                reverseButtons: true
+            }).then((result) => {
+                if (!result.isConfirmed) return;
 
-                const reason = (r2.value || '').trim();
+                // optional: minta alasan cancel
+                Swal.fire({
+                    title: 'Reason (optional)',
+                    input: 'text',
+                    inputPlaceholder: 'Tulis alasan cancel...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit Cancel',
+                    cancelButtonText: 'Back'
+                }).then((r2) => {
+                    if (!r2.isConfirmed) return;
 
-                showOverlay('Cancelling...');
+                    const reason = (r2.value || '').trim();
 
-                $.ajax({
-                url: "{{ route('csjobs.cancel', $cs->csid) }}",
-                method: 'POST',
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    _method: 'PUT',
-                    reason: reason
-                },
-                success: function(res) {
-                    hideOverlay();
-                    toastr.success(res.message || 'CS berhasil dicancel.');
-                    window.location.href = res.redirect || '/cslist';
-                },
-                error: function(xhr) {
-                    hideOverlay();
-                    toastr.error(xhr.responseJSON?.message || 'Gagal cancel CS.');
-                }
+                    showOverlay('Cancelling...');
+
+                    $.ajax({
+                        url: "{{ route('csjobs.cancel', $cs->csid) }}",
+                        method: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: 'PUT',
+                            reason: reason
+                        },
+                        success: function(res) {
+                            hideOverlay();
+                            toastr.success(res.message || 'CS berhasil dicancel.');
+                            window.location.href = res.redirect || '/cslist';
+                        },
+                        error: function(xhr) {
+                            hideOverlay();
+                            toastr.error(xhr.responseJSON?.message ||
+                                'Gagal cancel CS.');
+                        }
+                    });
                 });
-            });
             });
         });
     </script>
 
     <script>
-        function formatNumID(n){
+        function formatNumID(n) {
             n = Number(n || 0);
-            return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return n.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
 
         function openLastPriceModal() {
             $('#lastPriceModal').removeClass('hidden');
         }
+
         function closeLastPriceModal() {
             $('#lastPriceModal').addClass('hidden');
             $('#lpBody').empty();
@@ -2162,18 +2177,18 @@
         }
 
         // $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', closeLastPriceModal);
-        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', function(e){
+        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             closeLastPriceModal();
         });
 
-        $(document).on('keydown', function(e){
-            if(e.key === 'Escape') closeLastPriceModal();
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') closeLastPriceModal();
         });
 
-       
-        $(document).on('click', '.btn-lastprice', function(e){
+
+        $(document).on('click', '.btn-lastprice', function(e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -2198,12 +2213,14 @@
             $.ajax({
                 url: "{{ route('cs.lastprice.history.entry') }}",
                 method: "GET",
-                data: { inventoryid },
-                success: function(res){
+                data: {
+                    inventoryid
+                },
+                success: function(res) {
                     $('#lpLoading').addClass('hidden');
 
                     const rows = (res && res.data) ? res.data : [];
-                    if(!rows.length){
+                    if (!rows.length) {
                         $('#lpEmpty').removeClass('hidden');
                         return;
                     }
@@ -2222,16 +2239,15 @@
                         $('#lpBody').append(tr);
                     });
                 },
-                error: function(xhr){
+                error: function(xhr) {
                     $('#lpLoading').addClass('hidden');
-                    const msg = (xhr.responseJSON && xhr.responseJSON.message)
-                        ? xhr.responseJSON.message
-                        : 'Gagal ambil history.';
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ?
+                        xhr.responseJSON.message :
+                        'Gagal ambil history.';
                     toastr.error(msg);
                 }
             });
         });
-
     </script>
 
 

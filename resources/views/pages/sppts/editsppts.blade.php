@@ -243,26 +243,33 @@
                             </div> --}}
 
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
+                                    Type</label>
 
                                 <div class="flex w-full">
                                     @php
                                         $selectedRT = old('requesttypeid', $sppt->requesttypeid);
                                         // sesuaikan relasi/nama field kamu:
-                                        $selectedRTName = old('requesttype_name', $sppt->requesttype_name ?? optional($sppt->requestType)->requesttype_name ?? '');
+                                        $selectedRTName = old(
+                                            'requesttype_name',
+                                            $sppt->requesttype_name ??
+                                                (optional($sppt->requestType)->requesttype_name ?? ''),
+                                        );
                                     @endphp
 
-                                    <input type="hidden" name="requesttypeid" id="requesttypeid" value="{{ $selectedRT }}">
+                                    <input type="hidden" name="requesttypeid" id="requesttypeid"
+                                        value="{{ $selectedRT }}">
 
                                     <input type="text" id="requesttype_name_display" readonly
                                         value="{{ $selectedRTName }}"
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm ..."
+                                        class="... w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                         placeholder="Select request type...">
 
 
                                     <button type="button" id="btnSearchRequestType"
                                         class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
                                                 clip-rule="evenodd" />
@@ -312,8 +319,16 @@
                                 $tenantId = old('nama_tenant', $sppt->nama_tenant ?? '');
 
                                 // ambil dari relasi tenant
-                                $tenantStoreName = old('tenant_store_name', optional($sppt->tenantname)->store_name ?? '');
-                                $tenantUnitLabel = old('no_unit_tenant', (optional($sppt->tenantname)->floor_id ?? '') . ' - ' . (optional($sppt->tenantname)->store_no ?? ''));
+                                $tenantStoreName = old(
+                                    'tenant_store_name',
+                                    optional($sppt->tenantname)->store_name ?? '',
+                                );
+                                $tenantUnitLabel = old(
+                                    'no_unit_tenant',
+                                    (optional($sppt->tenantname)->floor_id ?? '') .
+                                        ' - ' .
+                                        (optional($sppt->tenantname)->store_no ?? ''),
+                                );
 
                                 $tenantUnitLabel = trim($tenantUnitLabel, ' -');
                             @endphp
@@ -331,21 +346,15 @@
 
                                 <div class="flex w-full">
                                     {{-- display readonly --}}
-                                    <input type="text"
-                                        id="tenant_name_display"
-                                        readonly
+                                    <input type="text" id="tenant_name_display" readonly
                                         value="{{ $tenantStoreName }}"
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
-                                            focus:border-indigo-500 focus:ring-indigo-500
-                                            dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Select tenant...">
 
-                                    <button type="button"
-                                        id="btnSearchTenant"
-                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600
-                                            hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500
-                                            dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <button type="button" id="btnSearchTenant"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
                                                 clip-rule="evenodd" />
@@ -381,7 +390,9 @@
                                         </option>
                                     @endif
                                 </select> --}}
-                                <input type="text" name="pic_pengawas" class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" value="{{ $sppt->pic_pengawas }}" placeholder="PIC" required />
+                                <input type="text" name="pic_pengawas"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    value="{{ $sppt->pic_pengawas }}" placeholder="PIC" required />
                             </div>
 
                             <!-- Status -->
@@ -453,7 +464,8 @@
 
                             <!-- Description -->
                             <div class="flex flex-col gap-2 lg:col-span-4">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <label
+                                    class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                                 <textarea id="keperluan" name="keperluan" rows="3" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $sppt->keperluan }}</textarea>
                             </div>
@@ -831,7 +843,7 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2">UoM</th>
                                             <th class="border p-2">Category</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -890,8 +902,10 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="rtCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="rtPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="rtNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button id="rtPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="rtNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -1233,22 +1247,31 @@
                             </button>
                         </details>
 
-                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                        <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Back</span>
+                            </button>
                             <!-- Cancel Button-->
-                            <div class="flex justify-start">
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                 <button type="button" id="cancelBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                                     <span id="cancelText">Cancel Document</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
-                            </div>
-                            <div class="flex justify-start md:justify-end">
                                 <button type="submit" id="submitBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -3138,14 +3161,14 @@
         });
     </script>
 
-     <script>
-        $(function () {
+    <script>
+        $(function() {
             const DOCTYPE = 'SPPT';
 
             const $rtModal = $('#requestTypeModal');
             const $rtTbody = $('#rtTableBody');
             const $rtCount = $('#rtCount');
-            const $rtDoc   = $('#rtDocBadge');
+            const $rtDoc = $('#rtDocBadge');
 
             let rtState = {
                 search: '',
@@ -3173,31 +3196,31 @@
             $('#btnSearchRequestType').on('click', openRtModal);
             $('#closeRequestTypeModal').on('click', closeRtModal);
 
-            $(document).on('keydown', function (e) {
+            $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && $rtModal.is(':visible')) closeRtModal();
             });
 
-            $('#rtSearch').on('input', function () {
+            $('#rtSearch').on('input', function() {
                 rtState.search = $(this).val().trim();
                 rtState.page = 1;
                 loadRequestTypes();
             });
 
-            $('#rtRefresh').on('click', function () {
+            $('#rtRefresh').on('click', function() {
                 $('#rtSearch').val('');
                 rtState.search = '';
                 rtState.page = 1;
                 loadRequestTypes();
             });
 
-            $('#rtPrev').on('click', function () {
+            $('#rtPrev').on('click', function() {
                 if (rtState.page > 1) {
                     rtState.page--;
                     loadRequestTypes();
                 }
             });
 
-            $('#rtNext').on('click', function () {
+            $('#rtNext').on('click', function() {
                 const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
                 if (rtState.page < maxPage) {
                     rtState.page++;
@@ -3209,24 +3232,24 @@
                 $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
 
                 $.getJSON("{{ route('requesttypes.byDoctype') }}", {
-                    doctype: rtState.doctype,
-                    search: rtState.search,
-                    page: rtState.page,
-                    per_page: rtState.per_page
-                })
-                .done(function (res) {
-                    // support 2 kemungkinan response:
-                    // A) {data:[...], total:..}
-                    // B) {data:{data:[...], total:..}} (Laravel paginator default)
-                    const payload = res.data?.data ? res.data : res; // detect paginator shape
-                    const list = (payload.data || []);
-                    rtState.total = payload.total || 0;
+                        doctype: rtState.doctype,
+                        search: rtState.search,
+                        page: rtState.page,
+                        per_page: rtState.per_page
+                    })
+                    .done(function(res) {
+                        // support 2 kemungkinan response:
+                        // A) {data:[...], total:..}
+                        // B) {data:{data:[...], total:..}} (Laravel paginator default)
+                        const payload = res.data?.data ? res.data : res; // detect paginator shape
+                        const list = (payload.data || []);
+                        rtState.total = payload.total || 0;
 
-                    const rowsArr = list.map(item => {
-                        const id = item.requesttypeid ?? item.id ?? '';
-                        const name = item.requesttype_name ?? item.name ?? id;
+                        const rowsArr = list.map(item => {
+                            const id = item.requesttypeid ?? item.id ?? '';
+                            const name = item.requesttype_name ?? item.name ?? id;
 
-                        return `
+                            return `
                             <tr>
                                 <td class="border p-2">${id}</td>
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
@@ -3240,26 +3263,29 @@
                                 </td>
                             </tr>
                         `;
+                        });
+
+                        $rtTbody.html(rowsArr.join('') ||
+                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                        const showing = list.length;
+                        $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
+
+                        const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                        $('#rtPrev').prop('disabled', rtState.page <= 1);
+                        $('#rtNext').prop('disabled', rtState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $rtTbody.html(
+                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $rtCount.text('');
+                        $('#rtPrev, #rtNext').prop('disabled', true);
                     });
-
-                    $rtTbody.html(rowsArr.join('') || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
-
-                    const showing = list.length;
-                    $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
-
-                    const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
-                    $('#rtPrev').prop('disabled', rtState.page <= 1);
-                    $('#rtNext').prop('disabled', rtState.page >= maxPage);
-                })
-                .fail(function () {
-                    $rtTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                    $rtCount.text('');
-                    $('#rtPrev, #rtNext').prop('disabled', true);
-                });
             }
 
             // choose -> set value ke form
-            $(document).on('click', '.chooseRequestType', function () {
+            $(document).on('click', '.chooseRequestType', function() {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
 
@@ -3270,17 +3296,17 @@
                 $('#requesttype_name_display').removeClass('is-invalid').next('.error-feedback').remove();
 
                 closeRtModal();
-            });          
+            });
 
         });
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $tenantModal = $('#tenantModal');
             const $tenantTbody = $('#tenantTableBody');
             const $tenantCount = $('#tenantCount');
-            const $tenantCpny  = $('#tenantCpnyBadge');
+            const $tenantCpny = $('#tenantCpnyBadge');
 
             let tenantState = {
                 search: '',
@@ -3317,31 +3343,31 @@
             $('#btnSearchTenant').on('click', openTenantModal);
             $('#closeTenantModal').on('click', closeTenantModal);
 
-            $(document).on('keydown', function (e) {
+            $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && $tenantModal.is(':visible')) closeTenantModal();
             });
 
-            $('#tenantSearch').on('input', function () {
+            $('#tenantSearch').on('input', function() {
                 tenantState.search = $(this).val().trim();
                 tenantState.page = 1;
                 loadTenants();
             });
 
-            $('#tenantRefresh').on('click', function () {
+            $('#tenantRefresh').on('click', function() {
                 $('#tenantSearch').val('');
                 tenantState.search = '';
                 tenantState.page = 1;
                 loadTenants();
             });
 
-            $('#tenantPrev').on('click', function () {
+            $('#tenantPrev').on('click', function() {
                 if (tenantState.page > 1) {
                     tenantState.page--;
                     loadTenants();
                 }
             });
 
-            $('#tenantNext').on('click', function () {
+            $('#tenantNext').on('click', function() {
                 const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
                 if (tenantState.page < maxPage) {
                     tenantState.page++;
@@ -3360,22 +3386,22 @@
                 $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
 
                 $.getJSON("{{ route('tenants.search') }}", {
-                    q: tenantState.search,
-                    page: tenantState.page,
-                    per_page: tenantState.per_page,
-                    cpnyid: tenantState.cpnyid
-                })
-                .done(function (res) {
-                    const list = (res.data || []);
-                    tenantState.total = res.total || 0;
+                        q: tenantState.search,
+                        page: tenantState.page,
+                        per_page: tenantState.per_page,
+                        cpnyid: tenantState.cpnyid
+                    })
+                    .done(function(res) {
+                        const list = (res.data || []);
+                        tenantState.total = res.total || 0;
 
-                    const rows = list.map(it => {
-                        const id = it.id ?? '';
-                        const name = it.text ?? it.store_name ?? it.name ?? '';
-                        const unitLabel = it.unit_label ?? it.unit ?? it.unit_name ?? '';
-                        const unitId = it.unit_id ?? it.unit ?? '';
+                        const rows = list.map(it => {
+                            const id = it.id ?? '';
+                            const name = it.text ?? it.store_name ?? it.name ?? '';
+                            const unitLabel = it.unit_label ?? it.unit ?? it.unit_name ?? '';
+                            const unitId = it.unit_id ?? it.unit ?? '';
 
-                        return `
+                            return `
                             <tr>
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
                                 <td class="border p-2">${$('<div>').text(unitLabel).html()}</td>
@@ -3391,26 +3417,29 @@
                                 </td>
                             </tr>
                         `;
-                    }).join('');
+                        }).join('');
 
-                    $tenantTbody.html(rows || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+                        $tenantTbody.html(rows ||
+                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
 
-                    const showing = list.length;
-                    $tenantCount.text(`Showing ${showing} of ${tenantState.total} items`);
+                        const showing = list.length;
+                        $tenantCount.text(`Showing ${showing} of ${tenantState.total} items`);
 
-                    const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
-                    $('#tenantPrev').prop('disabled', tenantState.page <= 1);
-                    $('#tenantNext').prop('disabled', tenantState.page >= maxPage);
-                })
-                .fail(function () {
-                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load tenant</td></tr>');
-                    $tenantCount.text('');
-                    $('#tenantPrev, #tenantNext').prop('disabled', true);
-                });
+                        const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
+                        $('#tenantPrev').prop('disabled', tenantState.page <= 1);
+                        $('#tenantNext').prop('disabled', tenantState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $tenantTbody.html(
+                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load tenant</td></tr>'
+                        );
+                        $tenantCount.text('');
+                        $('#tenantPrev, #tenantNext').prop('disabled', true);
+                    });
             }
 
             // Choose → isi field seperti select2 dulu
-            $(document).on('click', '.chooseTenant', function () {
+            $(document).on('click', '.chooseTenant', function() {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
                 const unitLabel = $(this).data('unit_label');
@@ -3429,7 +3458,7 @@
             });
 
             // Kalau company berubah → kosongkan tenant yang sudah dipilih (biar konsisten)
-            $('select[name="cpnyid"]').on('change', function () {
+            $('select[name="cpnyid"]').on('change', function() {
                 $('#tenant_id').val('');
                 $('#nama_tenant').val('');
                 $('#unit_id').val('');
@@ -3440,14 +3469,14 @@
     </script>
 
     <script>
-        $(function () {
-            $('#cancelBtn').on('click', function (e) {
-                e.preventDefault();   // jaga-jaga
-                e.stopPropagation();  // biar gak bubble ke form
+        $(function() {
+            $('#cancelBtn').on('click', function(e) {
+                e.preventDefault(); // jaga-jaga
+                e.stopPropagation(); // biar gak bubble ke form
 
                 Swal.fire({
                     title: 'Cancel Document?',
-                    text: 'Document akan di-cancel dan status menjadi X.',
+                    text: 'Document akan di-cancel.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, Cancel',
@@ -3470,23 +3499,26 @@
                             _method: "PUT",
                             _token: "{{ csrf_token() }}"
                         },
-                        success: function (res) {
+                        success: function(res) {
                             if (res?.success) {
                                 Swal.fire({
                                     title: 'Canceled',
-                                    text: res.message || 'Document canceled (status X).',
+                                    text: res.message || 'Document canceled.',
                                     icon: 'success'
                                 }).then(() => {
-                                    window.location.href = "{{ route('sppjs') }}";
+                                    window.location.href =
+                                        "{{ route('sppjs') }}";
                                 });
                             } else {
-                                Swal.fire('Failed', res?.message || 'Failed to cancel document.', 'error');
+                                Swal.fire('Failed', res?.message ||
+                                    'Failed to cancel document.', 'error');
                             }
                         },
-                        error: function (xhr) {
-                            Swal.fire('Error', xhr.responseJSON?.message || 'Failed to cancel document.', 'error');
+                        error: function(xhr) {
+                            Swal.fire('Error', xhr.responseJSON?.message ||
+                                'Failed to cancel document.', 'error');
                         },
-                        complete: function () {
+                        complete: function() {
                             hideOverlay();
                             $('#cancelBtn').prop('disabled', false);
                             $('#cancelText').text('Cancel Document');

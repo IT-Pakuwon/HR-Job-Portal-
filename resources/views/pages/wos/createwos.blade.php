@@ -140,7 +140,8 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
-                                            {{ $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>{{ $p->cpny_id }}
+                                            {{ $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>
+                                            {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -193,11 +194,11 @@
                                         placeholder="Pilih Worktype & Subworktype">
                                     {{-- <button id="btnJenisPekerjaan" type="button"
                                         class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
-                                        <button type="button" id="btnJenisPekerjaan"
-                                            class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            title="Lookup">
-                                            🔎
-                                        </button>
+                                    <button type="button" id="btnJenisPekerjaan"
+                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Lookup">
+                                        🔎
+                                    </button>
                                 </div>
                                 <input type="hidden" name="worktypeid" id="worktypeid">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
@@ -265,7 +266,7 @@
                                 </select>
                             </div>
 
-                            
+
                         </div>
 
                         <!-- COA -->
@@ -468,25 +469,22 @@
                             </button>
                         </details>
 
-                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
-                            <!-- Cancel Button-->
-                            <div class="flex justify-start">
-                                <button id="cancelBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                    <span id="cancelText">Cancel</span>
-                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                        </path>
-                                    </svg>
-                                </button>
-                            </div>
+                        <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+
+                                <span>Back</span>
+                            </button>
+
                             <div class="flex justify-start md:justify-end">
                                 <button type="submit" id="submitBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -785,7 +783,7 @@
                     return;
                 }
 
-                
+
 
                 $('#submitBtn').prop('disabled', true);
                 $('#cancelBtn').prop('disabled', true);

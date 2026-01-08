@@ -135,11 +135,9 @@
                                     class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                     ID
                                 </span>
-                                {{ $imbudget->imbudgetid }} - 
-                                <a href="{{ url('/showcs/' . $eidcs) }}"
-                                    target="_blank"
-                                    class="w-full rounded-lg border border-gray-300 bg-indigo-50 p-2.5 text-indigo-700 font-semibold
-                                        hover:underline dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-400">
+                                {{ $imbudget->imbudgetid }} -
+                                <a href="{{ url('/showcs/' . $eidcs) }}" target="_blank"
+                                    class="w-full rounded-lg border border-gray-300 bg-indigo-50 p-2.5 font-semibold text-indigo-700 hover:underline dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-400">
                                     {{ $imbudget->csid }}
                                 </a>
                             </h2>
@@ -155,8 +153,7 @@
                                 </label>
 
                                 <select disabled
-                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm
-                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed">
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">
                                     <option>{{ $imbudget->cpny_id }}</option>
                                 </select>
 
@@ -171,8 +168,7 @@
                                 </label>
 
                                 <select disabled
-                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm
-                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed">
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">
                                     <option>{{ $imbudget->department_id }}</option>
                                 </select>
 
@@ -185,26 +181,24 @@
                                 </label>
 
                                 <input type="text" disabled
-                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm
-                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed"
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
                                     value="{{ $imbudget->budget_perpost }}">
 
                                 <input type="hidden" name="perpost" value="{{ $imbudget->budget_perpost }}">
                             </div>
-               
+
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
                                 </label>
 
                                 <textarea readonly rows="3"
-                                    class="w-full rounded-lg border border-gray-300 bg-gray-100 p-3 text-gray-700 shadow-sm
-                                        dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed">{{ $imbudget->imbudgetnote }}</textarea>
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-3 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">{{ $imbudget->imbudgetnote }}</textarea>
 
                                 <input type="hidden" name="imbudgetnote" value="{{ $imbudget->imbudgetnote }}">
                             </div>
 
-                            
+
                         </div>
                     </div>
 
@@ -420,11 +414,23 @@
                             </button>
                         </details>
 
-                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
+                        <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+
+                                <span>Back</span>
+                            </button>
+
                             <!-- Cancel Button-->
-                            <div class="flex justify-start">
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                 <button id="cancelBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                                     <span id="cancelText">Cancel</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -435,10 +441,8 @@
                                         </path>
                                     </svg>
                                 </button>
-                            </div>
-                            <div class="flex justify-start md:justify-end">
                                 <button type="submit" id="submitBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

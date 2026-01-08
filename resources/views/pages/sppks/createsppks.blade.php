@@ -230,7 +230,8 @@
 
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request Type</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
+                                    Type</label>
 
                                 <div class="flex w-full">
                                     {{-- hidden value yang dikirim ke backend --}}
@@ -243,7 +244,8 @@
 
                                     <button type="button" id="btnSearchRequestType"
                                         class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
                                                 clip-rule="evenodd" />
@@ -281,7 +283,7 @@
                                 </select> --}}
                                 <div class="flex w-full">
                                     {{-- hidden value yang dikirim ke backend --}}
-                                    <input type="hidden" name="no_polisi" id="nopol" value="">                                    
+                                    <input type="hidden" name="no_polisi" id="nopol" value="">
 
                                     {{-- display readonly --}}
                                     <input type="text" id="nopol_display" readonly
@@ -290,7 +292,8 @@
 
                                     <button type="button" id="btnSearchNopol"
                                         class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
                                                 clip-rule="evenodd" />
@@ -365,7 +368,8 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPPK Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span
+                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
                                         class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
@@ -573,7 +577,7 @@
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
-                                            <th class="border p-2">UoM</th>                   
+                                            <th class="border p-2">UoM</th>
                                             <th class="border p-2">Category</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -632,24 +636,29 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="rtCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="rtPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="rtNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button id="rtPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="rtNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- ===== Modal Lookup No. Polisi ===== -->
-                    <div id="nopolModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                    <div id="nopolModal"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Vehicle (No. Polisi)</h3>
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Vehicle (No. Polisi)
+                                </h3>
                                 <button type="button" id="closeNopolModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="nopolSearch" type="text" placeholder="Search nopol / vehicle name / owner..."
+                                <input id="nopolSearch" type="text"
+                                    placeholder="Search nopol / vehicle name / owner..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="nopolRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
@@ -672,8 +681,10 @@
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="nopolCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="nopolPrev" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="nopolNext" type="button" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button id="nopolPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="nopolNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -869,25 +880,22 @@
                             </button>
                         </details>
 
-                        <div class="grid grid-cols-2 justify-between gap-4 md:flex md:flex-row xl:justify-end">
-                            <!-- Cancel Button-->
-                            <div class="flex justify-start">
-                                <button id="cancelBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                    <span id="cancelText">Cancel</span>
-                                    <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                            stroke="currentColor" stroke-width="4">
-                                        </circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                        </path>
-                                    </svg>
-                                </button>
-                            </div>
+                        <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+
+                                <span>Back</span>
+                            </button>
+
                             <div class="flex justify-start md:justify-end">
                                 <button type="submit" id="submitBtn"
-                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1014,7 +1022,7 @@
                         addError($subN, 'Pilih Sub Location.');
                         rowErr = true;
                     }
-                     if (!locId || !subId) {
+                    if (!locId || !subId) {
                         addError($locDisplay, 'Pilih Location & Sub Location.');
                         rowErr = true;
                     }
@@ -1049,18 +1057,20 @@
             $('#sppkForm').on('submit', function(e) {
                 e.preventDefault();
 
-                const $rtHidden  = $('#requesttypeid');               // hidden input
-                const $rtDisplay = $('#requesttype_name_display');    // readonly display
+                const $rtHidden = $('#requesttypeid'); // hidden input
+                const $rtDisplay = $('#requesttype_name_display'); // readonly display
 
                 if (!$rtHidden.val() || !$rtHidden.val().trim()) {
                     addError($rtDisplay, 'Request Type wajib dipilih.');
                     toastr.error('Request Type wajib dipilih.');
-                    $('html,body').animate({ scrollTop: $rtDisplay.offset().top - 120 }, 300);
+                    $('html,body').animate({
+                        scrollTop: $rtDisplay.offset().top - 120
+                    }, 300);
                     return;
                 }
 
-                const $nopolHidden  = $('#nopol');            // hidden value
-                const $nopolDisplay = $('#nopol_display');    // input display
+                const $nopolHidden = $('#nopol'); // hidden value
+                const $nopolDisplay = $('#nopol_display'); // input display
 
                 if (!$nopolHidden.val() || !$nopolHidden.val().trim()) {
                     addError($nopolDisplay, 'No. Polisi wajib dipilih.');
@@ -2301,13 +2311,13 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const DOCTYPE = 'SPPK';
 
             const $rtModal = $('#requestTypeModal');
             const $rtTbody = $('#rtTableBody');
             const $rtCount = $('#rtCount');
-            const $rtDoc   = $('#rtDocBadge');
+            const $rtDoc = $('#rtDocBadge');
 
             let rtState = {
                 search: '',
@@ -2355,31 +2365,31 @@
             $('#btnSearchRequestType').on('click', openRtModal);
             $('#closeRequestTypeModal').on('click', closeRtModal);
 
-            $(document).on('keydown', function (e) {
+            $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && $rtModal.is(':visible')) closeRtModal();
             });
 
-            $('#rtSearch').on('input', function () {
+            $('#rtSearch').on('input', function() {
                 rtState.search = $(this).val().trim();
                 rtState.page = 1;
                 loadRequestTypes();
             });
 
-            $('#rtRefresh').on('click', function () {
+            $('#rtRefresh').on('click', function() {
                 $('#rtSearch').val('');
                 rtState.search = '';
                 rtState.page = 1;
                 loadRequestTypes();
             });
 
-            $('#rtPrev').on('click', function () {
+            $('#rtPrev').on('click', function() {
                 if (rtState.page > 1) {
                     rtState.page--;
                     loadRequestTypes();
                 }
             });
 
-            $('#rtNext').on('click', function () {
+            $('#rtNext').on('click', function() {
                 const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
                 if (rtState.page < maxPage) {
                     rtState.page++;
@@ -2391,24 +2401,24 @@
                 $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
 
                 $.getJSON("{{ route('requesttypes.byDoctype') }}", {
-                    doctype: rtState.doctype,
-                    search: rtState.search,
-                    page: rtState.page,
-                    per_page: rtState.per_page
-                })
-                .done(function (res) {
-                    // support 2 kemungkinan response:
-                    // A) {data:[...], total:..}
-                    // B) {data:{data:[...], total:..}} (Laravel paginator default)
-                    const payload = res.data?.data ? res.data : res; // detect paginator shape
-                    const list = (payload.data || []);
-                    rtState.total = payload.total || 0;
+                        doctype: rtState.doctype,
+                        search: rtState.search,
+                        page: rtState.page,
+                        per_page: rtState.per_page
+                    })
+                    .done(function(res) {
+                        // support 2 kemungkinan response:
+                        // A) {data:[...], total:..}
+                        // B) {data:{data:[...], total:..}} (Laravel paginator default)
+                        const payload = res.data?.data ? res.data : res; // detect paginator shape
+                        const list = (payload.data || []);
+                        rtState.total = payload.total || 0;
 
-                    const rowsArr = list.map(item => {
-                        const id = item.requesttypeid ?? item.id ?? '';
-                        const name = item.requesttype_name ?? item.name ?? id;
+                        const rowsArr = list.map(item => {
+                            const id = item.requesttypeid ?? item.id ?? '';
+                            const name = item.requesttype_name ?? item.name ?? id;
 
-                        return `
+                            return `
                             <tr>
                                 <td class="border p-2">${id}</td>
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
@@ -2422,26 +2432,29 @@
                                 </td>
                             </tr>
                         `;
+                        });
+
+                        $rtTbody.html(rowsArr.join('') ||
+                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+
+                        const showing = list.length;
+                        $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
+
+                        const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
+                        $('#rtPrev').prop('disabled', rtState.page <= 1);
+                        $('#rtNext').prop('disabled', rtState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $rtTbody.html(
+                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $rtCount.text('');
+                        $('#rtPrev, #rtNext').prop('disabled', true);
                     });
-
-                    $rtTbody.html(rowsArr.join('') || '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
-
-                    const showing = list.length;
-                    $rtCount.text(`Showing ${showing} of ${rtState.total} items`);
-
-                    const maxPage = Math.ceil((rtState.total || 0) / rtState.per_page) || 1;
-                    $('#rtPrev').prop('disabled', rtState.page <= 1);
-                    $('#rtNext').prop('disabled', rtState.page >= maxPage);
-                })
-                .fail(function () {
-                    $rtTbody.html('<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                    $rtCount.text('');
-                    $('#rtPrev, #rtNext').prop('disabled', true);
-                });
             }
 
             // choose -> set value ke form
-            $(document).on('click', '.chooseRequestType', function () {
+            $(document).on('click', '.chooseRequestType', function() {
                 const id = $(this).data('id');
                 const name = $(this).data('name');
 
@@ -2452,13 +2465,13 @@
                 $('#requesttype_name_display').removeClass('is-invalid').next('.error-feedback').remove();
 
                 closeRtModal();
-            });          
+            });
 
         });
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $modal = $('#nopolModal');
             const $tbody = $('#nopolTableBody');
             const $count = $('#nopolCount');
@@ -2487,31 +2500,31 @@
             $('#btnSearchNopol').on('click', openModal);
             $('#closeNopolModal').on('click', closeModal);
 
-            $(document).on('keydown', function (e) {
+            $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && $modal.is(':visible')) closeModal();
             });
 
-            $('#nopolSearch').on('input', function () {
+            $('#nopolSearch').on('input', function() {
                 state.search = $(this).val().trim();
                 state.page = 1;
                 loadVehicles();
             });
 
-            $('#nopolRefresh').on('click', function () {
+            $('#nopolRefresh').on('click', function() {
                 $('#nopolSearch').val('');
                 state.search = '';
                 state.page = 1;
                 loadVehicles();
             });
 
-            $('#nopolPrev').on('click', function () {
+            $('#nopolPrev').on('click', function() {
                 if (state.page > 1) {
                     state.page--;
                     loadVehicles();
                 }
             });
 
-            $('#nopolNext').on('click', function () {
+            $('#nopolNext').on('click', function() {
                 const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
                 if (state.page < maxPage) {
                     state.page++;
@@ -2523,20 +2536,20 @@
                 $tbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
 
                 $.getJSON("{{ route('kendaraan.all') }}", {
-                    search: state.search,
-                    page: state.page,
-                    per_page: state.per_page
-                })
-                .done(function (res) {
-                    const list = Array.isArray(res?.data) ? res.data : [];
-                    state.total = res.total || 0;
+                        search: state.search,
+                        page: state.page,
+                        per_page: state.per_page
+                    })
+                    .done(function(res) {
+                        const list = Array.isArray(res?.data) ? res.data : [];
+                        state.total = res.total || 0;
 
-                    const rows = list.map(item => {
-                        const nopol = (item.no_polisi || '').toString();
-                        const nama  = (item.namakendaraan || '').toString();
-                        const own   = (item.pemilikkendaraan || '').toString();
+                        const rows = list.map(item => {
+                            const nopol = (item.no_polisi || '').toString();
+                            const nama = (item.namakendaraan || '').toString();
+                            const own = (item.pemilikkendaraan || '').toString();
 
-                        return `
+                            return `
                             <tr>
                                 <td class="border p-2">${nopol}</td>
                                 <td class="border p-2">${$('<div>').text(nama).html()}</td>
@@ -2552,28 +2565,30 @@
                                 </td>
                             </tr>
                         `;
-                    }).join('');
+                        }).join('');
 
-                    $tbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        $tbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
 
-                    $count.text(`Showing ${list.length} of ${state.total} items`);
+                        $count.text(`Showing ${list.length} of ${state.total} items`);
 
-                    const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
-                    $('#nopolPrev').prop('disabled', state.page <= 1);
-                    $('#nopolNext').prop('disabled', state.page >= maxPage);
-                })
-                .fail(function () {
-                    $tbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                    $count.text('');
-                    $('#nopolPrev, #nopolNext').prop('disabled', true);
-                });
+                        const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
+                        $('#nopolPrev').prop('disabled', state.page <= 1);
+                        $('#nopolNext').prop('disabled', state.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $tbody.html(
+                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $count.text('');
+                        $('#nopolPrev, #nopolNext').prop('disabled', true);
+                    });
             }
 
             // Choose -> set ke form header
-            $(document).on('click', '.chooseNopol', function () {
+            $(document).on('click', '.chooseNopol', function() {
                 const nopol = $(this).data('nopol') || '';
-                const nama  = $(this).data('nama')  || '';
-                const own   = $(this).data('own')   || '';
+                const nama = $(this).data('nama') || '';
+                const own = $(this).data('own') || '';
 
                 // hidden untuk backend
                 $('#nopol').val(nopol);
