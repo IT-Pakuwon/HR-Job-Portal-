@@ -15,6 +15,16 @@
             /* Optional: Ensure the header is above the body content when scrolling */
             z-index: 10;
         }
+
+        /* Tailwind + DataTables FixedColumns hard fix */
+        .dataTables_scrollBody {
+            overflow-x: auto !important;
+        }
+
+        .dataTables_scrollHeadInner,
+        .dataTables_scrollBody table {
+            width: 100% !important;
+        }
     </style>
     <style>
         /* Overlay full-screen */
@@ -409,8 +419,8 @@
                 </header>
 
                 <!-- scrollable container -->
-                <div class="table-container max-h-[31.5rem] min-h-[15rem] flex-grow overflow-y-auto">
-                    <table class="sticky-header w-full text-sm dark:text-gray-200">
+                <div class="relative overflow-x-auto">
+                    <table id="budget-table" class="display nowrap w-full">
                         <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th class="px-4 py-2">Account</th>
@@ -534,6 +544,24 @@
     </script>
 
     <script>
+        $(document).ready(function() {
+            const table = $('#budget-table').DataTable({
+                scrollX: true,
+                scrollY: 300,
+                scrollCollapse: true,
+
+                fixedColumns: {
+                    leftColumns: 7
+                },
+
+                searching: false,
+                paging: false,
+                lengthChange: false,
+                autoWidth: false
+            });
+        });
+
+
         $(document).ready(function() {
             const budget_id = "{{ $budget->budget_id }}";
             const doctype = "BD";
