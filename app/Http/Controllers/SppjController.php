@@ -2034,7 +2034,7 @@ class SppjController extends Controller
             ->where('status','A')        
             ->get();    
     
-        return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail','canEdit'));
+        return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail','canEdit','hash'));
     }
 
     public function editBQ($id)
@@ -2089,13 +2089,7 @@ class SppjController extends Controller
             ])
             ->where('sppjid', $sppj->sppjid)
             ->get();
-
-        // Approval list (non-cancelled)
-        // $approval = T_approval::where('docid', $sppj->sppjid)
-        //     ->where('status', '<>', 'X')
-        //     ->orderBy('aprvid')
-        //     ->orderBy('created_at')
-        //     ->get();
+   
         $approval = TrApproval::query()
             ->where('refnbr', $sppj->sppjid)          // dulu: docid
             ->where('status', '<>', 'X')           
@@ -2106,7 +2100,7 @@ class SppjController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $sppj->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $sppj->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($sppj->status) {
@@ -2132,9 +2126,7 @@ class SppjController extends Controller
             'doc_type'            => 'SPPJ',
             'docid'               => $sppj->sppjid,
             'department_id'       => $sppj->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
+            'cpnyname'            => optional($company)->cpny_name,           
             // identitas & tanggal
             'created_by_username' => $sppj->created_by,
             'created_by_name'     => ucwords(strtolower(optional($sppj->creator)->name)),
@@ -2747,6 +2739,50 @@ class SppjController extends Controller
         }
     }
 
+    public function printBQ($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+        
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil SPPJ + relasi yang dibutuhkan
+        $bq = Bq::findOrFail($id);
+
+        // Detail baris SPPJ
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->get();
+            
+        $sppj = TrSPPJ::where('sppjid', $bq->sppjtid)
+            ->first();       
+       
+        $company = MsCompany::where('cpny_id', $bq->cpny_id)->first();
+        
+        $data = [
+            'title'               => 'Bills of Quantities (BQ)',
+            'doc_type'            => 'BQ',
+            'cpny_id'             => $company->cpny_id,           
+            'cpny_name'           => $company->cpny_name, 
+            'keperluan'           => $sppj->keperluan,
+        ];
+
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.sppjs.pdfbq_sppj',
+            array_merge($data, [
+                'bq'             => $bq,
+                'bqdetail'         => $bqdetail,               
+            ])
+        );
+
+        // Portrait jika <= 5 approver, else landscape
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->stream("pdfbq_sppj_{$bq->bqid}.pdf");
+    }
 
 
 

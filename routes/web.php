@@ -535,6 +535,7 @@ Route::post('/logout', function () {
         Route::get('/pdf_sppjs/{hash}', [SppjController::class, 'printSppj']);        
         // BQ (Bill of Quantity) VIEW
         Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
+        Route::get('/pdf_bq/{hash}', [SppjController::class, 'printBQ']);
     });
 
     Route::middleware('access:SPPJ,CREATE')->group(function () {
@@ -594,7 +595,8 @@ Route::post('/logout', function () {
         Route::get('/sppts/{id}/tracking', [SpptController::class, 'tracking'])->name('sppts.tracking');
         Route::get('/pdf_sppts/{hash}', [SpptController::class, 'printSppt']);
         // BQ VIEW
-        Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);       
+        Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);    
+        Route::get('/pdf_bq/{hash}', [SpptController::class, 'printBQ']);   
     });
 
     Route::middleware('access:SPPT,CREATE')->group(function () {

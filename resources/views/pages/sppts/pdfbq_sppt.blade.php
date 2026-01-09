@@ -97,7 +97,7 @@
                 <td>{{ ucwords(strtolower(optional($bq->creator)->name)) }}</td>
             </tr>
             <tr>
-                <td class="meta-label">SPPJ ID</td>
+                <td class="meta-label">SPPT ID</td>
                 <td>{{ $bq->sppjtid }}</td>
                 <td class="meta-label">CS ID</td>
                 <td>&nbsp;</td>

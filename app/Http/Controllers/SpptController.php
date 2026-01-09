@@ -2771,6 +2771,50 @@ class SpptController extends Controller
         }
     }
 
+    public function printBQ($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+        
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil SPPJ + relasi yang dibutuhkan
+        $bq = Bq::findOrFail($id);
+
+        // Detail baris SPPJ
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->get();
+            
+        $sppt = TrSPPJ::where('spptid', $bq->sppjtid)
+            ->first();       
+       
+        $company = MsCompany::where('cpny_id', $bq->cpny_id)->first();
+        
+        $data = [
+            'title'               => 'Bills of Quantities (BQ)',
+            'doc_type'            => 'BQ',
+            'cpny_id'             => $company->cpny_id,           
+            'cpny_name'           => $company->cpny_name, 
+            'keperluan'           => $sppt->keperluan,
+        ];
+
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.sppts.pdfbq_sppt',
+            array_merge($data, [
+                'bq'             => $bq,
+                'bqdetail'         => $bqdetail,               
+            ])
+        );
+
+        // Portrait jika <= 5 approver, else landscape
+        $pdf->setPaper('A4');
+
+        return $pdf->stream("pdfbq_sppt_{$bq->bqid}.pdf");
+    }
 
 
 
