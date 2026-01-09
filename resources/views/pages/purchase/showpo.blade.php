@@ -140,8 +140,7 @@
                     $po->status !== 'R' &&
                     $po->status !== 'C'
                 ) {
-                    $canShowCompletedBtn = collect($podetail)
-                        ->contains(fn($d) => (float)($d->qty_received ?? 0) > 0);
+                    $canShowCompletedBtn = collect($podetail)->contains(fn($d) => (float) ($d->qty_received ?? 0) > 0);
                 }
             @endphp
 
@@ -173,23 +172,23 @@
                     @if ($po->status !== 'H')
                         <button id="cancelBtn"
                             class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor" class="h-4 w-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M7.498 15.25H4.372c-1.026 0-1.945-.694-2.054-1.715a12.137 12.137 0 0 1-.068-1.285c0-2.848.992-5.464 2.649-7.521C5.287 4.247 5.886 4 6.504 4h4.016a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23h1.294M7.498 15.25c.618 0 .991.724.725 1.282A7.471 7.471 0 0 0 7.5 19.75 2.25 2.25 0 0 0 9.75 22a.75.75 0 0 0 .75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 0 0 2.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384m-10.253 1.5H9.7m8.075-9.75c.01.05.027.1.05.148.593 1.2.925 2.55.925 3.977 0 1.487-.36 2.89-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713-.518 1.972-1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398-.306.774-1.086 1.227-1.918 1.227h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 0 0 .303-.54" />
                             </svg>
                             Cancel
-                        </button>       
-                        @if ($po->send_email == false || $po->send_email === null)             
-                        <button id="sendEmailBtn"
-                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 17.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.02 1.9l-6.75 4.5a2.25 2.25 0 0 1-2.46 0l-6.75-4.5a2.25 2.25 0 0 1-1.02-1.9V6.75" />
-                            </svg>
-                            Send Email
                         </button>
+                        @if ($po->send_email == false || $po->send_email === null)
+                            <button id="sendEmailBtn"
+                                class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 17.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.02 1.9l-6.75 4.5a2.25 2.25 0 0 1-2.46 0l-6.75-4.5a2.25 2.25 0 0 1-1.02-1.9V6.75" />
+                                </svg>
+                                Send Email
+                            </button>
                         @endif
                     @endif
                     @if ($canShowCompletedBtn)
@@ -579,62 +578,105 @@
                                                                 Work Execution Time
                                                             </label>
 
-                                                            <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+                                                            <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
+                                                                @php
+                                                                    $days = [
+                                                                        'Monday',
+                                                                        'Tuesday',
+                                                                        'Wednesday',
+                                                                        'Thursday',
+                                                                        'Friday',
+                                                                        'Saturday',
+                                                                        'Sunday',
+                                                                    ];
+                                                                @endphp
+
                                                                 {{-- Day From --}}
-                                                                <div class="flex flex-col md:col-span-2">
+                                                                <div class="flex flex-col md:col-span-3">
                                                                     <label
-                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-400">
                                                                         Day (From)
                                                                     </label>
-                                                                    <input type="text" name="work_day_from"
-                                                                        id="work_day_from"
-                                                                        value="{{ old('work_day_from') }}"
-                                                                        placeholder="Senin"
-                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                    <select name="work_day_from" id="work_day_from"
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                        <option value="">Select day</option>
+                                                                        @foreach ($days as $day)
+                                                                            <option value="{{ $day }}"
+                                                                                {{ old('work_day_from') === $day ? 'selected' : '' }}>
+                                                                                {{ $day }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
                                                                 </div>
 
                                                                 {{-- Day To --}}
-                                                                <div class="flex flex-col md:col-span-2">
+                                                                <div class="flex flex-col md:col-span-3">
                                                                     <label
-                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-400">
                                                                         Day (To)
                                                                     </label>
-                                                                    <input type="text" name="work_day_to"
-                                                                        id="work_day_to"
-                                                                        value="{{ old('work_day_to') }}"
-                                                                        placeholder="Jumat"
-                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                    <select name="work_day_to" id="work_day_to"
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                        <option value="">Select day</option>
+                                                                        @foreach ($days as $day)
+                                                                            <option value="{{ $day }}"
+                                                                                {{ old('work_day_to') === $day ? 'selected' : '' }}>
+                                                                                {{ $day }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
                                                                 </div>
 
-                                                                {{-- Time From --}}
-                                                                <div class="flex flex-col">
+
+                                                                {{-- Start Time --}}
+                                                                <div class="flex flex-col md:col-span-2">
                                                                     <label
-                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                                                                        Time (From)
+                                                                        class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        Start Time
                                                                     </label>
                                                                     <input type="time" name="work_time_from"
                                                                         id="work_time_from"
                                                                         value="{{ old('work_time_from') }}"
-                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 </div>
 
-                                                                {{-- Time To --}}
-                                                                <div class="flex flex-col">
+                                                                {{-- Arrow --}}
+                                                                <div
+                                                                    class="hidden items-end justify-center pb-2 text-gray-400 md:col-span-1 md:flex">
+                                                                    →
+                                                                </div>
+
+                                                                {{-- End Time --}}
+                                                                <div class="flex flex-col md:col-span-2">
                                                                     <label
-                                                                        class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                                                                        Time (To)
+                                                                        class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                                        End Time
                                                                     </label>
                                                                     <input type="time" name="work_time_to"
                                                                         id="work_time_to"
                                                                         value="{{ old('work_time_to') }}"
-                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 </div>
+
+                                                                {{-- 24 Hours --}}
+                                                                <div class="flex items-end pb-2 md:col-span-1">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <input type="checkbox" id="work_time_24"
+                                                                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-0">
+                                                                        <label for="work_time_24"
+                                                                            class="text-sm text-gray-600 dark:text-gray-400">
+                                                                            24h
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+
                                                             </div>
                                                         </div>
 
 
+
                                                         {{-- Payment, Warranty & Man Power (Three Columns Responsive) --}}
-                                                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                             {{-- Total Man Power --}}
                                                             <div>
                                                                 <label
@@ -648,7 +690,7 @@
                                                                     class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                             </div>
                                                             {{-- Payment Method --}}
-                                                            <div>
+                                                            {{-- <div>
                                                                 <label
                                                                     class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                                     Payment Method
@@ -658,7 +700,7 @@
                                                                     value="{{ old('payment_method') }}"
                                                                     placeholder="Enter Payment Method"
                                                                     class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
-                                                            </div>
+                                                            </div> --}}
 
                                                             {{-- Work Warranty --}}
                                                             <div>
@@ -689,8 +731,7 @@
                                                                         Name
                                                                     </label>
                                                                     <input type="text" name="pic_name"
-                                                                        id="pic_name"
-                                                                        value="{{ old('pic_name') }}"
+                                                                        id="pic_name" value="{{ old('pic_name') }}"
                                                                         placeholder="Enter PIC Name"
                                                                         class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                 </div>
@@ -702,8 +743,7 @@
                                                                         Contact Number
                                                                     </label>
                                                                     <input type="text" name="pic_phone"
-                                                                        id="pic_phone"
-                                                                        value="{{ old('pic_phone') }}"
+                                                                        id="pic_phone" value="{{ old('pic_phone') }}"
                                                                         placeholder="Enter Contact Number"
                                                                         class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                 </div>
@@ -1002,6 +1042,25 @@
         // ...
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chk = document.getElementById('work_time_24');
+            const from = document.getElementById('work_time_from');
+            const to = document.getElementById('work_time_to');
+
+            chk.addEventListener('change', () => {
+                if (chk.checked) {
+                    from.value = '00:00';
+                    to.value = '23:59';
+                    from.disabled = true;
+                    to.disabled = true;
+                } else {
+                    from.disabled = false;
+                    to.disabled = false;
+                }
+            });
+        });
+    </script>
 
     <script>
         $(document).ready(function() {
@@ -1233,13 +1292,12 @@
                     // Hanya wajib untuk SPK/Other
                     if (!val('work_date_from')) errors.push({
                         id: 'work_date_from',
-                        msg: 'Dari Tanggal wajib diisi.'
+                        msg: 'Work Start Date wajib diisi.'
                     });
                     if (!val('work_date_to')) errors.push({
                         id: 'work_date_to',
-                        msg: 'Sampai Tanggal wajib diisi.'
+                        msg: 'Work End Date wajib diisi.'
                     });
-
                     const wd = val('work_days');
                     if (!wd) errors.push({
                         id: 'work_days',
@@ -1249,7 +1307,6 @@
                         id: 'work_days',
                         msg: 'Jumlah Hari Kerja harus angka ≥ 0.'
                     });
-
                     if (!val('work_day_from')) errors.push({
                         id: 'work_day_from',
                         msg: 'Hari (Dari) wajib diisi.'
@@ -1266,7 +1323,6 @@
                         id: 'work_time_to',
                         msg: 'Pukul (Sampai) wajib diisi.'
                     });
-
                     const mp = val('manpower_total');
                     if (!mp) errors.push({
                         id: 'manpower_total',
@@ -1276,7 +1332,6 @@
                         id: 'manpower_total',
                         msg: 'Total Man Power harus angka ≥ 0.'
                     });
-
                     if (!val('pic_name')) errors.push({
                         id: 'pic_name',
                         msg: 'Nama PIC wajib diisi.'
@@ -1338,7 +1393,8 @@
                     success(res) {
                         if (res.success) {
                             toastr.success(
-                                'Submit berhasil. Status berubah menjadi Purchase Order (P).');
+                                'Submit berhasil. Status berubah menjadi Purchase Order (P).'
+                            );
                             window.location.href = "/polist";
                         } else {
                             toastr.error(res.message || 'Gagal submit.');
@@ -1875,7 +1931,7 @@
         });
     </script>
 
-    
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 

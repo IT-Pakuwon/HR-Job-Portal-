@@ -31,6 +31,48 @@
             }
         }
 
+        /* Mobile table scroll fix */
+        @media (max-width: 768px) {
+            .overflow-x-auto {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #poTable {
+                min-width: 900px;
+                /* force scroll */
+            }
+        }
+
+        @media (max-width: 640px) {
+            /* Hide low-priority columns */
+            #poTable th:nth-child(3),
+            #poTable td:nth-child(3),
+            /* PO TYPE */
+
+            #poTable th:nth-child(5),
+            #poTable td:nth-child(5),
+            /* DELIVERY DATE */
+
+            #poTable th:nth-child(6),
+            #poTable td:nth-child(6),
+            /* TOTAL */
+
+            #poTable th:nth-child(7),
+            #poTable td:nth-child(7),
+            /* TAX */
+
+            #poTable th:nth-child(8),
+            #poTable td:nth-child(8),
+            /* GRAND TOTAL */
+
+            #poTable th:nth-child(9),
+            #poTable td:nth-child(9) {
+                /* CREATED BY */
+                display: none;
+            }
+        }
+
         /* === DataTables Export Buttons (Cute Style) === */
         .dt-buttons {
             display: flex;
@@ -83,29 +125,6 @@
         .dt-button:active {
             outline: none !important;
             box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-
-        /* Push Search to the far right */
-        .dataTables_filter {
-            margin-left: auto !important;
         }
 
 
@@ -360,62 +379,6 @@
             color: rgb(30 41 59);
         }
 
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
         /* Make toolbar items flex-aligned */
         .dataTables_length,
         .dt-buttons,
@@ -424,12 +387,15 @@
             align-items: center;
         }
 
-
-        /* ✅ Control gap manually */
         .dt-buttons {
-            margin-left: 12px !important;
+            margin-left: 10px !important;
             /* ← adjust: 4–8px is perfect */
             margin-right: 0 !important;
+        }
+
+        /* Push Search to the far right */
+        .dataTables_filter {
+            margin-left: auto !important;
         }
     </style>
 
@@ -713,20 +679,43 @@
                             [10, 25, 50, 100, 250, -1],
                             [10, 25, 50, 100, 250, 'All']
                         ],
+                        responsive: {
+                            details: {
+                                type: 'column',
+                                target: 0, // first column becomes "+"
+                                renderer: function(api, rowIdx, columns) {
+                                    const hidden = columns
+                                        .filter(col => col.hidden)
+                                        .map(col => `
+                    <tr>
+                        <td class="pr-3 font-semibold text-gray-500">${col.title}</td>
+                        <td class="text-gray-700">${col.data}</td>
+                    </tr>
+                `)
+                                        .join('');
+
+                                    return hidden ?
+                                        `<table class="w-full text-sm">${hidden}</table>` :
+                                        false;
+                                }
+                            }
+                        }
+
 
 
                         // 🔥 ADD THIS
                         dom: '<"dt-toolbar"l B f>rtip',
+
                         buttons: [{
                                 extend: 'excelHtml5',
                                 text: '↓ Excel',
                                 title: 'Purchase_Order',
                                 className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                                 exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
+                                   columns: ':visible',
+        modifier: {
+            page: 'current'
+        }
                                 }
                             },
                             {
@@ -735,10 +724,10 @@
                                 title: 'Purchase_Order',
                                 className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                                 exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
+                                   columns: ':visible',
+        modifier: {
+            page: 'current'
+        }
                                 }
                             }
                         ],
@@ -756,9 +745,15 @@
                             }
                         },
                         columns: [{
+                                data: null,
+                                className: 'dt-control text-center',
+                                orderable: false,
+                                defaultContent: '➕'
+                            }, {
                                 data: 'ponbr',
                                 className: 'text-left',
                                 render: (_v, t, row) => renderPONbr(_v, row)
+
                             },
                             {
                                 data: 'podate',

@@ -50,6 +50,336 @@
             /* green-700 */
             color: rgb(21 128 61);
         }
+
+        /* === DataTables Export Buttons (Cute Style) === */
+        .dt-buttons {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .dt-button {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px !important;
+            border-radius: 9999px !important;
+            border: 1px solid transparent !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: all .2s ease-in-out;
+        }
+
+        /* Excel */
+        .dt-button.buttons-excel {
+            background-color: #dcfce7 !important;
+            /* green-100 */
+            color: #166534 !important;
+            /* green-800 */
+            border-color: #86efac !important;
+        }
+
+        .dt-button.buttons-excel:hover {
+            background-color: #bbf7d0 !important;
+        }
+
+        /* CSV */
+        .dt-button.buttons-csv {
+            background-color: #e0f2fe !important;
+            /* sky-100 */
+            color: #075985 !important;
+            /* sky-800 */
+            border-color: #7dd3fc !important;
+        }
+
+        .dt-button.buttons-csv:hover {
+            background-color: #bae6fd !important;
+        }
+
+        /* Remove default DataTables button styles */
+        .dt-button:focus,
+        .dt-button:active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* === Fix spacing between Length & Export buttons === */
+
+        /* Make toolbar items flex-aligned */
+        .dataTables_length,
+        .dt-buttons,
+        .dataTables_filter {
+            display: flex;
+            align-items: center;
+        }
+
+
+        /* ✅ Control gap manually */
+        .dt-buttons {
+            margin-left: 12px !important;
+            /* ← adjust: 4–8px is perfect */
+            margin-right: 0 !important;
+        }
+    </style>
+    <style>
+        /* Kolom kecil */
+        table#applicantsTable td.small-col,
+        table#applicantsTable th.small-col {
+            width: 60px !important;
+            max-width: 60px !important;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+
+    <style>
+        .no-border {
+            border: none !important;
+        }
+
+        .grid {
+            width: 100%;
+        }
+
+        select,
+        textarea,
+        input {
+            width: 100%;
+            /* Make all input elements take full width */
+
+        }
+
+        table.dataTable {
+            width: 100% !important;
+            min-width: 0 !important;
+            table-layout: fixed;
+
+        }
+
+        table.dataTable th,
+        table.dataTable td {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .dataTables_wrapper {
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .dataTables_wrapper {
+                padding: 0 10px;
+            }
+        }
+
+
+        /* Applicant Table */
+        #applicantsTable_filter {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+            /* Aligns items to the left */
+            align-items: center;
+            /* Vertically aligns items */
+        }
+
+        #applicantsTable_filter label {
+            margin-right: 2px;
+        }
+
+        #applicantsTable_filter input {
+            width: 200px;
+            /* Adjust the width of the input box */
+            width: auto;
+            padding: 5px;
+            min-width: 80px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        #applicantsTable_wrapper {
+            width: 100%;
+        }
+
+        /* Prevent text from wrapping */
+        #applicantsTable td {
+            white-space: nowrap;
+            /* Prevent text from wrapping */
+            overflow: hidden;
+            /* Hide overflow content */
+            text-overflow: ellipsis;
+            /* Display ellipsis ("...") for overflowing content */
+        }
+
+        /* Optional: Adjust the width for table cells */
+        #applicantsTable th,
+        #applicantsTable td {
+            padding: 10px;
+            /* Adjust padding for better appearance */
+            max-width: 200px;
+            /* You can set a maximum width to control overflow */
+        }
+
+
+        #applicantsTable_length {
+            width: auto;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        #applicantsTable_length select {
+            width: auto;
+            padding: 5px;
+            min-width: 80px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+
+        }
+
+        #applicantsTable_length select option {
+            padding: 5px;
+            /* Mengatur jarak antar opsi */
+        }
+
+        #applicantsTableinfo {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .dataTables_paginate {
+            margin-top: 10px;
+            margin-bottom: 10px;
+
+        }
+
+        #applicantsTable tbody tr td {
+            padding: 8px 8px;
+            /* Adjust padding for uniform height */
+            line-height: 2;
+            /* Optional, for better text alignment */
+        }
+
+        #applicantsTable tbody tr {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #applicantsTable tbody tr:hover {
+            background-color: #8f8f8f11;
+            opacity: 100%;
+            cursor: pointer;
+        }
+
+        #applicantsTable tbody tr:hover td {
+            /* color: black; */
+        }
+    </style>
+    <style>
+        /* ✅ Custom Switch Button */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+
+        /* ✅ Memperkecil Lebar Kolom Actions */
+        #jobpostingsTable th:nth-child(1),
+        #jobpostingsTable td:nth-child(1) {
+            width: 120px;
+            text-align: center;
+        }
+
+        #jobpostingsTable th:nth-child(4),
+        #jobpostingsTable td:nth-child(4) {
+            width: 120px;
+            text-align: center;
+        }
+
+        #w-full {
+            width: 100% !important;
+        }
+
+        .edu-col.hidden {
+            display: none;
+        }
+
+        /* Header row filter */
+        #applicantsTable thead tr.filters th {
+            padding: 6px 8px;
+        }
+
+        #applicantsTable thead .col-filter {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #applicantsTable thead .input-filter {
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        #applicantsTable thead .select-filter {
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            background: white;
+        }
+
+        .dark #applicantsTable thead .input-filter,
+        .dark #applicantsTable thead .select-filter {
+            background: #374151;
+            color: #e5e7eb;
+            border-color: #4b5563;
+        }
     </style>
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="mt-4 grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
@@ -132,253 +462,6 @@
         </div>
 
         <div class="grid">
-            <style>
-                /* Kolom kecil */
-                table#applicantsTable td.small-col,
-                table#applicantsTable th.small-col {
-                    width: 60px !important;
-                    max-width: 60px !important;
-                    text-align: center;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-            </style>
-
-            <style>
-                .no-border {
-                    border: none !important;
-                }
-
-                .grid {
-                    width: 100%;
-                }
-
-                select,
-                textarea,
-                input {
-                    width: 100%;
-                    /* Make all input elements take full width */
-
-                }
-
-                table.dataTable {
-                    width: 100% !important;
-                    min-width: 0 !important;
-                    table-layout: fixed;
-
-                }
-
-                table.dataTable th,
-                table.dataTable td {
-                    white-space: normal;
-                    word-wrap: break-word;
-                }
-
-                .dataTables_wrapper {
-                    width: 100%;
-                }
-
-                @media (max-width: 600px) {
-                    .dataTables_wrapper {
-                        padding: 0 10px;
-                    }
-                }
-
-
-                /* Applicant Table */
-                #applicantsTable_filter {
-                    margin-bottom: 20px;
-                    display: flex;
-                    justify-content: flex-start;
-                    /* Aligns items to the left */
-                    align-items: center;
-                    /* Vertically aligns items */
-                }
-
-                #applicantsTable_filter label {
-                    margin-right: 2px;
-                }
-
-                #applicantsTable_filter input {
-                    width: 200px;
-                    /* Adjust the width of the input box */
-                }
-
-
-                #applicantsTable_wrapper {
-                    width: 100%;
-                }
-
-                /* Prevent text from wrapping */
-                #applicantsTable td {
-                    white-space: nowrap;
-                    /* Prevent text from wrapping */
-                    overflow: hidden;
-                    /* Hide overflow content */
-                    text-overflow: ellipsis;
-                    /* Display ellipsis ("...") for overflowing content */
-                }
-
-                /* Optional: Adjust the width for table cells */
-                #applicantsTable th,
-                #applicantsTable td {
-                    padding: 10px;
-                    /* Adjust padding for better appearance */
-                    max-width: 200px;
-                    /* You can set a maximum width to control overflow */
-                }
-
-
-                #applicantsTable_length {
-                    width: auto;
-                    display: flex;
-                    justify-content: flex-start;
-                }
-
-                #applicantsTable_length select {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                }
-
-                #applicantsTable_length select option {
-                    padding: 5px;
-                    /* Mengatur jarak antar opsi */
-                }
-
-                #applicantsTableinfo {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                .dataTables_paginate {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-
-                }
-
-                #applicantsTable tbody tr td {
-                    padding: 8px 8px;
-                    /* Adjust padding for uniform height */
-                    line-height: 2;
-                    /* Optional, for better text alignment */
-                }
-
-                #applicantsTable tbody tr {
-                    transition: background-color 0.3s ease, color 0.3s ease;
-                }
-
-                #applicantsTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    opacity: 100%;
-                    cursor: pointer;
-                }
-
-                #applicantsTable tbody tr:hover td {
-                    /* color: black; */
-                }
-            </style>
-            <style>
-                /* ✅ Custom Switch Button */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
-                /* ✅ Memperkecil Lebar Kolom Actions */
-                #jobpostingsTable th:nth-child(1),
-                #jobpostingsTable td:nth-child(1) {
-                    width: 120px;
-                    text-align: center;
-                }
-
-                #jobpostingsTable th:nth-child(4),
-                #jobpostingsTable td:nth-child(4) {
-                    width: 120px;
-                    text-align: center;
-                }
-
-                #w-full {
-                    width: 100% !important;
-                }
-
-                .edu-col.hidden {
-                    display: none;
-                }
-
-                /* Header row filter */
-                #applicantsTable thead tr.filters th {
-                    padding: 6px 8px;
-                }
-
-                #applicantsTable thead .col-filter {
-                    width: 100%;
-                    box-sizing: border-box;
-                }
-
-                #applicantsTable thead .input-filter {
-                    padding: 6px 8px;
-                    border: 1px solid #d1d5db;
-                    border-radius: 6px;
-                    font-size: 12px;
-                }
-
-                #applicantsTable thead .select-filter {
-                    padding: 6px 8px;
-                    border: 1px solid #d1d5db;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    background: white;
-                }
-
-                .dark #applicantsTable thead .input-filter,
-                .dark #applicantsTable thead .select-filter {
-                    background: #374151;
-                    color: #e5e7eb;
-                    border-color: #4b5563;
-                }
-            </style>
             <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
@@ -661,7 +744,39 @@
                         searching: true, // global search tetap bisa
                         paging: true,
                         info: true,
-                        lengthChange: true,
+                        lengthMenu: [
+                            [10, 25, 50, 100, 250, -1],
+                            [10, 25, 50, 100, 250, 'All']
+                        ],
+
+                        // 🔥 ADD THIS
+                        dom: '<"dt-toolbar"l B f>rtip',
+                        buttons: [{
+                                extend: 'excelHtml5',
+                                text: '↓ Excel',
+                                title: 'Purchase_Order',
+                                className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                                exportOptions: {
+                                    columns: ':visible',
+                                    modifier: {
+                                        page: 'current'
+                                    }
+                                }
+                            },
+                            {
+                                extend: 'csvHtml5',
+                                text: '↓ CSV',
+                                title: 'Purchase_Order',
+                                className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                                exportOptions: {
+                                    columns: ':visible',
+                                    modifier: {
+                                        page: 'current'
+                                    }
+                                }
+                            }
+                        ],
+                        // 🔥 END ADD
                         pageLength: 10,
                         orderCellsTop: true, // penting utk 2 baris thead
                         ajax: {

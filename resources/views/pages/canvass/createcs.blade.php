@@ -1049,7 +1049,7 @@
                 const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
                 const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
                 const grand = total * (1 + ppn + pph);
-                $sumCell.find('.sum-grand').text(formatNum(grand));
+                $sumCell.find('.sum-grand').text(formatNum(grand) + ',00');
 
                 // Total baris TERPILIH utk vendor ini
                 let selTotal = 0;
@@ -1066,7 +1066,7 @@
                 // Jika "G.Total Selected" harus termasuk PPN/PPh, pakai ini:
                 const selTax = selTotal * (ppn + pph);
                 const selGrand = selTotal + selTax;
-                $sumCell.find('.sum-selected').text(formatNum(selGrand));
+                $sumCell.find('.sum-selected').text(formatNum(selGrand) + ',00');
 
                 // Kalau mau yang tanpa pajak, ganti baris di atas menjadi:
                 // $sumCell.find('.sum-selected').text(formatNum(selTotal));

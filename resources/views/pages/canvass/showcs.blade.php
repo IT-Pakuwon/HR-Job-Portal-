@@ -250,15 +250,18 @@
                                 $imbUrl = !empty($eid_imbudget) ? url("/showimbudgets/{$eid_imbudget}") : null;
 
                                 $imbLink = $imbUrl
-                                    ? '<a href="' . e($imbUrl) . '" target="_blank" rel="noopener"
+                                    ? '<a href="' .
+                                        e($imbUrl) .
+                                        '" target="_blank" rel="noopener"
                                         class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                        e($cs->imbudgetid) . '</a>'
+                                        e($cs->imbudgetid) .
+                                        '</a>'
                                     : e($cs->imbudgetid);
 
                                 $fields[] = [
-                                    'icon'   => 'banknotes',
-                                    'label'  => 'IM Unbudget',
-                                    'value'  => $imbLink,
+                                    'icon' => 'banknotes',
+                                    'label' => 'IM Unbudget',
+                                    'value' => $imbLink,
                                     'is_raw' => true,
                                 ];
                             }
@@ -267,19 +270,21 @@
                                 $prevUrl = !empty($eid_cs_prev) ? url("/showcs/{$eid_cs_prev}") : null;
 
                                 $prevLink = $prevUrl
-                                    ? '<a href="' . e($prevUrl) . '" target="_blank" rel="noopener"
+                                    ? '<a href="' .
+                                        e($prevUrl) .
+                                        '" target="_blank" rel="noopener"
                                         class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                        e($cs->prev_csid) . '</a>'
+                                        e($cs->prev_csid) .
+                                        '</a>'
                                     : e($cs->prev_csid);
 
                                 $fields[] = [
-                                    'icon'   => 'arrow-uturn-left',
-                                    'label'  => 'Prev CS',
-                                    'value'  => $prevLink,
+                                    'icon' => 'arrow-uturn-left',
+                                    'label' => 'Prev CS',
+                                    'value' => $prevLink,
                                     'is_raw' => true,
                                 ];
                             }
-
 
                             if (in_array($prefix, ['PJ', 'PT'], true) && !empty($cs->bqid)) {
                                 // pakai bqid yang benar dari $cs
@@ -502,39 +507,40 @@
                                     </tbody> --}}
                                     <tbody id="allAttachmentTbody"></tbody>
                                 </table>
-                                @if($canUpload)
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="csAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                            <div class="flex-1">
-                                                <label for="csAttachFiles"
-                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    Upload Attachments (CS)
-                                                </label>
-                                                <div class="flex items-center gap-3">
-                                                    <input type="hidden" name="cpnyid"
-                                                        value="{{ $cs->cpny_id }}">
-                                                    <input type="hidden" name="departementid"
-                                                        value="{{ $cs->department_id }}">
-                                                    <input type="file" id="csAttachFiles" name="attachments[]"
-                                                        multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    <button type="button" id="btnUploadCSAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" id="btnResetCSAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                        Reset
-                                                    </button>
+                                @if ($canUpload)
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="csAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="csAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments (CS)
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $cs->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $cs->department_id }}">
+                                                        <input type="file" id="csAttachFiles" name="attachments[]"
+                                                            multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadCSAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetCSAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">PDF /
+                                                        gambar
+                                                        disarankan.</p>
                                                 </div>
-                                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">PDF / gambar
-                                                    disarankan.</p>
                                             </div>
-                                        </div>
-                                    </form>
-                                </div>
+                                        </form>
+                                    </div>
                                 @endif
                             </div>
 
@@ -567,8 +573,8 @@
                 <header
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
-                     {{-- Button Edit COA --}}
-                        {{-- <button
+                    {{-- Button Edit COA --}}
+                    {{-- <button
                             id="btnEditCoa"
                             class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -753,10 +759,10 @@
                                 </th>
                                 <th class="w-32 px-3 py-2 text-left">
                                     Budget Department
-                                </th>  
+                                </th>
                                 <th class="w-32 px-3 py-2 text-left">
                                     Last Price
-                                </th>                             
+                                </th>
 
                                 @foreach ($vendors as $v)
                                     <th class="align-center px-3 py-2 text-left">
@@ -773,19 +779,33 @@
                                                     </div>
                                                 @endif
                                             </div>
+                                            <!-- WRAPPER -->
+                                            <div class="group relative inline-flex">
 
-                                            <!-- Tooltip -->
-                                            <div class="group relative">
-                                                <span
-                                                    class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
-
+                                                <!-- INFO ICON -->
                                                 <div
-                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-xs shadow-lg group-hover:block">
-                                                    <div><strong>Contact:</strong> {{ $v['vendorcp'] ?: '-' }}</div>
-                                                    <div><strong>Phone:</strong> {{ $v['vendortelp'] ?: '-' }}</div>
-                                                    <div><strong>Address:</strong> {{ $v['vendoralamat'] ?: '-' }}</div>
+                                                    class="flex h-4 w-4 cursor-pointer select-none items-center justify-center rounded-full bg-gray-200 text-[10px] text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                                    i
+                                                </div>
+
+                                                <!-- TOOLTIP -->
+                                                <div
+                                                    class="invisible absolute left-1/2 top-full z-50 mt-2 w-64 max-w-[calc(100vw-1rem)] -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs text-gray-200 opacity-0 shadow-lg transition-opacity duration-150 group-hover:visible group-hover:opacity-100 sm:left-auto sm:right-0 sm:translate-x-0">
+
+                                                    <!-- CONTENT -->
+                                                    <div class="space-y-1 leading-4 text-gray-300">
+                                                        <div>✉️ : {{ $v['vendorcp'] ?: '-' }}</div>
+                                                        <div>☎️ : {{ $v['vendortelp'] ?: '-' }}</div>
+                                                        <div>🏠 : {{ $v['vendoralamat'] ?: '-' }}</div>
+                                                    </div>
+
+                                                    <!-- ARROW -->
+                                                    <div class="absolute -top-1 right-3 h-2 w-2 rotate-45 bg-gray-900">
+                                                    </div>
                                                 </div>
                                             </div>
+
+
                                         </div>
                                     </th>
                                 @endforeach
@@ -809,7 +829,8 @@
                                                                 <span>{{ $row->inventory_descr }}</span>
 
                                                                 @if (!empty($row->csnote_detail))
-                                                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                                    <span
+                                                                        class="text-xs text-gray-500 dark:text-gray-400">
                                                                         Note: {{ $row->csnote_detail }}
                                                                     </span>
                                                                 @endif
@@ -831,11 +852,15 @@
                                                         {{-- Location: location_id - sub_location_id --}}
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             @php
-                                                                $loc  = optional($row->location)->location_name ?? '';
-                                                                $subl = optional($row->subLocation)->sub_location_name ?? '';
+                                                                $loc = optional($row->location)->location_name ?? '';
+                                                                $subl =
+                                                                    optional($row->subLocation)->sub_location_name ??
+                                                                    '';
                                                             @endphp
                                                             @if ($loc || $subl)
-                                                                {{ $loc }}@if($loc && $subl) - @endif{{ $subl }}
+                                                                {{ $loc }}@if ($loc && $subl)
+                                                                    -
+                                                                @endif{{ $subl }}
                                                             @else
                                                                 -
                                                             @endif
@@ -843,10 +868,12 @@
 
                                                         {{-- Budget Department --}}
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ $row->budget_department_fin_id ?? '-' }} - {{ $row->budget_account_id ?? '-' }} - {{ $row->budget_activity_descr }}
-                                                        </td>     
+                                                            {{ $row->budget_department_fin_id ?? '-' }} -
+                                                            {{ $row->budget_account_id ?? '-' }} -
+                                                            {{ $row->budget_activity_descr }}
+                                                        </td>
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ number_format((float)($row->inventory_last_price ?? 0), 2, ',', '.') }}
+                                                            {{ number_format((float) ($row->inventory_last_price ?? 0), 2, ',', '.') }}
                                                             <button type="button"
                                                                 class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                                 title="View Last Price History"
@@ -856,12 +883,12 @@
                                                                 🔍
                                                             </button>
                                                         </td>
-                                                   
+
 
                                                         {{-- Harga per vendor --}}
                                                         @foreach ($vendors as $v)
                                                             @php
-                                                                $i   = $v['i'];
+                                                                $i = $v['i'];
                                                                 $prc = (float) $row->{"vendorprice{$i}"};
                                                                 $tot = (float) $row->{"vendortotalprice{$i}"};
                                                                 $sel = (bool) $row->{"vendor{$i}selected"};
@@ -873,7 +900,8 @@
                                                                         class="w-full rounded border bg-gray-50 px-1 text-right text-sm dark:bg-gray-700"
                                                                         value="{{ number_format($prc, 2, ',', '.') }}">
 
-                                                                    <div class="flex items-center justify-center gap-2">
+                                                                    <div
+                                                                        class="flex items-center justify-center gap-2">
                                                                         <input type="radio"
                                                                             class="h-3 w-3 text-indigo-600"
                                                                             {{ $sel ? 'checked' : '' }} disabled>
@@ -907,28 +935,33 @@
                                     <td class="w-48 space-y-1 px-3 py-2">
                                         <div class="flex justify-between">
                                             <span>Total :</span>
-                                            <span>{{ number_format((float)($v['total'] ?? 0), 2, ',', '.') }}</span>
-                                        </div>
-
-                                        <div class="flex justify-between gap-3">
-                                            <div class="flex justify-between w-1/2">
-                                                <span>PPN :</span>
-                                                <span>{{ number_format((float)($v['ppn'] ?? 0), 2, ',', '.') }}%</span>
-                                            </div>
-                                            <div class="flex justify-between w-1/2">
-                                                <span>PPh :</span>
-                                                <span>{{ number_format((float)($v['pph'] ?? 0), 2, ',', '.') }}%</span>
-                                            </div>
+                                            <span>{{ number_format((float) ($v['total'] ?? 0), 2, ',', '.') }}</span>
                                         </div>
 
                                         <div class="flex justify-between">
+                                            <span>PPN :</span>
+                                            <span>{{ number_format((float) ($v['ppn'] ?? 0), 2, ',', '.') }}%</span>
+                                        </div>
+
+                                        {{-- <div class="flex justify-between gap-3">
+                                            <div class="flex w-1/2 justify-between">
+                                                <span>PPN :</span>
+                                                <span>{{ number_format((float) ($v['ppn'] ?? 0), 2, ',', '.') }}%</span>
+                                            </div>
+                                            <div class="flex w-1/2 justify-between">
+                                                <span>PPh :</span>
+                                                <span>{{ number_format((float) ($v['pph'] ?? 0), 2, ',', '.') }}%</span>
+                                            </div>
+                                        </div> --}}
+
+                                        <div class="flex justify-between">
                                             <span>Grand :</span>
-                                            <span>{{ number_format((float)($v['grand'] ?? 0), 2, ',', '.') }}</span>
+                                            <span>{{ number_format((float) ($v['grand'] ?? 0), 2, ',', '.') }}</span>
                                         </div>
 
                                         <div class="flex justify-between">
                                             <span>Selected :</span>
-                                            <span>{{ number_format((float)($v['selected_grand'] ?? 0), 2, ',', '.') }}</span>
+                                            <span>{{ number_format((float) ($v['selected_grand'] ?? 0), 2, ',', '.') }}</span>
                                         </div>
                                     </td>
                                 @endforeach
@@ -942,7 +975,8 @@
             <div id="lastPriceModal" class="fixed inset-0 z-[4000] hidden">
                 <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-                <div class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                <div
+                    class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                         <div class="flex flex-col">
                             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
@@ -954,7 +988,7 @@
                     </div>
 
                     <div class="p-4">
-                        <div id="lpLoading" class="hidden mb-3 text-sm text-gray-600 dark:text-gray-300">
+                        <div id="lpLoading" class="mb-3 hidden text-sm text-gray-600 dark:text-gray-300">
                             Loading...
                         </div>
 
@@ -965,18 +999,19 @@
                                         <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
                                         <th class="px-3 py-2 text-left font-semibold">PO Date</th>
                                         <th class="px-3 py-2 text-left font-semibold">CS ID</th>
-                                        <th class="px-3 py-2 text-left font-semibold">Vendor</th>                                        
+                                        <th class="px-3 py-2 text-left font-semibold">Vendor</th>
                                         <th class="px-3 py-2 text-right font-semibold">Unit Cost</th>
                                         <th class="px-3 py-2 text-left font-semibold">Purchaser</th>
                                     </tr>
                                 </thead>
-                                <tbody id="lpBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                <tbody id="lpBody"
+                                    class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                     <!-- rows by JS -->
                                 </tbody>
                             </table>
                         </div>
 
-                        <div id="lpEmpty" class="hidden mt-3 text-sm text-gray-500 dark:text-gray-300">
+                        <div id="lpEmpty" class="mt-3 hidden text-sm text-gray-500 dark:text-gray-300">
                             No history found.
                         </div>
                     </div>
@@ -985,11 +1020,11 @@
 
 
             {{-- Modal Edit COA --}}
-            <div id="editCoaModal"
-                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+            <div id="editCoaModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
                 <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
                     {{-- Header modal --}}
-                    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                    <div
+                        class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
                             Edit COA
                         </h3>
@@ -1002,7 +1037,8 @@
                     {{-- Body modal: table --}}
                     <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
                         <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
-                            <thead class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <thead
+                                class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
                                     <th class="w-64 px-3 py-2 text-left">
                                         Inventory Descr / Note
@@ -1020,8 +1056,7 @@
                             </thead>
                             <tbody id="editCoaTableBody">
                                 @foreach ($csdetail as $row)
-                                    <tr data-row-id="{{ $row->id }}"
-                                        data-cpny="{{ $row->budget_cpny_id }}"
+                                    <tr data-row-id="{{ $row->id }}" data-cpny="{{ $row->budget_cpny_id }}"
                                         data-dept="{{ $row->budget_department_fin_id }}"
                                         data-perpost="{{ $row->budget_perpost }}">
 
@@ -1030,18 +1065,18 @@
                                         </td>
 
                                         <td class="text-center">
-                                            {{ number_format($row->qty,2,',','.') }} <br>
+                                            {{ number_format($row->qty, 2, ',', '.') }} <br>
                                             <span class="text-xs text-gray-500">{{ $row->uom }}</span>
                                         </td>
 
                                         <td>{{ $row->location_id }} - {{ $row->sub_location_id }}</td>
 
                                         <td>
-                                            <select class="coa-select w-full"
-                                                data-row-id="{{ $row->id }}">
+                                            <select class="coa-select w-full" data-row-id="{{ $row->id }}">
                                                 @if ($row->budget_account_id)
                                                     <option value="{{ $row->budget_account_id }}" selected>
-                                                        {{ $row->budget_account_id }} - {{ $row->budget_account_name }}
+                                                        {{ $row->budget_account_id }} -
+                                                        {{ $row->budget_account_name }}
                                                     </option>
                                                 @endif
                                             </select>
@@ -1055,7 +1090,8 @@
                     </div>
 
                     {{-- Footer modal --}}
-                    <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+                    <div
+                        class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
                         <button id="btnCancelEditCoa"
                             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                             Cancel
@@ -1945,14 +1981,18 @@
 </script> --}}
 
     <script>
-        function formatNumID(n){
+        function formatNumID(n) {
             n = Number(n || 0);
-            return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return n.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
 
         function openLastPriceModal() {
             $('#lastPriceModal').removeClass('hidden');
         }
+
         function closeLastPriceModal() {
             $('#lastPriceModal').addClass('hidden');
             $('#lpBody').empty();
@@ -1962,16 +2002,16 @@
         }
 
         $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', closeLastPriceModal);
-        $(document).on('keydown', function(e){
-            if(e.key === 'Escape') closeLastPriceModal();
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') closeLastPriceModal();
         });
 
-        $(document).on('click', '.btn-lastprice', function(){
+        $(document).on('click', '.btn-lastprice', function() {
             const inventoryid = String($(this).data('inventoryid') || '');
             const inventorydescr = String($(this).data('inventorydescr') || '');
             const csdate = String($(this).data('csdate') || '');
 
-            if(!inventoryid){
+            if (!inventoryid) {
                 toastr.error('Inventory ID kosong.');
                 return;
             }
@@ -1990,11 +2030,11 @@
                     inventoryid: inventoryid,
                     csdate: csdate
                 },
-                success: function(res){
+                success: function(res) {
                     $('#lpLoading').addClass('hidden');
 
                     const rows = (res && res.data) ? res.data : [];
-                    if(!rows.length){
+                    if (!rows.length) {
                         $('#lpEmpty').removeClass('hidden');
                         return;
                     }
@@ -2006,10 +2046,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                            target="_blank"
-                                            class="text-indigo-600 hover:underline font-semibold">
-                                            ${r.ponbr ?? ''}
-                                        </a>`
+                                                                                            target="_blank"
+                                                                                            class="text-indigo-600 hover:underline font-semibold">
+                                                                                            ${r.ponbr ?? ''}
+                                                                                        </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
@@ -2023,9 +2063,10 @@
                         $('#lpBody').append(tr);
                     });
                 },
-                error: function(xhr){
+                error: function(xhr) {
                     $('#lpLoading').addClass('hidden');
-                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal ambil history.';
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON
+                        .message : 'Gagal ambil history.';
                     toastr.error(msg);
                 }
             });

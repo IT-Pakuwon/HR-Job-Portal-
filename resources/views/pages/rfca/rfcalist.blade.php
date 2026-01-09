@@ -4,38 +4,49 @@
         .scope-filter.active .scope-card {
             transform: scale(1.02);
         }
+
         /* Rfca Jobs */
         .scope-filter[data-scope="rfcajobs"].active .scope-card {
-            background-color: rgb(254 215 170); /* orange-200 */
-            border-color: rgb(194 65 12);       /* orange-700 */
+            background-color: rgb(254 215 170);
+            /* orange-200 */
+            border-color: rgb(194 65 12);
+            /* orange-700 */
             color: rgb(194 65 12);
         }
 
         /* Finance Received */
         .scope-filter[data-scope="financereceived"].active .scope-card {
-            background-color: rgb(191 219 254); /* blue-200 */
-            border-color: rgb(29 78 216);       /* blue-700 */
+            background-color: rgb(191 219 254);
+            /* blue-200 */
+            border-color: rgb(29 78 216);
+            /* blue-700 */
             color: rgb(29 78 216);
         }
 
         /* Treasury Payment */
         .scope-filter[data-scope="treasurypayment"].active .scope-card {
-            background-color: rgb(254 249 195); /* yellow-100 */
-            border-color: rgb(202 138 4);       /* yellow-600 */
+            background-color: rgb(254 249 195);
+            /* yellow-100 */
+            border-color: rgb(202 138 4);
+            /* yellow-600 */
             color: rgb(202 138 4);
         }
 
         /* Completed */
         .scope-filter[data-scope="completed"].active .scope-card {
-            background-color: rgb(187 247 208); /* green-200 */
-            border-color: rgb(21 128 61);       /* green-700 */
+            background-color: rgb(187 247 208);
+            /* green-200 */
+            border-color: rgb(21 128 61);
+            /* green-700 */
             color: rgb(21 128 61);
         }
 
         /* All */
         .scope-filter[data-scope="all"].active .scope-card {
-            background-color: rgb(229 231 235); /* gray-200 */
-            border-color: rgb(31 41 55);        /* gray-700 */
+            background-color: rgb(229 231 235);
+            /* gray-200 */
+            border-color: rgb(31 41 55);
+            /* gray-700 */
             color: rgb(31 41 55);
         }
 
@@ -234,6 +245,78 @@
         input:checked+.slider:before {
             transform: translateX(18px);
         }
+
+        /* === DataTables Export Buttons (Cute Style) === */
+        .dt-buttons {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .dt-button {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px !important;
+            border-radius: 9999px !important;
+            border: 1px solid transparent !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: all .2s ease-in-out;
+        }
+
+        /* Excel */
+        .dt-button.buttons-excel {
+            background-color: #dcfce7 !important;
+            /* green-100 */
+            color: #166534 !important;
+            /* green-800 */
+            border-color: #86efac !important;
+        }
+
+        .dt-button.buttons-excel:hover {
+            background-color: #bbf7d0 !important;
+        }
+
+        /* CSV */
+        .dt-button.buttons-csv {
+            background-color: #e0f2fe !important;
+            /* sky-100 */
+            color: #075985 !important;
+            /* sky-800 */
+            border-color: #7dd3fc !important;
+        }
+
+        .dt-button.buttons-csv:hover {
+            background-color: #bae6fd !important;
+        }
+
+        /* Remove default DataTables button styles */
+        .dt-button:focus,
+        .dt-button:active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* === Fix spacing between Length & Export buttons === */
+
+        /* Make toolbar items flex-aligned */
+        .dataTables_length,
+        .dt-buttons,
+        .dataTables_filter {
+            display: flex;
+            align-items: center;
+        }
+
+
+        /* ✅ Control gap manually */
+        .dt-buttons {
+            margin-left: 12px !important;
+            /* ← adjust: 4–8px is perfect */
+            margin-right: 0 !important;
+        }
     </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
@@ -345,11 +428,11 @@
                     let table;
 
                     const titleMap = {
-                        rfcajobs:        'Rfca - Jobs',
+                        rfcajobs: 'Rfca - Jobs',
                         financereceived: 'Rfca - Finance Received',
                         treasurypayment: 'Rfca - Treasury Payment',
-                        completed:       'Rfca - Completed',
-                        all:             'Rfca - All',
+                        completed: 'Rfca - Completed',
+                        all: 'Rfca - All',
                     };
 
 
@@ -368,8 +451,7 @@
 
 
                     function columnsFor(sc) {
-                        return [
-                            {
+                        return [{
                                 data: 'rfcaid',
                                 render: (_v, _t, row) => renderRfcaLink(row)
                             },
@@ -377,7 +459,7 @@
                                 data: 'rfcadate',
                                 render: (_v, _t, row) => row.rfcadate_fmt ?? '',
                                 className: 'text-left'
-                            },                            
+                            },
                             {
                                 data: 'ponbr',
                                 className: 'text-left'
@@ -454,7 +536,40 @@
                             serverSide: true,
                             deferRender: true,
                             pageLength: 10,
-                            lengthMenu: [10, 25, 50, 100, 250],
+                            lengthMenu: [
+                                [10, 25, 50, 100, 250, -1],
+                                [10, 25, 50, 100, 250, 'All']
+                            ],
+
+
+                            // 🔥 ADD THIS
+                            dom: '<"dt-toolbar"l B f>rtip',
+                            buttons: [{
+                                    extend: 'excelHtml5',
+                                    text: '↓ Excel',
+                                    title: 'Purchase_Order',
+                                    className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'csvHtml5',
+                                    text: '↓ CSV',
+                                    title: 'Purchase_Order',
+                                    className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                }
+                            ],
+                            // 🔥 END ADD
                             order: orderFor(sc),
                             ajax: {
                                 url: "{{ route('rfcalist.json') }}",
@@ -470,7 +585,7 @@
                         });
                     }
 
-                   
+
                     function renderPoLink(row) {
                         const text = row.ponbr ?? '';
                         if (row.ponbr_eid) {

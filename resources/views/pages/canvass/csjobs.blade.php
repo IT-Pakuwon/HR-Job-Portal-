@@ -289,6 +289,78 @@
         input:checked+.slider:before {
             transform: translateX(18px);
         }
+
+        /* === DataTables Export Buttons (Cute Style) === */
+        .dt-buttons {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .dt-button {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px !important;
+            border-radius: 9999px !important;
+            border: 1px solid transparent !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: all .2s ease-in-out;
+        }
+
+        /* Excel */
+        .dt-button.buttons-excel {
+            background-color: #dcfce7 !important;
+            /* green-100 */
+            color: #166534 !important;
+            /* green-800 */
+            border-color: #86efac !important;
+        }
+
+        .dt-button.buttons-excel:hover {
+            background-color: #bbf7d0 !important;
+        }
+
+        /* CSV */
+        .dt-button.buttons-csv {
+            background-color: #e0f2fe !important;
+            /* sky-100 */
+            color: #075985 !important;
+            /* sky-800 */
+            border-color: #7dd3fc !important;
+        }
+
+        .dt-button.buttons-csv:hover {
+            background-color: #bae6fd !important;
+        }
+
+        /* Remove default DataTables button styles */
+        .dt-button:focus,
+        .dt-button:active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* === Fix spacing between Length & Export buttons === */
+
+        /* Make toolbar items flex-aligned */
+        .dataTables_length,
+        .dt-buttons,
+        .dataTables_filter {
+            display: flex;
+            align-items: center;
+        }
+
+
+        /* ✅ Control gap manually */
+        .dt-buttons {
+            margin-left: 12px !important;
+            /* ← adjust: 4–8px is perfect */
+            margin-right: 0 !important;
+        }
     </style>
 
 
@@ -336,8 +408,10 @@
         }
 
         #btn-completed.active {
-            background-color: rgb(226 232 240); /* slate-200 */
-            border-color: rgb(15 23 42);        /* slate-900 */
+            background-color: rgb(226 232 240);
+            /* slate-200 */
+            border-color: rgb(15 23 42);
+            /* slate-900 */
             color: rgb(15 23 42);
         }
     </style>
@@ -475,7 +549,8 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">CSID
                                     </th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPBJKT ID
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                        SPPBJKT ID
                                     </th>
                                     <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
                                         Date</th>
@@ -493,8 +568,8 @@
                             </tbody>
                         </table>
                     </div>
-                </div>                
-                
+                </div>
+
                 {{-- === PANE: My Revision (TrPO Reuse) === --}}
                 <div id="pane-revision" class="hidden">
                     <h2 class="mb-2 text-xl font-semibold">My Revision</h2>
@@ -706,7 +781,7 @@
                 ];
             }
 
-            
+
             function colSetWithCreate() {
                 const actionCol = {
                     data: null,
@@ -714,8 +789,8 @@
                     searchable: false,
                     className: 'text-left',
                     render: (_d, _t, row) => {
-                    const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
-                    return `
+                        const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                        return `
                         <div class="inline-flex gap-2">
                         <a href="${createUrl}"
                             class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
@@ -752,7 +827,39 @@
                 serverSide: true,
                 deferRender: true,
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100, 250],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+
+                // 🔥 ADD THIS
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Purchase_Order',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Purchase_Order',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
                 ajax: {
                     url: "{{ route('csjobs.mine.json') }}",
                     type: "GET"
@@ -772,7 +879,39 @@
                 serverSide: true,
                 deferRender: true,
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100, 250],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+
+                // 🔥 ADD THIS
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Purchase_Order',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Purchase_Order',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
                 ajax: {
                     url: "{{ route('csjobs.entry.json') }}",
                     type: "GET"
@@ -781,8 +920,7 @@
                     [1, 'desc'],
                     [0, 'desc']
                 ],
-                columns: [
-                    {
+                columns: [{
                         data: 'csid',
                         className: 'text-left',
                         render: (v, _t, row) =>
@@ -819,7 +957,8 @@
                     {
                         data: 'csdate',
                         className: 'text-center',
-                        render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+                        render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString(
+                            'id-ID')) : ''
                     },
                     {
                         data: 'cpny_id',
@@ -851,7 +990,39 @@
                 serverSide: true,
                 deferRender: true,
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100, 250],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+
+                // 🔥 ADD THIS
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Purchase_Order',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Purchase_Order',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
                 ajax: {
                     url: "{{ route('csjobs.all.json') }}",
                     type: "GET"
@@ -871,14 +1042,46 @@
                 serverSide: true,
                 deferRender: true,
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100, 250],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+
+                // 🔥 ADD THIS
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Purchase_Order',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Purchase_Order',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
                 ajax: {
                     url: "{{ route('csjobs.revision.json') }}",
                     type: "GET"
                 },
                 order: [
                     [2, 'desc'], // sort by PO Date
-                    [1, 'desc']  // then by PO Number
+                    [1, 'desc'] // then by PO Number
                 ],
                 columns: colSetRevision(),
                 searchDelay: 400,
@@ -911,14 +1114,46 @@
                 serverSide: true,
                 deferRender: true,
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100, 250],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+
+                // 🔥 ADD THIS
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Purchase_Order',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Purchase_Order',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
                 ajax: {
                     url: "{{ route('csjobs.completed.json') }}",
                     type: "GET"
                 },
                 order: [
                     [1, 'desc'], // doc_date
-                    [0, 'desc']  // doc_no
+                    [0, 'desc'] // doc_no
                 ],
                 // columns: [
                 //     {
@@ -926,7 +1161,7 @@
                 //         className: 'text-left',
                 //         render: (_v, _t, row) => renderDocBtn(row) // sama seperti sppbjkt
                 //     },
-                   
+
                 //     {
                 //         data: 'doc_date',
                 //         className: 'text-center',
@@ -1016,16 +1251,16 @@
     </script>
     <script>
         function colSetRevision() {
-        // kolom Action (Create CS untuk PO)
-        const actionCol = {
-            data: null,
-            orderable: false,
-            searchable: false,
-            className: 'text-left',
-            render: (_d, _t, row) => {
-                // backend kirim doc_type = 'PO' dan eid = hashids(ponbr)
-                const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
-                return `
+            // kolom Action (Create CS untuk PO)
+            const actionCol = {
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: 'text-left',
+                render: (_d, _t, row) => {
+                    // backend kirim doc_type = 'PO' dan eid = hashids(ponbr)
+                    const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                    return `
                     <div class="inline-flex gap-2">
                         <a href="${createUrl}"
                             class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
@@ -1033,52 +1268,51 @@
                             <i class="fas fa-plus"></i>
                         </a>
                     </div>`;
-            }
-        };
+                }
+            };
 
-        return [
-            actionCol,
-            {
-                data: 'ponbr',
-                className: 'text-left',                
-                render: (v, _t, row) =>
-                            `<a href="/showpo/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${v}</a>`
-            },          
+            return [
+                actionCol,
+                {
+                    data: 'ponbr',
+                    className: 'text-left',
+                    render: (v, _t, row) =>
+                        `<a href="/showpo/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${v}</a>`
+                },
 
-            {
-                data: 'podate',
-                className: 'text-center',
-                render: v =>
-                    v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
-            },
-            {
-                data: 'csid',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'sppbjktid',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'cpny_id',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'department_id',
-                className: 'text-center',
-                defaultContent: '-'
-            },
-            {
-                data: 'vendorname',
-                className: 'text-left',
-                defaultContent: '-'
-            },
-        ];
-    }
-
+                {
+                    data: 'podate',
+                    className: 'text-center',
+                    render: v =>
+                        v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+                },
+                {
+                    data: 'csid',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'sppbjktid',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'cpny_id',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'department_id',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'vendorname',
+                    className: 'text-left',
+                    defaultContent: '-'
+                },
+            ];
+        }
     </script>
     {{-- <Script>
         // Klik tombol X untuk complete sisa openordered
@@ -1203,52 +1437,66 @@
                     const $btn = $(this).prop('disabled', true);
 
                     $.ajax({
-                        url: `/csjobs/complete/${doc}/${eid}`,
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            reason: res.value
-                        },
-                    })
-                    .done(resp => {
-                        if (resp.ok) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: resp.message || 'Sisa qty telah di-completed-kan.',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
+                            url: `/csjobs/complete/${doc}/${eid}`,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}',
+                                reason: res.value
+                            },
+                        })
+                        .done(resp => {
+                            if (resp.ok) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: resp.message ||
+                                        'Sisa qty telah di-completed-kan.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
 
-                            // reload tabel
-                            try { $('#tblMine').DataTable().ajax.reload(null, false); } catch (e) {}
-                            try { $('#tblAll').DataTable().ajax.reload(null, false); } catch (e) {}
-                            try { $('#tblRevision').DataTable().ajax.reload(null, false); } catch (e) {}
-                            try { $('#tblSppbjkt').DataTable().ajax.reload(null, false); } catch (e) {}
-                        } else {
-                            Swal.fire({ icon: 'error', title: 'Gagal!', text: resp.message || 'Gagal memproses aksi.' });
-                        }
-                    })
-                    .fail(xhr => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.',
-                        });
-                    })
-                    .always(() => $btn.prop('disabled', false));
+                                // reload tabel
+                                try {
+                                    $('#tblMine').DataTable().ajax.reload(null, false);
+                                } catch (e) {}
+                                try {
+                                    $('#tblAll').DataTable().ajax.reload(null, false);
+                                } catch (e) {}
+                                try {
+                                    $('#tblRevision').DataTable().ajax.reload(null, false);
+                                } catch (e) {}
+                                try {
+                                    $('#tblSppbjkt').DataTable().ajax.reload(null, false);
+                                } catch (e) {}
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: resp.message || 'Gagal memproses aksi.'
+                                });
+                            }
+                        })
+                        .fail(xhr => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: xhr.responseJSON?.message ||
+                                    'Terjadi kesalahan pada server.',
+                            });
+                        })
+                        .always(() => $btn.prop('disabled', false));
                 });
             });
         });
-        </script>
+    </script>
 
 
     <script>
-        $(document).on('click', '.btn-revise-doc', function () {
+        $(document).on('click', '.btn-revise-doc', function() {
             const docType = String($(this).data('doc') || '');
-            const docNo   = String($(this).data('docno') || '');
-            const cpnyId  = String($(this).data('cpny') || '');
-            const deptId  = String($(this).data('dept') || '');
+            const docNo = String($(this).data('docno') || '');
+            const cpnyId = String($(this).data('cpny') || '');
+            const deptId = String($(this).data('dept') || '');
 
             Swal.fire({
                 title: 'Revise Dokumen?',
@@ -1299,7 +1547,7 @@
                             department_id: deptId,
                             reason: res.value
                         },
-                        success: function (res) {
+                        success: function(res) {
                             if (res.ok) {
                                 Swal.fire({
                                     icon: 'success',
@@ -1316,10 +1564,11 @@
                                 Swal.fire('Gagal', res.message, 'error');
                             }
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             Swal.fire(
                                 'Error',
-                                xhr.responseJSON?.message || 'Terjadi kesalahan server',
+                                xhr.responseJSON?.message ||
+                                'Terjadi kesalahan server',
                                 'error'
                             );
                         }
@@ -1327,8 +1576,7 @@
                 });
             });
         });
-
     </script>
 
-    
+
 </x-app-layout>

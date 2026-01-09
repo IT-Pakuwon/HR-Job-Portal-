@@ -221,6 +221,78 @@
         input:checked+.slider:before {
             transform: translateX(18px);
         }
+
+        /* === DataTables Export Buttons (Cute Style) === */
+        .dt-buttons {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .dt-button {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px !important;
+            border-radius: 9999px !important;
+            border: 1px solid transparent !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: all .2s ease-in-out;
+        }
+
+        /* Excel */
+        .dt-button.buttons-excel {
+            background-color: #dcfce7 !important;
+            /* green-100 */
+            color: #166534 !important;
+            /* green-800 */
+            border-color: #86efac !important;
+        }
+
+        .dt-button.buttons-excel:hover {
+            background-color: #bbf7d0 !important;
+        }
+
+        /* CSV */
+        .dt-button.buttons-csv {
+            background-color: #e0f2fe !important;
+            /* sky-100 */
+            color: #075985 !important;
+            /* sky-800 */
+            border-color: #7dd3fc !important;
+        }
+
+        .dt-button.buttons-csv:hover {
+            background-color: #bae6fd !important;
+        }
+
+        /* Remove default DataTables button styles */
+        .dt-button:focus,
+        .dt-button:active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* === Fix spacing between Length & Export buttons === */
+
+        /* Make toolbar items flex-aligned */
+        .dataTables_length,
+        .dt-buttons,
+        .dataTables_filter {
+            display: flex;
+            align-items: center;
+        }
+
+
+        /* ✅ Control gap manually */
+        .dt-buttons {
+            margin-left: 12px !important;
+            /* ← adjust: 4–8px is perfect */
+            margin-right: 0 !important;
+        }
     </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
@@ -467,39 +539,39 @@
                                 {
                                     data: 'created_by'
                                 },
-                                 {
-                                data: 'status',
-                                className: 'text-left',
-                                render: function(data) {
-                                    const map = {
-                                        'D': {
-                                            t: 'Revise',
+                                {
+                                    data: 'status',
+                                    className: 'text-left',
+                                    render: function(data) {
+                                        const map = {
+                                            'D': {
+                                                t: 'Revise',
+                                                c: 'bg-gray-300/30 text-gray-600'
+                                            },
+                                            'P': {
+                                                t: 'On Progress',
+                                                c: 'bg-blue-300/30 text-blue-600'
+                                            },
+                                            'C': {
+                                                t: 'Completed',
+                                                c: 'bg-green-300/30 text-green-600'
+                                            },
+                                            'X': {
+                                                t: 'Cancel',
+                                                c: 'bg-red-300/30 text-red-600'
+                                            },
+                                            'R': {
+                                                t: 'Rejected',
+                                                c: 'bg-red-300/30 text-red-600'
+                                            },
+                                        };
+                                        const it = map[data] || {
+                                            t: data || '-',
                                             c: 'bg-gray-300/30 text-gray-600'
-                                        },
-                                        'P': {
-                                            t: 'On Progress',
-                                            c: 'bg-blue-300/30 text-blue-600'
-                                        },
-                                        'C': {
-                                            t: 'Completed',
-                                            c: 'bg-green-300/30 text-green-600'
-                                        },
-                                        'X': {
-                                            t: 'Cancel',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                        'R': {
-                                            t: 'Rejected',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                    };
-                                    const it = map[data] || {
-                                        t: data || '-',
-                                        c: 'bg-gray-300/30 text-gray-600'
-                                    };
-                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
-                                }
-                            },
+                                        };
+                                        return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                                    }
+                                },
                             ];
                         }
 
@@ -600,7 +672,40 @@
                             serverSide: true,
                             deferRender: true,
                             pageLength: 10,
-                            lengthMenu: [10, 25, 50, 100, 250],
+                            lengthMenu: [
+                                [10, 25, 50, 100, 250, -1],
+                                [10, 25, 50, 100, 250, 'All']
+                            ],
+
+
+                            // 🔥 ADD THIS
+                            dom: '<"dt-toolbar"l B f>rtip',
+                            buttons: [{
+                                    extend: 'excelHtml5',
+                                    text: '↓ Excel',
+                                    title: 'Purchase_Order',
+                                    className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'csvHtml5',
+                                    text: '↓ CSV',
+                                    title: 'Purchase_Order',
+                                    className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                }
+                            ],
+                            // 🔥 END ADD
                             order: orderFor(sc),
                             ajax: {
                                 url: "{{ route('issuelist.json') }}",

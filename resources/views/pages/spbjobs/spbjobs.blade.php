@@ -40,15 +40,32 @@
             color: rgb(133 77 14);
         }
 
-        .no-border { border: none !important; }
-        .grid { width: 100%; }
+        .no-border {
+            border: none !important;
+        }
 
-        select, textarea, input { width: 100%; }
-        table.dataTable { width: 100% !important; }
-        .dataTables_wrapper { width: 100%; }
+        .grid {
+            width: 100%;
+        }
+
+        select,
+        textarea,
+        input {
+            width: 100%;
+        }
+
+        table.dataTable {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper {
+            width: 100%;
+        }
 
         @media (max-width: 600px) {
-            .dataTables_wrapper { padding: 0 10px; }
+            .dataTables_wrapper {
+                padding: 0 10px;
+            }
         }
 
         /* === Filter Section === */
@@ -59,7 +76,9 @@
             align-items: center;
         }
 
-        #issueTable_filter label { margin-right: 2px; }
+        #issueTable_filter label {
+            margin-right: 2px;
+        }
 
         #issueTable_filter input {
             width: auto;
@@ -70,7 +89,9 @@
             background-color: #f9fafb;
         }
 
-        #issueTable_wrapper { width: 100%; }
+        #issueTable_wrapper {
+            width: 100%;
+        }
 
         #issueTable td {
             white-space: nowrap;
@@ -100,8 +121,13 @@
             background-color: #f9fafb;
         }
 
-        #issueTable_info { margin: 10px 0; }
-        .dataTables_paginate { margin: 10px 0; }
+        #issueTable_info {
+            margin: 10px 0;
+        }
+
+        .dataTables_paginate {
+            margin: 10px 0;
+        }
 
         #issueTable tbody tr {
             transition: background-color 0.3s ease, color 0.3s ease;
@@ -126,7 +152,9 @@
         }
 
         /* Group row (optional style kept) */
-        #issueTable tbody tr.collapsed-group-row { display: none; }
+        #issueTable tbody tr.collapsed-group-row {
+            display: none;
+        }
 
         #issueTable tr.group-row {
             background-color: #e6e6e6;
@@ -136,7 +164,9 @@
             color: #333;
         }
 
-        #issueTable tr.group-row:hover { background-color: #d4d4d4; }
+        #issueTable tr.group-row:hover {
+            background-color: #d4d4d4;
+        }
 
         #issueTable tr.group-row .fas {
             margin-right: 8px;
@@ -149,7 +179,9 @@
             border-bottom: 1px solid #ddd;
         }
 
-        #issueTable tr.group-row td:first-child { border-left: none; }
+        #issueTable tr.group-row td:first-child {
+            border-left: none;
+        }
 
         /* Switch */
         .switch {
@@ -159,12 +191,19 @@
             height: 22px;
         }
 
-        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: #ccc;
             transition: .4s;
             border-radius: 34px;
@@ -182,8 +221,85 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider { background-color: #4CAF50; }
-        input:checked + .slider:before { transform: translateX(18px); }
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+
+        /* === DataTables Export Buttons (Cute Style) === */
+        .dt-buttons {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+
+        .dt-button {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px !important;
+            border-radius: 9999px !important;
+            border: 1px solid transparent !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: all .2s ease-in-out;
+        }
+
+        /* Excel */
+        .dt-button.buttons-excel {
+            background-color: #dcfce7 !important;
+            /* green-100 */
+            color: #166534 !important;
+            /* green-800 */
+            border-color: #86efac !important;
+        }
+
+        .dt-button.buttons-excel:hover {
+            background-color: #bbf7d0 !important;
+        }
+
+        /* CSV */
+        .dt-button.buttons-csv {
+            background-color: #e0f2fe !important;
+            /* sky-100 */
+            color: #075985 !important;
+            /* sky-800 */
+            border-color: #7dd3fc !important;
+        }
+
+        .dt-button.buttons-csv:hover {
+            background-color: #bae6fd !important;
+        }
+
+        /* Remove default DataTables button styles */
+        .dt-button:focus,
+        .dt-button:active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* === Fix spacing between Length & Export buttons === */
+
+        /* Make toolbar items flex-aligned */
+        .dataTables_length,
+        .dt-buttons,
+        .dataTables_filter {
+            display: flex;
+            align-items: center;
+        }
+
+
+        /* ✅ Control gap manually */
+        .dt-buttons {
+            margin-left: 12px !important;
+            /* ← adjust: 4–8px is perfect */
+            margin-right: 0 !important;
+        }
     </style>
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
@@ -319,15 +435,15 @@
                         sppbprogress: 'SPPB - On Progress',
                     };
 
-                    const spbScopes   = ['issuejobsnew', 'issuejobs', 'onprogress'];
+                    const spbScopes = ['issuejobsnew', 'issuejobs', 'onprogress'];
                     const issueScopes = ['issueprogress'];
-                    const sppbScopes  = ['sppbprogress'];
+                    const sppbScopes = ['sppbprogress'];
                     const allowedScopes = [...spbScopes, ...issueScopes, ...sppbScopes];
 
                     function scopeType(sc) {
-                        if (spbScopes.includes(sc))   return 'spb';
+                        if (spbScopes.includes(sc)) return 'spb';
                         if (issueScopes.includes(sc)) return 'issue';
-                        if (sppbScopes.includes(sc))  return 'sppb';
+                        if (sppbScopes.includes(sc)) return 'sppb';
                         return 'spb';
                     }
 
@@ -414,8 +530,8 @@
                     // function renderPlusCreate(row) {
                     //     const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
                     //     return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
-                    //         <i class="fas fa-plus"></i>
-                    //     </a>`;
+        //         <i class="fas fa-plus"></i>
+        //     </a>`;
                     // }
                     function renderIssueCreate(row) {
                         const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
@@ -437,8 +553,7 @@
                         if (type === 'spb') {
                             const isSppbJobs = (sc === 'onprogress'); // scope SPPB Jobs
 
-                            return [
-                                {
+                            return [{
                                     data: null,
                                     orderable: false,
                                     searchable: false,
@@ -478,15 +593,16 @@
                                 {
                                     data: null,
                                     defaultContent: '',
-                                    render: (_v,_t,row) => {
+                                    render: (_v, _t, row) => {
                                         const isSppbJobs = (sc === 'onprogress');
-                                        const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ?? '-');
+                                        const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ??
+                                            '-');
 
                                         const map = {
-                                        'Open':      'bg-gray-200/50 text-gray-700',
-                                        'Partial':   'bg-amber-200/50 text-amber-700',
-                                        'Completed': 'bg-green-200/50 text-green-700',
-                                        'Full':      'bg-green-200/50 text-green-700',
+                                            'Open': 'bg-gray-200/50 text-gray-700',
+                                            'Partial': 'bg-amber-200/50 text-amber-700',
+                                            'Completed': 'bg-green-200/50 text-green-700',
+                                            'Full': 'bg-green-200/50 text-green-700',
                                         };
                                         const cls = map[val] || 'bg-gray-200/50 text-gray-700';
                                         return `<span class="inline-block ${cls} font-semibold px-3 py-1.5 text-sm text-center rounded">${val}</span>`;
@@ -497,8 +613,7 @@
                         }
 
                         if (type === 'issue') {
-                            return [
-                                {
+                            return [{
                                     data: 'issueid',
                                     defaultContent: '',
                                     render: renderIssueLinkCell
@@ -529,15 +644,33 @@
                                 {
                                     data: 'status',
                                     defaultContent: '',
-                                    render: function(data){
+                                    render: function(data) {
                                         const map = {
-                                        'D': {t:'Revise',     c:'bg-gray-300/30 text-gray-600'},
-                                        'P': {t:'On Progress',c:'bg-blue-300/30 text-blue-600'},
-                                        'C': {t:'Completed',  c:'bg-green-300/30 text-green-600'},
-                                        'X': {t:'Cancel',     c:'bg-red-300/30 text-red-600'},
-                                        'R': {t:'Rejected',   c:'bg-red-300/30 text-red-600'},
+                                            'D': {
+                                                t: 'Revise',
+                                                c: 'bg-gray-300/30 text-gray-600'
+                                            },
+                                            'P': {
+                                                t: 'On Progress',
+                                                c: 'bg-blue-300/30 text-blue-600'
+                                            },
+                                            'C': {
+                                                t: 'Completed',
+                                                c: 'bg-green-300/30 text-green-600'
+                                            },
+                                            'X': {
+                                                t: 'Cancel',
+                                                c: 'bg-red-300/30 text-red-600'
+                                            },
+                                            'R': {
+                                                t: 'Rejected',
+                                                c: 'bg-red-300/30 text-red-600'
+                                            },
                                         };
-                                        const it = map[data] || {t:(data||'-'), c:'bg-gray-300/30 text-gray-600'};
+                                        const it = map[data] || {
+                                            t: (data || '-'),
+                                            c: 'bg-gray-300/30 text-gray-600'
+                                        };
                                         return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
                                     }
                                 }
@@ -545,8 +678,7 @@
                             ];
                         }
                         // SPPB (sppbprogress)
-                        return [
-                            {
+                        return [{
                                 data: 'sppbid',
                                 defaultContent: '',
                                 render: (_v, _t, row) => renderSppbLink(row)
@@ -575,7 +707,7 @@
                                 data: 'keperluan',
                                 defaultContent: ''
                             },
-                             {
+                            {
                                 data: 'status',
                                 className: 'text-left',
                                 render: function(data) {
@@ -616,19 +748,19 @@
                         if (type === 'spb') {
                             return [
                                 [2, 'desc'], // spbdate
-                                [1, 'desc']  // spbid
+                                [1, 'desc'] // spbid
                             ];
                         }
                         if (type === 'issue') {
                             return [
                                 [1, 'desc'], // issuedate
-                                [0, 'desc']  // issueid
+                                [0, 'desc'] // issueid
                             ];
                         }
                         // sppb
                         return [
                             [1, 'desc'], // sppbdate
-                            [0, 'desc']  // sppbid
+                            [0, 'desc'] // sppbid
                         ];
                     }
 
@@ -659,7 +791,40 @@
                             serverSide: true,
                             deferRender: true,
                             pageLength: 10,
-                            lengthMenu: [10, 25, 50, 100, 250],
+                            lengthMenu: [
+                                [10, 25, 50, 100, 250, -1],
+                                [10, 25, 50, 100, 250, 'All']
+                            ],
+
+
+                            // 🔥 ADD THIS
+                            dom: '<"dt-toolbar"l B f>rtip',
+                            buttons: [{
+                                    extend: 'excelHtml5',
+                                    text: '↓ Excel',
+                                    title: 'Purchase_Order',
+                                    className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'csvHtml5',
+                                    text: '↓ CSV',
+                                    title: 'Purchase_Order',
+                                    className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                }
+                            ],
+                            // 🔥 END ADD
                             order: orderFor(sc),
                             ajax: {
                                 url: "{{ route('spbjobs.json') }}",

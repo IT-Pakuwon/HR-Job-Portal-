@@ -175,7 +175,7 @@
         <p><strong>Perusahaan :</strong> {{ $company->cpny_name }}</p>
         <p><strong>Alamat :</strong> {{ $company->address_line1 }}</p>
         <p><strong>NPWP :</strong> {{ $company->tax_registration }}</p>
-        <p><strong>Alamat NPWP :</strong> {{ $company->tax_address_line}}</p>
+        <p><strong>Alamat NPWP :</strong> {{ $company->tax_address_line }}</p>
         <p>Untuk selanjutnya disebut "<strong>PIHAK I</strong>".</p>
 
         <br>
@@ -188,7 +188,9 @@
         <br>
         <p>Dengan ini PIHAK I memberikan tugas kepada PIHAK II untuk</p>
 
-        <p><strong>Tanggal :</strong> {{ \Carbon\Carbon::parse($po->spkstartworkingdate)->translatedFormat('d F Y') }} s/d {{ \Carbon\Carbon::parse($po->spkendworkingdate)->translatedFormat('d F Y') }} (Pelaksanaan Pekerjaan).</p>
+        <p><strong>Tanggal :</strong> {{ \Carbon\Carbon::parse($po->spkstartworkingdate)->translatedFormat('d F Y') }}
+            s/d {{ \Carbon\Carbon::parse($po->spkendworkingdate)->translatedFormat('d F Y') }} (Pelaksanaan Pekerjaan).
+        </p>
         <p><strong>Jenis Pekerjaan :</strong> Pekerjaan general check up diesel fire pump di ruang pompa Lt. B2</p>
         <br>
         @php
@@ -198,12 +200,15 @@
         <p><strong>Total Biaya :</strong> {{ $nf2($grand) }}</p>
         <p><strong>Terbilang :</strong> {{ $terbilang }}</p>
         <br>
-        <p><strong>Menyelesaikan Pekerjaan Dalam Waktu :</strong> {{ $po->spktotalday }} Hari Kerja (Tidak Termasuk Hari Sabtu / Minggu /
+        <p><strong>Menyelesaikan Pekerjaan Dalam Waktu :</strong> {{ $po->spktotalday }} Hari Kerja (Tidak Termasuk
+            Hari Sabtu / Minggu /
             Hari Libur Nasional).</p>
         <p><strong>Waktu Pelaksanaan Pekerjaan :</strong> {{ $po->spkworkschedule }}.</p>
         <p><strong>Total Man Power :</strong> {{ $po->spkmanpower }} Orang.</p>
         <p><strong>PIC / Person In Charge :</strong> {{ $po->spkpic }}.</p>
-        <p><strong>Cara Pembayaran :</strong> {{ $po->spkcarabayar }}.</p>
+        {{-- <p><strong>Cara Pembayaran : </strong> {{ $po->spkcarabayar }}.</p> --}}
+        <p><strong>Cara Pembayaran : </strong> Transfer</p>
+
 
         <br>
 
@@ -215,12 +220,12 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($podetail as $i => $item)                
+                @foreach ($podetail as $i => $item)
                     <tr>
                         <td>{{ $item->inventory_descr }}</td>
                         <td style="text-align:right;">{{ $nf2($item->totalcost) }}</td>
-                    </tr>      
-                @endforeach   
+                    </tr>
+                @endforeach
                 <tr>
                     <td style="text-align:right;"><strong>PPN :</strong></td>
                     <td style="text-align:right;">{{ $nf2($ppn) }}</td>
@@ -499,7 +504,8 @@
             </li>
         </ol>
 
-        <p><strong>Demikian Surat Perintah Kerja ini dibuat sesuai dengan {{ $po->sppbjktid }} agar dapat dipergunakan sebagaimana
+        <p><strong>Demikian Surat Perintah Kerja ini dibuat sesuai dengan {{ $po->sppbjktid }} agar dapat dipergunakan
+                sebagaimana
                 mestinya.</strong></p>
 
         {{-- Footer (company + paraf) --}}
@@ -509,7 +515,7 @@
                     <td>
                         <p>
                             <strong>{{ $po->cpny_id }} - {{ $company->cpny_name }}</strong><br>
-                             {{ $company->address_line1 }}
+                            {{ $company->address_line1 }}
                             Telp: {{ $company->phone }} Fax: {{ $company->fax }}
                         </p>
                     </td>

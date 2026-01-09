@@ -36,11 +36,12 @@
     table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
         margin-bottom: 12px;
     }
 
     th {
-        border: 0.5px solid #444;
+        border: 1px solid #000;
         background: #f2f2f2;
         font-weight: 700;
         padding: 6px;
@@ -55,22 +56,6 @@
         word-wrap: break-word;
         line-height: 1.35;
     }
-
-    th.no-col,
-    td.no-col {
-        width: 10px;
-    }
-
-    th.qty-col,
-    td.qty-col {
-        width: 20px;
-    }
-
-    th.uom-col,
-    td.uom-col {
-        width: 20px;
-    }
-
 
     /* META INFO */
     .meta td {
@@ -212,25 +197,13 @@
 
 {{-- MAIN TABLE --}}
 <table>
-    <colgroup>
-        <col style="width:18px"> {{-- No --}}
-        <col style="width:110px"> {{-- Inventory ID --}}
-        <col> {{-- Description (auto) --}}
-        <col style="width:40px"> {{-- Qty --}}
-        <col style="width:40px"> {{-- UoM --}}
-        @for ($i = 0; $i < $maxVendors; $i++)
-            <col style="width:120px"> {{-- Vendor --}}
-        @endfor
-        <col style="width:120px"> {{-- Budget --}}
-        <col style="width:100px"> {{-- Last Price --}}
-    </colgroup>
     <thead>
         <tr>
-            <th rowspan="2" class="no-col">No</th>
+            <th rowspan="2" style="width:20px">No</th>
             <th rowspan="2" style="width:110px">Inventory ID</th>
             <th rowspan="2">Description</th>
-            <th rowspan="2" class="qty-col">Qty</th>
-            <th rowspan="2" class="uom-col">UoM</th>
+            <th rowspan="2" style="width:50px">Qty</th>
+            <th rowspan="2" style="width:50px">UoM</th>
             <th colspan="{{ $maxVendors }}">Vendor Info</th>
             <th rowspan="2" style="width:120px">Budget Account</th>
             <th rowspan="2" style="width:100px">Last Price</th>
@@ -253,11 +226,12 @@
     <tbody>
         @foreach ($detail as $i => $dt)
             <tr>
-                <td class="td-center no-col">{{ $i + 1 }}</td>
+                <td class="td-center">{{ $i + 1 }}</td>
                 <td>{{ $dt->inventoryid }}</td>
                 <td class="description">{{ $dt->inventory_descr }}</td>
-                <td class="td-right qty-col">{{ nf($dt->qty) }}</td>
-                <td class="td-center uom-col">{{ $dt->uom }}</td>
+                <td class="td-right">{{ nf($dt->qty) }}</td>
+                <td class="td-center">{{ $dt->uom }}</td>
+
                 @for ($k = 0; $k < $maxVendors; $k++)
                     @php
                         $price = (float) ($dt->{'vendorprice' . ($k + 1)} ?? 0);
@@ -273,8 +247,8 @@
                     </td>
                 @endfor
 
-                <td class="td-center">{{ $dt->budget_account_id }}</td>
-                <td class="td-center">{{ nf($dt->inventory_last_price) }}</td>
+                <td>{{ $dt->budget_account_id }}</td>
+                <td class="td-right">{{ nf($dt->inventory_last_price) }}</td>
             </tr>
         @endforeach
 
@@ -301,8 +275,6 @@
         @endforeach
     </tbody>
 </table>
-
-{{-- Approvals --}}
 @php
     $stColor = in_array($status_doc, ['Approved', 'Completed'])
         ? 'blue'
@@ -311,67 +283,27 @@
             : ($status_doc === 'Hold'
                 ? 'orange'
                 : ''));
-    $colsPerRow = $approve_count > 5 ? 4 : 3;
-    $chunks = $approval->values()->chunk($colsPerRow);
-    $idx = 1;
 @endphp
-
+{{-- APPROVAL --}}
 <table>
     <thead>
         <tr>
-            <th colspan="{{ 1 + $colsPerRow }}" style="text-align:left; background:#f8f8f8;">
+            <th colspan="5" class="approval-header">
                 Status: <span class="status {{ $stColor }}">{{ $status_doc }}</span>
             </th>
         </tr>
     </thead>
     <tbody>
-        @forelse($chunks as $rowIndex => $chunk)
-            <tr>
-                @if ($rowIndex === 0)
-                    <td rowspan="{{ $chunks->count() }}" style="width:180px">
-                        <div><strong>{{ $created_by_name ?? $created_by_username }}</strong></div>
-                        <div class="status blue">Created</div>
-                        <div class="muted">{{ $req_date_fmt }}</div>
-                    </td>
-                @endif
-
-                @foreach ($chunk as $ap)
-                    @php
-                        $label = match ($ap->status) {
-                            'A' => 'Approved',
-                            'R' => 'Rejected',
-                            'P' => 'Waiting',
-                            default => 'Revised',
-                        };
-                        $color = match ($ap->status) {
-                            'A' => 'blue',
-                            'R' => 'red',
-                            'P' => 'orange',
-                            default => 'red',
-                        };
-                        $dateStr = $ap->aprv_dateafter
-                            ? \Carbon\Carbon::parse($ap->aprv_dateafter)->format('d M Y H:i')
-                            : '';
-                    @endphp
-                    <td>
-                        <div><strong>{{ $idx++ }}. {{ $ap->aprv_name }}</strong></div>
-                        <div class="status {{ $color }}">{{ $label }}</div>
-                        <div class="muted">{{ $dateStr }}</div>
-                    </td>
-                @endforeach
-
-                @for ($x = $chunk->count(); $x < $colsPerRow; $x++)
-                    <td>&nbsp;</td>
-                @endfor
-            </tr>
-        @empty
+        @foreach ($approval as $i => $ap)
             <tr>
                 <td>
-                    <div><strong>{{ $created_by_name ?? $created_by_username }}</strong></div>
-                    <div class="status blue">Created</div>
-                    <div class="muted">{{ $req_date_fmt }}</div>
+                    <strong>{{ $i + 1 }}. {{ $ap->aprv_name }}</strong><br>
+                    <span class="status">{{ $ap->status }}</span><br>
+                    <span class="muted">
+                        {{ $ap->aprv_dateafter ? \Carbon\Carbon::parse($ap->aprv_dateafter)->format('d M Y H:i') : '' }}
+                    </span>
                 </td>
             </tr>
-        @endforelse
+        @endforeach
     </tbody>
 </table>
