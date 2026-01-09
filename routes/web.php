@@ -88,6 +88,7 @@ use App\Http\Controllers\TenantController;
 use App\Http\Controllers\StockJobsController;
 use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\BudgetMonitorController;
+use App\Http\Controllers\LastOrderController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -626,10 +627,13 @@ Route::post('/logout', function () {
         Route::get('/assignlist', [AssignListController::class, 'AssignList'])->name('assignlist');
         Route::get('/assignlist/json', [AssignListController::class, 'AssignListJson'])->name('assignlist.json');
         Route::get('/assignlist/users', [AssignListController::class, 'AssignListUsers'])->name('assignlist.users');
+
+        Route::get('/canvass/transferjobs/json', [AssignListController::class, 'TransferJobsJson'])->name('transferjobs.json');
     });
 
     Route::middleware('access:ASSIGN,EDIT')->group(function () {
         Route::post('/assignlist/assign', [AssignListController::class, 'AssignPurchasing'])->name('assignlist.assign');
+        Route::post('/canvass/transferjobs/update', [AssignListController::class, 'TransferJobsUpdate'])->name('transferjobs.update');
     });
 
     Route::middleware('access:CSJOBS,VIEW')->group(function () {
@@ -687,6 +691,10 @@ Route::post('/logout', function () {
         Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
         Route::get('/cs/lastprice/history', [CanvassController::class, 'getLastPriceHistory'])->name('cs.lastprice.history');
         Route::get('/cs/lastprice/history.entry', [CanvassController::class, 'getLastPriceHistoryEntry'])->name('cs.lastprice.history.entry');
+
+        Route::get('/purchasing/last-order', [LastOrderController::class, 'index'])->name('lastorder');
+        Route::get('/purchasing/last-order/inventory/json', [LastOrderController::class, 'inventoryJson'])->name('lastorder.inventory.json');
+        Route::get('/purchasing/last-order/bq/json', [LastOrderController::class, 'bqJson'])->name('lastorder.bq.json');
 
     });
 
