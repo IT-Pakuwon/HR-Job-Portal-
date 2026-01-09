@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\TrPoLastPrice;
+use App\Models\TrPO;
+use App\Models\TrCS;
 use Vinkla\Hashids\Facades\Hashids;
 
 class LastOrderController extends Controller
@@ -30,7 +32,6 @@ class LastOrderController extends Controller
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
 
-        // order mapping sesuai kolom yang ditampilkan
         $columns = [
             0 => 'ponbr',
             1 => 'podate',
@@ -48,13 +49,11 @@ class LastOrderController extends Controller
 
         $base = TrPoLastPrice::query();
 
-        // ✅ filter tab
-        // asumsi: inventory_type = 'BQ' untuk tab BQ
-        // kalau data Anda pakai nilai lain (misal 'BILLQTY', dll), tinggal sesuaikan di sini.
+        // filter tab
         if ($tab === 'bq') {
             $base->where('inventory_type', 'BQ');
         } else {
-            $base->where(function($q){
+            $base->where(function ($q) {
                 $q->whereNull('inventory_type')
                   ->orWhere('inventory_type', '<>', 'BQ');
             });
@@ -78,7 +77,6 @@ class LastOrderController extends Controller
         $recordsFiltered = (clone $base)->count();
 
         $rows = $base->select([
-                'id', // kalau ada
                 'ponbr',
                 'podate',
                 'csid',
@@ -87,7 +85,6 @@ class LastOrderController extends Controller
                 'inventory_descr',
                 'unitcost',
                 'purchaser',
-                'sppbjktid', // jaga-jaga kalau dipakai sebagai id PO
             ])
             ->orderBy($orderCol, $orderDir)
             ->orderBy('podate', 'desc')
@@ -95,17 +92,30 @@ class LastOrderController extends Controller
             ->take($length)
             ->get();
 
-        // encode link id
-        $rows->transform(function ($r) {
-            // csid -> encode jika numeric
-            $r->cs_eid = is_numeric($r->csid) ? Hashids::encode((int)$r->csid) : null;
+        // =========================
+        // ✅ Ambil ID PO dari TrPO (ponbr -> id)
+        // ✅ Ambil ID CS dari TrCS (csid -> id)
+        // =========================
+        $ponbrs = $rows->pluck('ponbr')->filter()->unique()->values();
+        $csids  = $rows->pluck('csid')->filter()->unique()->values();
 
-            // po eid: prioritas id -> sppbjktid (kalau numeric) -> null
-            $poKey = null;
-            if (isset($r->id) && is_numeric($r->id)) $poKey = (int)$r->id;
-            elseif (isset($r->sppbjktid) && is_numeric($r->sppbjktid)) $poKey = (int)$r->sppbjktid;
+        // mapping: ponbr => id
+        $poMap = TrPO::query()
+            ->whereIn('ponbr', $ponbrs)
+            ->pluck('id', 'ponbr'); // [ponbr => id]
 
-            $r->po_eid = $poKey ? Hashids::encode($poKey) : null;
+        // mapping: csid => id
+        $csMap = TrCS::query()
+            ->whereIn('csid', $csids)
+            ->pluck('id', 'csid'); // [csid => id]
+
+        // encode link id berdasarkan master table
+        $rows->transform(function ($r) use ($poMap, $csMap) {
+            $poId = $poMap[$r->ponbr] ?? null;
+            $csId = $csMap[$r->csid] ?? null;
+
+            $r->po_eid = $poId ? Hashids::encode((int) $poId) : null;
+            $r->cs_eid = $csId ? Hashids::encode((int) $csId) : null;
 
             return $r;
         });

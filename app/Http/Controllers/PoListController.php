@@ -167,15 +167,17 @@ class PoListController extends Controller
         $columns = [
             0 => "$poTable.ponbr",
             1 => "$poTable.podate",
-            2 => "$poTable.potype",
-            3 => "$poTable.vendorname",
-            4 => "$poTable.podeliverydate",
-            5 => "$poTable.totalamt",
-            6 => "$poTable.taxamt",
-            7 => "$poTable.grandtotalamt",
-            8 => "$poTable.created_by",
-            9 => "$poTable.status",
+            2 => "$poTable.cpny_id",          
+            3 => "$poTable.potype",
+            4 => "$poTable.vendorname",
+            5 => "$poTable.podeliverydate",
+            6 => "$poTable.totalamt",
+            7 => "$poTable.taxamt",
+            8 => "$poTable.grandtotalamt",
+            9 => "$poTable.created_by",
+            10 => "$poTable.status",
         ];
+
 
         $orderIdx = (int) $req->input('order.0.column', 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
@@ -186,6 +188,7 @@ class PoListController extends Controller
                 $q->where("$poTable.ponbr", 'ilike', "%{$search}%")
                     ->orWhere("$poTable.vendorname", 'ilike', "%{$search}%")
                     ->orWhere("$poTable.created_by", 'ilike', "%{$search}%")
+                    ->orWhereRaw("CAST($poTable.cpny_id AS TEXT) ILIKE ?", ["%{$search}%"]) // ✅ NEW
                     ->orWhereRaw("TO_CHAR($poTable.podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR($poTable.podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("CAST($poTable.totalamt AS TEXT) ILIKE ?", ["%{$search}%"])
@@ -194,26 +197,29 @@ class PoListController extends Controller
             });
         }
 
+
         $recordsTotal    = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
         $rows = $base->select(
-                "$poTable.id",
-                "$poTable.ponbr",
-                "$poTable.podate",
-                "$poTable.potype",
-                "$poTable.vendorname",
-                "$poTable.podeliverydate",
-                "$poTable.totalamt",
-                "$poTable.taxamt",
-                "$poTable.grandtotalamt",
-                "$poTable.created_by",
-                "$poTable.status"
-            )
-            ->orderBy($orderCol, $orderDir)
-            ->orderBy("$poTable.ponbr", 'desc')
-            ->skip($start)->take($length)
-            ->get();
+            "$poTable.id",
+            "$poTable.ponbr",
+            "$poTable.podate",
+            "$poTable.cpny_id",          // ✅ NEW
+            "$poTable.potype",
+            "$poTable.vendorname",
+            "$poTable.podeliverydate",
+            "$poTable.totalamt",
+            "$poTable.taxamt",
+            "$poTable.grandtotalamt",
+            "$poTable.created_by",
+            "$poTable.status"
+        )
+        ->orderBy($orderCol, $orderDir)
+        ->orderBy("$poTable.ponbr", 'desc')
+        ->skip($start)->take($length)
+        ->get();
+
 
         $rows->transform(function ($r) {
             $r->eid = Hashids::encode($r->id);

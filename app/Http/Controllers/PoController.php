@@ -40,6 +40,7 @@ use App\Models\TrReceipt;
 use App\Models\MsEmailCcRule;
 
 
+
 class PoController extends Controller
 {
     public function showPo($hash)
@@ -144,6 +145,13 @@ class PoController extends Controller
             ->where('status', 'C')
             ->exists();
 
+        $poHistory = TrReceipt::query()
+            ->where('ponbr', $po->ponbr)
+            ->when(!empty($po->vendorid), fn($q) => $q->where('vendorid', $po->vendorid)) // optional tapi recommended
+            ->orderByDesc('receiptdate')
+            ->orderByDesc('created_at')
+            ->get();
+
         return view('pages.purchase.showpo', [
             'po'          => $po,
             'podetail'    => $podetail,
@@ -153,6 +161,7 @@ class PoController extends Controller
             'sppbUrl'     => $sppbUrl,   
             'csUrl'       => $csUrl,     
             'hasReceiptCompleted' => $hasReceiptCompleted,
+            'poHistory'   => $poHistory,
         ]);
     }
 

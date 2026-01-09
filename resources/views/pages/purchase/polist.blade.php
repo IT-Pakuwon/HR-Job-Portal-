@@ -432,6 +432,38 @@
             margin-right: 0 !important;
         }
     </style>
+    <style>
+        /* ✅ biar width yg kita set di DataTables jalan */
+        #poTable {
+            width: 100% !important;
+            table-layout: fixed; /* penting untuk fixed width */
+        }
+
+        /* ✅ HAPUS efek max-width global yang bikin kolom sempit */
+        #poTable th, #poTable td {
+            max-width: none !important;
+        }
+
+        /* default: ellipsis untuk kolom lain */
+        #poTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ✅ khusus vendor: wrap turun ke bawah */
+        #poTable td.col-wrap, #poTable th.col-wrap {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: unset !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.35;
+            vertical-align: top;
+        }
+    </style>
+
+
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
@@ -600,7 +632,7 @@
                 #poTable td:nth-child(6),
                 #poTable th:nth-child(7),
                 #poTable td:nth-child(7) {
-                    text-align: right;
+                    text-align: left;
                 }
             </style>
 
@@ -613,12 +645,15 @@
                     <table id="poTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr class="transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <th
+                                <th 
                                     class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     PO Nbr</th>
                                 <th
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     PO Date</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Company
+                                </th>
                                 <th
                                     class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     PO Type
@@ -708,13 +743,33 @@
                         processing: true,
                         serverSide: true,
                         deferRender: true,
+
+                        autoWidth: false,
+                        scrollX: true,
+                        responsive: false, // ✅ penting: kalau mau width bener-bener ngikut, matikan responsive
+
                         pageLength: 10,
                         lengthMenu: [
                             [10, 25, 50, 100, 250, -1],
                             [10, 25, 50, 100, 250, 'All']
                         ],
 
+                        // ✅ SET WIDTH TIAP KOLOM DI SINI
+                        columnDefs: [
+                            { targets: 0, width: "150px" }, // PO Nbr
+                            { targets: 1, width: "110px" }, // PO Date
+                            { targets: 2, width: "90px"  }, // Company
+                            { targets: 3, width: "90px"  }, // PO Type
+                            { targets: 4, width: "320px", className: "col-wrap" }, // Vendor (wrap)
+                            { targets: 5, width: "120px" }, // Delivery Date
+                            { targets: 6, width: "140px" }, // Total
+                            { targets: 7, width: "120px" }, // Tax
+                            { targets: 8, width: "160px" }, // Grand Total
+                            { targets: 9, width: "130px" }, // Created By
+                            { targets: 10, width: "120px" }, // Status
+                        ],
 
+                        
                         // 🔥 ADD THIS
                         dom: '<"dt-toolbar"l B f>rtip',
                         buttons: [{
@@ -764,6 +819,10 @@
                                 data: 'podate',
                                 className: 'text-center',
                                 render: (v) => fmtDate(v)
+                            },
+                            {
+                                data: 'cpny_id',            
+                                className: 'text-center'
                             },
                             {
                                 data: 'potype',

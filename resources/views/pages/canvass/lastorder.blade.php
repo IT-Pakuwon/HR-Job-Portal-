@@ -32,6 +32,40 @@
         }
         .link-underline:hover { color: #1d4ed8; }
     </style>
+    <style>
+        /* Default DataTables sering nowrap. Kita biarkan nowrap utk kolom lain */
+        #invTable td, #bqTable td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: top;
+        }
+
+        /* ✅ Vendor (kolom ke-4) dan Description (kolom ke-6) dibuat WRAP */
+        #invTable td:nth-child(4),
+        #invTable td:nth-child(6),
+        #bqTable td:nth-child(4),
+        #bqTable td:nth-child(6) {
+            white-space: normal !important;   /* boleh turun baris */
+            overflow: visible !important;     /* jangan potong */
+            text-overflow: unset !important;  /* hilangkan ... */
+            word-break: break-word;           /* pecah kata panjang */
+            overflow-wrap: anywhere;          /* lebih aman utk string tanpa spasi */
+            line-height: 1.35;
+        }
+
+        /* Optional: kasih lebar minimum biar terlihat rapi */
+        #invTable th:nth-child(4), #invTable td:nth-child(4),
+        #bqTable th:nth-child(4),  #bqTable td:nth-child(4) {
+            min-width: 220px;
+        }
+
+        #invTable th:nth-child(6), #invTable td:nth-child(6),
+        #bqTable th:nth-child(6),  #bqTable td:nth-child(6) {
+            min-width: 280px;
+        }
+    </style>
+
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
@@ -103,10 +137,10 @@
             // NOTE: ganti route show sesuai route Anda yang sudah ada
             function poUrl(row) {
                 // jika po_eid null, fallback '#' (tidak error)
-                return row.po_eid ? `/po/show/${row.po_eid}` : '#';
+                return row.po_eid ? `/showpo/${row.po_eid}` : '#';
             }
             function csUrl(row) {
-                return row.cs_eid ? `/cs/show/${row.cs_eid}` : '#';
+                return row.cs_eid ? `/showcs/${row.cs_eid}` : '#';
             }
 
             function columnsDef() {
@@ -149,7 +183,16 @@
                             return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     },
-                    { data: 'purchaser' },
+                    // { data: 'purchaser' },
+                    {
+                        data: 'purchaser',
+                        className: 'text-center',
+                        render: function (data) {
+                            if (!data) return '';
+                            return String(data).toUpperCase();
+                        }
+                    },
+
                 ];
             }
 
