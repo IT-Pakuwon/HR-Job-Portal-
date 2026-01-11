@@ -3,129 +3,6 @@
         $currentPage = Route::currentRouteName() == 'cslist.index' ? 'CS' : '';
     @endphp
 
-    <style>
-        /* Active / Selected state */
-        .scope-filter.active .scope-card {
-            transform: scale(1.02);
-        }
-
-        /* My CS */
-        .scope-filter[data-scope="my"].active .scope-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12);
-            /* orange-700 */
-            color: rgb(194 65 12);
-        }
-
-        /* On Progress */
-        .scope-filter[data-scope="onprogress"].active .scope-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
-        }
-
-        /* Rejected */
-        .scope-filter[data-scope="rejected"].active .scope-card {
-            background-color: rgb(254 202 202);
-            /* red-200 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-            color: rgb(185 28 28);
-        }
-
-        /* Completed */
-        .scope-filter[data-scope="completed"].active .scope-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-            color: rgb(21 128 61);
-        }
-
-        /* All CS */
-        .scope-filter[data-scope="all"].active .scope-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-            color: rgb(31 41 55);
-        }
-
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-    </style>
 
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
@@ -201,388 +78,277 @@
             </button>
         </div>
 
-        <div class="grid">
-            <style>
-                .no-border {
-                    border: none !important;
-                }
-
-                .grid {
-                    width: 100%;
-                }
-
-                select,
-                textarea,
-                input {
-                    width: 100%;
-                }
-
-                table.dataTable {
-                    width: 100% !important;
-                }
-
-                .dataTables_wrapper {
-                    width: 100%;
-                }
-
-                @media (max-width: 600px) {
-                    .dataTables_wrapper {
-                        padding: 0 10px;
-                    }
-                }
-
-                /* CS table styles */
-                #csTable_filter {
-                    margin-bottom: 20px;
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                }
-
-                #csTable_filter label {
-                    margin-right: 2px;
-                }
-
-                #csTable_filter input {
-                    width: auto;
-                    padding: 0.25rem 0.5rem;
-                    min-width: 80px;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
-                }
-
-                #csTable td {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                #csTable th,
-                #csTable td {
-                    padding: 10px;
-                    max-width: 240px;
-                }
-
-                #csTable_length {
-                    width: auto;
-                    display: flex;
-                    justify-content: flex-start;
-                }
-
-                #csTable_length select {
-                    width: auto;
-                    padding: 0.25rem 0.5rem;
-                    min-width: 80px;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
-                }
-
-                #csTable_info {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                .dataTables_paginate {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                #csTable tbody tr {
-                    transition: background-color 0.3s ease, color 0.3s ease;
-                }
-
-                #csTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    opacity: 100%;
-                    cursor: pointer;
-                }
-
-                #csTable th:nth-child(1),
-                #csTable td:nth-child(1) {
-                    width: 140px;
-                    text-align: left;
-                }
-
-                #csTable th:nth-child(3),
-                #csTable td:nth-child(3) {
-                    width: 150px;
-                    text-align: center;
-                }
-
-                #csTable th:nth-child(4),
-                #csTable td:nth-child(4) {
-                    width: 150px;
-                    text-align: center;
-                }
-            </style>
-
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
-                </div>
-
-                <div class="overflow-x-auto p-6">
-                    <table id="csTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    CS ID</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    SPPB/J/K/T</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    CS Date</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Company</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Department</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Created By</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Note</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Assign Date</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Submit Date</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Days</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Status
-                                </th>
-
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                    </table>
-                </div>
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
             </div>
 
-            <script>
-                $(document).ready(function() {
-                    let scope = 'onprogress';
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="csTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                CS ID</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                SPPB/J/K/T</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                CS Date</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Company</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Department</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Created By</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Note</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Assign Date</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Submit Date</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Days</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Status
+                            </th>
 
-                    // 1) Peta scope → judul yang ditampilkan
-                    const titleMap = {
-                        my: 'Canvass Sheet - My CS',
-                        onprogress: 'Canvass Sheet - On Progress',
-                        rejected: 'Canvass Sheet - Rejected',
-                        completed: 'Canvass Sheet - Completed',
-                        all: 'Canvass Sheet - All CS',
-                    };
-
-                    // 2) Helper untuk set judul
-                    const $title = $('h1.text-xl.font-extrabold'); // selector h1 kamu
-                    function updateTitle(sc) {
-                        const label = titleMap[sc] ?? 'Canvass Sheet';
-                        $title.text(label);
-                    }
-
-                    // 3) (Opsional) highlight kartu aktif
-                    function highlightActive(sc) {
-                        $('.scope-filter')
-                            .removeClass('#')
-                            .each(function() {
-                                if ($(this).data('scope') === sc) {
-                                    $(this).addClass('#');
-                                }
-                            });
-                    }
-
-                    // panggil sekali di awal
-                    updateTitle(scope);
-                    highlightActive(scope);
-
-                    // === DataTable kamu tetap sama ===
-                    const table = $('#csTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        deferRender: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100, 250, -1],
-                            [10, 25, 50, 100, 250, 'All']
-                        ],
-
-
-                        // 🔥 ADD THIS
-                        dom: '<"dt-toolbar"l B f>rtip',
-                        buttons: [{
-                                extend: 'excelHtml5',
-                                text: '↓ Excel',
-                                title: 'Purchase_Order',
-                                className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            },
-                            {
-                                extend: 'csvHtml5',
-                                text: '↓ CSV',
-                                title: 'Purchase_Order',
-                                className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            }
-                        ],
-                        // 🔥 END ADD
-                        order: [
-                            [2, 'desc'],
-                            [0, 'desc']
-                        ],
-                        ajax: {
-                            url: "{{ route('cslist.json') }}",
-                            type: "GET",
-                            data: function(d) {
-                                d.scope = scope;
-                            }
-                        },
-                        columns: [{
-                                data: 'csid',
-                                className: 'text-left',
-                                render: (_v, t, row) => renderCSBtn(_v, row)
-                            },
-                            {
-                                data: 'sppbjktid',
-                                className: 'text-left',
-                                render: (v, t, row) => renderSPPBtn(v, row)
-                            },
-                            {
-                                data: 'csdate',
-                                className: 'text-center',
-                                render: (v) => fmtDate(v)
-                            },
-                            {
-                                data: 'cpny_id',
-                                className: 'text-center'
-                            },
-                            {
-                                data: 'department_id',
-                                className: 'text-center'
-                            },
-                            {
-                                data: 'created_by',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'csnote',
-                                className: 'text-left',
-                                defaultContent: '-'
-                            },
-                            {
-                                data: 'assigndate',
-                                className: 'text-center',
-                                render: (v) => fmtDate(v)
-                            },
-                            {
-                                data: 'submitdate',
-                                className: 'text-center',
-                                render: (v) => fmtDate(v)
-                            },
-                            {
-                                data: 'days',
-                                className: 'text-center',
-                                render: (v) => renderDays(v)
-                            },
-                            {
-                                data: 'status',
-                                className: 'text-center',
-                                render: (_v, _t, row) => renderStatusBadge(row)
-                            },
-
-                        ],
-                        searchDelay: 400,
-                        stateSave: true,
-                        responsive: true
-                    });
-
-                    // Klik kartu → ubah scope, judul, highlight, lalu reload tabel
-                    $('.scope-filter').on('click', function(e) {
-                        e.preventDefault();
-                        scope = $(this).data('scope') || 'my';
-                        updateTitle(scope);
-                        highlightActive(scope);
-                        table.ajax.reload(null, true);
-                    });
-
-                    // --- helper yg sudah ada di script-mu ---
-                    function fmtDate(v) {
-                        if (!v) return '';
-                        const d = new Date(v);
-                        return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
-                    }
-
-                    function renderCSBtn(_v, row) {
-                        const url = `/showcs/${row.eid}`;
-                        const text = row.csid || row.eid;
-                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
-                    }
-                    const showMap = {
-                        PB: 'showsppbs',
-                        PJ: 'showsppjs',
-                        PK: 'showsppks',
-                        PT: 'showsppts'
-                    };
-
-                    function renderSPPBtn(_v, row) {
-                        const prefix = (row.sppbjkt_prefix || '').toUpperCase();
-                        const base = showMap[prefix];
-                        const docNo = row.sppbjktid || '';
-                        const src_eid = row.sppbjkid_eid;
-                        if (!prefix || !base || !src_eid) return docNo;
-                        const url = `/${base}/${src_eid}`;
-                        return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
-                    }
-
-                    function renderDays(v) {
-                        return (v == null) ? '' : String(v);
-                    }
-
-                    function renderStatusBadge(row) {
-                        const label = row.status_label ?? row.status ?? '-';
-                        const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
-                        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
-                    }
-
-
-                });
-                // Toggle .active class and remember selected CS scope
-                const csScopes = document.querySelectorAll('.scope-filter');
-                const savedCsScope = localStorage.getItem('activeCsScope');
-
-                if (savedCsScope) {
-                    const activeScope = document.querySelector(`.scope-filter[data-scope="${savedCsScope}"]`);
-                    if (activeScope) activeScope.classList.add('active');
-                }
-
-                csScopes.forEach(btn => {
-                    btn.addEventListener('click', e => {
-                        e.preventDefault();
-                        csScopes.forEach(s => s.classList.remove('active'));
-                        btn.classList.add('active');
-                        localStorage.setItem('activeCsScope', btn.dataset.scope);
-                    });
-                });
-            </script>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+    <script>
+        $(document).ready(function() {
+            let scope = 'onprogress';
+
+            // 1) Peta scope → judul yang ditampilkan
+            const titleMap = {
+                my: 'Canvass Sheet - My CS',
+                onprogress: 'Canvass Sheet - On Progress',
+                rejected: 'Canvass Sheet - Rejected',
+                completed: 'Canvass Sheet - Completed',
+                all: 'Canvass Sheet - All CS',
+            };
+
+            // 2) Helper untuk set judul
+            const $title = $('h1.text-xl.font-extrabold'); // selector h1 kamu
+            function updateTitle(sc) {
+                const label = titleMap[sc] ?? 'Canvass Sheet';
+                $title.text(label);
+            }
+
+            // 3) (Opsional) highlight kartu aktif
+            function highlightActive(sc) {
+                $('.scope-filter')
+                    .removeClass('#')
+                    .each(function() {
+                        if ($(this).data('scope') === sc) {
+                            $(this).addClass('#');
+                        }
+                    });
+            }
+
+            // panggil sekali di awal
+            updateTitle(scope);
+            highlightActive(scope);
+
+            // === DataTable kamu tetap sama ===
+            const table = $('#csTable').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'List_CS',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'List_CS',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
+
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+                order: [
+                    [2, 'desc'],
+                    [0, 'desc']
+                ],
+                ajax: {
+                    url: "{{ route('cslist.json') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.scope = scope;
+                    }
+                },
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    }, {
+                        data: 'csid',
+                        className: 'text-left',
+                        render: (_v, t, row) => renderCSBtn(_v, row)
+                    },
+                    {
+                        data: 'sppbjktid',
+                        className: 'text-left',
+                        render: (v, t, row) => renderSPPBtn(v, row)
+                    },
+                    {
+                        data: 'csdate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'department_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'created_by',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'csnote',
+                        className: 'text-left',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'assigndate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'submitdate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'days',
+                        className: 'text-center',
+                        render: (v) => renderDays(v)
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-center',
+                        render: (_v, _t, row) => renderStatusBadge(row)
+                    },
+
+                ],
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
+
+            // Klik kartu → ubah scope, judul, highlight, lalu reload tabel
+            $('.scope-filter').on('click', function(e) {
+                e.preventDefault();
+                scope = $(this).data('scope') || 'my';
+                updateTitle(scope);
+                highlightActive(scope);
+                table.ajax.reload(null, true);
+            });
+
+            // --- helper yg sudah ada di script-mu ---
+            function fmtDate(v) {
+                if (!v) return '';
+                const d = new Date(v);
+                return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
+            }
+
+            function renderCSBtn(_v, row) {
+                const url = `/showcs/${row.eid}`;
+                const text = row.csid || row.eid;
+                return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+            }
+            const showMap = {
+                PB: 'showsppbs',
+                PJ: 'showsppjs',
+                PK: 'showsppks',
+                PT: 'showsppts'
+            };
+
+            function renderSPPBtn(_v, row) {
+                const prefix = (row.sppbjkt_prefix || '').toUpperCase();
+                const base = showMap[prefix];
+                const docNo = row.sppbjktid || '';
+                const src_eid = row.sppbjkid_eid;
+                if (!prefix || !base || !src_eid) return docNo;
+                const url = `/${base}/${src_eid}`;
+                return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
+            }
+
+            function renderDays(v) {
+                return (v == null) ? '' : String(v);
+            }
+
+            function renderStatusBadge(row) {
+                const label = row.status_label ?? row.status ?? '-';
+                const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
+            }
+
+
+        });
+        // Toggle .active class and remember selected CS scope
+        const csScopes = document.querySelectorAll('.scope-filter');
+        const savedCsScope = localStorage.getItem('activeCsScope');
+
+        if (savedCsScope) {
+            const activeScope = document.querySelector(`.scope-filter[data-scope="${savedCsScope}"]`);
+            if (activeScope) activeScope.classList.add('active');
+        }
+
+        csScopes.forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                csScopes.forEach(s => s.classList.remove('active'));
+                btn.classList.add('active');
+                localStorage.setItem('activeCsScope', btn.dataset.scope);
+            });
+        });
+    </script>
 </x-app-layout>

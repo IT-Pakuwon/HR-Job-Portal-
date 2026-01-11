@@ -262,7 +262,8 @@
             <div class="mt-2 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                     <h1 class="align-middle text-2xl font-bold dark:text-white">Agenda</h1>
-                    <a href="{{ url('/createagendas') }}" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
+                    <a href="{{ url('/createagendas') }}"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         <i class="fas fa-plus pr-2"></i>Create Agenda</a>
                 </div>
                 <div x-data="{ tab: 'table' }" class="mt-4">
@@ -320,6 +321,9 @@
                             [0, 'desc']
                         ],
                         columns: [{
+                                data: null,
+                                defaultContent: ''
+                            }, {
                                 data: 'id',
                                 render: function(data, type, row) {
                                     let url = `/showagendas/${row.id}`;

@@ -294,51 +294,43 @@
                     transform: translateX(18px);
                 }
             </style>
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+            <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     {{-- Changed text-3xl to text-xl --}}
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
                     <a href="{{ url('/createpersonnels') }}"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
 
-                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
-                    <table id="personnelsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
+                    <table id="personnelsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     DocID
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     Date
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     Company
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     Department
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     Title
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     Level
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     User
                                 </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     Status
                                 </th>
                             </tr>

@@ -3,110 +3,6 @@
         $currentPage = Route::currentRouteName() == 'itemreq' ? 'HR' : '';
     @endphp
 
-    <style>
-        /* Active / Selected state */
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-        }
-
-        .status-filter[data-status=""].active .status-card {
-            background-color: rgb(254 215 170);
-            border-color: rgb(194 65 12);
-        }
-
-        .status-filter[data-status="P"].active .status-card {
-            background-color: rgb(191 219 254);
-            border-color: rgb(29 78 216);
-        }
-
-        .status-filter[data-status="R"].active .status-card {
-            background-color: rgb(254 202 202);
-            border-color: rgb(185 28 28);
-        }
-
-        .status-filter[data-status="D"].active .status-card {
-            background-color: rgb(229 231 235);
-            border-color: rgb(31 41 55);
-        }
-
-        .status-filter[data-status="C"].active .status-card {
-            background-color: rgb(187 247 208);
-            border-color: rgb(21 128 61);
-        }
-
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-    </style>
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
 
         {{-- STATUS CARDS --}}
@@ -182,174 +78,140 @@
             </button>
         </div>
 
-        {{-- TABLE --}}
-        <div class="mt-6 grid">
-            <style>
-                table.dataTable {
-                    width: 100% !important;
-                }
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Item Request</h1>
 
-                .dataTables_wrapper {
-                    width: 100%;
-                }
-
-                #itemReqTable_filter {
-                    margin-bottom: 20px;
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                }
-
-                #itemReqTable_filter input {
-                    width: auto;
-                    min-width: 120px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
-                }
-
-                #itemReqTable td {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                #itemReqTable th,
-                #itemReqTable td {
-                    padding: 10px;
-                    max-width: 280px;
-                }
-
-                #itemReqTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    cursor: pointer;
-                }
-            </style>
-
-            <div class="rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Item Request</h1>
-
-                    {{-- sesuaikan URL/route create --}}
-                    <a href="{{ url('/createitemreq') }}"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <i class="fas fa-plus pr-2"></i>Create
-                    </a>
-                </div>
-
-                <div class="overflow-x-auto p-6">
-                    <table id="itemReqTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th
-                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    IRID</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Date</th>
-                                <th
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Company</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Department</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Description</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    PIC</th>
-                                <th
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                    </table>
-                </div>
+                {{-- sesuaikan URL/route create --}}
+                <a href="{{ url('/createitemreq') }}"
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    <i class="fas fa-plus pr-2"></i>Create
+                </a>
             </div>
 
-            <script>
-                var currentUser = "{{ auth()->user()->username }}";
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="itemReqTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                IRID</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Date</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Company</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Department</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Description</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                PIC</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        var currentUser = "{{ auth()->user()->username }}";
 
-                $(document).ready(function() {
-                    // default status filter: '' (All)
-                    let statusFilter = '';
+        $(document).ready(function() {
+            // default status filter: '' (All)
+            let statusFilter = '';
 
-                    const table = $('#itemReqTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        deferRender: true,
+            const table = $('#itemReqTable').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
 
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100, 250, -1],
-                            [10, 25, 50, 100, 250, 'All']
-                        ],
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
 
 
-                        // 🔥 ADD THIS
-                        dom: '<"dt-toolbar"l B f>rtip',
-                        buttons: [{
-                                extend: 'excelHtml5',
-                                text: '↓ Excel',
-                                title: 'Purchase_Order',
-                                className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            },
-                            {
-                                extend: 'csvHtml5',
-                                text: '↓ CSV',
-                                title: 'Purchase_Order',
-                                className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
+
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'List_ItemRequest',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
                             }
-                        ],
-                        // 🔥 END ADD
-
-                        ajax: {
-                            url: "{{ route('itemreq.json') }}",
-                            type: "GET",
-                            data: function(d) {
-                                d.status = statusFilter ?? '';
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'List_ItemRequest',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
                             }
-                        },
+                        }
+                    }
+                ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
 
-                        order: [
-                            [0, 'desc']
-                        ],
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
 
-                        columns: [
-                            // IRID link + optional tracking button (kalau sudah ada endpoint)
-                            {
-                                data: 'irid',
-                                render: function(data, type, row) {
-                                    let url = `/showitemreq/${row.eid}`;
-                                    let cls =
-                                        'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                ajax: {
+                    url: "{{ route('itemreq.json') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.status = statusFilter ?? '';
+                    }
+                },
 
-                                    const text = data || '-';
+                order: [
+                    [0, 'desc']
+                ],
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    },
+                    // IRID link + optional tracking button (kalau sudah ada endpoint)
+                    {
+                        data: 'irid',
+                        render: function(data, type, row) {
+                            let url = `/showitemreq/${row.eid}`;
+                            let cls =
+                                'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
 
-                                    // jika status Draft (D) & milik current user -> edit
-                                    if (row.status === 'D' && row.created_by === currentUser) {
-                                        url = `/edititemreq/${row.eid}`;
-                                        cls =
-                                            'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
-                                    }
+                            const text = data || '-';
 
-                                    return `
+                            // jika status Draft (D) & milik current user -> edit
+                            if (row.status === 'D' && row.created_by === currentUser) {
+                                url = `/edititemreq/${row.eid}`;
+                                cls =
+                                    'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                            }
+
+                            return `
                                         <div class="flex items-center gap-2 whitespace-nowrap">
                                             <a href="${url}" class="${cls}">${text}</a>
                                             <!-- Aktifkan jika sudah ada tracking route untuk item request -->
@@ -362,85 +224,83 @@
                                             -->
                                         </div>
                                     `;
-                                }
-                            },
+                        }
+                    },
 
-                            {
-                                data: 'irdate',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'cpny_id',
-                                className: 'text-center w-32'
-                            },
-                            {
-                                data: 'department_id',
-                                className: 'text-center whitespace-normal break-words'
-                            },
-                            {
-                                data: 'inventory_descr_req',
-                                defaultContent: '-',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'pic_item_req',
-                                defaultContent: '-',
-                                className: 'text-left'
-                            },
+                    {
+                        data: 'irdate',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center w-32'
+                    },
+                    {
+                        data: 'department_id',
+                        className: 'text-center whitespace-normal break-words'
+                    },
+                    {
+                        data: 'inventory_descr_req',
+                        defaultContent: '-',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'pic_item_req',
+                        defaultContent: '-',
+                        className: 'text-left'
+                    },
 
-                            {
-                                data: 'status',
-                                className: 'text-left',
-                                render: function(data) {
-                                    const map = {
-                                        'D': {
-                                            t: 'Revise / Draft',
-                                            c: 'bg-gray-300/30 text-gray-600'
-                                        },
-                                        'P': {
-                                            t: 'On Progress',
-                                            c: 'bg-blue-300/30 text-blue-600'
-                                        },
-                                        'C': {
-                                            t: 'Completed',
-                                            c: 'bg-green-300/30 text-green-600'
-                                        },
-                                        'R': {
-                                            t: 'Rejected',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                    };
-                                    const it = map[data] || {
-                                        t: data || '-',
-                                        c: 'bg-gray-300/30 text-gray-600'
-                                    };
-                                    return `<span class="w-36 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
-                                }
-                            }
-                        ],
+                    {
+                        data: 'status',
+                        className: 'text-left',
+                        render: function(data) {
+                            const map = {
+                                'D': {
+                                    t: 'Revise / Draft',
+                                    c: 'bg-gray-300/30 text-gray-600'
+                                },
+                                'P': {
+                                    t: 'On Progress',
+                                    c: 'bg-blue-300/30 text-blue-600'
+                                },
+                                'C': {
+                                    t: 'Completed',
+                                    c: 'bg-green-300/30 text-green-600'
+                                },
+                                'R': {
+                                    t: 'Rejected',
+                                    c: 'bg-red-300/30 text-red-600'
+                                },
+                            };
+                            const it = map[data] || {
+                                t: data || '-',
+                                c: 'bg-gray-300/30 text-gray-600'
+                            };
+                            return `<span class="w-36 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                        }
+                    }
+                ],
 
-                        searchDelay: 400,
-                        stateSave: true,
-                        responsive: true
-                    });
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
 
-                    // status cards click
-                    $('.status-filter').on('click', function(e) {
-                        e.preventDefault();
-                        statusFilter = $(this).data('status') || '';
-                        table.ajax.reload(null, true);
-                    });
+            // status cards click
+            $('.status-filter').on('click', function(e) {
+                e.preventDefault();
+                statusFilter = $(this).data('status') || '';
+                table.ajax.reload(null, true);
+            });
 
-                    document.querySelectorAll('.status-filter').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
-                                'active'));
-                            this.classList.add('active');
-                        });
-                    });
+            document.querySelectorAll('.status-filter').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
+                        'active'));
+                    this.classList.add('active');
                 });
-            </script>
-        </div>
-    </div>
+            });
+        });
+    </script>
 </x-app-layout>

@@ -4,88 +4,76 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-        <style>
-            table.dataTable { width: 100% !important; }
-            .dataTables_wrapper { width: 100%; }
-
-            .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
-            .switch input { opacity: 0; width: 0; height: 0; }
-            .slider {
-                position: absolute; cursor: pointer;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background-color: #ccc; transition: .4s; border-radius: 34px;
-            }
-            .slider:before {
-                position: absolute; content: "";
-                height: 16px; width: 16px; left: 3px; bottom: 3px;
-                background-color: white; transition: .4s; border-radius: 50%;
-            }
-            input:checked + .slider { background-color: #4CAF50; }
-            input:checked + .slider:before { transform: translateX(18px); }
-
-            .row-active { background-color: rgba(99,102,241,.12) !important; }
-            .no-pointer { pointer-events: none; }
-        </style>
-
         <!-- TOP: HEADER TABLE -->
-        <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-between">
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">💳 Terms Of Payment (TOP)</h2>
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">💳 Terms Of Payment (TOP)</h1>
                     <p class="text-sm text-gray-500 dark:text-gray-300">Klik TOP untuk menampilkan detail di bawah.</p>
                 </div>
-                <button id="addTopBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
+                <button id="addTopBtn"
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add TOP
                 </button>
             </div>
 
-            <table id="topTable" class="w-full table-fixed border-collapse">
-                <thead class="bg-white dark:bg-gray-700">
-                    <tr>
-                        <th class="w-28 px-3 py-3 text-center">Actions</th>
-                        <th class="px-3 py-3 text-left">TOP ID</th>
-                        <th class="px-3 py-3 text-left">TOP Name</th>
-                        <th class="px-3 py-3 text-left">Type</th>
-                        <th class="px-3 py-3 text-left">Days</th>
-                        <th class="w-24 px-3 py-3 text-center">RFCA</th>
-                        <th class="w-24 px-3 py-3 text-center">Fast</th>
-                        <th class="w-28 px-3 py-3 text-center">Status</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="topTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-28 px-3 py-3 text-center">Actions</th>
+                            <th class="px-3 py-3 text-left">TOP ID</th>
+                            <th class="px-3 py-3 text-left">TOP Name</th>
+                            <th class="px-3 py-3 text-left">Type</th>
+                            <th class="px-3 py-3 text-left">Days</th>
+                            <th class="w-24 px-3 py-3 text-center">RFCA</th>
+                            <th class="w-24 px-3 py-3 text-center">Fast</th>
+                            <th class="w-28 px-3 py-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- BOTTOM: DETAIL TABLE -->
-        <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-between">
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800 dark:text-white">🧾 TOP Detail</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-300">
                         Selected TOP: <span id="selectedTopText" class="font-semibold">-</span>
                     </p>
                 </div>
-                <button id="addTopDetailBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
+                <button id="addTopDetailBtn"
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Detail
                 </button>
             </div>
 
-            <table id="topDetailTable" class="w-full table-fixed border-collapse">
-                <thead class="bg-white dark:bg-gray-700">
-                    <tr>
-                        <th class="w-28 px-3 py-3 text-center">Actions</th>
-                        <th class="px-3 py-3 text-left">Terms ID</th>
-                        <th class="px-3 py-3 text-left">Terms Name</th>
-                        <th class="px-3 py-3 text-left">Order</th>
-                        <th class="px-3 py-3 text-left">Pay %</th>
-                        <th class="px-3 py-3 text-left">Prog %</th>
-                        <th class="px-3 py-3 text-left">Type</th>
-                        <th class="w-24 px-3 py-3 text-center">BAST</th>
-                        <th class="w-28 px-3 py-3 text-center">Status</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="topDetailTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-28 px-3 py-3 text-center">Actions</th>
+                            <th class="px-3 py-3 text-left">Terms ID</th>
+                            <th class="px-3 py-3 text-left">Terms Name</th>
+                            <th class="px-3 py-3 text-left">Order</th>
+                            <th class="px-3 py-3 text-left">Pay %</th>
+                            <th class="px-3 py-3 text-left">Prog %</th>
+                            <th class="px-3 py-3 text-left">Type</th>
+                            <th class="w-24 px-3 py-3 text-center">BAST</th>
+                            <th class="w-28 px-3 py-3 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
         </div>
 
         <!-- TOP MODAL -->
@@ -98,21 +86,25 @@
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
                             <label class="block text-gray-700 dark:text-white">TOP ID</label>
-                            <input type="text" id="topid" name="topid" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="text" id="topid" name="topid"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">TOP Type</label>
-                            <input type="text" id="top_type" name="top_type" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="text" id="top_type" name="top_type"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
 
                         <div class="md:col-span-2">
                             <label class="block text-gray-700 dark:text-white">TOP Name</label>
-                            <input type="text" id="top_name" name="top_name" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="text" id="top_name" name="top_name"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
 
                         <div>
                             <label class="block text-gray-700 dark:text-white">TOP Days</label>
-                            <input type="number" min="0" id="top_days" name="top_days" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="number" min="0" id="top_days" name="top_days"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
 
                         <div class="flex items-end gap-6">
@@ -128,7 +120,8 @@
                     </div>
 
                     <div class="mt-4 flex justify-end gap-2">
-                        <button type="button" id="closeTopModal" class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                        <button type="button" id="closeTopModal"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                         <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                     </div>
                 </form>
@@ -138,7 +131,8 @@
         <!-- TOP DETAIL MODAL -->
         <div id="topDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="w-full max-w-3xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="topDetailModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add TOP Detail</h2>
+                <h2 id="topDetailModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add TOP Detail
+                </h2>
 
                 <form id="topDetailForm">
                     <input type="hidden" id="td_id" name="id">
@@ -146,37 +140,45 @@
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <label class="block text-gray-700 dark:text-white">TOP ID</label>
-                            <input type="text" id="td_topid" name="topid" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="text" id="td_topid" name="topid"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">TOP Type</label>
-                            <input type="text" id="td_top_type" name="top_type" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="text" id="td_top_type" name="top_type"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">Terms ID</label>
-                            <input type="text" id="terms_id" name="terms_id" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="text" id="terms_id" name="terms_id"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
 
                         <div class="md:col-span-2">
                             <label class="block text-gray-700 dark:text-white">Terms Name</label>
-                            <input type="text" id="terms_name" name="terms_name" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="text" id="terms_name" name="terms_name"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">Order Term</label>
-                            <input type="number" min="1" id="order_term" name="order_term" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="number" min="1" id="order_term" name="order_term"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
 
                         <div>
                             <label class="block text-gray-700 dark:text-white">Payment %</label>
-                            <input type="number" step="0.01" min="0" max="100" id="payment_pct" name="payment_pct" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <input type="number" step="0.01" min="0" max="100" id="payment_pct"
+                                name="payment_pct" class="rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">Progress %</label>
-                            <input type="number" step="0.01" min="0" max="100" id="progress_pct" name="progress_pct" class="rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            <input type="number" step="0.01" min="0" max="100" id="progress_pct"
+                                name="progress_pct" class="rounded-lg border px-3 py-2 dark:bg-gray-700">
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">Terms Type</label>
-                            <input type="text" id="terms_type" name="terms_type" class="rounded-lg border px-3 py-2 dark:bg-gray-700">
+                            <input type="text" id="terms_type" name="terms_type"
+                                class="rounded-lg border px-3 py-2 dark:bg-gray-700">
                         </div>
 
                         <div class="flex items-end">
@@ -188,7 +190,8 @@
                     </div>
 
                     <div class="mt-4 flex justify-end gap-2">
-                        <button type="button" id="closeTopDetailModal" class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                        <button type="button" id="closeTopDetailModal"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                         <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
                     </div>
                 </form>
@@ -196,7 +199,7 @@
         </div>
 
         <script>
-            $(document).ready(function () {
+            $(document).ready(function() {
                 let selectedTopId = null;
                 let selectedTopType = null;
                 let selectedTopName = null;
@@ -206,10 +209,39 @@
                     ajax: "{{ route('tops.json') }}",
                     processing: true,
                     serverSide: false,
-                    columns: [
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'User',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
                         {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'User',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    columns: [{
                             data: 'id',
-                            render: function (data, type, row) {
+                            render: function(data, type, row) {
                                 return `
                                     <div class="flex justify-center space-x-2">
                                         <label class="switch">
@@ -223,19 +255,33 @@
                                 `;
                             }
                         },
-                        { data: 'topid' },
-                        { data: 'top_name' },
-                        { data: 'top_type' },
-                        { data: 'top_days' },
-                        { data: 'is_rfca', render: d => d ? '✅' : '—' },
-                        { data: 'is_fastapprove', render: d => d ? '✅' : '—' },
+                        {
+                            data: 'topid'
+                        },
+                        {
+                            data: 'top_name'
+                        },
+                        {
+                            data: 'top_type'
+                        },
+                        {
+                            data: 'top_days'
+                        },
+                        {
+                            data: 'is_rfca',
+                            render: d => d ? '✅' : '—'
+                        },
+                        {
+                            data: 'is_fastapprove',
+                            render: d => d ? '✅' : '—'
+                        },
                         {
                             data: 'status',
                             className: 'no-pointer',
-                            render: function (d) {
-                                return d === 'A'
-                                    ? '<span class="bg-green-300/30 text-green-600 font-semibold px-3 py-1 rounded">Active</span>'
-                                    : '<span class="bg-red-300/30 text-red-600 font-semibold px-3 py-1 rounded">Inactive</span>';
+                            render: function(d) {
+                                return d === 'A' ?
+                                    '<span class="bg-green-300/30 text-green-600 font-semibold px-3 py-1 rounded">Active</span>' :
+                                    '<span class="bg-red-300/30 text-red-600 font-semibold px-3 py-1 rounded">Inactive</span>';
                             }
                         },
                     ]
@@ -245,16 +291,45 @@
                 let detailTable = $('#topDetailTable').DataTable({
                     ajax: {
                         url: "{{ route('top_details.json') }}",
-                        data: function (d) {
+                        data: function(d) {
                             d.topid = selectedTopId;
                         }
                     },
                     processing: true,
                     serverSide: false,
-                    columns: [
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'User',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
                         {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'User',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    columns: [{
                             data: 'id',
-                            render: function (data, type, row) {
+                            render: function(data, type, row) {
                                 return `
                                     <div class="flex justify-center space-x-2">
                                         <label class="switch">
@@ -268,27 +343,51 @@
                                 `;
                             }
                         },
-                        { data: 'terms_id', className: 'no-pointer' },
-                        { data: 'terms_name', className: 'no-pointer' },
-                        { data: 'order_term', className: 'no-pointer' },
-                        { data: 'payment_pct', className: 'no-pointer' },
-                        { data: 'progress_pct', className: 'no-pointer', render: d => d ?? '—' },
-                        { data: 'terms_type', className: 'no-pointer', render: d => d ?? '—' },
-                        { data: 'flag_bast', className: 'no-pointer', render: d => d ? '✅' : '—' },
+                        {
+                            data: 'terms_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'terms_name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'order_term',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'payment_pct',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'progress_pct',
+                            className: 'no-pointer',
+                            render: d => d ?? '—'
+                        },
+                        {
+                            data: 'terms_type',
+                            className: 'no-pointer',
+                            render: d => d ?? '—'
+                        },
+                        {
+                            data: 'flag_bast',
+                            className: 'no-pointer',
+                            render: d => d ? '✅' : '—'
+                        },
                         {
                             data: 'status',
                             className: 'no-pointer',
-                            render: function (d) {
-                                return d === 'A'
-                                    ? '<span class="bg-green-300/30 text-green-600 font-semibold px-3 py-1 rounded">Active</span>'
-                                    : '<span class="bg-red-300/30 text-red-600 font-semibold px-3 py-1 rounded">Inactive</span>';
+                            render: function(d) {
+                                return d === 'A' ?
+                                    '<span class="bg-green-300/30 text-green-600 font-semibold px-3 py-1 rounded">Active</span>' :
+                                    '<span class="bg-red-300/30 text-red-600 font-semibold px-3 py-1 rounded">Inactive</span>';
                             }
                         },
                     ]
                 });
 
                 // CLICK TOP ROW -> FILTER DETAILS
-                $('#topTable tbody').on('click', 'tr', function () {
+                $('#topTable tbody').on('click', 'tr', function() {
                     let row = topTable.row(this).data();
                     if (!row) return;
 
@@ -304,20 +403,20 @@
                 });
 
                 /* ========== TOP MODAL ========== */
-                $('#addTopBtn').click(function () {
+                $('#addTopBtn').click(function() {
                     $('#topModalTitle').text('Add TOP');
                     $('#topForm')[0].reset();
                     $('#top_id').val('');
                     $('#topModal').removeClass('hidden').addClass('flex');
                 });
 
-                $('#closeTopModal').click(function () {
+                $('#closeTopModal').click(function() {
                     $('#topModal').addClass('hidden').removeClass('flex');
                 });
 
-                $(document).on('click', '.editTopBtn', function () {
+                $(document).on('click', '.editTopBtn', function() {
                     let id = $(this).data('id');
-                    $.get(`/tops/${id}/edit`, function (d) {
+                    $.get(`/tops/${id}/edit`, function(d) {
                         $('#topModalTitle').text('Edit TOP');
                         $('#top_id').val(d.id);
                         $('#topid').val(d.topid);
@@ -330,7 +429,7 @@
                     });
                 });
 
-                $('#topForm').submit(function (e) {
+                $('#topForm').submit(function(e) {
                     e.preventDefault();
                     let id = $('#top_id').val();
                     let url = id ? `/tops/${id}` : "{{ route('tops.store') }}";
@@ -340,38 +439,44 @@
                     $.ajax({
                         url: url,
                         type: 'POST',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function () {
+                        success: function() {
                             $('#topModal').addClass('hidden').removeClass('flex');
                             topTable.ajax.reload(null, false);
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error(xhr.responseText);
                             alert('Gagal menyimpan TOP');
                         }
                     });
                 });
 
-                $(document).on('change', '.toggleTopStatus', function () {
+                $(document).on('change', '.toggleTopStatus', function() {
                     let id = $(this).data('id');
                     let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                     $.ajax({
                         url: `/tops/${id}/toggle-status`,
                         type: 'PUT',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        data: { status: newStatus },
-                        success: function () {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: {
+                            status: newStatus
+                        },
+                        success: function() {
                             topTable.ajax.reload(null, false);
                         }
                     });
                 });
 
                 /* ========== TOP DETAIL MODAL ========== */
-                $('#addTopDetailBtn').click(function () {
+                $('#addTopDetailBtn').click(function() {
                     if (!selectedTopId) {
                         alert('Pilih TOP dulu di tabel atas.');
                         return;
@@ -388,13 +493,13 @@
                     $('#topDetailModal').removeClass('hidden').addClass('flex');
                 });
 
-                $('#closeTopDetailModal').click(function () {
+                $('#closeTopDetailModal').click(function() {
                     $('#topDetailModal').addClass('hidden').removeClass('flex');
                 });
 
-                $(document).on('click', '.editDetailBtn', function () {
+                $(document).on('click', '.editDetailBtn', function() {
                     let id = $(this).data('id');
-                    $.get(`/top-details/${id}/edit`, function (d) {
+                    $.get(`/top-details/${id}/edit`, function(d) {
                         $('#topDetailModalTitle').text('Edit TOP Detail');
                         $('#td_id').val(d.id);
                         $('#td_topid').val(d.topid);
@@ -411,7 +516,7 @@
                     });
                 });
 
-                $('#topDetailForm').submit(function (e) {
+                $('#topDetailForm').submit(function(e) {
                     e.preventDefault();
                     let id = $('#td_id').val();
                     let url = id ? `/top-details/${id}` : "{{ route('top_details.store') }}";
@@ -421,31 +526,37 @@
                     $.ajax({
                         url: url,
                         type: 'POST',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function () {
+                        success: function() {
                             $('#topDetailModal').addClass('hidden').removeClass('flex');
                             detailTable.ajax.reload(null, false);
                         },
-                        error: function (xhr) {
+                        error: function(xhr) {
                             console.error(xhr.responseText);
                             alert('Gagal menyimpan TOP Detail');
                         }
                     });
                 });
 
-                $(document).on('change', '.toggleDetailStatus', function () {
+                $(document).on('change', '.toggleDetailStatus', function() {
                     let id = $(this).data('id');
                     let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                     $.ajax({
                         url: `/top-details/${id}/toggle-status`,
                         type: 'PUT',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        data: { status: newStatus },
-                        success: function () {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: {
+                            status: newStatus
+                        },
+                        success: function() {
                             detailTable.ajax.reload(null, false);
                         }
                     });

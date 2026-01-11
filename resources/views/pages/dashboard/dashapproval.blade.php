@@ -222,6 +222,9 @@
                             [0, 'desc']
                         ],
                         columns: [{
+                                data: null,
+                                defaultContent: ''
+                            }, {
                                 data: 'id',
                                 render: function(data, type, row) {
                                     let url = `${window.location.origin}${row.url}/${row.id}`;

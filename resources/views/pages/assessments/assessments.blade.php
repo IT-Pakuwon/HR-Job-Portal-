@@ -2,16 +2,18 @@
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <div class="grid">
 
-            <div class="mt-6 rounded-xl bg-white p-4 dark:bg-gray-800">
-                <div class="mb-4 flex items-center justify-between">
+            <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h2 class="text-xl font-bold text-gray-800 dark:text-white">📌 Assessments List</h2>
-                    <button id="addAppBtn" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
+                    <button id="addAppBtn"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         + Add Assessment
                     </button>
                 </div>
 
-                <table id="assessmentsTable" class="w-full table-fixed border-collapse">
-                    <thead class="bg-white dark:bg-gray-700">
+                <table id="assessmentsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
                             <th class="px-4 py-3 text-left">AssessmentID</th>
@@ -88,6 +90,9 @@
                             } // Lebar kolom Status
                         ],
                         columns: [{
+                                data: null,
+                                defaultContent: ''
+                            }, {
                                 data: 'id',
                                 width: '80px',
                                 render: function(data, type, row) {

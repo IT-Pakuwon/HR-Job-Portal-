@@ -1,420 +1,9 @@
 <x-app-layout>
-    <style>
-        .no-border {
-            border: none !important;
-        }
-
-        .grid {
-            width: 100%;
-        }
-
-        select,
-        textarea,
-        input {
-            width: 100%;
-        }
-
-        table.dataTable {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        @media (max-width: 600px) {
-            .dataTables_wrapper {
-                padding: 0 10px;
-            }
-        }
-
-        /* === Filter Section === */
-        #tblMine_filter,
-        #tblEntryCS_filter,
-        #tblRevision_filter,
-        #tblAll_filter,
-        #tblSppbjkt_filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        #tblMine_filter label,
-        #tblEntryCS_filter label,
-        #tblRevision_filter label,
-        #tblAll_filter label,
-        #tblSppbjkt_filter label {
-            margin-right: 2px;
-        }
-
-        #tblMine_filter input,
-        #tblEntryCS_filter input,
-        #tblRevision_filter input,
-        #tblAll_filter input,
-        #tblSppbjkt_filter input {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        /* === Wrapper Width === */
-        #tblMine_wrapper,
-        #tblEntryCS_wrapper,
-        #tblRevision_wrapper,
-        #tblAll_wrapper,
-        #tblSppbjkt_wrapper {
-            width: 100%;
-        }
-
-        /* === Cell Formatting === */
-        #tblMine td,
-        #tblEntryCS td,
-        #tblRevision td,
-        #tblAll td,
-        #tblSppbjkt td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #tblMine th,
-        #tblEntryCS th,
-        #tblRevision th,
-        #tblAll th,
-        #tblSppbjkt th,
-        #tblMine td,
-        #tblEntryCS td,
-        #tblRevision td,
-        #tblAll td,
-        #tblSppbjkt td {
-            padding: 10px;
-            max-width: 200px;
-        }
-
-        /* === Length Section === */
-        #tblMine_length,
-        #tblEntryCS_length,
-        #tblRevision_length,
-        #tblAll_length,
-        #tblSppbjkt_length {
-            width: auto;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        #tblMine_length select,
-        #tblEntryCS_length select,
-        #tblRevision_length select,
-        #tblAll_length select,
-        #tblSppbjkt_length select {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        /* === Info + Pagination === */
-        #tblMine_info,
-        #tblEntryCS_info,
-        #tblRevision_info,
-        #tblAll_info,
-        #tblSppbjkt_info {
-            margin: 10px 0;
-        }
-
-        .dataTables_paginate {
-            margin: 10px 0;
-        }
-
-        /* === Hover Effects === */
-        #tblMine tbody tr,
-        #tblEntryCS tbody tr,
-        #tblRevision tbody tr,
-        #tblAll tbody tr,
-        #tblSppbjkt tbody tr {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        #tblMine tbody tr:hover,
-        #tblEntryCS tbody tr:hover,
-        #tblRevision tbody tr:hover,
-        #tblAll tbody tr:hover,
-        #tblSppbjkt tbody tr:hover {
-            background-color: #8f8f8f11;
-            cursor: pointer;
-        }
-
-        #tblMine tbody tr td,
-        #tblEntryCS tbody tr td,
-        #tblRevision tbody tr td,
-        #tblAll tbody tr td,
-        #tblSppbjkt tbody tr td {
-            padding: 8px;
-            line-height: 2;
-        }
-
-        /* === Column Width Alignment === */
-        #tblMine th:nth-child(1),
-        #tblMine td:nth-child(1),
-        #tblEntryCS th:nth-child(1),
-        #tblEntryCS td:nth-child(1),
-        #tblRevision th:nth-child(1),
-        #tblRevision td:nth-child(1),
-        #tblAll th:nth-child(1),
-        #tblAll td:nth-child(1),
-        #tblSppbjkt th:nth-child(1),
-        #tblSppbjkt td:nth-child(1) {
-            width: 120px;
-            text-align: center;
-        }
-
-        #tblMine th:nth-child(4),
-        #tblMine td:nth-child(4),
-        #tblEntryCS th:nth-child(4),
-        #tblEntryCS td:nth-child(4),
-        #tblRevision th:nth-child(4),
-        #tblRevision td:nth-child(4),
-        #tblAll th:nth-child(4),
-        #tblAll td:nth-child(4),
-        #tblSppbjkt th:nth-child(4),
-        #tblSppbjkt td:nth-child(4) {
-            width: 120px;
-            text-align: center;
-        }
-
-        /* === Group Row & Collapse === */
-        #tblMine tbody tr.collapsed-group-row,
-        #tblEntryCS tbody tr.collapsed-group-row,
-        #tblRevision tbody tr.collapsed-group-row,
-        #tblAll tbody tr.collapsed-group-row,
-        #tblSppbjkt tbody tr.collapsed-group-row {
-            display: none;
-        }
-
-        #tblMine tr.group-row,
-        #tblEntryCS tr.group-row,
-        #tblRevision tr.group-row,
-        #tblAll tr.group-row,
-        #tblSppbjkt tr.group-row {
-            background-color: #e6e6e6;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            color: #333;
-        }
-
-        #tblMine tr.group-row:hover,
-        #tblEntryCS tr.group-row:hover,
-        #tblRevision tr.group-row:hover,
-        #tblAll tr.group-row:hover,
-        #tblSppbjkt tr.group-row:hover {
-            background-color: #d4d4d4;
-        }
-
-        #tblMine tr.group-row .fas,
-        #tblEntryCS tr.group-row .fas,
-        #tblRevision tr.group-row .fas,
-        #tblAll tr.group-row .fas,
-        #tblSppbjkt tr.group-row .fas {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-        }
-
-        #tblMine tr.group-row td,
-        #tblEntryCS tr.group-row td,
-        #tblRevision tr.group-row td,
-        #tblAll tr.group-row td,
-        #tblSppbjkt tr.group-row td {
-            padding: 10px !important;
-            border-bottom: 1px solid #ddd;
-        }
-
-        #tblMine tr.group-row td:first-child,
-        #tblEntryCS tr.group-row td:first-child,
-        #tblRevision tr.group-row td:first-child,
-        #tblAll tr.group-row td:first-child,
-        #tblSppbjkt tr.group-row td:first-child {
-            border-left: none;
-        }
-
-        /* === Custom Switch === */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
-        }
-
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-    </style>
-
-
     {{-- Select2 & Toastr (biarkan seperti sebelumnya) --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <style>
-        /* Active / Selected state */
-        .filter-card.active {
-            transform: scale(1.02);
-        }
-
-        /* CS Jobs */
-        #btn-mine.active {
-            background-color: rgb(199 210 254);
-            /* indigo-200 */
-            border-color: rgb(67 56 202);
-            /* indigo-700 */
-        }
-
-        /* CS Revision */
-        #btn-revision.active {
-            background-color: rgb(253 230 138);
-            /* amber-200 */
-            border-color: rgb(180 83 9);
-            /* amber-700 */
-        }
-
-        /* All CS Jobs */
-        #btn-all.active {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-        }
-
-        /* SPPBJKT IN Progress */
-        #btn-sppbjkt.active {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-        }
-
-        #btn-completed.active {
-            background-color: rgb(226 232 240);
-            /* slate-200 */
-            border-color: rgb(15 23 42);
-            /* slate-900 */
-            color: rgb(15 23 42);
-        }
-    </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 
@@ -495,221 +84,236 @@
 
         </div>
 
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
 
-
-        {{-- ====== PANES (tanpa tab) ====== --}}
-        <div class="grid">
-            <div class="mt-6 rounded-2xl bg-white p-6 dark:bg-gray-800">
-
-                {{-- === PANE: CS Jobs + Entry CS (dua tabel) === --}}
-                <div id="pane-mine">
-                    <div>
-                        <h2 class="mb-2 text-xl font-semibold">CS Jobs</h2>
-                        <table id="tblMine" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Action</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
-                                    </th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Assign
-                                        Date</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Date
-                                    </th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Company
-                                    </th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Name
-                                    </th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Assign
-                                        Purchasing</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Assign
-                                        By</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Department</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        Description</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                            </tbody>
-                        </table>
-
-                    </div>
-
-                    <div class="mt-10">
-                        <h2 class="mb-2 text-xl font-semibold">Entry CS (My CS)</h2>
-                        <table id="tblEntryCS" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">CSID
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                        SPPBJKT ID
-                                    </th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Date</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Company</th>
-                                    <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                        Department</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">User
-                                        Peminta</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Note
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {{-- === PANE: My Revision (TrPO Reuse) === --}}
-                <div id="pane-revision" class="hidden">
-                    <h2 class="mb-2 text-xl font-semibold">My Revision</h2>
-                    <table id="tblRevision" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+            {{-- === PANE: CS Jobs + Entry CS (dua tabel) === --}}
+            <div id="pane-mine">
+                <div>
+                    <h2 class="mb-2 text-xl font-semibold">CS Jobs</h2>
+                    <table id="tblMine" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
-                                <th class="w-2 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                    Action
+                                <th></th>
+                                <th class="w-32 px-4 py-3 text-center">
+                                    Action</th>
+                                <th class="px-4 py-3 text-left">DocID
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                    PO Number
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    PO Date
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    CSID
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    SPPBJKT
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    Company
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    Department
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    Vendor
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                    </table>
-                </div>
-
-                {{-- === PANE: All Jobs === --}}
-                <div id="pane-all" class="hidden">
-                    <h2 class="mb-2 text-xl font-semibold">All Jobs</h2>
-                    <table id="tblAll" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
+                                <th class="px-4 py-3 text-left">
+                                    Assign
                                     Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date
+                                <th class="px-4 py-3 text-left">
+                                    Date
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left">
                                     Company
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Name
+                                <th class="px-4 py-3 text-left">
+                                    Name
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
+                                <th class="px-4 py-3 text-left">
+                                    Assign
                                     Purchasing</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
+                                <th class="px-4 py-3 text-left">
+                                    Assign
                                     By</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left">
                                     Department</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                <th class="w-32 px-4 py-3 text-center">
                                     Description</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                        </tbody>
                     </table>
+
                 </div>
 
-                {{-- === PANE: SPPBJKT IN Progress === --}}
-                <div id="pane-sppbjkt" class="hidden">
-                    <h2 class="mb-2 text-xl font-semibold">SPPBJKT IN Progress</h2>
-                    <table id="tblSppbjkt" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                <div class="mt-10">
+                    <h2 class="mb-2 text-xl font-semibold">Entry CS (My CS)</h2>
+                    <table id="tblEntryCS" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
+                                <th></th>
+                                <th class="w-32 px-4 py-3 text-center">CSID
                                 </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
+                                <th class="w-32 px-4 py-3 text-center">
+                                    SPPBJKT ID
+                                </th>
+                                <th class="px-4 py-3 text-left">
                                     Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left">
                                     Company</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Name
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    Purchasing</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    By</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
+                                <th class="px-4 py-3 text-left">
                                     Department</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                    Description</th>
+                                <th class="w-32 px-4 py-3 text-center">User
+                                    Peminta</th>
+                                <th class="w-32 px-4 py-3 text-center">Note
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                        </tbody>
                     </table>
                 </div>
+            </div>
 
-                {{-- === PANE: Completed Jobs === --}}
-                <div id="pane-completed" class="hidden">
-                    <h2 class="mb-2 text-xl font-semibold">Completed Jobs</h2>
+            {{-- === PANE: My Revision (TrPO Reuse) === --}}
+            <div id="pane-revision" class="hidden">
+                <h2 class="mb-2 text-xl font-semibold">My Revision</h2>
+                <table id="tblRevision" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-2 w-32 px-4 py-3 text-center">
+                                Action
+                            </th>
+                            <th class="w-32 px-4 py-3 text-center">
+                                PO Number
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                PO Date
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                CSID
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                SPPBJKT
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                Company
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                Department
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                Vendor
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
+            </div>
 
-                    <table id="tblCompleted" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        {{-- <thead class="bg-gray-50 dark:bg-gray-700">
+            {{-- === PANE: All Jobs === --}}
+            <div id="pane-all" class="hidden">
+                <h2 class="mb-2 text-xl font-semibold">All Jobs</h2>
+                <table id="tblAll" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-32 px-4 py-3 text-center">DocID
+                            </th>
+                            <th class="px-4 py-3 text-left">Assign
+                                Date</th>
+                            <th class="px-4 py-3 text-left">Date
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                Company
+                            </th>
+                            <th class="px-4 py-3 text-left">Name
+                            </th>
+                            <th class="px-4 py-3 text-left">Assign
+                                Purchasing</th>
+                            <th class="px-4 py-3 text-left">Assign
+                                By</th>
+                            <th class="px-4 py-3 text-left">
+                                Department</th>
+                            <th class="w-32 px-4 py-3 text-center">
+                                Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- === PANE: SPPBJKT IN Progress === --}}
+            <div id="pane-sppbjkt" class="hidden">
+                <h2 class="mb-2 text-xl font-semibold">SPPBJKT IN Progress</h2>
+                <table id="tblSppbjkt" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-32 px-4 py-3 text-center">DocID
+                            </th>
+                            <th class="px-4 py-3 text-left">Assign
+                                Date</th>
+                            <th class="px-4 py-3 text-left">Date
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                Company</th>
+                            <th class="px-4 py-3 text-left">Name
+                            </th>
+                            <th class="px-4 py-3 text-left">Assign
+                                Purchasing</th>
+                            <th class="px-4 py-3 text-left">Assign
+                                By</th>
+                            <th class="px-4 py-3 text-left">
+                                Department</th>
+                            <th class="w-32 px-4 py-3 text-center">
+                                Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- === PANE: Completed Jobs === --}}
+            <div id="pane-completed" class="hidden">
+                <h2 class="mb-2 text-xl font-semibold">Completed Jobs</h2>
+
+                <table id="tblCompleted" class="text-body w-full text-left text-sm rtl:text-right">
+                    {{-- <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Department</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Description</th>
+                                <th class="w-32 px-4 py-3 text-center">DocID</th>
+                                <th class="px-4 py-3 text-left">Date</th>
+                                <th class="px-4 py-3 text-left">Company</th>
+                                <th class="px-4 py-3 text-left">Department</th>
+                                <th class="w-32 px-4 py-3 text-center">Created By</th>
+                                <th class="w-32 px-4 py-3 text-center">Description</th>
                             </tr>
                         </thead> --}}
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Date
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    Company</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Name
-                                </th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    Purchasing</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Assign
-                                    By</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">
-                                    Department</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                    Description</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                    </table>
-                </div>
-
-
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-32 px-4 py-3 text-center">DocID
+                            </th>
+                            <th class="px-4 py-3 text-left">Assign
+                                Date</th>
+                            <th class="px-4 py-3 text-left">Date
+                            </th>
+                            <th class="px-4 py-3 text-left">
+                                Company</th>
+                            <th class="px-4 py-3 text-left">Name
+                            </th>
+                            <th class="px-4 py-3 text-left">Assign
+                                Purchasing</th>
+                            <th class="px-4 py-3 text-left">Assign
+                                By</th>
+                            <th class="px-4 py-3 text-left">
+                                Department</th>
+                            <th class="w-32 px-4 py-3 text-center">
+                                Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
             </div>
+
+
         </div>
     </div>
 
@@ -820,6 +424,14 @@
                 return [actionCol, ...colSetWithoutCreate()];
             }
 
+            const dtControlColumn = {
+                data: null,
+                className: 'dtr-control',
+                orderable: false,
+                searchable: false,
+                defaultContent: ''
+            };
+
 
             // ===== Datatables init (tanpa parameter docType) =====
             const tblMine = $('#tblMine').DataTable({
@@ -831,14 +443,25 @@
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
                 ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
+
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
 
 
-                // 🔥 ADD THIS
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
-                        title: 'Purchase_Order',
+                        title: 'List_CSJob',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
                             columns: ':visible',
@@ -850,7 +473,7 @@
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
-                        title: 'Purchase_Order',
+                        title: 'List_CSJob',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
                             columns: ':visible',
@@ -868,10 +491,9 @@
                     [3, 'desc'],
                     [1, 'desc']
                 ],
-                columns: colSetWithCreate(),
+                columns: [dtControlColumn, ...colSetWithCreate()],
                 searchDelay: 400,
                 stateSave: true,
-                responsive: true
             });
 
             const tblEntryCS = $('#tblEntryCS').DataTable({
@@ -883,14 +505,26 @@
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
                 ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
+
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
 
 
-                // 🔥 ADD THIS
+
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
-                        title: 'Purchase_Order',
+                        title: 'List_CS',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
                             columns: ':visible',
@@ -902,7 +536,7 @@
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
-                        title: 'Purchase_Order',
+                        title: 'List_CS',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
                             columns: ':visible',
@@ -920,7 +554,8 @@
                     [1, 'desc'],
                     [0, 'desc']
                 ],
-                columns: [{
+                columns: [
+                    dtControlColumn, {
                         data: 'csid',
                         className: 'text-left',
                         render: (v, _t, row) =>
@@ -982,7 +617,6 @@
 
                 searchDelay: 400,
                 stateSave: true,
-                responsive: true
             });
 
             const tblAll = $('#tblAll').DataTable({
@@ -994,14 +628,25 @@
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
                 ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
+
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
 
 
-                // 🔥 ADD THIS
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
-                        title: 'Purchase_Order',
+                        title: 'List_All',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
                             columns: ':visible',
@@ -1013,7 +658,7 @@
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
-                        title: 'Purchase_Order',
+                        title: 'List_ALL',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
                             columns: ':visible',
@@ -1031,10 +676,9 @@
                     [2, 'desc'],
                     [0, 'desc']
                 ],
-                columns: colSetWithoutCreate(),
+                columns: [dtControlColumn, ...colSetWithoutCreate()],
                 searchDelay: 400,
                 stateSave: true,
-                responsive: true
             });
 
             const tblRevision = $('#tblRevision').DataTable({
@@ -1046,14 +690,24 @@
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
                 ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
 
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
 
-                // 🔥 ADD THIS
                 dom: '<"dt-toolbar"l B f>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
-                        title: 'Purchase_Order',
+                        title: 'List_CSRevisi',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
                             columns: ':visible',
@@ -1065,7 +719,7 @@
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
-                        title: 'Purchase_Order',
+                        title: 'List_CSRevisi',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
                             columns: ':visible',
@@ -1083,33 +737,12 @@
                     [2, 'desc'], // sort by PO Date
                     [1, 'desc'] // then by PO Number
                 ],
-                columns: colSetRevision(),
+                columns: [dtControlColumn, ...colSetRevision()],
                 searchDelay: 400,
                 stateSave: true,
-                responsive: true
             });
 
             const tblSppbjkt = $('#tblSppbjkt').DataTable({
-                processing: true,
-                serverSide: true,
-                deferRender: true,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100, 250],
-                ajax: {
-                    url: "{{ route('csjobs.sppbjkt.progress.json') }}",
-                    type: "GET"
-                },
-                order: [
-                    [2, 'desc'],
-                    [0, 'desc']
-                ],
-                columns: colSetWithoutCreate(),
-                searchDelay: 400,
-                stateSave: true,
-                responsive: true
-            });
-
-            const tblCompleted = $('#tblCompleted').DataTable({
                 processing: true,
                 serverSide: true,
                 deferRender: true,
@@ -1118,14 +751,23 @@
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
                 ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
 
-
-                // 🔥 ADD THIS
-                dom: '<"dt-toolbar"l B f>rtip',
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+                dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
-                        title: 'Purchase_Order',
+                        title: 'List_SPPBJKT',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
                             columns: ':visible',
@@ -1137,7 +779,70 @@
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
-                        title: 'Purchase_Order',
+                        title: 'List_SPPBJKT',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
+                ajax: {
+                    url: "{{ route('csjobs.sppbjkt.progress.json') }}",
+                    type: "GET"
+                },
+                order: [
+                    [2, 'desc'],
+                    [0, 'desc']
+                ],
+                columns: [dtControlColumn, ...colSetWithoutCreate()],
+                searchDelay: 400,
+                stateSave: true,
+            });
+
+            const tblCompleted = $('#tblCompleted').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
+
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+
+
+
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'List_CSCompleted',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'List_CSCompleted',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
                             columns: ':visible',
@@ -1176,10 +881,9 @@
                 //     },
                 //     { data: 'keperluan', className: 'text-left', defaultContent: '-' },
                 // ],
-                columns: colSetWithoutCreate(),
+                columns: [dtControlColumn, ...colSetWithoutCreate()],
                 searchDelay: 400,
                 stateSave: true,
-                responsive: true
             });
 
 
