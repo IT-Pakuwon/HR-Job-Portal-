@@ -366,39 +366,50 @@
                     serverSide: true,
                     deferRender: true,
                     pageLength: 10,
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0 // 👈 this is REQUIRED
+                        }
+                    },
+
+                    columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+
                     lengthMenu: [
                         [10, 25, 50, 100, 250, -1],
                         [10, 25, 50, 100, 250, 'All']
                     ],
 
-
-
-                    // dom: '<"dt-toolbar"l B f>rtip',
-                    // buttons: [{
-                    //         extend: 'excelHtml5',
-                    //         text: '↓ Excel',
-                    //         title: 'List_Receipt',
-                    //         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                    //         exportOptions: {
-                    //             columns: ':visible',
-                    //             modifier: {
-                    //                 page: 'current'
-                    //             }
-                    //         }
-                    //     },
-                    //     {
-                    //         extend: 'csvHtml5',
-                    //         text: '↓ CSV',
-                    //         title: 'List_Receipt',
-                    //         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                    //         exportOptions: {
-                    //             columns: ':visible',
-                    //             modifier: {
-                    //                 page: 'current'
-                    //             }
-                    //         }
-                    //     }
-                    // ],
+                    dom: '<"dt-toolbar"l B f>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'List_Receipt',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'List_Receipt',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
                     // responsive: {
                     //     details: {
                     //         type: 'column',

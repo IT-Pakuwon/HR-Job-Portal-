@@ -2,46 +2,6 @@
     @php
         $currentPage = Route::currentRouteName() == 'wos' ? 'HR' : '';
     @endphp
-    <style>
-        /* Active / Selected state */
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-        }
-
-        .status-filter[data-status=""].active .status-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12)
-        }
-
-        .status-filter[data-status="P"].active .status-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-        }
-
-        .status-filter[data-status="R"].active .status-card {
-            background-color: rgb(254 202 202);
-            /* red-200 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-        }
-
-        .status-filter[data-status="D"].active .status-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-        }
-
-        .status-filter[data-status="C"].active .status-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-        }
-    </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
@@ -122,457 +82,158 @@
 
         </div>
 
-        <div class="grid">
-            <style>
-                .no-border {
-                    border: none !important;
-                }
-
-                .grid {
-                    width: 100%;
-                }
-
-                select,
-                textarea,
-                input {
-                    width: 100%;
-                    /* Make all input elements take full width */
-                }
-
-                table.dataTable {
-                    width: 100% !important;
-                }
-
-                .dataTables_wrapper {
-                    width: 100%;
-                }
-
-                @media (max-width: 600px) {
-                    .dataTables_wrapper {
-                        padding: 0 10px;
-                    }
-                }
-
-                /* Wo Table Specific Styles */
-                #wosTable_filter {
-                    margin-bottom: 20px;
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                }
-
-                #wosTable_filter label {
-                    margin-right: 2px;
-                }
-
-                #wosTable_filter input {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
-                }
-
-                #wosTable_wrapper {
-                    width: 100%;
-                }
-
-                #wosTable td {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                #wosTable th,
-                #wosTable td {
-                    padding: 10px;
-                    max-width: 200px;
-                }
-
-                #wosTable_length {
-                    width: auto;
-                    display: flex;
-                    justify-content: flex-start;
-                }
-
-                #wosTable_length select {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
-                }
-
-                #wosTable_length select option {
-                    padding: 5px;
-                }
-
-                #wosTable_info {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                .dataTables_paginate {
-                    /* This class is for all DataTables paginations */
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                #wosTable tbody tr td {
-                    padding: 8px 8px;
-                    line-height: 2;
-                }
-
-                #wosTable tbody tr {
-                    transition: background-color 0.3s ease, color 0.3s ease;
-                }
-
-                #wosTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    opacity: 100%;
-                    cursor: pointer;
-                }
-
-                #wosTable tbody tr:hover td {
-                    /* color: black; */
-                }
-
-                #wosTable th:nth-child(1),
-                #wosTable td:nth-child(1) {
-                    width: 120px;
-                    text-align: center;
-                }
-
-                #wosTable th:nth-child(4),
-                #wosTable td:nth-child(4) {
-                    width: 120px;
-                    text-align: center;
-                }
-
-                /* --- Custom Styles for RowGroup Collapse/Expand (Applied to wosTable) --- */
-                /* Initially hide rows in collapsed groups */
-                #wosTable tbody tr.collapsed-group-row {
-                    display: none;
-                }
-
-                /* Style for group rows */
-                #wosTable tr.group-row {
-                    background-color: #e6e6e6;
-                    /* Light gray background for group headers */
-                    font-weight: bold;
-                    cursor: pointer;
-                    user-select: none;
-                    /* Prevent text selection on click */
-                    color: #333;
-                    /* Darker text for group headers */
-                }
-
-                #wosTable tr.group-row:hover {
-                    background-color: #d4d4d4;
-                    /* Slightly darker on hover */
-                }
-
-                /* Icon styling */
-                #wosTable tr.group-row .fas {
-                    margin-right: 8px;
-                    width: 16px;
-                    /* Ensure consistent icon width */
-                    text-align: center;
-                }
-
-                /* Adjust padding for group rows to look consistent with other cells */
-                #wosTable tr.group-row td {
-                    padding: 10px !important;
-                    border-bottom: 1px solid #ddd;
-                    /* Separator for groups */
-                }
-
-                /* Remove border from the first td in group row to match the colspan */
-                #wosTable tr.group-row td:first-child {
-                    border-left: none;
-                }
-
-                /* ✅ Custom Switch Button (Global, if used elsewhere) */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
-                /* === DataTables Export Buttons (Cute Style) === */
-                .dt-buttons {
-                    display: flex;
-                    gap: 8px;
-                    margin-right: 12px;
-                }
-
-                .dt-button {
-                    display: inline-flex !important;
-                    align-items: center;
-                    gap: 6px;
-                    padding: 6px 12px !important;
-                    border-radius: 9999px !important;
-                    border: 1px solid transparent !important;
-                    font-size: 12px !important;
-                    font-weight: 600 !important;
-                    line-height: 1 !important;
-                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-                    transition: all .2s ease-in-out;
-                }
-
-                /* Excel */
-                .dt-button.buttons-excel {
-                    background-color: #dcfce7 !important;
-                    /* green-100 */
-                    color: #166534 !important;
-                    /* green-800 */
-                    border-color: #86efac !important;
-                }
-
-                .dt-button.buttons-excel:hover {
-                    background-color: #bbf7d0 !important;
-                }
-
-                /* CSV */
-                .dt-button.buttons-csv {
-                    background-color: #e0f2fe !important;
-                    /* sky-100 */
-                    color: #075985 !important;
-                    /* sky-800 */
-                    border-color: #7dd3fc !important;
-                }
-
-                .dt-button.buttons-csv:hover {
-                    background-color: #bae6fd !important;
-                }
-
-                /* Remove default DataTables button styles */
-                .dt-button:focus,
-                .dt-button:active {
-                    outline: none !important;
-                    box-shadow: none !important;
-                }
-
-                /* === Fix spacing between Length & Export buttons === */
-
-                /* Make toolbar items flex-aligned */
-                .dataTables_length,
-                .dt-buttons,
-                .dataTables_filter {
-                    display: flex;
-                    align-items: center;
-                }
-
-
-                /* ✅ Control gap manually */
-                .dt-buttons {
-                    margin-left: 12px !important;
-                    /* ← adjust: 4–8px is perfect */
-                    margin-right: 0 !important;
-                }
-            </style>
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request WO</h1>
-                    <a href="{{ url('/createwos') }}"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <i class="fas fa-plus pr-2"></i>Create
-                    </a>
-                </div>
-
-                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
-                    <table id="wosTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th
-                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    DocID</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Date</th>
-                                <th
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Company</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Department</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Work Type</th> <!-- << -->
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    WO Request</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Description</th>
-                                <th
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                            {{-- Table rows will be populated here by JavaScript/DataTables --}}
-                        </tbody>
-                    </table>
-                </div>
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                {{-- Changed text-3xl to text-xl --}}
+                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request WO</h1>
+                <a href="{{ url('/createwos') }}"
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    <i class="fas fa-plus pr-2"></i>Create
+                </a>
             </div>
 
-            <!-- ================== TRACKING MODAL ================== -->
-            <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                <div
-                    class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-2xl bg-white p-6 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
-
-                    <!-- Header -->
-                    <div class="mb-4 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
-                            WO Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
-                        </h3>
-                        <button id="closeTracking"
-                            class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
-                            &times;
-                        </button>
-                    </div>
-
-                    <!-- Controls (opsional) -->
-                    <div class="mb-3 flex items-center justify-end gap-2">
-                        <button type="button" id="tlPrev"
-                            class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                            ‹ Prev
-                        </button>
-                        <button type="button" id="tlNext"
-                            class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                            Next ›
-                        </button>
-                    </div>
-
-                    <!-- Timeline -->
-                    <ul id="tlList"
-                        class="-mx-4 flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap px-4 py-6 pr-6">
-                        <!-- items di-inject via JS -->
-                    </ul>
-
-                    <!-- Hide scrollbar -->
-                    <style>
-                        #tlList::-webkit-scrollbar {
-                            display: none;
-                        }
-
-                        #tlList {
-                            scrollbar-width: none;
-                        }
-                    </style>
-                </div>
+            <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
+                <table id="wosTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                DocID</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Date</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Company</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Department</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Work Type</th> <!-- << -->
+                            <th class="w-32 px-6 py-3 font-medium">
+                                WO Request</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Description</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <script>
-                function renderTimeline(steps = []) {
-                    const list = document.getElementById('tlList');
-                    if (!list) return;
+        <!-- ================== TRACKING MODAL ================== -->
+        <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+            <div
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-2xl bg-white p-6 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
-                    if (!Array.isArray(steps) || steps.length === 0) {
-                        list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
-                        return;
+                <!-- Header -->
+                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
+                        WO Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                    </h3>
+                    <button id="closeTracking"
+                        class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
+                        &times;
+                    </button>
+                </div>
+
+                <!-- Controls (opsional) -->
+                <div class="mb-3 flex items-center justify-end gap-2">
+                    <button type="button" id="tlPrev"
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        ‹ Prev
+                    </button>
+                    <button type="button" id="tlNext"
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        Next ›
+                    </button>
+                </div>
+
+                <!-- Timeline -->
+                <ul id="tlList"
+                    class="-mx-4 flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap px-4 py-6 pr-6">
+                    <!-- items di-inject via JS -->
+                </ul>
+
+                <!-- Hide scrollbar -->
+                <style>
+                    #tlList::-webkit-scrollbar {
+                        display: none;
                     }
 
-                    const MAP = {
-                        C: {
-                            label: 'Completed',
-                            colorDot: 'bg-green-600',
-                            colorBorder: 'border-green-600',
-                            colorTitle: 'text-green-700'
-                        },
-                        P: {
-                            label: 'Waiting approval / in progress',
-                            colorDot: 'bg-yellow-500',
-                            colorBorder: 'border-yellow-500',
-                            colorTitle: 'text-yellow-700'
-                        },
-                        R: {
-                            label: 'Rejected',
-                            colorDot: 'bg-red-600',
-                            colorBorder: 'border-red-600',
-                            colorTitle: 'text-red-700'
-                        },
-                        D: {
-                            label: 'Revise',
-                            colorDot: 'bg-blue-600',
-                            colorBorder: 'border-blue-600',
-                            colorTitle: 'text-blue-700'
-                        },
-                        _: {
-                            label: '',
-                            colorDot: 'bg-gray-400',
-                            colorBorder: 'border-gray-400',
-                            colorTitle: 'text-gray-700'
-                        },
-                    };
+                    #tlList {
+                        scrollbar-width: none;
+                    }
+                </style>
+            </div>
+        </div>
+    </div>
+    <script>
+        function renderTimeline(steps = []) {
+            const list = document.getElementById('tlList');
+            if (!list) return;
 
-                    list.innerHTML = steps.map((s, i) => {
-                        const st = String(s.status || '').toUpperCase();
-                        const C = MAP[st] || MAP._;
-                        const title = (s.title && String(s.title).trim()) || 'WO';
+            if (!Array.isArray(steps) || steps.length === 0) {
+                list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                return;
+            }
 
-                        const when = (s.at && String(s.at).trim()) || '';
-                        const by = (s.by && String(s.by).trim()) || '';
-                        const statusText = (s.status_label && String(s.status_label).trim()) || C.label;
+            const MAP = {
+                C: {
+                    label: 'Completed',
+                    colorDot: 'bg-green-600',
+                    colorBorder: 'border-green-600',
+                    colorTitle: 'text-green-700'
+                },
+                P: {
+                    label: 'Waiting approval / in progress',
+                    colorDot: 'bg-yellow-500',
+                    colorBorder: 'border-yellow-500',
+                    colorTitle: 'text-yellow-700'
+                },
+                R: {
+                    label: 'Rejected',
+                    colorDot: 'bg-red-600',
+                    colorBorder: 'border-red-600',
+                    colorTitle: 'text-red-700'
+                },
+                D: {
+                    label: 'Revise',
+                    colorDot: 'bg-blue-600',
+                    colorBorder: 'border-blue-600',
+                    colorTitle: 'text-blue-700'
+                },
+                _: {
+                    label: '',
+                    colorDot: 'bg-gray-400',
+                    colorBorder: 'border-gray-400',
+                    colorTitle: 'text-gray-700'
+                },
+            };
 
-                        // tampilkan jadi multi-line: status, nama, waktu
-                        let detailHtml = '';
-                        if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
-                        if (by) detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
-                        if (when) detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+            list.innerHTML = steps.map((s, i) => {
+                const st = String(s.status || '').toUpperCase();
+                const C = MAP[st] || MAP._;
+                const title = (s.title && String(s.title).trim()) || 'WO';
 
-                        const isLast = i === steps.length - 1;
-                        const connector = !isLast ?
-                            'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600' :
-                            '';
+                const when = (s.at && String(s.at).trim()) || '';
+                const by = (s.by && String(s.by).trim()) || '';
+                const statusText = (s.status_label && String(s.status_label).trim()) || C.label;
 
-                        return `
+                // tampilkan jadi multi-line: status, nama, waktu
+                let detailHtml = '';
+                if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
+                if (by) detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
+                if (when) detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+
+                const isLast = i === steps.length - 1;
+                const connector = !isLast ?
+                    'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600' :
+                    '';
+
+                return `
                         <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
                             <div class="flex items-center">
                             <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
@@ -585,161 +246,169 @@
                             </div>
                         </li>
                         `;
-                    }).join('');
-                }
-            </script>
+            }).join('');
+        }
+    </script>
+
+    <script>
+        // Scroll controls
+        (function() {
+            const scroller = document.getElementById('tlList');
+            document.getElementById('tlPrev')?.addEventListener('click', () =>
+                scroller.scrollBy({
+                    left: -300,
+                    behavior: 'smooth'
+                })
+            );
+            document.getElementById('tlNext')?.addEventListener('click', () =>
+                scroller.scrollBy({
+                    left: 300,
+                    behavior: 'smooth'
+                })
+            );
+        })();
+
+        // Open/Close modal
+        function openTrackingModal(docText) {
+            document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+            const modal = document.getElementById('trackingModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeTrackingModal() {
+            const modal = document.getElementById('trackingModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
+        document.getElementById('trackingModal').addEventListener('click', (e) => {
+            if (e.target.id === 'trackingModal') closeTrackingModal();
+        });
 
 
+        $(document).on('click', '.tracking-btn', function() {
+            const id = $(this).data('id');
+            const doc = $(this).data('doc') || '';
 
+            // Tampilkan modal dulu
+            openTrackingModal(doc);
 
-
-            <script>
-                // Scroll controls
-                (function() {
-                    const scroller = document.getElementById('tlList');
-                    document.getElementById('tlPrev')?.addEventListener('click', () =>
-                        scroller.scrollBy({
-                            left: -300,
-                            behavior: 'smooth'
-                        })
-                    );
-                    document.getElementById('tlNext')?.addEventListener('click', () =>
-                        scroller.scrollBy({
-                            left: 300,
-                            behavior: 'smooth'
-                        })
-                    );
-                })();
-
-                // Open/Close modal
-                function openTrackingModal(docText) {
-                    document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-                    const modal = document.getElementById('trackingModal');
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }
-
-                function closeTrackingModal() {
-                    const modal = document.getElementById('trackingModal');
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }
-                document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
-                document.getElementById('trackingModal').addEventListener('click', (e) => {
-                    if (e.target.id === 'trackingModal') closeTrackingModal();
-                });
-
-
-                $(document).on('click', '.tracking-btn', function() {
-                    const id = $(this).data('id');
-                    const doc = $(this).data('doc') || '';
-
-                    // Tampilkan modal dulu
-                    openTrackingModal(doc);
-
-                    $.ajax({
-                        url: `/wos/${id}/tracking`,
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(res) {
-                            // langsung pakai struktur dari controller
-                            renderTimeline(res.steps || []);
+            $.ajax({
+                url: `/wos/${id}/tracking`,
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    // langsung pakai struktur dari controller
+                    renderTimeline(res.steps || []);
+                },
+                error: function() {
+                    // fallback demo
+                    renderTimeline([{
+                            key: 'submitted',
+                            title: 'WO',
+                            status: 'C',
+                            status_label: 'Submitted',
+                            by: 'Williem Halim',
+                            at: '2025-08-10 09:00'
                         },
-                        error: function() {
-                            // fallback demo
-                            renderTimeline([{
-                                    key: 'submitted',
-                                    title: 'WO',
-                                    status: 'C',
-                                    status_label: 'Submitted',
-                                    by: 'Williem Halim',
-                                    at: '2025-08-10 09:00'
-                                },
-                                {
-                                    key: 'approval',
-                                    title: 'Approval',
-                                    status: 'P',
-                                    status_label: 'Waiting approval / in progress',
-                                    by: null,
-                                    at: null
-                                },
-                            ]);
+                        {
+                            key: 'approval',
+                            title: 'Approval',
+                            status: 'P',
+                            status_label: 'Waiting approval / in progress',
+                            by: null,
+                            at: null
+                        },
+                    ]);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        var currentUser = "{{ auth()->user()->username }}";
+        $(document).ready(function() {
+            let statusFilter = 'P';
+
+            const table = $('#wosTable').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'List_WO',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
                         }
-                    });
-                });
-            </script>
-
-
-
-
-            <script>
-                var currentUser = "{{ auth()->user()->username }}";
-                $(document).ready(function() {
-                    let statusFilter = 'P';
-
-                    const table = $('#wosTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        deferRender: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100, 250, -1],
-                            [10, 25, 50, 100, 250, 'All']
-                        ],
-
-                        // 🔥 ADD THIS
-                        dom: '<"dt-toolbar"l B f>rtip',
-                        buttons: [{
-                                extend: 'excelHtml5',
-                                text: '↓ Excel',
-                                title: 'Purchase_Order',
-                                className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            },
-                            {
-                                extend: 'csvHtml5',
-                                text: '↓ CSV',
-                                title: 'Purchase_Order',
-                                className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'List_WO',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
                             }
-                        ],
-                        // 🔥 END ADD
-                        ajax: {
-                            url: "{{ route('wos.json') }}",
-                            type: "GET",
-                            data: function(d) {
-                                d.status = statusFilter ?? '';
+                        }
+                    }
+                ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
+
+                columnDefs: [{
+                    targets: 0,
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+                ajax: {
+                    url: "{{ route('wos.json') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.status = statusFilter ?? '';
+                    }
+                },
+                order: [
+                    [0, 'desc']
+                ],
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    },
+                    {
+                        data: 'woid',
+                        render: function(data, type, row) {
+                            let url = `/showwos/${row.eid}`;
+                            let cls =
+                                'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
+                            const text = data || row.eid;
+
+                            if (row.status === 'D' && row.created_by === currentUser) {
+                                url = `/editwos/${row.eid}`;
+                                cls =
+                                    'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
                             }
-                        },
-                        order: [
-                            [0, 'desc']
-                        ],
-                        columns: [{
-                                data: 'woid',
-                                render: function(data, type, row) {
-                                    let url = `/showwos/${row.eid}`;
-                                    let cls =
-                                        'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
-                                    const text = data || row.eid;
 
-                                    if (row.status === 'D' && row.created_by === currentUser) {
-                                        url = `/editwos/${row.eid}`;
-                                        cls =
-                                            'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
-                                    }
-
-                                    return `
+                            return `
                             <div class="flex items-left gap-2 whitespace-nowrap">
                             <a href="${url}" class="${cls}">${text}</a>
                             <button type="button"
@@ -750,91 +419,86 @@
                             </button>
                             </div>
                         `;
-                                }
-                            },
-                            {
-                                data: 'wodate',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'cpny_id',
-                                className: 'text-center w-32'
-                            },
-                            {
-                                data: 'department_id',
-                                className: 'text-center whitespace-normal break-words'
-                            },
-                            {
-                                data: 'worktype_name',
-                                defaultContent: '-',
-                                className: 'text-left'
-                            }, // << kolom baru
-                            {
-                                data: 'worequest',
-                                defaultContent: '-',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'keperluan'
-                            },
-                            {
-                                data: 'status',
-                                className: 'text-left',
-                                render: function(data) {
-                                    const map = {
-                                        'D': {
-                                            t: 'Revise',
-                                            c: 'bg-gray-300/30 text-gray-600'
-                                        },
-                                        'P': {
-                                            t: 'On Progress',
-                                            c: 'bg-blue-300/30 text-blue-600'
-                                        },
-                                        'C': {
-                                            t: 'Completed',
-                                            c: 'bg-green-300/30 text-green-600'
-                                        },
-                                        'X': {
-                                            t: 'Cancel',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                        'R': {
-                                            t: 'Rejected',
-                                            c: 'bg-red-300/30 text-red-600'
-                                        },
-                                    };
-                                    const it = map[data] || {
-                                        t: data || '-',
-                                        c: 'bg-gray-300/30 text-gray-600'
-                                    };
-                                    return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
-                                }
-                            }
-                        ],
-                        searchDelay: 400,
-                        stateSave: true,
-                        responsive: true
-                    });
+                        }
+                    },
+                    {
+                        data: 'wodate',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center w-32'
+                    },
+                    {
+                        data: 'department_id',
+                        className: 'text-center whitespace-normal break-words'
+                    },
+                    {
+                        data: 'worktype_name',
+                        defaultContent: '-',
+                        className: 'text-left'
+                    }, // << kolom baru
+                    {
+                        data: 'worequest',
+                        defaultContent: '-',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'keperluan'
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-left',
+                        render: function(data) {
+                            const map = {
+                                'D': {
+                                    t: 'Revise',
+                                    c: 'bg-gray-300/30 text-gray-600'
+                                },
+                                'P': {
+                                    t: 'On Progress',
+                                    c: 'bg-blue-300/30 text-blue-600'
+                                },
+                                'C': {
+                                    t: 'Completed',
+                                    c: 'bg-green-300/30 text-green-600'
+                                },
+                                'X': {
+                                    t: 'Cancel',
+                                    c: 'bg-red-300/30 text-red-600'
+                                },
+                                'R': {
+                                    t: 'Rejected',
+                                    c: 'bg-red-300/30 text-red-600'
+                                },
+                            };
+                            const it = map[data] || {
+                                t: data || '-',
+                                c: 'bg-gray-300/30 text-gray-600'
+                            };
+                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                        }
+                    }
+                ],
+                searchDelay: 400,
+                stateSave: true,
+                responsive: true
+            });
 
-                    $('.status-filter').on('click', function(e) {
-                        e.preventDefault();
-                        statusFilter = $(this).data('status') || '';
-                        table.ajax.reload(null, true);
-                    });
+            $('.status-filter').on('click', function(e) {
+                e.preventDefault();
+                statusFilter = $(this).data('status') || '';
+                table.ajax.reload(null, true);
+            });
 
-                    document.querySelectorAll('.status-filter').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
-                                'active'));
-                            this.classList.add('active');
-                        });
-                    });
+            document.querySelectorAll('.status-filter').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
+                        'active'));
+                    this.classList.add('active');
                 });
-            </script>
-
-
-
-        </div>
-    </div>
+            });
+        });
+    </script>
 </x-app-layout>
