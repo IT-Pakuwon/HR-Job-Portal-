@@ -109,7 +109,7 @@
             <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
                     <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
-                        🆔 {{ $bq->bqid }} - BQ CS Edit
+                        🆔 {{ $bq->bqid }} - {{ $bq->csid }} - BQ CS Edit
                     </h2>
                 </div>
 
@@ -163,6 +163,13 @@
                     </div>
 
                     <div class="overflow-x-auto md:overflow-visible">
+                        <div class="mb-3 flex justify-end">
+                            <button type="button" id="btnAddRow"
+                                class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                + Add Row
+                            </button>
+                        </div>
+
                         <table class="min-w-full table-auto border text-sm text-gray-700 dark:text-gray-200"
                             id="bqTable">
                             <thead
@@ -181,14 +188,7 @@
                                                 <div class="space-y-0.5">
                                                     <div class="text-sm font-semibold">
                                                         {{ $v['name'] }}
-                                                    </div>
-
-                                                    {{-- @if ($v['vendortop'])
-                                                        <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                            Payment Term: <span
-                                                                class="font-semibold">{{ $v['vendortop'] }}</span>
-                                                        </div>
-                                                    @endif --}}
+                                                    </div>                                                 
                                                 </div>
 
                                                 <!-- Tooltip -->
@@ -210,15 +210,37 @@
 
                                         </th>
                                     @endforeach
+                                    <th class="border px-4 py-3 text-center font-semibold">Action</th>
+
                                 </tr>
                             </thead>
 
                             <!-- BODY -->
                             <tbody class="block md:table-row-group">
                                 @foreach ($details as $d)
-                                    <tr class="block border-b md:table-row dark:border-gray-700">
+                                    {{-- <tr class="block border-b md:table-row dark:border-gray-700"> --}}
+                                    @php
+                                        // bq_source: 0 = source awal, 1 = input/manual
+                                        $removable = ((int)($d->bq_source ?? 0) === 1) ? 1 : 0;
+                                    @endphp
+
+                                    <tr class="block border-b md:table-row dark:border-gray-700" data-removable="{{ $removable }}"
+                                        data-source="{{ (int)($d->bq_source ?? 0) }}">
 
                                         <!-- No -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">No:</span>
+                                            <span class="bq-no-text">{{ $d->bq_no }}</span>
+                                        </td>
+
+                                        <!-- Line -->
+                                        <td class="block border px-4 py-2 md:table-cell md:border">
+                                            <span class="font-medium md:hidden">Line:</span>
+                                            <span class="bq-line-text">{{ $d->bq_line_no }}</span>
+                                        </td>
+
+
+                                        {{-- <!-- No -->
                                         <td class="block border px-4 py-2 md:table-cell md:border">
                                             <span class="font-medium md:hidden">No:</span>
                                             {{ $d->bq_no }}
@@ -228,7 +250,7 @@
                                         <td class="block border px-4 py-2 md:table-cell md:border">
                                             <span class="font-medium md:hidden">Line:</span>
                                             {{ $d->bq_line_no }}
-                                        </td>
+                                        </td> --}}
 
                                         <!-- Description (plain text like Create) -->
                                         <td class="block border px-4 py-2 md:table-cell md:border">
@@ -304,7 +326,20 @@
                                                 </div>
                                             </td>
                                         @endforeach
-
+                                        <td class="block border px-4 py-2 text-center md:table-cell md:border">
+                                            @if ((int)($d->bq_source ?? 0) === 1)
+                                                <button type="button"
+                                                    class="btn-remove-row rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700">
+                                                    Remove
+                                                </button>
+                                            @else
+                                                <button type="button"
+                                                    class="btn-remove-row cursor-not-allowed rounded-md bg-gray-300 px-3 py-1 text-xs text-gray-700 opacity-60"
+                                                    disabled>
+                                                    Remove
+                                                </button>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -384,7 +419,9 @@
 
             const $form = document.getElementById('bqForm');
             const $btn = document.getElementById('btnSaveBQ');
-            const VENDOR_OFFSET = 5;
+            // const VENDOR_OFFSET = 5;
+            const VENDOR_OFFSET = 6;
+
 
             const nf = new Intl.NumberFormat('id-ID', {
                 minimumFractionDigits: 2,
@@ -393,26 +430,55 @@
             const toNum = v => isNaN(parseFloat(v)) ? 0 : parseFloat(v);
             const toFixed2 = n => Math.round(Number(n || 0) * 100) / 100;
 
+            function cellText(td) {
+                return (td?.textContent || '').trim();
+            }
+
+            function cellTextOrInput(td, inputSelector) {
+                const inp = td?.querySelector(inputSelector);
+                if (inp) return (inp.value || '').trim();
+                return cellText(td);
+            }
+
+            function readNo(tr, tds) {
+                const inp = tds[0]?.querySelector('.bq-no');
+                if (inp) return (inp.value || '').trim();
+                return (tds[0]?.querySelector('.bq-no-text')?.textContent || '').trim();
+            }
+
+            function readLine(tr, tds) {
+                const inp = tds[1]?.querySelector('.bq-line');
+                if (inp) return (inp.value || '').trim();
+                return (tds[1]?.querySelector('.bq-line-text')?.textContent || '').trim();
+            }
+
             function collectPayload() {
                 const rows = [];
                 document.querySelectorAll('#bqTable tbody tr').forEach(tr => {
                     const tds = tr.children;
-                    const bq_no = tds[0].textContent.trim();
-                    const line = tds[1].textContent.trim();
-                    const descr = tds[2].querySelector('.bq-descr').value.trim();
-                    const qty = toFixed2(tds[3].querySelector('.bq-qty').value);
-                    const uom = tds[4].querySelector('.bq-uom').value.trim();
+
+                    const bq_no = readNo(tr, tds);
+                    const line  = readLine(tr, tds);
+
+                    const descrInp = tds[2]?.querySelector('.bq-descr-input');
+                    const descrDiv = tds[2]?.querySelector('.bq-descr');
+                    const descr = (descrInp ? descrInp.value : (descrDiv ? descrDiv.textContent : '')).trim();
+
+                    const qty = toFixed2(tds[3].querySelector('.bq-qty')?.value || 0);
+
+                    const uomInp = tds[4]?.querySelector('.bq-uom-input');
+                    const uomDiv = tds[4]?.querySelector('.bq-uom');
+                    const uom = (uomInp ? uomInp.value : (uomDiv ? uomDiv.textContent : '')).trim();
+
+                    // bq_source dari dataset row (kalau sudah kamu set)
+                    const bq_source = parseInt(tr.dataset.source || '0', 10);
 
                     const rowVendors = [];
                     vendors.forEach((v, i) => {
                         const td = tds[VENDOR_OFFSET + i];
-                        const mat = toFixed2(td.querySelector('.bq-price-mat').value);
-                        const jsa = toFixed2(td.querySelector('.bq-price-jsa').value);
-                        rowVendors.push({
-                            idx: i + 1,
-                            product_price: mat,
-                            jasa_price: jsa
-                        });
+                        const mat = toFixed2(td?.querySelector('.bq-price-mat')?.value || 0);
+                        const jsa = toFixed2(td?.querySelector('.bq-price-jsa')?.value || 0);
+                        rowVendors.push({ idx: i + 1, product_price: mat, jasa_price: jsa });
                     });
 
                     rows.push({
@@ -421,11 +487,49 @@
                         bq_descr: descr,
                         qty,
                         uom,
+                        bq_source,
                         vendor: rowVendors
                     });
                 });
                 return rows;
             }
+
+
+
+
+            // function collectPayload() {
+            //     const rows = [];
+            //     document.querySelectorAll('#bqTable tbody tr').forEach(tr => {
+            //         const tds = tr.children;
+            //         const bq_no = tds[0].textContent.trim();
+            //         const line = tds[1].textContent.trim();
+            //         const descr = tds[2].querySelector('.bq-descr').value.trim();
+            //         const qty = toFixed2(tds[3].querySelector('.bq-qty').value);
+            //         const uom = tds[4].querySelector('.bq-uom').value.trim();
+
+            //         const rowVendors = [];
+            //         vendors.forEach((v, i) => {
+            //             const td = tds[VENDOR_OFFSET + i];
+            //             const mat = toFixed2(td.querySelector('.bq-price-mat').value);
+            //             const jsa = toFixed2(td.querySelector('.bq-price-jsa').value);
+            //             rowVendors.push({
+            //                 idx: i + 1,
+            //                 product_price: mat,
+            //                 jasa_price: jsa
+            //             });
+            //         });
+
+            //         rows.push({
+            //             bq_no,
+            //             bq_line_no: line,
+            //             bq_descr: descr,
+            //             qty,
+            //             uom,
+            //             vendor: rowVendors
+            //         });
+            //     });
+            //     return rows;
+            // }
 
             function recalcVendor(idx) {
                 let sumMat = 0,
@@ -536,4 +640,130 @@
             });
         })();
     </script>
+
+    <script>
+        (function() {
+            const vendors = @json($vendors);
+            const tbody = document.querySelector('#bqTable tbody');
+            const btnAdd = document.getElementById('btnAddRow');
+
+            function tdInput(cls, placeholder, type='text', value='') {
+                const td = document.createElement('td');
+                td.className = 'block border px-4 py-2 md:table-cell md:border';
+                const input = document.createElement('input');
+                input.type = type;
+                input.placeholder = placeholder || '';
+                input.value = value;
+                input.className = cls + ' w-full rounded-lg border px-2 py-1 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200';
+                td.appendChild(input);
+                return td;
+            }
+
+            function tdQty() {
+                const td = document.createElement('td');
+                td.className = 'block border px-4 py-2 md:table-cell md:border';
+                td.innerHTML = `
+                    <input type="number" step="0.01" min="0"
+                        class="bq-qty w-full rounded-lg border px-2 py-1 text-right md:w-24 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                        value="0.00">
+                `;
+                return td;
+            }
+
+            function tdEstimatesZero() {
+                const td = document.createElement('td');
+                td.className = 'block border px-4 py-2 md:table-cell md:border';
+                td.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="flex flex-col gap-1">
+                            <span>Est. Material</span><span class="text-gray-800 dark:text-gray-200">0,00</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span>Est. Jasa</span><span class="text-gray-800 dark:text-gray-200">0,00</span>
+                        </div>
+                    </div>
+                `;
+                return td;
+            }
+
+            function tdVendor() {
+                const td = document.createElement('td');
+                td.className = 'block border px-4 py-2 md:table-cell md:border';
+                td.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <label class="flex flex-col gap-1">
+                            <span>Total Material</span>
+                            <input type="number" step="0.01" min="0"
+                                class="bq-price-mat w-full rounded-md border px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                value="0.00">
+                        </label>
+                        <label class="flex flex-col gap-1">
+                            <span>Total Jasa</span>
+                            <input type="number" step="0.01" min="0"
+                                class="bq-price-jsa w-full rounded-md border px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                value="0.00">
+                        </label>
+                    </div>
+                `;
+                return td;
+            }
+
+            function tdAction(removable) {
+                const td = document.createElement('td');
+                td.className = 'block border px-4 py-2 text-center md:table-cell md:border';
+
+                if (!removable) {
+                    td.innerHTML = `
+                    <button type="button"
+                        class="btn-remove-row cursor-not-allowed rounded-md bg-gray-300 px-3 py-1 text-xs text-gray-700 opacity-60"
+                        disabled>Remove</button>`;
+                } else {
+                    td.innerHTML = `
+                    <button type="button"
+                        class="btn-remove-row rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700">
+                        Remove
+                    </button>`;
+                }
+                return td;
+            }
+
+            // Add row
+            btnAdd?.addEventListener('click', () => {
+                const tr = document.createElement('tr');
+                tr.className = 'block border-b md:table-row dark:border-gray-700';
+                tr.dataset.removable = "1";
+                tr.dataset.source = "1";
+
+                tr.appendChild(tdInput('bq-no', 'No'));
+                tr.appendChild(tdInput('bq-line', 'Line'));
+                tr.appendChild(tdInput('bq-descr-input', 'Description'));
+                tr.appendChild(tdQty());
+                tr.appendChild(tdInput('bq-uom-input', 'UoM'));
+                tr.appendChild(tdEstimatesZero());
+
+                vendors.forEach(() => tr.appendChild(tdVendor()));
+                tr.appendChild(tdAction(true));
+
+                tbody.appendChild(tr);
+
+                // trigger recalc via input event (biar footer update)
+                tr.querySelector('.bq-qty')?.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            // Remove row (delegation)
+            tbody?.addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn-remove-row');
+                if (!btn) return;
+
+                const tr = btn.closest('tr');
+                if (!tr) return;
+
+                if (tr.dataset.removable !== "1") return; // existing row tidak boleh
+
+                tr.remove();
+                document.getElementById('bqTable')?.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        })();
+    </script>
+
 </x-app-layout>

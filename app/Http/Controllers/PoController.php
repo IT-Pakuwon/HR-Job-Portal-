@@ -38,8 +38,8 @@ use App\Models\TrPoLastPrice;
 use App\Models\MsInventory;
 use App\Models\TrReceipt;
 use App\Models\MsEmailCcRule;
-
-
+use App\Models\TrBQCS;
+use App\Models\TrBQCSDetail;
 
 class PoController extends Controller
 {
@@ -147,10 +147,28 @@ class PoController extends Controller
 
         $poHistory = TrReceipt::query()
             ->where('ponbr', $po->ponbr)
-            ->when(!empty($po->vendorid), fn($q) => $q->where('vendorid', $po->vendorid)) // optional tapi recommended
+            ->when(!empty($po->vendorid), fn($q) => $q->where('vendorid', $po->vendorid))
             ->orderByDesc('receiptdate')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->map(function ($r) {
+                $r->receipt_eid = \Hashids::encode($r->id);
+
+                $map = [
+                    'P' => 'Pending',
+                    'A' => 'Approved',
+                    'R' => 'Rejected',
+                    'C' => 'Completed',
+                    'X' => 'Canceled',
+                ];
+
+                $st = $r->status ?? null;
+                $r->status_text = $st && isset($map[$st]) ? $map[$st] : ($st ?? '-');
+
+                return $r;
+            });
+
+
 
         return view('pages.purchase.showpo', [
             'po'          => $po,
@@ -636,65 +654,90 @@ class PoController extends Controller
         return response()->json(['success'=>true]);
     }
 
-    public function printPO_xxx(string $hash)
+    public function printPO(string $hash)
     {
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
         $id = $decoded[0];
 
         $authUser = Auth::user();
-        if (!$authUser) {
-            return redirect()->route('login');
-        }
+        if (!$authUser) return redirect()->route('login');
 
-        // Header PO
+        // Header PO/SPK
         $po = TrPO::findOrFail($id);
 
         // Detail pakai ponbr
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
-            ->orderBy('cs_no') // ganti jika nama kolom baris berbeda
+            ->orderBy('cs_no')
             ->get();
 
-        //po header amt
-        $dpp  = $po->totalamt;
-        $ppn  = $po->taxamt;
-        $grand = $po->grandtotalamt;
+        // Amount
+        $dpp   = (float) ($po->totalamt ?? 0);
+        $ppn   = (float) ($po->taxamt ?? 0);
+        $grand = (float) ($po->grandtotalamt ?? 0);
+
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+        $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
-        $company = MsCompany::where('cpny_id', $po->cpny_id)
-            ->first();
+        $purchaser = ucwords(strtolower($authUser->name ?? 'System'));
 
-        $purchaser = ucwords(strtolower($authUser->name));
-
-        // Data tambahan utk view
         $data = [
-            'po'       => $po,
-            'podetail' => $podetail,           
-            'dpp'   => $dpp,
-            'ppn'   => $ppn,
-            'grand' => $grand,          
+            'po'        => $po,
+            'podetail'  => $podetail,
+            'dpp'       => $dpp,
+            'ppn'       => $ppn,
+            'grand'     => $grand,
             'terbilang' => $terbilang,
-            'company'  => $company,
-            'now'      => Carbon::now(),
-            'purchaser'     => $purchaser,
+            'company'   => $company,
+            'now'       => Carbon::now(),
+            'purchaser' => $purchaser,
         ];
 
-        // Pilih view
-        $view = $po->potype === 'PO'
-            ? 'pages.purchase.pdf_po'
-            : 'pages.purchase.pdf_spk';
+        // ✅ Pilih view
+        $potype = strtoupper((string) ($po->potype ?? ''));
+        if ($potype === 'PO') {
+            $view = 'pages.purchase.pdf_po';
+        } else { // SPK / lainnya
+            $view = ($grand > 1_000_000_000)
+                ? 'pages.purchase.pdf_spk_1m'
+                : 'pages.purchase.pdf_spk';
+        }
 
-        $pdf = \PDF::loadView($view, $data)
-            ->setPaper('A4', 'portrait');
+        // Render view -> Dompdf
+        $pdf = Pdf::loadView($view, $data)->setPaper('A4', 'portrait');
 
-        // Nama file stream yang informatif
-        $basename = $po->potype === 'PO' ? 'PO' : 'SPK';
-        return $pdf->stream("{$basename}_{$po->ponbr}.pdf");
+        /** @var \Dompdf\Dompdf $dompdf */
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+
+        // Footer via canvas
+        $canvas  = $dompdf->get_canvas();
+        $w       = $canvas->get_width();
+        $h       = $canvas->get_height();
+
+        $metrics = $dompdf->getFontMetrics();
+        $font    = $metrics->get_font('sans-serif', 'normal');
+        $size    = 9;
+
+        $now      = $data['now'];
+        $leftTxt  = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+        $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
+
+        $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
+        $y = $h - 28;
+
+        // kanan: pakai margin 20px dari kanan
+        $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
+        $canvas->page_text($w - $rightWidth - 20, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        $basename = ($potype === 'PO') ? 'PO' : 'SPK';
+        return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
     }
-    
 
 
-    public function printPO(string $hash)
+   
+
+    public function printPO_xxx(string $hash)
     {
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
@@ -894,6 +937,8 @@ class PoController extends Controller
             'bcc'     => ['nullable'],
             'subject' => ['required','string','max:200'],
             'html'    => ['required','string'],
+            'bq_vendor_idx' => ['nullable','integer','min:1','max:6'],
+
         ]);
 
         $po       = TrPO::where('ponbr', $ponbr)->firstOrFail();
@@ -905,7 +950,7 @@ class PoController extends Controller
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
         $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
-        $purchaser = ucwords(strtolower($authUser->name));
+        $purchaser = ucwords(strtolower($authUser->name ?? 'System'));
 
         $viewData = [
             'po'        => $po,
@@ -1032,8 +1077,119 @@ class PoController extends Controller
         $pdfBinary = $dompdf->output();
         $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
 
+        // =========================
+        // (NEW) Generate PDF BQCS Vendor untuk dilampirkan
+        // =========================
+        $bqVendorIdx = (int)($data['bq_vendor_idx'] ?? 1);
+        if ($bqVendorIdx < 1 || $bqVendorIdx > 6) $bqVendorIdx = 1;
+
+        $bqPdfBinary = null;
+        $bqPdfName   = null;
+
+        try {
+            // ambil CS dari po->csid untuk dapat bqid (sesuaikan jika kolom beda)
+            $cs = TrCS::on('pgsql')
+                ->where('csid', $po->csid)
+                ->first();
+
+            if ($cs) {
+                // bqid bisa ada di cs->bqid (sesuaikan jika kolom berbeda di sistemmu)
+                $bqid = $cs->bqid ?? null;
+
+                if ($bqid) {
+                    // cari BQCS header berdasarkan bqid + csid
+                    $bq = TrBQCS::on('pgsql')
+                        ->where('bqid', $bqid)
+                        ->where('csid', $po->csid)
+                        ->first();
+
+                    if ($bq) {
+                        // ambil vendor data dari CS (vendor1..6)
+                        $idx = $bqVendorIdx;
+
+                        $vendor = [
+                            'id'   => $cs->{"vendorid{$idx}"} ?? null,
+                            'name' => $cs->{"vendorname{$idx}"} ?? null,
+                            'addr' => $cs->{"vendoralamat{$idx}"} ?? null,
+                            'cp'   => $cs->{"vendorcp{$idx}"} ?? null,
+                            'telp' => $cs->{"vendortelp{$idx}"} ?? null,
+                            'top'  => $cs->{"vendortop{$idx}"} ?? null,
+                        ];
+
+                        // kalau vendor idx tidak ada, fallback cari vendor pertama yang ada
+                        if (!filled($vendor['id']) && !filled($vendor['name'])) {
+                            for ($try=1; $try<=6; $try++) {
+                                $vTry = $cs->{"vendorname{$try}"} ?? null;
+                                $idTry = $cs->{"vendorid{$try}"} ?? null;
+                                if (filled($idTry) || filled($vTry)) {
+                                    $idx = $try;
+                                    $vendor = [
+                                        'id'   => $cs->{"vendorid{$idx}"} ?? null,
+                                        'name' => $cs->{"vendorname{$idx}"} ?? null,
+                                        'addr' => $cs->{"vendoralamat{$idx}"} ?? null,
+                                        'cp'   => $cs->{"vendorcp{$idx}"} ?? null,
+                                        'telp' => $cs->{"vendortelp{$idx}"} ?? null,
+                                        'top'  => $cs->{"vendortop{$idx}"} ?? null,
+                                    ];
+                                    break;
+                                }
+                            }
+                        }
+
+                        // detail
+                        $bqdetail = TrBQCSDetail::on('pgsql')
+                            ->where('bqid', $bq->bqid)
+                            ->orderBy('bq_no')
+                            ->orderBy('bq_line_no')
+                            ->get();
+
+                        // hitung total (same logic as printBQCSVend)
+                        $grandTotalMaterial = 0;
+                        $grandTotalJasa     = 0;
+
+                        foreach ($bqdetail as $item) {
+                            $qty  = (float) ($item->qty ?? 0);
+                            $mat  = (float) ($item->{"vendorproductprice{$idx}"} ?? 0);
+                            $jasa = (float) ($item->{"vendorjasaprice{$idx}"} ?? 0);
+
+                            $grandTotalMaterial += $qty * $mat;
+                            $grandTotalJasa     += $qty * $jasa;
+                        }
+
+                        $companyBq = MsCompany::where('cpny_id', $bq->cpny_id)->first();
+
+                        $bqData = [
+                            'title'     => 'CS Bills of Quantities (BQ)',
+                            'doc_type'  => 'BQ',
+                            'cpny_id'   => $companyBq->cpny_id ?? $bq->cpny_id,
+                            'cpny_name' => $companyBq->cpny_name ?? '',
+                            'vendor'    => $vendor,
+                            'idx'       => $idx,
+                            'grandTotalMaterial' => $grandTotalMaterial,
+                            'grandTotalJasa'     => $grandTotalJasa,
+                            'bq'       => $bq,
+                            'bqdetail' => $bqdetail,
+                        ];
+
+                        // generate PDF
+                        $bqPdf = \PDF::loadView('pages.canvass.pdfbq_cs_vendor', $bqData)->setPaper('A4');
+
+                        $bqDompdf = $bqPdf->getDomPDF();
+                        $bqDompdf->render();
+                        $bqPdfBinary = $bqDompdf->output();
+
+                        // $safeVendorName = preg_replace('/[^A-Za-z0-9_\-]/', '_', (string)($vendor['name'] ?? "vendor{$idx}"));
+                        $bqPdfName = "BQCS_{$bq->bqid}.pdf";
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Generate BQCS PDF failed', ['ponbr'=>$po->ponbr, 'error'=>$e->getMessage()]);
+        }
+
+
         // ===== kirim email =====
-        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $gcsAttachments, $senderName) {
+        Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $gcsAttachments, $senderName,$bqPdfBinary, $bqPdfName) {
             $message->from($data['from'], $senderName);
             $message->to($to);
 
@@ -1048,6 +1204,12 @@ class PoController extends Controller
             foreach ($gcsAttachments as $att) {
                 $message->attachData($att['data'], $att['name'], ['mime' => $att['mime'] ?? 'application/octet-stream']);
             }
+
+            // attach BQCS vendor pdf kalau berhasil dibuat
+            if (!empty($bqPdfBinary) && !empty($bqPdfName)) {
+                $message->attachData($bqPdfBinary, $bqPdfName, ['mime' => 'application/pdf']);
+            }
+
         });
 
         $po->send_email = true;

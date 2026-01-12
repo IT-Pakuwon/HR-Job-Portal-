@@ -674,7 +674,7 @@ Route::post('/logout', function () {
 
         Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
         Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
-        Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'EditBQCS'])->name('bqcs.edit');    
+        Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'editBQCS'])->name('bqcs.edit');    
         Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
 
         Route::post('/cs/check-qty', [CsJobController::class, 'checkQtyBeforeSubmit'])->name('cs.check-qty');

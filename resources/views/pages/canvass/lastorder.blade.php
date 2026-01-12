@@ -2,6 +2,36 @@
     {{-- Toastr --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <style>
+        a.link-underline{
+            color: #2563eb;                 /* biru (Tailwind indigo-600) */
+            text-decoration-line: underline;
+            text-decoration-color: #2563eb; /* warna garis underline */
+            text-underline-offset: 3px;
+            text-decoration-thickness: 1.5px;
+        }
+
+        a.link-underline:hover{
+            color: #1d4ed8;                 /* biru lebih gelap (indigo-700) */
+            text-decoration-color: #1d4ed8;
+        }
+    </style>
+    <style>
+        /* Paksa table mengikuti lebar container */
+        table.dataTable { width: 100% !important; }
+
+        /* Kolom Description (index ke-6 kalau dihitung dari 0 termasuk control column) */
+        #invTable td:nth-child(7), #invTable th:nth-child(7),
+        #bqTable  td:nth-child(7), #bqTable  th:nth-child(7) {
+            white-space: normal !important;        /* wrap */
+            word-break: break-word !important;     /* pecah kata panjang */
+            overflow-wrap: anywhere !important;    /* aman untuk string panjang */
+            max-width: 420px;                      /* batasi supaya tidak melebar */
+        }
+    </style>
+
+
+
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
@@ -154,10 +184,16 @@
                     },
                     {
                         data: 'inventoryid'
-                    },
+                    },                   
                     {
-                        data: 'inventory_descr'
+                        data: 'inventory_descr',
+                        render: function(data) {
+                            if (!data) return '';
+                            // bungkus supaya wrap lebih "nempel" dan aman dari CSS DataTables
+                            return `<div class="whitespace-normal break-words">${data}</div>`;
+                        }
                     },
+
                     {
                         data: 'unitcost',
                         className: 'text-right',

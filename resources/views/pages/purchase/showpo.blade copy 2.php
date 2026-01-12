@@ -228,8 +228,8 @@
                                 'P' => 'Purchase Order',
                                 'O' => 'Partial Release',
                                 'C' => 'Completed',
-                                'X' => 'Canceled',
-                                'D' => 'Reuse',
+                                'X' => 'Cancel',
+                                'R' => 'Reuse',
                                 default => 'Unknown',
                             };
 
@@ -957,7 +957,7 @@
                                 @click="poTab='history'"
                                 :class="poTab==='history' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
                                 class="px-4 py-2 text-sm font-semibold transition">
-                                STTB Tracking
+                                PO History
                             </button>
                         </div>
                     </div>

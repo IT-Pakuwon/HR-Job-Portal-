@@ -759,11 +759,19 @@
                                                         </td>
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
-                                                            <button type="button"
+                                                            {{-- <button type="button"
                                                                 class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                                 title="View Last Price History"
                                                                 data-inventoryid="{{ $row->inventoryid }}"
                                                                 data-inventorydescr="{{ $row->inventory_descr ?? '' }}">
+                                                                🔍
+                                                            </button> --}}
+                                                            <button type="button"
+                                                                class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                                                title="View Last Price History"
+                                                                data-inventoryid="{{ $row->inventoryid }}"
+                                                                data-inventorydescr="{{ $row->inventory_descr ?? '' }}"
+                                                                data-csdate="{{ optional($cs)->csdate ? \Carbon\Carbon::parse($cs->csdate)->format('Y-m-d') : '' }}">
                                                                 🔍
                                                             </button>
                                                         </td>

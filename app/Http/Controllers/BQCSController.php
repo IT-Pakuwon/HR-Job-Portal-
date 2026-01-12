@@ -113,6 +113,10 @@ class BQCSController extends Controller
                 $qty    = (float)($row['qty'] ?? 0);
                 $uom    = $row['uom']         ?? null;
 
+                // ✅ source: 0=awal, 1=input user
+                $source = (int)($row['bq_source'] ?? 0);
+                if (!in_array($source, [0,1], true)) $source = 0;
+
                 $det = new TrBQCSDetail();
                 $det->setConnection('pgsql');
                 $det->bqid        = $request->bqid;
@@ -121,6 +125,8 @@ class BQCSController extends Controller
                 $det->bq_no       = $bqNo;
                 $det->bq_line_no  = $bqLn;
                 $det->bq_descr    = $descr;
+                $det->bq_source   = $source;                         
+                $det->bq_qty      = $source === 0 ? round($qty,2) : 0;
                 $det->qty         = round($qty,2);
                 $det->uom         = $uom;
                 $det->status      = 'H';
@@ -169,7 +175,7 @@ class BQCSController extends Controller
         }
     }
 
-    public function EditBQCS($hash)
+    public function editBQCS($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -257,8 +263,215 @@ class BQCSController extends Controller
         return view('pages.canvass.editbqcs', compact('bq', 'details', 'vendors', 'hash_id','cs','cs_eid'));
     }
 
-
     public function updateBQCS(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        // Validasi
+        $request->validate([
+            'vendors' => 'required|string', // JSON ringkas vendor header: [{id,name}, ...] max 6
+            'details' => 'required|string', // JSON baris detail
+        ]);
+
+        $vendors  = json_decode($request->input('vendors'), true) ?: [];
+        $details  = json_decode($request->input('details'), true) ?: [];
+        $username = $request->user()->username ?? 'system';
+        $now      = \Carbon\Carbon::now();
+
+        return DB::connection('pgsql')->transaction(function () use ($id, $vendors, $details, $username, $now) {
+
+            /** @var TrBQCS $hdr */
+            $hdr = TrBQCS::on('pgsql')->lockForUpdate()->findOrFail($id);
+
+            // =========================
+            // 1) Update header vendorid1..6 + reset grand total
+            // =========================
+            for ($i = 1; $i <= 6; $i++) {
+                $vid = $vendors[$i - 1]['id'] ?? null;
+                $hdr->{"vendorid{$i}"} = $vid ?: null;
+
+                $hdr->{"grandtotalmaterialvendor{$i}"} = null;
+                $hdr->{"grandtotaljasavendor{$i}"}     = null;
+            }
+
+            // =========================
+            // 2) DELETE: hanya bq_source=1 yang hilang dari payload
+            // =========================
+            $existing = TrBQCSDetail::on('pgsql')
+                ->where('bqid', $hdr->bqid)
+                ->get(['id','bq_no','bq_line_no','bq_source']);
+
+            // key payload: prefer id, fallback ke composite
+            $payloadIds  = [];
+            $payloadKeys = [];
+
+            foreach ($details as $row) {
+                $rid = $row['detail_id'] ?? $row['id'] ?? null;
+                if ($rid) {
+                    $payloadIds[] = (int)$rid;
+                    continue;
+                }
+
+                $bqNo = (string)($row['bq_no'] ?? '');
+                $bqLn = (string)($row['bq_line_no'] ?? '');
+                $src  = (int)($row['bq_source'] ?? 0);
+                $payloadKeys[] = "{$bqNo}|{$bqLn}|{$src}";
+            }
+
+            $payloadIds  = array_values(array_unique(array_filter($payloadIds)));
+            $payloadKeys = array_values(array_unique(array_filter($payloadKeys)));
+
+            $deleteIds = [];
+            foreach ($existing as $ex) {
+                // hanya boleh delete source=1
+                if ((int)($ex->bq_source ?? 0) !== 1) continue;
+
+                // kalau payload pakai id
+                if (!empty($payloadIds)) {
+                    if (!in_array((int)$ex->id, $payloadIds, true)) {
+                        $deleteIds[] = (int)$ex->id;
+                    }
+                } else {
+                    // fallback composite
+                    $k = ((string)$ex->bq_no).'|'.((string)$ex->bq_line_no).'|'.((int)$ex->bq_source);
+                    if (!in_array($k, $payloadKeys, true)) {
+                        $deleteIds[] = (int)$ex->id;
+                    }
+                }
+            }
+
+            if (!empty($deleteIds)) {
+                TrBQCSDetail::on('pgsql')
+                    ->where('bqid', $hdr->bqid)
+                    ->whereIn('id', $deleteIds)
+                    ->delete();
+            }
+
+            // =========================
+            // 3) UPSERT detail + hitung ulang grand total header
+            // =========================
+            $sumMaterial = array_fill(1, 6, 0.0);
+            $sumJasa     = array_fill(1, 6, 0.0);
+
+            foreach ($details as $row) {
+                $detailId = $row['detail_id'] ?? $row['id'] ?? null;
+
+                $bqNo = $row['bq_no'] ?? null;
+                $bqLn = $row['bq_line_no'] ?? null;
+
+                // default 0 kalau tidak dikirim
+                $src  = (int)($row['bq_source'] ?? 0);
+
+                // cari detail: prefer id
+                $det = null;
+                if ($detailId) {
+                    $det = TrBQCSDetail::on('pgsql')
+                        ->where('bqid', $hdr->bqid)
+                        ->where('id', (int)$detailId)
+                        ->first();
+                }
+
+                // fallback: composite key (bqid + bq_no + bq_line_no + bq_source)
+                if (!$det) {
+                    $det = TrBQCSDetail::on('pgsql')
+                        ->where('bqid', $hdr->bqid)
+                        ->where('bq_no', $bqNo)
+                        ->where('bq_line_no', $bqLn)
+                        ->where('bq_source', $src)
+                        ->first();
+                }
+
+                $isNew = false;
+                if (!$det) {
+                    $det = new TrBQCSDetail();
+                    $det->setConnection('pgsql');
+
+                    $det->bqid       = $hdr->bqid;
+                    $det->csid       = $hdr->csid;
+                    $det->sppjtid    = $hdr->sppjtid;
+
+                    $det->bq_no      = $bqNo;
+                    $det->bq_line_no = $bqLn;
+
+                    $det->status     = 'H';
+                    $det->created_by = $username;
+                    $det->created_at = $now;
+
+                    $isNew = true;
+                }
+
+                // qty/uom/descr
+                $qty = (float)($row['qty'] ?? $det->qty ?? 0);
+
+                $det->qty       = round($qty, 2);
+                $det->uom       = $row['uom']      ?? $det->uom;
+                $det->bq_descr  = $row['bq_descr'] ?? $det->bq_descr;
+
+                // bq_source & bq_qty rule:
+                // - source awal: bq_source=0, bq_qty = qty
+                // - input manual: bq_source=1, bq_qty = null (atau 0)
+                $det->bq_source = $src;
+                $det->bq_qty    = ($src === 0) ? round($qty, 2) : null;
+
+                // set ulang vendorid1..6 agar konsisten dg header + update price/totals
+                for ($i = 1; $i <= 6; $i++) {
+                    $det->{"vendorid{$i}"} = $vendors[$i - 1]['id'] ?? null;
+
+                    $prodPrice = 0.0;
+                    $jasaPrice = 0.0;
+
+                    if (!empty($row['vendor']) && is_array($row['vendor'])) {
+                        foreach ($row['vendor'] as $vv) {
+                            if ((int)($vv['idx'] ?? 0) === $i) {
+                                $prodPrice = (float)($vv['product_price'] ?? 0);
+                                $jasaPrice = (float)($vv['jasa_price'] ?? 0);
+                                break;
+                            }
+                        }
+                    }
+
+                    $det->{"vendorproductprice{$i}"}       = round($prodPrice, 2);
+                    $det->{"vendortotalproductprice{$i}"}  = round($qty * $prodPrice, 2);
+                    $det->{"vendorjasaprice{$i}"}          = round($jasaPrice, 2);
+                    $det->{"vendortotaljasaprice{$i}"}     = round($qty * $jasaPrice, 2);
+
+                    $sumMaterial[$i] += ($qty * $prodPrice);
+                    $sumJasa[$i]     += ($qty * $jasaPrice);
+                }
+
+                $det->updated_by = $username;
+                $det->updated_at = $now;
+                $det->save();
+            }
+
+            // =========================
+            // 4) Update grand total header
+            // =========================
+            for ($i = 1; $i <= 6; $i++) {
+                if (!empty($hdr->{"vendorid{$i}"})) {
+                    $hdr->{"grandtotalmaterialvendor{$i}"} = round($sumMaterial[$i], 2);
+                    $hdr->{"grandtotaljasavendor{$i}"}     = round($sumJasa[$i], 2);
+                } else {
+                    $hdr->{"grandtotalmaterialvendor{$i}"} = null;
+                    $hdr->{"grandtotaljasavendor{$i}"}     = null;
+                }
+            }
+
+            $hdr->updated_by = $username;
+            $hdr->updated_at = $now;
+            $hdr->save();
+
+            return response()->json([
+                'ok'   => true,
+                'msg'  => 'BQ updated',
+                'bqid' => $hdr->bqid,
+            ]);
+        });
+    }
+
+
+    public function updateBQCS_xxx(Request $request, $hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
