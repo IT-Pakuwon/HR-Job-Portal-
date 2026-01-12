@@ -1,105 +1,4 @@
 <x-app-layout>
-    <style>
-        /* Overlay full-screen */
-        #loadingSpinnerContainer {
-            position: fixed;
-            inset: 0;
-            display: none;
-            /* akan ditampilkan via JS */
-            background: rgba(17, 24, 39, .55);
-            backdrop-filter: blur(2px);
-            z-index: 2000;
-        }
-
-        /* Kartu spinner di tengah */
-        #loadingSpinnerContainer .loading-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 18px 22px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
-        }
-
-        /* Spinner dual ring */
-        #loadingSpinnerContainer .loading-spinner {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: #6366f1;
-            /* indigo-500 */
-            animation: spin 1s linear infinite;
-            position: relative;
-        }
-
-        #loadingSpinnerContainer .loading-spinner::after {
-            content: "";
-            position: absolute;
-            inset: 6px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-left-color: #a5b4fc;
-            /* indigo-200 */
-            animation: spinReverse .75s linear infinite;
-        }
-
-        #loadingSpinnerContainer .loading-text {
-            color: #e5e7eb;
-            font-weight: 600;
-            letter-spacing: .02em;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span {
-            display: inline-block;
-            animation: blink 1.4s infinite both;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
-            animation-delay: .2s;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
-            animation-delay: .4s;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes spinReverse {
-            to {
-                transform: rotate(-360deg);
-            }
-        }
-
-        @keyframes blink {
-            0% {
-                opacity: .3;
-                transform: translateY(0);
-            }
-
-            20% {
-                opacity: 1;
-                transform: translateY(-2px);
-            }
-
-            100% {
-                opacity: .3;
-                transform: translateY(0);
-            }
-        }
-    </style>
-
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
             <div>
@@ -779,33 +678,20 @@
                                                     </div>
                                                 @endif
                                             </div>
-                                            <!-- WRAPPER -->
-                                            <div class="group relative inline-flex">
 
-                                                <!-- INFO ICON -->
+                                            <!-- Tooltip -->
+                                            <div class="group relative">
+                                                <span
+                                                    class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
+
                                                 <div
-                                                    class="flex h-4 w-4 cursor-pointer select-none items-center justify-center rounded-full bg-gray-200 text-[10px] text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-                                                    i
-                                                </div>
-
-                                                <!-- TOOLTIP -->
-                                                <div
-                                                    class="invisible absolute left-1/2 top-full z-50 mt-2 w-64 max-w-[calc(100vw-1rem)] -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs text-gray-200 opacity-0 shadow-lg transition-opacity duration-150 group-hover:visible group-hover:opacity-100 sm:left-auto sm:right-0 sm:translate-x-0">
-
-                                                    <!-- CONTENT -->
-                                                    <div class="space-y-1 leading-4 text-gray-300">
-                                                        <div>✉️ : {{ $v['vendorcp'] ?: '-' }}</div>
-                                                        <div>☎️ : {{ $v['vendortelp'] ?: '-' }}</div>
-                                                        <div>🏠 : {{ $v['vendoralamat'] ?: '-' }}</div>
-                                                    </div>
-
-                                                    <!-- ARROW -->
-                                                    <div class="absolute -top-1 right-3 h-2 w-2 rotate-45 bg-gray-900">
+                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-xs shadow-lg group-hover:block">
+                                                    <div><strong>Contact:</strong> {{ $v['vendorcp'] ?: '-' }}</div>
+                                                    <div><strong>Phone:</strong> {{ $v['vendortelp'] ?: '-' }}</div>
+                                                    <div><strong>Address:</strong> {{ $v['vendoralamat'] ?: '-' }}
                                                     </div>
                                                 </div>
                                             </div>
-
-
                                         </div>
                                     </th>
                                 @endforeach
@@ -869,15 +755,13 @@
                                                         {{-- Budget Department --}}
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             {{ $row->budget_department_fin_id ?? '-' }} -
-                                                            {{ $row->budget_account_id ?? '-' }} -
-                                                            {{ $row->budget_activity_descr }}
+                                                            {{ $row->budget_account_id ?? '-' }}
                                                         </td>
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ number_format((float) ($row->inventory_last_price ?? 0), 2, ',', '.') }}
+                                                            {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
                                                             <button type="button"
                                                                 class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                                 title="View Last Price History"
-                                                                data-csdate="{{ $cs->csdate }}"
                                                                 data-inventoryid="{{ $row->inventoryid }}"
                                                                 data-inventorydescr="{{ $row->inventory_descr ?? '' }}">
                                                                 🔍
@@ -934,34 +818,26 @@
                                 @foreach ($vendors as $v)
                                     <td class="w-48 space-y-1 px-3 py-2">
                                         <div class="flex justify-between">
-                                            <span>Total :</span>
-                                            <span>{{ number_format((float) ($v['total'] ?? 0), 2, ',', '.') }}</span>
+                                            <span>Total:</span>
+                                            <span>{{ $v['total'] }}</span>
                                         </div>
-
                                         <div class="flex justify-between">
-                                            <span>PPN :</span>
-                                            <span>{{ number_format((float) ($v['ppn'] ?? 0), 2, ',', '.') }}%</span>
-                                        </div>
-
-                                        {{-- <div class="flex justify-between gap-3">
-                                            <div class="flex w-1/2 justify-between">
-                                                <span>PPN :</span>
-                                                <span>{{ number_format((float) ($v['ppn'] ?? 0), 2, ',', '.') }}%</span>
+                                            <div class="flex justify-between">
+                                                <span>PPN:</span>
+                                                <span>{{ $v['ppn'] }}%</span>
                                             </div>
-                                            <div class="flex w-1/2 justify-between">
-                                                <span>PPh :</span>
-                                                <span>{{ number_format((float) ($v['pph'] ?? 0), 2, ',', '.') }}%</span>
+                                            <div class="flex justify-between">
+                                                <span>PPh:</span>
+                                                <span>{{ $v['pph'] }}%</span>
                                             </div>
-                                        </div> --}}
-
-                                        <div class="flex justify-between">
-                                            <span>Grand :</span>
-                                            <span>{{ number_format((float) ($v['grand'] ?? 0), 2, ',', '.') }}</span>
                                         </div>
-
                                         <div class="flex justify-between">
-                                            <span>Selected :</span>
-                                            <span>{{ number_format((float) ($v['selected_grand'] ?? 0), 2, ',', '.') }}</span>
+                                            <span>Grand:</span>
+                                            <span>{{ $v['grand'] }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Selected:</span>
+                                            <span>{{ $v['selected_grand'] }}</span>
                                         </div>
                                     </td>
                                 @endforeach
@@ -2046,10 +1922,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                target="_blank"
-                                                                                                class="text-indigo-600 hover:underline font-semibold">
-                                                                                                ${r.ponbr ?? ''}
-                                                                                            </a>`
+                                                                                                                target="_blank"
+                                                                                                                class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                ${r.ponbr ?? ''}
+                                                                                                            </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
