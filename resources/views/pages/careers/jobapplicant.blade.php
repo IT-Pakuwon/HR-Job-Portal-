@@ -2,387 +2,8 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
-    <style>
-        /* === Shared Style for All Status Filters === */
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-        }
-
-        /* === Status-Specific Active Colors === */
-        .status-filter[data-status=""].active .status-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12);
-            /* orange-700 */
-            color: rgb(194 65 12);
-        }
-
-        .status-filter[data-status="is_read_N"].active .status-card,
-        .status-filter[data-status="P"].active .status-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
-        }
-
-        .status-filter[data-status="is_read_Y"].active .status-card,
-        .status-filter[data-status="D"].active .status-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-            color: rgb(31 41 55);
-        }
-
-        .status-filter[data-status="R"].active .status-card {
-            background-color: rgb(254 202 202);
-            /* red-200 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-            color: rgb(185 28 28);
-        }
-
-        .status-filter[data-status="C"].active .status-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-            color: rgb(21 128 61);
-        }
-
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-    </style>
-    <style>
-        /* Kolom kecil */
-        table#applicantsTable td.small-col,
-        table#applicantsTable th.small-col {
-            width: 60px !important;
-            max-width: 60px !important;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    </style>
-
-    <style>
-        .no-border {
-            border: none !important;
-        }
-
-        .grid {
-            width: 100%;
-        }
-
-        select,
-        textarea,
-        input {
-            width: 100%;
-            /* Make all input elements take full width */
-
-        }
-
-        table.dataTable {
-            width: 100% !important;
-            min-width: 0 !important;
-            table-layout: fixed;
-
-        }
-
-        table.dataTable th,
-        table.dataTable td {
-            white-space: normal;
-            word-wrap: break-word;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        @media (max-width: 600px) {
-            .dataTables_wrapper {
-                padding: 0 10px;
-            }
-        }
-
-
-        /* Applicant Table */
-        #applicantsTable_filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: flex-start;
-            /* Aligns items to the left */
-            align-items: center;
-            /* Vertically aligns items */
-        }
-
-        #applicantsTable_filter label {
-            margin-right: 2px;
-        }
-
-        #applicantsTable_filter input {
-            width: 200px;
-            /* Adjust the width of the input box */
-            width: auto;
-            padding: 5px;
-            min-width: 80px;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        #applicantsTable_wrapper {
-            width: 100%;
-        }
-
-        /* Prevent text from wrapping */
-        #applicantsTable td {
-            white-space: nowrap;
-            /* Prevent text from wrapping */
-            overflow: hidden;
-            /* Hide overflow content */
-            text-overflow: ellipsis;
-            /* Display ellipsis ("...") for overflowing content */
-        }
-
-        /* Optional: Adjust the width for table cells */
-        #applicantsTable th,
-        #applicantsTable td {
-            padding: 10px;
-            /* Adjust padding for better appearance */
-            max-width: 200px;
-            /* You can set a maximum width to control overflow */
-        }
-
-
-        #applicantsTable_length {
-            width: auto;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        #applicantsTable_length select {
-            width: auto;
-            padding: 5px;
-            min-width: 80px;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-
-        }
-
-        #applicantsTable_length select option {
-            padding: 5px;
-            /* Mengatur jarak antar opsi */
-        }
-
-        #applicantsTableinfo {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-
-        .dataTables_paginate {
-            margin-top: 10px;
-            margin-bottom: 10px;
-
-        }
-
-        #applicantsTable tbody tr td {
-            padding: 8px 8px;
-            /* Adjust padding for uniform height */
-            line-height: 2;
-            /* Optional, for better text alignment */
-        }
-
-        #applicantsTable tbody tr {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        #applicantsTable tbody tr:hover {
-            background-color: #8f8f8f11;
-            opacity: 100%;
-            cursor: pointer;
-        }
-
-        #applicantsTable tbody tr:hover td {
-            /* color: black; */
-        }
-    </style>
-    <style>
-        /* ✅ Custom Switch Button */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
-        }
-
-        /* ✅ Memperkecil Lebar Kolom Actions */
-        #jobpostingsTable th:nth-child(1),
-        #jobpostingsTable td:nth-child(1) {
-            width: 120px;
-            text-align: center;
-        }
-
-        #jobpostingsTable th:nth-child(4),
-        #jobpostingsTable td:nth-child(4) {
-            width: 120px;
-            text-align: center;
-        }
-
-        #w-full {
-            width: 100% !important;
-        }
-
-        .edu-col.hidden {
-            display: none;
-        }
-
-        /* Header row filter */
-        #applicantsTable thead tr.filters th {
-            padding: 6px 8px;
-        }
-
-        #applicantsTable thead .col-filter {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        #applicantsTable thead .input-filter {
-            padding: 6px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 12px;
-        }
-
-        #applicantsTable thead .select-filter {
-            padding: 6px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 12px;
-            background: white;
-        }
-
-        .dark #applicantsTable thead .input-filter,
-        .dark #applicantsTable thead .select-filter {
-            background: #374151;
-            color: #e5e7eb;
-            border-color: #4b5563;
-        }
-    </style>
     <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-        <div class="mt-4 grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
             <a href="#" class="status-filter group block h-full" data-status="">
@@ -460,86 +81,80 @@
             </a>
 
         </div>
-
-        <div class="grid">
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
-                    {{-- <a"
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div
+                class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 sm:flex-row sm:items-center dark:border-gray-700">
+                {{-- Changed text-3xl to text-xl --}}
+                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
+                {{-- <a"
                         class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         List Job Posting
                         </a> --}}
-                </div>
-                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
+            </div>
+            {{-- Padding applied here instead of outer container --}}
 
-                    <div class="mb-4 flex items-center gap-3">
-                        <select id="filterJobTL"></select>
-                        <button id="btnResetFilters" class="rounded-md border px-3 py-2 text-sm hover:bg-gray-50">
-                            Reset
-                        </button>
-                    </div>
-
-                    <table id="applicantsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    DocID
-                                </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Date
-                                </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Name
-                                </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Education
-                                </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Religion
-                                </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Height
-                                </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Weight
-                                </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Last Working
-                                </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Score
-                                </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Step
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                            {{-- Table rows will be populated here by JavaScript/DataTables --}}
-                        </tbody>
-                    </table>
-                </div>
+            <div id="applicantsFilters" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-5 lg:grid-cols-11">
+                <!-- filters will be injected here -->
+                <button id="btnResetFilters"
+                    class="rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
+                    Reset
+                </button>
             </div>
 
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="applicantsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                                DocID
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                                Date
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                                Name
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                                Education
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                                Religion
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                                Height
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                                Weight
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                                Last Working
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                                Score
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                                Step
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            <script>
-                var currentUser = "{{ auth()->user()->username }}";
-            </script>
+    </div>
 
 
-            {{-- <script>
+    <script>
+        var currentUser = "{{ auth()->user()->username }}";
+    </script>
+
+
+    {{-- <script>
                 $(document).ready(function() {
                     let currentStatus = '';
                     let applicantTable = $('#applicantsTable').DataTable({
@@ -637,317 +252,452 @@
             </script> --}}
 
 
-            <script>
-                $(document).ready(function() {
-                    let currentStatus = '';
+    <script>
+        $(document).ready(function() {
+            let currentStatus = '';
 
-                    // Definisi kolom (data + name HARUS diisi untuk server-side)
-                    const colDefs = [{
-                            data: 'docid',
-                            name: 'docid',
-                            type: 'text',
-                            title: 'DocID'
-                        },
-                        {
-                            data: 'apply_date',
-                            name: 'apply_date',
-                            type: 'text',
-                            title: 'Date'
-                        },
-                        {
-                            data: 'fullname',
-                            name: 'fullname',
-                            type: 'text',
-                            title: 'Name'
-                        },
-                        {
-                            data: 'education_name',
-                            name: 'education_name',
-                            type: 'text',
-                            title: 'Education'
-                        },
-                        {
-                            data: 'religion',
-                            name: 'religion',
-                            type: 'text',
-                            title: 'Religion'
-                        },
-                        {
-                            data: 'height',
-                            name: 'height',
-                            type: 'text',
-                            title: 'Height'
-                        },
-                        {
-                            data: 'weight',
-                            name: 'weight',
-                            type: 'text',
-                            title: 'Weight'
-                        },
-                        {
-                            data: 'company_name',
-                            name: 'company_name',
-                            type: 'text',
-                            title: 'Last Working'
-                        },
-                        {
-                            data: 'match_score_percentage',
-                            name: 'match_score_percentage',
-                            type: 'text',
-                            title: 'Score'
-                        },
-                        {
-                            data: 'prev_apply_step',
-                            name: 'prev_apply_step',
-                            type: 'select',
-                            title: 'Step'
-                        },
-                    ];
+            // Definisi kolom (data + name HARUS diisi untuk server-side)
+            const colDefs = [{
+                    data: 'docid',
+                    name: 'docid',
+                    type: 'text',
+                    title: 'DocID'
+                },
+                {
+                    data: 'apply_date',
+                    name: 'apply_date',
+                    type: 'text',
+                    title: 'Date'
+                },
+                {
+                    data: 'fullname',
+                    name: 'fullname',
+                    type: 'text',
+                    title: 'Name'
+                },
+                {
+                    data: 'education_name',
+                    name: 'education_name',
+                    type: 'text',
+                    title: 'Education'
+                },
+                {
+                    data: 'religion',
+                    name: 'religion',
+                    type: 'text',
+                    title: 'Religion'
+                },
+                {
+                    data: 'height',
+                    name: 'height',
+                    type: 'text',
+                    title: 'Height'
+                },
+                {
+                    data: 'weight',
+                    name: 'weight',
+                    type: 'text',
+                    title: 'Weight'
+                },
+                {
+                    data: 'company_name',
+                    name: 'company_name',
+                    type: 'text',
+                    title: 'Last Working'
+                },
+                {
+                    data: 'match_score_percentage',
+                    name: 'match_score_percentage',
+                    type: 'text',
+                    title: 'Score'
+                },
+                {
+                    data: 'prev_apply_step',
+                    name: 'prev_apply_step',
+                    type: 'select',
+                    title: 'Step'
+                },
+            ];
 
-                    const stepLabelMap = {
-                        'JOAPHC': 'Job Apply HC',
-                        'JOAPUS': 'Job Apply User',
-                        'WIHC': 'Create Schedule Interview HC',
-                        'IHC': 'Interview HC',
-                        'WIU': 'Create Schedule Interview User',
-                        'IU': 'Interview User',
-                        'WPT': 'Waiting Psycho Test',
-                        'PT': 'Psycho Test',
-                        'OFF': 'Offering',
-                        'JOIN': 'Join'
-                    };
+            const stepLabelMap = {
+                'JOAPHC': 'Job Apply HC',
+                'JOAPUS': 'Job Apply User',
+                'WIHC': 'Create Schedule Interview HC',
+                'IHC': 'Interview HC',
+                'WIU': 'Create Schedule Interview User',
+                'IU': 'Interview User',
+                'WPT': 'Waiting Psycho Test',
+                'PT': 'Psycho Test',
+                'OFF': 'Offering',
+                'JOIN': 'Join'
+            };
 
-                    // ===== Tambah baris filter kedua di THEAD, berbasis nama kolom =====
-                    const $thead = $('#applicantsTable thead');
-                    const $filterRow = $('<tr class="filters"></tr>');
-                    colDefs.forEach(def => {
-                        let ctl = '';
-                        if (def.type === 'select' && def.name === 'prev_apply_step') {
-                            ctl = `
-                        <select class="col-filter select-filter" data-colname="${def.name}">
-                        <option value="">All</option>
-                        ${Object.entries(stepLabelMap).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
-                        </select>`;
-                        } else {
-                            ctl =
-                                `<input type="text" class="col-filter input-filter" data-colname="${def.name}" placeholder="Search ${def.title}">`;
-                        }
-                        $filterRow.append($('<th>').html(ctl));
-                    });
-                    $thead.append($filterRow);
+            // const $thead = $('#applicantsTable thead');
+            // const $filterRow = $('<tr class="filters"></tr>');
 
-                    // ===== Init DataTable =====
-                    const applicantTable = $('#applicantsTable').DataTable({
-                        responsive: true,
-                        processing: true,
-                        serverSide: true,
-                        searching: true, // global search tetap bisa
-                        paging: true,
-                        info: true,
-                        lengthMenu: [
-                            [10, 25, 50, 100, 250, -1],
-                            [10, 25, 50, 100, 250, 'All']
-                        ],
+            // colDefs.forEach(def => {
+            //     let ctl = '';
+            //     if (def.type === 'select' && def.name === 'prev_apply_step') {
+            //         ctl = `
+        // <select class="col-filter select-filter" data-colname="${def.name}">
+        //     <option value="">All</option>
+        //     ${Object.entries(stepLabelMap)
+        //         .map(([k,v]) => `<option value="${k}">${v}</option>`)
+        //         .join('')}
+        // </select>`;
+            //     } else {
+            //         ctl = `<input type="text" class="col-filter input-filter">`;
+            //     }
+            //     $filterRow.append($('<th>').html(ctl));
+            // });
 
-                        // 🔥 ADD THIS
-                        dom: '<"dt-toolbar"l B f>rtip',
-                        buttons: [{
-                                extend: 'excelHtml5',
-                                text: '↓ Excel',
-                                title: 'Purchase_Order',
-                                className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            },
-                            {
-                                extend: 'csvHtml5',
-                                text: '↓ CSV',
-                                title: 'Purchase_Order',
-                                className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            }
-                        ],
-                        // 🔥 END ADD
-                        pageLength: 10,
-                        orderCellsTop: true, // penting utk 2 baris thead
-                        ajax: {
-                            url: "{{ route('jobapplicant.json') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                d.status = currentStatus;
-                                d.job_tl_exact = $('#filterJobTL').val() || '';
-                            }
-                        },
-                        order: [
-                            [8, 'desc']
-                        ],
-                        columns: [{
-                                data: 'docid',
-                                name: 'docid',
-                                render: function(data, type, row) {
-                                    return `<a href="/showcareers/${row.eid}" target="_blank" class= 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${data}</a>`;
-                                }
-                            },
-                            {
-                                data: 'apply_date',
-                                name: 'apply_date'
-                            },
-                            {
-                                data: 'fullname',
-                                name: 'fullname'
-                            },
-                            {
-                                data: 'education_name',
-                                name: 'education_name'
-                            },
-                            {
-                                data: 'religion',
-                                name: 'religion'
-                            },
-                            {
-                                data: 'height',
-                                name: 'height',
-                                className: 'small-col'
-                            },
-                            {
-                                data: 'weight',
-                                name: 'weight',
-                                className: 'small-col'
-                            },
-                            {
-                                data: 'company_name',
-                                name: 'company_name'
-                            },
-                            {
-                                data: 'match_score_percentage',
-                                name: 'match_score_percentage',
-                                className: 'small-col'
-                            },
-                            {
-                                data: 'prev_apply_step',
-                                name: 'prev_apply_step',
-                                render: function(data) {
-                                    const label = stepLabelMap[data] || data;
-                                    return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 text-base font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words">
-    ${label}
-</span>`;
+            // $thead.append($filterRow);
 
-                                }
-                            }
-                        ],
-                        rowCallback: function(row, data) {
-                            // reset dulu
-                            $(row).css('color', '');
+            const columnFilters = [{
+                    index: 1,
+                    type: 'text',
+                    placeholder: 'DocID'
+                },
+                {
+                    index: 2,
+                    type: 'text',
+                    placeholder: 'Apply Date'
+                },
+                {
+                    index: 3,
+                    type: 'text',
+                    placeholder: 'Full Name'
+                },
+                {
+                    index: 4,
+                    type: 'text',
+                    placeholder: 'Education'
+                },
+                {
+                    index: 5,
+                    type: 'text',
+                    placeholder: 'Religion'
+                },
+                {
+                    index: 6,
+                    type: 'text',
+                    placeholder: 'Height'
+                },
+                {
+                    index: 7,
+                    type: 'text',
+                    placeholder: 'Weight'
+                },
+                {
+                    index: 8,
+                    type: 'text',
+                    placeholder: 'Company'
+                },
+                {
+                    index: 9,
+                    type: 'text',
+                    placeholder: 'Score'
+                },
+                {
+                    index: 10,
+                    type: 'select',
+                    placeholder: 'Step',
+                    // options: stepLabelMap
+                }
+            ];
 
-                            if (data.status === 'R') {
-                                // merah (Tailwind red-600)
-                                $(row).css('color', '#dc2626');
-                            } else if (data.is_read === 'N') {
-                                // biru (Tailwind blue-600)
-                                $(row).css('color', '#2563eb');
-                            } else {
-                                $(row).css('color', 'black');
-                            }
-                        },
-                        initComplete: function() {
-                            const api = this.api();
+            const $filters = $('#applicantsFilters');
 
-                            // Input text → debounce
-                            let debounce;
-                            $('#applicantsTable thead').on('input', 'input.col-filter', function() {
-                                const colName = $(this).data('colname');
-                                const val = this.value;
-                                clearTimeout(debounce);
-                                debounce = setTimeout(function() {
-                                    api.column(colName + ':name').search(val)
-                                        .draw(); // <-- pakai selector :name
-                                }, 300);
-                            });
+            columnFilters.forEach(col => {
+                let $el;
 
-                            // Select (Step)
-                            $('#applicantsTable thead').on('change', 'select.col-filter', function() {
-                                const colName = $(this).data('colname');
-                                api.column(colName + ':name').search(this.value)
-                                    .draw(); // <-- pakai selector :name
-                            });
-                        }
-                    });
+                if (col.type === 'select') {
+                    $el = $(`
+            <select class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+                   focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <option value="">All ${col.placeholder}</option>
+            </select>
+        `);
 
-                    // kecilkan tiga header kolom numerik
-                    $('#applicantsTable thead tr:eq(0) th').eq(5).addClass('small-col');
-                    $('#applicantsTable thead tr:eq(0) th').eq(6).addClass('small-col');
-                    $('#applicantsTable thead tr:eq(0) th').eq(8).addClass('small-col');
-
-                    $('#filterJobTL').select2({
-                        placeholder: 'Filter by Job Title — Job Level',
-                        allowClear: true,
-                        width: 'resolve',
-                        ajax: {
-                            url: "{{ route('jobfilters.tl') }}", // endpoint gabungan
-                            dataType: 'json',
-                            delay: 200,
-                            data: params => ({
-                                q: params.term || ''
-                            }), // pencarian server (opsional)
-                            processResults: data => ({
-                                // server sudah kirim {id:'Title|||Level', text:'Title — Level'}
-                                results: data
-                            }),
-                            cache: true
-                        }
-                    });
-
-                    // reload tabel saat filter berubah
-                    $('#filterJobTL').on('change', function() {
-                        applicantTable.ajax.reload();
-                    });
-
-                    // reset
-                    $('#btnResetFilters').on('click', function() {
-                        $('#filterJobTL').val(null).trigger('change');
-                        applicantTable.ajax.reload();
-                    });
-
-
-                    // Filter tombol status (All/Unchecked/Checked/Reject/Approved)
-                    $('.status-filter').on('click', function(e) {
-                        e.preventDefault();
-                        $('.status-filter').removeClass('active');
-                        $(this).addClass('active');
-                        currentStatus = $(this).data('status') || '';
-                        applicantTable.ajax.reload();
-                    });
-                });
-                // Make each row of .status-filter independent
-                document.querySelectorAll('.grid-col-1').forEach(grid => {
-                    const filters = grid.querySelectorAll('.status-filter');
-
-                    filters.forEach(btn => {
-                        btn.addEventListener('click', e => {
-                            e.preventDefault();
-                            filters.forEach(s => s.classList.remove('active'));
-                            btn.classList.add('active');
+                    if (col.options) {
+                        Object.entries(col.options).forEach(([val, label]) => {
+                            $el.append(`<option value="${val}">${label}</option>`);
                         });
+                    }
+
+                    $el.on('change', function() {
+                        applicantTable
+                            .column(col.index)
+                            .search(this.value || '')
+                            .draw();
                     });
+
+                } else {
+                    $el = $(`
+            <input type="text"
+                 class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
+               focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="Search ${col.placeholder}">
+        `);
+
+                    let debounce;
+                    $el.on('input', function() {
+                        clearTimeout(debounce);
+                        const val = this.value;
+                        debounce = setTimeout(() => {
+                            applicantTable
+                                .column(col.index)
+                                .search(val)
+                                .draw();
+                        }, 300);
+                    });
+                }
+
+                $filters.append($el);
+            });
+
+            // ===== Init DataTable =====
+            const applicantTable = $('#applicantsTable').DataTable({
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // FIRST column
+                    }
+                },
+                columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false,
+                        searchable: false,
+                        responsivePriority: 1
+                    },
+                    {
+                        targets: [1, 2], // DocID, Date (important)
+                        responsivePriority: 2
+                    },
+                    {
+                        targets: [3, 4, 5, 6, 7, 8, 9, 10], // less important columns
+                        responsivePriority: 100
+                    }
+                ],
+
+                processing: true,
+                serverSide: true,
+                searching: true, // global search tetap bisa
+                paging: true,
+                info: true,
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+                // 🔥 ADD THIS
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Purchase_Order',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Purchase_Order',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
+                // 🔥 END ADD
+                pageLength: 10,
+                orderCellsTop: true, // penting utk 2 baris thead
+                ajax: {
+                    url: "{{ route('jobapplicant.json') }}",
+                    type: 'GET',
+                    data: function(d) {
+                        d.status = currentStatus;
+                        d.job_tl_exact = $('#filterJobTL').val() || '';
+                    }
+                },
+                order: [
+                    [0, 'desc']
+                ],
+                columns: [{
+                        className: 'dtr-control',
+                        orderable: false,
+                        searchable: false,
+                        data: null,
+                        defaultContent: ''
+                    },
+                    {
+                        data: 'docid',
+                        name: 'docid',
+                        render: function(data, type, row) {
+                            return `<a href="/showcareers/${row.eid}" target="_blank" class= 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${data}</a>`;
+                        }
+                    },
+                    {
+                        data: 'apply_date',
+                        name: 'apply_date'
+                    },
+                    {
+                        data: 'fullname',
+                        name: 'fullname'
+                    },
+                    {
+                        data: 'education_name',
+                        name: 'education_name'
+                    },
+                    {
+                        data: 'religion',
+                        name: 'religion'
+                    },
+                    {
+                        data: 'height',
+                        name: 'height',
+                        className: 'small-col'
+                    },
+                    {
+                        data: 'weight',
+                        name: 'weight',
+                        className: 'small-col'
+                    },
+                    {
+                        data: 'company_name',
+                        name: 'company_name'
+                    },
+                    {
+                        data: 'match_score_percentage',
+                        name: 'match_score_percentage',
+                        className: 'small-col'
+                    },
+                    {
+                        data: 'prev_apply_step',
+                        name: 'prev_apply_step',
+                        render: function(data) {
+                            const label = stepLabelMap[data] || data;
+                            return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 text-base font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>`;
+
+                        }
+                    }
+                ],
+                rowCallback: function(row, data) {
+                    // reset dulu
+                    $(row).css('color', '');
+
+                    if (data.status === 'R') {
+                        // merah (Tailwind red-600)
+                        $(row).css('color', '#dc2626');
+                    } else if (data.is_read === 'N') {
+                        // biru (Tailwind blue-600)
+                        $(row).css('color', '#2563eb');
+                    } else {
+                        $(row).css('color', 'black');
+                    }
+                },
+                initComplete: function() {
+                    const api = this.api();
+
+                    // Input text → debounce
+                    let debounce;
+                    $('#applicantsTable thead').on('input', 'input.col-filter', function() {
+                        const colName = $(this).data('colname');
+                        const val = this.value;
+                        clearTimeout(debounce);
+                        debounce = setTimeout(function() {
+                            api.column(colName + ':name').search(val)
+                                .draw(); // <-- pakai selector :name
+                        }, 300);
+                    });
+
+                    // Select (Step)
+                    $('#applicantsTable thead').on('change', 'select.col-filter', function() {
+                        const colName = $(this).data('colname');
+                        api.column(colName + ':name').search(this.value)
+                            .draw(); // <-- pakai selector :name
+                    });
+                }
+            });
+
+            // kecilkan tiga header kolom numerik
+            $('#applicantsTable thead tr:eq(0) th').eq(5).addClass('small-col');
+            $('#applicantsTable thead tr:eq(0) th').eq(6).addClass('small-col');
+            $('#applicantsTable thead tr:eq(0) th').eq(8).addClass('small-col');
+
+            $('#filterJobTL').select2({
+                placeholder: 'Filter by Job Title — Job Level',
+                allowClear: true,
+                width: 'resolve',
+                ajax: {
+                    url: "{{ route('jobfilters.tl') }}", // endpoint gabungan
+                    dataType: 'json',
+                    delay: 200,
+                    data: params => ({
+                        q: params.term || ''
+                    }), // pencarian server (opsional)
+                    processResults: data => ({
+                        // server sudah kirim {id:'Title|||Level', text:'Title — Level'}
+                        results: data
+                    }),
+                    cache: true
+                }
+            });
+
+            // reload tabel saat filter berubah
+            $('#filterJobTL').on('change', function() {
+                applicantTable.ajax.reload();
+            });
+
+            // // reset
+            // $('#btnResetFilters').on('click', function() {
+            //     $('#filterJobTL').val(null).trigger('change');
+            //     applicantTable.ajax.reload();
+            // });
+            $('#btnResetFilters').on('click', function() {
+                $('#applicantsFilters input, #applicantsFilters select').val('');
+                applicantTable.search('').columns().search('').draw();
+            });
+
+
+
+            // Filter tombol status (All/Unchecked/Checked/Reject/Approved)
+            $('.status-filter').on('click', function(e) {
+                e.preventDefault();
+                $('.status-filter').removeClass('active');
+                $(this).addClass('active');
+                currentStatus = $(this).data('status') || '';
+                applicantTable.ajax.reload();
+            });
+        });
+        // Make each row of .status-filter independent
+        document.querySelectorAll('.grid-col-1').forEach(grid => {
+            const filters = grid.querySelectorAll('.status-filter');
+
+            filters.forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    filters.forEach(s => s.classList.remove('active'));
+                    btn.classList.add('active');
                 });
-            </script>
+            });
+        });
+    </script>
 
-            <!-- Select2 CSS -->
-            <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-            <!-- Select2 JS -->
-            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
-        </div>
-    </div>
 </x-app-layout>

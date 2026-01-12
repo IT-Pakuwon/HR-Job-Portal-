@@ -500,4 +500,134 @@ MISC
             transform: translateY(0);
         }
     }
+
+    Kolom kecil table#applicantsTable td.small-col,
+    table#applicantsTable th.small-col {
+        width: 60px !important;
+        max-width: 60px !important;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Applicant Table */
+    #applicantsTable_filter {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: flex-start;
+        /* Aligns items to the left */
+        align-items: center;
+        /* Vertically aligns items */
+    }
+
+    #applicantsTable_filter label {
+        margin-right: 2px;
+    }
+
+    #applicantsTable_filter input {
+        width: 200px;
+        /* Adjust the width of the input box */
+        width: auto;
+        padding: 5px;
+        min-width: 80px;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        background-color: #f9fafb;
+    }
+
+    #applicantsTable_wrapper {
+        width: 100%;
+    }
+
+    /* Prevent text from wrapping */
+    #applicantsTable td {
+        white-space: nowrap;
+        /* Prevent text from wrapping */
+        overflow: hidden;
+        /* Hide overflow content */
+        text-overflow: ellipsis;
+        /* Display ellipsis ("...") for overflowing content */
+    }
+
+    /* Optional: Adjust the width for table cells */
+    #applicantsTable th,
+    #applicantsTable td {
+        padding: 10px;
+        /* Adjust padding for better appearance */
+        max-width: 200px;
+        /* You can set a maximum width to control overflow */
+    }
+
+
+    #applicantsTable_length {
+        width: auto;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    #applicantsTable_length select {
+        width: auto;
+        padding: 5px;
+        min-width: 80px;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        background-color: #f9fafb;
+
+    }
+
+    #applicantsTable_length select option {
+        padding: 5px;
+        /* Mengatur jarak antar opsi */
+    }
+
+    #applicantsTableinfo {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+
+    #applicantsTable tbody tr td {
+        padding: 8px 8px;
+        /* Adjust padding for uniform height */
+        line-height: 2;
+        /* Optional, for better text alignment */
+    }
+
+    #applicantsTable tbody tr {
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #applicantsTable tbody tr:hover {
+        background-color: #8f8f8f11;
+        opacity: 100%;
+        cursor: pointer;
+    }
+
+    #applicantsTable tbody tr:hover td {
+        /* color: black; */
+    }
+
+    /* ✅ Memperkecil Lebar Kolom Actions
+    #jobpostingsTable th:nth-child(1),
+    #jobpostingsTable td:nth-child(1) {
+        width: 120px;
+        text-align: center;
+    }
+
+    #jobpostingsTable th:nth-child(4),
+    #jobpostingsTable td:nth-child(4) {
+        width: 120px;
+        text-align: center;
+    }
+
+    #w-full {
+        width: 100% !important;
+    } */
+
+    .edu-col.hidden {
+        display: none;
+    }
 </style>
