@@ -693,6 +693,9 @@ Route::post('/logout', function () {
         Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
         Route::get('/cs/lastprice/history', [CanvassController::class, 'getLastPriceHistory'])->name('cs.lastprice.history');
         Route::get('/cs/lastprice/history.entry', [CanvassController::class, 'getLastPriceHistoryEntry'])->name('cs.lastprice.history.entry');
+        // Route::get('/pdf_bqcs/{hash}', [BQCSController::class, 'printBQCS']);
+        Route::get('/pdf_bqcs/{hash}/{idx}', [BQCSController::class, 'printBQCSVend'])->whereNumber('idx')->name('bqcs.print.vendor');
+
 
         Route::get('/purchasing/last-order', [LastOrderController::class, 'index'])->name('lastorder');
         Route::get('/purchasing/last-order/inventory/json', [LastOrderController::class, 'inventoryJson'])->name('lastorder.inventory.json');

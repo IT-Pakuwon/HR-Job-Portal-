@@ -192,13 +192,14 @@
                                     Description
                                 </label>
 
-                                <textarea readonly rows="3"
-                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-3 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">{{ $imbudget->imbudgetnote }}</textarea>
-
-                                <input type="hidden" name="imbudgetnote" value="{{ $imbudget->imbudgetnote }}">
+                                <textarea
+                                    rows="3" name="imbudgetnote"                                   
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm
+                                        focus:outline-none focus:ring-0
+                                        dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                    {{ $imbudget->imbudgetnote }}
+                                </textarea>
                             </div>
-
-
                         </div>
                     </div>
 

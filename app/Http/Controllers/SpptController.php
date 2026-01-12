@@ -2070,7 +2070,7 @@ class SpptController extends Controller
             ->where('status','A')        
             ->get();    
        
-        return view('pages.sppts.showbqsppts', compact('bq','attachment','bqdetail','canEdit'));
+        return view('pages.sppts.showbqsppts', compact('bq','attachment','bqdetail','canEdit','hash'));
     }
 
     public function editBQ($id)
@@ -2788,7 +2788,7 @@ class SpptController extends Controller
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
             ->get();
             
-        $sppt = TrSPPJ::where('spptid', $bq->sppjtid)
+        $sppt = TrSPPT::where('spptid', $bq->sppjtid)
             ->first();       
        
         $company = MsCompany::where('cpny_id', $bq->cpny_id)->first();

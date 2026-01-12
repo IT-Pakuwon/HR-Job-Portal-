@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\MsCompany;
 
 class BQCSController extends Controller
 {
@@ -471,7 +472,128 @@ class BQCSController extends Controller
         $hash_id = $hash;
         $cs_eid = Hashids::encode($cs->id);
 
-        return view('pages.canvass.showbqcs', compact('bq', 'details', 'vendors', 'hash_id','cs','cs_eid'));
+        return view('pages.canvass.showbqcs', compact('bq', 'details', 'vendors', 'hash_id','cs','cs_eid','hash'));
+    }
+
+    public function printBQCSVend($hash, $idx)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $authUser = Auth::user();
+        if (!$authUser) return redirect()->route('login');
+
+        $idx = (int) $idx;
+        abort_if($idx < 1 || $idx > 6, 404, 'Vendor index invalid');
+
+        $bq = TrBQCS::on('pgsql')->findOrFail($id);
+
+        // ambil CS untuk data vendor (nama/alamat/cp/telp/top)
+        $cs = TrCS::on('pgsql')
+            ->where('bqid', $bq->bqid)
+            ->where('csid', $bq->csid)
+            ->first();
+
+        abort_if(!$cs, 404, 'CS untuk BQ ini tidak ditemukan.');
+
+        $vendor = [
+            'id'   => $cs->{"vendorid{$idx}"} ?? null,
+            'name' => $cs->{"vendorname{$idx}"} ?? null,
+            'addr' => $cs->{"vendoralamat{$idx}"} ?? null,
+            'cp'   => $cs->{"vendorcp{$idx}"} ?? null,
+            'telp' => $cs->{"vendortelp{$idx}"} ?? null,
+            'top'  => $cs->{"vendortop{$idx}"} ?? null,
+        ];
+        abort_if(!filled($vendor['id']) && !filled($vendor['name']), 404, 'Vendor tidak ditemukan.');
+
+        $company = MsCompany::where('cpny_id', $bq->cpny_id)->first();
+
+        $bqdetail = TrBQCSDetail::on('pgsql')
+            ->where('bqid', $bq->bqid)
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
+        // hitung grand total berdasarkan vendor terpilih
+        $grandTotalMaterial = 0;
+        $grandTotalJasa     = 0;
+
+        foreach ($bqdetail as $item) {
+            $qty = (float) ($item->qty ?? 0);
+
+            $mat = (float) ($item->{"vendorproductprice{$idx}"} ?? 0);
+            $jasa = (float) ($item->{"vendorjasaprice{$idx}"} ?? 0);
+
+            $grandTotalMaterial += $qty * $mat;
+            $grandTotalJasa     += $qty * $jasa;
+        }
+
+        $data = [
+            'title'     => 'CS Bills of Quantities (BQ)',
+            'doc_type'  => 'BQ',
+            'cpny_id'   => $company->cpny_id ?? $bq->cpny_id,
+            'cpny_name' => $company->cpny_name ?? '',
+            'vendor'    => $vendor,
+            'idx'       => $idx,
+            'grandTotalMaterial' => $grandTotalMaterial,
+            'grandTotalJasa'     => $grandTotalJasa,
+        ];
+
+        $pdf = \PDF::loadView('pages.canvass.pdfbq_cs_vendor', array_merge($data, [
+            'bq'       => $bq,
+            'bqdetail' => $bqdetail,
+        ]));
+
+        $pdf->setPaper('A4');
+
+        $safeVendorName = preg_replace('/[^A-Za-z0-9_\-]/', '_', (string)($vendor['name'] ?? "vendor{$idx}"));
+        return $pdf->stream("pdfbq_cs_{$bq->bqid}_{$safeVendorName}.pdf");
+    }
+
+
+    public function printBQCS_xxx($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+        
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
+
+        // Ambil SPPJ + relasi yang dibutuhkan
+        $bq = TrBQCS::findOrFail($id);
+
+        // Detail baris SPPJ
+        $bqdetail = TrBQCSDetail::where('bqid', $bq->bqid)
+            ->get();
+            
+        // $sppt = TrSPPT::where('spptid', $bq->sppjtid)
+        //     ->first();       
+       
+        $company = MsCompany::where('cpny_id', $bq->cpny_id)->first();
+        
+        $data = [
+            'title'               => 'CS Bills of Quantities (BQ)',
+            'doc_type'            => 'BQ',
+            'cpny_id'             => $company->cpny_id,           
+            'cpny_name'           => $company->cpny_name, 
+            // 'keperluan'           => $sppt->keperluan,
+        ];
+
+        // Kirim ke view
+        $pdf = \PDF::loadView(
+            'pages.canvass.pdfbq_cs',
+            array_merge($data, [
+                'bq'             => $bq,
+                'bqdetail'         => $bqdetail,               
+            ])
+        );
+
+        // Portrait jika <= 5 approver, else landscape
+        $pdf->setPaper('A4');
+
+        return $pdf->stream("pdfbq_cs_{$bq->bqid}.pdf");
     }
 
 

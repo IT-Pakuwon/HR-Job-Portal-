@@ -166,13 +166,15 @@
                             </span>
                             {{ $bq->bqid }}
                         </h1>
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                            <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
-                                ID
-                            </span>
-                            {{ $bq->sppjtid }}
-                        </h1>
+                        <div class="flex items-center gap-3">
+                            
+                            <a href="{{ url('/pdf_bq') }}/{{ $hash }}" target="_blank">
+                            <button
+                                class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                Print PDF
+                            </button>
+                            </a>
+                        </div>
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
@@ -184,6 +186,11 @@
                                 $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
                                 $fields = [
+                                    [
+                                        'icon' => 'hashtag',
+                                        'label' => 'ID SPPT',
+                                        'value' => $bq->sppjtid,
+                                    ],
                                     [
                                         'icon' => 'building-office',
                                         'label' => 'Company',

@@ -109,7 +109,7 @@
             <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
                     <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
-                        BQ CS Edit : 🆔 {{ $bq->bqid }}
+                        🆔 {{ $bq->bqid }} - BQ CS Edit
                     </h2>
                 </div>
 
