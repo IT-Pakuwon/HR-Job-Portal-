@@ -210,13 +210,6 @@
             color: rgb(194 65 12);
         }
 
-        /* Issue Jobs */
-        .scope-filter[data-scope="issuejobs"].active .scope-card {
-            background-color: rgb(254 215 170);
-            border-color: rgb(194 65 12);
-            color: rgb(194 65 12);
-        }
-
         /* Hold */
         .scope-filter[data-scope="hold"].active .scope-card {
             background-color: rgb(219 234 254);
