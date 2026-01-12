@@ -3,200 +3,6 @@
         $currentPage = Route::currentRouteName() == 'stockjobs' ? 'Stock Jobs' : '';
     @endphp
 
-    <style>
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-        }
-
-        .status-filter[data-filter="all"].active .status-card {
-            background-color: rgb(254 215 170);
-            border-color: rgb(194 65 12);
-        }
-
-        .status-filter[data-filter="jobs"].active .status-card {
-            background-color: rgb(191 219 254);
-            border-color: rgb(29 78 216);
-        }
-
-        .status-filter[data-filter="done"].active .status-card {
-            background-color: rgb(187 247 208);
-            border-color: rgb(21 128 61);
-        }
-
-        .status-filter[data-filter="inv"].active .status-card {
-            background-color: rgb(224 231 255);
-            border-color: rgb(67 56 202);
-        }
-
-        /* switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
-        }
-
-        table.dataTable {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        #stockJobsTable_filter,
-        #inventoryTable_filter,
-        #pickInventoryTable_filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        #stockJobsTable_filter input,
-        #inventoryTable_filter input,
-        #pickInventoryTable_filter input {
-            width: auto;
-            min-width: 120px;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        #stockJobsTable td,
-        #inventoryTable td,
-        #pickInventoryTable td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #stockJobsTable th,
-        #stockJobsTable td,
-        #inventoryTable th,
-        #inventoryTable td,
-        #pickInventoryTable th,
-        #pickInventoryTable td {
-            padding: 10px;
-            max-width: 360px;
-        }
-
-        #stockJobsTable tbody tr:hover,
-        #inventoryTable tbody tr:hover,
-        #pickInventoryTable tbody tr:hover {
-            background-color: #8f8f8f11;
-            cursor: pointer;
-        }
-
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-    </style>
-
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
 
         {{-- STATUS CARDS --}}
@@ -255,54 +61,48 @@
         </div>
 
         {{-- TABLES --}}
-        <div class="mt-6 grid gap-6">
+        <div class="mt-6 flex flex-col rounded-xl bg-white p-6 dark:bg-gray-800">
 
             {{-- JOBS WRAP --}}
-            <div id="jobsWrap" class="rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+            <div id="jobsWrap" class="flex flex-col gap-6 rounded-2xl bg-white dark:bg-gray-800">
+                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h1 id="jobsTitle" class="text-xl font-extrabold text-gray-700 dark:text-white">Stock Jobs</h1>
                 </div>
 
-                <div class="overflow-x-auto p-6">
-                    <table id="stockJobsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                <div class="rounded-base relative overflow-x-auto">
+                    <table id="stockJobsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
-                                <th
-                                    class="w-40 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th></th>
+                                <th class="w-32 px-6 py-3 font-medium">
                                     IRID</th>
-                                <th
-                                    class="w-40 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Date</th>
-                                <th
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Company</th>
-                                <th
-                                    class="w-40 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Department</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Description</th>
-                                <th
-                                    class="w-52 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Inventory ID</th>
-                                <th
-                                    class="w-40 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Created By</th>
-                                <th
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Job Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                        <tbody>
+                            {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                        </tbody>
                     </table>
                 </div>
             </div>
 
             {{-- INVENTORY WRAP --}}
             <div id="invWrap" class="hidden rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
+                <div class="mb-4 flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">📦 Inventory List</h1>
 
                     <button id="addInventoryBtn"
@@ -311,37 +111,33 @@
                     </button>
                 </div>
 
-                <div class="overflow-x-auto p-6">
-                    <table id="inventoryTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                <div class="rounded-base relative overflow-x-auto">
+                    <table id="inventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
-                                <th
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th></th>
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Actions</th>
-                                <th
-                                    class="w-44 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Inventory ID</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Inventory Description</th>
-                                <th
-                                    class="w-40 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Sub Type</th>
-                                <th
-                                    class="w-40 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Class</th>
-                                <th
-                                    class="w-44 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Sub Class</th>
-                                <th
-                                    class="w-28 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Stock Unit</th>
-                                <th
-                                    class="w-28 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th class="w-32 px-6 py-3 font-medium">
                                     Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                        <tbody>
+                            {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -487,7 +283,7 @@
         {{-- PICK INVENTORY MODAL (kaca pembesar) --}}
         <div id="pickInventoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-                <div class="mb-4 flex items-center justify-between">
+                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h2 class="text-xl font-bold text-gray-800 dark:text-white">
                         🔎 Pilih Inventory (MsInventory)
                     </h2>
@@ -500,8 +296,9 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table id="pickInventoryTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
+                    <table id="pickInventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th
                                     class="w-52 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
@@ -511,22 +308,13 @@
                                     Inventory Description</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                        <tbody>
+                            {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
-
-        {{-- DataTables --}}
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-        {{-- select2 (kalau belum di layout) --}}
-        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 
         <script>
             window.setAddMode = function() {
@@ -710,14 +498,24 @@
                         [10, 25, 50, 100, 250, -1],
                         [10, 25, 50, 100, 250, 'All']
                     ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0 // 👈 this is REQUIRED
+                        }
+                    },
 
+                    columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
 
-                    // 🔥 ADD THIS
                     dom: '<"dt-toolbar"l B f>rtip',
                     buttons: [{
                             extend: 'excelHtml5',
                             text: '↓ Excel',
-                            title: 'Purchase_Order',
+                            title: 'List_Stock',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
                                 columns: ':visible',
@@ -729,7 +527,7 @@
                         {
                             extend: 'csvHtml5',
                             text: '↓ CSV',
-                            title: 'Purchase_Order',
+                            title: 'List_Stock',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
                                 columns: ':visible',
@@ -752,6 +550,13 @@
                         [1, 'desc']
                     ],
                     columns: [{
+                            data: null,
+                            className: 'dtr-control',
+                            orderable: false,
+                            searchable: false,
+                            defaultContent: ''
+                        },
+                        {
                             data: 'irid',
                             render: function(data, type, row) {
                                 const text = data || '-';
@@ -843,14 +648,24 @@
                         [10, 25, 50, 100, 250, -1],
                         [10, 25, 50, 100, 250, 'All']
                     ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0 // 👈 this is REQUIRED
+                        }
+                    },
 
+                    columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
 
-                    // 🔥 ADD THIS
                     dom: '<"dt-toolbar"l B f>rtip',
                     buttons: [{
                             extend: 'excelHtml5',
                             text: '↓ Excel',
-                            title: 'Purchase_Order',
+                            title: 'List_Inventory',
                             className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                             exportOptions: {
                                 columns: ':visible',
@@ -862,7 +677,7 @@
                         {
                             extend: 'csvHtml5',
                             text: '↓ CSV',
-                            title: 'Purchase_Order',
+                            title: 'List_Inventory',
                             className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                             exportOptions: {
                                 columns: ':visible',
@@ -884,6 +699,14 @@
                         [1, 'asc']
                     ],
                     columns: [{
+                            data: null,
+                            className: 'dtr-control',
+                            orderable: false,
+                            searchable: false,
+                            defaultContent: ''
+                        },
+                        //{
+                        {
                             data: 'id',
                             orderable: false,
                             searchable: false,
@@ -952,35 +775,47 @@
                         [10, 25, 50, 100, 250, -1],
                         [10, 25, 50, 100, 250, 'All']
                     ],
+                    // responsive: {
+                    //     details: {
+                    //         type: 'column',
+                    //         target: 0 // 👈 this is REQUIRED
+                    //     }
+                    // },
+
+                    // columnDefs: [{
+                    //     targets: 0,
+                    //     className: 'dtr-control',
+                    //     orderable: false
+                    // }],
+
+                    // dom: '<"dt-toolbar"l B f>rtip',
+                    // buttons: [{
+                    //         extend: 'excelHtml5',
+                    //         text: '↓ Excel',
+                    //         title: 'list_PickInventory',
+                    //         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                    //         exportOptions: {
+                    //             columns: ':visible',
+                    //             modifier: {
+                    //                 page: 'current'
+                    //             }
+                    //         }
+                    //     },
+                    //     {
+                    //         extend: 'csvHtml5',
+                    //         text: '↓ CSV',
+                    //         title: 'List_PickInventory',
+                    //         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                    //         exportOptions: {
+                    //             columns: ':visible',
+                    //             modifier: {
+                    //                 page: 'current'
+                    //             }
+                    //         }
+                    //     }
+                    // ],
 
 
-                    // 🔥 ADD THIS
-                    dom: '<"dt-toolbar"l B f>rtip',
-                    buttons: [{
-                            extend: 'excelHtml5',
-                            text: '↓ Excel',
-                            title: 'Purchase_Order',
-                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                            exportOptions: {
-                                columns: ':visible',
-                                modifier: {
-                                    page: 'current'
-                                }
-                            }
-                        },
-                        {
-                            extend: 'csvHtml5',
-                            text: '↓ CSV',
-                            title: 'Purchase_Order',
-                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                            exportOptions: {
-                                columns: ':visible',
-                                modifier: {
-                                    page: 'current'
-                                }
-                            }
-                        }
-                    ],
                     // 🔥 END ADD
                     ajax: {
                         url: "{{ route('stockjobs.inventory-pick.json') }}",

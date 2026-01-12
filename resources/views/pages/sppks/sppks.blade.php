@@ -466,7 +466,7 @@
                 },
 
                 order: [
-                    [0, 'desc']
+                    [1, 'desc']
                 ], // Date desc, lalu DocID desc
                 columns: [{
                         data: null,
