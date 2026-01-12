@@ -2,468 +2,6 @@
     @php
         $currentPage = Route::currentRouteName() == 'polist.index' ? 'PO' : '';
     @endphp
-    <style>
-        .no-border {
-            border: none !important;
-        }
-
-        .grid {
-            width: 100%;
-        }
-
-        select,
-        textarea,
-        input {
-            width: 100%;
-        }
-
-        table.dataTable {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        @media (max-width: 600px) {
-            .dataTables_wrapper {
-                padding: 0 10px;
-            }
-        }
-
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-
-        /* Push Search to the far right */
-        .dataTables_filter {
-            margin-left: auto !important;
-        }
-
-
-        /* Row hover */
-        #poTable tbody tr.row-hover td {
-            background-color: #e5f0ff !important;
-        }
-
-        /* Column hover */
-        #poTable td.col-hover,
-        #poTable th.col-hover {
-            background-color: #f1f7ff !important;
-        }
-
-        /* Optional: active cell */
-        #poTable td.cell-hover {
-            background-color: #cfe3ff !important;
-        }
-
-        /* === Filter Section === */
-        #poTable_filter {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-        }
-
-        #poTable_filter label {
-            margin-right: 2px;
-        }
-
-        #poTable_filter input {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        /* === Wrapper Width === */
-        #poTable_wrapper {
-            width: 100%;
-        }
-
-        /* === Cell Formatting === */
-        #poTable td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 10px;
-            max-width: 200px;
-        }
-
-        #poTable th {
-            padding: 10px;
-            max-width: 200px;
-        }
-
-        /* === Length Section === */
-        #poTable_length {
-            width: auto;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        #poTable_length select {
-            width: auto;
-            padding: 0.25rem 0.5rem;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            background-color: #f9fafb;
-        }
-
-        /* === Info + Pagination === */
-        #poTable_info {
-            margin: 10px 0;
-        }
-
-        .dataTables_paginate {
-            margin: 10px 0;
-        }
-
-        /* === Hover Effects === */
-        #poTable tbody tr {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        #poTable tbody tr:hover {
-            background-color: #8f8f8f11;
-            cursor: pointer;
-        }
-
-        #poTable tbody tr td {
-            padding: 8px;
-            line-height: 2;
-        }
-
-        /* === Column Width Alignment === */
-        #poTable th:nth-child(1),
-        #poTable td:nth-child(1),
-        #poTable th:nth-child(4),
-        #poTable td:nth-child(4) {
-            width: 120px;
-            text-align: center;
-        }
-
-        /* === Group Row & Collapse === */
-        #poTable tbody tr.collapsed-group-row {
-            display: none;
-        }
-
-        #poTable tr.group-row {
-            background-color: #e6e6e6;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            color: #333;
-        }
-
-        #poTable tr.group-row:hover {
-            background-color: #d4d4d4;
-        }
-
-        #poTable tr.group-row .fas {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-        }
-
-        #poTable tr.group-row td {
-            padding: 10px !important;
-            border-bottom: 1px solid #ddd;
-        }
-
-        #poTable tr.group-row td:first-child {
-            border-left: none;
-        }
-
-        /* === Custom Switch === */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
-        }
-
-        /* Active / Selected state */
-        .scope-filter.active .scope-card {
-            transform: scale(1.02);
-        }
-
-        /* Hold */
-        .scope-filter[data-scope="hold"].active .scope-card {
-            background-color: rgb(219 234 254);
-            /* blue-100 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
-        }
-
-        /* Purchase */
-        .scope-filter[data-scope="purchase"].active .scope-card {
-            background-color: rgb(224 231 255);
-            /* indigo-100 */
-            border-color: rgb(67 56 202);
-            /* indigo-700 */
-            color: rgb(67 56 202);
-        }
-
-        /* Partial */
-        .scope-filter[data-scope="partial"].active .scope-card {
-            background-color: rgb(254 243 199);
-            /* amber-100 */
-            border-color: rgb(180 83 9);
-            /* amber-700 */
-            color: rgb(180 83 9);
-        }
-
-        /* Completed */
-        .scope-filter[data-scope="completed"].active .scope-card {
-            background-color: rgb(220 252 231);
-            /* green-100 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-            color: rgb(21 128 61);
-        }
-
-        /* Cancel */
-        .scope-filter[data-scope="cancel"].active .scope-card {
-            background-color: rgb(254 226 226);
-            /* red-100 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-            color: rgb(185 28 28);
-        }
-
-        /* Reuse */
-        .scope-filter[data-scope="reuse"].active .scope-card {
-            background-color: rgb(243 244 246);
-            /* gray-100 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-            color: rgb(31 41 55);
-        }
-
-        /* All PO */
-        .scope-filter[data-scope="all"].active .scope-card {
-            background-color: rgb(241 245 249);
-            /* slate-100 */
-            border-color: rgb(30 41 59);
-            /* slate-700 */
-            color: rgb(30 41 59);
-        }
-
-        /* === DataTables Export Buttons (Cute Style) === */
-        .dt-buttons {
-            display: flex;
-            gap: 8px;
-            margin-right: 12px;
-        }
-
-        .dt-button {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px !important;
-            border-radius: 9999px !important;
-            border: 1px solid transparent !important;
-            font-size: 12px !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: all .2s ease-in-out;
-        }
-
-        /* Excel */
-        .dt-button.buttons-excel {
-            background-color: #dcfce7 !important;
-            /* green-100 */
-            color: #166534 !important;
-            /* green-800 */
-            border-color: #86efac !important;
-        }
-
-        .dt-button.buttons-excel:hover {
-            background-color: #bbf7d0 !important;
-        }
-
-        /* CSV */
-        .dt-button.buttons-csv {
-            background-color: #e0f2fe !important;
-            /* sky-100 */
-            color: #075985 !important;
-            /* sky-800 */
-            border-color: #7dd3fc !important;
-        }
-
-        .dt-button.buttons-csv:hover {
-            background-color: #bae6fd !important;
-        }
-
-        /* Remove default DataTables button styles */
-        .dt-button:focus,
-        .dt-button:active {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-
-        /* === Fix spacing between Length & Export buttons === */
-
-        /* Make toolbar items flex-aligned */
-        .dataTables_length,
-        .dt-buttons,
-        .dataTables_filter {
-            display: flex;
-            align-items: center;
-        }
-
-
-        /* ✅ Control gap manually */
-        .dt-buttons {
-            margin-left: 12px !important;
-            /* ← adjust: 4–8px is perfect */
-            margin-right: 0 !important;
-        }
-    </style>
-    <style>
-        /* ✅ biar width yg kita set di DataTables jalan */
-        #poTable {
-            width: 100% !important;
-            table-layout: fixed; /* penting untuk fixed width */
-        }
-
-        /* ✅ HAPUS efek max-width global yang bikin kolom sempit */
-        #poTable th, #poTable td {
-            max-width: none !important;
-        }
-
-        /* default: ellipsis untuk kolom lain */
-        #poTable td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* ✅ khusus vendor: wrap turun ke bawah */
-        #poTable td.col-wrap, #poTable th.col-wrap {
-            white-space: normal !important;
-            overflow: visible !important;
-            text-overflow: unset !important;
-            word-break: break-word;
-            overflow-wrap: anywhere;
-            line-height: 1.35;
-            vertical-align: top;
-        }
-    </style>
-
-
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
@@ -576,334 +114,320 @@
         </div>
 
 
-        <div class="grid">
-            <style>
-                table.dataTable {
-                    width: 100% !important;
-                }
-
-                #poTable_filter {
-                    margin-bottom: 16px;
-                    display: flex;
-                    align-items: center;
-                }
-
-                #poTable_filter input {
-                    width: auto;
-                    padding: .25rem .5rem;
-                    border-radius: .5rem;
-                    border: 1px solid #d1d5db;
-                    background: #f9fafb;
-                }
-
-                #poTable td {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                #poTable th,
-                #poTable td {
-                    padding: 10px;
-                    max-width: 240px;
-                }
-
-                #poTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    cursor: pointer;
-                }
-
-                #poTable th:nth-child(1),
-                #poTable td:nth-child(1) {
-                    width: 160px;
-                    text-align: left;
-                }
-
-                #poTable th:nth-child(2),
-                #poTable td:nth-child(2),
-                #poTable th:nth-child(4),
-                #poTable td:nth-child(4) {
-                    text-align: center;
-                }
-
-                #poTable th:nth-child(5),
-                #poTable td:nth-child(5),
-                #poTable th:nth-child(6),
-                #poTable td:nth-child(6),
-                #poTable th:nth-child(7),
-                #poTable td:nth-child(7) {
-                    text-align: left;
-                }
-            </style>
-
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div class="flex items-center justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Purchase Order</h1>
-                </div>
-
-                <div class="overflow-x-auto p-6">
-                    <table id="poTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr class="transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <th 
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    PO Nbr</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    PO Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Company
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    PO Type
-                                </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Vendor</th>
-                                <th
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Delivery Date</th>
-                                <th
-                                    class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Total</th>
-                                <th
-                                    class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Tax</th>
-                                <th
-                                    class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Grand Total</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Created By</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                    Status
-                                </th>
-
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                    </table>
-                </div>
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Purchase Order</h1>
             </div>
 
-            <script>
-                $(document).ready(function() {
-                    let scope = 'hold'; // default: Purchase Order (P)
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="poTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr class="transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <th class="dtr-control"></th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                PO Nbr</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                PO Date</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Company
+                            </th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                PO Type
+                            </th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Vendor</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Delivery Date</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Total</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Tax</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Grand Total</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Created By</th>
+                            <th class="w-32 px-6 py-3 font-medium">
+                                Status
+                            </th>
 
-                    const $title = $('h1.text-xl.font-extrabold');
-                    const titleMap = {
-                        hold: 'Purchase Order - Hold',
-                        purchase: 'Purchase Order - Purchase',
-                        partial: 'Purchase Order - Partial Release',
-                        completed: 'Purchase Order - Completed',
-                        cancel: 'Purchase Order - Cancel',
-                        reuse: 'Purchase Order - Reuse',
-                        all: 'Purchase Order - All',
-                    };
-
-                    function updateTitle(sc) {
-                        $title.text(titleMap[sc] ?? 'Purchase Order');
-                    }
-
-                    function highlightActive(sc) {
-                        $('.scope-filter').removeClass('#')
-                            .each(function() {
-                                if ($(this).data('scope') === sc) {
-                                    $(this).addClass('#');
-                                }
-                            });
-                    }
-                    updateTitle(scope);
-                    highlightActive(scope);
-
-                    function fmtDate(v) {
-                        if (!v) return '';
-                        const d = new Date(v);
-                        return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
-                    }
-
-                    function fmtNumber(n) {
-                        const x = parseFloat(n ?? 0);
-                        if (Number.isNaN(x)) return '0';
-                        return new Intl.NumberFormat('id-ID', {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                        }).format(x);
-                    }
-
-                    function renderPONbr(_v, row) {
-                        const url = `/showpo/${row.eid}`;
-                        const text = row.ponbr || row.eid;
-                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700" rel="noopener">${text}</a>`;
-                    }
-
-                    const table = $('#poTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        deferRender: true,
-
-                        autoWidth: false,
-                        scrollX: true,
-                        responsive: false, // ✅ penting: kalau mau width bener-bener ngikut, matikan responsive
-
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100, 250, -1],
-                            [10, 25, 50, 100, 250, 'All']
-                        ],
-
-                        // ✅ SET WIDTH TIAP KOLOM DI SINI
-                        columnDefs: [
-                            { targets: 0, width: "150px" }, // PO Nbr
-                            { targets: 1, width: "110px" }, // PO Date
-                            { targets: 2, width: "90px"  }, // Company
-                            { targets: 3, width: "90px"  }, // PO Type
-                            { targets: 4, width: "320px", className: "col-wrap" }, // Vendor (wrap)
-                            { targets: 5, width: "120px" }, // Delivery Date
-                            { targets: 6, width: "140px" }, // Total
-                            { targets: 7, width: "120px" }, // Tax
-                            { targets: 8, width: "160px" }, // Grand Total
-                            { targets: 9, width: "130px" }, // Created By
-                            { targets: 10, width: "120px" }, // Status
-                        ],
-
-                        
-                        // 🔥 ADD THIS
-                        dom: '<"dt-toolbar"l B f>rtip',
-                        buttons: [{
-                                extend: 'excelHtml5',
-                                text: '↓ Excel',
-                                title: 'Purchase_Order',
-                                className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            },
-                            {
-                                extend: 'csvHtml5',
-                                text: '↓ CSV',
-                                title: 'Purchase_Order',
-                                className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                                exportOptions: {
-                                    columns: ':visible',
-                                    modifier: {
-                                        page: 'current'
-                                    }
-                                }
-                            }
-                        ],
-                        // 🔥 END ADD
-
-                        order: [
-                            [1, 'desc'],
-                            [0, 'desc']
-                        ], // podate desc, lalu ponbr
-                        ajax: {
-                            url: "{{ route('polist.json') }}",
-                            type: "GET",
-                            data: function(d) {
-                                d.scope = scope;
-                            }
-                        },
-                        columns: [{
-                                data: 'ponbr',
-                                className: 'text-left',
-                                render: (_v, t, row) => renderPONbr(_v, row)
-                            },
-                            {
-                                data: 'podate',
-                                className: 'text-center',
-                                render: (v) => fmtDate(v)
-                            },
-                            {
-                                data: 'cpny_id',            
-                                className: 'text-center'
-                            },
-                            {
-                                data: 'potype',
-                                className: 'text-center'
-                            },
-                            {
-                                data: 'vendorname',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'podeliverydate',
-                                className: 'text-center',
-                                render: (v) => fmtDate(v)
-                            },
-                            {
-                                data: 'totalamt',
-                                className: 'text-right',
-                                render: (v) => fmtNumber(v)
-                            },
-                            {
-                                data: 'taxamt',
-                                className: 'text-right',
-                                render: (v) => fmtNumber(v)
-                            },
-                            {
-                                data: 'grandtotalamt',
-                                className: 'text-right',
-                                render: (v) => fmtNumber(v)
-                            },
-                            {
-                                data: 'created_by',
-                                className: 'text-left'
-                            },
-                            {
-                                data: 'status',
-                                className: 'text-left',
-                                render: (_v, _t, row) => renderStatusBadge(row)
-                            },
-
-                        ],
-                        searchDelay: 400,
-                        stateSave: true,
-                        responsive: true
-                    });
-
-                    // Klik kartu → ubah scope, update judul, highlight, reload table
-                    $('.scope-filter').on('click', function(e) {
-                        e.preventDefault();
-                        scope = $(this).data('scope') || 'purchase';
-                        updateTitle(scope);
-                        highlightActive(scope);
-                        table.ajax.reload(null, true);
-                    });
-
-                    // Toggle .active class and remember selected scope
-                    const poScopes = document.querySelectorAll('.scope-filter');
-                    const savedPoScope = localStorage.getItem('activePoScope');
-
-                    if (savedPoScope) {
-                        const activeScope = document.querySelector(`.scope-filter[data-scope="${savedPoScope}"]`);
-                        if (activeScope) activeScope.classList.add('active');
-                    }
-
-                    poScopes.forEach(btn => {
-                        btn.addEventListener('click', e => {
-                            e.preventDefault();
-                            poScopes.forEach(s => s.classList.remove('active'));
-                            btn.classList.add('active');
-                            localStorage.setItem('activePoScope', btn.dataset.scope);
-                        });
-                    });
-
-                    function renderStatusBadge(row) {
-                        const label = row.status_label ?? row.status ?? '-';
-                        const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
-                        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
-                    }
-
-
-                });
-            </script>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
+    <script>
+        $(document).ready(function() {
+            let scope = 'hold'; // default: Purchase Order (P)
+
+            const $title = $('h1.text-xl.font-extrabold');
+            const titleMap = {
+                hold: 'Purchase Order - Hold',
+                purchase: 'Purchase Order - Purchase',
+                partial: 'Purchase Order - Partial Release',
+                completed: 'Purchase Order - Completed',
+                cancel: 'Purchase Order - Cancel',
+                reuse: 'Purchase Order - Reuse',
+                all: 'Purchase Order - All',
+            };
+
+            function updateTitle(sc) {
+                $title.text(titleMap[sc] ?? 'Purchase Order');
+            }
+
+            function highlightActive(sc) {
+                $('.scope-filter').removeClass('#')
+                    .each(function() {
+                        if ($(this).data('scope') === sc) {
+                            $(this).addClass('#');
+                        }
+                    });
+            }
+            updateTitle(scope);
+            highlightActive(scope);
+
+            function fmtDate(v) {
+                if (!v) return '';
+                const d = new Date(v);
+                return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
+            }
+
+            function fmtNumber(n) {
+                const x = parseFloat(n ?? 0);
+                if (Number.isNaN(x)) return '0';
+                return new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(x);
+            }
+
+            function renderPONbr(_v, row) {
+                const url = `/showpo/${row.eid}`;
+                const text = row.ponbr || row.eid;
+                return `<a href="${url}" class="inline-flex min-w-[90px] justify-center rounded bg-gray-500 px-2 py-1 text-sm font-semibold text-white hover:bg-gray-700" rel="noopener">${text}</a>`;
+            }
+
+            const table = $('#poTable').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+
+                autoWidth: false,
+                // scrollX: true,
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
+
+                columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false,
+                        searchable: false,
+                        width: '32px'
+                    },
+                    {
+                        targets: 1,
+                        width: "110px"
+                    },
+                    {
+                        targets: 2,
+                        width: "90px"
+                    },
+                    {
+                        targets: 3,
+                        width: "90px"
+                    },
+                    {
+                        targets: 4,
+                        width: "320px",
+                        className: "col-wrap"
+                    },
+                    {
+                        targets: 5,
+                        width: "120px"
+                    },
+                    {
+                        targets: 6,
+                        width: "140px"
+                    },
+                    {
+                        targets: 7,
+                        width: "120px"
+                    },
+                    {
+                        targets: 8,
+                        width: "160px"
+                    },
+                    {
+                        targets: 9,
+                        width: "130px"
+                    },
+                    {
+                        targets: 10,
+                        width: "120px"
+                    },
+                    {
+                        targets: 11,
+                        width: "120px"
+                    }
+                ],
+
+
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'List_PO',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'List_PO',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
+
+                order: [
+                    [2, 'desc'],
+                    [1, 'desc']
+                ], // podate desc, lalu ponbr
+                ajax: {
+                    url: "{{ route('polist.json') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.scope = scope;
+                    }
+                },
+                columns: [{
+                        data: null,
+                        defaultContent: '',
+                        className: 'dtr-control',
+                        width: '32px'
+                    }, {
+                        data: 'ponbr',
+                        className: 'text-left',
+                        render: (_v, t, row) => renderPONbr(_v, row)
+                    },
+                    {
+                        data: 'podate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'potype',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'vendorname',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'podeliverydate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'totalamt',
+                        className: 'text-right',
+                        render: (v) => fmtNumber(v)
+                    },
+                    {
+                        data: 'taxamt',
+                        className: 'text-right',
+                        render: (v) => fmtNumber(v)
+                    },
+                    {
+                        data: 'grandtotalamt',
+                        className: 'text-right',
+                        render: (v) => fmtNumber(v)
+                    },
+                    {
+                        data: 'created_by',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-left',
+                        render: (_v, _t, row) => renderStatusBadge(row)
+                    },
+
+                ],
+                searchDelay: 400,
+                stateSave: true,
+            });
+
+            // Klik kartu → ubah scope, update judul, highlight, reload table
+            $(document).on('click', '.scope-filter', function(e) {
+                e.preventDefault();
+
+                scope = $(this).data('scope');
+                localStorage.setItem('activePoScope', scope);
+
+                updateTitle(scope);
+                highlightActive(scope);
+
+                // 🔥 CLEAR DATATABLE STATE
+                table.state.clear();
+
+                table.ajax.reload(null, true);
+            });
+
+            // Toggle .active class and remember selected scope
+            const poScopes = document.querySelectorAll('.scope-filter');
+            const savedPoScope = localStorage.getItem('activePoScope');
+
+            if (savedPoScope) {
+                const activeScope = document.querySelector(`.scope-filter[data-scope="${savedPoScope}"]`);
+                if (activeScope) activeScope.classList.add('active');
+            }
+
+            poScopes.forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    poScopes.forEach(s => s.classList.remove('active'));
+                    btn.classList.add('active');
+                    localStorage.setItem('activePoScope', btn.dataset.scope);
+                });
+            });
+
+            function renderStatusBadge(row) {
+                const label = row.status_label ?? row.status ?? '-';
+                const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
+            }
+
+
+        });
+    </script>
 </x-app-layout>

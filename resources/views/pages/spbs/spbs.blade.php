@@ -2,52 +2,6 @@
     @php
         $currentPage = Route::currentRouteName() == 'spbs' ? 'HR' : '';
     @endphp
-    <style>
-        /* Active / Selected state */
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-        }
-
-        .status-filter[data-status=""].active .status-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12)
-        }
-
-        .status-filter[data-status="P"].active .status-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-        }
-
-        .status-filter[data-status="R"].active .status-card {
-            background-color: rgb(254 202 202);
-            /* red-200 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-        }
-
-        .status-filter[data-status="D"].active .status-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-        }
-
-        .status-filter[data-status="C"].active .status-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-        }
-
-        .status-filter[data-status="TRACK"].active .status-card {
-            background-color: rgb(233 213 255); /* purple-200 */
-            border-color: rgb(126 34 206);      /* purple-700 */
-        }
-
-    </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 
@@ -145,359 +99,149 @@
 
         </div>
 
-        <div class="grid">
-            <style>
-                .no-border {
-                    border: none !important;
-                }
+        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                {{-- Changed text-3xl to text-xl --}}
+                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPB</h1>
+                <a href="{{ url('/createspbs') }}"
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    <i class="fas fa-plus pr-2"></i>Create
+                </a>
+            </div>
 
-                .grid {
-                    width: 100%;
-                }
+            <div class="rounded-base relative overflow-x-auto">
 
-                select,
-                textarea,
-                input {
-                    width: 100%;
-                    /* Make all input elements take full width */
-                }
-
-                table.dataTable {
-                    width: 100% !important;
-                }
-
-                .dataTables_wrapper {
-                    width: 100%;
-                }
-
-                @media (max-width: 600px) {
-                    .dataTables_wrapper {
-                        padding: 0 10px;
-                    }
-                }
-
-                /* Spb Table Specific Styles */
-                #spbsTable_filter {
-                    margin-bottom: 20px;
-                    display: flex;
-                    justify-content: flex-start;
-                    align-items: center;
-                }
-
-                #spbsTable_filter label {
-                    margin-right: 2px;
-                }
-
-                #spbsTable_filter input {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
-                }
-
-                #spbsTable_wrapper {
-                    width: 100%;
-                }
-
-                #spbsTable td {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                #spbsTable th,
-                #spbsTable td {
-                    padding: 10px;
-                    max-width: 200px;
-                }
-
-                #spbsTable_length {
-                    width: auto;
-                    display: flex;
-                    justify-content: flex-start;
-                }
-
-                #spbsTable_length select {
-                    width: auto;
-                    padding: 5px;
-                    min-width: 80px;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    background-color: #f9fafb;
-                }
-
-                #spbsTable_length select option {
-                    padding: 5px;
-                }
-
-                #spbsTable_info {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                .dataTables_paginate {
-                    /* This class is for all DataTables paginations */
-                    margin-top: 10px;
-                    margin-bottom: 10px;
-                }
-
-                #spbsTable tbody tr td {
-                    padding: 8px 8px;
-                    line-height: 2;
-                }
-
-                #spbsTable tbody tr {
-                    transition: background-color 0.3s ease, color 0.3s ease;
-                }
-
-                #spbsTable tbody tr:hover {
-                    background-color: #8f8f8f11;
-                    opacity: 100%;
-                    cursor: pointer;
-                }
-
-                #spbsTable tbody tr:hover td {
-                    /* color: black; */
-                }
-
-                #spbsTable th:nth-child(1),
-                #spbsTable td:nth-child(1) {
-                    width: 120px;
-                    text-align: center;
-                }
-
-                #spbsTable th:nth-child(4),
-                #spbsTable td:nth-child(4) {
-                    width: 120px;
-                    text-align: center;
-                }
-
-                /* --- Custom Styles for RowGroup Collapse/Expand (Applied to spbsTable) --- */
-                /* Initially hide rows in collapsed groups */
-                #spbsTable tbody tr.collapsed-group-row {
-                    display: none;
-                }
-
-                /* Style for group rows */
-                #spbsTable tr.group-row {
-                    background-color: #e6e6e6;
-                    /* Light gray background for group headers */
-                    font-weight: bold;
-                    cursor: pointer;
-                    user-select: none;
-                    /* Prevent text selection on click */
-                    color: #333;
-                    /* Darker text for group headers */
-                }
-
-                #spbsTable tr.group-row:hover {
-                    background-color: #d4d4d4;
-                    /* Slightly darker on hover */
-                }
-
-                /* Icon styling */
-                #spbsTable tr.group-row .fas {
-                    margin-right: 8px;
-                    width: 16px;
-                    /* Ensure consistent icon width */
-                    text-align: center;
-                }
-
-                /* Adjust padding for group rows to look consistent with other cells */
-                #spbsTable tr.group-row td {
-                    padding: 10px !important;
-                    border-bottom: 1px solid #ddd;
-                    /* Separator for groups */
-                }
-
-                /* Remove border from the first td in group row to match the colspan */
-                #spbsTable tr.group-row td:first-child {
-                    border-left: none;
-                }
-
-                /* ✅ Custom Switch Button (Global, if used elsewhere) */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-            </style>
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
-                <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Request SPB</h1>
-                    <a href="{{ url('/createspbs') }}"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <i class="fas fa-plus pr-2"></i>Create
-                    </a>
-                </div>
-
-                <div class="overflow-x-auto p-6">
-                   
-                    <table id="spbsTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <table id="spbsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead id="spbsHead" class="bg-gray-50 dark:bg-gray-700"></thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
-                    </table>
-
-                </div>
+                    <tbody>
+                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
+                    </tbody>
+                </table>
 
             </div>
 
-            <!-- ================== TRACKING MODAL ================== -->
-            <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                <div
-                    class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-2xl bg-white p-6 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+        </div>
 
-                    <!-- Header -->
-                    <div class="mb-4 flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
-                            SPB Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
-                        </h3>
-                        <button id="closeTracking"
-                            class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
-                            &times;
-                        </button>
-                    </div>
+        <!-- ================== TRACKING MODAL ================== -->
+        <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+            <div
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-2xl bg-white p-6 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
-                    <!-- Controls (opsional) -->
-                    <div class="mb-3 flex items-center justify-end gap-2">
-                        <button type="button" id="tlPrev"
-                            class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                            ‹ Prev
-                        </button>
-                        <button type="button" id="tlNext"
-                            class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                            Next ›
-                        </button>
-                    </div>
-
-                    <!-- Timeline -->
-                    <ul id="tlList"
-                        class="-mx-4 flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap px-4 py-6 pr-6">
-                        <!-- items di-inject via JS -->
-                    </ul>
-
-                    <!-- Hide scrollbar -->
-                    <style>
-                        #tlList::-webkit-scrollbar {
-                            display: none;
-                        }
-
-                        #tlList {
-                            scrollbar-width: none;
-                        }
-                    </style>
+                <!-- Header -->
+                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
+                        SPB Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                    </h3>
+                    <button id="closeTracking"
+                        class="text-2xl leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
+                        &times;
+                    </button>
                 </div>
-            </div>
 
-            <script>
-                function renderTimeline(steps = []) {
-                    const list = document.getElementById('tlList');
-                    if (!list) return;
+                <!-- Controls (opsional) -->
+                <div class="mb-3 flex items-center justify-end gap-2">
+                    <button type="button" id="tlPrev"
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        ‹ Prev
+                    </button>
+                    <button type="button" id="tlNext"
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        Next ›
+                    </button>
+                </div>
 
-                    if (!Array.isArray(steps) || steps.length === 0) {
-                        list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
-                        return;
+                <!-- Timeline -->
+                <ul id="tlList"
+                    class="-mx-4 flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap px-4 py-6 pr-6">
+                    <!-- items di-inject via JS -->
+                </ul>
+
+                <!-- Hide scrollbar -->
+                <style>
+                    #tlList::-webkit-scrollbar {
+                        display: none;
                     }
 
-                    const MAP = {
-                        C: {
-                            label: 'Completed',
-                            colorDot: 'bg-green-600',
-                            colorBorder: 'border-green-600',
-                            colorTitle: 'text-green-700'
-                        },
-                        P: {
-                            label: 'Waiting approval / in progress',
-                            colorDot: 'bg-yellow-500',
-                            colorBorder: 'border-yellow-500',
-                            colorTitle: 'text-yellow-700'
-                        },
-                        R: {
-                            label: 'Rejected',
-                            colorDot: 'bg-red-600',
-                            colorBorder: 'border-red-600',
-                            colorTitle: 'text-red-700'
-                        },
-                        D: {
-                            label: 'Revise',
-                            colorDot: 'bg-blue-600',
-                            colorBorder: 'border-blue-600',
-                            colorTitle: 'text-blue-700'
-                        },
-                        _: {
-                            label: '',
-                            colorDot: 'bg-gray-400',
-                            colorBorder: 'border-gray-400',
-                            colorTitle: 'text-gray-700'
-                        },
-                    };
+                    #tlList {
+                        scrollbar-width: none;
+                    }
+                </style>
+            </div>
+        </div>
+    </div>
 
-                    list.innerHTML = steps.map((s, i) => {
-                        const st = String(s.status || '').toUpperCase();
-                        const C = MAP[st] || MAP._;
-                        const title = (s.title && String(s.title).trim()) || 'SPB';
+    <script>
+        const dtControlColumn = {
+            data: null,
+            className: 'dtr-control',
+            orderable: false,
+            searchable: false,
+            defaultContent: ''
+        };
 
-                        const when = (s.at && String(s.at).trim()) || '';
-                        const by = (s.by && String(s.by).trim()) || '';
-                        const statusText = (s.status_label && String(s.status_label).trim()) || C.label;
+        function renderTimeline(steps = []) {
+            const list = document.getElementById('tlList');
+            if (!list) return;
 
-                        // tampilkan jadi multi-line: status, nama, waktu
-                        let detailHtml = '';
-                        if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
-                        if (by) detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
-                        if (when) detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+            if (!Array.isArray(steps) || steps.length === 0) {
+                list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
+                return;
+            }
 
-                        const isLast = i === steps.length - 1;
-                        const connector = !isLast ?
-                            'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600' :
-                            '';
+            const MAP = {
+                C: {
+                    label: 'Completed',
+                    colorDot: 'bg-green-600',
+                    colorBorder: 'border-green-600',
+                    colorTitle: 'text-green-700'
+                },
+                P: {
+                    label: 'Waiting approval / in progress',
+                    colorDot: 'bg-yellow-500',
+                    colorBorder: 'border-yellow-500',
+                    colorTitle: 'text-yellow-700'
+                },
+                R: {
+                    label: 'Rejected',
+                    colorDot: 'bg-red-600',
+                    colorBorder: 'border-red-600',
+                    colorTitle: 'text-red-700'
+                },
+                D: {
+                    label: 'Revise',
+                    colorDot: 'bg-blue-600',
+                    colorBorder: 'border-blue-600',
+                    colorTitle: 'text-blue-700'
+                },
+                _: {
+                    label: '',
+                    colorDot: 'bg-gray-400',
+                    colorBorder: 'border-gray-400',
+                    colorTitle: 'text-gray-700'
+                },
+            };
 
-                        return `
+            list.innerHTML = steps.map((s, i) => {
+                const st = String(s.status || '').toUpperCase();
+                const C = MAP[st] || MAP._;
+                const title = (s.title && String(s.title).trim()) || 'SPB';
+
+                const when = (s.at && String(s.at).trim()) || '';
+                const by = (s.by && String(s.by).trim()) || '';
+                const statusText = (s.status_label && String(s.status_label).trim()) || C.label;
+
+                // tampilkan jadi multi-line: status, nama, waktu
+                let detailHtml = '';
+                if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
+                if (by) detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
+                if (when) detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+
+                const isLast = i === steps.length - 1;
+                const connector = !isLast ?
+                    'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600' :
+                    '';
+
+                return `
                         <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
                             <div class="flex items-center">
                             <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
@@ -510,101 +254,103 @@
                             </div>
                         </li>
                         `;
-                    }).join('');
-                }
-            </script>
+            }).join('');
+        }
+        // Scroll controls
+        (function() {
+            const scroller = document.getElementById('tlList');
+            document.getElementById('tlPrev')?.addEventListener('click', () =>
+                scroller.scrollBy({
+                    left: -300,
+                    behavior: 'smooth'
+                })
+            );
+            document.getElementById('tlNext')?.addEventListener('click', () =>
+                scroller.scrollBy({
+                    left: 300,
+                    behavior: 'smooth'
+                })
+            );
+        })();
 
-            <script>
-                // Scroll controls
-                (function() {
-                    const scroller = document.getElementById('tlList');
-                    document.getElementById('tlPrev')?.addEventListener('click', () =>
-                        scroller.scrollBy({
-                            left: -300,
-                            behavior: 'smooth'
-                        })
-                    );
-                    document.getElementById('tlNext')?.addEventListener('click', () =>
-                        scroller.scrollBy({
-                            left: 300,
-                            behavior: 'smooth'
-                        })
-                    );
-                })();
+        // Open/Close modal
+        function openTrackingModal(docText) {
+            document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+            const modal = document.getElementById('trackingModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
 
-                // Open/Close modal
-                function openTrackingModal(docText) {
-                    document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-                    const modal = document.getElementById('trackingModal');
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }
-
-                function closeTrackingModal() {
-                    const modal = document.getElementById('trackingModal');
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }
-                document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
-                document.getElementById('trackingModal').addEventListener('click', (e) => {
-                    if (e.target.id === 'trackingModal') closeTrackingModal();
-                });
+        function closeTrackingModal() {
+            const modal = document.getElementById('trackingModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
+        document.getElementById('trackingModal').addEventListener('click', (e) => {
+            if (e.target.id === 'trackingModal') closeTrackingModal();
+        });
 
 
-                $(document).on('click', '.tracking-btn', function() {
-                    const id = $(this).data('id');
-                    const doc = $(this).data('doc') || '';
+        $(document).on('click', '.tracking-btn', function() {
+            const id = $(this).data('id');
+            const doc = $(this).data('doc') || '';
 
-                    // Tampilkan modal dulu
-                    openTrackingModal(doc);
+            // Tampilkan modal dulu
+            openTrackingModal(doc);
 
-                    $.ajax({
-                        url: `/spbs/${id}/tracking`,
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(res) {
-                            // langsung pakai struktur dari controller
-                            renderTimeline(res.steps || []);
+            $.ajax({
+                url: `/spbs/${id}/tracking`,
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    // langsung pakai struktur dari controller
+                    renderTimeline(res.steps || []);
+                },
+                error: function() {
+                    // fallback demo
+                    renderTimeline([{
+                            key: 'submitted',
+                            title: 'SPB',
+                            status: 'C',
+                            status_label: 'Submitted',
+                            by: 'Williem Halim',
+                            at: '2025-08-10 09:00'
                         },
-                        error: function() {
-                            // fallback demo
-                            renderTimeline([{
-                                    key: 'submitted',
-                                    title: 'SPB',
-                                    status: 'C',
-                                    status_label: 'Submitted',
-                                    by: 'Williem Halim',
-                                    at: '2025-08-10 09:00'
-                                },
-                                {
-                                    key: 'approval',
-                                    title: 'Approval',
-                                    status: 'P',
-                                    status_label: 'Waiting approval / in progress',
-                                    by: null,
-                                    at: null
-                                },
-                            ]);
-                        }
-                    });
-                });
-            </script>
+                        {
+                            key: 'approval',
+                            title: 'Approval',
+                            status: 'P',
+                            status_label: 'Waiting approval / in progress',
+                            by: null,
+                            at: null
+                        },
+                    ]);
+                }
+            });
+        });
 
+        (function() {
+            const currentUser = "{{ auth()->user()->username }}";
+            let statusFilter = 'P';
+            let mode = 'NORMAL'; // NORMAL | TRACK
+            let dt = null;
+            // const dtControlColumn = {
+            //     data: null,
+            //     className: 'dtr-control',
+            //     orderable: false,
+            //     searchable: false,
+            //     defaultContent: ''
+            // };
 
-    <script>
-        (function(){
-        const currentUser = "{{ auth()->user()->username }}";
-        let statusFilter = 'P';
-        let mode = 'NORMAL'; // NORMAL | TRACK
-        let dt = null;
+            // guard init sekali
+            if (window.__SPB_DT_DEBUG_INIT__) return;
+            window.__SPB_DT_DEBUG_INIT__ = true;
 
-        // guard init sekali
-        if (window.__SPB_DT_DEBUG_INIT__) return;
-        window.__SPB_DT_DEBUG_INIT__ = true;
-
-        function headNormal(){
-            return `
+            function headNormal() {
+                return `
             <tr>
+                <th></th>
                 <th>DocID</th>
                 <th>Date</th>
                 <th>Company</th>
@@ -615,10 +361,12 @@
                 <th>Status</th>
             </tr>
             `;
-        }
-        function headTrack(){
-            return `
+            }
+
+            function headTrack() {
+                return `
             <tr>
+                <th></th>
                 <th>Issue ID</th>
                 <th>SPB ID</th>
                 <th>SPPB ID</th>
@@ -631,83 +379,139 @@
                 <th>Status Issue</th>
             </tr>
             `;
-        }
-
-        function destroyDT(){
-        if ($.fn.DataTable.isDataTable('#spbsTable')) {
-            const api = $('#spbsTable').DataTable();
-            api.off('xhr.dt');
-            api.off('error.dt');
-            api.clear().destroy(false); // ✅ JANGAN true
-        }
-        // kosongkan tbody saja
-        $('#spbsTable tbody').empty();
-        dt = null;
-        }
-
-
-        // ====== DEBUG HELPERS ======
-        function attachDebug(name){
-            if (!dt) return;
-
-            // log response json & status code
-            dt.on('xhr.dt', function(e, settings, json, xhr){
-            const code = xhr ? xhr.status : '(no xhr)';
-            console.log(`[%c${name}%c] xhr status:`, 'color:#7c3aed;font-weight:bold', 'color:inherit', code);
-            console.log(`[%c${name}%c] response json:`, 'color:#7c3aed;font-weight:bold', 'color:inherit', json);
-
-            // kalau JSON ada error key
-            if (json && json.error) {
-                console.error(`[%c${name}%c] json.error:`, 'color:#dc2626;font-weight:bold', 'color:inherit', json.error);
             }
-            });
 
-            // log datatables internal error
-            dt.on('error.dt', function(e, settings, techNote, message){
-            console.error(`[%c${name}%c] DataTables error:`, 'color:#dc2626;font-weight:bold', 'color:inherit', message);
-            });
-
-            // log ajax error detail
-            dt.on('preXhr.dt', function(e, settings, data){
-            // ini data yang akan dikirim dt ke server
-            console.log(`[%c${name}%c] sending params:`, 'color:#2563eb;font-weight:bold', 'color:inherit', data);
-            console.log(`[%c${name}%c] ajax url:`, 'color:#2563eb;font-weight:bold', 'color:inherit', settings.ajax?.url);
-            });
-        }
+            function destroyDT() {
+                if ($.fn.DataTable.isDataTable('#spbsTable')) {
+                    const api = $('#spbsTable').DataTable();
+                    api.off('xhr.dt');
+                    api.off('error.dt');
+                    api.clear().destroy(false); // ✅ JANGAN true
+                }
+                // kosongkan tbody saja
+                $('#spbsTable tbody').empty();
+                dt = null;
+            }
 
 
-            function initNormal(){
+            // ====== DEBUG HELPERS ======
+            function attachDebug(name) {
+                if (!dt) return;
+
+                // log response json & status code
+                dt.on('xhr.dt', function(e, settings, json, xhr) {
+                    const code = xhr ? xhr.status : '(no xhr)';
+                    console.log(`[%c${name}%c] xhr status:`, 'color:#7c3aed;font-weight:bold', 'color:inherit',
+                        code);
+                    console.log(`[%c${name}%c] response json:`, 'color:#7c3aed;font-weight:bold',
+                        'color:inherit', json);
+
+                    // kalau JSON ada error key
+                    if (json && json.error) {
+                        console.error(`[%c${name}%c] json.error:`, 'color:#dc2626;font-weight:bold',
+                            'color:inherit', json.error);
+                    }
+                });
+
+                // log datatables internal error
+                dt.on('error.dt', function(e, settings, techNote, message) {
+                    console.error(`[%c${name}%c] DataTables error:`, 'color:#dc2626;font-weight:bold',
+                        'color:inherit', message);
+                });
+
+                // log ajax error detail
+                dt.on('preXhr.dt', function(e, settings, data) {
+                    // ini data yang akan dikirim dt ke server
+                    console.log(`[%c${name}%c] sending params:`, 'color:#2563eb;font-weight:bold',
+                        'color:inherit', data);
+                    console.log(`[%c${name}%c] ajax url:`, 'color:#2563eb;font-weight:bold', 'color:inherit',
+                        settings.ajax?.url);
+                });
+            }
+
+
+            function initNormal() {
                 mode = 'NORMAL';
 
                 dt = $('#spbsTable').DataTable({
-                    processing:true, serverSide:true, deferRender:true,
-                    pageLength:10, lengthMenu:[10,25,50,100,250],
-                    ajax:{
-                    url:"{{ route('spbs.json') }}",
-                    type:"GET",
-                    data:function(d){
-                        d.status = statusFilter ?? '';
-                        console.log('[NORMAL] send status =', d.status);
-                    },
-                    error: function(xhr){
-                        console.error('[NORMAL] ajax error', xhr.status, xhr.responseText);
-                    }
-                    },
-                    order:[[0,'desc']],
-                    columns:[
-                    {
-                        data:'spbid',
-                        render:function(data,type,row){
-                        let url = `/showspbs/${row.eid}`;
-                        let cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base font-semibold text-white rounded bg-gray-500 hover:bg-gray-700';
-                        const text = data || row.id;
+                    processing: true,
+                    serverSide: true,
+                    deferRender: true,
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
 
-                        if(row.status === 'D' && row.created_by === currentUser){
-                            url = `/editspbs/${row.eid}`;
-                            cls = 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base font-semibold text-white rounded bg-yellow-500 hover:bg-yellow-700';
+
+                    dom: '<"dt-toolbar"l B f>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'List_SPB',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'List_SPB',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
                         }
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0 // 👈 this is REQUIRED
+                        }
+                    },
 
-                        return `
+                    columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    ajax: {
+                        url: "{{ route('spbs.json') }}",
+                        type: "GET",
+                        data: function(d) {
+                            d.status = statusFilter ?? '';
+                            console.log('[NORMAL] send status =', d.status);
+                        },
+                        error: function(xhr) {
+                            console.error('[NORMAL] ajax error', xhr.status, xhr.responseText);
+                        }
+                    },
+                    order: [
+                        [0, 'desc']
+                    ],
+                    columns: [dtControlColumn,
+                        {
+                            data: 'spbid',
+                            render: function(data, type, row) {
+                                let url = `/showspbs/${row.eid}`;
+                                let cls =
+                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base font-semibold text-white rounded bg-gray-500 hover:bg-gray-700';
+                                const text = data || row.id;
+
+                                if (row.status === 'D' && row.created_by === currentUser) {
+                                    url = `/editspbs/${row.eid}`;
+                                    cls =
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base font-semibold text-white rounded bg-yellow-500 hover:bg-yellow-700';
+                                }
+
+                                return `
                             <div class="flex items-center gap-2 whitespace-nowrap">
                             <a href="${url}" class="${cls}">${text}</a>
                             <button type="button"
@@ -717,184 +521,259 @@
                             </button>
                             </div>
                         `;
-                        }
-                    },
-                    {data:'spbdate'},
-                    {data:'cpny_id'},
-                    {data:'department_id'},
-                    {data:'worktype_name', defaultContent:'-'},
-                    {data:'subworktype_name', defaultContent:'-'},
-                    {data:'keperluan'},
-                    {
-                        data: 'status',
-                        className: 'text-left',
-                        render: function(data) {
-                            const map = {
-                                'D': {
-                                    t: 'Revise',
+                            }
+                        },
+                        {
+                            data: 'spbdate'
+                        },
+                        {
+                            data: 'cpny_id'
+                        },
+                        {
+                            data: 'department_id'
+                        },
+                        {
+                            data: 'worktype_name',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'subworktype_name',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'keperluan'
+                        },
+                        {
+                            data: 'status',
+                            className: 'text-left',
+                            render: function(data) {
+                                const map = {
+                                    'D': {
+                                        t: 'Revise',
+                                        c: 'bg-gray-300/30 text-gray-600'
+                                    },
+                                    'P': {
+                                        t: 'On Progress',
+                                        c: 'bg-blue-300/30 text-blue-600'
+                                    },
+                                    'C': {
+                                        t: 'Completed',
+                                        c: 'bg-green-300/30 text-green-600'
+                                    },
+                                    'X': {
+                                        t: 'Cancel',
+                                        c: 'bg-red-300/30 text-red-600'
+                                    },
+                                    'R': {
+                                        t: 'Rejected',
+                                        c: 'bg-red-300/30 text-red-600'
+                                    },
+                                };
+                                const it = map[data] || {
+                                    t: data || '-',
                                     c: 'bg-gray-300/30 text-gray-600'
-                                },
-                                'P': {
-                                    t: 'On Progress',
-                                    c: 'bg-blue-300/30 text-blue-600'
-                                },
-                                'C': {
-                                    t: 'Completed',
-                                    c: 'bg-green-300/30 text-green-600'
-                                },
-                                'X': {
-                                    t: 'Cancel',
-                                    c: 'bg-red-300/30 text-red-600'
-                                },
-                                'R': {
-                                    t: 'Rejected',
-                                    c: 'bg-red-300/30 text-red-600'
-                                },
-                            };
-                            const it = map[data] || {
-                                t: data || '-',
-                                c: 'bg-gray-300/30 text-gray-600'
-                            };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                                };
+                                return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                            }
                         }
-                    }
                     ],
                 });
 
                 attachDebug('NORMAL');
             }
 
-
-            function initTrack(){
+            function initTrack() {
                 mode = 'TRACK';
                 $('#spbsHead').html(headTrack());
 
                 dt = $('#spbsTable').DataTable({
-                    processing:true,
-                    serverSide:true,
-                    deferRender:true,
-                    pageLength:10,
-                    lengthMenu:[10,25,50,100,250],
-                    ajax:{
-                    url:"{{ route('spbs.trackJson') }}",
-                    type:"GET",
-                    error: function(xhr){
-                        console.error('[TRACK] ajax error', xhr.status, xhr.responseText);
-                    }
+                    processing: true,
+                    serverSide: true,
+                    deferRender: true,
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+
+
+                    dom: '<"dt-toolbar"l B f>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'List_SPB',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'List_SPB',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0 // 👈 this is REQUIRED
+                        }
                     },
-                    order:[[0,'desc']],
-                    columns:[
-                    // Issue ID button
-                    {
-                        data:'issueid',
-                        render:function(data,type,row){
-                        const text = data || '';
-                        const eid  = row.eid_issue || '';
-                        const url  = `/showissue/${eid}`; // 🔥 ganti sesuai route issue kamu
-                        return `
+
+                    columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    ajax: {
+                        url: "{{ route('spbs.trackJson') }}",
+                        type: "GET",
+                        error: function(xhr) {
+                            console.error('[TRACK] ajax error', xhr.status, xhr.responseText);
+                        }
+                    },
+                    order: [
+                        [0, 'desc']
+                    ],
+                    columns: [
+                        dtControlColumn,
+                        // Issue ID button
+                        {
+                            data: 'issueid',
+                            render: function(data, type, row) {
+                                const text = data || '';
+                                const eid = row.eid_issue || '';
+                                const url = `/showissue/${eid}`; // 🔥 ganti sesuai route issue kamu
+                                return `
                             <a href="${url}"
                             class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-base font-semibold text-white rounded bg-amber-600 hover:bg-amber-700">
                             ${text}
                             </a>`;
-                        }
-                    },
+                            }
+                        },
 
-                    // SPB ID button (ke showspbs seperti normal)
-                    {
-                        data:'spbid',
-                        render:function(data,type,row){
-                        const text = data || '';
-                        const eid  = row.eid_spb || '';
-                        const url  = `/showspbs/${eid}`;
-                        return `
+                        // SPB ID button (ke showspbs seperti normal)
+                        {
+                            data: 'spbid',
+                            render: function(data, type, row) {
+                                const text = data || '';
+                                const eid = row.eid_spb || '';
+                                const url = `/showspbs/${eid}`;
+                                return `
                             <a href="${url}"
                             class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-base font-semibold text-white rounded bg-indigo-600 hover:bg-indigo-700">
                             ${text}
                             </a>`;
-                        }
-                    },
+                            }
+                        },
 
-                    // SPPB ID button
-                    {
-                        data:'sppbid',
-                        defaultContent:'',
-                        render:function(data,type,row){
-                        const text = data || '';
-                        const eid  = row.eid_sppb || '';
-                        if(!text || !eid) return '';
-                        const url = `/showsppbs/${eid}`; // 🔥 ganti sesuai route sppb kamu
-                        return `
+                        // SPPB ID button
+                        {
+                            data: 'sppbid',
+                            defaultContent: '',
+                            render: function(data, type, row) {
+                                const text = data || '';
+                                const eid = row.eid_sppb || '';
+                                if (!text || !eid) return '';
+                                const url = `/showsppbs/${eid}`; // 🔥 ganti sesuai route sppb kamu
+                                return `
                             <a href="${url}"
                             class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-base font-semibold text-white rounded bg-emerald-600 hover:bg-emerald-700">
                             ${text}
                             </a>`;
-                        }
-                    },
+                            }
+                        },
 
-                    {data:'totalspbqty', defaultContent:0},
-                    {data:'totalissueqty', defaultContent:0},
-                    {data:'totalreturnqty', defaultContent:0},
-                    {data:'totalsppbqty', defaultContent:0},
-                    {data:'totalcompleteqty', defaultContent:0},
-                    {data:'status_sppb', defaultContent:''},
-                    {data:'status_issue', defaultContent:''},
+                        {
+                            data: 'totalspbqty',
+                            defaultContent: 0
+                        },
+                        {
+                            data: 'totalissueqty',
+                            defaultContent: 0
+                        },
+                        {
+                            data: 'totalreturnqty',
+                            defaultContent: 0
+                        },
+                        {
+                            data: 'totalsppbqty',
+                            defaultContent: 0
+                        },
+                        {
+                            data: 'totalcompleteqty',
+                            defaultContent: 0
+                        },
+                        {
+                            data: 'status_sppb',
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'status_issue',
+                            defaultContent: ''
+                        },
                     ],
-                    responsive:false,
-                    stateSave:false,
-                    searchDelay:400
+                    stateSave: false,
+                    searchDelay: 400
                 });
+            }
+
+
+            function switchMode(next) {
+                console.log('[SWITCH MODE] =>', next);
+                destroyDT();
+
+                if (next === 'TRACK') {
+                    $('#spbsTable thead').html(headTrack()); // ✅ pakai selector ini
+                    initTrack();
+                } else {
+                    $('#spbsTable thead').html(headNormal()); // ✅ pakai selector ini
+                    initNormal();
                 }
-
-
-        function switchMode(next){
-            console.log('[SWITCH MODE] =>', next);
-            destroyDT();
-
-            if(next === 'TRACK'){
-                $('#spbsTable thead').html(headTrack());  // ✅ pakai selector ini
-                initTrack();
-            }else{
-                $('#spbsTable thead').html(headNormal()); // ✅ pakai selector ini
-                initNormal();
-            }
             }
 
 
 
 
-        $(document).ready(function(){
-            // init default NORMAL
-            switchMode('NORMAL');
+            $(document).ready(function() {
+                // init default NORMAL
+                switchMode('NORMAL');
 
-            // active default
-            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.status-filter[data-status="P"]`)?.classList.add('active');
+                // active default
+                document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+                document.querySelector(`.status-filter[data-status="P"]`)?.classList.add('active');
 
-            $(document).on('click', '.status-filter', function(e){
-            e.preventDefault();
-            const st = $(this).data('status') || '';
-            console.log('CLICK card status =', st);
+                $(document).on('click', '.status-filter', function(e) {
+                    e.preventDefault();
+                    const st = $(this).data('status') || '';
+                    console.log('CLICK card status =', st);
 
-            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+                    document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
+                        'active'));
+                    this.classList.add('active');
 
-            if(st === 'TRACK'){
-                switchMode('TRACK');
-                return;
-            }
+                    if (st === 'TRACK') {
+                        switchMode('TRACK');
+                        return;
+                    }
 
-            statusFilter = st;
-            if(mode !== 'NORMAL') switchMode('NORMAL');
-            else if(dt) dt.ajax.reload(null, true);
+                    statusFilter = st;
+                    if (mode !== 'NORMAL') switchMode('NORMAL');
+                    else if (dt) dt.ajax.reload(null, true);
+                });
             });
-        });
         })();
     </script>
 
 
-
-
-
-        </div>
-    </div>
 </x-app-layout>
