@@ -939,23 +939,25 @@
             {{-- PO Detail + PO History (Tabs) --}}
             <div x-data="{ poTab: 'detail' }" class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
 
-                <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                <header
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <div class="flex items-center gap-3">
                         {{-- <h2 class="text-xl font-semibold">📝 PO</h2> --}}
 
                         {{-- Tabs --}}
-                        <div class="ml-4 inline-flex overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800">
-                            <button type="button"
-                                @click="poTab='detail'"
-                                :class="poTab==='detail' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
+                        <div
+                            class="ml-4 inline-flex overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800">
+                            <button type="button" @click="poTab='detail'"
+                                :class="poTab === 'detail' ? 'bg-indigo-600 text-white' :
+                                    'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
                                 class="px-4 py-2 text-sm font-semibold transition">
                                 PO Detail
                             </button>
-                            <button type="button"
-                                @click="poTab='history'"
-                                :class="poTab==='history' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
+                            <button type="button" @click="poTab='history'"
+                                :class="poTab === 'history' ? 'bg-indigo-600 text-white' :
+                                    'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
                                 class="px-4 py-2 text-sm font-semibold transition">
-                                PO History
+                                STTB Tracking
                             </button>
                         </div>
                     </div>
@@ -966,25 +968,28 @@
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
-                                <th class="px-4 py-2 w-[60px]">No</th>
-                                <th class="px-4 py-2 w-[140px]">Inventory ID</th>
-                                <th class="px-4 py-2 min-w-[260px]">Description</th>
-                                <th class="px-4 py-2 min-w-[260px]">PO Note</th>
-                                <th class="px-4 py-2 w-[110px] text-right">Qty</th>
-                                <th class="px-4 py-2 w-[90px]">UoM</th>
-                                <th class="px-4 py-2 w-[140px] text-right">Unit Cost</th>
-                                <th class="px-4 py-2 w-[120px] text-right">Tax Amt</th>
-                                <th class="px-4 py-2 w-[150px] text-right">Total Cost</th>
-                                <th class="px-4 py-2 w-[140px] text-right">Qty Received</th>
+                                <th class="w-[60px] px-4 py-2">No</th>
+                                <th class="w-[140px] px-4 py-2">Inventory ID</th>
+                                <th class="min-w-[260px] px-4 py-2">Description</th>
+                                <th class="min-w-[260px] px-4 py-2">PO Note</th>
+                                <th class="w-[110px] px-4 py-2 text-right">Qty</th>
+                                <th class="w-[90px] px-4 py-2">UoM</th>
+                                <th class="w-[140px] px-4 py-2 text-right">Unit Cost</th>
+                                <th class="w-[120px] px-4 py-2 text-right">Tax Amt</th>
+                                <th class="w-[150px] px-4 py-2 text-right">Total Cost</th>
+                                <th class="w-[140px] px-4 py-2 text-right">Qty Received</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($podetail as $i => $item)
-                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                <tr
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
-                                    <td class="px-4 py-2 whitespace-normal break-words">{{ $item->inventory_descr }}</td>
-                                    <td class="px-4 py-2 whitespace-normal break-words">{{ $item->ponote_detail }}</td>
+                                    <td class="whitespace-normal break-words px-4 py-2">{{ $item->inventory_descr }}
+                                    </td>
+                                    <td class="whitespace-normal break-words px-4 py-2">{{ $item->ponote_detail }}
+                                    </td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->qty) }}</td>
                                     <td class="px-4 py-2">{{ $item->uom }}</td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->unitcost) }}</td>
@@ -1002,21 +1007,22 @@
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
-                                <th class="px-4 py-2 w-[60px]">No</th>
-                                <th class="px-4 py-2 w-[160px]">Receipt Nbr</th>
-                                <th class="px-4 py-2 w-[150px]">Receipt Date</th>
-                                <th class="px-4 py-2 w-[140px]">Type</th>
-                                <th class="px-4 py-2 min-w-[260px]">Receipt Note</th>
-                                <th class="px-4 py-2 w-[140px] text-right">Qty Received</th>
-                                <th class="px-4 py-2 w-[140px] text-right">Qty Return</th>
-                                <th class="px-4 py-2 w-[120px]">Status</th>
-                                <th class="px-4 py-2 w-[160px]">Created By</th>
-                                <th class="px-4 py-2 w-[180px]">Created At</th>
+                                <th class="w-[60px] px-4 py-2">No</th>
+                                <th class="w-[160px] px-4 py-2">Receipt Nbr</th>
+                                <th class="w-[150px] px-4 py-2">Receipt Date</th>
+                                <th class="w-[140px] px-4 py-2">Type</th>
+                                <th class="min-w-[260px] px-4 py-2">Receipt Note</th>
+                                <th class="w-[140px] px-4 py-2 text-right">Qty Received</th>
+                                <th class="w-[140px] px-4 py-2 text-right">Qty Return</th>
+                                <th class="w-[120px] px-4 py-2">Status</th>
+                                <th class="w-[160px] px-4 py-2">Created By</th>
+                                <th class="w-[180px] px-4 py-2">Created At</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse(($poHistory ?? []) as $i => $r)
-                                <tr class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                <tr
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2 font-semibold text-indigo-700 dark:text-indigo-300">
                                         {{ $r->receiptnbr }}
@@ -1025,32 +1031,41 @@
                                         {{ $r->receiptdate ?? '-' }}
                                     </td>
                                     <td class="px-4 py-2">{{ $r->receipttype ?? '-' }}</td>
-                                    <td class="px-4 py-2 whitespace-normal break-words">
+                                    <td class="whitespace-normal break-words px-4 py-2">
                                         {{ $r->receiptnote ?? '-' }}
                                     </td>
-                                    <td class="px-4 py-2 text-right">{{ number_format((float)($r->totalqty_received ?? 0), 2, ',', '.') }}</td>
-                                    <td class="px-4 py-2 text-right">{{ number_format((float)($r->totalqty_return ?? 0), 2, ',', '.') }}</td>
+                                    <td class="px-4 py-2 text-right">
+                                        {{ number_format((float) ($r->totalqty_received ?? 0), 2, ',', '.') }}</td>
+                                    <td class="px-4 py-2 text-right">
+                                        {{ number_format((float) ($r->totalqty_return ?? 0), 2, ',', '.') }}</td>
                                     <td class="px-4 py-2">
                                         @php
                                             $st = $r->status ?? '-';
-                                            $badge = match($st) {
-                                                'H' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-                                                'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
-                                                'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+                                            $badge = match ($st) {
+                                                'H'
+                                                    => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                                'P'
+                                                    => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+                                                'C'
+                                                    => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
                                                 'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
-                                                default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+                                                default
+                                                    => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                                             };
                                         @endphp
-                                        <span class="{{ $badge }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
+                                        <span
+                                            class="{{ $badge }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
                                             {{ $st }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-2">{{ $r->created_by ?? '-' }}</td>
-                                    <td class="px-4 py-2">{{ optional($r->created_at)->format('d M Y H:i') ?? '-' }}</td>
+                                    <td class="px-4 py-2">{{ optional($r->created_at)->format('d M Y H:i') ?? '-' }}
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="px-4 py-6 text-center italic text-gray-500 dark:text-gray-400">
+                                    <td colspan="10"
+                                        class="px-4 py-6 text-center italic text-gray-500 dark:text-gray-400">
                                         No receipt history found for this PO.
                                     </td>
                                 </tr>
