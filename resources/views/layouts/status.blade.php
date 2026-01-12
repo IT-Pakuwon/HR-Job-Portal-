@@ -4,6 +4,15 @@
             transform: scale(1.02);
         }
 
+        /* Receipt Jobs */
+        .scope-filter[data-scope="calrjobs"].active .scope-card {
+            background-color: rgb(254 215 170);
+            /* orange-200 */
+            border-color: rgb(194 65 12);
+            /* orange-700 */
+            color: rgb(194 65 12);
+        }
+
         .status-filter[data-status=""].active .status-card {
             background-color: rgb(254 215 170);
             /* orange-200 */
