@@ -321,12 +321,10 @@
             });
 
 
-            // ===== FILTER HANDLER =====
             function applyColumnFilter(selectId, colIndex) {
                 $(selectId).on('change', function() {
                     const val = $(this).val();
                     if (val) {
-                        // exact match
                         const regex = '^' + $.fn.dataTable.util.escapeRegex(val) + '$';
                         table.column(colIndex).search(regex, true, false).draw();
                     } else {
@@ -336,9 +334,17 @@
             }
 
             // kolom: 2 = doctype, 3 = company, 4 = department
-            applyColumnFilter('#filterDoctype', 2);
-            applyColumnFilter('#filterCompany', 3);
-            applyColumnFilter('#filterDept', 4);
+            applyColumnFilter('#filterDoctype', 3);
+            applyColumnFilter('#filterCompany', 4);
+            applyColumnFilter('#filterDept', 5);
+
+            $('#clearUserFilters').on('click', function() {
+                $('#filterDoctype').val('').trigger('change');
+                $('#filterCompany').val('').trigger('change');
+                $('#filterDept').val('').trigger('change');
+
+                table.search('').columns().search('').draw();
+            });
 
             // ===== Helper baris approval line =====
             function lineRowTemplate(idx, data) {

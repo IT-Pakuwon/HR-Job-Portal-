@@ -1,34 +1,43 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">
-        <div class="mt-2 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                <h1 class="align-middle text-2xl font-bold dark:text-white"></h1>
+        <div class="mt-2 rounded-xl bg-white p-4 dark:bg-gray-800">
 
-            </div>
             <div x-data="{ tab: 'waitingapp' }" class="mt-4">
+
+                <!-- TABS -->
                 <div class="mb-4 flex space-x-4">
                     <button @click="tab = 'waitingapp'"
-                        :class="tab === 'waitingapp' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                        :class="tab === 'waitingapp'
+                            ?
+                            'bg-indigo-600 text-white' :
+                            'bg-gray-200 text-gray-700'"
                         class="rounded px-4 py-2 font-semibold">
                         📄 Waiting Approval
                     </button>
+
                     <button @click="tab = 'approval'"
-                        :class="tab === 'approval' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                        :class="tab === 'approval'
+                            ?
+                            'bg-indigo-600 text-white' :
+                            'bg-gray-200 text-gray-700'"
                         class="rounded px-4 py-2 font-semibold">
                         📅 Approval
                     </button>
                 </div>
-                <div class="grid" x-show="tab === 'waitingapp'">
-                    <div class="rounded-lg bg-white dark:bg-gray-800">
-                        <table id="agendasTable" class="mt-5 min-w-full rounded">
-                            <thead class="bg-white-200 dark:text-white">
+
+                <!-- TAB 1 -->
+                <div x-show="tab === 'waitingapp'" x-transition>
+                    <div class="overflow-x-auto">
+                        <table id="agendasTable" class="w-full text-left text-sm">
+                            <thead>
                                 <tr>
-                                    <th class="w-32 px-4 py-3 text-left">DocID</th>
-                                    <th class="px-4 py-3 text-center">Date</th>
-                                    <th class="px-4 py-3 text-center">Company</th>
-                                    <th class="px-4 py-3 text-center">Departement</th>
-                                    <th class="px-4 py-3 text-center">Info</th>
-                                    <th class="w-32 px-4 py-3 text-center">Status</th>
+                                    <th></th>
+                                    <th>DocID</th>
+                                    <th>Date</th>
+                                    <th>Company</th>
+                                    <th>Department</th>
+                                    <th>Info</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -36,97 +45,137 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: Calendar -->
-                <div x-show="tab === 'approval'">
+                <!-- TAB 2 -->
+                <div x-show="tab === 'approval'" x-transition>
                     @include('pages.dashboard.dashapproval')
-                    {{-- @include('pages.agendas.calendar') --}}
                 </div>
+
             </div>
         </div>
     </div>
+
+    <!-- ===================== -->
+    <!-- DEPENDENCIES (WAJIB) -->
+    <!-- ===================== -->
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables core -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- 🔥 RESPONSIVE EXTENSION (WAJIB FOR DTR) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+    <!-- Alpine -->
     <script src="//unpkg.com/alpinejs" defer></script>
+
+    <!-- ===================== -->
+    <!-- DATATABLE INIT -->
+    <!-- ===================== -->
     <script>
-        var currentUser = "{{ auth()->user()->username }}";
-    </script>
-    <script>
+        let agendaTable;
+
         $(document).ready(function() {
-            let table = $('#agendasTable').DataTable({
+
+            agendaTable = $('#agendasTable').DataTable({
                 ajax: "{{ route('waitingapproval.json') }}",
                 processing: true,
                 serverSide: false,
-                responsive: true,
-                order: [
-                    [0, 'desc']
+
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+
+                columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false,
+                        responsivePriority: 1
+                    },
+                    {
+                        responsivePriority: 2,
+                        targets: 1
+                    },
+                    {
+                        responsivePriority: 3,
+                        targets: -1
+                    }
                 ],
+
+                order: [
+                    [1, 'desc']
+                ],
+
                 columns: [{
                         data: null,
                         defaultContent: ''
-                    }, {
+                    },
+                    {
                         data: 'id',
                         render: function(data, type, row) {
-                            let url = `${window.location.origin}${row.url}/${row.id}`;
-                            let buttonClass =
-                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
-                            let buttonText = row.docid;
-
-
-                            return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
+                            const url = `${window.location.origin}${row.url}/${row.id}`;
+                            return `
+                                <a href="${url}"
+                                   class="inline-flex w-[120px] justify-center rounded bg-gray-600 px-3 py-1.5 text-white hover:bg-gray-800">
+                                   ${row.docid}
+                                </a>`;
                         }
                     },
                     {
-                        data: 'docdate',
-                        className: 'no-pointer'
+                        data: 'docdate'
                     },
                     {
-                        data: 'cpnyid',
-                        className: 'no-pointer'
+                        data: 'cpnyid'
                     },
                     {
-                        data: 'departementid',
-                        className: 'no-pointer'
+                        data: 'departementid'
                     },
                     {
-                        data: 'infohd',
-                        className: 'no-pointer'
+                        data: 'infohd'
                     },
                     {
                         data: 'status',
-                        className: 'no-pointer',
-                        render: function(data) {
-                            let statusText = "";
-                            let badgeClass = "";
-
-                            if (data === 'D') {
-                                statusText = "Revise";
-                                badgeClass =
-                                    "w-32 bg-gray-300/30 dark:bg-gray-300 text-gray-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'P') {
-                                statusText = "On Progress";
-                                badgeClass =
-                                    "w-32 bg-blue-300/30 dark:bg-blue-300 text-blue-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'C') {
-                                statusText = "Completed";
-                                badgeClass =
-                                    "w-32 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'X') {
-                                statusText = "Cancel";
-                                badgeClass =
-                                    "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                            } else if (data === 'R') {
-                                statusText = "Rejected";
-                                badgeClass =
-                                    "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                            } else {
-                                statusClass =
-                                    "  w-full max-w-32 bg-gray-300/30  bg-gray-300  text-gray-600 flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                            }
-                            return `<span class="${badgeClass}">${statusText}</span>`;
+                        render: function(v) {
+                            const map = {
+                                D: ['Revise', 'gray'],
+                                P: ['On Progress', 'blue'],
+                                C: ['Completed', 'green'],
+                                X: ['Cancel', 'red'],
+                                R: ['Rejected', 'red'],
+                            };
+                            const [text, color] = map[v] || ['Unknown', 'gray'];
+                            return `
+                                <span class="inline-block w-28 rounded bg-${color}-300/30 px-3 py-1.5 font-semibold text-${color}-600">
+                                    ${text}
+                                </span>`;
                         }
-
                     }
                 ]
             });
+        });
 
+        /* ===============================
+           ALPINE x-show → RESPONSIVE FIX
+        ================================ */
+        document.addEventListener('alpine:init', () => {
+            Alpine.effect(() => {
+                const el = document.getElementById('agendasTable');
+                if (!el) return;
+
+                // table visible?
+                if (el.offsetParent !== null && agendaTable) {
+                    setTimeout(() => {
+                        agendaTable.columns.adjust();
+                        agendaTable.responsive.recalc();
+                    }, 200);
+                }
+            });
         });
     </script>
 </x-app-layout>

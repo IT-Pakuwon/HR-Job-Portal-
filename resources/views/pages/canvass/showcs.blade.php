@@ -827,25 +827,36 @@
                                     <td class="w-48 space-y-1 px-3 py-2">
                                         <div class="flex justify-between">
                                             <span>Total:</span>
-                                            <span>{{ $v['total'] }}</span>
+                                            <span>
+                                                Rp {{ number_format($v['total'], 0, ',', '.') }}
+                                            </span>
                                         </div>
+
                                         <div class="flex justify-between">
-                                            <div class="flex justify-between">
+                                            <div class="flex w-full justify-between">
                                                 <span>PPN:</span>
                                                 <span>{{ $v['ppn'] }}%</span>
                                             </div>
-                                            <div class="flex justify-between">
-                                                <span>PPh:</span>
-                                                <span>{{ $v['pph'] }}%</span>
-                                            </div>
+                                            {{-- 
+        <div class="flex justify-between">
+            <span>PPh:</span>
+            <span>{{ $v['pph'] }}%</span>
+        </div> 
+        --}}
                                         </div>
+
                                         <div class="flex justify-between">
                                             <span>Grand:</span>
-                                            <span>{{ $v['grand'] }}</span>
+                                            <span>
+                                                Rp {{ number_format($v['grand'], 0, ',', '.') }}
+                                            </span>
                                         </div>
+
                                         <div class="flex justify-between">
                                             <span>Selected:</span>
-                                            <span>{{ $v['selected_grand'] }}</span>
+                                            <span>
+                                                Rp {{ number_format($v['selected_grand'], 0, ',', '.') }}
+                                            </span>
                                         </div>
                                     </td>
                                 @endforeach
@@ -1930,10 +1941,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                target="_blank"
-                                                                                                                class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                ${r.ponbr ?? ''}
-                                                                                                            </a>`
+                                                                                                                        target="_blank"
+                                                                                                                        class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                        ${r.ponbr ?? ''}
+                                                                                                                    </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>

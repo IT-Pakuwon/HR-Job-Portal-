@@ -1,221 +1,300 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Send Email – {{ $ponbr }}</title>
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Send Email – {{ $ponbr }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-
-  <style>
-    body{background:#f5f7fb}
-    .compose-card{max-width:960px;margin:24px auto;border-radius:14px;box-shadow:0 10px 30px rgba(17,24,39,.08)}
-    .label{font-size:.8rem;color:#6b7280}
-    .meta-grid{display:grid;grid-template-columns:110px 1fr 110px 1fr;gap:10px 12px;margin-bottom:12px}
-    .chip{display:inline-flex;align-items:center;gap:.35rem;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;border-radius:999px;padding:.2rem .6rem;margin:.15rem .25rem 0 0}
-    .chip .x{cursor:pointer;margin-left:.35rem}
-    .toolbar-small .note-editable{min-height:260px}
-  </style>
+    <!-- libs -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 </head>
-<body>
-<div class="card compose-card">
-  <div class="card-body p-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">           
-      <button id="btnSend" class="btn btn-primary btn-send d-inline-flex align-items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-        Send
-      </button>
-    </div>
+<body style="background:#f5f7fb;margin:0;padding:0;height:100vh;">
 
-    {{-- Meta Info --}}
-    <div class="meta-grid">
-      <div class="label">Order Nbr</div>
-      <div><input id="orderNbr" type="text" class="form-control" value="{{ $ponbr }}" readonly></div>      
-      <div class="label">Template</div>
-      <div><input id="templateType" type="text" class="form-control" value="{{ $template }}" readonly></div>
+    <!-- ================= WRAPPER ================= -->
+    <div
+        style="
+    width:100%;
+    background:#ffffff;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+">
 
-      <div class="label">Vendor</div>
-      <div><input id="vendorName" type="text" class="form-control" value="{{ $vendor }}" readonly></div>
-    </div>
+        <!-- ================= CONTENT ================= -->
+        <div class="card-body"
+            style="
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    flex:1;
+    min-height:0;
+">
+            <!-- ===== HEADER + ACTION (ONE ROW) ===== -->
+            <div style="
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+">
 
-    {{-- Header --}}
-    <div class="row g-3">
-      <div class="col-md-6">
-        <label class="label mb-1">From</label>
-        <input id="from" type="text" class="form-control" value="{{ $from_email }}" readonly>        
-      </div>
-      <div class="col-md-6"></div>
+                <!-- LEFT : TITLE -->
+                <div>
+                    <h2 style="margin:0;font-size:18px;font-weight:600;color:#111827;">
+                        PO Email
+                    </h2>
+                    <div style="font-size:12px;color:#6b7280;">
+                        Send purchase order details by email
+                    </div>
+                </div>
 
-      <div class="col-12">
-        <label class="label mb-1">To</label>
-        <input id="toInput" type="text" class="form-control" value="{{ $to_email }}" placeholder="email1@domain.com, email2@domain.com">
-        <div id="toChips" class="mt-1"></div>
-      </div>
+                <!-- RIGHT : ACTIONS -->
+                <div style="display:flex;align-items:center;gap:12px;">
 
-      <div class="col-12">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="label mb-1">Cc</label>
-            <input id="ccInput" type="text" class="form-control" placeholder="(optional)">
-            <div id="ccChips" class="mt-1"></div>
-          </div>
-          <div class="col-md-6">
-            <label class="label mb-1">Bcc</label>
-            <input id="bccInput" type="text" class="form-control" placeholder="(optional)">
-            <div id="bccChips" class="mt-1"></div>
-          </div>
+                    <!-- BACK -->
+                    <button type="button" onclick="history.back()"
+                        style="
+                display:inline-flex;
+                align-items:center;
+                gap:6px;
+                background:#f3f4f6;
+                color:#374151;
+                border:1px solid #d1d5db;
+                border-radius:8px;
+                padding:6px 10px;
+                cursor:pointer;
+                font-size:13px;
+            ">
+                        ← Back
+                    </button>
+
+                    <!-- SEND -->
+                    <button id="btnSend"
+                        style="
+                display:inline-flex;
+                align-items:center;
+                gap:8px;
+                background:#2563eb;
+                color:#fff;
+                border:none;
+                border-radius:8px;
+                padding:8px 14px;
+                cursor:pointer;
+                font-size:14px;
+            ">
+                        Send
+                    </button>
+
+                </div>
+            </div>
+
+
+
+            <!-- ===== META GRID ===== -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 12px;">
+                <div>
+                    <div style="font-size:12px;color:#6b7280;">Order Nbr</div>
+                    <input id="orderNbr" type="text" value="{{ $ponbr }}" readonly
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                </div>
+                <div>
+                    <div style="font-size:12px;color:#6b7280;">Template</div>
+                    <input id="templateType" type="text" value="{{ $template }}" readonly
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                </div>
+                <div>
+                    <div style="font-size:12px;color:#6b7280;">Vendor</div>
+                    <input id="vendorName" type="text" value="{{ $vendor }}" readonly
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                </div>
+            </div>
+
+            <!-- ===== FROM / TO ===== -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label style="font-size:12px;color:#6b7280;">From</label>
+                    <input id="from" type="text" value="{{ $from_email }}" readonly
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                    <div style="font-size:11px;color:#9ca3af;">This email will appear as the sender</div>
+                </div>
+
+                <div>
+                    <label style="font-size:12px;color:#6b7280;">Send Email To :</label>
+                    <input id="toInput" type="text" value="{{ $to_email }}"
+                        placeholder="email1@domain.com, email2@domain.com"
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                    <div style="font-size:11px;color:#9ca3af;">
+                        Press <strong>Enter</strong> or "," to add the email
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RECIPIENTS ===== -->
+            <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+                <div style="font-size:12px;color:#6b7280;white-space:nowrap;">Recipients:</div>
+                <div id="toChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+            </div>
+
+            <!-- ===== CC / BCC ===== -->
+            <div style="display:flex;gap:12px;">
+                <div style="flex:1;">
+                    <label style="font-size:12px;color:#6b7280;">Cc</label>
+                    <input id="ccInput" type="text"
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                    <div id="ccChips"></div>
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:12px;color:#6b7280;">Bcc</label>
+                    <input id="bccInput" type="text"
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                    <div id="bccChips"></div>
+                </div>
+            </div>
+
+            <!-- ===== SUBJECT ===== -->
+            <div>
+                <label style="font-size:12px;color:#6b7280;">Subject</label>
+                <input id="subject" type="text" value="{{ $subject_email }}"
+                    style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+            </div>
+
+            <!-- ================= EDITOR AREA ================= -->
+            <div
+                style="
+    margin-top:12px;
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+">
+                <div id="editor"
+                    style="
+        flex:1;
+        border:1px solid #d1d5db;
+        border-radius:6px;
+        overflow-y:auto;
+    ">
+                </div>
+            </div>
+
+            <input type="hidden" id="ponbr" value="{{ $ponbr }}">
         </div>
-      </div>
-
-      <div class="col-12">
-        <label class="label mb-1">Subject</label>
-        <input id="subject" type="text" class="form-control" value="{{ $subject_email }}">
-      </div>
     </div>
 
-    <div class="mt-3 toolbar-small">
-      <div id="editor"></div>
-    </div>
+    <!-- ================= JS ================= -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    <small class="text-muted d-block mt-2" id="autosaveMsg"></small>
+    <script>
+        (function() {
 
-    <input type="hidden" id="ponbr" value="{{ $ponbr }}">
-  </div>
-</div>
+            toastr.options = {
+                positionClass: 'toast-top-right',
+                closeButton: true,
+                newestOnTop: true,
+                progressBar: true,
+                timeOut: 2500
+            };
 
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script>
-(function(){
- 
+            const EMAIL_RE = /^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/i;
+        const state = {
+            to: [],
+            cc: [],
+            bcc: []
+        };
 
-toastr.options = {
-  positionClass: 'toast-top-right',
-  closeButton: true,
-  newestOnTop: true,
-  progressBar: true,
-  timeOut: 2500
-};
+        function splitEmails(raw) {
+            return (raw || '').split(/[,;]+/).map(v => v.trim()).filter(Boolean);
+        }
 
+        function chipStyle() {
+            return `
+                                                display:inline-flex;
+                                                align-items:center;
+                                                gap:6px;
+                                                background:#eef2ff;
+                                                border:1px solid #c7d2fe;
+                                                color:#3730a3;
+                                                border-radius:999px;
+                                                padding:3px 10px;
+                                                margin:3px 6px 0 0;
+                                                font-size:12px;
+                                                `;
+        }
 
-  // --- Email chips state & helpers ---
-  const EMAIL_RE=/^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/i;
-  const state={to:[],cc:[],bcc:[]};
+        function addChip(type, raw) {
+            const list = state[type];
+            const target = type === 'to' ? '#toChips' : type === 'cc' ? '#ccChips' : '#bccChips';
 
-  function splitEmails(raw){
-    return (raw||'')
-      .split(/[,;]+/)   // support comma & semicolon
-      .map(v=>v.trim())
-      .filter(Boolean);
-  }
+            splitEmails(raw).forEach(v => {
+                if (!EMAIL_RE.test(v)) {
+                    toastr.warning(`Invalid email skipped: ${v}`);
+                    return;
+                }
+                if (list.includes(v)) return;
 
-  function addChip(type, raw){
-    const list = state[type];
-    const target = (type==='to') ? '#toChips' : (type==='cc' ? '#ccChips' : '#bccChips');
-    splitEmails(raw).forEach(v=>{
-      if (!EMAIL_RE.test(v)) { toastr.warning(`Invalid email skipped: ${v}`); return; }
-      if(list.includes(v)) return;
-      list.push(v);
-      const $chip=$(`<span class="chip" data-type="${type}" data-email="${v}">${v}<span class="x">×</span></span>`);
-      $(target).append($chip);
-    });
-  }
+                list.push(v);
+                $(target).append(`
+                                                            <span style="${chipStyle()}" data-type="${type}" data-email="${v}">
+                                                                ${v}<span style="cursor:pointer;margin-left:6px;">×</span>
+                                                            </span>
+                                                        `);
+            });
+        }
 
-  // remove chip
-  $(document).on('click','.chip .x',function(){
-    const $p=$(this).closest('.chip'); const t=$p.data('type'); const e=$p.data('email');
-    state[t]=state[t].filter(x=>x!==e); $p.remove(); // (optional) saveDraft();
-  });
+        $(document).on('click', 'span[data-type] span', function() {
+            const $p = $(this).parent();
+            const t = $p.data('type');
+            const e = $p.data('email');
+            state[t] = state[t].filter(x => x !== e);
+            $p.remove();
+        });
 
-  // convert typed text to chips on Enter or comma
-  $('#toInput').on('keydown',e=>{ if(e.key==='Enter'||e.key===','){ e.preventDefault(); addChip('to', e.target.value); e.target.value=''; }});
-  $('#ccInput').on('keydown',e=>{ if(e.key==='Enter'||e.key===','){ e.preventDefault(); addChip('cc', e.target.value); e.target.value=''; }});
-  $('#bccInput').on('keydown',e=>{ if(e.key==='Enter'||e.key===','){ e.preventDefault(); addChip('bcc', e.target.value); e.target.value=''; }});
+        ['to', 'cc', 'bcc'].forEach(type => {
+            $('#' + type + 'Input').on('keydown', e => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addChip(type, e.target.value);
+                    e.target.value = '';
+                }
+            });
+        });
 
-  // hydrate "To" from controller value
-  $(function(){
-    const initialTo = $('#toInput').val();
-    if(initialTo){ addChip('to', initialTo); $('#toInput').val(''); }
-  });
+        $(function() {
+            const init = $('#toInput').val();
+            if (init) {
+                addChip('to', init);
+                $('#toInput').val('');
+            }
+        });
 
-  // --- Summernote ---
-  $('#editor').summernote({
-    placeholder:'Tulis isi email di sini…',
-    height:260,
-    toolbar:[
-      ['style',['style']],
-      ['font',['bold','underline','italic','clear']],
-      ['fontname',['fontname']],
-      ['color',['color']],
-      ['para',['ul','ol','paragraph']],
-      ['table',['table']],
-      ['insert',['link','picture','video']],
-      ['view',['codeview','help']]
-    ]
-  });
+        $('#editor').summernote({
+            placeholder: 'Tulis isi email di sini…',
+            height: '100%',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'italic', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['codeview', 'help']]
+            ]
+        });
 
-  // Inject initial HTML safely
-  $('#editor').summernote('code', `{!! $initial_html !!}`);
+        $('#editor').summernote('code', `{!! $initial_html !!}`);
 
-  // --- Send ---
-  $('#btnSend').on('click', async function(){
-    // sweep leftovers (user typed but didn’t press Enter)
-    if($('#toInput').value?.trim){ const v=$('#toInput').val().trim(); if(v){ addChip('to', v); $('#toInput').val(''); } }
-    if($('#ccInput').value?.trim){ const v=$('#ccInput').val().trim(); if(v){ addChip('cc', v); $('#ccInput').val(''); } }
-    if($('#bccInput').value?.trim){ const v=$('#bccInput').val().trim(); if(v){ addChip('bcc', v); $('#bccInput').val(''); } }
+        })();
+    </script>
 
-    const payload = {
-      from:   $('#from').val(),
-      to:     state.to,
-      cc:     state.cc,
-      bcc:    state.bcc,
-      subject: $('#subject').val().trim(),
-      html:   $('#editor').summernote('code')
-    };
-
-    if (!payload.to.length) { toastr.error('Field "To" wajib diisi'); return; }
-    if (!payload.subject)   { toastr.error('Subject wajib diisi'); return; }
-
-
-    try{
-      const res = await fetch(`/po/${encodeURIComponent($('#orderNbr').val())}/email/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',              // ask server for JSON even on errors
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const text = await res.text();                 // always read as text first
-      let json;
-      try { json = JSON.parse(text); }               // try JSON parse
-      catch (e) {
-        console.error('Non-JSON response:', text);
-        toastr.error('Server mengembalikan non-JSON. Cek console.');
-        return;
-      }
-
-      if(res.ok && json.success){
-        toastr.success('Email terkirim.');
-        const encodedId = @json($eid);
-        window.location.href = `/showpo/${encodedId}`;
-      }else{
-        toastr.error(json.message || 'Gagal mengirim email.');
-      }
-    }catch(err){
-      console.error(err);
-      toastr.error('Terjadi kesalahan jaringan.');
-    }
-  });
-})();
-</script>
 </body>
+
 </html>
