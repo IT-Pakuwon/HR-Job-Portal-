@@ -780,6 +780,7 @@ class MasterController extends Controller
 
     public function CoaBudget(Request $request)
     {
+        // dd($request->all());
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
         $perpost = $request->get('perpost');
@@ -840,10 +841,15 @@ class MasterController extends Controller
             $q->where(function ($w) use ($search) {
                 $w->where('b.account_id', 'ilike', "%{$search}%")
                 ->orWhere('c.account_descr', 'ilike', "%{$search}%")
-                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
-                // search ke angka budget
-                ->orWhereRaw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?", ["%{$search}%"]);
+                ->orWhere('b.activity_id', 'ilike', "%{$search}%")          // opsional tapi berguna
+                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")       // ✅ INI YANG KURANG (Budget Descr yg kamu tampilkan)
+                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")       // tetap boleh
+                ->orWhereRaw(
+                    "(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?",
+                    ["%{$search}%"]
+                );
             });
+
         }
 
         $total = (clone $q)->count();

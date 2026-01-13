@@ -161,20 +161,8 @@ class PersonnelController extends Controller
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
         ]);
 
-        $positionCondition = $request->group_grade; 
-
-        $doctype = 'PRF';
-        // $count_approval = M_approval::where('status', 'A')
-        //     ->where('aprvcpnyid', $request->cpnyid)
-        //     ->where('aprvdeptid', $request->departementid)
-        //     ->where('aprvdoctype', $doctype)
-        //     ->count();
-        
-        // if ($count_approval === 0) {
-        //     return response()->json([
-        //         'message' => 'Approval line belum di-setup, Please contact IT!'
-        //     ], 422);
-        // }
+        $positionCondition = strtolower($request->job_type . ' ' . $request->group_grade);
+        $doctype = 'PRF';       
 
         // cek availability approval line (Normal atau Condition yg cocok)
         $count_approval = MsApproval::where('status', 'A')
@@ -229,12 +217,8 @@ class PersonnelController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
-           
-            // $site = Site::where('id', $request->siteid)              
-            //     ->where('status', 'A')
-            //     ->first();
-
+            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);           
+          
             $title = StoDepartement::where('departement_id', $request->job_title)              
                 ->where('status', 'A')
                 ->first();
@@ -269,33 +253,8 @@ class PersonnelController extends Controller
                 'created_user' => $user->username,
                 'status' => $request->status ?? 'P'                
             ]);
-
-           
-            // //read ms_approval
-            // $m_approval = M_approval::where('aprvdoctype', $doctype)
-            //     ->where('aprvcpnyid', $request->cpnyid)
-            //     ->where('aprvdeptid', $request->departementid)
-            //     ->where('status', 'A')
-            //     ->get();
-
-            // //insert trx_approval
-            // foreach ($m_approval as $mp) {
-            //     $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
-            //     T_approval::create([
-            //         'docid' => $docid,
-            //         'aprvid' => $mp->aprvid,
-            //         'aprvdoctype' => $mp->aprvdoctype,
-            //         'aprvcpnyid' => $mp->aprvcpnyid,
-            //         'aprvdeptid' => $mp->aprvdeptid,
-            //         'aprvusername' => $mp->aprvusername,
-            //         'name' => $mp->name,
-            //         'aprvdatebefore' => $aprvdatebefore,
-            //         'aprvtotalday' => 1,
-            //         'status' => 'P',
-            //         'created_user' => $user->username
-            //     ]);
-            // }            
-
+          
+          
             $msApprovalLines = MsApproval::where('status', 'A')
                 ->where('aprv_cpnyid', $request->cpnyid)
                 ->where('aprv_departementid', $request->departementid)
@@ -456,41 +415,7 @@ class PersonnelController extends Controller
                     }
                 }
             }
-
-            
-
-            // $t_approval_next = T_approval::where('docid', $docid)
-            //     ->where('status', 'P')
-            //     ->orderby('aprvid','ASC')
-            //     ->first();
-            // // $id = $task->id;
-            // $eid = Hashids::encode($task->id);
-
-            // $data = array(
-            //     'docid' => $t_approval_next->docid,
-            //     'cpnyid' => $t_approval_next->aprvcpnyid,
-            //     'deptname' => $t_approval_next->aprvdeptid,                
-            //     'date' => $t_approval_next->aprvdatebefore,
-            //     'name' => $t_approval_next->created_user,                          
-            //     'info' => $request->job_title,           
-            //     // 'url' => url('/showpersonnels/') . $eid
-            //     'url' => url('/showvpersonels' .'/' . $eid)
-    
-            // );
-    
-            // $multiapp = explode(',', $t_approval_next->aprvusername);
-    
-            // $email_it = User::whereIN('username', $multiapp)
-            //     ->where('status', 'A')
-            //     ->get();
-    
-            // foreach ($email_it as $emailsit) {
-            //     Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-            //         $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
-            //         $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //     });
-            // }       
-
+                      
             $t_approval_next = TrApproval::where('refnbr', $docid)
                 ->where('status', 'P')
                 ->orderBy('aprv_leveling', 'ASC')

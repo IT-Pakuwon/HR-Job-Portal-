@@ -159,17 +159,17 @@
                             </svg>
                             Submit
                         </button>
-                    @endif
-                    <button id="cancelReuseBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg>
-                        Reuse
-                    </button>
+                    @endif                    
                     @if ($po->status !== 'H')
+                        <button id="cancelReuseBtn"
+                            class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            Reuse
+                        </button>
                         <button id="cancelBtn"
                             class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -659,6 +659,8 @@
                                                                         value="{{ old('work_time_to') }}"
                                                                         class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 </div>
+
+                                                                
 
                                                                 {{-- 24 Hours --}}
                                                                 <div class="flex items-end pb-2 md:col-span-1">
@@ -1180,22 +1182,34 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const chk = document.getElementById('work_time_24');
+            const chk  = document.getElementById('work_time_24');
             const from = document.getElementById('work_time_from');
-            const to = document.getElementById('work_time_to');
+            const to   = document.getElementById('work_time_to');
+
+            if (!chk || !from || !to) return;
 
             chk.addEventListener('change', () => {
                 if (chk.checked) {
-                    from.value = '00:00';
-                    to.value = '23:59';
-                    from.disabled = true;
-                    to.disabled = true;
+                from.value = '00:00';
+                to.value   = '23:59';
+
+                // jangan disabled
+                from.readOnly = true;
+                to.readOnly   = true;
+
+                // opsional: kasih style biar terlihat "terkunci"
+                from.classList.add('cursor-not-allowed');
+                to.classList.add('cursor-not-allowed');
                 } else {
-                    from.disabled = false;
-                    to.disabled = false;
+                from.readOnly = false;
+                to.readOnly   = false;
+
+                from.classList.remove('cursor-not-allowed');
+                to.classList.remove('cursor-not-allowed');
                 }
             });
-        });
+            });
+
     </script>
 
     <script>

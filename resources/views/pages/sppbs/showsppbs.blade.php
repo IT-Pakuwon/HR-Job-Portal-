@@ -467,7 +467,7 @@
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-xl font-semibold">📝 SPPB Detail</h2>
                     {{-- Button Edit COA --}}
-                    @if ($akses_cc)
+                    @if ($akses_cc && empty($sppb->spbid))
                         <button id="btnEditCoa"
                             class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

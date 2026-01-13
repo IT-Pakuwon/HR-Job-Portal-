@@ -53,7 +53,7 @@ class MsCategoryController extends Controller
     {
         $request->validate([
             'doctype'       => 'required|string|max:50',
-            'categoryid'    => 'required|string|max:50|unique:pgsql2.ms_category,categoryid',
+            'categoryid'    => 'required|string|max:50',
             'category_name' => 'required|string|max:200',
             'groups'        => 'nullable|string|max:100',
             'username'      => 'nullable|string|max:100',

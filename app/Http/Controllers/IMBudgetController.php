@@ -777,7 +777,7 @@ class IMBudgetController extends Controller
             $activity = 'Submit';
             $docid = $header->imbudgetid;
 
-            $this->reserveBudget($doctype, $docid, $activity, $username);
+            // $this->reserveBudget($doctype, $docid, $activity, $username);
 
             // 4) Generate TrApproval utk dokumen IM
             $ctx = [
@@ -798,8 +798,12 @@ class IMBudgetController extends Controller
             if ($firstApprovalUsernames) {
                 $header->completed_by = $firstApprovalUsernames;
                 $header->completed_at = $dt;
-                $header->save();
+                $header->save();                
             }
+
+            $csid = $header->csid;
+            $statusIm = 'P';           
+            $this->updateCSImBudgetStatus($csid, $statusIm);
 
             // 5) Attachment (opsional)
             $uploadResult = null;
@@ -989,6 +993,10 @@ class IMBudgetController extends Controller
 
                 TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'C']);
 
+                $csid = $imbudget->csid;
+                $statusIm = 'C';           
+                $this->updateCSImBudgetStatus($csid, $statusIm);
+
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $imbudget->imbudgetid,
                     'IMBudget',
@@ -1067,6 +1075,10 @@ class IMBudgetController extends Controller
 
                 $this->reserveBudget($doctype, $docid, $activity, $username);
 
+                $csid = $imbudget->csid;
+                $statusIm = 'R';           
+                $this->updateCSImBudgetStatus($csid, $statusIm);
+
                 // optional: tandai detail R
                 // \App\Models\TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'R']);
 
@@ -1131,6 +1143,10 @@ class IMBudgetController extends Controller
                 $doctype = 'IM';
 
                 $this->reserveBudget($doctype, $docid, $activity, $username);
+
+                $csid = $imbudget->csid;
+                $statusIm = 'D';           
+                $this->updateCSImBudgetStatus($csid, $statusIm);
 
                 // (opsional) DETAIL -> D
                 // \App\Models\TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'D']);
@@ -1374,6 +1390,17 @@ class IMBudgetController extends Controller
             'CALL public.sp_process_budget(?, ?, ?, ?)',
             [strtoupper($doctype), $docid, $activity, $username]
         );
+    }
+
+    private function updateCSImBudgetStatus(string $csid, string $status): void
+    {
+        if (!$csid) {
+            return;
+        }
+
+        TrCS::where('csid', $csid)->update([
+            'status_imbudget' => $status,           
+        ]);
     }
 
 

@@ -194,8 +194,154 @@ class BudgetController extends Controller
         return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id'));
     }
    
- 
+  
     public function import(Request $request, $hash = null)
+    {
+        $request->validate([
+            'file'              => 'required|mimes:xlsx,xls,csv',
+            'cpny_id'           => 'required',
+            'business_unit_id'  => 'required',
+            'department_fin_id' => 'required',
+        ]);
+
+        // Jika edit, decode hash -> ambil Budget
+        $budget = null;
+        if ($hash) {
+            $decoded = Hashids::decode($hash);
+            $id = $decoded[0] ?? null;
+            abort_if(!$id, 404, 'Invalid budget hash.');
+            $budget = Budget::findOrFail($id);
+        }
+
+        try {
+            $username = Auth::user()->username ?? 'system';
+            $temp_id  = Str::uuid()->toString();
+
+            MsBudgetTemp::where('created_by', $username)->delete();
+
+            $file = $request->file('file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+
+            $perpostFromExcel = null;
+
+            if (in_array($ext, ['xlsx', 'xls'], true)) {
+                $spreadsheet = IOFactory::load($file->getPathname());
+
+                // =========================
+                // ✅ AMBIL PERPOST DARI ROW 1
+                // =========================
+                $sheet0 = $spreadsheet->getSheet(0);
+
+                // Asumsi perpost ada di A2 (paling umum kalau row1 berisi perpost)
+                $a1 = $sheet0->getCell('A2')->getValue();
+                if ($a1 !== null && $a1 !== '') {
+                    // ambil angka 4 digit (misal 2026) kalau formatnya "2026" atau "Perpost: 2026"
+                    if (preg_match('/\b(19|20)\d{2}\b/', (string)$a1, $m)) {
+                        $perpostFromExcel = (int)$m[0];
+                    } elseif (is_numeric($a1)) {
+                        $perpostFromExcel = (int)$a1;
+                    }
+                }
+
+                // fallback: scan row 1 beberapa kolom kalau A2 bukan perpost
+                if (!$perpostFromExcel) {
+                    $highestCol = $sheet0->getHighestDataColumn();
+                    for ($col = 'A'; $col <= $highestCol; $col++) {
+                        $v = $sheet0->getCell("{$col}1")->getValue();
+                        if ($v === null || $v === '') continue;
+
+                        if (preg_match('/\b(19|20)\d{2}\b/', (string)$v, $m)) {
+                            $perpostFromExcel = (int)$m[0];
+                            break;
+                        }
+                    }
+                }
+
+                if (!$perpostFromExcel) {
+                    throw new \RuntimeException("Perpost (tahun) tidak ditemukan di row 1 Excel. Pastikan row 1 berisi tahun (mis: 2026).");
+                }
+
+                // =========================
+                // ✅ CEK BUDGET SUDAH ADA?
+                // =========================
+                $exists = Budget::query()
+                    ->where('cpny_id', $request->cpny_id)
+                    ->where('business_unit_id', $request->business_unit_id)
+                    ->where('department_fin_id', $request->department_fin_id)
+                    ->where('status', 'C')
+                    ->where('perpost', $perpostFromExcel)
+                    ->when($budget, function ($q) use ($budget) {
+                        // kalau edit mode, abaikan record yang sedang diedit
+                        $q->where('id', '<>', $budget->id);
+                    })
+                    ->exists();
+
+                if ($exists) {
+                    throw new \RuntimeException(
+                        "Import ditolak: Budget sudah ada untuk Perpost {$perpostFromExcel} (status C) pada company/BU/Dept tersebut."
+                    );
+                }
+
+                // =========================
+                // ✅ VALIDASI: TOLAK FORMULA
+                // =========================
+                foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
+                    $highestRow = $sheet->getHighestDataRow();
+                    $highestCol = $sheet->getHighestDataColumn();
+
+                    for ($row = 1; $row <= $highestRow; $row++) {
+                        for ($col = 'A'; $col <= $highestCol; $col++) {
+                            $cell = $sheet->getCell("{$col}{$row}");
+                            $raw  = $cell->getValue();
+
+                            if ($raw === null || $raw === '') continue;
+
+                            if ($cell->isFormula()) {
+                                throw new \RuntimeException(
+                                    "Import budget gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan ubah menjadi nilai (Copy → Paste Values)."
+                                );
+                            }
+
+                            if (is_string($raw) && str_starts_with(ltrim($raw), '=')) {
+                                throw new \RuntimeException(
+                                    "Import budget gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
+                                    "Silakan Paste Values lalu import ulang."
+                                );
+                            }
+                        }
+                    }
+                }
+            } else {
+                // CSV: kalau mau, kamu bisa tentukan perpost dari input form / kolom tertentu.
+                // Untuk sekarang, biarkan lewat atau paksa input perpost dari form.
+                // throw new \RuntimeException("Untuk CSV, perpost harus diinput manual (belum didukung baca row1).");
+            }
+
+            // Import ke temp
+            Excel::import(
+                new MsBudgetTempImport(
+                    $temp_id,
+                    $request->cpny_id,
+                    $request->business_unit_id,
+                    $request->department_fin_id,
+                    $username
+                ),
+                $file
+            );
+
+            session(['import_temp_id' => $temp_id]);
+
+            return $budget
+                ? redirect()->route('budget.edit', $hash)->with('success', 'Data berhasil di-import (edit mode).')
+                : redirect()->route('budget.create')->with('success', 'Data berhasil di-import.');
+        } catch (\Throwable $e) {
+            return back()->withInput()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+
+ 
+    public function import_xxx(Request $request, $hash = null)
     {
         $request->validate([
             'file'              => 'required|mimes:xlsx,xls,csv',
@@ -284,55 +430,7 @@ class BudgetController extends Controller
         }
     }
 
-    public function import_xxx(Request $request, $hash = null)
-    {
-        $request->validate([
-            'file'              => 'required|mimes:xlsx,xls,csv',
-            'cpny_id'           => 'required',
-            'business_unit_id'  => 'required',
-            'department_fin_id' => 'required',
-        ]);
-
-        // Jika edit, decode hash -> ambil Budget
-        $budget = null;
-        if ($hash) {
-            $decoded = Hashids::decode($hash);
-            $id = $decoded[0] ?? null;
-            abort_if(!$id, 404, 'Invalid budget hash.');
-            $budget = Budget::findOrFail($id);
-        }
-
-        try {
-            $username = Auth::user()->username;
-            $temp_id  = Str::uuid()->toString();
-
-            MsBudgetTemp::where('created_by', $username)->delete();
-
-            Excel::import(
-                new MsBudgetTempImport(
-                    $temp_id,
-                    $request->cpny_id,
-                    $request->business_unit_id,
-                    $request->department_fin_id,
-                    $username
-                ),
-                $request->file('file')
-            );
-
-            session(['import_temp_id' => $temp_id]);
-
-            // untuk redirect cukup pakai hash yg sudah ada
-            return $budget
-                ? redirect()->route('budget.edit', $hash)
-                        ->with('success', 'Data berhasil di-import (edit mode).')
-                : redirect()->route('budget.create')
-                        ->with('success', 'Data berhasil di-import.');
-        } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal import: '.$e->getMessage());
-        }
-    }
-
-
+  
     public function getBusinessUnits($cpny_id)
     {        
         $units = BusinessUnitPG::where('cpny_id', $cpny_id)->get();

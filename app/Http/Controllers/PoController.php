@@ -245,6 +245,7 @@ class PoController extends Controller
                 $po->spkstartworkingdate = $req->input('work_date_from');
                 $po->spkendtworkingdate  = $req->input('work_date_to');
                 $po->spktotalday         = $req->input('work_days');
+                $po->spkcarabayar        = 'Transfer';
 
                 // schedule: "Hari X s/d Y Pukul a s/d b WIB"
                 $schedule = sprintf(
@@ -908,7 +909,7 @@ class PoController extends Controller
 
         $initial_html = strtr($html, $map);
 
-        return view('emails.sendemailpo', [
+        return view('pages.purchase.sendemailpo', [
             'ponbr'         => $ponbr,
             'po'            => $po,
             'vendor'        => $po->vendorname,

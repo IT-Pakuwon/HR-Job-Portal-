@@ -2129,7 +2129,8 @@
 
             // Load COA from API
             function loadCoa() {
-                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                // $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
                 $.getJSON("{{ route('coa.byDept') }}", {
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
