@@ -220,7 +220,7 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             {{-- Reusable Classes --}}
                             @php
@@ -1353,12 +1353,12 @@
                                         .activity_descr;
 
                                     console.log('%c[Select2] MAP ITEM',
-                                    'color:#E74C3C', {
-                                        row_index: idx,
-                                        comboId,
-                                        comboText,
-                                        original: item
-                                    });
+                                        'color:#E74C3C', {
+                                            row_index: idx,
+                                            comboId,
+                                            comboText,
+                                            original: item
+                                        });
 
                                     return {
                                         id: comboId, // ⬅️ ID unik

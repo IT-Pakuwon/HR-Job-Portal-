@@ -205,14 +205,16 @@
                             $routeBase = $routeMap[$prefix] ?? null;
 
                             // NOTE: eid_sppbjkt itu hash string, jadi pakai langsung
-                            $docUrl = (!empty($routeBase) && !empty($eid_sppbjkt))
-                                ? url("/{$routeBase}/{$eid_sppbjkt}")
-                                : null;
+                            $docUrl =
+                                !empty($routeBase) && !empty($eid_sppbjkt) ? url("/{$routeBase}/{$eid_sppbjkt}") : null;
 
                             $docBtn = $docUrl
-                                ? '<a href="' . e($docUrl) . '" target="_blank" rel="noopener"
+                                ? '<a href="' .
+                                    e($docUrl) .
+                                    '" target="_blank" rel="noopener"
                                     class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                    e($docid) . '</a>'
+                                    e($docid) .
+                                    '</a>'
                                 : e($docid);
 
                             // Default supaya tidak undefined
@@ -221,30 +223,46 @@
                                 $csUrl = !empty($eid_cs) ? url("/showcs/{$eid_cs}") : null;
 
                                 $csLink = $csUrl
-                                    ? '<a href="' . e($csUrl) . '" target="_blank" rel="noopener"
+                                    ? '<a href="' .
+                                        e($csUrl) .
+                                        '" target="_blank" rel="noopener"
                                         class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                        e($imbudget->csid) . '</a>'
+                                        e($imbudget->csid) .
+                                        '</a>'
                                     : e($imbudget->csid);
                             }
 
                             // Reusable class system
-                            $row   = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
                             $fields = [
-                                ['icon' => 'building-office', 'label' => 'Company',     'value' => $imbudget->cpny_id],
-                                ['icon' => 'squares-2x2',     'label' => 'Department',  'value' => $imbudget->department_id],
-                                ['icon' => 'calendar',        'label' => 'Date',        'value' => date('j F Y', strtotime($imbudget->imbudgetdate))],
-                                ['icon' => 'user',            'label' => 'User Peminta','value' => ucwords(strtolower(optional($imbudget->userpeminta)->name))],
+                                ['icon' => 'building-office', 'label' => 'Company', 'value' => $imbudget->cpny_id],
+                                ['icon' => 'squares-2x2', 'label' => 'Department', 'value' => $imbudget->department_id],
+                                [
+                                    'icon' => 'calendar',
+                                    'label' => 'Date',
+                                    'value' => date('j F Y', strtotime($imbudget->imbudgetdate)),
+                                ],
+                                [
+                                    'icon' => 'user',
+                                    'label' => 'User Peminta',
+                                    'value' => ucwords(strtolower(optional($imbudget->userpeminta)->name)),
+                                ],
 
                                 // HTML links (raw)
-                                ['icon' => 'document-text',   'label' => 'CS',          'value' => $csLink, 'is_raw' => true],
-                                ['icon' => 'document-text',   'label' => 'SPPBJKT ID',  'value' => $docBtn, 'is_raw' => true],
+                                ['icon' => 'document-text', 'label' => 'CS', 'value' => $csLink, 'is_raw' => true],
+                                [
+                                    'icon' => 'document-text',
+                                    'label' => 'SPPBJKT ID',
+                                    'value' => $docBtn,
+                                    'is_raw' => true,
+                                ],
                             ];
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
                                     <div class="{{ $label }}">
@@ -274,7 +292,7 @@
                                     </div>
                                 </div>
                             @endif
-                        </div>                        
+                        </div>
                     </div>
 
 
@@ -347,40 +365,40 @@
 
                                 </table>
                                 {{-- Upload attachment (multi) --}}
-                                @if($canUpload)
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="imbudgetAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                            <div class="flex-1">
-                                                <label for="imbudgetAttachFiles"
-                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    Upload Attachments
-                                                </label>
-                                                <div class="flex items-center gap-3">
-                                                    <input type="hidden" name="cpnyid"
-                                                        value="{{ $imbudget->cpny_id }}">
-                                                    <input type="hidden" name="departementid"
-                                                        value="{{ $imbudget->department_id }}">
-                                                    <input type="file" id="imbudgetAttachFiles"
-                                                        name="attachments[]" multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    <button type="button" id="btnUploadIMBudgetAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" id="btnResetIMBudgetAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                        Reset
-                                                    </button>
+                                @if ($canUpload)
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="imbudgetAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="imbudgetAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $imbudget->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $imbudget->department_id }}">
+                                                        <input type="file" id="imbudgetAttachFiles"
+                                                            name="attachments[]" multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadIMBudgetAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetIMBudgetAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Max 10 files, PDF / Image preferred.
+                                                    </p>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Max 10 files, PDF / Image preferred.
-                                                </p>
                                             </div>
-                                        </div>
-                                    </form>
-                                </div>
+                                        </form>
+                                    </div>
                                 @endif
                             </div>
 

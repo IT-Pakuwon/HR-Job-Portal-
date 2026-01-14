@@ -42,9 +42,11 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (CS Info) --}}
-                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+                <div class="dark:bg-gray-80 flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white">
+
+
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
@@ -208,7 +210,7 @@
 
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
                             {{-- Top fields --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
@@ -253,8 +255,10 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+
+
+                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
@@ -285,23 +289,22 @@
                             </nav>
                         </header>
 
-                        {{-- Tabs Content --}}
-                        <div class="flex flex-1 flex-col">
-                            {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr
-                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                            <th class="p-3 text-left font-semibold">Level</th>
-                                            <th class="p-3 text-left font-semibold">Name</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                            <th class="p-3 text-left font-semibold">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="approval-table-body">
-                                    </tbody>
-                                    {{-- <tbody>
+
+                        {{-- Approval tab --}}
+                        <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto p-4">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr
+                                        class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                        <th class="p-3 text-left font-semibold">Level</th>
+                                        <th class="p-3 text-left font-semibold">Name</th>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                        <th class="p-3 text-left font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approval-table-body">
+                                </tbody>
+                                {{-- <tbody>
                                         @foreach ($approval as $ap)
                                             <tr
                                                 class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -344,20 +347,20 @@
                                             </tr>
                                         @endforeach
                                     </tbody> --}}
-                                </table>
-                            </div>
-                            {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Type</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                        </tr>
-                                    </thead>
-                                    {{-- <tbody>
+                            </table>
+                        </div>
+                        {{-- Attachment tab --}}
+                        <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto p-4">
+                            <table class="w-full text-sm">
+                                <thead class="text-gray-600 dark:text-gray-300">
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="p-3 text-left font-semibold">Filename</th>
+                                        <th class="p-3 text-left font-semibold">Type</th>
+                                        <th class="p-3 text-left font-semibold">Created By</th>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                    </tr>
+                                </thead>
+                                {{-- <tbody>
                                         @php
                                             // Gabungkan: lampiran dari dokumen sumber (PB/PJ/PK/PT) + lampiran dari CS
                                             // attachmentBJKT & attachmentCS sudah berisi object: display_name, url, created_by, created_at, folder, filename, extention, size
@@ -404,62 +407,59 @@
                                             </tr>
                                         @endforelse
                                     </tbody> --}}
-                                    <tbody id="allAttachmentTbody"></tbody>
-                                </table>
-                                @if ($canUpload)
-                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <form id="csAttachmentUploadForm" enctype="multipart/form-data">
-                                            @csrf
-                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                                <div class="flex-1">
-                                                    <label for="csAttachFiles"
-                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                        Upload Attachments (CS)
-                                                    </label>
-                                                    <div class="flex items-center gap-3">
-                                                        <input type="hidden" name="cpnyid"
-                                                            value="{{ $cs->cpny_id }}">
-                                                        <input type="hidden" name="departementid"
-                                                            value="{{ $cs->department_id }}">
-                                                        <input type="file" id="csAttachFiles" name="attachments[]"
-                                                            multiple
-                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        <button type="button" id="btnUploadCSAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                            Upload
-                                                        </button>
-                                                        <button type="button" id="btnResetCSAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                            Reset
-                                                        </button>
-                                                    </div>
-                                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">PDF /
-                                                        gambar
-                                                        disarankan.</p>
+                                <tbody id="allAttachmentTbody"></tbody>
+                            </table>
+                            @if ($canUpload)
+                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <form id="csAttachmentUploadForm" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                            <div class="flex-1">
+                                                <label for="csAttachFiles"
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachments (CS)
+                                                </label>
+                                                <div class="flex items-center gap-3">
+                                                    <input type="hidden" name="cpnyid"
+                                                        value="{{ $cs->cpny_id }}">
+                                                    <input type="hidden" name="departementid"
+                                                        value="{{ $cs->department_id }}">
+                                                    <input type="file" id="csAttachFiles" name="attachments[]"
+                                                        multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    <button type="button" id="btnUploadCSAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetCSAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
                                                 </div>
+                                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">PDF /
+                                                    JPG is recommended.</p>
                                             </div>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
 
-                            {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
-                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
-                                    <div id="commentList"
-                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <input id="commentInput" x-model="newComment" type="text"
-                                            placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                        <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                            Post 🚀
-                                        </button>
-                                    </div>
+                        {{-- Comments tab --}}
+                        <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto p-4">
+                            <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
+                                <div id="commentList"
+                                    class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                </div>
+                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <input id="commentInput" x-model="newComment" type="text"
+                                        placeholder="Write a comment..."
+                                        class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                    <button id="postCommentBtn" type="button"
+                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        Post 🚀
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1941,10 +1941,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                        target="_blank"
-                                                                                                                        class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                        ${r.ponbr ?? ''}
-                                                                                                                    </a>`
+                                                                                                                                                                                                                                                                                                    target="_blank"
+                                                                                                                                                                                                                                                                                                    class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                    ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>

@@ -298,7 +298,7 @@
                             ];
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             {{-- Render all fields --}}
                             @foreach ($fields as $f)
@@ -462,40 +462,40 @@
                                     </tbody> --}}
                                     <tbody id="woAttachmentTbody"></tbody>
                                 </table>
-                                @if($canUpload)
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="woAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                            <div class="flex-1">
-                                                <label for="woAttachFiles"
-                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    Upload Attachments
-                                                </label>
-                                                <div class="flex items-center gap-3">
-                                                    <input type="hidden" name="cpnyid"
-                                                        value="{{ $wo->cpny_id }}">
-                                                    <input type="hidden" name="departementid"
-                                                        value="{{ $wo->department_id }}">
-                                                    <input type="file" id="woAttachFiles" name="attachments[]"
-                                                        multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    <button type="button" id="btnUploadSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" id="btnResetSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                        Reset
-                                                    </button>
+                                @if ($canUpload)
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="woAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="woAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $wo->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $wo->department_id }}">
+                                                        <input type="file" id="woAttachFiles" name="attachments[]"
+                                                            multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Max 10 files, PDF / Image preferred.
+                                                    </p>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Max 10 files, PDF / Image preferred.
-                                                </p>
                                             </div>
-                                        </div>
-                                    </form>
-                                </div>
+                                        </form>
+                                    </div>
                                 @endif
                             </div>
 
@@ -570,7 +570,7 @@
                     </button>
 
                     {{-- ✅ FORM harus SELALU ada, tapi hidden+disabled kalau bukan PIC --}}
-                    <div id="jobForm" class="mt-4 {{ $isPicWo ? '' : 'hidden' }}">
+                    <div id="jobForm" class="{{ $isPicWo ? '' : 'hidden' }} mt-4">
                         <div class="mb-3">
                             <div class="flex items-end gap-4">
                                 <div class="flex-1">
@@ -578,8 +578,7 @@
                                         class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                                         Status Pekerjaan
                                     </label>
-                                    <select id="jobStatusSelect"
-                                        {{ $isPicWo ? '' : 'disabled' }}
+                                    <select id="jobStatusSelect" {{ $isPicWo ? '' : 'disabled' }}
                                         class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                         <option value="">-- pilih --</option>
                                         <option value="P" @selected($wo->status_pekerjaan === 'P')>On Progress</option>
@@ -591,11 +590,11 @@
                                     </p>
                                 </div>
 
-                                <label class="mb-1 inline-flex select-none items-center gap-2 {{ $isPicWo ? '' : 'opacity-60' }}">
-                                    <input type="checkbox" id="flagSppbJkt"
-                                        {{ $isPicWo ? '' : 'disabled' }}
+                                <label
+                                    class="{{ $isPicWo ? '' : 'opacity-60' }} mb-1 inline-flex select-none items-center gap-2">
+                                    <input type="checkbox" id="flagSppbJkt" {{ $isPicWo ? '' : 'disabled' }}
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500"
-                                        @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1','Y','TRUE'])) />
+                                        @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
                                     <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
                                 </label>
                             </div>
@@ -624,8 +623,7 @@
                         <div>
                             <label for="jobComment"
                                 class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
-                            <textarea id="jobComment" rows="3"
-                                {{ $isPicWo ? '' : 'disabled' }}
+                            <textarea id="jobComment" rows="3" {{ $isPicWo ? '' : 'disabled' }}
                                 class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                 placeholder="Tuliskan catatan untuk pekerjaan ini...">{{ $wo->pic_wo_comment }}</textarea>
                         </div>
@@ -634,7 +632,8 @@
                     {{-- ✅ READ-ONLY CARD untuk info PIC (opsional) --}}
                     @if (!$isPicWo)
                         <div class="mt-4 flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
-                            <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                            <header
+                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <h2 class="text-xl font-semibold">📝 WO Detail</h2>
                                 <h2 class="text-xl font-medium">PIC : {{ $wo->pic_wo ?: '-' }}</h2>
                             </header>
@@ -672,7 +671,7 @@
                                 </label>
                                 <input type="text" readonly
                                     class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                                    value="{{$wo->pic_department ?? '-' }}">
+                                    value="{{ $wo->pic_department ?? '-' }}">
                             </div>
 
                             <label class="mb-1 inline-flex select-none items-center gap-2 opacity-60">
@@ -750,7 +749,7 @@
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
 
-   
+
     <script>
         $(document).ready(function() {
             const woid = "{{ $wo->woid }}";
@@ -1259,131 +1258,144 @@
         }
     </script>
 
-   <script>
-$(function () {
-    // pastikan tombol ada
-    $("#btnJobProcess").removeClass("hidden").show();
+    <script>
+        $(function() {
+            // pastikan tombol ada
+            $("#btnJobProcess").removeClass("hidden").show();
 
-    // ==== nilai dari Blade (aman) ====
-    const woid = "{{ $wo->woid }}";
-    const csrf = "{{ csrf_token() }}";
+            // ==== nilai dari Blade (aman) ====
+            const woid = "{{ $wo->woid }}";
+            const csrf = "{{ csrf_token() }}";
 
-    const isPicWo = {{ $isPicWo ? 'true' : 'false' }};
-    const initialJobStatus = @json($wo->status_pekerjaan ?? '');
-    const initialComment = @json($wo->pic_wo_comment ?? '');
-    const initialFlagRaw = @json($wo->flag_sppbjkt ?? null);
+            const isPicWo = {{ $isPicWo ? 'true' : 'false' }};
+            const initialJobStatus = @json($wo->status_pekerjaan ?? '');
+            const initialComment = @json($wo->pic_wo_comment ?? '');
+            const initialFlagRaw = @json($wo->flag_sppbjkt ?? null);
 
-    const $spinner = $("#loadingSpinnerContainer");
-    const $btn = $("#btnJobProcess");
-    const $form = $("#jobForm");
-    const $select = $("#jobStatusSelect");
-    const $comment = $("#jobComment");
-    const $flag = $("#flagSppbJkt");
-    const $dept = $("#pic_department");
+            const $spinner = $("#loadingSpinnerContainer");
+            const $btn = $("#btnJobProcess");
+            const $form = $("#jobForm");
+            const $select = $("#jobStatusSelect");
+            const $comment = $("#jobComment");
+            const $flag = $("#flagSppbJkt");
+            const $dept = $("#pic_department");
 
-    // normalisasi checkbox
-    const flagUpper = (initialFlagRaw === null || initialFlagRaw === undefined) ? '' : String(initialFlagRaw).toUpperCase();
-    const initialFlag = (initialFlagRaw === true || initialFlagRaw === 1 || initialFlagRaw === '1' || flagUpper === 'Y' || flagUpper === 'TRUE');
-    $flag.prop("checked", !!initialFlag);
+            // normalisasi checkbox
+            const flagUpper = (initialFlagRaw === null || initialFlagRaw === undefined) ? '' : String(
+                initialFlagRaw).toUpperCase();
+            const initialFlag = (initialFlagRaw === true || initialFlagRaw === 1 || initialFlagRaw === '1' ||
+                flagUpper === 'Y' || flagUpper === 'TRUE');
+            $flag.prop("checked", !!initialFlag);
 
-    console.log("[JOB INIT]", { isPicWo, initialJobStatus, initialComment, initialFlagRaw });
-
-    // ==== initial state ====
-    if (isPicWo) {
-        $form.removeClass("hidden");
-        $btn.attr("data-mode", "save").find("span").text("Save");
-
-        // enable input
-        $select.prop("disabled", false);
-        $comment.prop("disabled", false);
-        $flag.prop("disabled", false);
-        $dept.prop("disabled", false);
-
-        if (initialJobStatus) $select.val(initialJobStatus);
-        if (initialComment) $comment.val(initialComment);
-    } else {
-        $form.addClass("hidden");
-        $btn.attr("data-mode", "process").find("span").text("Process");
-    }
-
-    // hindari double binding kalau script ke-load ulang
-    $btn.off("click.jobprocess").on("click.jobprocess", function () {
-        const mode = $btn.attr("data-mode");
-
-        if (mode === "process") {
-            $spinner.fadeIn();
-
-            $.ajax({
-                url: "/wo/" + encodeURIComponent(woid) + "/process",
-                type: "POST",
-                data: { _token: csrf },
-                success: function (res) {
-                    if (!res || !res.success) {
-                        toastr.error((res && res.message) ? res.message : "Failed to start process.");
-                        return;
-                    }
-
-                    $form.removeClass("hidden");
-                    $select.prop("disabled", false);
-                    $comment.prop("disabled", false);
-                    $flag.prop("disabled", false);
-                    $dept.prop("disabled", false);
-
-                    $btn.attr("data-mode", "save").find("span").text("Save");
-                    toastr.success("WO is now being processed.");
-                },
-                error: function (xhr) {
-                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : "Failed to process WO.";
-                    toastr.error(msg);
-                },
-                complete: function () {
-                    $spinner.fadeOut();
-                }
+            console.log("[JOB INIT]", {
+                isPicWo,
+                initialJobStatus,
+                initialComment,
+                initialFlagRaw
             });
 
-        } else {
-            const jobStatus = ($select.val() || "").trim();
-            const comment = ($comment.val() || "").trim();
-            const flagVal = $flag.is(":checked") ? 1 : 0;
-            const departmentVal = ($dept.val() || "").trim();
+            // ==== initial state ====
+            if (isPicWo) {
+                $form.removeClass("hidden");
+                $btn.attr("data-mode", "save").find("span").text("Save");
 
-            if (!jobStatus) {
-                toastr.warning("Silakan pilih Status Pekerjaan terlebih dahulu.");
-                $select.focus();
-                return;
+                // enable input
+                $select.prop("disabled", false);
+                $comment.prop("disabled", false);
+                $flag.prop("disabled", false);
+                $dept.prop("disabled", false);
+
+                if (initialJobStatus) $select.val(initialJobStatus);
+                if (initialComment) $comment.val(initialComment);
+            } else {
+                $form.addClass("hidden");
+                $btn.attr("data-mode", "process").find("span").text("Process");
             }
 
-            $spinner.fadeIn();
+            // hindari double binding kalau script ke-load ulang
+            $btn.off("click.jobprocess").on("click.jobprocess", function() {
+                const mode = $btn.attr("data-mode");
 
-            $.ajax({
-                url: "/wo/" + encodeURIComponent(woid) + "/job-status",
-                type: "POST",
-                data: {
-                    _token: csrf,
-                    status_pekerjaan: jobStatus,
-                    pic_department: departmentVal,
-                    pic_wo_comment: comment,
-                    flag_sppbjkt: flagVal
-                },
-                success: function (res) {
-                    if (!res || !res.success) {
-                        toastr.error((res && res.message) ? res.message : "Failed to save job status.");
+                if (mode === "process") {
+                    $spinner.fadeIn();
+
+                    $.ajax({
+                        url: "/wo/" + encodeURIComponent(woid) + "/process",
+                        type: "POST",
+                        data: {
+                            _token: csrf
+                        },
+                        success: function(res) {
+                            if (!res || !res.success) {
+                                toastr.error((res && res.message) ? res.message :
+                                    "Failed to start process.");
+                                return;
+                            }
+
+                            $form.removeClass("hidden");
+                            $select.prop("disabled", false);
+                            $comment.prop("disabled", false);
+                            $flag.prop("disabled", false);
+                            $dept.prop("disabled", false);
+
+                            $btn.attr("data-mode", "save").find("span").text("Save");
+                            toastr.success("WO is now being processed.");
+                        },
+                        error: function(xhr) {
+                            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr
+                                .responseJSON.message : "Failed to process WO.";
+                            toastr.error(msg);
+                        },
+                        complete: function() {
+                            $spinner.fadeOut();
+                        }
+                    });
+
+                } else {
+                    const jobStatus = ($select.val() || "").trim();
+                    const comment = ($comment.val() || "").trim();
+                    const flagVal = $flag.is(":checked") ? 1 : 0;
+                    const departmentVal = ($dept.val() || "").trim();
+
+                    if (!jobStatus) {
+                        toastr.warning("Silakan pilih Status Pekerjaan terlebih dahulu.");
+                        $select.focus();
                         return;
                     }
-                    toastr.success("Job status saved.");
-                },
-                error: function (xhr) {
-                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : "Failed to save job status.";
-                    toastr.error(msg);
-                },
-                complete: function () {
-                    $spinner.fadeOut();
+
+                    $spinner.fadeIn();
+
+                    $.ajax({
+                        url: "/wo/" + encodeURIComponent(woid) + "/job-status",
+                        type: "POST",
+                        data: {
+                            _token: csrf,
+                            status_pekerjaan: jobStatus,
+                            pic_department: departmentVal,
+                            pic_wo_comment: comment,
+                            flag_sppbjkt: flagVal
+                        },
+                        success: function(res) {
+                            if (!res || !res.success) {
+                                toastr.error((res && res.message) ? res.message :
+                                    "Failed to save job status.");
+                                return;
+                            }
+                            toastr.success("Job status saved.");
+                        },
+                        error: function(xhr) {
+                            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr
+                                .responseJSON.message : "Failed to save job status.";
+                            toastr.error(msg);
+                        },
+                        complete: function() {
+                            $spinner.fadeOut();
+                        }
+                    });
                 }
             });
-        }
-    });
-});
-</script>
+        });
+    </script>
 
 
 

@@ -185,24 +185,26 @@
                                 class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
-                         
-                            
+
+
                             <a href="{{ url('/pdf_calr') }}/{{ $hash }}" target="_blank">
                                 <button
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
-                            </a>   
+                            </a>
 
                         </div>
                     </header>
 
-                   @php
+                    @php
                         $fmtDate = function ($v) {
                             return $v ? \Carbon\Carbon::parse($v)->format('d M Y') : '-';
                         };
                         $fmtMoney = function ($v) {
-                            if (is_null($v) || $v === '') return '-';
+                            if (is_null($v) || $v === '') {
+                                return '-';
+                            }
                             $num = (float) $v;
                             $sign = $num < 0 ? '-' : '';
                             $num = abs($num);
@@ -214,35 +216,36 @@
 
                         @php
                             // Reusable layout classes
-                            $row   = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
                             $fields = [
                                 [
-                                    'icon'  => 'calendar-days',
+                                    'icon' => 'calendar-days',
                                     'label' => 'CALR Date',
                                     'value' => $fmtDate($calr->calrdate),
                                 ],
                                 [
-                                    'icon'  => 'identification',
+                                    'icon' => 'identification',
                                     'label' => 'RFCA ID',
-                                    'value' => !empty($rfcaUrl) && !empty($calr->rfcaid)
-                                        ? '<a href="' .
-                                            $rfcaUrl .
-                                            '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                            e($calr->rfcaid) .
-                                            '</a>'
-                                        : ($calr->rfcaid ?? '-'),
+                                    'value' =>
+                                        !empty($rfcaUrl) && !empty($calr->rfcaid)
+                                            ? '<a href="' .
+                                                $rfcaUrl .
+                                                '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                                e($calr->rfcaid) .
+                                                '</a>'
+                                            : $calr->rfcaid ?? '-',
                                 ],
 
                                 [
-                                    'icon'  => 'tag',
+                                    'icon' => 'tag',
                                     'label' => 'RFCA Type',
                                     'value' => $calr->rfca_type ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'hashtag',
+                                    'icon' => 'hashtag',
                                     'label' => 'PO Nbr',
                                     'value' => !empty($poUrl)
                                         ? '<a href="' .
@@ -250,88 +253,90 @@
                                             '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
                                             e($calr->ponbr) .
                                             '</a>'
-                                        : ($calr->ponbr ?? '-'),
+                                        : $calr->ponbr ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'building-office',
+                                    'icon' => 'building-office',
                                     'label' => 'Company',
                                     'value' => $calr->cpny_id ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'squares-2x2',
+                                    'icon' => 'squares-2x2',
                                     'label' => 'Department',
                                     'value' => $calr->department_id ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'user',
+                                    'icon' => 'user',
                                     'label' => 'Requester',
                                     'value' => $calr->user_peminta ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'building-storefront',
+                                    'icon' => 'building-storefront',
                                     'label' => 'Vendor',
                                     'value' => $calr->vendorname ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'document-duplicate',
+                                    'icon' => 'document-duplicate',
                                     'label' => 'CS ID',
-                                    'value' => !empty($csUrl) && !empty($calr->csid)
-                                        ? '<a href="' .
-                                            $csUrl .
-                                            '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                            e($calr->csid) .
-                                            '</a>'
-                                        : ($calr->csid ?? '-'),
+                                    'value' =>
+                                        !empty($csUrl) && !empty($calr->csid)
+                                            ? '<a href="' .
+                                                $csUrl .
+                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                                e($calr->csid) .
+                                                '</a>'
+                                            : $calr->csid ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'document-text',
+                                    'icon' => 'document-text',
                                     'label' => 'SPPB/J/K/T',
-                                    'value' => !empty($sppbUrl) && !empty($calr->sppbjktid)
-                                        ? '<a href="' .
-                                            $sppbUrl .
-                                            '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                            e($calr->sppbjktid) .
-                                            '</a>'
-                                        : ($calr->sppbjktid ?? '-'),
+                                    'value' =>
+                                        !empty($sppbUrl) && !empty($calr->sppbjktid)
+                                            ? '<a href="' .
+                                                $sppbUrl .
+                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                                e($calr->sppbjktid) .
+                                                '</a>'
+                                            : $calr->sppbjktid ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'clipboard-document-list',
+                                    'icon' => 'clipboard-document-list',
                                     'label' => 'Purpose',
                                     'value' => $calr->keperluan ?? '-',
                                 ],
 
                                 // Financials
                                 [
-                                    'icon'  => 'currency-dollar',
+                                    'icon' => 'currency-dollar',
                                     'label' => 'RFCA Amount',
                                     'value' => 'Rp ' . $fmtMoney($calr->rfca_amount),
                                 ],
                                 [
-                                    'icon'  => 'currency-dollar',
+                                    'icon' => 'currency-dollar',
                                     'label' => 'CALR Amount',
                                     'value' => 'Rp ' . $fmtMoney($calr->calr_amount),
                                 ],
                                 [
-                                    'icon'  => 'scale',
+                                    'icon' => 'scale',
                                     'label' => 'Balance Amount',
                                     'value' => 'Rp ' . $fmtMoney($calr->balance_amount),
                                 ],
 
                                 // Audit info
                                 [
-                                    'icon'  => 'user-circle',
+                                    'icon' => 'user-circle',
                                     'label' => 'Created By',
                                     'value' => $calr->created_by ?? '-',
                                 ],
                                 [
-                                    'icon'  => 'user-circle',
+                                    'icon' => 'user-circle',
                                     'label' => 'Updated By',
                                     'value' => $calr->updated_by ?? '-',
                                 ],
                             ];
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
                                     <div class="{{ $label }}">
@@ -410,39 +415,39 @@
                                             <tbody id="rcpAttachmentTbody"></tbody>
                                         </table>
                                         @if ($canUpload)
-                                        <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                            <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
-                                                @csrf
-                                                <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                                    <div class="flex-1">
-                                                        <label for="rcpAttachFiles"
-                                                            class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                            Upload Attachments
-                                                        </label>
-                                                        <div class="flex items-center gap-3">
-                                                            <input type="hidden" name="cpnyid"
-                                                                value="{{ $calr->cpny_id }}">
-                                                            <input type="hidden" name="departementid"
-                                                                value="{{ $calr->department_id }}">
-                                                            <input type="file" id="rcpAttachFiles"
-                                                                name="attachments[]" multiple
-                                                                class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                            <button type="button" id="btnUploadSppbAttachment"
-                                                                class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                                Upload
-                                                            </button>
-                                                            <button type="button" id="btnResetSppbAttachment"
-                                                                class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                                Reset
-                                                            </button>
+                                            <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                                <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                        <div class="flex-1">
+                                                            <label for="rcpAttachFiles"
+                                                                class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                                Upload Attachments
+                                                            </label>
+                                                            <div class="flex items-center gap-3">
+                                                                <input type="hidden" name="cpnyid"
+                                                                    value="{{ $calr->cpny_id }}">
+                                                                <input type="hidden" name="departementid"
+                                                                    value="{{ $calr->department_id }}">
+                                                                <input type="file" id="rcpAttachFiles"
+                                                                    name="attachments[]" multiple
+                                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                <button type="button" id="btnUploadSppbAttachment"
+                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                                    Upload
+                                                                </button>
+                                                                <button type="button" id="btnResetSppbAttachment"
+                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                                    Reset
+                                                                </button>
+                                                            </div>
+                                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                Max 10 files, PDF / Image preferred.
+                                                            </p>
                                                         </div>
-                                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                            Max 10 files, PDF / Image preferred.
-                                                        </p>
                                                     </div>
-                                                </div>
-                                            </form>
-                                        </div>
+                                                </form>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
@@ -469,7 +474,7 @@
                         </div>
                     </div>
 
-                    
+
                 </div>
 
             </div>
@@ -479,7 +484,7 @@
             <div class="mt-6 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                     <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">
-                        PO Detail                       
+                        PO Detail
                     </h3>
                 </div>
 
@@ -517,7 +522,7 @@
                 </div>
             </div>
 
-           
+
 
 
         </div>
@@ -555,7 +560,7 @@
         </div>
     </div>
 
- 
+
 
     {{-- Overlay --}}
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
@@ -681,8 +686,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-              
-
         // Approve button -> cek authorize -> buka modal + load ratings
         $(document).on("click", "#approveBtn", function() {
             const calrid = "{{ $calr->calrid }}";
@@ -720,8 +723,7 @@
                     });
                 });
         });
-       
-    </script> 
+    </script>
 
 
     <script>
@@ -1061,7 +1063,7 @@
         }
     </script>
 
-    
+
     {{-- <script>
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('printMenuBtn');

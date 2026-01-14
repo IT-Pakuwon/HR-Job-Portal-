@@ -179,7 +179,7 @@
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
-                            </a>                           
+                            </a>
 
                         </div>
                     </header>
@@ -202,145 +202,151 @@
 
                         @php
                             // Reusable layout classes
-                            $rowClass   = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $rowClass = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $labelClass = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $valueClass = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
                             // Helper number/date formats
                             $money = fn($v) => $fmtMoney($v ?? null);
-                            $pct   = fn($v) => $fmtPct($v ?? null);
-                            $date  = fn($v) => $fmtDate($v ?? null);
+                            $pct = fn($v) => $fmtPct($v ?? null);
+                            $date = fn($v) => $fmtDate($v ?? null);
 
                             $fields = [
                                 // ==== Header & basic info ====
                                 [
-                                    'icon'  => 'calendar-days',
+                                    'icon' => 'calendar-days',
                                     'label' => 'RFCA Date',
                                     'value' => $date($rfca->rfcadate),
                                 ],
                                 [
-                                    'icon'  => 'hashtag',
+                                    'icon' => 'hashtag',
                                     'label' => 'PO Nbr',
                                     'value' => !empty($poUrl)
-                                        ? '<a href="' . e($poUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">'
-                                            . e($rfca->ponbr) .
-                                        '</a>'
+                                        ? '<a href="' .
+                                            e($poUrl) .
+                                            '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            e($rfca->ponbr) .
+                                            '</a>'
                                         : e($rfca->ponbr),
                                 ],
                                 [
-                                    'icon'  => 'building-office',
+                                    'icon' => 'building-office',
                                     'label' => 'Company',
                                     'value' => e($rfca->cpny_id),
                                 ],
                                 [
-                                    'icon'  => 'squares-2x2',
+                                    'icon' => 'squares-2x2',
                                     'label' => 'Department',
                                     'value' => e($rfca->department_id),
                                 ],
                                 [
-                                    'icon'  => 'user',
+                                    'icon' => 'user',
                                     'label' => 'Requester',
                                     'value' => e($rfca->user_peminta),
                                 ],
                                 [
-                                    'icon'  => 'document-text',
+                                    'icon' => 'document-text',
                                     'label' => 'Purpose',
                                     'value' => e($rfca->keperluan),
                                 ],
                                 [
-                                    'icon'  => 'building-storefront',
+                                    'icon' => 'building-storefront',
                                     'label' => 'Vendor',
                                     'value' => e($rfca->vendorname),
                                 ],
 
                                 // ==== Link CS & SPPB/J/K/T (opsional) ====
                                 [
-                                    'icon'  => 'document-duplicate',
+                                    'icon' => 'document-duplicate',
                                     'label' => 'CS ID',
                                     'value' => !empty($csUrl)
-                                        ? '<a href="' . e($csUrl) . '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">'
-                                            . e($rfca->csid) .
-                                        '</a>'
+                                        ? '<a href="' .
+                                            e($csUrl) .
+                                            '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            e($rfca->csid) .
+                                            '</a>'
                                         : e($rfca->csid),
                                 ],
                                 [
-                                    'icon'  => 'document-text',
+                                    'icon' => 'document-text',
                                     'label' => 'SPPB/J/K/T',
                                     'value' => !empty($sppbUrl)
-                                        ? '<a href="' . e($sppbUrl) . '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">'
-                                            . e($rfca->sppbjktid) .
-                                        '</a>'
+                                        ? '<a href="' .
+                                            e($sppbUrl) .
+                                            '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            e($rfca->sppbjktid) .
+                                            '</a>'
                                         : e($rfca->sppbjktid),
                                 ],
 
                                 // ==== Financials ====
                                 [
-                                    'icon'  => 'currency-dollar',
+                                    'icon' => 'currency-dollar',
                                     'label' => 'PO Amount',
                                     'value' => 'Rp ' . $money($rfca->po_amount),
                                 ],
                                 [
-                                    'icon'  => 'currency-dollar',
+                                    'icon' => 'currency-dollar',
                                     'label' => 'RFCA Amount',
                                     'value' => 'Rp ' . $money($rfca->rfca_amount),
                                 ],
                                 [
-                                    'icon'  => 'chart-bar',
+                                    'icon' => 'chart-bar',
                                     'label' => 'Payment %',
                                     'value' => $pct($rfca->payment_pct),
                                 ],
 
                                 // ==== Previous RFCA info ====
                                 [
-                                    'icon'  => 'arrow-uturn-left',
+                                    'icon' => 'arrow-uturn-left',
                                     'label' => 'Previous RFCA ID',
                                     'value' => $rfca->prev_rfcaid ? e($rfca->prev_rfcaid) : '-',
                                 ],
                                 [
-                                    'icon'  => 'currency-dollar',
+                                    'icon' => 'currency-dollar',
                                     'label' => 'Previous RFCA Amount',
-                                    'value' => $rfca->prev_rfca_amount !== null
-                                        ? 'Rp ' . $money($rfca->prev_rfca_amount)
-                                        : '-',
+                                    'value' =>
+                                        $rfca->prev_rfca_amount !== null
+                                            ? 'Rp ' . $money($rfca->prev_rfca_amount)
+                                            : '-',
                                 ],
                                 [
-                                    'icon'  => 'plus-circle',
+                                    'icon' => 'plus-circle',
                                     'label' => 'Additional RFCA Amount',
-                                    'value' => $rfca->add_rfca_amount !== null
-                                        ? 'Rp ' . $money($rfca->add_rfca_amount)
-                                        : '-',
+                                    'value' =>
+                                        $rfca->add_rfca_amount !== null ? 'Rp ' . $money($rfca->add_rfca_amount) : '-',
                                 ],
 
                                 // ==== Dates pipeline ====
                                 [
-                                    'icon'  => 'calendar',
+                                    'icon' => 'calendar',
                                     'label' => 'Required Date',
                                     'value' => $date($rfca->required_date),
                                 ],
                                 [
-                                    'icon'  => 'calendar',
+                                    'icon' => 'calendar',
                                     'label' => 'CALR Date',
                                     'value' => $date($rfca->calr_date),
                                 ],
 
                                 // ==== RFCA pipeline meta ====
                                 [
-                                    'icon'  => 'tag',
+                                    'icon' => 'tag',
                                     'label' => 'RFCA Type',
                                     'value' => $rfca->rfca_type !== null ? e($rfca->rfca_type) : '-',
                                 ],
                                 [
-                                    'icon'  => 'tag',
+                                    'icon' => 'tag',
                                     'label' => 'Status RFCA',
                                     'value' => $rfca->status_rfca !== null ? e($rfca->status_rfca) : '-',
                                 ],
                                 [
-                                    'icon'  => 'user-circle',
+                                    'icon' => 'user-circle',
                                     'label' => 'Created By',
                                     'value' => e($rfca->created_by),
                                 ],
                                 [
-                                    'icon'  => 'user-circle',
+                                    'icon' => 'user-circle',
                                     'label' => 'Updated By',
                                     'value' => e($rfca->updated_by),
                                 ],
@@ -348,7 +354,7 @@
                         @endphp
 
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             {{-- Render rows normally --}}
                             @foreach ($fields as $f)
@@ -431,39 +437,39 @@
                                             <tbody id="rcpAttachmentTbody"></tbody>
                                         </table>
                                         @if (!empty($canSubmit) && $canSubmit)
-                                        <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                            <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
-                                                @csrf
-                                                <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                                    <div class="flex-1">
-                                                        <label for="rcpAttachFiles"
-                                                            class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                            Upload Attachments
-                                                        </label>
-                                                        <div class="flex items-center gap-3">
-                                                            <input type="hidden" name="cpnyid"
-                                                                value="{{ $rfca->cpny_id }}">
-                                                            <input type="hidden" name="departementid"
-                                                                value="{{ $rfca->department_id }}">
-                                                            <input type="file" id="rcpAttachFiles"
-                                                                name="attachments[]" multiple
-                                                                class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                            <button type="button" id="btnUploadSppbAttachment"
-                                                                class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                                Upload
-                                                            </button>
-                                                            <button type="button" id="btnResetSppbAttachment"
-                                                                class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                                Reset
-                                                            </button>
+                                            <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                                <form id="rcpAttachmentUploadForm" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                        <div class="flex-1">
+                                                            <label for="rcpAttachFiles"
+                                                                class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                                Upload Attachments
+                                                            </label>
+                                                            <div class="flex items-center gap-3">
+                                                                <input type="hidden" name="cpnyid"
+                                                                    value="{{ $rfca->cpny_id }}">
+                                                                <input type="hidden" name="departementid"
+                                                                    value="{{ $rfca->department_id }}">
+                                                                <input type="file" id="rcpAttachFiles"
+                                                                    name="attachments[]" multiple
+                                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                <button type="button" id="btnUploadSppbAttachment"
+                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                                    Upload
+                                                                </button>
+                                                                <button type="button" id="btnResetSppbAttachment"
+                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                                    Reset
+                                                                </button>
+                                                            </div>
+                                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                Max 10 files, PDF / Image preferred.
+                                                            </p>
                                                         </div>
-                                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                            Max 10 files, PDF / Image preferred.
-                                                        </p>
                                                     </div>
-                                                </div>
-                                            </form>
-                                        </div>
+                                                </form>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
@@ -488,8 +494,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div>     
-                   
+                    </div>
+
                     {{-- RFCA Steps Table --}}
                     <div class="mt-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <div class="mb-3 flex items-center justify-between">
@@ -525,7 +531,11 @@
                                 // - TP belum selesai
                                 // - ada nextStep
                                 // - dan dept user sesuai dengan dept step aktif (dari controller)
-                                $canProcessStep = !$hasTreasuryDone && $nextStep && !empty($canProcessStepDept) && $canProcessStepDept;
+                                $canProcessStep =
+                                    !$hasTreasuryDone &&
+                                    $nextStep &&
+                                    !empty($canProcessStepDept) &&
+                                    $canProcessStepDept;
                             @endphp
 
                             @if ($canProcessStep)
@@ -544,7 +554,8 @@
 
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm">
-                                <thead class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                <thead
+                                    class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                     <tr>
                                         <th class="p-2 text-left font-semibold">Order</th>
                                         <th class="p-2 text-left font-semibold">Description</th>
@@ -558,11 +569,26 @@
                                         @php
                                             $st = $step->status_rfca;
                                             [$lbl, $cls] = match ($st) {
-                                                'P' => ['Pending', 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/40 dark:text-yellow-300'],
-                                                'C' => ['Done', 'bg-green-100 text-green-700 dark:bg-green-800/40 dark:text-green-300'],
-                                                'R' => ['Rejected', 'bg-red-100 text-red-700 dark:bg-red-800/40 dark:text-red-300'],
-                                                'S' => ['Revise', 'bg-blue-100 text-blue-700 dark:bg-blue-800/40 dark:text-blue-300'],
-                                                default => ['-', 'bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-300'],
+                                                'P' => [
+                                                    'Pending',
+                                                    'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/40 dark:text-yellow-300',
+                                                ],
+                                                'C' => [
+                                                    'Done',
+                                                    'bg-green-100 text-green-700 dark:bg-green-800/40 dark:text-green-300',
+                                                ],
+                                                'R' => [
+                                                    'Rejected',
+                                                    'bg-red-100 text-red-700 dark:bg-red-800/40 dark:text-red-300',
+                                                ],
+                                                'S' => [
+                                                    'Revise',
+                                                    'bg-blue-100 text-blue-700 dark:bg-blue-800/40 dark:text-blue-300',
+                                                ],
+                                                default => [
+                                                    '-',
+                                                    'bg-gray-100 text-gray-700 dark:bg-gray-800/40 dark:text-gray-300',
+                                                ],
                                             };
                                         @endphp
                                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -579,15 +605,18 @@
                                                 @endif
                                             </td>
                                             <td class="p-2 align-top">
-                                                <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold {{ $cls }}">
+                                                <span
+                                                    class="{{ $cls }} inline-flex rounded-full px-2 py-0.5 text-xs font-semibold">
                                                     {{ $lbl }}
                                                 </span>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
-                                                No RFCA steps generated yet. Click <strong>Submit</strong> to choose RFCA Type and generate steps.
+                                            <td colspan="5"
+                                                class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                                                No RFCA steps generated yet. Click <strong>Submit</strong> to choose
+                                                RFCA Type and generate steps.
                                             </td>
                                         </tr>
                                     @endforelse
@@ -598,11 +627,10 @@
 
 
 
-                </div>     
+                </div>
 
                 {{-- Modal Choose RFCA Type --}}
-                <div id="rfcaTypeModal"
-                    class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40">
+                <div id="rfcaTypeModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40">
                     <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
                         <h2 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
                             Purchasing - Choose RFCA Type
@@ -613,8 +641,10 @@
                         </p>
 
                         <div class="mb-4 space-y-3">
-                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                                <input type="radio" name="rfca_type_choice" value="RFCA" class="h-4 w-4 text-indigo-600">
+                            <label
+                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                                <input type="radio" name="rfca_type_choice" value="RFCA"
+                                    class="h-4 w-4 text-indigo-600">
                                 <div>
                                     <div class="font-semibold text-gray-800 dark:text-gray-100">RFCA</div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -623,8 +653,10 @@
                                 </div>
                             </label>
 
-                            <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                                <input type="radio" name="rfca_type_choice" value="RFP" class="h-4 w-4 text-indigo-600">
+                            <label
+                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                                <input type="radio" name="rfca_type_choice" value="RFP"
+                                    class="h-4 w-4 text-indigo-600">
                                 <div>
                                     <div class="font-semibold text-gray-800 dark:text-gray-100">RFP</div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -636,11 +668,11 @@
 
                         <div class="mt-4 flex justify-end gap-2">
                             <button type="button" id="rfcaTypeCancel"
-                                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                 Cancel
                             </button>
                             <button type="button" id="rfcaTypeConfirm"
-                                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 Confirm
                             </button>
                         </div>
@@ -652,7 +684,7 @@
 
         </div>
     </div>
-   
+
     {{-- Overlay --}}
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
@@ -776,7 +808,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        
+
     <script>
         $(function() {
             const listUrl = @json(route('attachments.list', ['doctype' => 'RC', 'refnbr' => $rfca->rfcaid]));
@@ -951,23 +983,23 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const submitUrl = @json(route('rfca.submitType', ['hash' => $hash]));
             const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
             // buka modal
-            $('#submitBtn').on('click', function (e) {
+            $('#submitBtn').on('click', function(e) {
                 e.preventDefault();
                 $('#rfcaTypeModal').removeClass('hidden').addClass('flex');
             });
 
             // cancel modal
-            $('#rfcaTypeCancel').on('click', function () {
+            $('#rfcaTypeCancel').on('click', function() {
                 $('#rfcaTypeModal').addClass('hidden').removeClass('flex');
             });
 
             // confirm pilih type
-            $('#rfcaTypeConfirm').on('click', function () {
+            $('#rfcaTypeConfirm').on('click', function() {
                 const chosen = $('input[name="rfca_type_choice"]:checked').val();
 
                 if (!chosen) {
@@ -986,7 +1018,7 @@
                     data: {
                         rfca_type: chosen
                     },
-                    success: function (res) {
+                    success: function(res) {
                         if (res.success) {
                             toastr.success(res.message || 'RFCA steps generated.');
                             $('#rfcaTypeModal').addClass('hidden').removeClass('flex');
@@ -996,11 +1028,11 @@
                             toastr.error(res.message || 'Failed to generate RFCA steps.');
                         }
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         let msg = xhr.responseJSON?.message || 'Failed to generate RFCA steps.';
                         toastr.error(msg);
                     },
-                    complete: function () {
+                    complete: function() {
                         $spinner.fadeOut();
                     }
                 });
@@ -1009,10 +1041,10 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const approveStepUrl = @json(route('rfca.approveStep', ['hash' => $hash]));
 
-            $('#rfcaStepApproveBtn').on('click', function (e) {
+            $('#rfcaStepApproveBtn').on('click', function(e) {
                 e.preventDefault();
 
                 Swal.fire({
@@ -1034,20 +1066,23 @@
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
-                        success: function (res) {
+                        success: function(res) {
                             if (res.success) {
-                                toastr.success(res.message || 'Active RFCA Step approved.');
+                                toastr.success(res.message ||
+                                    'Active RFCA Step approved.');
                                 // reload supaya table & header update
                                 setTimeout(() => window.location.reload(), 600);
                             } else {
-                                toastr.error(res.message || 'Failed to approve RFCA Step.');
+                                toastr.error(res.message ||
+                                    'Failed to approve RFCA Step.');
                             }
                         },
-                        error: function (xhr) {
-                            let msg = xhr.responseJSON?.message || 'Failed to approve RFCA Step.';
+                        error: function(xhr) {
+                            let msg = xhr.responseJSON?.message ||
+                                'Failed to approve RFCA Step.';
                             toastr.error(msg);
                         },
-                        complete: function () {
+                        complete: function() {
                             $spinner.fadeOut();
                         }
                     });

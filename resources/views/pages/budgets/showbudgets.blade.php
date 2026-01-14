@@ -1,31 +1,91 @@
 <x-app-layout>
     <style>
-        /* This container needs a defined height and overflow-y for the sticky position to work. */
-        .table-container {
-            height: 400px;
-            /* You can adjust this height as needed */
-            overflow-y: auto;
-            -bottom-left-radius: 1rem;
-            -bottom-right-radius: 1rem;
-        }
-
-        .sticky-header thead {
-            position: sticky;
-            top: 0;
-            /* Optional: Ensure the header is above the body content when scrolling */
-            z-index: 10;
-        }
-
-        /* Tailwind + DataTables FixedColumns hard fix */
+        /* DataTables scroll fix */
         .dataTables_scrollBody {
             overflow-x: auto !important;
         }
 
+        /* Force equal width between header & body */
         .dataTables_scrollHeadInner,
         .dataTables_scrollBody table {
             width: 100% !important;
         }
+
+        .dtfc-fixed-left {
+            overflow: hidden;
+        }
+
+        /* ===============================
+   FIXED COLUMNS (FIRST 7)
+   =============================== */
+
+        /* lock row height so clones align */
+        .dataTable tbody tr,
+        .dtfc-fixed-left tbody tr {
+            min-height: 52px;
+        }
+
+        /* default: no wrapping */
+        .dataTable td {
+            white-space: nowrap;
+        }
+
+        /* ONLY frozen columns may wrap */
+        .dtfc-fixed-left td {
+            white-space: normal !important;
+            word-break: break-word;
+            vertical-align: top;
+            max-width: 220px;
+        }
+
+        /* background sync */
+        .dtfc-fixed-left {
+            background: white;
+            /* box-shadow: 2px 0 8px rgba(0, 0, 0, .06); */
+
+        }
+
+        .dark .dtfc-fixed-left {
+            background: #4b5563;
+        }
+
+        /* divider line */
+        .dtfc-fixed-left td,
+        .dtfc-fixed-left th {
+            border-right: 1px solid #d1d5db;
+        }
+
+        /* hover sync */
+        .dataTable tbody tr:hover td,
+        .dtfc-fixed-left tbody tr:hover td {
+            background-color: #f3f4f6 !important;
+        }
+
+        .dark .dataTable tbody tr:hover td,
+        .dark .dtfc-fixed-left tbody tr:hover td {
+            background-color: #374151 !important;
+        }
+
+        /* Make scroll body same as fixed columns */
+        .dataTables_scrollBody {
+            background: white;
+        }
+
+        .dark .dataTables_scrollBody {
+            background: #4b5563;
+        }
+
+        .dataTable tbody tr:nth-child(even) td,
+        .dtfc-fixed-left tbody tr:nth-child(even) td {
+            background-color: #f9fafb;
+        }
+
+        .dark .dataTable tbody tr:nth-child(even) td,
+        .dark .dtfc-fixed-left tbody tr:nth-child(even) td {
+            background-color: #374151;
+        }
     </style>
+
     <style>
         /* Overlay full-screen */
         #loadingSpinnerContainer {
@@ -545,18 +605,51 @@
 
     <script>
         $(document).ready(function() {
-            const table = $('#budget-table').DataTable({
+            $('#budget-table').DataTable({
                 scrollX: true,
-                scrollY: 300,
+                scrollY: '400px',
                 scrollCollapse: true,
 
                 fixedColumns: {
-                    leftColumns: 7
+                    leftColumns: 7 // ✅ FREEZE FIRST 7 COLUMNS
                 },
 
-                searching: false,
+                columnDefs: [{
+                        targets: 0,
+                        width: 100
+                    }, // Account
+                    {
+                        targets: 1,
+                        width: 120
+                    }, // Activity ID
+                    {
+                        targets: 2,
+                        width: 260
+                    }, // Description
+                    {
+                        targets: 3,
+                        width: 200
+                    }, // Detail
+                    {
+                        targets: 4,
+                        width: 70
+                    }, // Qty
+                    {
+                        targets: 5,
+                        width: 120
+                    }, // Unit Price
+                    {
+                        targets: 6,
+                        width: 150
+                    }, // Total Budget
+
+                    // 🚫 DO NOT set width for months here
+                ],
+
                 paging: false,
-                lengthChange: false,
+                searching: false,
+                ordering: false,
+                info: false,
                 autoWidth: false
             });
         });
@@ -570,7 +663,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="italic text-gray-500">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -580,7 +673,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="italic text-gray-500">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -591,19 +684,19 @@
                             const timeAgo = timeStr ? dayjs(timeStr).fromNow() : '';
 
                             commentList.append(`
-                                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
-                                    <p class="text-sm font-semibold">
-                                        ${comment.username}
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
-                                    </p>
-                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
-                                </div>
-                            `);
+    <div class="mb-2 rounded-lg bg-gray-100 p-3 dark:bg-gray-800">
+        <p class="text-sm font-semibold">
+            ${comment.username}
+            <span class="text-xs text-gray-500">(${timeAgo})</span>
+        </p>
+        <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+    </div>
+    `);
                         });
                     },
                     error: function(xhr) {
                         console.error("Error fetching comments:", xhr.responseText);
-                        commentList.html('<p class="text-red-500 italic">Failed to load comments.</p>');
+                        commentList.html('<p class="italic text-red-500">Failed to load comments.</p>');
                     }
                 });
             }

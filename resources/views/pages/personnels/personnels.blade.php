@@ -94,7 +94,6 @@
                         class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
-                            <th class="w-8"></th>
                             <th scope="col" class="w-32 px-6 py-3 font-medium">
                                 DocID
                             </th>

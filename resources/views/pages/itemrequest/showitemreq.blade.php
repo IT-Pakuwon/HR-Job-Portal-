@@ -192,7 +192,7 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             {{-- Reusable Classes --}}
                             @php
@@ -241,7 +241,7 @@
                             @endforeach
 
                             {{-- Request Type + Purpose (same card style as your system) --}}
-                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">                               
+                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
 
                                 {{-- Purpose --}}
                                 <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
@@ -255,18 +255,20 @@
                                 </div>
 
                             </div>
-                            @if($itemReq->inventoryid)
-                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row">     
-                                <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
-                                    <div class="flex flex-col">
-                                        <span class="text-gray-500">Inventory</span>
-                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
-                                            {{ $itemReq->inventoryid }} - {{ $itemReq->inventory?->inventory_descr ?? '-' }}
-                                        </span>
+                            @if ($itemReq->inventoryid)
+                                <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
+                                    <div
+                                        class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                        <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
+                                        <div class="flex flex-col">
+                                            <span class="text-gray-500">Inventory</span>
+                                            <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                                {{ $itemReq->inventoryid }} -
+                                                {{ $itemReq->inventory?->inventory_descr ?? '-' }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             @endif
                         </div>
                     </div>
@@ -322,7 +324,7 @@
                                     <tbody id="approval-table-body">
                                     </tbody>
 
-                                    
+
                                 </table>
                             </div>
                             {{-- Attachment tab --}}
@@ -335,45 +337,45 @@
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    
+
                                     <tbody id="itemreqAttachmentTbody"></tbody>
 
                                 </table>
                                 {{-- Upload attachment (multi) --}}
-                                @if($canUpload)
-                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <form id="itemreqAttachmentUploadForm" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                            <div class="flex-1">
-                                                <label for="itemreqAttachFiles"
-                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                    Upload Attachments
-                                                </label>
-                                                <div class="flex items-center gap-3">
-                                                    <input type="hidden" name="cpnyid"
-                                                        value="{{ $itemReq->cpny_id }}">
-                                                    <input type="hidden" name="departementid"
-                                                        value="{{ $itemReq->department_id }}">
-                                                    <input type="file" id="itemreqAttachFiles" name="attachments[]"
-                                                        multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    <button type="button" id="btnUploadSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                        Upload
-                                                    </button>
-                                                    <button type="button" id="btnResetSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                        Reset
-                                                    </button>
+                                @if ($canUpload)
+                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                        <form id="itemreqAttachmentUploadForm" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                <div class="flex-1">
+                                                    <label for="itemreqAttachFiles"
+                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        Upload Attachments
+                                                    </label>
+                                                    <div class="flex items-center gap-3">
+                                                        <input type="hidden" name="cpnyid"
+                                                            value="{{ $itemReq->cpny_id }}">
+                                                        <input type="hidden" name="departementid"
+                                                            value="{{ $itemReq->department_id }}">
+                                                        <input type="file" id="itemreqAttachFiles"
+                                                            name="attachments[]" multiple
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        <button type="button" id="btnUploadSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            Upload
+                                                        </button>
+                                                        <button type="button" id="btnResetSppbAttachment"
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        Max 10 files, PDF / Image preferred.
+                                                    </p>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                    Max 10 files, PDF / Image preferred.
-                                                </p>
                                             </div>
-                                        </div>
-                                    </form>
-                                </div>
+                                        </form>
+                                    </div>
                                 @endif
                             </div>
 
@@ -402,7 +404,7 @@
             </div>
         </div>
     </div>
-   
+
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
             <div class="loading-spinner"></div>
@@ -950,6 +952,6 @@
         }
     </script>
 
-  
+
 
 </x-app-layout>
