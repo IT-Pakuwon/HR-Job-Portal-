@@ -291,7 +291,7 @@
 
 
                         {{-- Approval tab --}}
-                        <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto p-4">
+                        <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr
@@ -350,7 +350,7 @@
                             </table>
                         </div>
                         {{-- Attachment tab --}}
-                        <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto p-4">
+                        <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
                             <table class="w-full text-sm">
                                 <thead class="text-gray-600 dark:text-gray-300">
                                     <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -446,7 +446,7 @@
                         </div>
 
                         {{-- Comments tab --}}
-                        <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto p-4">
+                        <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                 <div id="commentList"
                                     class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
@@ -1664,12 +1664,12 @@
 
                         tbody.innerHTML += `
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                <td class="p-3">${row.aprv_leveling}</td>
-                                <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">
+                                <td class="px-3 py-[2px]">${row.aprv_leveling}</td>
+                                <td class="px-3 py-[2px]">${row.aprv_name}</td>
+                                <td class="px-3 py-[2px]">
                                     ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
                                 </td>
-                                <td class="p-3">${statusLabel}</td>
+                                <td class="px-3 py-[2px]">${statusLabel}</td>
                             </tr>
                         `;
                     });
@@ -1714,7 +1714,7 @@
                     statusClass = "bg-gray-500 text-white";
             }
 
-            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-sm font-semibold">${statusText}</span>`;
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
         }
     </script>
 
@@ -1941,10 +1941,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                target="_blank"
-                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                            </a>`
+                                                                                                                                                                                                                                                                                                                                                        target="_blank"
+                                                                                                                                                                                                                                                                                                                                                        class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                        ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                    </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
