@@ -450,12 +450,12 @@
                             <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                 <div id="commentList"
                                     class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                    <p class="py-4 text-center text-sm italic text-gray-500">Loading comments...</p>
                                 </div>
                                 <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
                                     <input id="commentInput" x-model="newComment" type="text"
                                         placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                        class="flex-1 rounded-lg bg-gray-100 px-3 py-[2px] text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn" type="button"
                                         class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
@@ -1067,7 +1067,7 @@
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
-                commentList.html('<p class="text-gray-500 italic">Loading comments...</p>');
+                commentList.html('<p class="text-gray-500 text-sm italic">Loading comments...</p>');
 
                 $.ajax({
                     url: `/comments/${doctype}/${refnbr}`,
@@ -1093,7 +1093,7 @@
                                         ${comment.username}
                                         <span class="text-sm text-gray-500">(${timeAgo})</span>
                                     </p>
-                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                    <p class="text-gray-800 text-sm dark:text-gray-200">${comment.message}</p>
                                 </div>
                             `);
                         });
@@ -1941,10 +1941,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                        target="_blank"
-                                                                                                                                                                                                                                                                                                                                                        class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                        ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                    </a>`
+                                                                                                                                                                                                                                                                                                                                                                        target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                        class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                        ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                    </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
