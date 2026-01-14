@@ -5,12 +5,12 @@
                        <div class="flex w-full flex-col">
                            {{-- Personal Information --}}
                            <div x-data="{ isOpen: true }" class="pb-4">
-                               <div class="overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
+                               <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                                    <header
                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                       {{-- <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                       {{-- <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                                🆔{{ $applicant->applicant_id }}</h2> --}}
-                                       <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                       <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                            Personal
                                            Information</h2>
                                        <form id="applicantprofile" class="flex-shrink-0">
@@ -52,7 +52,7 @@
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Full
                                                                        Name</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->full_name }}</p>
                                                                </div>
                                                            </div>
@@ -64,7 +64,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Email</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->email_address }}</p>
                                                                </div>
                                                            </div>
@@ -82,7 +82,7 @@
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Birth
                                                                        Place</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->birth_place }}</p>
                                                                </div>
                                                            </div>
@@ -93,7 +93,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">DOB</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->date_of_birth }}</p>
                                                                </div>
                                                            </div>
@@ -107,7 +107,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Gender</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->gender }}</p>
                                                                </div>
                                                            </div>
@@ -119,7 +119,7 @@
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Blood
                                                                        Type</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->blood_type }}</p>
                                                                </div>
                                                            </div>
@@ -136,7 +136,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Age</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->age }}</p>
                                                                </div>
                                                            </div>
@@ -147,7 +147,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Height</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->height }} cm</p>
                                                                </div>
                                                            </div>
@@ -158,7 +158,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Weight</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->weight }} kg</p>
                                                                </div>
                                                            </div>
@@ -174,7 +174,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Citizenship</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->citizenship }}</p>
                                                                </div>
                                                            </div>
@@ -186,7 +186,7 @@
                                                                        class="text-xs text-gray-500 dark:text-gray-400">KTP
                                                                        ID</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->ktp_id }}</p>
                                                                </div>
                                                            </div>
@@ -201,7 +201,7 @@
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Marital
                                                                        Status</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->martial_status }}</p>
                                                                </div>
                                                            </div>
@@ -212,7 +212,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Religion</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->religion }}</p>
                                                                </div>
                                                            </div>
@@ -227,7 +227,7 @@
                                                                <span
                                                                    class="text-xs text-gray-500 dark:text-gray-400">Address</span>
                                                                <p
-                                                                   class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                   class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                    {{ $applicant->id_address }}
                                                                    {{ $applicant->domicile_address }}
                                                                    {{ $applicant->domicile_city }}</p>
@@ -244,7 +244,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Facebook</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->sosmed_facebook_account }}
                                                                    </p>
                                                                </div>
@@ -256,7 +256,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Instagram</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->sosmed_instagram_account }}
                                                                    </p>
                                                                </div>
@@ -268,7 +268,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">Twitter</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->sosmed_x_account }}</p>
                                                                </div>
                                                            </div>
@@ -279,7 +279,7 @@
                                                                    <span
                                                                        class="text-xs text-gray-500 dark:text-gray-400">LinkedIn</span>
                                                                    <p
-                                                                       class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                       class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                        {{ $applicant->sosmed_linkedin_account }}
                                                                    </p>
                                                                </div>
@@ -294,10 +294,10 @@
                                    <div class="p-4">
                                        <div x-show="isOpen" x-transition.opacity>
                                            <div class="overflow-x-auto">
-                                               <label for="" class="text-lg font-semibold">Reference
+                                               <label for="" class="text-sm font-semibold">Reference
                                                    Information</label>
                                                <table
-                                                   class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                   class="my-4 min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                                    <thead
                                                        class="bg-gray-100 text-center text-gray-700 dark:bg-gray-800 dark:text-gray-700">
                                                        <tr>
@@ -337,7 +337,7 @@
                                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Education',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Education'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Education
                                        </button>
                                        <button @click="activeTab = 'WorkExperience'"
@@ -346,7 +346,7 @@
                                                === 'WorkExperience',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'WorkExperience'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Work Experience
                                        </button>
                                        <button @click="activeTab = 'Skill'"
@@ -354,7 +354,7 @@
                                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Skill',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Skill'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Skill & Languange
                                        </button>
                                        <button @click="activeTab = 'Certificate'"
@@ -362,7 +362,7 @@
                                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Certificate',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Certificate'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Certificate
                                        </button>
                                        <button @click="activeTab = 'sdanw'"
@@ -370,7 +370,7 @@
                                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'sdanw',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'sdanw'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Strengths & Weaknesses
                                        </button>
 
@@ -385,7 +385,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -426,7 +426,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -474,9 +474,9 @@
                                        x-transition:leave-end="opacity-0 translate-y-2">
                                        <div>
                                            <div>
-                                               <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Skill
+                                               <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Skill
                                                    <table
-                                                       class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                       class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                                        <thead
                                                            class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                            <tr>
@@ -499,10 +499,10 @@
                                            </div>
                                            <hr>
                                            <div>
-                                               <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                               <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                                    Languange
                                                    <table
-                                                       class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                       class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                                        <thead
                                                            class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                            <tr>
@@ -533,7 +533,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -571,7 +571,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -604,7 +604,7 @@
                                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Family',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Family'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Family Information
                                        </button>
                                        <button @click="activeTab = 'MaritalStatus'"
@@ -613,7 +613,7 @@
                                                === 'MaritalStatus',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'MaritalStatus'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Marital Status
                                        </button>
                                        <button @click="activeTab = 'Emergency'"
@@ -621,7 +621,7 @@
                                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Emergency',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Skill'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Emergency Contact
                                        </button>
                                        <button @click="activeTab = 'Relative'"
@@ -629,7 +629,7 @@
                                                'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Relative',
                                                'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Relative'
                                            }"
-                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                           class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                            Relative Information
                                        </button>
                                    </nav>
@@ -643,7 +643,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -687,7 +687,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -728,7 +728,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -759,7 +759,7 @@
                                        x-transition:leave="transition ease-in duration-200"
                                        x-transition:leave-start="opacity-100 translate-y-0"
                                        x-transition:leave-end="opacity-0 translate-y-2">
-                                       <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                       <table class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>
@@ -783,10 +783,10 @@
                                    </div>
                                </div>
                            </div>
-                           <div class="overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+                           <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                <header
                                    class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                   <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Detail
+                                   <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Detail
                                        Information</h2>
                                    <button @click="isOpen = !isOpen"
                                        class="flex items-center text-gray-500 focus:outline-none dark:text-gray-200">
@@ -806,7 +806,7 @@
                                                        <span class="text-xs text-gray-500 dark:text-gray-400">Last
                                                            Salary</span>
                                                        <p
-                                                           class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                           class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                            Rp. {{ $applicant->existing_last_thp }}</p>
                                                    </div>
                                                </div>
@@ -818,7 +818,7 @@
                                                        <span class="text-xs text-gray-500 dark:text-gray-400">Expected
                                                            Salary</span>
                                                        <p
-                                                           class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                           class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                            Rp. {{ $applicant->expected_thp }}</p>
                                                    </div>
                                                </div>
@@ -832,7 +832,7 @@
                                                        <span
                                                            class="text-xs text-gray-500 dark:text-gray-400">Expectations</span>
                                                        <p
-                                                           class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                           class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                            {{ $applicant->expectations }}</p>
                                                    </div>
                                                </div>
@@ -844,7 +844,7 @@
                                                        <span class="text-xs text-gray-500 dark:text-gray-400">Career
                                                            Achievement</span>
                                                        <p
-                                                           class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                           class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                            {{ $applicant->applicant_achievement }}</p>
                                                    </div>
                                                </div>
@@ -855,9 +855,9 @@
                                <hr class="mx-6 dark:border-gray-500">
                                <div class="p-4">
                                    <div class="overflow-x-auto">
-                                       <label for="" class="text-lg font-semibold">Attachment</label>
+                                       <label for="" class="text-sm font-semibold">Attachment</label>
                                        <table
-                                           class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                           class="my-4 min-w-full border border-gray-300 text-xs dark:border-gray-700">
                                            <thead
                                                class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                <tr>

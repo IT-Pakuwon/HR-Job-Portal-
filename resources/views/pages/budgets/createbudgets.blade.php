@@ -168,7 +168,7 @@
 
                             <!-- header -->
                             <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
-                                <h2 class="text-xl font-bold">📥 Import Budget</h2>
+                                <h2 class="text-base font-bold">📥 Import Budget</h2>
 
                                 <!-- ONLY Template button here -->
                                 <a href="{{ asset('templates/import_budget.xlsx') }}" target="_blank" rel="noopener"
@@ -189,7 +189,7 @@
                                 <!-- Company -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select name="cpny_id" required
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         <option value="" disabled selected>Select</option>
@@ -202,7 +202,7 @@
                                 <!-- Business Unit -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
+                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Business
                                         Unit</label>
                                     <select name="business_unit_id" required
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
@@ -213,7 +213,7 @@
                                 <!-- Department -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select name="department_fin_id" id="department_select" required
                                         class="select2 h-[42px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         {{-- @foreach ($departements as $p)
@@ -225,7 +225,7 @@
                                 <!-- File Upload -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
+                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Import
                                         Excel</label>
                                     <input type="file" name="file" id="file" required
                                         class="block h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
@@ -248,18 +248,17 @@
                         <div class="flex flex-col gap-4">
                             <div class="flex-1 gap-4 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                                 <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
-                                    <h2 class="flex items-center gap-2 text-lg font-bold">
+                                    <h2 class="flex items-center gap-2 text-sm font-bold">
                                         📊 Budget Details
                                     </h2>
-                                    <h5
-                                        class="rounded-xl bg-red-100/50 px-4 py-1.5 text-base font-semibold text-red-600">
+                                    <h5 class="rounded-xl bg-red-100/50 px-4 py-1.5 text-sm font-semibold text-red-600">
                                         Preview
                                     </h5>
                                 </div>
 
                                 <div class="w-full overflow-x-auto">
                                     <table
-                                        class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-sm">
+                                        class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-xs">
                                         <thead class="bg-gray-100 font-bold text-gray-700">
                                             <tr>
                                                 <th class="px-4 py-2">Perpost</th>
@@ -320,7 +319,7 @@
                                             <details class="group mb-4" open>
                                                 <summary
                                                     class="mb-4 flex cursor-pointer items-center justify-between rounded border-b pb-2">
-                                                    <span class="text-lg font-semibold">Attachments</span>
+                                                    <span class="text-sm font-semibold">Attachments</span>
                                                     <span class="transition-all group-open:hidden">See details</span>
                                                     <span class="hidden transition-all group-open:inline">Hide
                                                         details</span>
@@ -329,8 +328,8 @@
                                                     <div id="attachmentsContainer">
                                                         <div class="attachment-row flex items-center gap-2">
                                                             <input type="file" name="attachments[]"
-                                                                {{-- class="mt-4 w-full border p-3 text-lg"> --}}
-                                                                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                                                {{-- class="mt-4 w-full border p-3 text-sm"> --}}
+                                                                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                                             <button type="button"
                                                                 class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 px-4 py-2 text-red-600 transition hover:bg-red-600 hover:text-white">
                                                                 🗑️
@@ -498,7 +497,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);

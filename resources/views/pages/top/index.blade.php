@@ -8,19 +8,19 @@
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">💳 Terms Of Payment (TOP)</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">Klik TOP untuk menampilkan detail di bawah.</p>
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">💳 Terms Of Payment (TOP)</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-300">Klik TOP untuk menampilkan detail di bawah.</p>
                 </div>
                 <button id="addTopBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add TOP
                 </button>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="topTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="topTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>
@@ -42,21 +42,21 @@
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">🧾 TOP Detail</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
+                    <h2 class="text-base font-bold text-gray-800 dark:text-white">🧾 TOP Detail</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-300">
                         Selected TOP: <span id="selectedTopText" class="font-semibold">-</span>
                     </p>
                 </div>
                 <button id="addTopDetailBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Detail
                 </button>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="topDetailTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="topDetailTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>
@@ -79,7 +79,7 @@
         <!-- TOP MODAL -->
         <div id="topModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="topModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add TOP</h2>
+                <h2 id="topModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add TOP</h2>
                 <form id="topForm">
                     <input type="hidden" id="top_id" name="id">
 
@@ -131,7 +131,8 @@
         <!-- TOP DETAIL MODAL -->
         <div id="topDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="w-full max-w-3xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="topDetailModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add TOP Detail
+                <h2 id="topDetailModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add TOP
+                    Detail
                 </h2>
 
                 <form id="topDetailForm">

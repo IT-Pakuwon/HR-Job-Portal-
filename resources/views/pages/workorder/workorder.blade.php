@@ -195,7 +195,7 @@
 </style>
 <div class="mt-6 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
     <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <h1 class="align-middle text-2xl font-bold dark:text-white">Work Order</h1>
+        <h1 class="align-middle text-lg font-bold dark:text-white">Work Order</h1>
     </div>
     <div class="rounded-lg bg-white dark:bg-gray-800">
         <table id="tasksTable" class="mt-5 min-w-full rounded">
@@ -219,11 +219,11 @@
         <div class="flex min-h-screen items-center justify-center px-4">
             <div class="w-full max-w-4xl overflow-hidden rounded-lg bg-white">
                 <div class="border-b p-4">
-                    <h2 class="text-xl font-semibold">Create Work Instruction</h2>
+                    <h2 class="text-base font-semibold">Create Work Instruction</h2>
                 </div>
                 <div class="space-y-4 p-4">
                     <!-- Top Info Section -->
-                    <div class="grid grid-cols-2 gap-4 rounded bg-gray-100 p-4 text-sm">
+                    <div class="grid grid-cols-2 gap-4 rounded bg-gray-100 p-4 text-xs">
                         <div><strong>DocID:</strong> <span id="wi_docid"></span></div>
                         <div><strong>Task Date:</strong> <span id="wi_taskdate"></span></div>
                         <div><strong>Company:</strong> <span id="wi_cpnyid"></span></div>

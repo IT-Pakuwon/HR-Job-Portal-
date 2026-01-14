@@ -15,13 +15,13 @@
                 {{-- Form Header with Title and Filters --}}
                 <div
                     class="flex flex-col gap-4 rounded-t-xl border-b border-gray-200 bg-gray-50 p-6 lg:flex-row lg:items-center lg:justify-between dark:border-gray-700 dark:bg-gray-700">
-                    <h2 class="flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
+                    <h2 class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                         <span class="text-blue-500">🏢</span> Organization Structure by Department
                     </h2>
                     <div class="flex flex-col items-start gap-4 md:flex-row md:items-end"> {{-- Filters container --}}
                         <div class="flex items-center gap-2">
                             <label for="selectCompany"
-                                class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-100">Company:</label>
+                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-100">Company:</label>
                             <select id="selectCompany"
                                 class="w-full min-w-[150px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
                                 name="company_filter">
@@ -34,7 +34,7 @@
 
                         <div class="flex items-center gap-2">
                             <label for="selectdeptname"
-                                class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-100">Department:</label>
+                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-100">Department:</label>
                             <select id="selectdeptname"
                                 class="w-full min-w-[200px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 name="departementid" required>
@@ -53,7 +53,7 @@
                 <div class="flex w-full flex-col rounded-b-xl bg-white p-6 dark:bg-gray-800"> {{-- Removed 'shadow' from here --}}
                     <div class="mb-6 flex justify-end"> {{-- Aligns button to the right --}}
                         <button type="button"
-                            class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                            class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-md transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                             onclick="chart.exportImg({full:true})">Export Image Full</button>
                     </div>
                     {{-- <button onclick="chart.exportImg({full:true})">Export Full</button> --}}
@@ -142,15 +142,15 @@
             <div class="relative w-full max-w-5xl rounded-xl bg-white p-8 shadow-xl dark:bg-gray-700">
                 {{-- Modal Header with Tabs and Close Button --}}
                 <div class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-600">
-                    <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
+                    <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
                         <li class="mr-2">
                             <button type="button"
-                                class="tab-button inline-flex items-center rounded-t-lg border-b-2 border-blue-600 px-4 py-2 text-base font-semibold text-blue-600 transition-colors duration-200 dark:border-blue-500 dark:text-blue-400"
+                                class="tab-button inline-flex items-center rounded-t-lg border-b-2 border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 transition-colors duration-200 dark:border-blue-500 dark:text-blue-400"
                                 onclick="switchTab('view')">View Employee</button>
                         </li>
                         {{-- Add other tabs here if needed --}}
                     </ul>
-                    <button onclick="closeModal()" class="text-xl text-gray-500 transition-colors hover:text-red-600">
+                    <button onclick="closeModal()" class="text-base text-gray-500 transition-colors hover:text-red-600">
                         &times; {{-- Close icon --}}
                     </button>
                 </div>
@@ -158,8 +158,8 @@
                 {{-- Tab Content: View Employee --}}
                 <div id="tab-view" class="tab-content"> {{-- Removed 'hidden' as it will be controlled by JS --}}
                     <div class="mb-4 flex items-center justify-between">
-                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Employee List</h3>
-                        <h4 id="departmentLabel" class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">Employee List</h3>
+                        <h4 id="departmentLabel" class="text-sm font-semibold text-gray-800 dark:text-gray-200">
                             Dept: </h4>
                     </div>
                     <div class="overflow-x-auto">
@@ -191,7 +191,7 @@
                                 {{-- Employee data will be loaded here by JS --}}
                                 <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                     <td colspan="6"
-                                        class="py-4 text-center text-sm italic text-gray-500 dark:text-gray-400">Loading
+                                        class="py-4 text-center text-xs italic text-gray-500 dark:text-gray-400">Loading
                                         employees...</td>
                                 </tr>
                             </tbody>
@@ -206,12 +206,12 @@
                         class="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white p-8 shadow-xl dark:bg-gray-700">
                         <div
                             class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-600">
-                            <h3 class="text-xl font-bold text-gray-800 dark:text-white">
+                            <h3 class="text-base font-bold text-gray-800 dark:text-white">
                                 Job Profile - <span id="jobLevelLabel"
                                     class="font-bold text-blue-600 dark:text-blue-400"></span>
                             </h3>
                             <button onclick="$('#modalJobProfile').addClass('hidden')"
-                                class="text-xl text-gray-500 transition-colors hover:text-red-600">&times;</button>
+                                class="text-base text-gray-500 transition-colors hover:text-red-600">&times;</button>
                         </div>
 
                         <div class="mb-6">
@@ -234,7 +234,7 @@
                                         <tr
                                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                             <td colspan="2"
-                                                class="py-4 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                                                class="py-4 text-center text-xs italic text-gray-500 dark:text-gray-400">
                                                 Loading job purposes...</td>
                                         </tr>
                                     </tbody>
@@ -243,7 +243,7 @@
                         </div>
 
                         <div id="jobSpecInfo"
-                            class="space-y-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-700 shadow-inner dark:bg-gray-700 dark:text-gray-200">
+                            class="space-y-4 rounded-lg bg-gray-50 p-4 text-xs text-gray-700 shadow-inner dark:bg-gray-700 dark:text-gray-200">
                             {{-- Job Spec details will be injected here by JS --}}
                             <p class="text-center italic text-gray-500 dark:text-gray-400">Job specification details
                                 will appear here.</p>
@@ -469,11 +469,11 @@
                             </thead>
                             <tbody>
                                 ${legendCompany.map(item => `
-                                                                                                                                                                                                                                                                                                <tr>
-                                                                                                                                                                                                                                                                                                    <td class="pr-4">${item.company}</td>
-                                                                                                                                                                                                                                                                                                    <td>${item.count}</td>
-                                                                                                                                                                                                                                                                                                </tr>
-                                                                                                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                                                                                                                                <tr>
+                                                                                                                                                                                                                                                                                                                                    <td class="pr-4">${item.company}</td>
+                                                                                                                                                                                                                                                                                                                                    <td>${item.count}</td>
+                                                                                                                                                                                                                                                                                                                                </tr>
+                                                                                                                                                                                                                                                                                                                                `).join('')}
                             </tbody>
                             </table>
                         </div>
@@ -525,13 +525,13 @@
                                             <div style="font-size:12px;color:#333">                                    
                                                 <div style="margin-top:10px;">
                                                     ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:2px;">
-                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                                                                                                ${m.name} (${m.company})
-                                                                                                                                                                                                                                                                                                                            </span>
-                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                    `).join('')}
+                                                                                                                                                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:2px;">
+                                                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                                                                                                                ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                                                                                                            </span>
+                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                    `).join('')}
                                                 </div>
                                             </div>
                                         </div>

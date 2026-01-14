@@ -45,10 +45,10 @@
                         <a href="#" class="status-filter" data-status="{{ $status['status'] }}">
                             <div
                                 class="border-{{ $status['color'] }}-700 bg-{{ $status['color'] }}-200/20 text-{{ $status['color'] }}-600 flex items-center gap-4 rounded-lg border p-4   shadow-white">
-                                <span class="text-4xl">{{ $status['emoji'] }}</span>
+                                <span class="text-lg">{{ $status['emoji'] }}</span>
                                 <div>
-                                    <p class="text-lg font-medium">{{ $status['label'] }}</p>
-                                    <p class="text-3xl font-extrabold">{{ $status['count'] }}</p>
+                                    <p class="text-sm font-medium">{{ $status['label'] }}</p>
+                                    <p class="text-lg font-extrabold">{{ $status['count'] }}</p>
                                 </div>
                             </div>
                         </a>
@@ -61,7 +61,7 @@
         <div id="container" class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-1">
             <!-- Job Posting Table -->
             <div class="overflow-x-auto rounded-xl bg-white p-4">
-                <h1 class="mb-4 text-2xl font-bold">List Job Posting</h1>
+                <h1 class="mb-4 text-lg font-bold">List Job Posting</h1>
                 <table id="jobpostingsTable" class="min-w-full rounded">
                     <thead>
                         <tr>
@@ -79,7 +79,7 @@
 
             <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4" style="display:none;">
                 <div class="mb-4 flex items-center justify-between">
-                    <h1 class="text-2xl font-bold">Applicants</h1>
+                    <h1 class="text-lg font-bold">Applicants</h1>
                     <button id="closeApplicantsBtn" class="font-semibold text-red-500 hover:text-red-700">Close
                         ✖️</button>
                 </div>

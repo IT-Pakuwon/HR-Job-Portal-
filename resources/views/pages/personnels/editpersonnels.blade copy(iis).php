@@ -9,11 +9,11 @@
                     <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                          @csrf
                         <div class="flex flex-col gap-4">
-                            {{-- <div class="flex flex-col w-full rounded-2xl shadow-md border-b bg-white dark:bg-gray-800 w-full p-6"> --}}
-                            <div class="flex flex-col w-full  rounded-2xl shadow-sm border-b bg-white dark:bg-gray-800 w-full p-6">
+                            {{-- <div class="flex flex-col w-full rounded-xl shadow-md border-b bg-white dark:bg-gray-800 w-full p-6"> --}}
+                            <div class="flex flex-col w-full  rounded-xl shadow-sm border-b bg-white dark:bg-gray-800 w-full p-6">
                                 <div class="flex justify-between border-b dark:border-gray-600 mb-2">
-                                    <h2 class="text-xl font-bold mb-4">Edit Personnel Requisition</h2>
-                                    <h2 class="text-xl font-bold mb-4">{{ $personnel->docid }}</h2>
+                                    <h2 class="text-base font-bold mb-4">Edit Personnel Requisition</h2>
+                                    <h2 class="text-base font-bold mb-4">{{ $personnel->docid }}</h2>
                                 </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 dark:border-gray-600 ">
                                         <input type="hidden" name="_method" value="PUT"> 
@@ -81,11 +81,11 @@
                                 </div>
                             {{-- </div> --}}
                                 <!-- Job Responsibilities (Editable) -->
-                                <div class="flex flex-col w-full rounded-2xl border-b gap-4">
-                                    <div class="flex flex-col w-full rounded-2xl border-b bg-white dark:bg-gray-800 p-6">
+                                <div class="flex flex-col w-full rounded-xl border-b gap-4">
+                                    <div class="flex flex-col w-full rounded-xl border-b bg-white dark:bg-gray-800 p-6">
                                         <details class="group border-b" open>
                                             <summary class="flex items-center justify-between cursor-pointer mb-4 rounded">
-                                                <span class="text-lg font-semibold">Job Responsibilities</span>
+                                                <span class="text-sm font-semibold">Job Responsibilities</span>
                                                 <span class="transition-all group-open:hidden">See details</span>
                                                 <span class="hidden transition-all group-open:inline">Hide details</span>
                                             </summary>
@@ -125,11 +125,11 @@
                                         </details>
                                     </div>
                                     <!-- Job Qualification (Editable) -->
-                                    <div class="flex flex-col w-full rounded-2xl border-b gap-4">
-                                        <div class="flex flex-col w-full rounded-2xl border-b bg-white dark:bg-gray-800 p-6">
+                                    <div class="flex flex-col w-full rounded-xl border-b gap-4">
+                                        <div class="flex flex-col w-full rounded-xl border-b bg-white dark:bg-gray-800 p-6">
                                             <details class="group border-b" open>
                                                 <summary class="flex items-center justify-between cursor-pointer mb-4 rounded">
-                                                    <span class="text-lg font-semibold">Job Qualification</span>
+                                                    <span class="text-sm font-semibold">Job Qualification</span>
                                                     <span class="transition-all group-open:hidden">See details</span>
                                                     <span class="hidden transition-all group-open:inline">Hide details</span>
                                                 </summary>
@@ -169,17 +169,17 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex flex-col w-full rounded-2xl border-b gap-4">
-                                    <div class="flex flex-col w-1/2 rounded-2xl border-b bg-white dark:bg-gray-800 p-6 w-full">
+                                <div class="flex flex-col w-full rounded-xl border-b gap-4">
+                                    <div class="flex flex-col w-1/2 rounded-xl border-b bg-white dark:bg-gray-800 p-6 w-full">
                                         <div>
                                             <div class="flex items-center justify-between">
-                                                <label class="block text-lg font-semibold">Attachments</label>
+                                                <label class="block text-sm font-semibold">Attachments</label>
                                                 <button type="button" id="addAttachment" class="px-4 py-2 text-gray-700 rounded  hover:bg-red-200/10  border border-white hover:border-red-800 hover:font-medium  hover:text-red-800 hover: flex items-center gap-2">+ Add</button>
                                             </div>
                                             <div id="attachmentsContainer">
                                                 @foreach ($attachment as $attach)
                                                     <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
-                                                        <a href="{{ url('/attachments/' . $attach->attachfile) }}" target="_blank" class="w-full p-3 mt-4 text-lg border">📎 {{ $attach->name }}</a>
+                                                        <a href="{{ url('/attachments/' . $attach->attachfile) }}" target="_blank" class="w-full p-3 mt-4 text-sm border">📎 {{ $attach->name }}</a>
                                                             <button type="button" class="removeAttachment2 mt-4 bg-red-200/10 dark:bg-red-700/30 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded" data-id="{{ $attach->id }}">🗑️
                                                             </button>
                                                     </div>
@@ -292,7 +292,7 @@
         $('#addAttachment').click(function () {
             $('#attachmentsContainer').append(`
                 <div class="attachment-row flex items-center gap-2">
-                    <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded">
+                    <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-sm border rounded">
                     <button type="button" class="removeAttachment mt-4 bg-red-200/10 dark:bg-red-700/30 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
                 </div>
             `);

@@ -3,7 +3,7 @@
 
     <!-- Header & View Switch -->
     <div class="mb-6 flex items-center justify-between">
-        <h2 class="text-3xl font-bold tracking-wide" x-text="currentViewTitle"></h2>
+        <h2 class="text-lg font-bold tracking-wide" x-text="currentViewTitle"></h2>
         <nav class="space-x-2">
             <button @click="changeView('yearly')"
                 :class="view === 'yearly' ? activeBtnClass : inactiveBtnClass">Year</button>
@@ -20,7 +20,7 @@
     <div x-show="view === 'yearly' || view === 'month'" x-transition
         class="mb-6 flex items-center justify-between px-2">
         <button @click="view === 'yearly' ? prevYear() : prevMonth()" class="btn-nav">← Previous</button>
-        <div class="text-xl font-semibold" x-text="view === 'yearly' ? year : monthYearTitle"></div>
+        <div class="text-base font-semibold" x-text="view === 'yearly' ? year : monthYearTitle"></div>
         <button @click="view === 'yearly' ? nextYear() : nextMonth()" class="btn-nav">Next →</button>
     </div>
 
@@ -37,7 +37,7 @@
                     <section
                         class="hover: cursor-pointer rounded-lg border bg-white p-4 shadow transition duration-300 dark:bg-gray-800"
                         @click="selectDayYearly(year, m - 1, 1)">
-                        <header class="mb-2 text-center text-lg font-semibold text-indigo-600 dark:text-indigo-400"
+                        <header class="mb-2 text-center text-sm font-semibold text-indigo-600 dark:text-indigo-400"
                             x-text="monthNames[m - 1]"></header>
                         <div
                             class="mb-2 grid select-none grid-cols-7 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">
@@ -45,7 +45,7 @@
                                 <div x-text="d"></div>
                             </template>
                         </div>
-                        <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                        <div class="grid grid-cols-7 gap-1 text-center text-xs">
                             <template x-for="blank in blanksYearly(m - 1)" :key="'blank-' + blank">
                                 <div>&nbsp;</div>
                             </template>
@@ -67,7 +67,7 @@
             <!-- Monthly View -->
             <div x-show="view === 'month'" x-transition>
                 <div
-                    class="mb-4 grid select-none grid-cols-7 text-center text-lg font-semibold text-gray-600 dark:text-gray-400">
+                    class="mb-4 grid select-none grid-cols-7 text-center text-sm font-semibold text-gray-600 dark:text-gray-400">
                     <template x-for="day in weekDays" :key="day">
                         <div x-text="day"></div>
                     </template>
@@ -81,7 +81,7 @@
                     <template x-for="day in days" :key="day">
                         <div x-init="$el.dataset.month = month;
                         $el.dataset.year = year" @click="selectDay(day)"
-                            class="relative cursor-pointer select-none rounded py-4 text-lg transition"
+                            class="relative cursor-pointer select-none rounded py-4 text-sm transition"
                             :class="{
                                 'bg-indigo-600 text-white font-bold  ': isToday(day),
                                 'hover:bg-indigo-100 dark:hover:bg-indigo-700': !isToday(day),
@@ -101,15 +101,15 @@
             <div x-show="view === 'week'" x-transition>
                 <!-- Week Navigation -->
                 <div class="mb-4 flex items-center justify-between px-4 py-2">
-                    <button @click="prevWeek()" class="btn-nav text-sm">← Previous Week</button>
-                    <div class="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    <button @click="prevWeek()" class="btn-nav text-xs">← Previous Week</button>
+                    <div class="text-xs font-semibold text-gray-700 dark:text-gray-300"
                         x-text="`${formatDayWithDate(weekRange[0])} - ${formatDayWithDate(weekRange[6])}`"></div>
-                    <button @click="nextWeek()" class="btn-nav text-sm">Next Week →</button>
+                    <button @click="nextWeek()" class="btn-nav text-xs">Next Week →</button>
                 </div>
 
                 <!-- Week Header -->
                 <div
-                    class="grid grid-cols-8 border-b bg-gray-100 text-center text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    class="grid grid-cols-8 border-b bg-gray-100 text-center text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                     <div class="p-2">Hour</div>
                     <template x-for="(day, index) in weekRange" :key="index">
                         <div class="p-2" x-text="formatDayWithDate(day)"></div>
@@ -141,7 +141,7 @@
 
             <!-- Day View -->
             <div x-show="view === 'day'" x-transition style="height: 500px; overflow-y:auto; user-select:none;">
-                <div class="grid grid-cols-1 text-sm text-gray-600 dark:text-gray-300">
+                <div class="grid grid-cols-1 text-xs text-gray-600 dark:text-gray-300">
                     <template x-for="hour in 24" :key="hour">
                         <div class="grid grid-cols-[60px_1fr] border-b border-gray-200 py-3 dark:border-gray-700">
                             <div class="select-none pr-3 text-right text-xs text-gray-500 dark:text-gray-400">
@@ -165,7 +165,7 @@
 
         <!-- Sidebar - Agenda -->
         <aside class="rounded-lg bg-white p-4 shadow xl:col-span-1 dark:bg-gray-800">
-            <h3 class="mb-3 border-b border-gray-300 pb-1 text-xl font-semibold dark:border-gray-700">Events on <span
+            <h3 class="mb-3 border-b border-gray-300 pb-1 text-base font-semibold dark:border-gray-700">Events on <span
                     x-text="selectedDate"></span></h3>
             <ul class="max-h-[400px] space-y-3 overflow-auto">
                 <template x-if="events[selectedDate] && events[selectedDate].length > 0">

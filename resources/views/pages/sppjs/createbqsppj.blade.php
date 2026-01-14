@@ -106,7 +106,7 @@
 
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
-                                <h2 class="text-xl font-bold">📥 Import BQ</h2>
+                                <h2 class="text-base font-bold">📥 Import BQ</h2>
 
                                 <!-- ONLY Template button here -->
                                 <a href="{{ asset('templates/import_bq.xlsx') }}" target="_blank" rel="noopener"
@@ -125,7 +125,7 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                 <!-- SPPJID -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                         SPPJ ID
                                     </label>
                                     <!-- kirim id SPPJ untuk import -->
@@ -138,7 +138,7 @@
 
                                 <!-- Company -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                         Company
                                     </label>
                                     <input type="text" name="company"
@@ -149,7 +149,7 @@
 
                                 <!-- Departement -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                         Departement
                                     </label>
                                     <input type="text" name="departement"
@@ -160,7 +160,7 @@
 
                                 <!-- File -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                         Import Excel
                                     </label>
                                     <input type="file" name="file" id="file" required
@@ -182,18 +182,18 @@
                         @if (isset($tempData) && count($tempData) > 0)
                             <div class="flex-1 gap-4 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                                 <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
-                                    <h2 class="flex items-center gap-2 text-lg font-bold">
+                                    <h2 class="flex items-center gap-2 text-sm font-bold">
                                         📊 BQ Details
                                     </h2>
                                     {{-- <h5
-                                        class="rounded-xl bg-red-100/50 px-4 py-1.5 text-base font-semibold text-red-600">
+                                        class="rounded-xl bg-red-100/50 px-4 py-1.5 text-sm font-semibold text-red-600">
                                         Preview
                                     </h5> --}}
                                 </div>
 
                                 <div class="w-full overflow-x-auto">
                                     <table
-                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-sm">
+                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-xs">
                                         <thead class="bg-gray-100 font-bold text-gray-700">
                                             <tr>
                                                 <th class="px-4 py-2">Line No</th>
@@ -244,7 +244,7 @@
                                             <details class="group mb-4" open>
                                                 <summary
                                                     class="mb-4 flex cursor-pointer items-center justify-between rounded border-b pb-2">
-                                                    <span class="text-lg font-semibold">Photo Before</span>
+                                                    <span class="text-sm font-semibold">Photo Before</span>
                                                     <span class="transition-all group-open:hidden">See details</span>
                                                     <span class="hidden transition-all group-open:inline">Hide
                                                         details</span>
@@ -271,7 +271,7 @@
                                                                         d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                                         clip-rule="evenodd" />
                                                                 </svg>
-                                                                <span class="text-sm font-medium">Add Photo</span>
+                                                                <span class="text-xs font-medium">Add Photo</span>
                                                             </div>
                                                         </button>
                                                     </div>

@@ -7,13 +7,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">📦</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Receipt Jobs</p>
+                        <p class="break-words text-sm font-medium">Receipt Jobs</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $receiptjobs }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $receiptjobs }}</p>
                 </div>
             </a>
 
@@ -22,13 +22,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">↩️</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">↩️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Return Jobs</p>
+                        <p class="break-words text-sm font-medium">Return Jobs</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $returnjobs }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $returnjobs }}</p>
                 </div>
             </a>
 
@@ -37,13 +37,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⏳</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">On Progress</p>
+                        <p class="break-words text-sm font-medium">On Progress</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $onProgress }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $onProgress }}</p>
                 </div>
             </a>
 
@@ -52,13 +52,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">❌</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">❌</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Rejected</p>
+                        <p class="break-words text-sm font-medium">Rejected</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $rejected }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $rejected }}</p>
                 </div>
             </a>
 
@@ -67,13 +67,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🛠️</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🛠️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Revise</p>
+                        <p class="break-words text-sm font-medium">Revise</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $revise }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $revise }}</p>
                 </div>
             </a>
 
@@ -82,13 +82,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">✅</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Completed</p>
+                        <p class="break-words text-sm font-medium">Completed</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $completed }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $completed }}</p>
                 </div>
             </a>
 
@@ -97,13 +97,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🧾</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🧾</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">All</p>
+                        <p class="break-words text-sm font-medium">All</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $all }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $all }}</p>
                 </div>
             </a>
 
@@ -112,13 +112,13 @@
 
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Receipt</h1>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Receipt</h1>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="receiptTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="receiptTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -140,7 +140,7 @@
 
         $(function() {
             let scope = 'receiptjobs';
-            const $title = $('h1.text-xl.font-extrabold');
+            const $title = $('h1.text-base.font-extrabold');
             const $thead = $('#receiptTable thead');
             const $theadRow = $('#thead-row');
             let table;
@@ -439,14 +439,14 @@
 
             function renderPlusCreate(row) {
                 const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+                return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2 text-xs leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
                     <i class="fas fa-plus"></i></a>`;
             }
 
             function renderPlusReturn(row) {
                 const url = `{{ route('receipt.return.create') }}` +
                     `?rcp=${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white text-sm font-bold hover:bg-indigo-700">+</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white text-xs font-bold hover:bg-indigo-700">+</a>`;
             }
 
 
@@ -455,7 +455,7 @@
                 // gunakan hash id jika tersedia
                 if (row.ponbr_eid) {
                     const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                 }
                 return text;
             }
@@ -464,7 +464,7 @@
                 const text = row.sppbjktid ?? '';
                 if (row.sppb_route && row.sppb_eid) {
                     const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                 }
                 return text;
             }
@@ -472,7 +472,7 @@
             // function renderReceiptLink(row) {
             //     const url = `/showreceipt/${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
             //     const text = row.receiptnbr ?? '';
-            //     return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+            //     return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
             // }
 
             function renderReceiptLink(row) {
@@ -482,7 +482,7 @@
                 if (!label) return '';
                 if (!hash) {
                     // fallback bila hash tidak ada
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 // baca status & creator
@@ -494,12 +494,12 @@
                 // Jika Revise dan pemilik dokumen = user sekarang → arahkan ke EDIT
                 if (isRevise && isOwner) {
                     const url = `/editreceipts/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
                 }
 
                 // default → SHOW
                 const url = `/showreceipt/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderStatusBadge(row) {

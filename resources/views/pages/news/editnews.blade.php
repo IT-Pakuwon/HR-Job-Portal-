@@ -8,10 +8,10 @@
                         <form id="newsForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                             @csrf
                             <div
-                                class="flex w-full w-full flex-col rounded-2xl border-b bg-white p-6 shadow-sm dark:bg-gray-800">
+                                class="flex w-full w-full flex-col rounded-xl border-b bg-white p-6 shadow-sm dark:bg-gray-800">
                                 <div class="flex justify-between border-b dark:border-gray-600">
-                                    <h2 class="mb-2 text-xl font-bold">Edit News</h2>
-                                    <h2 class="mb-4 text-xl font-bold">{{ $news->docid }}</h2>
+                                    <h2 class="mb-2 text-base font-bold">Edit News</h2>
+                                    <h2 class="mb-4 text-base font-bold">{{ $news->docid }}</h2>
                                 </div>
                                 <div
                                     class="mt-2 mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 dark:border-gray-600">
@@ -61,11 +61,11 @@
 
                             </div>
 
-                            <div class="flex w-full flex-col gap-2 rounded-2xl pl-8 pr-8 pt-4">
+                            <div class="flex w-full flex-col gap-2 rounded-xl pl-8 pr-8 pt-4">
                                 <div class="flex w-full flex-col">
                                     <details class="group mb-4" open>
                                         <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                            <span class="text-lg font-semibold">Attachments</span>
+                                            <span class="text-sm font-semibold">Attachments</span>
                                             <span class="transition-all group-open:hidden">See details</span>
                                             <span class="hidden transition-all group-open:inline">Hide details</span>
                                         </summary>
@@ -75,7 +75,7 @@
                                                     <div class="attachment-row flex items-center gap-2"
                                                         data-attachid="{{ $attach->id }}">
                                                         <a href="{{ url('/attachments/' . $attach->attachfile) }}"
-                                                            target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                                            target="_blank" class="mt-4 w-full border p-3 text-sm">📎
                                                             {{ $attach->name }}</a>
                                                         <button type="button"
                                                             class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
@@ -177,7 +177,7 @@
         $('#addAttachment').click(function() {
             $('#attachmentsContainer').append(`
                 <div class="attachment-row flex items-center gap-2">
-                    <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded">
+                    <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-sm border rounded">
                     <button type="button" class="removeAttachment mt-4 bg-red-200/10 dark:bg-red-700/30 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded">🗑️</button>
                 </div>
             `);

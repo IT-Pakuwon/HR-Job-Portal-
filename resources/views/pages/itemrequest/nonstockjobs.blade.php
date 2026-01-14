@@ -12,11 +12,11 @@
                 <a href="#" class="status-filter group block h-full" data-filter="all">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📄</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">All</p>
+                            <p class="break-words text-sm font-medium">All</p>
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($nonstockJobs + $nonstockDone) }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ number_format($nonstockJobs + $nonstockDone) }}</p>
                     </div>
                 </a>
             </button>
@@ -25,11 +25,11 @@
                 <a href="#" class="status-filter active group block h-full" data-filter="jobs">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧾</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧾</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">Nonstock Jobs</p>
+                            <p class="break-words text-sm font-medium">Nonstock Jobs</p>
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($nonstockJobs) }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ number_format($nonstockJobs) }}</p>
                     </div>
                 </a>
             </button>
@@ -38,11 +38,11 @@
                 <a href="#" class="status-filter group block h-full" data-filter="done">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">Nonstock Done</p>
+                            <p class="break-words text-sm font-medium">Nonstock Done</p>
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($nonstockDone) }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ number_format($nonstockDone) }}</p>
                     </div>
                 </a>
             </button>
@@ -51,11 +51,11 @@
                 <a href="#" class="status-filter group block h-full" data-filter="inv">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📦</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">Inventory Nonstock</p>
+                            <p class="break-words text-sm font-medium">Inventory Nonstock</p>
                         </div>
-                        <p class="shrink-0 text-xl font-bold">{{ number_format($inventoryNonstock) }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ number_format($inventoryNonstock) }}</p>
                     </div>
                 </a>
             </button>
@@ -65,14 +65,14 @@
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
 
             {{-- JOBS WRAP --}}
-            <div id="jobsWrap" class="flex flex-col gap-6 rounded-2xl bg-white dark:bg-gray-800">
+            <div id="jobsWrap" class="flex flex-col gap-6 rounded-xl bg-white dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h1 id="jobsTitle" class="text-xl font-extrabold text-gray-700 dark:text-white">Nonstock Jobs</h1>
+                    <h1 id="jobsTitle" class="text-base font-extrabold text-gray-700 dark:text-white">Nonstock Jobs</h1>
                 </div>
                 <div class="rounded-base relative overflow-x-auto">
-                    <table id="nonstockJobsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <table id="nonstockJobsTable" class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-6 py-3 font-medium">
@@ -101,20 +101,20 @@
             </div>
 
             {{-- INVENTORY WRAP --}}
-            <div id="invWrap" class="hidden rounded-2xl bg-white dark:bg-gray-800">
+            <div id="invWrap" class="hidden rounded-xl bg-white dark:bg-gray-800">
                 <div class="mb-4 flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">📦 Inventory List</h1>
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">📦 Inventory List</h1>
 
                     <button id="addInventoryBtn"
-                        class="rounded-xl bg-indigo-500 px-5 py-2 text-base font-semibold text-white transition-colors hover:bg-indigo-600">
+                        class="rounded-xl bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-600">
                         + Add Inventory
                     </button>
                 </div>
 
                 <div class="rounded-base relative overflow-x-auto">
-                    <table id="inventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <table id="inventoryTable" class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-6 py-3 font-medium">
@@ -145,8 +145,8 @@
 
         {{-- INVENTORY CRUD MODAL --}}
         <div id="inventoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-                <h2 id="inventoryModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add
+            <div class="relative w-full max-w-3xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
+                <h2 id="inventoryModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
                     Inventory
                 </h2>
 
@@ -295,23 +295,23 @@
 
         {{-- PICK INVENTORY MODAL (kaca pembesar) --}}
         <div id="pickInventoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
+            <div class="relative w-full max-w-4xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+                    <h2 class="text-base font-bold text-gray-800 dark:text-white">
                         🔎 Pilih Inventory (MsInventory)
                     </h2>
                     <button type="button" id="closePickInventoryModal"
                         class="rounded-lg bg-red-500 px-4 py-2 text-white">Close</button>
                 </div>
 
-                <div class="mb-3 text-sm text-gray-500 dark:text-gray-300">
+                <div class="mb-3 text-xs text-gray-500 dark:text-gray-300">
                     IRID: <span id="pick_irid" class="font-semibold text-gray-700 dark:text-white">-</span>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table id="pickInventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <table id="pickInventoryTable" class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th
                                     class="w-52 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
@@ -569,7 +569,7 @@
                             render: function(data, type, row) {
                                 const text = data || '-';
                                 const url = `/showitemreq/${row.eid}`;
-                                return `<a href="${url}" class="inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-base font-semibold text-white hover:bg-gray-700">${text}</a>`;
+                                return `<a href="${url}" class="inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">${text}</a>`;
                             }
                         },
                         {
@@ -600,7 +600,7 @@
                                         <div class="flex items-center gap-2">
                                             <span class="text-gray-400"></span>
                                             <button type="button"
-                                                class="btnPickInventory inline-flex items-center justify-center rounded bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700"
+                                                class="btnPickInventory inline-flex items-center justify-center rounded bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
                                                 data-id="${row.id ?? ''}"
                                                 data-trid="${row.trid ?? ''}"
                                                 data-irid="${row.irid ?? ''}">
@@ -618,7 +618,7 @@
                                             class="btnRollback inline-flex items-center justify-center rounded-full p-2 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
                                             data-eid="${row.eid}"
                                             title="Rollback (hapus Inventory ID)">
-                                            <span class="text-lg">↩️</span>
+                                            <span class="text-sm">↩️</span>
                                         </button>
                                     </div>
                                 `;
@@ -635,8 +635,8 @@
                             className: 'text-center',
                             render: function(v) {
                                 return v ?
-                                    `<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-base font-semibold text-green-600">DONE</span>` :
-                                    `<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-base font-semibold text-blue-600">JOB</span>`;
+                                    `<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">DONE</span>` :
+                                    `<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">JOB</span>`;
                             }
                         },
 
@@ -761,8 +761,8 @@
                             render: function(s) {
                                 s = String(s || '').toUpperCase();
                                 return s === 'A' ?
-                                    '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-base font-semibold text-green-600">Active</span>' :
-                                    '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-base font-semibold text-red-600">Inactive</span>';
+                                    '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>' :
+                                    '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>';
                             }
                         }
                     ],

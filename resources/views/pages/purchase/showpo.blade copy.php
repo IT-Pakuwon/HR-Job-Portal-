@@ -109,7 +109,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -120,7 +120,7 @@
 
             <div class="flex gap-3">
                 <button id="submitBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -129,7 +129,7 @@
                     Submit
                 </button>
                 <button id="cancelReuseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -138,7 +138,7 @@
                     Cancel Reuse
                 </button>
                 <button id="cancelBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -154,9 +154,9 @@
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $po->ponbr }}
@@ -191,13 +191,13 @@
 
                         <div class="flex items-center gap-3">
                             <span
-                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
                             <a href="{{ url('/pdf_po') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                     title="Open PO PDF">
                                     Print PDF
                                 </button>
@@ -213,26 +213,26 @@
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">PO Date</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">
                                     {{ \Carbon\Carbon::parse($po->podate)->format('d M Y') }}</p>
                             </div>
 
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Company</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->cpny_id }}</p>
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->cpny_id }}</p>
                             </div>
 
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Department</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->department_id }}
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->department_id }}
                                 </p>
                             </div>
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Requester</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->user_peminta }}
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->user_peminta }}
                                 </p>
                             </div>
                         </div>
@@ -243,22 +243,22 @@
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">SPPB/J/K/T ID</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->sppbjktid }}</p>
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->sppbjktid }}</p>
                             </div>
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">CS ID</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->csid }}</p>
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->csid }}</p>
                             </div>
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Vendor ID</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorid }}</p>
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorid }}</p>
                             </div>
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Vendor</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorname }}
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->vendorname }}
                                 </p>
                             </div>
                         </div>
@@ -268,20 +268,20 @@
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">
                                     {{ $nf0($po->totalamt) }}</p>
                             </div>
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Tax Amount</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">
                                     {{ $nf0($po->taxamt) }}</p>
                             </div>
 
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Grand Total</p>
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">
                                     {{ $nf0($po->grandtotalamt) }}</p>
                             </div>
                         </div>
@@ -291,7 +291,7 @@
                             <div
                                 class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
-                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $po->keperluan }}
+                                <p class="text-xs font-medium text-gray-900 dark:text-gray-100">{{ $po->keperluan }}
                                 </p>
                             </div>
                         @endif
@@ -310,7 +310,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Information PO / SPK
                                 </button>
                                 <button @click="activeTab = 'attachment'"
@@ -318,7 +318,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Attachment
                                 </button>
                                 <button @click="activeTab = 'comments'"
@@ -326,7 +326,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Comments
                                 </button>
                             </nav>
@@ -351,7 +351,7 @@
                                                     {{-- TAMPILKAN SEBAGAI TEKS --}}
                                                     <div>
                                                     <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Delivery Date</label>
-                                                    <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                    <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         {{-- {{ \Carbon\Carbon::parse($po->podeliverydate)->format('d M Y') }} --}}
                                                         {{ optional($po->podeliverydate)->format('d M Y') ?? '-' }}
                                                     </p>
@@ -362,7 +362,7 @@
                                                     <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Delivery Date</label>
                                                     <input type="date" name="podeliverydate" id="podeliverydate"
                                                             value="{{ old('podeliverydate', optional($po->podeliverydate)->format('Y-m-d')) }}"
-                                                            class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                            class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                     </div>
                                                 @endif
                                             </div>
@@ -379,7 +379,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Tanggal Pelaksanaan Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -389,7 +389,7 @@
                                                                 Tanggal</label>
                                                             <input type="date" name="work_date_from"
                                                                 id="work_date_from" value="{{ old('work_date_from') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                         <div>
                                                             <label
@@ -397,10 +397,10 @@
                                                                 Tanggal</label>
                                                             <input type="date" name="work_date_to" id="work_date_to"
                                                                 value="{{ old('work_date_to') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                         <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-2 dark:text-gray-300">
+                                                            class="flex items-end text-xs text-gray-600 md:col-span-2 dark:text-gray-300">
                                                             (Pelaksanaan Pekerjaan)
                                                         </div>
                                                     </div>
@@ -410,7 +410,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Lama Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -421,10 +421,10 @@
                                                             <input type="number" min="0" step="1"
                                                                 name="work_days" id="work_days"
                                                                 value="{{ old('work_days') }}" placeholder="05"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                         <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-3 dark:text-gray-300">
+                                                            class="flex items-end text-xs text-gray-600 md:col-span-3 dark:text-gray-300">
                                                             (Tidak Termasuk Hari Sabtu / Minggu / Hari Libur Nasional)
                                                         </div>
                                                     </div>
@@ -434,7 +434,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Waktu Pelaksanaan Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
@@ -444,7 +444,7 @@
                                                                 (Dari)</label>
                                                             <input type="text" name="work_day_from" id="work_day_from"
                                                                 value="{{ old('work_day_from') }}" placeholder="Senin"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                         <div class="md:col-span-2">
                                                             <label
@@ -452,7 +452,7 @@
                                                                 (Sampai)</label>
                                                             <input type="text" name="work_day_to" id="work_day_to"
                                                                 value="{{ old('work_day_to') }}" placeholder="Jumat"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                         <div>
                                                             <label
@@ -460,7 +460,7 @@
                                                                 (Dari)</label>
                                                             <input type="time" name="work_time_from"
                                                                 id="work_time_from" value="{{ old('work_time_from') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                         <div>
                                                             <label
@@ -468,7 +468,7 @@
                                                                 (Sampai)</label>
                                                             <input type="time" name="work_time_to" id="work_time_to"
                                                                 value="{{ old('work_time_to') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                     </div>
                                                     <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">WIB</p>
@@ -478,7 +478,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Total Man Power
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -489,7 +489,7 @@
                                                             <input type="number" min="0" step="1"
                                                                 name="manpower_total" id="manpower_total"
                                                                 value="{{ old('manpower_total') }}" placeholder="0"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -498,7 +498,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         PIC / Person In Charge
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -508,7 +508,7 @@
                                                                 PIC</label>
                                                             <input type="text" name="pic_name" id="pic_name"
                                                                 value="{{ old('pic_name', 'Bapak X') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                         <div>
                                                             <label
@@ -516,7 +516,7 @@
                                                                 HP</label>
                                                             <input type="text" name="pic_phone" id="pic_phone"
                                                                 value="{{ old('pic_phone', '0859 4612 0121') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -525,7 +525,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Cara Pembayaran
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -535,7 +535,7 @@
                                                             <input type="text" name="payment_method"
                                                                 id="payment_method"
                                                                 value="{{ old('payment_method', 'Giro') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" readonly>
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" readonly>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -544,7 +544,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Garansi Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -553,7 +553,7 @@
                                                                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Garansi</label>
                                                             <input type="text" name="warranty" id="warranty"
                                                                 value="{{ old('warranty', '1 WEEK') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -567,7 +567,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Tanggal Pelaksanaan Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -575,7 +575,7 @@
                                                             <label
                                                                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Dari
                                                                 Tanggal</label>
-                                                                 <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                 <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ optional($po->spkstartworkingdate)->format('d M Y') ?? '-' }}
                                                                 </p>                                                           
                                                         </div>
@@ -583,12 +583,12 @@
                                                             <label
                                                                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Sampai
                                                                 Tanggal</label>
-                                                                <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ optional($po->spkendtworkingdate)->format('d M Y') ?? '-' }}
                                                                 </p>                                                            
                                                         </div>
                                                         <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-2 dark:text-gray-300">
+                                                            class="flex items-end text-xs text-gray-600 md:col-span-2 dark:text-gray-300">
                                                             (Pelaksanaan Pekerjaan)
                                                         </div>
                                                     </div>
@@ -598,7 +598,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Lama Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -606,12 +606,12 @@
                                                             <label
                                                                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Jumlah
                                                                 Hari Kerja</label>                                                            
-                                                                <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->spktotalday }}
                                                                 </p> 
                                                         </div>
                                                         <div
-                                                            class="flex items-end text-sm text-gray-600 md:col-span-3 dark:text-gray-300">
+                                                            class="flex items-end text-xs text-gray-600 md:col-span-3 dark:text-gray-300">
                                                             (Tidak Termasuk Hari Sabtu / Minggu / Hari Libur Nasional)
                                                         </div>
                                                     </div>
@@ -621,12 +621,12 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Waktu Pelaksanaan Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
                                                         <div class="md:col-span-2">                                                            
-                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 {{ $po->spkworkschedule }}                                                               
                                                             </p>                                                            
                                                         </div>
@@ -639,12 +639,12 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Total Man Power
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                         <div>
-                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 {{ $po->spkmanpower }} Orang                                                              
                                                             </p> 
                                                         </div>
@@ -655,12 +655,12 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         PIC / Person In Charge
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                         <div>
-                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                            <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 {{ $po->spkpic }}                                                               
                                                             </p>
                                                         </div>                                                        
@@ -671,7 +671,7 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Cara Pembayaran
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -681,7 +681,7 @@
                                                             <input type="text" name="payment_method"
                                                                 id="payment_method"
                                                                 value="{{ old('payment_method', 'Giro') }}"
-                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" readonly>
+                                                                class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" readonly>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -690,12 +690,12 @@
                                                 <div
                                                     class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                                     <h3
-                                                        class="mb-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                        class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                         Garansi Pekerjaan
                                                     </h3>
                                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                         <div>
-                                                           <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                           <p class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 {{ $po->spkwarranty }}                                                               
                                                             </p>
                                                         </div>
@@ -723,18 +723,18 @@
                                                     Upload Attachment — multiple allowed
                                                 </label>
                                                 <input type="file" id="attachFiles" name="attachments[]" multiple
-                                                    class="w-full rounded-lg border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    class="w-full rounded-lg border border-gray-300 bg-white p-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                                     Maks 10 file
                                                 </p>
                                             </div>
                                             <div class="flex gap-2">
                                                 <button type="button" id="btnUploadAttachment"
-                                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                     Upload
                                                 </button>
                                                 <button type="button" id="btnResetAttachment"
-                                                        class="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                                        class="rounded-lg bg-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
                                                     Reset
                                                 </button>
                                             </div>
@@ -750,7 +750,7 @@
                                 @endif
 
                                 {{-- TABEL attachment existing --}}
-                                <table class="w-full text-sm">
+                                <table class="w-full text-xs">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
@@ -816,7 +816,7 @@
                                             placeholder="Write a comment..."
                                             class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -829,13 +829,13 @@
 
 
             {{-- PO Detail table --}}
-            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+            <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-xl font-semibold">📝 PO Detail</h2>
+                    <h2 class="text-base font-semibold">📝 PO Detail</h2>
                 </header>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
+                    <table class="w-full text-xs text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
@@ -877,7 +877,7 @@
     {{-- Modal: Cancel Reuse --}}
     <div id="modalCancelReuse" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel Reuse</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Cancel Reuse</h2>
             <textarea id="reasonCancelReuse"
                 class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter reason for cancel reuse..."></textarea>
@@ -898,7 +898,7 @@
     {{-- Modal: Cancel --}}
     <div id="modalCancel" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel PO</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Cancel PO</h2>
             <textarea id="reasonCancel" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter reason for cancel..."></textarea>
 
@@ -965,7 +965,7 @@
                                 let timeAgo = dayjs(comment.created_at).fromNow();
                                 commentList.append(`
                                         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
-                                            <p class="text-sm font-semibold">${comment.username} 
+                                            <p class="text-xs font-semibold">${comment.username} 
                                                 <span class="text-xs text-gray-500">(${timeAgo})</span>
                                             </p>
                                             <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

@@ -3,7 +3,7 @@
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-4">
             <div>
-                <label class="text-sm font-semibold text-gray-700 dark:text-gray-200">Tahun</label>
+                <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Tahun</label>
                 <select id="fYear" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                     @foreach ($years as $y)
@@ -13,7 +13,7 @@
             </div>
 
             <div>
-                <label class="text-sm font-semibold text-gray-700 dark:text-gray-200">Company</label>
+                <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Company</label>
                 <select id="fCompany" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                     @foreach ($companies as $c)
@@ -23,14 +23,14 @@
             </div>
 
             <div>
-                <label class="text-sm font-semibold text-gray-700 dark:text-gray-200">Business Unit</label>
+                <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Business Unit</label>
                 <select id="fBU" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                 </select>
             </div>
 
             <div>
-                <label class="text-sm font-semibold text-gray-700 dark:text-gray-200">Department</label>
+                <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Department</label>
                 <select id="fDept" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                 </select>
@@ -42,13 +42,13 @@
             {{-- MASTER BUDGET --}}
             <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Master Budget</h1>
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Master Budget</h1>
                 </div>
                 <!-- TABLE -->
                 <div class="rounded-base relative overflow-x-auto">
-                    <table id="tblMaster"class="text-body w-full text-left text-sm rtl:text-right">
+                    <table id="tblMaster"class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th class="w-8"></th>
                                 <th class="w-32 px-6 py-3 font-medium">
@@ -89,7 +89,7 @@
                             <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Total Budget
                             </div>
-                            <div id="mTotBudg" class="mt-1 text-lg font-extrabold text-gray-900 dark:text-white">
+                            <div id="mTotBudg" class="mt-1 text-sm font-extrabold text-gray-900 dark:text-white">
                                 Rp. 0
                             </div>
                         </div>
@@ -98,7 +98,7 @@
                             <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Total Additional
                             </div>
-                            <div id="mTotAddi" class="mt-1 text-lg font-extrabold text-blue-600">
+                            <div id="mTotAddi" class="mt-1 text-sm font-extrabold text-blue-600">
                                 Rp. 0
                             </div>
                         </div>
@@ -107,7 +107,7 @@
                             <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Total Reserved
                             </div>
-                            <div id="mTotRese" class="mt-1 text-lg font-extrabold text-amber-600">
+                            <div id="mTotRese" class="mt-1 text-sm font-extrabold text-amber-600">
                                 Rp. 0
                             </div>
                         </div>
@@ -116,7 +116,7 @@
                             <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Total Used
                             </div>
-                            <div id="mTotUsed" class="mt-1 text-lg font-extrabold text-red-600">
+                            <div id="mTotUsed" class="mt-1 text-sm font-extrabold text-red-600">
                                 Rp. 0
                             </div>
                         </div>
@@ -125,7 +125,7 @@
                 </div>
 
                 {{-- <div class="border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
-                        <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-4">
 
                             <div class="flex justify-between sm:block">
                                 <span class="text-gray-500 dark:text-gray-400">Total Budget</span>
@@ -157,14 +157,14 @@
             {{-- TRX BUDGET --}}
             <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Trx Budget</h1>
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Trx Budget</h1>
                 </div>
 
                 <!-- TABLE -->
                 <div class="rounded-base relative overflow-x-auto">
-                    <table id="tblTrx" class="text-body w-full text-left text-sm rtl:text-right">
+                    <table id="tblTrx" class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th class="w-8"></th>
                                 <th class="px-6 py-3 font-medium">
@@ -207,7 +207,7 @@
                             <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 Total Amount
                             </div>
-                            <div id="tTotAmount" class="mt-1 text-lg font-extrabold text-indigo-600">
+                            <div id="tTotAmount" class="mt-1 text-sm font-extrabold text-indigo-600">
                                 Rp. 0
                             </div>
                         </div>

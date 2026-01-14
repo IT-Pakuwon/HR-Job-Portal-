@@ -8,21 +8,21 @@
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">📍 Location</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">📍 Location</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-300">
                         Klik 1 location untuk filter sub location.
                     </p>
                 </div>
                 <button id="addLocationBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Location
                 </button>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="locationsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="locationsTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>
@@ -41,21 +41,21 @@
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">🧩 Sub Location</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
+                    <h2 class="text-base font-bold text-gray-800 dark:text-white">🧩 Sub Location</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-300">
                         Selected Location: <span id="selectedLocationText" class="font-semibold">-</span>
                     </p>
                 </div>
                 <button id="addSubLocationBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Sub Location
                 </button>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="subLocationsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="subLocationsTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>
@@ -73,7 +73,7 @@
         <!-- LOCATION MODAL -->
         <div id="locationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="w-full max-w-xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="locationModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add Location
+                <h2 id="locationModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Location
                 </h2>
                 <form id="locationForm">
                     <input type="hidden" id="loc_id" name="id">
@@ -109,7 +109,7 @@
         <!-- SUB LOCATION MODAL -->
         <div id="subLocationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="w-full max-w-xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="subLocationModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add Sub
+                <h2 id="subLocationModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Sub
                     Location</h2>
                 <form id="subLocationForm">
                     <input type="hidden" id="sub_id" name="id">

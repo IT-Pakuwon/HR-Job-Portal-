@@ -52,7 +52,7 @@
   <!-- Payroll Section -->
   <div class="bg-white p-6 rounded-lg shadow space-y-4">
     <div class="flex justify-between items-center">
-      <h3 class="text-lg font-semibold text-gray-700">Payroll Confirmation Data</h3>
+      <h3 class="text-sm font-semibold text-gray-700">Payroll Confirmation Data</h3>
       {{-- <button id="addPayrollBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
         + Tambah
       </button> --}}
@@ -144,7 +144,7 @@
 
     <!-- Tabel Payroll -->
     <div class="overflow-x-auto">
-      <table class="w-full border text-sm text-left" id="payrollTable">
+      <table class="w-full border text-xs text-left" id="payrollTable">
         <thead class="bg-gray-200 text-gray-700">
           <tr>
             <th class="px-4 py-2">Applicant ID</th>

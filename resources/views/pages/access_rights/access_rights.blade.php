@@ -6,20 +6,20 @@
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-bold text-gray-800 dark:text-white">Access Rights</h1>
+                <h1 class="text-base font-bold text-gray-800 dark:text-white">Access Rights</h1>
                 <button id="addAccessRightBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Access Right
                 </button>
             </div>
 
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                         Filter Role
                     </label>
                     <select id="filterRole"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
                         <option value="">All Role</option>
                         @foreach ($roles as $r)
                             <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
@@ -28,11 +28,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                         Filter Screen
                     </label>
                     <select id="filterScreen"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
                         <option value="">All Screen</option>
                         @foreach ($screens as $s)
                             <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
@@ -42,16 +42,16 @@
 
                 <div class="mt-6">
                     <button id="clearUserFilters" type="button"
-                        class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                        class="rounded-lg border px-3 py-1 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                         Clear Filter
                     </button>
                 </div>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="accessRightsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="accessRightsTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
@@ -73,7 +73,7 @@
         <div id="accessRightModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
             {{-- 🔥 Modal dilebarkan: max-w-2xl --}}
             <div class="relative w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="accessRightModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
+                <h2 id="accessRightModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
                     Add Access Right
                 </h2>
                 <form id="accessRightForm">

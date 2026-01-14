@@ -8,15 +8,15 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🆕</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🆕</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
                                 Issue New Jobs
                             </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $issuejobsnew }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $issuejobsnew }}</p>
                     </div>
                 </a>
             </button>
@@ -27,15 +27,15 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📦</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
                                 Issue Jobs
                             </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $issuejobs }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $issuejobs }}</p>
                     </div>
                 </a>
             </button>
@@ -46,15 +46,15 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📑</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📑</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
                                 SPPB Jobs
                             </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $sppbjobs }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $sppbjobs }}</p>
                     </div>
                 </a>
             </button>
@@ -65,15 +65,15 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
                                 Issue On Progress
                             </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $issueprogress }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $issueprogress }}</p>
                     </div>
                 </a>
             </button>
@@ -84,24 +84,24 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-lg active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📌</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📌</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
                                 SPPB On Progress
                             </p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $sppbprogress }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $sppbprogress }}</p>
                     </div>
                 </a>
             </button>
 
         </div>
-        <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+        <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
             <div
                 class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Issue</h1>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Issue</h1>
             </div>
 
             <div class="overflow-x-auto p-6">
@@ -121,7 +121,7 @@
 
         $(function() {
             let scope = 'issuejobsnew';
-            const $title = $('h1.text-xl.font-extrabold');
+            const $title = $('h1.text-base.font-extrabold');
             const $thead = $('#issueTable thead');
             const dtControlColumn = {
                 data: null,
@@ -200,7 +200,7 @@
                 const hash = row.spb_eid || row.spb_hash || row.hash || row.id;
                 if (!label) return '';
                 const url = `/showspbs/${encodeURIComponent(hash ?? '')}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderSppbLink(row) {
@@ -208,7 +208,7 @@
                 const hash = row.eid || row.sppb_hash || row.hash || row.id;
                 if (!label) return '';
                 const url = `/showsppbs/${encodeURIComponent(hash ?? '')}`; // sesuaikan dengan route detail SPPB-mu
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderIssueLinkCell(_value, _type, row) {
@@ -217,7 +217,7 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 const statusRaw = (row.status ?? row.xstatus ?? '').toString().trim().toUpperCase();
@@ -227,28 +227,28 @@
                 const isOwner = creator === (currentUser ?? '');
                 if (isRevise && isOwner) {
                     const url = `/editissues/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
                 }
                 const url = `/showissue/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             // function renderPlusCreate(row) {
             //     const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-            //     return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+            //     return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
         //         <i class="fas fa-plus"></i>
         //     </a>`;
             // }
             function renderIssueCreate(row) {
                 const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
                             <i class="fas fa-plus"></i>
                         </a>`;
             }
 
             function renderSppbCreate(row) {
                 const url = `{{ route('sppb.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-amber-600 hover:bg-amber-700">
+                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-amber-600 hover:bg-amber-700">
                             <i class="fas fa-plus"></i>
                         </a>`;
             }
@@ -299,7 +299,7 @@
                                     'Full': 'bg-green-200/50 text-green-700',
                                 };
                                 const cls = map[val] || 'bg-gray-200/50 text-gray-700';
-                                return `<span class="inline-block ${cls} font-semibold px-3 py-1.5 text-sm text-center rounded">${val}</span>`;
+                                return `<span class="inline-block ${cls} font-semibold px-3 py-1.5 text-xs text-center rounded">${val}</span>`;
                             }
                         }
 
@@ -365,7 +365,7 @@
                                     t: (data || '-'),
                                     c: 'bg-gray-300/30 text-gray-600'
                                 };
-                                return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                                return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                             }
                         }
 
@@ -431,7 +431,7 @@
                                 t: data || '-',
                                 c: 'bg-gray-300/30 text-gray-600'
                             };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                         }
                     },
                 ];

@@ -1,9 +1,9 @@
 @props(['tr_approval'])
 
-<div class="col-span-12 col-span-full rounded-2xl bg-white p-6 dark:bg-gray-800">
+<div class="col-span-12 col-span-full rounded-xl bg-white p-6 dark:bg-gray-800">
     <!-- Tabs -->
     <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
-        <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="approvalTabs" role="tablist">
+        <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="approvalTabs" role="tablist">
 
             <!-- Waiting Approval -->
             <li class="mr-2">
@@ -31,11 +31,11 @@
         <div class="flex flex-col">
             <div class="flex flex-col justify-between gap-4 sm:flex-row">
                 <div>
-                    <h1 class="text-2xl font-bold dark:text-white">📝 Waiting Approval</h1>
+                    <h1 class="text-lg font-bold dark:text-white">📝 Waiting Approval</h1>
                 </div>
                 <div class="flex gap-2">
                     <input id="waitingSearch" type="text" placeholder="Search..."
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
+                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
                 </div>
             </div>
             <div>
@@ -53,14 +53,14 @@
                         <th class="px-4 py-2 text-center uppercase">Info</th>
                     </tr>
                 </thead>
-                <tbody class="text-sm text-gray-800 dark:text-gray-300">
+                <tbody class="text-xs text-gray-800 dark:text-gray-300">
                     <!-- Data will be loaded by JS -->
                 </tbody>
             </table>
             <div class="mt-2 flex items-center justify-between">
                 <button id="waitingPrev"
                     class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
-                <span id="waitingPaginationInfo" class="text-sm text-gray-700 dark:text-white">Page 1 of 1</span>
+                <span id="waitingPaginationInfo" class="text-xs text-gray-700 dark:text-white">Page 1 of 1</span>
                 <button id="waitingNext"
                     class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
             </div>
@@ -72,11 +72,11 @@
         <div class="flex flex-col">
             <div class="flex flex-col justify-between gap-4 sm:flex-row">
                 <div>
-                    <h1 class="text-2xl font-bold dark:text-white">✅ Approval</h1>
+                    <h1 class="text-lg font-bold dark:text-white">✅ Approval</h1>
                 </div>
                 <div class="flex gap-2">
                     <input id="approvedSearch" type="text" placeholder="Search..."
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:bg-gray-700 dark:text-white" />
+                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
                 </div>
             </div>
             <div>
@@ -94,14 +94,14 @@
                         <th class="max-w-xs px-4 py-2 text-center uppercase">Info</th>
                     </tr>
                 </thead>
-                <tbody class="text-sm text-gray-800 dark:text-gray-300">
+                <tbody class="text-xs text-gray-800 dark:text-gray-300">
                     <!-- Data will be loaded by JS -->
                 </tbody>
             </table>
             <div class="mt-2 flex items-center justify-between">
                 <button id="approvedPrev"
                     class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Previous</button>
-                <span id="approvedPaginationInfo" class="text-sm text-gray-700 dark:text-white">Page 1 of 1</span>
+                <span id="approvedPaginationInfo" class="text-xs text-gray-700 dark:text-white">Page 1 of 1</span>
                 <button id="approvedNext"
                     class="rounded-md bg-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">Next</button>
             </div>

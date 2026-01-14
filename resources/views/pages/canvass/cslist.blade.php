@@ -12,10 +12,10 @@
                 <a href="#" class="scope-filter group block" data-scope="my">
                     <div
                         class="scope-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">📄</span>
+                        <span class="text-base group-hover:animate-pulse">📄</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">My CS</p>
-                            <p class="text-right text-xl font-extrabold">{{ $my }}</p>
+                            <p class="text-sm font-medium">My CS</p>
+                            <p class="text-right text-base font-extrabold">{{ $my }}</p>
                         </div>
                     </div>
                 </a>
@@ -26,10 +26,10 @@
                 <a href="#" class="scope-filter group block" data-scope="onprogress">
                     <div
                         class="scope-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⏳</span>
+                        <span class="text-base group-hover:animate-pulse">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
+                            <p class="text-sm font-medium">On Progress</p>
+                            <p class="text-right text-base font-extrabold">{{ $onProgress }}</p>
                         </div>
                     </div>
                 </a>
@@ -40,10 +40,10 @@
                 <a href="#" class="scope-filter group block" data-scope="rejected">
                     <div
                         class="scope-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">⛔️</span>
+                        <span class="text-base group-hover:animate-pulse">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Reject</p>
-                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
+                            <p class="text-sm font-medium">Reject</p>
+                            <p class="text-right text-base font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
                 </a>
@@ -54,10 +54,10 @@
                 <a href="#" class="scope-filter group block" data-scope="completed">
                     <div
                         class="scope-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                        <span class="text-xl group-hover:animate-pulse">✅</span>
+                        <span class="text-base group-hover:animate-pulse">✅</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
+                            <p class="text-sm font-medium">Completed</p>
+                            <p class="text-right text-base font-extrabold">{{ $completed }}</p>
                         </div>
                     </div>
                 </a>
@@ -68,10 +68,10 @@
                 <a href="#" class="scope-filter group block" data-scope="all">
                     <div
                         class="scope-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                        <span class="text-xl group-hover:animate-pulse">🧾</span>
+                        <span class="text-base group-hover:animate-pulse">🧾</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All CS</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
+                            <p class="text-sm font-medium">All CS</p>
+                            <p class="text-right text-base font-extrabold">{{ $all }}</p>
                         </div>
                     </div>
                 </a>
@@ -80,13 +80,13 @@
 
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Canvass Sheet (CS)</h1>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="csTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="csTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th
@@ -140,7 +140,7 @@
             };
 
             // 2) Helper untuk set judul
-            const $title = $('h1.text-xl.font-extrabold'); // selector h1 kamu
+            const $title = $('h1.text-base.font-extrabold'); // selector h1 kamu
             function updateTitle(sc) {
                 const label = titleMap[sc] ?? 'Canvass Sheet';
                 $title.text(label);
@@ -302,7 +302,7 @@
             function renderCSBtn(_v, row) {
                 const url = `/showcs/${row.eid}`;
                 const text = row.csid || row.eid;
-                return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
             }
             const showMap = {
                 PB: 'showsppbs',
@@ -318,7 +318,7 @@
                 const src_eid = row.sppbjkid_eid;
                 if (!prefix || !base || !src_eid) return docNo;
                 const url = `/${base}/${src_eid}`;
-                return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
+                return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-xs leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
             }
 
             function renderDays(v) {

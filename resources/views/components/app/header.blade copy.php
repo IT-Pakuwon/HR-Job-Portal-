@@ -58,7 +58,7 @@
                         <template x-for="item in notifications" :key="item.id">
                             <a href="#" @click.prevent="openNotification(item.id)"
                                 class="flex items-start gap-2 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <div x-text="item.icon" class="text-lg"></div>
+                                <div x-text="item.icon" class="text-sm"></div>
                                 <div class="flex-1">
                                     <p class="font-medium text-gray-800 dark:text-gray-100" x-text="item.title"></p>
                                     <p class="text-xs text-gray-500 dark:text-gray-300"
@@ -69,7 +69,7 @@
                         </template>
 
                         <template x-if="notifications.length === 0">
-                            <div class="p-3 text-center text-sm text-gray-400 dark:text-gray-300">No pending
+                            <div class="p-3 text-center text-xs text-gray-400 dark:text-gray-300">No pending
                                 notifications</div>
                         </template>
                     </div>

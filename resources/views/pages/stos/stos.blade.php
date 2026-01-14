@@ -55,10 +55,10 @@
             <a href="#" class="status-filter group block" data-status="">
                 <div
                     class="status-card flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-                    <span class="text-xl group-hover:animate-pulse">📄</span>
+                    <span class="text-base group-hover:animate-pulse">📄</span>
                     <div class="flex flex-grow items-center justify-between">
-                        <p class="text-lg font-medium">All</p>
-                        <p class="text-right text-xl font-extrabold">{{ $all }}</p>
+                        <p class="text-sm font-medium">All</p>
+                        <p class="text-right text-base font-extrabold">{{ $all }}</p>
                     </div>
                 </div>
             </a>
@@ -67,10 +67,10 @@
             <a href="#" class="status-filter group block" data-status="P">
                 <div
                     class="status-card flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-                    <span class="text-xl group-hover:animate-pulse">⏳</span>
+                    <span class="text-base group-hover:animate-pulse">⏳</span>
                     <div class="flex flex-grow items-center justify-between">
-                        <p class="text-lg font-medium">On Progress</p>
-                        <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
+                        <p class="text-sm font-medium">On Progress</p>
+                        <p class="text-right text-base font-extrabold">{{ $onProgress }}</p>
                     </div>
                 </div>
             </a>
@@ -79,10 +79,10 @@
             <a href="#" class="status-filter group block" data-status="R">
                 <div
                     class="status-card flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                    <span class="text-xl group-hover:animate-pulse">⛔️</span>
+                    <span class="text-base group-hover:animate-pulse">⛔️</span>
                     <div class="flex flex-grow items-center justify-between">
-                        <p class="text-lg font-medium">Reject</p>
-                        <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
+                        <p class="text-sm font-medium">Reject</p>
+                        <p class="text-right text-base font-extrabold">{{ $reject }}</p>
                     </div>
                 </div>
             </a>
@@ -91,10 +91,10 @@
             <a href="#" class="status-filter group block" data-status="D">
                 <div
                     class="status-card flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-                    <span class="text-xl group-hover:animate-pulse">✏️</span>
+                    <span class="text-base group-hover:animate-pulse">✏️</span>
                     <div class="flex flex-grow items-center justify-between">
-                        <p class="text-lg font-medium">Revise / Draft</p>
-                        <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
+                        <p class="text-sm font-medium">Revise / Draft</p>
+                        <p class="text-right text-base font-extrabold">{{ $revise }}</p>
                     </div>
                 </div>
             </a>
@@ -103,10 +103,10 @@
             <a href="#" class="status-filter group block" data-status="C">
                 <div
                     class="status-card flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-                    <span class="text-xl group-hover:animate-pulse">✅</span>
+                    <span class="text-base group-hover:animate-pulse">✅</span>
                     <div class="flex flex-grow items-center justify-between">
-                        <p class="text-lg font-medium">Completed</p>
-                        <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
+                        <p class="text-sm font-medium">Completed</p>
+                        <p class="text-right text-base font-extrabold">{{ $completed }}</p>
                     </div>
                 </div>
             </a>
@@ -302,18 +302,18 @@
                     text-align: center;
                 }
             </style>
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Organization Structure</h1>
+                    {{-- Changed text-lg to text-base --}}
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Organization Structure</h1>
                     <div class="flex gap-2">
                         <a href="{{ url('/createstos') }}"
-                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             <i class="fas fa-plus pr-2"></i>Create
                         </a>
                         <a href="{{ url('/stoall') }}"
-                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">All
+                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">All
                             Org Chart
                         </a>
                     </div>
@@ -384,13 +384,13 @@
                                 render: function(data, type, row) {
                                     let url = `/showstos/${row.eid}`;
                                     let buttonClass =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                                     let buttonText = row.sto_id;
 
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editstos/${row.eid}`;
                                         buttonClass =
-                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                                     }
                                     // Jika status H, arahkan ke /createstos?id=...
                                     if (row.status === 'H' && row.created_user === currentUser) {

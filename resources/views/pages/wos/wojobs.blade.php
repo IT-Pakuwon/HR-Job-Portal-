@@ -12,13 +12,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🕒</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🕒</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">On Hold</p>
+                        <p class="break-words text-sm font-medium">On Hold</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $wojobs }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $wojobs }}</p>
                 </div>
             </button>
 
@@ -27,13 +27,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⏳</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⏳</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">On Progress</p>
+                        <p class="break-words text-sm font-medium">On Progress</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $onProgress }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $onProgress }}</p>
                 </div>
             </button>
 
@@ -42,13 +42,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">⛔️</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⛔️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Cancel</p>
+                        <p class="break-words text-sm font-medium">Cancel</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $cancel }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $cancel }}</p>
                 </div>
             </button>
 
@@ -57,13 +57,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">✅</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Completed</p>
+                        <p class="break-words text-sm font-medium">Completed</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $completed }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $completed }}</p>
                 </div>
             </button>
 
@@ -72,25 +72,25 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">📄</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📄</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">All</p>
+                        <p class="break-words text-sm font-medium">All</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-extrabold">{{ $all }}</p>
+                    <p class="shrink-0 text-base font-extrabold">{{ $all }}</p>
                 </div>
             </button>
         </div>
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">WO Jobs</h1>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">WO Jobs</h1>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="wosTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="wosTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-32 px-6 py-3 font-medium">
@@ -195,13 +195,13 @@
                         render: function(data, type, row) {
                             let url = `/showwos/${row.eid}`;
                             let cls =
-                                'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm';
+                                'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-xs';
                             const text = data || row.eid;
 
                             if (row.status === 'D' && row.created_by === currentUser) {
                                 url = `/editwos/${row.eid}`;
                                 cls =
-                                    'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-sm';
+                                    'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-xs';
                             }
 
                             return `
@@ -266,7 +266,7 @@
                                 t: data || '-',
                                 c: 'bg-gray-300/30 text-gray-600'
                             };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                         }
                     }
                     // Jika ingin menampilkan job status juga, tambah 1 kolom lagi render dari row.status_pekerjaan

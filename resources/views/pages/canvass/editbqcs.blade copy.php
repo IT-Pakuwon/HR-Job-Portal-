@@ -108,28 +108,28 @@
             <!-- Header Card -->
             <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
-                    <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
+                    <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
                         BQ CS Edit : 🆔 {{ $bq->bqid }}
                     </h2>
                 </div>
 
-                <div class="flex flex-col gap-4 text-sm">
+                <div class="flex flex-col gap-4 text-xs">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
-                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->cpny_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">CSID</span>
-                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->csid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
-                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->sppjtid }}
                             </div>
                         </div>
@@ -140,11 +140,11 @@
             <!-- BQ Details -->
             <div class="w-full rounded-xl bg-white shadow-md dark:bg-gray-800">
                 <div class="border-b border-gray-200 p-5 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">BQ Details</h3>
+                    <h3 class="text-sm font-semibold text-gray-800 dark:text-white">BQ Details</h3>
                 </div>
 
                 <div class="overflow-x-auto p-5">
-                    <table class="w-full text-sm" id="bqTable">
+                    <table class="w-full text-xs" id="bqTable">
                         <thead class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
                             <tr>
                                 <th class="border px-4 py-3 text-left font-semibold">No</th>

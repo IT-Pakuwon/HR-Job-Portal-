@@ -8,9 +8,9 @@
                         <form id="stoForm" class="flex flex-col" enctype="multipart/form-data">
                             @csrf
                             <div class="flex justify-between rounded-t-2xl border-b bg-gray-50 p-4 dark:border-gray-600">
-                                <h2 class="text-xl font-bold">Organization Structure by Department</h2>
+                                <h2 class="text-base font-bold">Organization Structure by Department</h2>
                                 <div class="flex items-center gap-2">
-                                    <label class="mb-1 block w-40 text-xl font-semibold">Company</label>
+                                    <label class="mb-1 block w-40 text-base font-semibold">Company</label>
                                     <select id="selectCompany"
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="company_filter">
@@ -22,7 +22,7 @@
                                 </div>
 
                                 <div class="flex items-center gap-2">
-                                    <label class="mb-1 block w-40 text-xl font-semibold">Department</label>
+                                    <label class="mb-1 block w-40 text-base font-semibold">Department</label>
                                     <select id="selectdeptname"
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="departementid" required>                                   
@@ -53,28 +53,28 @@
                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
                         <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                             <div class="border-gray-200s mb-4 flex justify-between border-b">
-                                <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
+                                <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
                                     <li class="mr-2">
                                         <button type="button"
-                                            class="tab-button border-blue-600 px-4 py-2 text-lg text-blue-600"
+                                            class="tab-button border-blue-600 px-4 py-2 text-sm text-blue-600"
                                             onclick="switchTab('view')">View Employee</button>
                                     </li>                                    
                                 </ul>
-                                <button onclick="closeModal()" class="text-lg text-gray-500">close</button>
+                                <button onclick="closeModal()" class="text-sm text-gray-500">close</button>
 
                             </div>
 
                             <!-- Tab Content: View Employee -->
                             <div id="tab-view" class="tab-content hidden">
                                 <div class="flex justify-between">
-                                    <h3 class="text-lg font-semibold">Employee List</h3>
+                                    <h3 class="text-sm font-semibold">Employee List</h3>
                                     <div class="mb-4 flex items-center justify-between">
-                                        <h4 id="departmentLabel" class="text-lg font-semibold text-gray-800">
+                                        <h4 id="departmentLabel" class="text-sm font-semibold text-gray-800">
                                             Dept: <!-- Dynamic text will be inserted via JS -->
                                         </h4>                                       
                                     </div>
                                 </div>
-                                <table class="w-full border   text-sm text-black">
+                                <table class="w-full border   text-xs text-black">
                                     <thead class="bg-gray-300/10">
                                         <tr class="text-left">
                                             <th class="border   px-2 py-1">No</th>
@@ -94,14 +94,14 @@
                             <div id="modalJobProfile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10 backdrop-blur-md">
                                 <div class="w-full max-w-4xl rounded-lg bg-white p-6    overflow-y-auto max-h-[90vh]">
                                     <div class="flex justify-between items-center mb-4">
-                                        <h3 class="text-lg font-semibold">
+                                        <h3 class="text-sm font-semibold">
                                             Job Profile - <span id="jobLevelLabel" class="text-blue-600 font-semibold"></span>
                                         </h3>
-                                        <button onclick="$('#modalJobProfile').addClass('hidden')" class="text-gray-600 hover:text-red-600 text-xl">&times;</button>
+                                        <button onclick="$('#modalJobProfile').addClass('hidden')" class="text-gray-600 hover:text-red-600 text-base">&times;</button>
                                     </div>
 
                                     <div class="mb-4">
-                                        <table class="w-full border   text-sm">
+                                        <table class="w-full border   text-xs">
                                             <thead class="bg-gray-100">
                                                 <tr>
                                                     <th class="border   px-2 py-1">No</th>                                           
@@ -112,7 +112,7 @@
                                         </table>
                                     </div>
 
-                                    <div id="jobSpecInfo" class="text-sm text-gray-700 space-y-2">
+                                    <div id="jobSpecInfo" class="text-xs text-gray-700 space-y-2">
                                         <!-- Job Spec details will be injected here -->
                                     </div>
                                 </div>

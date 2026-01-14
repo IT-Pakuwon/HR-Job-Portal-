@@ -26,9 +26,9 @@
     </header>
     <div class="px-5 py-3">
         <div class="flex items-start">
-            <div class="mr-2 text-3xl font-bold tabular-nums text-gray-800 dark:text-gray-100">$<span
+            <div class="mr-2 text-lg font-bold tabular-nums text-gray-800 dark:text-gray-100">$<span
                     id="dashboard-card-05-value">57.81</span></div>
-            <div id="dashboard-card-05-deviation" class="rounded-full px-1.5 text-sm font-medium"></div>
+            <div id="dashboard-card-05-deviation" class="rounded-full px-1.5 text-xs font-medium"></div>
         </div>
     </div>
     <div class="grow">

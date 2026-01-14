@@ -8,7 +8,7 @@
         <!-- Breadcrumb dengan Dropdown -->
         <div class="mb-4 flex items-center justify-between sm:mb-0">
             <!-- Title Page -->
-            <h1 class="text-2xl font-bold text-gray-800 md:text-3xl dark:text-gray-100">{{ $currentPage }}</h1>
+            <h1 class="text-lg font-bold text-gray-800 md:text-lg dark:text-gray-100">{{ $currentPage }}</h1>
             <!-- Breadcrumb -->
             <nav class="flex items-center text-gray-600 dark:text-gray-300">
                 <a href="#" class="hover:text-gray-900 dark:hover:text-white">Settings</a>

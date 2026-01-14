@@ -8,7 +8,7 @@
         <!-- Breadcrumb dengan Dropdown -->
         <div class="mb-4 flex items-center justify-end sm:mb-0">
             <!-- Title Page -->
-            {{-- <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{{ $currentPage }}</h1> --}}
+            {{-- <h1 class="text-lg md:text-lg text-gray-800 dark:text-gray-100 font-bold">{{ $currentPage }}</h1> --}}
             <!-- Breadcrumb -->
             <nav class="flex items-center text-gray-600 dark:text-gray-300">
                 <a href="#" class="hover:text-gray-900 dark:hover:text-white">HR</a>
@@ -221,7 +221,7 @@
             </style>
             <div class="mt-2 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <h1 class="align-middle text-2xl font-bold dark:text-white">Personnel Requisition Form (PRF)</h1>
+                    <h1 class="align-middle text-lg font-bold dark:text-white">Personnel Requisition Form (PRF)</h1>
                     {{-- <button id="addAppBtn" class="px-5 py-2 bg-indigo-500 text-white rounded-lg">+ Create PRF</button> --}}
                     <a href="{{ url('/createpersonnels') }}" class="rounded-lg bg-indigo-500 px-5 py-2 text-white">
                         <i class="fas fa-plus pr-2"></i>Create PRF</a>
@@ -270,7 +270,7 @@
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editpersonnels/${row.id}`;
                                         buttonClass =
-                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

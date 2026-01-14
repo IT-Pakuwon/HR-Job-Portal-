@@ -3,13 +3,13 @@
         <div class="grid">
             <div class="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
                 <div class="mx-auto max-w-7xl rounded-lg bg-white p-6 dark:bg-gray-800">
-                    {{-- <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Show Task</h2> --}}
+                    {{-- <h2 class="text-lg font-bold text-gray-800 dark:text-white">Show Task</h2> --}}
                     <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
 
                         <!-- Task Details -->
                         <div class="rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
                             <div class="border-b px-6 py-4">
-                                <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Task</h2>
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Task</h2>
                             </div>
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <!-- Kolom Kiri -->
@@ -81,7 +81,7 @@
                         <div class="rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
                             <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
                                 <div class="border-b px-6 py-4">
-                                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Approval</h2>
+                                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Approval</h2>
                                 </div>
 
                                 <div class="overflow-x-auto">
@@ -89,16 +89,16 @@
                                         <thead class="bg-gray-100 dark:bg-gray-700">
                                             <tr>
                                                 <th
-                                                    class="px-6 py-3 text-left text-sm font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-white">
                                                     Level</th>
                                                 <th
-                                                    class="px-6 py-3 text-left text-sm font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-white">
                                                     User</th>
                                                 <th
-                                                    class="px-6 py-3 text-center text-sm font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-600 dark:text-white">
                                                     Date</th>
                                                 <th
-                                                    class="px-6 py-3 text-right text-sm font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-right text-xs font-medium text-gray-600 dark:text-white">
                                                     Status</th>
                                             </tr>
                                         </thead>

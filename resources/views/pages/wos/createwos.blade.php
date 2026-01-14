@@ -125,17 +125,17 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="woForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
-                    <div class="w-full rounded-2xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <!-- Header -->
                         <div class="mb-6 flex items-center justify-between border-b pb-3 dark:border-gray-700">
-                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">📄 Create WO</h2>
+                            <h2 class="text-base font-bold text-gray-800 dark:text-white">📄 Create WO</h2>
                         </div>
 
                         <!-- Row 1 -->
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($usercpny as $p)
@@ -150,7 +150,7 @@
                             <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    class="req text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($userdept as $p)
@@ -164,7 +164,7 @@
 
                             <!-- WO Type -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">WO Type</label>
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">WO Type</label>
                                 <select name="wotype" id="wotype" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">-- choose --</option>
@@ -173,7 +173,7 @@
 
                             <!-- WO Request -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">WO
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">WO
                                     Request</label>
                                 <select name="worequest" id="worequest" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -186,7 +186,7 @@
                         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                             <!-- Jenis Pekerjaan -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">Jenis
                                     Pekerjaan</label>
                                 <div class="flex gap-2">
                                     <input id="jenis_pekerjaan_display" readonly
@@ -206,7 +206,7 @@
 
                             <!-- Lokasi -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">Lokasi</label>
                                 <div class="flex gap-2">
                                     <input id="lokasi_display" readonly
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -229,7 +229,7 @@
                         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <!-- Perpost -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">Perpost</label>
                                 <select id="perpost" name="perpost"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @php $year = now()->year; @endphp
@@ -239,7 +239,7 @@
                             </div>
                             <!-- PIC Requester -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">PIC
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">PIC
                                     Requester</label>
                                 <input type="text" name="picrequester" id="picrequester"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -248,7 +248,7 @@
 
                             <!-- Biaya WO -->
                             <div class="flex flex-col gap-2">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
+                                <label class="text-xs font-medium text-gray-700 dark:text-gray-300">Biaya WO</label>
                                 <input type="text" name="biaya_wo" id="biaya_wo" inputmode="decimal"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     placeholder="0,00">
@@ -257,7 +257,7 @@
 
                             <!-- Budget -->
                             <div class="flex flex-col gap-2">
-                                <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                                <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">Budget</label>
                                 <select name="wobudget" id="wobudget" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">-- choose --</option>
@@ -271,7 +271,7 @@
 
                         <!-- COA -->
                         <div id="coaGroup" class="mt-6">
-                            <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
+                            <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">COA</label>
                             <div class="flex gap-2">
                                 <input type="text" id="budget_display" readonly
                                     class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -295,7 +295,7 @@
 
                         <!-- Description -->
                         <div class="mt-6">
-                            <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                            <label class="req text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
                             <textarea name="keperluan" id="keperluan" rows="3" required
                                 class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
                         </div>
@@ -305,19 +305,19 @@
                     <!-- Modal -->
                     <div id="modalJenisPekerjaan"
                         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
+                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-6 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan
+                                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan
                                 </h3>
                                 <button type="button" id="closeJenisPekerjaan"
-                                    class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                                    class="text-lg leading-none text-gray-400 hover:text-gray-600">×</button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <!-- Kiri: Worktype -->
                                 <div>
                                     <label
-                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Worktype</label>
+                                        class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Worktype</label>
                                     <select id="modal_worktypeid"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                         <option value="">-- choose --</option>
@@ -326,7 +326,7 @@
 
                                 <!-- Kanan: Subworktype (dependent) -->
                                 <div>
-                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Sub
                                         Worktype</label>
                                     <select id="modal_subworktypeid"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -346,18 +346,18 @@
 
                     <!-- Modal Lokasi -->
                     <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
+                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-6 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
+                                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
                                 <button type="button" id="closeLokasi"
-                                    class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                                    class="text-lg leading-none text-gray-400 hover:text-gray-600">×</button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <!-- Kiri: Location -->
                                 <div>
                                     <label
-                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                        class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
                                     <select id="modal_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                         <option value="">-- choose --</option>
@@ -366,7 +366,7 @@
 
                                 <!-- Kanan: Sub Location (dependent) -->
                                 <div>
-                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Sub
                                         Location</label>
                                     <select id="modal_sub_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -389,12 +389,12 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-3 flex items-center gap-2 text-xs">
                                 <input id="coaSearch" type="text" placeholder="Search code/name..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="coaRefresh" type="button"
@@ -408,7 +408,7 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
                                             <th class="border p-2">Activity</th>
@@ -416,11 +416,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="coaTableBody" class="text-sm"></tbody>
+                                    <tbody id="coaTableBody" class="text-xs"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="coaPrev" type="button"
@@ -439,19 +439,19 @@
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
                                         </button>
@@ -459,7 +459,7 @@
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -834,7 +834,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);

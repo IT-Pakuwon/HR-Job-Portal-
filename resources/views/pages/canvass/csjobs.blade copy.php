@@ -263,65 +263,65 @@
         <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-5">
             <div
                 class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                <span class="text-xl">📄</span>
+                <span class="text-base">📄</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">All</p>
-                    <p id="count-all" class="text-right text-xl font-extrabold">{{ $all }}</p>
+                    <p class="text-sm font-medium">All</p>
+                    <p id="count-all" class="text-right text-base font-extrabold">{{ $all }}</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                <span class="text-xl">⏳</span>
+                <span class="text-base">⏳</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">SPPB</p>
-                    <p id="count-sppb" class="text-right text-xl font-extrabold">{{ $sppb }}</p>
+                    <p class="text-sm font-medium">SPPB</p>
+                    <p id="count-sppb" class="text-right text-base font-extrabold">{{ $sppb }}</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                <span class="text-xl">⛔️</span>
+                <span class="text-base">⛔️</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">SPPJ</p>
-                    <p id="count-sppj" class="text-right text-xl font-extrabold">{{ $sppj }}</p>
+                    <p class="text-sm font-medium">SPPJ</p>
+                    <p id="count-sppj" class="text-right text-base font-extrabold">{{ $sppj }}</p>
                 </div>
             </div>
 
             <div
                 class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                <span class="text-xl">✏️</span>
+                <span class="text-base">✏️</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">SPPK</p>
-                    <p id="count-sppk" class="text-right text-xl font-extrabold">{{ $sppk }}</p>
+                    <p class="text-sm font-medium">SPPK</p>
+                    <p id="count-sppk" class="text-right text-base font-extrabold">{{ $sppk }}</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                <span class="text-xl">✅</span>
+                <span class="text-base">✅</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">SPPT</p>
-                    <p id="count-sppt" class="text-right text-xl font-extrabold">{{ $sppt }}</p>
+                    <p class="text-sm font-medium">SPPT</p>
+                    <p id="count-sppt" class="text-right text-base font-extrabold">{{ $sppt }}</p>
                 </div>
             </div>
         </div>
 
         <div class="grid">
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
                 <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav class="flex gap-2 p-4">
                         <button
-                            class="tab-btn active border-b-2 border-indigo-600 px-4 py-2 text-xl font-semibold text-indigo-700 dark:text-indigo-300"
+                            class="tab-btn active border-b-2 border-indigo-600 px-4 py-2 text-base font-semibold text-indigo-700 dark:text-indigo-300"
                             data-tab="mine">CS Jobs</button>
                         <button
-                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            class="tab-btn px-4 py-2 text-base font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
                             data-tab="entry">Entry CS</button>
                         <button
-                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            class="tab-btn px-4 py-2 text-base font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
                             data-tab="revision">My Revision</button>
                         <button
-                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            class="tab-btn px-4 py-2 text-base font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
                             data-tab="all">All Jobs</button>
                         <button
-                            class="tab-btn px-4 py-2 text-xl font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
+                            class="tab-btn px-4 py-2 text-base font-semibold hover:border-b-2 hover:border-gray-400 dark:hover:border-gray-500"
                             data-tab="sppbjkt">SPPBJKT IN Progress</button>
                     </nav>
                 </div>
@@ -332,19 +332,19 @@
                     {{-- <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
                         <nav class="flex gap-2">
                             <button
-                                class="tab-btn active rounded-t bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
+                                class="tab-btn active rounded-t bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
                                 data-tab="mine">CS Jobs</button>
                             <button
-                                class="tab-btn rounded-t px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
+                                class="tab-btn rounded-t px-4 py-2 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-tab="entry">Entry CS</button>
                             <button
-                                class="tab-btn rounded-t px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
+                                class="tab-btn rounded-t px-4 py-2 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-tab="all">All Jobs</button>
                             <button
-                                class="tab-btn rounded-t px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
+                                class="tab-btn rounded-t px-4 py-2 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-tab="revision">My Revision</button>
                             <button
-                                class="tab-btn rounded-t px-4 py-2 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
+                                class="tab-btn rounded-t px-4 py-2 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-gray-700"
                                 data-tab="sppbjkt">SPPBJKT IN Progress</button>
                         </nav>
 
@@ -596,7 +596,7 @@
                     className: 'text-left',
                     render: function(_d, _t, row) {
                         const url = buildCreateUrl(row);
-                        return `<a href="${url}" class="inline-flex items-center rounded bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        return `<a href="${url}" class="inline-flex items-center rounded bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         <i class="fas fa-plus"></i>
                     </a>`;
                     }
@@ -719,7 +719,7 @@
                         className: 'text-left',
                         render: (v, _t, row) =>
                             `<a href="/editcs/${row.eid}" class="rounded px-6 py-2
-                        bg-amber-500 text-white hover:bg-amber-600 text-sm font-semibold">
+                        bg-amber-500 text-white hover:bg-amber-600 text-xs font-semibold">
                         ${v}
                         </a>`
                     },

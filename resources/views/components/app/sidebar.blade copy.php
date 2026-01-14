@@ -38,7 +38,7 @@
 
             <div class="flex items-center gap-3">
                 <span :class="{ 'hidden': !sidebarExpanded && window.innerWidth >= 1024 }"
-                    class="whitespace-nowrap text-xl font-bold uppercase text-gray-700 transition-opacity duration-200 dark:text-gray-100"
+                    class="whitespace-nowrap text-base font-bold uppercase text-gray-700 transition-opacity duration-200 dark:text-gray-100"
                     x-show="sidebarExpanded || window.innerWidth < 1024" x-transition:enter="ease-out duration-200"
                     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                     x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100"

@@ -18,7 +18,7 @@
     <div class="p-4">
         {{-- ===== Header & tombol Add ===== --}}
         <div class="mb-4 flex items-center justify-between">
-            <h1 class="text-lg font-semibold">Canvass Sheet : {{ $docno ?? 'CSxxxx' }}</h1>
+            <h1 class="text-sm font-semibold">Canvass Sheet : {{ $docno ?? 'CSxxxx' }}</h1>
 
             <button id="btnAddVendor"
                 class="flex items-center gap-1 rounded bg-indigo-600 px-3 py-1 text-white hover:bg-indigo-700">
@@ -66,7 +66,7 @@
 
             </table>
 
-            <p id="emptyMsg" class="mt-2 text-sm italic text-gray-500">
+            <p id="emptyMsg" class="mt-2 text-xs italic text-gray-500">
                 Belum ada vendor – klik “Add Vendor”.
             </p>
 

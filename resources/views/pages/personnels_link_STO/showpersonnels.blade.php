@@ -3,7 +3,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -14,7 +14,7 @@
 
             <div class="flex gap-3">
                 <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -23,7 +23,7 @@
                     Approve
                 </button>
                 <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -32,7 +32,7 @@
                     Revise
                 </button>
                 <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -48,10 +48,10 @@
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
                                 ID
                             </span> {{-- Iconic color for the ID icon --}}
                             {{ $personnel->docid }}
@@ -83,12 +83,12 @@
                             }
                         @endphp
                         <span
-                            class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                            class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
                             {{ $statusText }}
                         </span>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto p-4">
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
 
                             {{-- Company --}}
                             <div class="flex items-center gap-2 p-2">
@@ -205,7 +205,7 @@
                                                 {{ $jt->job_tags }}
                                             </span>
                                         @empty
-                                            <span class="text-sm italic text-gray-400">No tags</span>
+                                            <span class="text-xs italic text-gray-400">No tags</span>
                                         @endforelse
                                     </div>
                                 </div>
@@ -224,7 +224,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Responsibilities',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Responsibilities'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                 Job Responsibilities
                             </button>
                             <button @click="activeTab = 'Qualification'"
@@ -232,7 +232,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Qualification',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Qualification'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                 Job Qualification
                             </button>
                         </nav>
@@ -252,10 +252,10 @@
                                 @foreach ($jobres as $jr)
                                     <li class="flex items-start gap-2"> {{-- Changed space-x-3 to gap-2 --}}
                                         <span
-                                            class="flex-shrink-0 text-lg leading-none text-indigo-500 dark:text-indigo-400">•</span>
+                                            class="flex-shrink-0 text-sm leading-none text-indigo-500 dark:text-indigo-400">•</span>
                                         {{-- Larger bullet point, aligned --}}
                                         <span
-                                            class="text-base leading-relaxed">{{ $jr->job_responsibilities_descr }}</span>
+                                            class="text-sm leading-relaxed">{{ $jr->job_responsibilities_descr }}</span>
                                         {{-- Adjusted text size and line height --}}
                                     </li>
                                 @endforeach
@@ -279,7 +279,7 @@
                                         class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:border-gray-700 dark:bg-gray-800">
                                         {{-- Smoother background, better padding, border --}}
                                         <span
-                                            class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">🎓</span>
+                                            class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">🎓</span>
                                         {{-- Larger icon --}}
                                         <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
                                             <span class="font-bold">{{ $personnel->education }}</span> Educational
@@ -291,7 +291,7 @@
                                         class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:border-gray-700 dark:bg-gray-800">
                                         {{-- Smoother background, better padding, border --}}
                                         <span
-                                            class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">💼</span>
+                                            class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">💼</span>
                                         {{-- Larger icon --}}
                                         <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
                                             <span class="font-bold">{{ $personnel->experience_start }}
@@ -303,10 +303,10 @@
                                 @foreach ($jobqua as $jq)
                                     <li class="flex items-start gap-2"> {{-- Adjusted gap and padding-top --}}
                                         <span
-                                            class="flex-shrink-0 text-lg leading-none text-indigo-500 dark:text-indigo-400">•</span>
+                                            class="flex-shrink-0 text-sm leading-none text-indigo-500 dark:text-indigo-400">•</span>
                                         {{-- Larger bullet point, aligned --}}
                                         <span
-                                            class="text-base font-medium leading-relaxed text-gray-700 dark:text-gray-300">{{ $jq->job_qualification_descr }}</span>
+                                            class="text-sm font-medium leading-relaxed text-gray-700 dark:text-gray-300">{{ $jq->job_qualification_descr }}</span>
                                         {{-- Adjusted text size and line height --}}
                                     </li>
                                 @endforeach
@@ -327,7 +327,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                 Approval Details
                             </button>
                             <button @click="activeTab = 'attachment'"
@@ -335,7 +335,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'attachment'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                 Attachment
                             </button>
                             <button @click="activeTab = 'comments'"
@@ -343,7 +343,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'comments'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                 Comments
                             </button>
                         </nav>
@@ -356,7 +356,7 @@
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-2">
-                            <table class="w-full text-sm">
+                            <table class="w-full text-xs">
                                 <thead>
                                     <tr
                                         class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -418,7 +418,7 @@
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-2">
-                            <table class="w-full text-sm">
+                            <table class="w-full text-xs">
                                 <thead class="text-gray-600 dark:text-gray-300">
                                     <tr class="border-b border-gray-200 dark:border-gray-700">
                                         <th class="p-3 text-left font-semibold">Filename</th>
@@ -474,7 +474,7 @@
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn"
                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>
@@ -497,7 +497,7 @@
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
         <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Reject Task</h2>
+            <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
@@ -517,7 +517,7 @@
 
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
         <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Revise Task</h2>
+            <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
@@ -567,7 +567,7 @@
 
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-sm font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username} 
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

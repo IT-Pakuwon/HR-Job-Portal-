@@ -23,37 +23,37 @@
             <li class="px-3 py-1">
                 <label class="flex items-center">
                     <input type="checkbox" class="form-checkbox" checked />
-                    <span class="ml-2 text-sm font-medium">Direct VS Indirect</span>
+                    <span class="ml-2 text-xs font-medium">Direct VS Indirect</span>
                 </label>
             </li>
             <li class="px-3 py-1">
                 <label class="flex items-center">
                     <input type="checkbox" class="form-checkbox" checked />
-                    <span class="ml-2 text-sm font-medium">Real Time Value</span>
+                    <span class="ml-2 text-xs font-medium">Real Time Value</span>
                 </label>
             </li>
             <li class="px-3 py-1">
                 <label class="flex items-center">
                     <input type="checkbox" class="form-checkbox" checked />
-                    <span class="ml-2 text-sm font-medium">Top Channels</span>
+                    <span class="ml-2 text-xs font-medium">Top Channels</span>
                 </label>
             </li>
             <li class="px-3 py-1">
                 <label class="flex items-center">
                     <input type="checkbox" class="form-checkbox" />
-                    <span class="ml-2 text-sm font-medium">Sales VS Refunds</span>
+                    <span class="ml-2 text-xs font-medium">Sales VS Refunds</span>
                 </label>
             </li>
             <li class="px-3 py-1">
                 <label class="flex items-center">
                     <input type="checkbox" class="form-checkbox" />
-                    <span class="ml-2 text-sm font-medium">Last Order</span>
+                    <span class="ml-2 text-xs font-medium">Last Order</span>
                 </label>
             </li>
             <li class="px-3 py-1">
                 <label class="flex items-center">
                     <input type="checkbox" class="form-checkbox" />
-                    <span class="ml-2 text-sm font-medium">Total Spent</span>
+                    <span class="ml-2 text-xs font-medium">Total Spent</span>
                 </label>
             </li>
         </ul>

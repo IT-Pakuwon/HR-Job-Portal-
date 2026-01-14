@@ -5,12 +5,12 @@
     {{-- Header --}}
     <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
         <div>
-            <h1 class="text-2xl font-bold dark:text-white">📅 Today's Agenda</h1>
+            <h1 class="text-lg font-bold dark:text-white">📅 Today's Agenda</h1>
             <p class="text-m ml-8 mt-2 dark:text-white">See what's your task for today!</p>
         </div>
         <div class="flex gap-2">
             <a href="{{ route('agendas') }}"
-                class="w-full max-w-xs text-center text-sm font-medium text-blue-600 hover:text-blue-800">
+                class="w-full max-w-xs text-center text-xs font-medium text-blue-600 hover:text-blue-800">
                 See More
             </a>
         </div>
@@ -27,15 +27,15 @@
                         description: '{{ addslashes($agenda->description ?? '') }}',
                         participant: '{{ addslashes($agenda->participant ?? '') }}'
                     })">
-                    <h2 class="text-base font-semibold text-gray-800 dark:text-white">{{ $agenda->title }}</h2>
-                    <p class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-300">
+                    <h2 class="text-sm font-semibold text-gray-800 dark:text-white">{{ $agenda->title }}</h2>
+                    <p class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-300">
                         ⏰ {{ \Carbon\Carbon::parse($agenda->startdate)->format('H:i') }} -
                         {{ \Carbon\Carbon::parse($agenda->enddate)->format('H:i') }}
                     </p>
                 </div>
             @endforeach
         @else
-            <div class="py-6 text-center text-lg text-gray-400">
+            <div class="py-6 text-center text-sm text-gray-400">
                 📭 No agenda today. Take a breather!
             </div>
         @endif
@@ -52,7 +52,7 @@
     <div x-show="showModal" x-transition
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
         style="display: none">
-        <div class="relative w-full max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
+        <div class="relative w-full max-w-2xl rounded-xl bg-white p-6 dark:bg-gray-800">
             {{-- Close Button --}}
             <button @click="closeModal()"
                 class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 dark:hover:text-white">
@@ -63,9 +63,9 @@
             </button>
 
             {{-- Content --}}
-            <h2 class="mb-4 text-2xl font-semibold text-gray-900 dark:text-white" x-text="modalData.title"></h2>
+            <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white" x-text="modalData.title"></h2>
 
-            <div class="space-y-3 text-lg text-gray-700 dark:text-gray-300">
+            <div class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                 <div>
                     <span class="font-semibold">⏰ Time:</span>
                     <span x-text="modalData.time"></span>

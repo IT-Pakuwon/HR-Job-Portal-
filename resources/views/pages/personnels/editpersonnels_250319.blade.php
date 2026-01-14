@@ -4,7 +4,7 @@
         <div class="mb-4 flex items-center justify-end sm:mb-0"></div>
         <div class="mb-2 mt-2 rounded-xl bg-white p-6 dark:bg-gray-800">
             {{-- <div class="max-w-6xl mx-auto bg-white   p-6 rounded-lg"> --}}
-            <h2 class="mb-4 text-2xl font-bold">Edit Personnel Requisition - {{ $personnel->docid }}</h2>
+            <h2 class="mb-4 text-lg font-bold">Edit Personnel Requisition - {{ $personnel->docid }}</h2>
 
             <form id="personnelForm" enctype="multipart/form-data">
                 @csrf
@@ -90,7 +90,7 @@
 
                 <!-- Job Responsibilities (Editable) -->
                 <div class="mt-6">
-                    <label class="block text-lg font-semibold">Job Responsibilities</label>
+                    <label class="block text-sm font-semibold">Job Responsibilities</label>
                     <table class="w-full rounded-lg border border-gray-200">
                         <tbody id="responsibilitiesTable">
                             @foreach ($jobres as $key => $resp)
@@ -116,7 +116,7 @@
                 </div>
 
                 <div class="mt-6">
-                    <label class="block text-lg font-semibold">Job Qualification</label>
+                    <label class="block text-sm font-semibold">Job Qualification</label>
                     <table class="w-full rounded-lg border border-gray-200">
                         <tbody id="qualificationTable">
                             @foreach ($jobqua as $key => $resp)
@@ -141,7 +141,7 @@
 
                 <!-- Attachments -->
                 <div class="mt-6">
-                    <label class="block text-lg font-semibold">Attachments</label>
+                    <label class="block text-sm font-semibold">Attachments</label>
                     <div id="attachmentsContainer">
                         @foreach ($attachment as $attach)
                             <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
@@ -263,7 +263,7 @@
         $('#addAttachment').click(function() {
             $('#attachmentsContainer').append(`
                 <div class="attachment-row flex items-center gap-2">
-                    <input type="file" name="attachments[]" class="w-full p-3 text-lg border rounded">
+                    <input type="file" name="attachments[]" class="w-full p-3 text-sm border rounded">
                     <button type="button" class="removeAttachment bg-red-500 text-white px-3 py-1 rounded">X</button>
                 </div>
             `);

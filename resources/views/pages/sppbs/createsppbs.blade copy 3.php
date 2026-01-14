@@ -135,7 +135,7 @@
 
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create SPPB</h2>
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPB</h2>
                         </div>
 
                         <!-- Row 1 -->
@@ -144,7 +144,7 @@
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid"
                                     class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -160,7 +160,7 @@
                             <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid" id="departementid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -175,7 +175,7 @@
 
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
+                                <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -187,7 +187,7 @@
                             <!-- Perpost -->
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Perpost</label>
                                 @php $year = \Carbon\Carbon::now()->year; @endphp
                                 <select id="perpost" name="perpost"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -204,20 +204,20 @@
 
                             <!-- Emergency -->
                             <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SPPB
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">SPPB
                                     Emergency</label>
 
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                    <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">Tandai
+                                    <label for="is_urgent" class="text-xs text-gray-700 dark:text-gray-300">Tandai
                                         sebagai emergency</label>
                                 </div>
                             </div>
 
                             <!-- WO ID -->
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">WO ID</label>
                                 <div class="flex w-full">
                                     <input type="text" name="woid" id="woid" readonly
                                         class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -237,7 +237,7 @@
                             <!-- Description -->
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label for="keperluan"
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
                                 <textarea name="keperluan" id="keperluan" rows="3" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
                             </div>
@@ -248,16 +248,16 @@
 
 
                     <!-- ... header & form atas tetap ... -->
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-2xl p-4">
+                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
+                        <div class="flex w-full flex-col rounded-xl p-4">
                             <details class="group" open>
                                 <summary
-                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPPB Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                                         details &darr;</span>
                                 </summary>
                                 <div class="flex h-auto flex-col justify-start">
@@ -429,7 +429,7 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Inventory</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Inventory</h3>
                                 <button type="button" id="closeInventoryModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
@@ -444,7 +444,7 @@
                                     data-type="ns">Non-Stock</button>
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
-                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                     <button id="invRefresh" type="button"
                                         class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                                 </div>
@@ -471,7 +471,7 @@
 
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
-                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                     <button id="invRefresh" type="button"
                                         class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                                 </div>
@@ -480,7 +480,7 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
@@ -489,12 +489,12 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="invTableBody" class="text-sm"></tbody>
+                                    <tbody id="invTableBody" class="text-xs"></tbody>
                                 </table>
                             </div>
 
                             <!-- Pagination (optional simple) -->
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="invCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="invPrev" type="button"
@@ -511,34 +511,34 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Location</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Location</h3>
                                 <button type="button" id="closeLocationModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2">
                                 <input id="locSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="locRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto text-sm opacity-80">Company: <span id="locCpnyBadge"
+                                <div class="ml-auto text-xs opacity-80">Company: <span id="locCpnyBadge"
                                         class="font-semibold"></span></div>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Location ID</th>
                                             <th class="border p-2">Location Name</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="locTableBody" class="text-sm"></tbody>
+                                    <tbody id="locTableBody" class="text-xs"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="locCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="locPrev" type="button"
@@ -555,12 +555,12 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
                                 <button type="button" id="closeSubLocationModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-3 flex items-center gap-2 text-xs">
                                 <input id="subLocSearch" type="text" placeholder="Search..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="subLocRefresh" type="button"
@@ -573,18 +573,18 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Sub Location ID</th>
                                             <th class="border p-2">Sub Location Name</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="subLocTableBody" class="text-sm"></tbody>
+                                    <tbody id="subLocTableBody" class="text-xs"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="subLocCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="subLocPrev" type="button"
@@ -601,7 +601,7 @@
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <!-- Header -->
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Pilih Location & Sub
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Pilih Location & Sub
                                     Location</h3>
                                 <div class="text-xs text-gray-500 dark:text-gray-400">
                                 </div>
@@ -615,7 +615,7 @@
                                     <!-- Location -->
                                     <div>
                                         <label
-                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                            class="req mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
                                         <select id="modal_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                             <option value="">-- choose --</option>
@@ -627,7 +627,7 @@
                                     <!-- Sub Location -->
                                     <div>
                                         <label
-                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                            class="req mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Sub
                                             Location</label>
                                         <select id="modal_sub_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -659,12 +659,12 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-3 flex items-center gap-2 text-xs">
                                 <input id="coaSearch" type="text" placeholder="Search code/name..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="coaRefresh" type="button"
@@ -678,7 +678,7 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
                                             <th class="border p-2">Activity</th>
@@ -686,11 +686,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="coaTableBody" class="text-sm"></tbody>
+                                    <tbody id="coaTableBody" class="text-xs"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="coaPrev" type="button"
@@ -707,12 +707,12 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select UoM</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select UoM</h3>
                                 <button type="button" id="closeUomModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-3 flex items-center gap-2 text-xs">
                                 <input id="uomSearch" type="text" placeholder="Search from/to..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="uomRefresh" type="button"
@@ -724,7 +724,7 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">From</th>
                                             <th class="border p-2">To</th>
@@ -733,11 +733,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="uomTableBody" class="text-sm"></tbody>
+                                    <tbody id="uomTableBody" class="text-xs"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="uomCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="uomPrev" type="button"
@@ -754,12 +754,12 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Select Work Order</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Work Order</h3>
                                 <button type="button" id="closeWoModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-sm">
+                            <div class="mb-3 flex items-center gap-2 text-xs">
                                 <input id="woSearch" type="text" placeholder="Search WO ID / Created By..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="woRefresh" type="button"
@@ -772,7 +772,7 @@
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left text-sm">
+                                <table class="w-full text-left text-xs">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">WO ID</th>
@@ -781,11 +781,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="woTableBody" class="text-sm"></tbody>
+                                    <tbody id="woTableBody" class="text-xs"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-sm">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="woCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="woPrev" type="button"
@@ -804,19 +804,19 @@
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col pt-6">
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
                                         </button>
@@ -824,7 +824,7 @@
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -1449,7 +1449,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);

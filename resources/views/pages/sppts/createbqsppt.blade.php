@@ -106,7 +106,7 @@
 
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
-                                <h2 class="text-xl font-bold">📥 Import BQ</h2>
+                                <h2 class="text-base font-bold">📥 Import BQ</h2>
 
                                 <!-- ONLY Template button here -->
                                 <a href="{{ asset('templates/import_bq.xlsx') }}" target="_blank" rel="noopener"
@@ -125,7 +125,7 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                 <!-- SPPT ID -->
                                 <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">SPPT
+                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">SPPT
                                         ID</label>
                                     <input type="hidden" name="idx" value="{{ $sppt->id ?? '' }}">
                                     <input type="hidden" name="sppjtid" value="{{ $sppt->spptid ?? '' }}">
@@ -137,7 +137,7 @@
                                 <!-- Company -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <input type="text" name="company"
                                         value="{{ $sppt->cpny_id ?? ($sppt->cpny_name ?? '') }}"
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
@@ -147,7 +147,7 @@
                                 <!-- Departement -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Departement</label>
+                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Departement</label>
                                     <input type="text" name="departement"
                                         value="{{ $sppt->department_id ?? ($sppt->department ?? '') }}"
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
@@ -157,7 +157,7 @@
                                 <!-- File Upload -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
+                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Import
                                         Excel</label>
                                     <input type="file" name="file" id="file" required
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 py-2 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
@@ -180,18 +180,18 @@
                         @if (isset($tempData) && count($tempData) > 0)
                             <div class="flex-1 gap-4 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                                 <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
-                                    <h2 class="flex items-center gap-2 text-lg font-bold">
+                                    <h2 class="flex items-center gap-2 text-sm font-bold">
                                         📊 BQ Details
                                     </h2>
                                     {{-- <h5
-                                        class="rounded-xl bg-red-100/50 px-4 py-1.5 text-base font-semibold text-red-600">
+                                        class="rounded-xl bg-red-100/50 px-4 py-1.5 text-sm font-semibold text-red-600">
                                         Preview
                                     </h5> --}}
                                 </div>
 
                                 <div class="w-full overflow-x-auto">
                                     <table
-                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-sm">
+                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-xs">
                                         <thead class="bg-gray-100 font-bold text-gray-700">
                                             <tr>
                                                 <th class="px-4 py-2">Line No</th>
@@ -241,7 +241,7 @@
                                             <details class="group mb-4" open>
                                                 <summary
                                                     class="mb-4 flex cursor-pointer items-center justify-between rounded border-b pb-2">
-                                                    <span class="text-lg font-semibold">Photo Before</span>
+                                                    <span class="text-sm font-semibold">Photo Before</span>
                                                     <span class="transition-all group-open:hidden">See details</span>
                                                     <span class="hidden transition-all group-open:inline">Hide
                                                         details</span>
@@ -268,7 +268,7 @@
                                                                         d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                                         clip-rule="evenodd" />
                                                                 </svg>
-                                                                <span class="text-sm font-medium">Add Photo</span>
+                                                                <span class="text-xs font-medium">Add Photo</span>
                                                             </div>
                                                         </button>
                                                     </div>
@@ -429,79 +429,79 @@
         });
     </script>
     <script>
-    (function() {
-        // ambil elemen
-        const grid = document.getElementById('attachmentsGrid');
-        const addTile = document.getElementById('addAttachmentTile');
-        const picker = document.getElementById('hiddenPicker');
-        const hiddenInputs = document.getElementById('hiddenInputs');
+        (function() {
+            // ambil elemen
+            const grid = document.getElementById('attachmentsGrid');
+            const addTile = document.getElementById('addAttachmentTile');
+            const picker = document.getElementById('hiddenPicker');
+            const hiddenInputs = document.getElementById('hiddenInputs');
 
-        // ❗ Kalau belum ada tempData / belum render section Photo Before,
-        // elemen-elemen di atas NULL. Jangan lanjut, langsung stop script.
-        if (!grid || !addTile || !picker || !hiddenInputs) {
-            return;
-        }
-
-        // optional: batasi ukuran per file (5 MB) dan total foto
-        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-        const MAX_FILES = 24;
-
-        // hindari duplikat (name+size)
-        const chosenKeys = new Set();
-
-        addTile.addEventListener('click', () => picker.click());
-
-        picker.addEventListener('change', function() {
-            const files = Array.from(this.files || []);
-            files.forEach(file => tryAddFile(file));
-            // reset picker agar bisa pilih file yang sama lagi nanti
-            this.value = '';
-        });
-
-        function tryAddFile(file) {
-            if (!file || !file.type.startsWith('image/')) {
-                toastr?.error?.('File bukan gambar.');
+            // ❗ Kalau belum ada tempData / belum render section Photo Before,
+            // elemen-elemen di atas NULL. Jangan lanjut, langsung stop script.
+            if (!grid || !addTile || !picker || !hiddenInputs) {
                 return;
             }
-            if (file.size > MAX_SIZE) {
-                toastr?.error?.(`Ukuran melebihi 5MB: ${file.name}`);
-                return;
+
+            // optional: batasi ukuran per file (5 MB) dan total foto
+            const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+            const MAX_FILES = 24;
+
+            // hindari duplikat (name+size)
+            const chosenKeys = new Set();
+
+            addTile.addEventListener('click', () => picker.click());
+
+            picker.addEventListener('change', function() {
+                const files = Array.from(this.files || []);
+                files.forEach(file => tryAddFile(file));
+                // reset picker agar bisa pilih file yang sama lagi nanti
+                this.value = '';
+            });
+
+            function tryAddFile(file) {
+                if (!file || !file.type.startsWith('image/')) {
+                    toastr?.error?.('File bukan gambar.');
+                    return;
+                }
+                if (file.size > MAX_SIZE) {
+                    toastr?.error?.(`Ukuran melebihi 5MB: ${file.name}`);
+                    return;
+                }
+                if (hiddenInputs.querySelectorAll('input[type="file"][name="attachments[]"]').length >= MAX_FILES) {
+                    toastr?.error?.(`Maksimal ${MAX_FILES} foto.`);
+                    return;
+                }
+                const key = `${file.name}::${file.size}`;
+                if (chosenKeys.has(key)) {
+                    toastr?.warning?.(`Lewati duplikat: ${file.name}`);
+                    return;
+                }
+                chosenKeys.add(key);
+                addPhotoCard(file, key);
             }
-            if (hiddenInputs.querySelectorAll('input[type="file"][name="attachments[]"]').length >= MAX_FILES) {
-                toastr?.error?.(`Maksimal ${MAX_FILES} foto.`);
-                return;
-            }
-            const key = `${file.name}::${file.size}`;
-            if (chosenKeys.has(key)) {
-                toastr?.warning?.(`Lewati duplikat: ${file.name}`);
-                return;
-            }
-            chosenKeys.add(key);
-            addPhotoCard(file, key);
-        }
 
-        function addPhotoCard(file, key) {
-            // buat input file tersembunyi dengan file tunggal
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.name = 'attachments[]';
-            input.accept = 'image/*';
-            input.className = 'hidden';
+            function addPhotoCard(file, key) {
+                // buat input file tersembunyi dengan file tunggal
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.name = 'attachments[]';
+                input.accept = 'image/*';
+                input.className = 'hidden';
 
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            input.files = dt.files;
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
 
-            const id = 'att_' + Math.random().toString(36).slice(2);
-            input.dataset.ref = id;
-            hiddenInputs.appendChild(input);
+                const id = 'att_' + Math.random().toString(36).slice(2);
+                input.dataset.ref = id;
+                hiddenInputs.appendChild(input);
 
-            // buat kartu preview
-            const url = URL.createObjectURL(file);
-            const card = document.createElement('div');
-            card.className = 'relative group rounded-xl border overflow-hidden';
-            card.dataset.ref = id;
-            card.innerHTML = `
+                // buat kartu preview
+                const url = URL.createObjectURL(file);
+                const card = document.createElement('div');
+                card.className = 'relative group rounded-xl border overflow-hidden';
+                card.dataset.ref = id;
+                card.innerHTML = `
                 <img src="${url}" alt="attachment" class="w-full h-40 object-cover" />
                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
                 <button type="button" title="Remove"
@@ -510,21 +510,21 @@
                 </button>
             `;
 
-            // handler remove
-            card.querySelector('button').addEventListener('click', () => {
-                const ref = card.dataset.ref;
-                const hidden = hiddenInputs.querySelector(`input[data-ref="${ref}"]`);
-                hidden && hidden.remove();
-                chosenKeys.delete(key);
-                URL.revokeObjectURL(url);
-                card.remove();
-            });
+                // handler remove
+                card.querySelector('button').addEventListener('click', () => {
+                    const ref = card.dataset.ref;
+                    const hidden = hiddenInputs.querySelector(`input[data-ref="${ref}"]`);
+                    hidden && hidden.remove();
+                    chosenKeys.delete(key);
+                    URL.revokeObjectURL(url);
+                    card.remove();
+                });
 
-            // masukkan kartu sebelum tile "Add Photo"
-            grid.insertBefore(card, addTile);
-        }
-    })();
-</script>
+                // masukkan kartu sebelum tile "Add Photo"
+                grid.insertBefore(card, addTile);
+            }
+        })();
+    </script>
 
     {{-- <script>
         (function() {

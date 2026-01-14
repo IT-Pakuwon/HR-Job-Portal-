@@ -1,13 +1,13 @@
 <x-app-layout>
-    <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+    <div class="max-w-9xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
         <!-- Dashboard actions -->
-        <div class="sm:flex sm:justify-between sm:items-center mb-8">
+        <div class="mb-8 sm:flex sm:items-center sm:justify-between">
             <!-- Left: Title -->
             <div class="mb-4 sm:mb-0">
-                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Dashboard</h1>
+                <h1 class="text-lg font-bold text-gray-800 md:text-lg dark:text-gray-100">Dashboard</h1>
             </div>
             <!-- Right: Actions -->
-            <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+            <div class="grid grid-flow-col justify-start gap-2 sm:auto-cols-max sm:justify-end">
                 <!-- Filter button -->
                 <x-dropdown-filter align="right" />
                 <!-- Datepicker built with flatpickr -->
@@ -95,14 +95,14 @@
             <!-- Carousel Single Area Chart -->
             <x-dashboard.dashboard-card-26 />
 
-             <!-- Carousel Multiple Area Chart -->
-             <x-dashboard.dashboard-card-27/>
+            <!-- Carousel Multiple Area Chart -->
+            <x-dashboard.dashboard-card-27 />
 
-             <!-- Carousel Multi Area Chart With Tooltip-->
-             <x-dashboard.dashboard-card-28 />
+            <!-- Carousel Multi Area Chart With Tooltip-->
+            <x-dashboard.dashboard-card-28 />
 
             <!-- Carousel Curved Area Chart-->
-             <x-dashboard.dashboard-card-29 />
+            <x-dashboard.dashboard-card-29 />
 
             {{-- <!-- Carousel Multi Bar Chart-->
              <x-dashboard.dashboard-card-30 />

@@ -18,7 +18,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -29,7 +29,7 @@
 
             <div class="flex gap-3">
                 <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -38,7 +38,7 @@
                     Approve
                 </button>
                 <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -47,7 +47,7 @@
                     Revise
                 </button>
                 <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -63,16 +63,16 @@
                 <div class="w-full rounded-xl bg-white p-6   dark:bg-gray-800">
                     <details class="group" open>
                         <summary
-                            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                            class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                             <div class="flex items-center gap-4">
-                                <h1 class="text-xl font-extrabold text-gray-800 dark:text-white">🆔 {{ $sto->sto_id }}
+                                <h1 class="text-base font-extrabold text-gray-800 dark:text-white">🆔 {{ $sto->sto_id }}
                                 </h1>
                                 <span
                                     class="@if ($sto->status === 'D') bg-gray-300/30 text-gray-600
                                 @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600
                                 @elseif($sto->status === 'C') bg-green-300/30 text-green-600
                                 @elseif(in_array($sto->status, ['X', 'R'])) bg-red-300/30 text-red-600
-                                @else bg-gray-500/30 text-gray-700 @endif rounded-lg px-3 py-1 text-sm font-semibold">
+                                @else bg-gray-500/30 text-gray-700 @endif rounded-lg px-3 py-1 text-xs font-semibold">
                                     @php
                                         $statusText = match ($sto->status) {
                                             'D' => 'Revise',
@@ -86,14 +86,14 @@
                                     {{ $statusText }}
                                 </span>
                             </div>
-                            <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details
+                            <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See details
                                 &rarr;</span>
-                            <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                            <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                                 details &darr;</span>
                         </summary>
                         <div class="relative pt-6">
                             <div
-                                class="chart-container flex h-[500px] w-full items-center justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50 text-lg text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500">
+                                class="chart-container flex h-[500px] w-full items-center justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500">
                                 ORG Chart Visualization Area
                             </div>
 
@@ -133,7 +133,7 @@
                                         <ul class="flex flex-wrap text-center font-medium" id="tabs">
                                             <li>
                                                 <button type="button"
-                                                    class="tab-button inline-block rounded-t-lg px-4 py-2 text-base font-semibold text-indigo-600 hover:text-indigo-700 focus:outline-none"
+                                                    class="tab-button inline-block rounded-t-lg px-4 py-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 focus:outline-none"
                                                     onclick="switchTab('view')">View Employee</button>
                                             </li>
                                         </ul>
@@ -149,15 +149,15 @@
 
                                     <div id="tab-view" class="tab-content hidden">
                                         <div class="mb-4 flex items-center justify-between">
-                                            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Employee List
+                                            <h3 class="text-sm font-bold text-gray-800 dark:text-white">Employee List
                                             </h3>
                                             <h4 id="departmentLabel"
-                                                class="text-lg font-bold text-gray-600 dark:text-gray-300"></h4>
+                                                class="text-sm font-bold text-gray-600 dark:text-gray-300"></h4>
                                         </div>
 
                                         <div class="overflow-x-auto">
                                             <table
-                                                class="w-full min-w-[500px] border-collapse text-sm text-gray-700 dark:text-gray-300">
+                                                class="w-full min-w-[500px] border-collapse text-xs text-gray-700 dark:text-gray-300">
                                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                                     <tr>
                                                         <th
@@ -201,7 +201,7 @@
                         <input type="radio" name="tabs" id="tab-radio-comments" class="peer/comments hidden">
 
                         <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
-                            <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" role="tablist">
+                            <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" role="tablist">
                                 <li class="mr-2" role="presentation">
                                     <label for="tab-radio-structure-details"
                                         class="inline-block cursor-pointer rounded-t-lg border-b-2 border-transparent p-4 text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-700 peer-checked/structure-details:border-indigo-600 peer-checked/structure-details:text-indigo-600 dark:text-gray-400 dark:hover:text-gray-300 dark:peer-checked/structure-details:border-indigo-400 dark:peer-checked/structure-details:text-indigo-400"
@@ -252,12 +252,12 @@
                                     @foreach ($jobDetails as $detail)
                                         <div
                                             class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
-                                            <div class="flex-shrink-0 text-xl text-indigo-600">{{ $detail['icon'] }}
+                                            <div class="flex-shrink-0 text-base text-indigo-600">{{ $detail['icon'] }}
                                             </div>
                                             <div>
-                                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                     {{ $detail['label'] }}</p>
-                                                <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                                     {{ $detail['value'] }}</p>
                                             </div>
                                         </div>
@@ -267,7 +267,7 @@
                                 <div
                                     class="mt-8 rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
                                     <h3
-                                        class="mb-4 flex items-center gap-2 text-xl font-extrabold text-gray-800 dark:text-white">
+                                        class="mb-4 flex items-center gap-2 text-base font-extrabold text-gray-800 dark:text-white">
                                         📊 Vacant Summary
                                     </h3>
 
@@ -292,7 +292,7 @@
                                             @foreach ($levels as $level)
                                                 <button @click="tab = '{{ $level }}'"
                                                     :class="{ 'bg-indigo-600 text-white  ': tab === '{{ $level }}', 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700': tab !== '{{ $level }}' }"
-                                                    class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                                    class="rounded-md px-4 py-2 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                                     {{ $level }}
                                                 </button>
                                             @endforeach
@@ -306,7 +306,7 @@
                                                             class="flex justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-700">
                                                             <h4 class="font-bold text-gray-800 dark:text-white">
                                                                 {{ $company }}</h4>
-                                                            <p class="text-sm text-indigo-600 dark:text-indigo-400">
+                                                            <p class="text-xs text-indigo-600 dark:text-indigo-400">
                                                                 Vacant:
                                                                 {{ $count }}</p>
                                                         </div>
@@ -321,7 +321,7 @@
                             <div id="tab-content-approval" role="tabpanel" aria-labelledby="tab-radio-approval"
                                 class="tab-content pt-2">
                                 <div class="max-h-72 overflow-y-auto">
-                                    <table class="w-full border-collapse text-sm text-gray-700 dark:text-gray-300">
+                                    <table class="w-full border-collapse text-xs text-gray-700 dark:text-gray-300">
                                         <thead class="bg-gray-50 dark:bg-gray-700">
                                             <tr>
                                                 <th
@@ -386,7 +386,7 @@
                             <div id="tab-content-attachment" role="tabpanel" aria-labelledby="tab-radio-attachment"
                                 class="tab-content pt-2">
                                 <div class="max-h-72 overflow-y-auto">
-                                    <table class="w-full border-collapse text-sm text-gray-700 dark:text-gray-300">
+                                    <table class="w-full border-collapse text-xs text-gray-700 dark:text-gray-300">
                                         <thead class="bg-gray-50 dark:bg-gray-700">
                                             <tr>
                                                 <th
@@ -447,7 +447,7 @@
                                                 'self-end bg-indigo-500 text-white' :
                                                 'self-start bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
                                                 class="max-w-xs rounded-lg p-3  ">
-                                                <p class="text-sm"><strong x-text="comment.user"></strong>:
+                                                <p class="text-xs"><strong x-text="comment.user"></strong>:
                                                     <span x-text="comment.text"></span>
                                                 </p>
                                             </div>
@@ -464,7 +464,7 @@
                                             class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                         <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-xs font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -485,14 +485,14 @@
                             stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                     </svg>
-                    <p class="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">Loading...</p>
+                    <p class="mt-4 text-sm font-medium text-gray-700 dark:text-gray-300">Loading...</p>
                 </div>
             </div>
 
             <div id="rejectTaskModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 backdrop-blur-sm">
                 <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-800">
-                    <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-white">Reject Task</h2>
+                    <h2 class="mb-4 text-lg font-bold text-gray-800 dark:text-white">Reject Task</h2>
                     <p class="mb-4 text-gray-600 dark:text-gray-300">Please provide a reason for rejecting this
                         task.</p>
                     <textarea id="rejectReason" rows="4"
@@ -501,11 +501,11 @@
 
                     <div class="mt-6 flex justify-end gap-3">
                         <button id="cancelRejectBtn"
-                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                             Cancel
                         </button>
                         <button id="confirmRejectBtn"
-                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white   transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-xs font-semibold text-white   transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                             Reject
                         </button>
                     </div>
@@ -515,7 +515,7 @@
             <div id="reviseTaskModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 backdrop-blur-sm">
                 <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-800">
-                    <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-white">Revise Task</h2>
+                    <h2 class="mb-4 text-lg font-bold text-gray-800 dark:text-white">Revise Task</h2>
                     <p class="mb-4 text-gray-600 dark:text-gray-300">Please provide details for the revision.</p>
                     <textarea id="reviseReason" rows="4"
                         class="w-full rounded-lg border border-gray-300 bg-gray-50 p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -523,11 +523,11 @@
 
                     <div class="mt-6 flex justify-end gap-3">
                         <button id="cancelReviseBtn"
-                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                             Cancel
                         </button>
                         <button id="confirmReviseBtn"
-                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white   transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white   transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             Revise
                         </button>
                     </div>
@@ -569,7 +569,7 @@
 
                                     commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-sm font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username} 
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

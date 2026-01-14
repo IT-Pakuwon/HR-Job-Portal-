@@ -3,19 +3,19 @@
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             {{-- header + tombol add --}}
             <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <h1 class="text-xl font-bold text-gray-800 dark:text-white">✅ Ms Approval List</h1>
+                <h1 class="text-base font-bold text-gray-800 dark:text-white">✅ Ms Approval List</h1>
                 <button id="addApprovalBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Approval
                 </button>
             </div>
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                         Filter Doc Type
                     </label>
                     <select id="filterDoctype"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
                         <option value="">All Document Type</option>
                         @foreach ($doctypes as $dt)
                             <option value="{{ $dt->doctype }}">{{ $dt->doctype }}</option>
@@ -24,11 +24,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                         Filter Company
                     </label>
                     <select id="filterCompany"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
                         <option value="">All Company</option>
                         @foreach ($companies as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
@@ -37,11 +37,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                         Filter Department
                     </label>
                     <select id="filterDept"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
                         <option value="">All Department</option>
                         @foreach ($departments as $d)
                             <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -51,16 +51,16 @@
 
                 <div class="mt-6">
                     <button id="clearUserFilters" type="button"
-                        class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                        class="rounded-lg border px-3 py-1 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                         Clear Filter
                     </button>
                 </div>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="approvalTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="approvalTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="col-actions w-24 px-2 py-3 text-center">Actions</th>
@@ -84,7 +84,7 @@
         {{-- Modal --}}
         <div id="approvalModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
             <div class="relative w-full max-w-6xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="approvalModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
+                <h2 id="approvalModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
                     Add Approval
                 </h2>
                 <form id="approvalForm">
@@ -137,7 +137,7 @@
                     {{-- Approval Lines --}}
                     <div class="rounded-lg border bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800">
                         <div class="mb-2 flex items-center justify-between">
-                            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                            <span class="text-xs font-semibold text-gray-800 dark:text-gray-100">
                                 Approval Lines
                             </span>
                             <button type="button" id="addLineBtn"
@@ -360,7 +360,7 @@
                                     <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Level</label>
                                     <input type="text"
                                         name="aprv_leveling[]"
-                                        class="level-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                                        class="level-input w-full rounded-lg border px-2 py-1 text-xs dark:bg-gray-700"
                                         value="${level}"
                                         placeholder="0.00"
                                         inputmode="decimal"
@@ -371,7 +371,7 @@
                                 <div>
                                     <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Name</label>
                                     <select name="aprv_username[${idx}][]"
-                                            class="w-full rounded-lg border px-2 py-1 text-sm sel-username dark:bg-gray-700"
+                                            class="w-full rounded-lg border px-2 py-1 text-xs sel-username dark:bg-gray-700"
                                             multiple
                                             required>
                                     </select>
@@ -380,7 +380,7 @@
                                 <div>
                                     <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Type</label>
                                     <select name="aprv_type[]"
-                                            class="w-full rounded-lg border px-2 py-1 text-sm sel-type dark:bg-gray-700">
+                                            class="w-full rounded-lg border px-2 py-1 text-xs sel-type dark:bg-gray-700">
                                         <option value=""></option>
                                         @foreach ($type as $t)
                                             <option value="{{ $t->category_name }}"
@@ -394,7 +394,7 @@
                                 <div>
                                     <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Condition</label>
                                     <select name="aprv_condition[]"
-                                            class="w-full rounded-lg border px-2 py-1 text-sm sel-condition dark:bg-gray-700">
+                                            class="w-full rounded-lg border px-2 py-1 text-xs sel-condition dark:bg-gray-700">
                                         <option value=""></option>
                                         @foreach ($condition as $c)
                                             <option value="{{ $c->category_name }}"
@@ -409,7 +409,7 @@
                                     <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Start Nominal</label>
                                     <input type="text"
                                         name="aprv_start_nominal[]"
-                                        class="nominal-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                                        class="nominal-input w-full rounded-lg border px-2 py-1 text-xs dark:bg-gray-700"
                                         value="${startNom}"
                                         inputmode="decimal"
                                         autocomplete="off">
@@ -420,7 +420,7 @@
                                         <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">End Nominal</label>
                                         <input type="text"
                                             name="aprv_end_nominal[]"
-                                            class="nominal-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                                            class="nominal-input w-full rounded-lg border px-2 py-1 text-xs dark:bg-gray-700"
                                             value="${endNom}"
                                             inputmode="decimal"
                                             autocomplete="off">

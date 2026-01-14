@@ -54,15 +54,15 @@
         ->toJson();
 @endphp
 
-<div class="col-span-12 rounded-2xl bg-white p-6 dark:bg-gray-800">
+<div class="col-span-12 rounded-xl bg-white p-6 dark:bg-gray-800">
     <!-- Header -->
     <div class="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <div>
-            <h1 class="text-2xl font-bold dark:text-white">📣 Announcement</h1>
+            <h1 class="text-lg font-bold dark:text-white">📣 Announcement</h1>
         </div>
         <div class="flex gap-2">
             <a href="{{ route('news') }}"
-                class="w-full max-w-xs text-center text-sm font-medium text-blue-600 hover:text-blue-800">
+                class="w-full max-w-xs text-center text-xs font-medium text-blue-600 hover:text-blue-800">
                 See More
             </a>
         </div>
@@ -71,7 +71,7 @@
     <!-- Table Section -->
     <div x-data="carousel({{ $newsData }})" class="relative">
         <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-            <table class="min-w-full text-left text-sm text-gray-700 dark:text-gray-300">
+            <table class="min-w-full text-left text-xs text-gray-700 dark:text-gray-300">
                 <thead class="bg-gray-100 text-xs font-semibold uppercase dark:bg-gray-700">
                     <tr>
                         <th class="cursor-pointer select-none px-4 py-2 text-left" @click="sort('title')"><span
@@ -99,16 +99,16 @@
         <!-- Pagination Controls -->
         <div class="mt-4 flex items-center justify-between">
             <button @click="goToPage(page - 1)" :disabled="page === 1"
-                class="rounded bg-gray-200 px-4 py-1.5 text-sm disabled:opacity-50 dark:bg-gray-700">
+                class="rounded bg-gray-200 px-4 py-1.5 text-xs disabled:opacity-50 dark:bg-gray-700">
                 Prev
             </button>
 
-            <div class="text-sm text-gray-600 dark:text-gray-300">
+            <div class="text-xs text-gray-600 dark:text-gray-300">
                 Page <span x-text="page"></span> of <span x-text="totalPages"></span>
             </div>
 
             <button @click="goToPage(page + 1)" :disabled="page === totalPages"
-                class="rounded bg-gray-200 px-4 py-1.5 text-sm disabled:opacity-50 dark:bg-gray-700">
+                class="rounded bg-gray-200 px-4 py-1.5 text-xs disabled:opacity-50 dark:bg-gray-700">
                 Next
             </button>
         </div>
@@ -118,7 +118,7 @@
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
             style="display: none">
             <div
-                class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-800">
+                class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6 dark:bg-gray-800">
                 <!-- Close Button -->
                 <button @click="closeModal()"
                     class="absolute right-3 top-3 text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
@@ -130,12 +130,12 @@
                 </button>
 
                 <!-- Modal Content -->
-                <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white" x-text="modalData.title"></h2>
+                <h2 class="mb-4 text-base font-semibold text-gray-900 dark:text-white" x-text="modalData.title"></h2>
 
                 <img :src="modalData.image" alt="News Image"
                     class="mb-4 h-auto max-h-64 w-full rounded-lg object-contain" x-show="modalData.image">
 
-                <div class="space-y-4 text-justify text-sm leading-relaxed text-gray-700 dark:text-gray-300"
+                <div class="space-y-4 text-justify text-xs leading-relaxed text-gray-700 dark:text-gray-300"
                     x-html="modalData.description2"></div>
             </div>
         </div>

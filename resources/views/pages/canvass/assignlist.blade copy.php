@@ -377,13 +377,13 @@
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📄</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">All</p>
+                            <p class="break-words text-sm font-medium">All</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $all }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                     </div>
                 </a>
             </button>
@@ -394,13 +394,13 @@
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">SPPB</p>
+                            <p class="break-words text-sm font-medium">SPPB</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $sppb }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $sppb }}</p>
                     </div>
                 </a>
             </button>
@@ -411,13 +411,13 @@
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⛔️</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">SPPJ</p>
+                            <p class="break-words text-sm font-medium">SPPJ</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $sppj }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $sppj }}</p>
                     </div>
                 </a>
             </button>
@@ -428,13 +428,13 @@
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✏️</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">SPPK</p>
+                            <p class="break-words text-sm font-medium">SPPK</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $sppk }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $sppk }}</p>
                     </div>
                 </a>
             </button>
@@ -445,13 +445,13 @@
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-base font-medium">SPPT</p>
+                            <p class="break-words text-sm font-medium">SPPT</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $sppt }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $sppt }}</p>
                     </div>
                 </a>
             </button>
@@ -460,13 +460,13 @@
 
 
         <div class="grid">
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
                 <div
                     class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Assign List</h1>
+                    {{-- Changed text-lg to text-base --}}
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Assign List</h1>
                     <button id="btnAssignPurchasing"
-                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         <i class="fas fa-check pr-2"></i>Assign Purchasing
                     </button>
                 </div>
@@ -505,11 +505,11 @@
                 </div>
             </div>
 
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
                 <div class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Transfer Jobs</h1>
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Transfer Jobs</h1>
                     <button id="btnTransferJobs"
-                        class="inline-flex items-center rounded-xl bg-amber-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                        class="inline-flex items-center rounded-xl bg-amber-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
                         <i class="fas fa-exchange-alt pr-2"></i>Transfer Jobs
                     </button>
                 </div>
@@ -579,7 +579,7 @@
                                     const url = `/${base}/${row.eid}`;
                                     return `
                             <a href="${url}" class="inline-flex items-center rounded px-3 py-1.5
-                                bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${data}</a>`;
+                                bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold">${data}</a>`;
                                 }
                             },
 
@@ -750,7 +750,7 @@
                                     const map = { SPPB:'showsppbs', SPPJ:'showsppjs', SPPK:'showsppks', SPPT:'showsppts' };
                                     const base = map[row.doc_type] || '#';
                                     const url = `/${base}/${row.eid}`;
-                                    return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${data}</a>`;
+                                    return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold">${data}</a>`;
                                 }
                             },
 

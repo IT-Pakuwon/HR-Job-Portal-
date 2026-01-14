@@ -7,13 +7,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">📦</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-base font-medium leading-tight">Rfca Jobs</p>
+                        <p class="break-words text-sm font-medium leading-tight">Rfca Jobs</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $rfcajobs }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $rfcajobs }}</p>
                 </div>
             </button>
 
@@ -22,13 +22,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">💰</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-base font-medium leading-tight">Finance Received</p>
+                        <p class="break-words text-sm font-medium leading-tight">Finance Received</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $financeReceived }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $financeReceived }}</p>
                 </div>
             </button>
 
@@ -37,13 +37,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🏦</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🏦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-base font-medium leading-tight">Treasury Payment</p>
+                        <p class="break-words text-sm font-medium leading-tight">Treasury Payment</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $treasuryPayment }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $treasuryPayment }}</p>
                 </div>
             </button>
 
@@ -52,13 +52,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">✅</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-base font-medium leading-tight">Rfca Completed</p>
+                        <p class="break-words text-sm font-medium leading-tight">Rfca Completed</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $completed }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </button>
 
@@ -67,13 +67,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-xl">🧾</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🧾</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-base font-medium leading-tight">All Rfca</p>
+                        <p class="break-words text-sm font-medium leading-tight">All Rfca</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $all }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </button>
 
@@ -81,13 +81,13 @@
 
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Rfca</h1>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Rfca</h1>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="rfcaTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="rfcaTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -110,7 +110,7 @@
 
         $(function() {
             let scope = 'rfcajobs';
-            const $title = $('h1.text-xl.font-extrabold');
+            const $title = $('h1.text-base.font-extrabold');
             const $thead = $('#rfcaTable thead');
             let table;
 
@@ -203,7 +203,7 @@
                 // buat ulang thead + tr
                 const theadHtml = `
                         <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr id="thead-row">${headerFor(sc)}</tr>
                             </thead>`;
                 $table.prepend(theadHtml);
@@ -290,7 +290,7 @@
                 const text = row.ponbr ?? '';
                 if (row.ponbr_eid) {
                     const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                 }
                 return text;
             }
@@ -299,7 +299,7 @@
                 const text = row.sppbjktid ?? '';
                 if (row.sppb_route && row.sppb_eid) {
                     const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
+                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${text}</a>`;
                 }
                 return text;
             }
@@ -310,7 +310,7 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 const statusRaw = (row.status ?? '').toString().trim().toUpperCase();
@@ -320,11 +320,11 @@
 
                 if (isRevise && isOwner) {
                     const url = `/editrfcas/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
                 }
 
                 const url = `/showrfca/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             // init

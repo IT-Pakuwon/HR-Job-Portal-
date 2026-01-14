@@ -8,9 +8,9 @@
                         <form id="stoForm" class="flex flex-col" enctype="multipart/form-data">
                             @csrf
                             <div class="flex justify-between rounded-t-2xl border-b bg-gray-50 p-4 dark:border-gray-600">
-                                <h2 class="text-xl font-bold">Organization Structure by Department</h2>
+                                <h2 class="text-base font-bold">Organization Structure by Department</h2>
                                 <div class="flex items-center gap-2">
-                                    <label class="mb-1 block w-40 text-xl font-semibold">Department</label>
+                                    <label class="mb-1 block w-40 text-base font-semibold">Department</label>
                                     <select id="selectdeptname"
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="departementid" required>
@@ -49,37 +49,37 @@
                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
                         <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                             <div class="border-gray-200s mb-4 flex justify-between border-b">
-                                <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
+                                <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
                                     <li class="mr-2">
                                         <button type="button"
-                                            class="tab-button border-blue-600 px-4 py-2 text-lg text-blue-600"
+                                            class="tab-button border-blue-600 px-4 py-2 text-sm text-blue-600"
                                             onclick="switchTab('view')">View Employee</button>
                                     </li>
                                     <li class="mr-2">
                                         <button type="button"
-                                            class="tab-button px-4 py-2 text-lg text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                            class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600"
                                             onclick="switchTab('employee')">Add Employee</button>
                                     </li>
                                     <li class="mr-2">
                                         <button type="button"
-                                            class="tab-button px-4 py-2 text-lg text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                            class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600"
                                             onclick="switchTab('departement')">Add Sub Departement</button>
                                     </li>
                                 </ul>
-                                <button onclick="closeModal()" class="text-lg text-gray-500">close</button>
+                                <button onclick="closeModal()" class="text-sm text-gray-500">close</button>
 
                             </div>
 
                             <!-- Tab Content: View Employee -->
                             <div id="tab-view" class="tab-content hidden">
                                 <div class="flex justify-between">
-                                    <h3 class="text-lg font-semibold">Employee List</h3>
+                                    <h3 class="text-sm font-semibold">Employee List</h3>
                                     <div class="mb-4 flex items-center justify-between">
-                                        <h4 id="departmentLabel" class="text-lg font-semibold text-gray-800">
+                                        <h4 id="departmentLabel" class="text-sm font-semibold text-gray-800">
                                             Dept: <!-- Dynamic text will be inserted via JS -->
                                         </h4>
                                         <button id="btnChangeDept"
-                                            class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                            class="flex items-center gap-1 rounded px-3 py-1.5 text-xs text-black">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="size-6">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -89,7 +89,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <table class="w-full border   text-sm text-black">
+                                <table class="w-full border   text-xs text-black">
                                     <thead class="bg-gray-300/10">
                                         <tr class="text-left">
                                             <th class="border   px-2 py-1">No</th>
@@ -108,13 +108,13 @@
 
                             <!-- Tab Content: Employee -->
                             <div id="tab-employee" class="tab-content">
-                                <h3 class="mb-4 text-lg font-semibold">Add Employee</h3>
+                                <h3 class="mb-4 text-sm font-semibold">Add Employee</h3>
                                 <form id="formAddEmployee" method="POST" action="{{ route('orgchart.store') }}"
                                     enctype="multipart/form-data">
                                     @csrf
                                     <input type="hidden" name="approval_line" id="modalApprovalLine">
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Company</label>
+                                        <label class="block text-xs font-medium text-gray-700">Company</label>
                                         <select
                                             class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                             name="cpnyid" required>
@@ -127,7 +127,7 @@
                                         <label class="inline-flex items-center">
                                             <input type="checkbox" id="vacantCheckbox"
                                                 class="form-checkbox text-blue-600">
-                                            <span class="ml-2 text-sm text-gray-700">Set as Vacant</span>
+                                            <span class="ml-2 text-xs text-gray-700">Set as Vacant</span>
                                         </label>
                                     </div>
 
@@ -135,7 +135,7 @@
                                     <input type="hidden" name="full_name" id="hiddenFullName" value="Vacant">
 
                                     <div class="mb-4" id="fullNameGroup">
-                                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                                        <label class="block text-xs font-medium text-gray-700">Name</label>
                                         <select id="selectFullName" name="full_name"
                                             class="mt-1 block w-full rounded-md border border-gray-300 p-2">
                                             @foreach ($users as $p)
@@ -144,7 +144,7 @@
                                         </select>
                                     </div>
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Position</label>
+                                        <label class="block text-xs font-medium text-gray-700">Position</label>
                                         <select
                                             class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                             name="job_position" required>
@@ -154,12 +154,12 @@
                                         </select>
                                     </div>
                                     <div class="mb-4" id="imageGroup">
-                                        <label class="block text-sm font-medium text-gray-700">Image</label>
+                                        <label class="block text-xs font-medium text-gray-700">Image</label>
                                         <input type="file" name="image" id="imageInput" accept="image/*"
                                             class="mt-1 block w-full rounded-md border border-gray-300 p-2">
                                     </div>
                                     <div class="mb-4" id="qtyGroup">
-                                        <label class="block text-sm font-medium text-gray-700">Qty</label>
+                                        <label class="block text-xs font-medium text-gray-700">Qty</label>
                                         <input type="number" name="qty" id="qty"
                                             class="mt-1 block w-full rounded-md border border-gray-300 p-2"
                                             value="{{ old('qty', 1) }}" required>
@@ -174,12 +174,12 @@
 
                             <!-- Tab Content: Departement -->
                             <div id="tab-departement" class="tab-content hidden">
-                                <h3 class="mb-4 text-lg font-semibold">Add Sub Departement</h3>
+                                <h3 class="mb-4 text-sm font-semibold">Add Sub Departement</h3>
                                 <form id="formAddDepartement" method="POST" action="{{ route('orgchart.store') }}">
                                     @csrf
                                     <input type="hidden" name="approval_line" id="modalApprovalLine">
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Sub Departement</label>
+                                        <label class="block text-xs font-medium text-gray-700">Sub Departement</label>
                                         <input type="text" name="departement_name"
                                             class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
                                     </div>
@@ -194,8 +194,8 @@
                                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-30">
                                 <div class="relative w-full max-w-lg rounded-lg bg-white p-6">
                                     <button onclick="closeEditModal()"
-                                        class="absolute right-2 top-2 text-2xl text-gray-500">&times;</button>
-                                    <h3 class="mb-4 text-lg font-bold">Edit Employee</h3>
+                                        class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
+                                    <h3 class="mb-4 text-sm font-bold">Edit Employee</h3>
                                     <form id="editEmployeeForm" enctype="multipart/form-data">
                                         @csrf
                                         <input type="hidden" name="id" id="edit_id">
@@ -239,8 +239,8 @@
                             <div id="modalChangeDept"
                                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-50">
                                 <div class="w-full max-w-md rounded-lg bg-white p-6  ">
-                                    <h3 class="mb-4 text-lg font-semibold">Change Department</h3>
-                                    <label class="mb-2 block text-sm font-medium text-gray-700">Select
+                                    <h3 class="mb-4 text-sm font-semibold">Change Department</h3>
+                                    <label class="mb-2 block text-xs font-medium text-gray-700">Select
                                         Department</label>
                                     <select id="selectNewDept" class="mb-4 w-full rounded border p-2">
                                         @foreach ($departments as $dept)
@@ -585,7 +585,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-sm border rounded mt-4">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);

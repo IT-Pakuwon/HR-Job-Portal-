@@ -11,13 +11,13 @@
                         <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
 >>>>>>> Stashed changes
                             <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create ORG Structure</h2>
+                                <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create ORG Structure</h2>
                             </div>
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div class="flex flex-col gap-2">
                                     <label for="sto_id"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">STO
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">STO
                                         ID</label>
                                     <input type="text" id="sto_id" name="sto_id"
                                         class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -25,7 +25,7 @@
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <label for="sto_date"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">Date</label>
                                     <input type="text" id="sto_date" name="sto_date"
                                         class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         value="{{ $sto->sto_date }}" readonly>
@@ -35,7 +35,7 @@
                             <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                 {{-- <div class="flex flex-col gap-2">
                                     <label for="company"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select id="company"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="cpnyid" required>
@@ -46,7 +46,7 @@
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <label for="department"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select id="department"
                                         class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         name="departementid" required>
@@ -58,7 +58,7 @@
 
                                 <div class="flex items-center gap-2">
                                     <label for="selectCompany"
-                                        class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-300">Company:</label>
+                                        class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-300">Company:</label>
                                     <select id="selectCompany"
                                         class="w-full min-w-[150px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
                                         name="company_filter">
@@ -71,7 +71,7 @@
 
                                 <div class="flex items-center gap-2">
                                     <label for="selectdeptname"
-                                        class="mb-1 block text-lg font-semibold text-gray-700 dark:text-gray-300">Department:</label>
+                                        class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-300">Department:</label>
                                     <select id="selectdeptname"
                                         class="w-full min-w-[200px] rounded-lg border border-gray-300 bg-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
                                         name="departementid" required>
@@ -96,19 +96,19 @@
 >>>>>>> Stashed changes
                         <details class="group" open>
                             <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]" form="stoForm"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️
                                         </button>
@@ -116,7 +116,7 @@
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -128,9 +128,9 @@
                         <div class="flex w-full justify-end gap-4 pt-4">
                             <button type="button" id="cancelBtn"
 <<<<<<< Updated upstream
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white   transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white   transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
 =======
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
 >>>>>>> Stashed changes
                                 <span id="cancelBtnText">Cancel</span>
                                 <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
@@ -142,9 +142,9 @@
                             </button>
                             <button type="submit" id="submitBtn" form="stoForm"
 <<<<<<< Updated upstream
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white   transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
 =======
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
 >>>>>>> Stashed changes
                                 <span id="submitBtnText">Submit Approval</span>
                                 <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
@@ -166,16 +166,16 @@
                 <details class="group w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800" open>
 >>>>>>> Stashed changes
                     <summary
-                        class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                        class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                         <span>ORG Chart Visualization</span>
-                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details
+                        <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See details
                             &rarr;</span>
-                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                        <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                             details &darr;</span>
                     </summary>
                     <div class="relative mt-4">
                         <div
-                            class="chart-container flex h-[500px] w-full items-center justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50 text-lg text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500">
+                            class="chart-container flex h-[500px] w-full items-center justify-center overflow-auto rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-500">
                         </div>
                     </div>
                 </details>
@@ -189,10 +189,10 @@
             <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
 >>>>>>> Stashed changes
                 <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
-                    <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
+                    <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
                         <li class="mr-2">
                             <button type="button"
-                                class="tab-button active-tab inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                class="tab-button active-tab inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-sm text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
                                 onclick="switchTab('view')">
                                 <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -205,7 +205,7 @@
                         </li>
                         <li class="mr-2">
                             <button type="button"
-                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-sm text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
                                 onclick="switchTab('employee')">
                                 <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -218,7 +218,7 @@
                         </li>
                         <li class="mr-2">
                             <button type="button"
-                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-sm text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
                                 onclick="switchTab('departement')">
                                 <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -231,7 +231,7 @@
                         </li>
                         <li class="mr-2">
                             <button type="button"
-                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-lg text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                                class="tab-button inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-sm text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
                                 onclick="switchTab('specprofile')">
                                 <svg class="mr-2 h-5 w-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -244,7 +244,7 @@
                         </li>
                     </ul>
                     <button onclick="closeModal()"
-                        class="text-2xl leading-none text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        class="text-lg leading-none text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                         &times;
                     </button>
                 </div>
@@ -252,11 +252,11 @@
                 <div class="max-h-[80vh] overflow-y-auto p-6">
                     <div id="tab-view" class="tab-content hidden">                        
                         <div class="flex justify-between">
-                            {{-- <h3 class="text-lg font-semibold">Employee List</h3> --}}
+                            {{-- <h3 class="text-sm font-semibold">Employee List</h3> --}}
                             <div class="mb-4 flex items-center justify-between">
-                                <h4 class="text-lg font-semibold">Parent Department: <span id="parentDeptLabel" class="text-lg font-semibold text-gray-800"></span></h4>                             
+                                <h4 class="text-sm font-semibold">Parent Department: <span id="parentDeptLabel" class="text-sm font-semibold text-gray-800"></span></h4>                             
                                 <button id="btnChangeParentDept"
-                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-xs text-black">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -267,11 +267,11 @@
                             </div>
 
                             <div class="mb-4 flex items-center justify-between">
-                                <h4 id="departmentLabel" class="text-lg font-semibold text-gray-800">
+                                <h4 id="departmentLabel" class="text-sm font-semibold text-gray-800">
                                     Dept: <!-- Dynamic text will be inserted via JS -->
                                 </h4>
                                 <button id="btnChangeDept"
-                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-black">
+                                    class="flex items-center gap-1 rounded px-3 py-1.5 text-xs text-black">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -283,7 +283,7 @@
                         </div>
                         <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
                             <table
-                                class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
+                                class="min-w-full divide-y divide-gray-200 text-xs text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th scope="col"
@@ -314,7 +314,7 @@
                     </div>
 
                     <div id="tab-employee" class="tab-content hidden">
-                        <h3 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Add Employee</h3>
+                        <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Add Employee</h3>
                         <form id="formAddEmployee" method="POST" action="{{ route('orgchart.store') }}"
                             enctype="multipart/form-data" class="space-y-4">
                             @csrf
@@ -323,7 +323,7 @@
 
                             <div>
                                 <label for="employeeCompany"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select id="employeeCompany"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
@@ -338,7 +338,7 @@
                             <div class="flex items-center">
                                 <input type="checkbox" id="vacantCheckbox" checked
                                     class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700">
-                                <label for="vacantCheckbox" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Set
+                                <label for="vacantCheckbox" class="ml-2 text-xs text-gray-700 dark:text-gray-300">Set
                                     as VACANT</label>
                             </div>
 
@@ -346,7 +346,7 @@
 
                             <div id="fullNameGroup">
                                 <label for="selectFullName"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select id="selectFullName" name="full_name"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>Pilih nama karyawan...</option>
@@ -358,14 +358,14 @@
 
                             <div id="imageGroup">
                                 <label for="imageInput"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Image</label>
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Image</label>
                                 <input type="file" name="image" id="imageInput" accept="image/*"
-                                    class="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white">
+                                    class="mt-1 block w-full text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white">
                             </div>
 
                             <div id="qtyGroup">
                                 <label for="qty"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Qty</label>
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Qty</label>
                                 <input type="number" name="qty" id="qty"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     value="{{ old('qty', 1) }}" required min="1">
@@ -375,7 +375,7 @@
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Save Employee
                                 </button>
                             </div>
@@ -383,7 +383,7 @@
                     </div>
 
                     <div id="tab-departement" class="tab-content hidden">
-                        <h3 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Add Sub Department
+                        <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Add Sub Department
                         </h3>
                         <form id="formAddDepartement" method="POST" action="{{ route('orgchart.store') }}"
                             class="space-y-4">
@@ -393,7 +393,7 @@
 
                             <div>
                                 <label for="departement_name"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Sub
                                     Department Name</label>
                                 <input type="text" name="departement_name" id="departement_name"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -402,7 +402,7 @@
 
                             <div>
                                 <label for="subgrade_id"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Sub
                                     Grading</label>
                                 <input type="hidden" name="subgrade_name" id="subgrade_name">
                                 <select name="subgrade_id" id="subgrade_id"
@@ -418,7 +418,7 @@
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                     Save Department
                                 </button>
                             </div>
@@ -426,7 +426,7 @@
                     </div>
 
                     <div id="tab-specprofile" class="tab-content hidden">
-                        <h3 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Add Job Profile &
+                        <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Add Job Profile &
                             Spec
                         </h3>
                         <form id="formAddSpec" method="POST" action="{{ route('orgchart.store') }}"
@@ -437,7 +437,7 @@
 
                             <div>
                                 <label for="job_level"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Position</label>
                                 {{-- <select name="job_level" id="job_level"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -453,7 +453,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Job
                                     Purpose</label>
                                 <div id="jobPurposeList" class="flex flex-col gap-3">
                                     <div class="flex items-center gap-2">
@@ -466,7 +466,7 @@
                                     </div>
                                 </div>
                                 <button type="button" id="addJobPurpose"
-                                    class="mt-3 inline-flex items-center rounded-md border border-transparent bg-indigo-100 px-3 py-1.5 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="mt-3 inline-flex items-center rounded-md border border-transparent bg-indigo-100 px-3 py-1.5 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="mr-1 h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -478,7 +478,7 @@
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
                                     <label for="education_level"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Education
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">Education
                                         Level</label>
                                     <select name="education_level" id="education_level"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -497,7 +497,7 @@
                                 </div>
                                 <div>
                                     <label for="education_major"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Major</label>
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">Major</label>
                                     <input type="text" name="education_major" id="education_major"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="e.g., Computer Science" required>
@@ -507,7 +507,7 @@
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
                                     <label for="experience_years"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Experience
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">Experience
                                         (Years)</label>
                                     <input type="number" name="experience_years" id="experience_years"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -515,7 +515,7 @@
                                 </div>
                                 <div>
                                     <label for="experience_position"
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Experience
+                                        class="block text-xs font-medium text-gray-700 dark:text-gray-300">Experience
                                         in Position</label>
                                     <input type="text" name="experience_position" id="experience_position"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -525,7 +525,7 @@
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                     Save Job Profile
                                 </button>
                             </div>
@@ -541,17 +541,17 @@
                     <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
 >>>>>>> Stashed changes
                         <button onclick="closeEditModal()"
-                            class="absolute right-3 top-3 text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                            class="absolute right-3 top-3 text-lg leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                             &times;
                         </button>
-                        <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Edit Employee</h3>
+                        <h3 class="mb-6 text-base font-bold text-gray-800 dark:text-white">Edit Employee</h3>
                         <form id="editEmployeeForm" enctype="multipart/form-data" class="space-y-4">
                             @csrf
                             <input type="hidden" name="id" id="edit_id">
 
                             <div>
                                 <label for="edit_name"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select name="employee_name" id="edit_name"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>-- Select Employee --</option>
@@ -563,7 +563,7 @@
 
                             <div>
                                 <label for="edit_company"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="employee_company" id="edit_company"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($usercpny as $p)
@@ -576,16 +576,16 @@
 
                             <div>
                                 <label for="edit_image"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">New
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">New
                                     Image
                                     (optional)</label>
                                 <input type="file" name="image" id="edit_image" accept="image/*"
-                                    class="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white">
+                                    class="mt-1 block w-full text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white">
                             </div>
 
                             <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                                 <button type="submit"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     Update Employee
                                 </button>
                             </div>
@@ -600,11 +600,11 @@
 =======
                     <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
 >>>>>>> Stashed changes
-                        <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Department</h3>
+                        <h3 class="mb-6 text-base font-bold text-gray-800 dark:text-white">Change Department</h3>
 
                         <div class="mb-4">
                             <label for="selectNewDept"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select
+                                class="block text-xs font-medium text-gray-700 dark:text-gray-300">Select
                                 Department</label>
                             <select id="selectNewDept"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -618,11 +618,11 @@
 
                         <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
                             <button id="btnCancelChange"
-                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 Cancel
                             </button>
                             <button id="btnConfirmChange"
-                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                 Update
                             </button>
                         </div>
@@ -636,13 +636,13 @@
 =======
                     <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
 >>>>>>> Stashed changes
-                        <h3 class="mb-6 text-xl font-bold text-gray-800 dark:text-white">Change Parent
+                        <h3 class="mb-6 text-base font-bold text-gray-800 dark:text-white">Change Parent
                             Department
                         </h3>
 
                         <div class="mb-4">
                             <label for="selectNewParentDept"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Select New
+                                class="block text-xs font-medium text-gray-700 dark:text-gray-300">Select New
                                 Parent Department</label>
                             <select id="selectNewParentDept"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -656,11 +656,11 @@
 
                         <div class="flex justify-end space-x-3 border-t border-gray-200 pt-4 dark:border-gray-700">
                             <button id="btnCancelChangeParent"
-                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 Cancel
                             </button>
                             <button id="btnConfirmChangeParent"
-                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                 Update
                             </button>
                         </div>
@@ -677,12 +677,12 @@
 >>>>>>> Stashed changes
                         <div
                             class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
+                            <h3 class="text-base font-semibold text-gray-800 dark:text-white">
                                 Job Profile - <span id="jobLevelLabel"
                                     class="font-bold text-indigo-600 dark:text-indigo-400"></span>
                             </h3>
                             <button onclick="$('#modalJobProfile').addClass('hidden')"
-                                class="text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                class="text-lg leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                                 &times;
                             </button>
                         </div>
@@ -690,7 +690,7 @@
                         <div
                             class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
                             <table
-                                class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
+                                class="min-w-full divide-y divide-gray-200 text-xs text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th scope="col"
@@ -710,14 +710,14 @@
                             </table>
                         </div>
 
-                        <div id="jobSpecInfo" class="space-y-3 text-base text-gray-700 dark:text-gray-300">
+                        <div id="jobSpecInfo" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div id="successMessage"
-            class="mt-4 hidden rounded-md bg-green-50 p-3 text-sm font-medium text-green-700 shadow-sm">
+            class="mt-4 hidden rounded-md bg-green-50 p-3 text-xs font-medium text-green-700 shadow-sm">
             STO created successfully!
         </div>
     </div>
@@ -1160,7 +1160,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-sm border rounded mt-4">
 <<<<<<< Updated upstream
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
 =======

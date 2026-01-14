@@ -9,47 +9,47 @@
             <!-- Header Card -->
             <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
-                    <h2 class="text-xl font-extrabold text-gray-800 dark:text-white"><span
+                    <h2 class="text-base font-extrabold text-gray-800 dark:text-white"><span
                             class="text-indigo-500"></span>
                         🆔 {{ $cs->csid }} - Create BQ CS</h2>
                 </div>
 
                 <!-- Grid Form -->
-                <div class="flex flex-col gap-4 text-sm">
+                <div class="flex flex-col gap-4 text-xs">
                     <!-- Row 1 -->
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->cpny_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Department</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->department_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">BQ ID</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->bqid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->sppbjktid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Requester</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->user_peminta }}
                             </div>
                         </div>
@@ -58,15 +58,15 @@
             </div>
 
             <!-- BQ Details -->
-            <div class="flex w-full flex-col rounded-2xl bg-white p-4 shadow-md dark:bg-gray-800">
+            <div class="flex w-full flex-col rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                 <div class="flex justify-between">
                     <div
-                        class="justify-center pb-4 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
+                        class="justify-center pb-4 text-sm font-bold text-gray-800 dark:border-gray-700 dark:text-white">
                         BQ Detail
                     </div>
                     <div class="mb-3 flex justify-end">
                         <button type="button" id="btnAddRow"
-                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                            class="rounded-md bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
                             + Add Row
                         </button>
                     </div>
@@ -74,9 +74,9 @@
                 </div>
                 <div class="rounded-base relative overflow-x-auto">
 
-                    <table class="text-body w-full table-auto text-left text-sm rtl:text-right" id="bqTable">
+                    <table class="text-body w-full table-auto text-left text-xs rtl:text-right" id="bqTable">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th class="border px-4 py-3 text-left font-semibold">No</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Line</th>
@@ -90,7 +90,7 @@
 
                                         <div class="flex items-start justify-between gap-1">
                                             <div class="space-y-0.5">
-                                                <div class="text-sm font-semibold">
+                                                <div class="text-xs font-semibold">
                                                     {{ $v['name'] }}
                                                 </div>
                                             </div>

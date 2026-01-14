@@ -1,4 +1,3 @@
-
 {{-- <style>
     .no-border{
         border : none !important;
@@ -106,58 +105,82 @@
 
 
 </style>             --}}
-<div class="mt-6  overflow-y-auto bg-white  dark:bg-gray-800 p-4 rounded-xl">
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 class=" align-middle text-2xl font-bold  dark:text-white">Work Instruction</h1>        
+<div class="mt-6 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
+    <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <h1 class="align-middle text-lg font-bold dark:text-white">Work Instruction</h1>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-lg">
-        <table id="instructionTable" class="min-w-full rounded mt-5">
+    <div class="rounded-lg bg-white dark:bg-gray-800">
+        <table id="instructionTable" class="mt-5 min-w-full rounded">
             <thead class="bg-white-200 dark:text-white">
                 <tr>
-                    <th class="px-4 py-3 text-left w-32">DocID</th>                                
+                    <th class="w-32 px-4 py-3 text-left">DocID</th>
                     <th class="px-4 py-3 text-center">Date</th>
                     <th class="px-4 py-3 text-center">Priority</th>
                     <th class="px-4 py-3 text-center">Description</th>
                     <th class="px-4 py-3 text-center">StartDate</th>
-                    <th class="px-4 py-3 text-center">EndDate</th>                                               
-                    <th class="px-4 py-3 text-center w-32">Action</th>  
+                    <th class="px-4 py-3 text-center">EndDate</th>
+                    <th class="w-32 px-4 py-3 text-center">Action</th>
                 </tr>
             </thead>
-                <tbody></tbody>
+            <tbody></tbody>
         </table>
-    </div>   
-</div>  
-        
+    </div>
+</div>
+
 <script>
-    $(function () {   
+    $(function() {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
-        });   
+        });
         var table = $('#instructionTable').DataTable({
-            "order": [[0, "desc"]],
+            "order": [
+                [0, "desc"]
+            ],
             processing: true,
             serverSide: true,
             ajax: {
-                url: "{{ route('workinstruction') }}",             
-            
+                url: "{{ route('workinstruction') }}",
+
             },
-            columns: [
-                {data: 'docid', name: 'docid'},
-                {data: 'wo_date', name: 'wo_date'},             
-                {data: 'wo_priority', name: 'wo_priority'},  
-                {data: 'work_description', name: 'work_description'},  
-                {data: 'work_start_date', name: 'work_start_date'},             
-                {data: 'work_end_date', name: 'work_end_date'},                                         
-                {data: 'action', name: 'action'},       
+            columns: [{
+                    data: 'docid',
+                    name: 'docid'
+                },
+                {
+                    data: 'wo_date',
+                    name: 'wo_date'
+                },
+                {
+                    data: 'wo_priority',
+                    name: 'wo_priority'
+                },
+                {
+                    data: 'work_description',
+                    name: 'work_description'
+                },
+                {
+                    data: 'work_start_date',
+                    name: 'work_start_date'
+                },
+                {
+                    data: 'work_end_date',
+                    name: 'work_end_date'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
+                },
             ],
-        
+
             // dom:'lBfrtip',
             // buttons: ['excel', 'csv', 'pdf', 'copy'],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            responsive: true,        
-            });
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+            responsive: true,
+        });
     })
-    
-</script>          
+</script>

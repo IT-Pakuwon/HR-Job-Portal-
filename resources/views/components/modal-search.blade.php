@@ -51,7 +51,7 @@
                 <div class="mb-3 last:mb-0">
                     <div class="mb-2 px-2 text-xs font-semibold uppercase text-gray-400 dark:text-gray-500">Recent
                         searches</div>
-                    <ul class="text-sm">
+                    <ul class="text-xs">
                         <li>
                             <a class="flex items-center rounded-lg p-2 text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700/20"
                                 href="#0" @click="searchOpen = false" @focus="searchOpen = true"
@@ -130,7 +130,7 @@
                 <div class="mb-3 last:mb-0">
                     <div class="mb-2 px-2 text-xs font-semibold uppercase text-gray-400 dark:text-gray-500">Recent
                         pages</div>
-                    <ul class="text-sm">
+                    <ul class="text-xs">
                         <li>
                             <a class="flex items-center rounded-lg p-2 text-gray-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700/20"
                                 href="#0" @click="searchOpen = false" @focus="searchOpen = true"

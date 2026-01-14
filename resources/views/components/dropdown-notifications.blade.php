@@ -31,7 +31,7 @@
             <li class="border-b border-gray-200 last:border-0 dark:border-gray-700/60">
                 <a class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/20" href="#0"
                     @click="open = false" @focus="open = true" @focusout="open = false">
-                    <span class="mb-2 block text-sm">📣 <span class="font-medium text-gray-800 dark:text-gray-100">Edit
+                    <span class="mb-2 block text-xs">📣 <span class="font-medium text-gray-800 dark:text-gray-100">Edit
                             your information in a swipe</span> Sint occaecat cupidatat non proident, sunt in culpa qui
                         officia deserunt mollit anim.</span>
                     <span class="block text-xs font-medium text-gray-400 dark:text-gray-500">Feb 12, 2024</span>
@@ -40,7 +40,7 @@
             <li class="border-b border-gray-200 last:border-0 dark:border-gray-700/60">
                 <a class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/20" href="#0"
                     @click="open = false" @focus="open = true" @focusout="open = false">
-                    <span class="mb-2 block text-sm">📣 <span class="font-medium text-gray-800 dark:text-gray-100">Edit
+                    <span class="mb-2 block text-xs">📣 <span class="font-medium text-gray-800 dark:text-gray-100">Edit
                             your information in a swipe</span> Sint occaecat cupidatat non proident, sunt in culpa qui
                         officia deserunt mollit anim.</span>
                     <span class="block text-xs font-medium text-gray-400 dark:text-gray-500">Feb 9, 2024</span>
@@ -49,7 +49,7 @@
             <li class="border-b border-gray-200 last:border-0 dark:border-gray-700/60">
                 <a class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/20" href="#0"
                     @click="open = false" @focus="open = true" @focusout="open = false">
-                    <span class="mb-2 block text-sm">🚀<span class="font-medium text-gray-800 dark:text-gray-100">Say
+                    <span class="mb-2 block text-xs">🚀<span class="font-medium text-gray-800 dark:text-gray-100">Say
                             goodbye to paper receipts!</span> Sint occaecat cupidatat non proident, sunt in culpa qui
                         officia deserunt mollit anim.</span>
                     <span class="block text-xs font-medium text-gray-400 dark:text-gray-500">Jan 24, 2024</span>

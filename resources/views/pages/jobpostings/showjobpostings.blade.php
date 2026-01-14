@@ -5,11 +5,11 @@
                 <div class="gap-1">
                     <div
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-col">
-                        <div class="flex w-full flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+                        <div class="flex w-full flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                             <header
                                 class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                 <div class="flex max-w-5xl justify-end gap-2">
-                                    <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔
+                                    <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                         {{ $jobposting->docid }}</h1>
                                 </div>
                             </header>
@@ -57,7 +57,7 @@
                                                 <div>
                                                     <span
                                                         class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $detail['value'] }}</p>
                                                 </div>
                                             </div>
@@ -71,7 +71,7 @@
                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                 <div>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">Level</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $jobposting->job_level }}</p>
                                                 </div>
                                             </div>
@@ -81,7 +81,7 @@
                                                 <div>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">State
                                                         Position</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $jobposting->state_position }}</p>
                                                 </div>
                                             </div>
@@ -90,7 +90,7 @@
 
                                     <!-- Job Numbers -->
                                     {{-- <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                                        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-3">Job Numbers</h3>
+                                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Job Numbers</h3>
                                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             @php
                                                 $jobNumbers = [
@@ -103,15 +103,15 @@
                                             @foreach ($jobNumbers as $job)
                                                 <div class="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">{{ $job['label'] }}</span>
-                                                    <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $job['value'] }}</span>
+                                                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $job['value'] }}</span>
                                                 </div>
                                             @endforeach
                                         </div>
                                     </div> --}}
                                     <!-- Reason for Vacancy -->
                                     {{-- <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                                        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Reason for Vacancy</h3>
-                                        <p class="text-base text-gray-900 dark:text-gray-100">{{ $jobposting->reason_vacancy }}</p>
+                                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Reason for Vacancy</h3>
+                                        <p class="text-sm text-gray-900 dark:text-gray-100">{{ $jobposting->reason_vacancy }}</p>
                                     </div> --}}
                                 </div>
 
@@ -119,10 +119,10 @@
                         </div>
                         <div class="flex w-full flex-row gap-2">
                             <div x-data="{ isOpen: true }" class="w-1/2">
-                                <div class="max-h-96 min-h-[12rem] rounded-2xl dark:bg-gray-800">
+                                <div class="max-h-96 min-h-[12rem] rounded-xl dark:bg-gray-800">
                                     <header
                                         class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">📝 Job
+                                        <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">📝 Job
                                             Responsibilities</h2>
                                         <button @click="isOpen = !isOpen"
                                             class="text-grey-500 dark:text-grey-200 flex items-center focus:outline-none">
@@ -143,10 +143,10 @@
                                 </div>
                             </div>
                             <div x-data="{ isOpen: true }" class="w-1/2">
-                                <div class="max-h-96 min-h-[12rem] rounded-2xl dark:bg-gray-800">
+                                <div class="max-h-96 min-h-[12rem] rounded-xl dark:bg-gray-800">
                                     <header
                                         class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100"> 🎯 Job
+                                        <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100"> 🎯 Job
                                             Qualification</h2>
                                         <button @click="isOpen = !isOpen"
                                             class="text-grey-500 dark:text-grey-200 flex items-center focus:outline-none">
@@ -159,13 +159,13 @@
                                             <div class="flex flex-row gap-2">
                                                 <li
                                                     class="flex w-1/2 items-center space-x-2 rounded-lg bg-gray-100 px-4 py-2 shadow-sm dark:bg-gray-800">
-                                                    <span class="text-lg text-indigo-500 dark:text-indigo-400">🎓</span>
+                                                    <span class="text-sm text-indigo-500 dark:text-indigo-400">🎓</span>
                                                     <span class="font-medium">Education:
                                                         {{ $jobposting->education }}</span>
                                                 </li>
                                                 <li
                                                     class="flex w-1/2 items-center space-x-2 rounded-lg bg-gray-100 px-4 py-2 shadow-sm dark:bg-gray-800">
-                                                    <span class="text-lg text-indigo-500 dark:text-indigo-400">💼</span>
+                                                    <span class="text-sm text-indigo-500 dark:text-indigo-400">💼</span>
                                                     <span class="font-medium">Experience: Lebih dari
                                                         {{ $jobposting->experience_start }} tahun
                                                         {{ $jobposting->experience_end }} Year</span>

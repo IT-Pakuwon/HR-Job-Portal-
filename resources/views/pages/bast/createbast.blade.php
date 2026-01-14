@@ -128,36 +128,36 @@
                     {{-- ===== Header ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Create Bast</h2>
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Bast</h2>
                         </div>
 
                         {{-- Row 1 (5 kolom) --}}
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
                                 <input type="text" value="{{ $term->ponbr }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
+                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Company</label>
                                 <input type="text" value="{{ $term->cpny_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">CS ID</label>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">CS ID</label>
                                 <input type="text" value="{{ $term->csid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
+                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
                                 <input type="text" value="{{ $term->sppbjktid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
+                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Department</label>
                                 <input type="text" value="{{ $term->department_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -166,25 +166,25 @@
                         {{-- Row 2 (5 kolom) --}}
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">User
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">User
                                     Peminta</label>
                                 <input type="text" value="{{ $term->user_peminta }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Keperluan</label>
+                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Keperluan</label>
                                 <input type="text" value="{{ $term->keperluan }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Vendor
                                     ID</label>
                                 <input type="text" value="{{ $term->vendorid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Vendor</label>
                                 <input type="text" value="{{ $term->vendorname }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -193,24 +193,24 @@
                         {{-- Row 3 (5 kolom) --}}
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Terms
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Terms
                                     ID</label>
                                 <input type="text" value="{{ $term->terms_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">TOP ID</label>
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">TOP ID</label>
                                 <input type="text" value="{{ $term->topid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">TOP
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">TOP
                                     Type</label>
                                 <input type="text" value="{{ $term->top_type }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2 lg:col-span-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Terms
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Terms
                                     Name</label>
                                 <input type="text" value="{{ $term->terms_name }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
@@ -220,27 +220,27 @@
                         {{-- Row 4 (5 kolom) --}}
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Progress
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Progress
                                     %</label>
                                 <input type="text" value="{{ $term->progress_pct }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Payment
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Payment
                                     %</label>
                                 <input type="text" value="{{ $term->payment_pct }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Terms
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Terms
                                     Type</label>
                                 <input type="text" value="{{ $term->terms_type }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2 lg:col-span-2">
-                                {{-- <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label> --}}
+                                {{-- <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label> --}}
                                 <label
-                                    class="req text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                    class="req text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="lokasi_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -260,7 +260,7 @@
                     {{-- ===== Photo Before ===== --}}
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">Photo Before</h2>
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Photo Before</h2>
                         </div>
 
                         <div id="bqAttachmentGrid"
@@ -273,11 +273,11 @@
                     </div>
 
                     {{-- ===== Photo After ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
                         <div class="flex w-1/2 w-full flex-col border-b p-4">
                             <details class="group mb-4" open>
                                 <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                    <span class="text-lg font-semibold">Photo After</span>
+                                    <span class="text-sm font-semibold">Photo After</span>
                                     <span class="transition-all group-open:hidden">See details</span>
                                     <span class="hidden transition-all group-open:inline">Hide details</span>
                                 </summary>
@@ -302,7 +302,7 @@
                                                         d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                         clip-rule="evenodd" />
                                                 </svg>
-                                                <span class="text-sm font-medium">Add Photo</span>
+                                                <span class="text-xs font-medium">Add Photo</span>
                                             </div>
                                         </button>
                                     </div>
@@ -314,18 +314,18 @@
 
                     <!-- Modal Lokasi -->
                     <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-2xl bg-white p-6 dark:bg-gray-800">
+                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-6 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
+                                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
                                 <button type="button" id="closeLokasi"
-                                    class="text-2xl leading-none text-gray-400 hover:text-gray-600">×</button>
+                                    class="text-lg leading-none text-gray-400 hover:text-gray-600">×</button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <!-- Kiri: Location -->
                                 <div>
                                     <label
-                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                        class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
                                     <select id="modal_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                         <option value="">-- choose --</option>
@@ -334,7 +334,7 @@
 
                                 <!-- Kanan: Sub Location (dependent) -->
                                 <div>
-                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                    <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Sub
                                         Location</label>
                                     <select id="modal_sub_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -356,12 +356,12 @@
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -369,7 +369,7 @@
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments_ba[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
                                     </div>
@@ -377,7 +377,7 @@
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -450,7 +450,7 @@
             $('#addAttachment').on('click', function() {
                 $('#attachmentsContainer').append(
                     '<div class="attachment-row flex items-center gap-2">' +
-                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
+                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
                     '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>' +
                     '</div>'
                 );
@@ -541,7 +541,7 @@
                 const thumb = isImg && at.url ?
                     `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">` :
                     `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
-                        <span class="text-2xl">${ ext === 'pdf' ? '📕' : '📄' }</span>
+                        <span class="text-lg">${ ext === 'pdf' ? '📕' : '📄' }</span>
                     </div>`;
 
                 return `

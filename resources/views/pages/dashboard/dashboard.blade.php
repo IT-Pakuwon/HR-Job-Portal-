@@ -6,7 +6,7 @@
 
             <!-- Left: Title -->
             <div class="mb-4 sm:mb-0">
-                <h1 class="text-2xl font-bold text-gray-800 md:text-3xl dark:text-gray-100">Dashboard</h1>
+                <h1 class="text-lg font-bold text-gray-800 md:text-lg dark:text-gray-100">Dashboard</h1>
             </div>
 
             {{-- <!-- Right: Actions -->

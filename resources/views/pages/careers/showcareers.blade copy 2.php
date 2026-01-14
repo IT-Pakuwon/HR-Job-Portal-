@@ -12,17 +12,17 @@
                                 <div class="flex space-x-2 border-b border-gray-300 dark:border-gray-600 mb-4">
                                     <button @click="tab = 'tab1'" 
                                             :class="tab === 'tab1' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600 dark:text-gray-300'" 
-                                            class="px-4 py-2 text-sm font-medium focus:outline-none">
+                                            class="px-4 py-2 text-xs font-medium focus:outline-none">
                                         Covering Letter
                                     </button>
                                     <button @click="tab = 'tab2'" 
                                             :class="tab === 'tab2' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600 dark:text-gray-300'" 
-                                            class="px-4 py-2 text-sm font-medium focus:outline-none">
+                                            class="px-4 py-2 text-xs font-medium focus:outline-none">
                                         Applicant Profile
                                     </button>
                                     <button @click="tab = 'tab3'" 
                                             :class="tab === 'tab3' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600 dark:text-gray-300'" 
-                                            class="px-4 py-2 text-sm font-medium focus:outline-none">
+                                            class="px-4 py-2 text-xs font-medium focus:outline-none">
                                         Job Information
                                     </button>
                                 </div>

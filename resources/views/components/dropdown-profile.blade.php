@@ -9,7 +9,7 @@
             alt="{{ Auth::user()->name }}" />
         <div class="flex items-center truncate">
             <span
-                class="ml-2 truncate text-sm font-medium text-gray-600 group-hover:text-gray-800 dark:text-gray-100 dark:group-hover:text-white">{{ Auth::user()->name }}</span>
+                class="ml-2 truncate text-xs font-medium text-gray-600 group-hover:text-gray-800 dark:text-gray-100 dark:group-hover:text-white">{{ Auth::user()->name }}</span>
             <svg class="ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
                 <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
             </svg>
@@ -27,7 +27,7 @@
         </div>
         <ul>
             <li>
-                <a class="flex items-center px-3 py-1 text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
+                <a class="flex items-center px-3 py-1 text-xs font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
                     href="{{ route('profile.showx') }}" @click="open = false" @focus="open = true"
                     @focusout="open = false">Settings</a>
             </li>
@@ -35,7 +35,7 @@
                 <form method="POST" action="{{ route('logout') }}" x-data>
                     @csrf
 
-                    <a class="flex items-center px-3 py-1 text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
+                    <a class="flex items-center px-3 py-1 text-xs font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
                         href="{{ route('logout') }}" @click.prevent="$root.submit();" @focus="open = true"
                         @focusout="open = false">
                         {{ __('Sign Out') }}

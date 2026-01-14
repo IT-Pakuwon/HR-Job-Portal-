@@ -1,7 +1,7 @@
 <div class="shadow-xs col-span-full flex flex-col rounded-xl bg-white sm:col-span-6 xl:col-span-4 dark:bg-gray-800">
     <div class="px-5 pt-5">
         <header class="mb-2 flex items-start justify-between">
-            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Acme Plus</h2>
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Acme Plus</h2>
             <!-- Menu button -->
             <div class="relative inline-flex" x-data="{ open: false }">
                 <button class="rounded-full"
@@ -24,17 +24,17 @@
                     x-transition:leave-end="opacity-0" x-cloak>
                     <ul>
                         <li>
-                            <a class="flex px-3 py-1 text-sm font-medium text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
+                            <a class="flex px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
                                 href="#0" @click="open = false" @focus="open = true"
                                 @focusout="open = false">Option 1</a>
                         </li>
                         <li>
-                            <a class="flex px-3 py-1 text-sm font-medium text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
+                            <a class="flex px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
                                 href="#0" @click="open = false" @focus="open = true"
                                 @focusout="open = false">Option 2</a>
                         </li>
                         <li>
-                            <a class="flex px-3 py-1 text-sm font-medium text-red-500 hover:text-red-600" href="#0"
+                            <a class="flex px-3 py-1 text-xs font-medium text-red-500 hover:text-red-600" href="#0"
                                 @click="open = false" @focus="open = true" @focusout="open = false">Remove</a>
                         </li>
                     </ul>
@@ -43,9 +43,9 @@
         </header>
         <div class="mb-1 text-xs font-semibold uppercase text-gray-400 dark:text-gray-500">Sales</div>
         <div class="flex items-start">
-            <div class="mr-2 text-3xl font-bold text-gray-800 dark:text-gray-100">
+            <div class="mr-2 text-lg font-bold text-gray-800 dark:text-gray-100">
                 ${{ number_format($dataFeed->sumDataSet(1, 1), 0) }}</div>
-            <div class="rounded-full bg-green-500/20 px-1.5 text-sm font-medium text-green-700">+49%</div>
+            <div class="rounded-full bg-green-500/20 px-1.5 text-xs font-medium text-green-700">+49%</div>
         </div>
     </div>
     <!-- Chart built with Chart.js 3 -->

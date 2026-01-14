@@ -9,10 +9,10 @@
                 <a href="#" class="status-filter" data-status="">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
+                        <span class="text-base">📄</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
+                            <p class="text-sm font-medium">All</p>
+                            <p class="text-right text-base font-extrabold">{{ $all }}</p>
                         </div>
                     </div>
                 </a>
@@ -23,10 +23,10 @@
                 <a href="#" class="status-filter" data-status="P">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
+                        <span class="text-base">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
+                            <p class="text-sm font-medium">On Progress</p>
+                            <p class="text-right text-base font-extrabold">{{ $onProgress }}</p>
                         </div>
                     </div>
                 </a>
@@ -37,10 +37,10 @@
                 <a href="#" class="status-filter" data-status="R">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
+                        <span class="text-base">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Reject</p>
-                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
+                            <p class="text-sm font-medium">Reject</p>
+                            <p class="text-right text-base font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
                 </a>
@@ -51,10 +51,10 @@
                 <a href="#" class="status-filter" data-status="D">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">✏️</span>
+                        <span class="text-base">✏️</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Revise / Draft</p>
-                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
+                            <p class="text-sm font-medium">Revise / Draft</p>
+                            <p class="text-right text-base font-extrabold">{{ $revise }}</p>
                         </div>
                     </div>
                 </a>
@@ -65,10 +65,10 @@
                 <a href="#" class="status-filter" data-status="C">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
+                        <span class="text-base">✅</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
+                            <p class="text-sm font-medium">Completed</p>
+                            <p class="text-right text-base font-extrabold">{{ $completed }}</p>
                         </div>
                     </div>
                 </a>
@@ -296,18 +296,18 @@
             </style>
             <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    {{-- Changed text-3xl to text-xl --}}
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
+                    {{-- Changed text-lg to text-base --}}
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
                     <a href="{{ url('/createpersonnels') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
 
                 <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
-                    <table id="personnelsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <table id="personnelsTable" class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th scope="col" class="w-32 px-6 py-3 font-medium">
                                     DocID

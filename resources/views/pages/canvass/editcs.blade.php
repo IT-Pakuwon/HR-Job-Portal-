@@ -216,7 +216,7 @@
                     <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-xl font-extrabold text-gray-800 dark:text-white"><span
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white"><span
                                     class="text-indigo-500">🆔</span>
                                 {{ $cs->csid }}</h2>
                         </div>
@@ -228,52 +228,52 @@
 
                                 <!-- SPPB/J/K/T -->
                                 <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
+                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
                                         ID</label>
                                     <input type="text" value="{{ $docno }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- User -->
                                 <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">User</label>
+                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">User</label>
                                     <input type="text"
                                         value="{{ ucwords(strtolower(optional($header->creator)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- Company -->
                                 <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Company</label>
+                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Company</label>
                                     <input type="text" value="{{ $header->cpny_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- Department -->
                                 <div>
                                     <label
-                                        class="text-sm font-medium text-gray-600 dark:text-gray-400">Department</label>
+                                        class="text-xs font-medium text-gray-600 dark:text-gray-400">Department</label>
                                     <input type="text" value="{{ $header->department_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- Purchaser -->
                                 <div>
                                     <label
-                                        class="text-sm font-medium text-gray-600 dark:text-gray-400">Purchaser</label>
+                                        class="text-xs font-medium text-gray-600 dark:text-gray-400">Purchaser</label>
                                     <input type="text"
                                         value="{{ ucwords(strtolower(optional($header->purchaser)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- BQ ID -->
                                 <div class="flex flex-row justify-between gap-2">
                                     @if (in_array($doc, ['SPPJ', 'SPPT']))
                                         <div class="flex-1">
-                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
+                                            <label class="text-xs font-medium text-gray-600 dark:text-gray-400">BQ
                                                 ID</label>
                                             <input type="text" value="{{ $header->bqid }}" readonly
-                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                         </div>
 
                                         <div class="flex-1">
@@ -285,17 +285,17 @@
                                             {{-- Kondisi: jika BQ SUDAH ADA → tombol Open BQ, kalau BELUM → tombol Create BQ --}}
                                             @if ($bq && $bq_eid)
                                                 <a href="{{ route('bqcs.edit', $bq_eid) }}"
-                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700">
+                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-center text-xs font-semibold text-white hover:bg-emerald-700">
                                                     Open BQ
                                                 </a>
                                             @elseif ($csidForBQ)
                                                 <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
-                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-center text-xs font-semibold text-white hover:bg-blue-700">
                                                     Create BQ
                                                 </a>
                                             @else
                                                 <button type="button" title="Simpan CS dulu, baru buat BQ"
-                                                    class="mt-8 inline-flex w-full cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-center text-sm font-semibold text-white">
+                                                    class="mt-8 inline-flex w-full cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-center text-xs font-semibold text-white">
                                                     Create BQ
                                                 </button>
                                             @endif
@@ -309,17 +309,17 @@
                                 <!-- Purpose -->
                                 <div>
                                     <label
-                                        class="req text-sm font-medium text-gray-600 dark:text-gray-400">Purpose</label>
+                                        class="req text-xs font-medium text-gray-600 dark:text-gray-400">Purpose</label>
                                     <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- Vendor -->
                                 <div class="flex flex-col gap-2">
-                                    <label class="req text-sm font-medium text-gray-600 dark:text-gray-400">Select
+                                    <label class="req text-xs font-medium text-gray-600 dark:text-gray-400">Select
                                         Vendor</label>
                                     <select id="vendorSelect"
-                                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                         <option value="">Select</option>
                                     </select>
 
@@ -328,23 +328,23 @@
 
                             <!-- RIGHT SIDE: NOTE -->
                             <div class="flex flex-col">
-                                <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
+                                <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Note CS</label>
                                 <textarea name="csnote" id="csnote"
-                                    class="h-30 mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">{{ $cs->csnote }}</textarea>
+                                    class="h-30 mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">{{ $cs->csnote }}</textarea>
                             </div>
                         </div>
                     </div>
 
                     <!-- CS Detail -->
-                    <div class="flex w-full flex-col rounded-2xl bg-white shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col rounded-xl bg-white shadow-md dark:bg-gray-800">
                         <div class="p-4">
                             <div
-                                class="border-b border-gray-200 pb-4 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
+                                class="border-b border-gray-200 pb-4 text-sm font-bold text-gray-800 dark:border-gray-700 dark:text-white">
                                 CS Detail
                             </div>
                             <div class="mt-4 overflow-x-auto">
                                 <table id="cvTable"
-                                    class="w-max table-auto border text-sm text-gray-700 dark:text-gray-200">
+                                    class="w-max table-auto border text-xs text-gray-700 dark:text-gray-200">
                                     <thead>
                                         <tr class="bg-gray-100 dark:bg-gray-700">
                                             <th class="w-64 border px-3 py-2">Inventory Descr</th>
@@ -410,13 +410,13 @@
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Attachments
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Attachments
                                     {{ $doc }}</h3>
                             </div>
 
                             @if (($attachment ?? collect())->count())
                                 <div class="mt-4 overflow-x-auto">
-                                    <table class="w-full text-sm">
+                                    <table class="w-full text-xs">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr class="border-b border-gray-200 dark:border-gray-700">
                                                 <th class="p-3 text-left font-semibold">Filename</th>
@@ -473,7 +473,7 @@
                                     </table>
                                 </div>
                             @else
-                                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Attachment Empty.</p>
+                                <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">Attachment Empty.</p>
                             @endif
                         </div>
 
@@ -482,13 +482,13 @@
                         <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                             <details class="group" open>
                                 <summary
-                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-xl font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Attachments CS</span>
                                     <span
-                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                        class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
                                         details &darr;</span>
                                 </summary>
                                 <div class="flex h-auto flex-col justify-start">
@@ -500,7 +500,7 @@
                                             @endphp
                                             <div class="attachment-row flex items-center gap-2"
                                                 data-attachid="{{ $attach->id }}">
-                                                <a href="{{ $fileUrl }}" target="_blank" class="mt-4 w-full border p-3 text-lg">📎
+                                                <a href="{{ $fileUrl }}" target="_blank" class="mt-4 w-full border p-3 text-sm">📎
                                                     {{ $attach->name }}</a>
                                                 <button type="button"
                                                     class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
@@ -513,11 +513,11 @@
                                                 data-attachid="{{ $attach->id }}">
                                                 @if ($attach->url)
                                                     <a href="{{ $attach->url }}" target="_blank"
-                                                        class="mt-4 w-full border p-3 text-lg">
+                                                        class="mt-4 w-full border p-3 text-sm">
                                                         📎 {{ $attach->display_name }}
                                                     </a>
                                                 @else
-                                                    <div class="mt-4 w-full border p-3 text-lg text-gray-500 dark:text-gray-300"
+                                                    <div class="mt-4 w-full border p-3 text-sm text-gray-500 dark:text-gray-300"
                                                         title="Signed URL tidak tersedia/expired">
                                                         📎 {{ $attach->display_name }} <em class="text-xs">(no
                                                             link)</em>
@@ -532,7 +532,7 @@
                                     </div>
                                 </div>
                                 <button type="button" id="addAttachment"
-                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                         fill="currentColor">
                                         <path fill-rule="evenodd"
@@ -610,14 +610,14 @@
                 <div
                     class="absolute left-1/2 top-1/2 w-[90vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Pilih Pajak</h3>
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Pilih Pajak</h3>
                         <button id="taxModalClose"
                             class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                     </div>
                     <div class="p-4">
                         <div class="mb-3 flex items-center gap-2">
                             <input id="taxSearch" type="text" placeholder="Cari taxid/descr..."
-                                class="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="w-full rounded border border-gray-300 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         </div>
                         <div class="max-h-[55vh] overflow-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -649,17 +649,17 @@
                 <div
                     class="absolute left-1/2 top-1/2 w-[92vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-4 shadow-xl dark:bg-gray-800">
                     <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Tidak bisa Submit —
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Tidak bisa Submit —
                             Perbedaan Nilai BQ vs CS</h3>
                         <button id="bqcsMismatchClose"
                             class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                     </div>
-                    <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
+                    <p class="mb-3 text-xs text-gray-700 dark:text-gray-300">
                         Terdapat vendor dengan nilai berbeda antara <b>(BQ: Total BQ)</b> dan <b>(CS: Total CS)</b>.
                         Periksa tabel di bawah ini:
                     </p>
                     <div class="max-h-[60vh] overflow-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <table class="min-w-full divide-y divide-gray-200 text-xs dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-3 py-2 text-left font-semibold">Vendor</th>
@@ -675,7 +675,7 @@
                     </div>
                     <div class="mt-4 text-right">
                         <button id="bqcsMismatchOk"
-                            class="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">OK</button>
+                            class="rounded bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">OK</button>
                     </div>
                 </div>
             </div>
@@ -687,21 +687,21 @@
                     class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                         <div class="flex flex-col">
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
+                            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
                             {{-- <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div> --}}
-                            <h3 id="lpTitle" class="text-lg font-semibold text-gray-800 dark:text-gray-100"></h3>
+                            <h3 id="lpTitle" class="text-sm font-semibold text-gray-800 dark:text-gray-100"></h3>
                         </div>
                         <button type="button" id="lastPriceModalClose"
                             class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
                     </div>
 
                     <div class="p-4">
-                        <div id="lpLoading" class="mb-3 hidden text-sm text-gray-600 dark:text-gray-300">
+                        <div id="lpLoading" class="mb-3 hidden text-xs text-gray-600 dark:text-gray-300">
                             Loading...
                         </div>
 
                         <div class="max-h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700">
-                            <table class="min-w-full text-sm">
+                            <table class="min-w-full text-xs">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
@@ -719,7 +719,7 @@
                             </table>
                         </div>
 
-                        <div id="lpEmpty" class="mt-3 hidden text-sm text-gray-500 dark:text-gray-300">
+                        <div id="lpEmpty" class="mt-3 hidden text-xs text-gray-500 dark:text-gray-300">
                             No history found.
                         </div>
                     </div>
@@ -767,7 +767,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
@@ -912,7 +912,7 @@
                 data-vendor-addr="${_.escape(v.vendor_addr1 ?? '')}"
                 data-vendor-phone="${_.escape(v.phone_number ?? '')}"
                 data-vendor-cp="${_.escape(v.contact_person ?? '')}">
-                <div class="flex flex-col text-left text-sm">
+                <div class="flex flex-col text-left text-xs">
 
                     <!-- Vendor Name + Info Icon -->
                     <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
@@ -1008,7 +1008,7 @@
                         `<td class="border px-3 py-2"><div class="flex flex-col items-center gap-0.5 w-full"></div></td>`
                     );
                     const $total = $(
-                        `<small class="total-label text-right text-sm dark:text-gray-300 font-bold text-gray-600">0</small>`
+                        `<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0</small>`
                     );
                     const $radio = $(`
                 <div class="flex justify-center mt-0.5">
@@ -1374,9 +1374,9 @@
                 rows.forEach(r => {
                     $tbody.append(`
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td class="px-3 py-2 text-sm">${r.taxid ?? ''}</td>
-                <td class="px-3 py-2 text-sm">${Number(r.taxrate ?? 0).toFixed(2)}</td>
-                <td class="px-3 py-2 text-sm">${r.descr ?? ''}</td>
+                <td class="px-3 py-2 text-xs">${r.taxid ?? ''}</td>
+                <td class="px-3 py-2 text-xs">${Number(r.taxrate ?? 0).toFixed(2)}</td>
+                <td class="px-3 py-2 text-xs">${r.descr ?? ''}</td>
                 <td class="px-3 py-2 text-right">
                     <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
                     data-taxid="${r.taxid}" data-taxrate="${r.taxrate}">

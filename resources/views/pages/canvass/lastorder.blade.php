@@ -3,30 +3,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <style>
-        a.link-underline{
-            color: #2563eb;                 /* biru (Tailwind indigo-600) */
+        a.link-underline {
+            color: #2563eb;
+            /* biru (Tailwind indigo-600) */
             text-decoration-line: underline;
-            text-decoration-color: #2563eb; /* warna garis underline */
+            text-decoration-color: #2563eb;
+            /* warna garis underline */
             text-underline-offset: 3px;
             text-decoration-thickness: 1.5px;
         }
 
-        a.link-underline:hover{
-            color: #1d4ed8;                 /* biru lebih gelap (indigo-700) */
+        a.link-underline:hover {
+            color: #1d4ed8;
+            /* biru lebih gelap (indigo-700) */
             text-decoration-color: #1d4ed8;
         }
     </style>
     <style>
         /* Paksa table mengikuti lebar container */
-        table.dataTable { width: 100% !important; }
+        table.dataTable {
+            width: 100% !important;
+        }
 
         /* Kolom Description (index ke-6 kalau dihitung dari 0 termasuk control column) */
-        #invTable td:nth-child(7), #invTable th:nth-child(7),
-        #bqTable  td:nth-child(7), #bqTable  th:nth-child(7) {
-            white-space: normal !important;        /* wrap */
-            word-break: break-word !important;     /* pecah kata panjang */
-            overflow-wrap: anywhere !important;    /* aman untuk string panjang */
-            max-width: 420px;                      /* batasi supaya tidak melebar */
+        #invTable td:nth-child(7),
+        #invTable th:nth-child(7),
+        #bqTable td:nth-child(7),
+        #bqTable th:nth-child(7) {
+            white-space: normal !important;
+            /* wrap */
+            word-break: break-word !important;
+            /* pecah kata panjang */
+            overflow-wrap: anywhere !important;
+            /* aman untuk string panjang */
+            max-width: 420px;
+            /* batasi supaya tidak melebar */
         }
     </style>
 
@@ -34,18 +45,18 @@
 
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
-        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
             <div class="border-b border-gray-200 p-4 dark:border-gray-700">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Last Order</h1>
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Last Order</h1>
 
                     <div class="flex gap-2">
                         <button type="button" data-tab="inv"
-                            class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-sm font-semibold text-white dark:border-gray-600">
+                            class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-xs font-semibold text-white dark:border-gray-600">
                             Last Order Inventory
                         </button>
                         <button type="button" data-tab="bq"
-                            class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                            class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                             Last Order BQ
                         </button>
                     </div>
@@ -54,9 +65,9 @@
 
             {{-- TAB Inventory --}}
             <div id="tab-inv" class="rounded-base relative overflow-x-auto p-4">
-                <table id="invTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="invTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th
@@ -92,9 +103,9 @@
 
             {{-- TAB BQ --}}
             <div id="tab-bq" class="rounded-base relative hidden overflow-x-auto p-4">
-                <table id="bqTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="bqTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th
@@ -184,7 +195,7 @@
                     },
                     {
                         data: 'inventoryid'
-                    },                   
+                    },
                     {
                         data: 'inventory_descr',
                         render: function(data) {

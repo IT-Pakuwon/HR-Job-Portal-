@@ -12,7 +12,7 @@
         <!-- Payroll PDF -->
         <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm dark:bg-transparent">
             <div class="flex items-center justify-between">
-                <h3 class="font text-lg text-gray-700 dark:text-white">Payroll Confirmation PDF</h3>
+                <h3 class="font text-sm text-gray-700 dark:text-white">Payroll Confirmation PDF</h3>
                 <form id="payrollpdf" class="flex-shrink-0">
                     @csrf
                     <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
@@ -34,7 +34,7 @@
         <!-- Offering Letter PDF -->
         <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm dark:bg-transparent">
             <div class="flex items-center justify-between">
-                <h3 class="font text-lg text-gray-700 dark:text-white">Offering Letter PDF</h3>
+                <h3 class="font text-sm text-gray-700 dark:text-white">Offering Letter PDF</h3>
                 <form id="offeringForm" class="flex-shrink-0">
                     @csrf
                     <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
@@ -56,9 +56,9 @@
     <div class="rounded-xl bg-white p-6 dark:bg-gray-800">
 
         <div class="mb-6 flex items-center justify-between">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Payroll Confirmation Data</h3>
+            <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Payroll Confirmation Data</h3>
             <button id="addPayrollBtn"
-                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 <i class="fas fa-plus pr-2"></i>Add
             </button>
         </div>
@@ -66,7 +66,7 @@
         <div id="payrollModal"
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4 transition-opacity duration-300">
             <div class="w-full max-w-5xl rounded-xl bg-white p-8 dark:bg-gray-700">
-                <h3 class="mb-6 text-2xl font-bold text-gray-800 dark:text-white">Form Payroll</h3>
+                <h3 class="mb-6 text-lg font-bold text-gray-800 dark:text-white">Form Payroll</h3>
                 <form id="payrollForm">
                     @csrf
                     <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
@@ -77,7 +77,7 @@
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div class="flex flex-col">
                             <label for="tax_liability"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Dependants</label>
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Dependants</label>
                             <select name="tax_liability" id="tax_liability"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -91,7 +91,7 @@
 
                         <div class="flex flex-col">
                             <label for="npwp_id"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">NPWP</label>
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">NPWP</label>
                             <input type="text" name="npwp_id" id="npwp_id"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -99,7 +99,7 @@
 
                         <div class="flex flex-col">
                             <label for="bank_account"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Rekening</label>
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Rekening</label>
                             <input type="text" name="bank_account" id="bank_account"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -107,7 +107,7 @@
 
                         <div class="flex flex-col">
                             <label for="bank_name"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank</label>
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Bank</label>
                             <select name="bank_name" id="bank_name"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -119,7 +119,7 @@
 
                         <div class="flex flex-col">
                             <label for="net_salary"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>                         
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Salary</label>
                             <input type="text" name="net_salary" id="net_salary" inputmode="numeric"
                                 class="money-separator w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 placeholder="0" required>
@@ -127,7 +127,7 @@
 
                         <div class="flex flex-col">
                             <label for="other_facility"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Fasilitas</label>
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Fasilitas</label>
                             <input type="text" name="other_facility" id="other_facility"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -135,7 +135,7 @@
 
                         <div class="flex flex-col">
                             <label for="work_start_date"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tgl
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Tgl
                                 Masuk Kerja</label>
                             <input type="date" name="work_start_date" id="work_start_date"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -144,20 +144,20 @@
 
                         <div class="flex flex-col">
                             <label for="availability_date"
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tgl
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Tgl
                                 Selesai Kerja</label>
                             <input type="date" name="availability_date" id="availability_date"
-                            class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white bg-gray-100 cursor-not-allowed"
-                            readonly>
+                                class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                                readonly>
 
                         </div>
 
-                        
+
                     </div>
 
                     <div class="mt-6 flex flex-col">
                         <label for="employment_status"
-                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status
+                            class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Status
                             Kepegawaian</label>
                         <select name="employment_status" id="employment_status"
                             class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -168,11 +168,11 @@
                         </select>
                         <div id="contract_term_wrap" class="mt-4 hidden">
                             <label for="contract_term"
-                                    class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                 Contract Term (PKWT)
                             </label>
                             <select name="contract_term" id="contract_term"
-                                    class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                                class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                 <option value="">-- Select Contract Term --</option>
                                 <option value="2">Contract 2 bulan</option>
                                 <option value="3">Contract 3 bulan</option>
@@ -181,15 +181,15 @@
                             </select>
                         </div>
                     </div>
-                    
+
 
 
 
                     <div class="mt-8 flex justify-end gap-3">
                         <button type="submit"
-                            class="hover: inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Simpan</button>
+                            class="hover: inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Simpan</button>
                         <button type="button" id="closeModal"
-                            class="hover: inline-flex items-center rounded-lg bg-gray-200 px-5 py-2 text-base font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-offset-gray-800">Batal</button>
+                            class="hover: inline-flex items-center rounded-lg bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:focus:ring-offset-gray-800">Batal</button>
                     </div>
                 </form>
             </div>
@@ -225,7 +225,7 @@
                         <th
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Tgl Selesai Kerja</th>
-                        
+
                         <th
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Status Kepegawaian</th>
@@ -238,43 +238,43 @@
                     @forelse ($payrolls as $p)
                         <tr data-id="{{ $p->id }}"
                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-900 dark:text-gray-100">
                                 {{ $p->tax_liability }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->npwp_id }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->bank_account }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->bank_name }}</td>
-                            {{-- <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            {{-- <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ number_format($p->net_salary, 0, ',', '.') }}</td> --}}
-                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                                    <span class="salary-mask" data-id="{{ $p->id }}">••••••</span>
-                                    <button type="button"
-                                        class="revealSalaryBtn inline-flex items-center rounded-md px-2 py-1 ml-2 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
-                                        data-id="{{ $p->id }}" aria-label="Reveal salary" title="Lihat gaji">
-                                        <i data-lucide="eye" class="h-4 w-4"></i>
-                                    </button>
-                                </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                                <span class="salary-mask" data-id="{{ $p->id }}">••••••</span>
+                                <button type="button"
+                                    class="revealSalaryBtn ml-2 inline-flex items-center rounded-md bg-gray-200 px-2 py-1 text-xs hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+                                    data-id="{{ $p->id }}" aria-label="Reveal salary" title="Lihat gaji">
+                                    <i data-lucide="eye" class="h-4 w-4"></i>
+                                </button>
+                            </td>
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->other_facility }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{-- {{ \Carbon\Carbon::parse($p->work_start_date)->format('d F Y') }}</td> --}}
-                                 {{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                {{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{-- {{ \Carbon\Carbon::parse($p->availability_date)->format('d F Y') }}</td> --}}
-                                {{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>                            
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                {{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs">
                                 <button
-                                    class="editPayrollBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Edit</button>
+                                    class="editPayrollBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Edit</button>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="10"
-                                class="py-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                                class="py-6 text-center text-xs italic text-gray-500 dark:text-gray-400">
                                 No payroll data found.
                             </td>
                         </tr>
@@ -286,9 +286,9 @@
     <div class="rounded-xl bg-white p-6 dark:bg-gray-800">
 
         <div class="mb-6 flex items-center justify-between">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Payroll Sign</h3>
+            <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Payroll Sign</h3>
             <button id="addSignBtn"
-                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 <i class="fas fa-plus pr-2"></i>Add Sign
             </button>
         </div>
@@ -296,7 +296,7 @@
         <div id="signModal"
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4 transition-opacity duration-300">
             <div class="w-full max-w-5xl rounded-xl bg-white p-8 dark:bg-gray-700">
-                <h3 class="mb-6 text-2xl font-bold text-gray-800 dark:text-white">Form Sign</h3>
+                <h3 class="mb-6 text-lg font-bold text-gray-800 dark:text-white">Form Sign</h3>
                 <form id="signForm">
                     @csrf
                     <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
@@ -310,18 +310,18 @@
                     <!-- Tombol Add -->
                     <div class="mt-4">
                         <button type="button" id="addSignRow"
-                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-indigo-700">
+                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow transition hover:bg-indigo-700">
                             + Add Row
                         </button>
                     </div>
 
                     <div class="mt-8 flex justify-end gap-3">
                         <button type="submit"
-                            class="inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-green-700">
+                            class="inline-flex items-center rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-green-700">
                             Simpan
                         </button>
                         <button type="button" id="closeModalsign"
-                            class="inline-flex items-center rounded-lg bg-gray-200 px-5 py-2 text-base font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-300">
+                            class="inline-flex items-center rounded-lg bg-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 transition-colors duration-200 hover:bg-gray-300">
                             Batal
                         </button>
                     </div>
@@ -333,7 +333,7 @@
                         <!-- Urutan -->
                         <div class="flex flex-col">
                             <label
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Urutan</label>
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Urutan</label>
                             <select name="aprvid[]"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -346,7 +346,7 @@
 
                         <!-- Nama -->
                         <div class="flex flex-col">
-                            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nama</label>
+                            <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Nama</label>
                             <select name="aprvusername[]"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 required>
@@ -362,7 +362,7 @@
                         <!-- Jabatan -->
                         <div class="flex flex-col">
                             <label
-                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Jabatan</label>
+                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Jabatan</label>
                             <input type="text" name="jabatan[]"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -405,20 +405,20 @@
                     @forelse ($sign as $p)
                         <tr data-id="{{ $p->id }}"
                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-900 dark:text-gray-100">
                                 {{ $p->aprvid }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->jabatan }}</td>
-                            <td class="space-x-2 whitespace-nowrap px-6 py-4 text-sm">
+                            <td class="space-x-2 whitespace-nowrap px-6 py-4 text-xs">
                                 <button
-                                    class="editsignBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                    class="editsignBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                                     Edit
                                 </button>
 
                                 <button
-                                    class="deletesignBtn inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                    class="deletesignBtn inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                                     Delete
                                 </button>
                             </td>
@@ -427,7 +427,7 @@
                     @empty
                         <tr>
                             <td colspan="10"
-                                class="py-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                                class="py-6 text-center text-xs italic text-gray-500 dark:text-gray-400">
                                 No Sign data found.
                             </td>
                         </tr>
@@ -436,29 +436,28 @@
             </table>
         </div>
 
-        <div id="salaryPasswordModal"
-                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+        <div id="salaryPasswordModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
             <div class="w-full max-w-md rounded-xl bg-white p-6 dark:bg-gray-700">
-                <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white"></h3>
+                <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-white"></h3>
                 <form id="salaryPasswordForm">
-                @csrf
-                <input type="hidden" id="salary_payroll_id" name="payroll_id">
-                <div class="mb-4">
-                    <label class="mb-1 block text-sm text-gray-600 dark:text-gray-300">Password Anda</label>
-                    <input type="password" id="salary_password" name="password" autocomplete="current-password"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                        required>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" id="salaryModalCancel"
+                    @csrf
+                    <input type="hidden" id="salary_payroll_id" name="payroll_id">
+                    <div class="mb-4">
+                        <label class="mb-1 block text-xs text-gray-600 dark:text-gray-300">Password Anda</label>
+                        <input type="password" id="salary_password" name="password" autocomplete="current-password"
+                            class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                            required>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" id="salaryModalCancel"
                             class="rounded-lg bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-white">
-                    Batal
-                    </button>
-                    <button type="submit"
+                            Batal
+                        </button>
+                        <button type="submit"
                             class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
-                    Verifikasi
-                    </button>
-                </div>
+                            Verifikasi
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -466,17 +465,17 @@
     </div>
 </div>
 <script>
-  // === GLOBALS ===
-  let _pendingAction   = null; // 'pdf-payroll' | 'pdf-offering' | 'edit-payroll' | 'reveal-salary'
-  let _pendingFormEl   = null; // form element untuk PDF
-  let _pendingPayrollId = null; // id payroll untuk edit/reveal
+    // === GLOBALS ===
+    let _pendingAction = null; // 'pdf-payroll' | 'pdf-offering' | 'edit-payroll' | 'reveal-salary'
+    let _pendingFormEl = null; // form element untuk PDF
+    let _pendingPayrollId = null; // id payroll untuk edit/reveal
 
-  function openPasswordModal() {
-    // tampilkan modal password yang SUDAH ada: #salaryPasswordModal
-    $('#salary_password').val('');
-    $('#salaryPasswordModal').removeClass('hidden').addClass('flex');
-    setTimeout(() => $('#salary_password').trigger('focus'), 0);
-  }
+    function openPasswordModal() {
+        // tampilkan modal password yang SUDAH ada: #salaryPasswordModal
+        $('#salary_password').val('');
+        $('#salaryPasswordModal').removeClass('hidden').addClass('flex');
+        setTimeout(() => $('#salary_password').trigger('focus'), 0);
+    }
 </script>
 
 <script>
@@ -503,13 +502,12 @@
     //         }
     //     });
     // });
-    $('#payrollpdf').on('submit', function(e){
-    e.preventDefault();
-    _pendingAction = 'pdf-payroll';
-    _pendingFormEl = this;
-    openPasswordModal();
+    $('#payrollpdf').on('submit', function(e) {
+        e.preventDefault();
+        _pendingAction = 'pdf-payroll';
+        _pendingFormEl = this;
+        openPasswordModal();
     });
-
 </script>
 
 <script>
@@ -536,13 +534,12 @@
     //         }
     //     });
     // });
-    $('#offeringForm').on('submit', function(e){
-    e.preventDefault();
-    _pendingAction = 'pdf-offering';
-    _pendingFormEl = this;
-    openPasswordModal();
+    $('#offeringForm').on('submit', function(e) {
+        e.preventDefault();
+        _pendingAction = 'pdf-offering';
+        _pendingFormEl = this;
+        openPasswordModal();
     });
-
 </script>
 <script>
     $('#addPayrollBtn').click(function() {
@@ -605,10 +602,10 @@
     //         });
     //     });
 
-    $('.editPayrollBtn').click(function(){
-    _pendingAction = 'edit-payroll';
-    _pendingPayrollId = $(this).closest('tr').data('id');
-    openPasswordModal();
+    $('.editPayrollBtn').click(function() {
+        _pendingAction = 'edit-payroll';
+        _pendingPayrollId = $(this).closest('tr').data('id');
+        openPasswordModal();
     });
 
 
@@ -675,92 +672,97 @@
     // }
     // });
     // Submit modal password (SATU untuk semua aksi)
-// sekali saja di atas:
-$('#salaryPasswordForm')
-  .off('submit.payroll')
-  .on('submit.payroll', function (e) {
-    e.preventDefault();
-    const pwd = $('#salary_password').val();
+    // sekali saja di atas:
+    $('#salaryPasswordForm')
+        .off('submit.payroll')
+        .on('submit.payroll', function(e) {
+            e.preventDefault();
+            const pwd = $('#salary_password').val();
 
-    if (_pendingAction === 'pdf-payroll') {
-      sendPdfRequest("{{ route('payrollconfirmation.pdf') }}", _pendingFormEl, pwd);
-    } else if (_pendingAction === 'pdf-offering') {
-      sendPdfRequest("{{ route('offeringletter.pdf') }}", _pendingFormEl, pwd);
-    } else if (_pendingAction === 'edit-payroll') {
-      loadPayrollForEdit(_pendingPayrollId, pwd);
-    } else if (_pendingAction === 'reveal-salary') {
-      // panggil reveal di sini (seperti yang sudah kamu punya)
-      $.post("{{ route('payrollconfirm.reveal') }}", {
-        _token: $('meta[name="csrf-token"]').attr('content'),
-        payroll_id: _pendingPayrollId,
-        password: pwd
-      })
-      .done(function(resp){
-        if (resp && resp.success) {
-          const formatted = formatThousandsID(String(resp.salary));
-          $('.salary-mask[data-id="'+_pendingPayrollId+'"]').text(formatted);
-          $('.revealSalaryBtn[data-id="'+_pendingPayrollId+'"] i[data-lucide]')
-            .attr('data-lucide','eye-off');
-          if (window.lucide) lucide.createIcons();
-          toastr.success('Gaji ditampilkan.');
-          $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
-        } else {
-          toastr.error(resp?.message || 'Gagal verifikasi.');
-        }
-      })
-      .fail(function(xhr){
-        if (xhr.status === 401) toastr.error('Password salah.');
-        else if (xhr.status === 403) toastr.error('Anda tidak memiliki akses.');
-        else toastr.error('Terjadi kesalahan. Coba lagi.');
-      });
+            if (_pendingAction === 'pdf-payroll') {
+                sendPdfRequest("{{ route('payrollconfirmation.pdf') }}", _pendingFormEl, pwd);
+            } else if (_pendingAction === 'pdf-offering') {
+                sendPdfRequest("{{ route('offeringletter.pdf') }}", _pendingFormEl, pwd);
+            } else if (_pendingAction === 'edit-payroll') {
+                loadPayrollForEdit(_pendingPayrollId, pwd);
+            } else if (_pendingAction === 'reveal-salary') {
+                // panggil reveal di sini (seperti yang sudah kamu punya)
+                $.post("{{ route('payrollconfirm.reveal') }}", {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        payroll_id: _pendingPayrollId,
+                        password: pwd
+                    })
+                    .done(function(resp) {
+                        if (resp && resp.success) {
+                            const formatted = formatThousandsID(String(resp.salary));
+                            $('.salary-mask[data-id="' + _pendingPayrollId + '"]').text(formatted);
+                            $('.revealSalaryBtn[data-id="' + _pendingPayrollId + '"] i[data-lucide]')
+                                .attr('data-lucide', 'eye-off');
+                            if (window.lucide) lucide.createIcons();
+                            toastr.success('Gaji ditampilkan.');
+                            $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+                        } else {
+                            toastr.error(resp?.message || 'Gagal verifikasi.');
+                        }
+                    })
+                    .fail(function(xhr) {
+                        if (xhr.status === 401) toastr.error('Password salah.');
+                        else if (xhr.status === 403) toastr.error('Anda tidak memiliki akses.');
+                        else toastr.error('Terjadi kesalahan. Coba lagi.');
+                    });
+            }
+        });
+
+
+
+    function sendPdfRequest(url, formEl, pwd) {
+        const fd = new FormData(formEl);
+        fd.append('password', pwd);
+        $.ajax({
+            url,
+            method: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function(blob, status, xhr) {
+                const ct = xhr.getResponseHeader('Content-Type') || '';
+                if (ct.includes('pdf')) {
+                    const pdfUrl = URL.createObjectURL(blob);
+                    window.open(pdfUrl, '_blank');
+                    toastr.success('Dokumen dibuka.');
+                    $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+                } else {
+                    toastr.error('Gagal buka dokumen.');
+                }
+            },
+            error: function() {
+                toastr.error('Verifikasi gagal');
+            }
+        });
     }
-});
 
-
-
-   function sendPdfRequest(url, formEl, pwd) {
-  const fd = new FormData(formEl);
-  fd.append('password', pwd);
-  $.ajax({
-    url, method:'POST', data: fd,
-    processData: false, contentType: false,
-    xhrFields: { responseType:'blob' },
-    success: function(blob, status, xhr){
-      const ct = xhr.getResponseHeader('Content-Type') || '';
-      if (ct.includes('pdf')) {
-        const pdfUrl = URL.createObjectURL(blob);
-        window.open(pdfUrl, '_blank');
-        toastr.success('Dokumen dibuka.');
-        $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
-      } else {
-        toastr.error('Gagal buka dokumen.');
-      }
-    },
-    error: function(){
-      toastr.error('Verifikasi gagal');
+    function loadPayrollForEdit(id, pwd) {
+        $.get('/payrollconfirm/' + id, {
+            password: pwd
+        }, function(data) {
+            for (let key in data) {
+                $('[name="' + key + '"]').val(data[key]);
+            }
+            if (data.net_salary != null) {
+                $('#net_salary').val(formatThousandsID(String(data.net_salary)));
+            } else {
+                $('#net_salary').val('');
+            }
+            $('#payroll_id').val(data.id);
+            $('#payrollModal').removeClass('hidden');
+            $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+        }).fail(function(xhr) {
+            toastr.error(xhr.responseJSON?.message || 'Akses ditolak');
+        });
     }
-  });
-}
-
-function loadPayrollForEdit(id, pwd){
-  $.get('/payrollconfirm/'+id, { password: pwd }, function(data){
-    for (let key in data) {
-      $('[name="'+key+'"]').val(data[key]);
-    }
-    if (data.net_salary != null) {
-      $('#net_salary').val(formatThousandsID(String(data.net_salary)));
-    } else {
-      $('#net_salary').val('');
-    }
-    $('#payroll_id').val(data.id);
-    $('#payrollModal').removeClass('hidden');
-    $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
-  }).fail(function(xhr){
-    toastr.error(xhr.responseJSON?.message || 'Akses ditolak');
-  });
-}
-
-
 </script>
 
 <script>
@@ -786,8 +788,6 @@ function loadPayrollForEdit(id, pwd){
     $('#closeModalsign').click(function() {
         $('#signModal').addClass('hidden');
     });
-
- 
 </script>
 
 <script>
@@ -949,7 +949,7 @@ function loadPayrollForEdit(id, pwd){
                     if ($('#signTable tbody tr').length === 0) {
                         $('#signTable tbody').html(`
               <tr>
-                <td colspan="10" class="py-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
+                <td colspan="10" class="py-6 text-center text-xs italic text-gray-500 dark:text-gray-400">
                   No Sign data found.
                 </td>
               </tr>
@@ -990,172 +990,175 @@ function loadPayrollForEdit(id, pwd){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
-  // buka modal minta password
-//   $(document).on('click', '.revealSalaryBtn', function () {
-//       const id = $(this).data('id');
-//       $('#salary_payroll_id').val(id);
-//       $('#salary_password').val('');
-//       $('#salaryPasswordModal').removeClass('hidden').addClass('flex');
-//       setTimeout(() => $('#salary_password').trigger('focus'), 0);
-//   });
-// buka modal minta password saat klik ikon mata
-$(document).on('click', '.revealSalaryBtn', function () {
-  const id = $(this).data('id');
-  _pendingAction = 'reveal-salary';
-  _pendingPayrollId = id;
-  $('#salary_payroll_id').val(id); // boleh tetap diisi kalau butuh
-  openPasswordModal();
-});
+    // buka modal minta password
+    //   $(document).on('click', '.revealSalaryBtn', function () {
+    //       const id = $(this).data('id');
+    //       $('#salary_payroll_id').val(id);
+    //       $('#salary_password').val('');
+    //       $('#salaryPasswordModal').removeClass('hidden').addClass('flex');
+    //       setTimeout(() => $('#salary_password').trigger('focus'), 0);
+    //   });
+    // buka modal minta password saat klik ikon mata
+    $(document).on('click', '.revealSalaryBtn', function() {
+        const id = $(this).data('id');
+        _pendingAction = 'reveal-salary';
+        _pendingPayrollId = id;
+        $('#salary_payroll_id').val(id); // boleh tetap diisi kalau butuh
+        openPasswordModal();
+    });
 
 
-  // tutup modal
-  $('#salaryModalCancel').on('click', function () {
-      $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
-  });
+    // tutup modal
+    $('#salaryModalCancel').on('click', function() {
+        $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+    });
 
-  // submit verifikasi
-//   $('#salaryPasswordForm').on('submit', function (e) {
-//       e.preventDefault();
+    // submit verifikasi
+    //   $('#salaryPasswordForm').on('submit', function (e) {
+    //       e.preventDefault();
 
-//       const payload = $(this).serialize(); // payroll_id + password + _token
-//       const payrollId = $('#salary_payroll_id').val();
+    //       const payload = $(this).serialize(); // payroll_id + password + _token
+    //       const payrollId = $('#salary_payroll_id').val();
 
-//       $.ajax({
-//           type: 'POST',
-//           url: "{{ route('payrollconfirm.reveal') }}",
-//           data: payload,
-//           success: function (resp) {
-//               if (resp && resp.success) {
-//                   const formatted = formatThousandsID(String(resp.salary));
-//                   const $cellSpan = $('.salary-mask[data-id="' + payrollId + '"]');
-//                   $cellSpan.text(formatted);
-//                   // opsional: ganti ikon jadi eye-off
-//                   const $btn = $('.revealSalaryBtn[data-id="' + payrollId + '"] i[data-lucide]');
-//                   $btn.attr('data-lucide', 'eye-off');
-//                   if (window.lucide) { lucide.createIcons(); }
+    //       $.ajax({
+    //           type: 'POST',
+    //           url: "{{ route('payrollconfirm.reveal') }}",
+    //           data: payload,
+    //           success: function (resp) {
+    //               if (resp && resp.success) {
+    //                   const formatted = formatThousandsID(String(resp.salary));
+    //                   const $cellSpan = $('.salary-mask[data-id="' + payrollId + '"]');
+    //                   $cellSpan.text(formatted);
+    //                   // opsional: ganti ikon jadi eye-off
+    //                   const $btn = $('.revealSalaryBtn[data-id="' + payrollId + '"] i[data-lucide]');
+    //                   $btn.attr('data-lucide', 'eye-off');
+    //                   if (window.lucide) { lucide.createIcons(); }
 
-//                   toastr.success('Gaji ditampilkan.');
-//                   $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
-//               } else {
-//                   toastr.error(resp?.message || 'Gagal verifikasi.');
-//               }
-//           },
-//           error: function (xhr) {
-//               if (xhr.status === 401) {
-//                   toastr.error('Password salah.');
-//               } else if (xhr.status === 403) {
-//                   toastr.error('Anda tidak memiliki akses.');
-//               } else {
-//                   toastr.error('Terjadi kesalahan. Coba lagi.');
-//               }
-//           }
-//       });
-//   });
+    //                   toastr.success('Gaji ditampilkan.');
+    //                   $('#salaryPasswordModal').addClass('hidden').removeClass('flex');
+    //               } else {
+    //                   toastr.error(resp?.message || 'Gagal verifikasi.');
+    //               }
+    //           },
+    //           error: function (xhr) {
+    //               if (xhr.status === 401) {
+    //                   toastr.error('Password salah.');
+    //               } else if (xhr.status === 403) {
+    //                   toastr.error('Anda tidak memiliki akses.');
+    //               } else {
+    //                   toastr.error('Terjadi kesalahan. Coba lagi.');
+    //               }
+    //           }
+    //       });
+    //   });
 </script>
 <script>
     function toggleContractTerm(statusVal) {
-  if (statusVal === 'PKWT') {
-    $('#contract_term_wrap').removeClass('hidden');
-  } else {
-    $('#contract_term_wrap').addClass('hidden');
-    $('#contract_term').val(''); // bersihkan jika bukan PKWT
-  }
-}
+        if (statusVal === 'PKWT') {
+            $('#contract_term_wrap').removeClass('hidden');
+        } else {
+            $('#contract_term_wrap').addClass('hidden');
+            $('#contract_term').val(''); // bersihkan jika bukan PKWT
+        }
+    }
 
-// on-change handler
-$(document).on('change', '#employment_status', function () {
-  toggleContractTerm(this.value);
-});
-
+    // on-change handler
+    $(document).on('change', '#employment_status', function() {
+        toggleContractTerm(this.value);
+    });
 </script>
 
 <script>
-  // Kunci total field availability (tanpa mempengaruhi submit)
-  (function lockAvailabilityField() {
-    const $av = $('#availability_date');
-    $av.on('keydown mousedown', function (e) { e.preventDefault(); });
-    // cegah open datepicker
-    $av.on('focus', function(){ this.blur(); });
-  })();
+    // Kunci total field availability (tanpa mempengaruhi submit)
+    (function lockAvailabilityField() {
+        const $av = $('#availability_date');
+        $av.on('keydown mousedown', function(e) {
+            e.preventDefault();
+        });
+        // cegah open datepicker
+        $av.on('focus', function() {
+            this.blur();
+        });
+    })();
 
-  function pad(n){ return String(n).padStart(2, '0'); }
-
-  function formatDateInput(d) {
-    // yyyy-mm-dd
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  }
-
-  function parseDateInput(val) {
-    // expects yyyy-mm-dd
-    if (!val) return null;
-    const [y,m,d] = val.split('-').map(Number);
-    if (!y || !m || !d) return null;
-    return new Date(y, m-1, d);
-  }
-
-  function addMonthsKeepDay(date, months) {
-    // JS will auto-handle overflow (contoh 31 Jan + 1 bulan => 2/Mar kalau Feb tidak punya 31)
-    // Ini perilaku yang biasanya diinginkan untuk kontrak (hari dipertahankan sebisa mungkin)
-    const y = date.getFullYear();
-    const m = date.getMonth();
-    const d = date.getDate();
-    return new Date(y, m + months, d);
-  }
-
-  function computeAvailability() {
-    const status = $('#employment_status').val();
-    const term   = parseInt($('#contract_term').val() || '0', 10);
-    const startV = $('#work_start_date').val();
-    const $av    = $('#availability_date');
-
-    if (status === 'PKWT' && term > 0 && startV) {
-      const start = parseDateInput(startV);
-      if (start) {
-        const end = addMonthsKeepDay(start, term);
-        $av.val(formatDateInput(end));
-        return;
-      }
+    function pad(n) {
+        return String(n).padStart(2, '0');
     }
-    // fallback jika belum lengkap
-    $av.val('');
-  }
 
-  // Hook perubahan
-  $(document).on('change', '#work_start_date', computeAvailability);
-  $(document).on('change', '#contract_term', computeAvailability);
-
-  // Perkuat toggleContractTerm agar sekalian toggle required & hitung end-date
-  const _origToggle = window.toggleContractTerm;
-  window.toggleContractTerm = function(statusVal){
-    // panggil behavior lama
-    if (typeof _origToggle === 'function') _origToggle(statusVal);
-
-    const $av = $('#availability_date');
-
-    if (statusVal === 'PKWT') {
-      // pastikan required untuk PKWT
-      $av.prop('required', true);
-      // hitung saat ini (kalau field sudah terisi)
-      computeAvailability();
-    } else {
-      // non PKWT: kosongkan & tidak wajib
-      $av.val('').prop('required', false);
+    function formatDateInput(d) {
+        // yyyy-mm-dd
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     }
-  };
 
-  // Ketika modal dibuka pertama kali atau status berubah
-  $(document).on('change', '#employment_status', function(){
-    toggleContractTerm(this.value);
-    computeAvailability();
-  });
+    function parseDateInput(val) {
+        // expects yyyy-mm-dd
+        if (!val) return null;
+        const [y, m, d] = val.split('-').map(Number);
+        if (!y || !m || !d) return null;
+        return new Date(y, m - 1, d);
+    }
 
-  // Saat tombol Add (modal baru) → pastikan sinkron
-  $('#addPayrollBtn').on('click', function(){
-    setTimeout(() => {
-      toggleContractTerm($('#employment_status').val() || '');
-      computeAvailability();
-    }, 0);
-  });
+    function addMonthsKeepDay(date, months) {
+        // JS will auto-handle overflow (contoh 31 Jan + 1 bulan => 2/Mar kalau Feb tidak punya 31)
+        // Ini perilaku yang biasanya diinginkan untuk kontrak (hari dipertahankan sebisa mungkin)
+        const y = date.getFullYear();
+        const m = date.getMonth();
+        const d = date.getDate();
+        return new Date(y, m + months, d);
+    }
+
+    function computeAvailability() {
+        const status = $('#employment_status').val();
+        const term = parseInt($('#contract_term').val() || '0', 10);
+        const startV = $('#work_start_date').val();
+        const $av = $('#availability_date');
+
+        if (status === 'PKWT' && term > 0 && startV) {
+            const start = parseDateInput(startV);
+            if (start) {
+                const end = addMonthsKeepDay(start, term);
+                $av.val(formatDateInput(end));
+                return;
+            }
+        }
+        // fallback jika belum lengkap
+        $av.val('');
+    }
+
+    // Hook perubahan
+    $(document).on('change', '#work_start_date', computeAvailability);
+    $(document).on('change', '#contract_term', computeAvailability);
+
+    // Perkuat toggleContractTerm agar sekalian toggle required & hitung end-date
+    const _origToggle = window.toggleContractTerm;
+    window.toggleContractTerm = function(statusVal) {
+        // panggil behavior lama
+        if (typeof _origToggle === 'function') _origToggle(statusVal);
+
+        const $av = $('#availability_date');
+
+        if (statusVal === 'PKWT') {
+            // pastikan required untuk PKWT
+            $av.prop('required', true);
+            // hitung saat ini (kalau field sudah terisi)
+            computeAvailability();
+        } else {
+            // non PKWT: kosongkan & tidak wajib
+            $av.val('').prop('required', false);
+        }
+    };
+
+    // Ketika modal dibuka pertama kali atau status berubah
+    $(document).on('change', '#employment_status', function() {
+        toggleContractTerm(this.value);
+        computeAvailability();
+    });
+
+    // Saat tombol Add (modal baru) → pastikan sinkron
+    $('#addPayrollBtn').on('click', function() {
+        setTimeout(() => {
+            toggleContractTerm($('#employment_status').val() || '');
+            computeAvailability();
+        }, 0);
+    });
 </script>
-
-

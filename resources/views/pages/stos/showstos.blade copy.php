@@ -6,11 +6,11 @@
                     <div
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
                         <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                            <div class="flex flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+                            <div class="flex flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                 <header
                                     class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                     <div class="flex w-full justify-between gap-2">
-                                        <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔
+                                        <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                             {{ $sto->sto_id }}</h1>
                                         <span
                                             class="text-l @if ($sto->status === 'D') bg-gray-300/30 text-gray-600
@@ -62,7 +62,7 @@
                                                         class="lucide lucide-{{ $detail['icon'] }} h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                     <div>
                                                         <p
-                                                            class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                            class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                             <span
                                                                 class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
                                                             {{ $detail['value'] }}
@@ -93,7 +93,7 @@
                                                             class="lucide lucide-{{ $details['icon'] }} h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                         <div>
                                                             <p
-                                                                class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                 <span
                                                                     class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $details['label'] }}:</span>
                                                                 {{ $details['value'] }}
@@ -106,12 +106,12 @@
                                         </div>
                                         <div
                                             class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
-                                            <h3 class="mb-4 text-lg font-semibold text-gray-700 dark:text-gray-200">📊
+                                            <h3 class="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-200">📊
                                                 Vacant</h3>
                                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">                                                
                                                 @foreach ($employee as $p)
                                                     <div
-                                                        class="flex items-center justify-center space-x-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:  dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+                                                        class="flex items-center justify-center space-x-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-xs font-semibold text-gray-700 shadow-sm transition hover:  dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
                                                         <span class="whitespace-nowrap">{{ $p['employee_name'] }}:</span>
                                                         <span class="text-indigo-600 dark:text-indigo-400">{{ $p['employee_company'] }}</span>
                                                         <span class="text-indigo-600 dark:text-indigo-400">{{ $p['employee_position'] }}</span>
@@ -122,11 +122,11 @@
                                         <div class="chart-container" style="width: 100%; height: 800px;"></div> 
                                         <div id="modalForm" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 hidden">
                                             <div class="bg-white p-6 rounded-lg w-full max-w-xl relative">
-                                                <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 text-2xl">&times;</button>
+                                                <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 text-lg">&times;</button>
 
                                                 <!-- Tab -->
                                                 <div class="mb-4 border-b border-gray-200">
-                                                    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="tabs">
+                                                    <ul class="flex flex-wrap -mb-px text-xs font-medium text-center" id="tabs">
                                                         <li class="mr-2">
                                                             <button type="button" class="tab-button text-blue-600 border-b-2 border-blue-600 px-4 py-2" onclick="switchTab('view')">View Employee</button>
                                                         </li>                                                      
@@ -135,8 +135,8 @@
 
                                                 <!-- Tab Content: View Employee -->
                                                 <div id="tab-view" class="tab-content hidden">
-                                                    <h3 class="text-lg font-semibold mb-4">Employee List</h3>
-                                                    <table class="w-full border   text-sm bg-blue-300 text-black">
+                                                    <h3 class="text-sm font-semibold mb-4">Employee List</h3>
+                                                    <table class="w-full border   text-xs bg-blue-300 text-black">
                                                         <thead>
                                                             <tr class="text-left">
                                                                 <th class="border   px-2 py-1">No</th>
@@ -160,13 +160,13 @@
                         </div>
 
                         <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
                                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
-                                    <h2 class="text-xl font-semibold">🚀 Approval</h2>
+                                    <h2 class="text-base font-semibold">🚀 Approval</h2>
                                     <div class="flex gap-2">
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
+                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -177,7 +177,7 @@
                                             <button id="approveBtn" class="focus:outline-none">Approve</button>
                                         </div>
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
+                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor"class="w-4 h-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -186,7 +186,7 @@
                                             <button id="rejectBtn" class="focus:outline-none">Reject</button>
                                         </div>
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-sm font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
+                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-xs font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                 class="size-4">
@@ -198,7 +198,7 @@
                                     </div>
                                 </header>
                                 <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
-                                    <table class="w-full text-sm">
+                                    <table class="w-full text-xs">
                                         <thead>
                                             <tr class="text-gray-700 dark:text-gray-300">
                                                 <th class="p-3 text-left">Level</th>
@@ -249,13 +249,13 @@
                                 </div>
                             </div>
 
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
                                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600 dark:text-gray-100">
-                                    <h2 class="text-xl font-semibold">📂 Attachment</h2>
+                                    <h2 class="text-base font-semibold">📂 Attachment</h2>
                                 </header>
                                 <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
-                                    <table class="w-full text-sm">
+                                    <table class="w-full text-xs">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr>
                                                 <th class="p-3 text-left">Filename</th>
@@ -287,14 +287,14 @@
                             </div>
 
 
-                            <div class="overflow-hidden rounded-2xl shadow-sm dark:bg-gray-800">
+                            <div class="overflow-hidden rounded-xl shadow-sm dark:bg-gray-800">
                                 <div
                                     class="col-span-full flex flex-col border-b sm:col-span-6 xl:col-span-12 dark:border-gray-200/10">
                                     <div x-data="{ isOpen: true, comments: [], newComment: '', currentUser: 'User1' }" class="flex w-full flex-col justify-center">
                                         <header
                                             class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                             <h2
-                                                class="flex items-center gap-2 text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                                class="flex items-center gap-2 text-base font-semibold text-gray-700 dark:text-gray-100">
                                                 💬 Comments
                                             </h2>
                                         </header>
@@ -307,7 +307,7 @@
                                                     <div :class="comment.user === currentUser ? 'self-end bg-indigo-500 text-white' :
                                                         'self-start bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
                                                         class="max-w-xs rounded-lg p-3  ">
-                                                        <p class="text-sm"><strong x-text="comment.user"></strong>:
+                                                        <p class="text-xs"><strong x-text="comment.user"></strong>:
                                                             <span x-text="comment.text"></span>
                                                         </p>
                                                     </div>
@@ -322,7 +322,7 @@
                                                     class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                 <button id="postCommentBtn"
                                                     @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                                    class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
+                                                    class="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white   transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
                                                     Post 🚀
                                                 </button>
                                             </div>
@@ -348,7 +348,7 @@
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter rejection reason..."></textarea>
@@ -367,7 +367,7 @@
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter revise reason..."></textarea>
@@ -419,7 +419,7 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-sm font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username} 
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

@@ -170,7 +170,7 @@
             </style>
             {{-- <div class="mt-6  overflow-y-auto bg-white  dark:bg-gray-800 p-4 rounded-xl">
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h1 class=" align-middle text-2xl font-bold  dark:text-white">Org Chart</h1>                    
+                    <h1 class=" align-middle text-lg font-bold  dark:text-white">Org Chart</h1>                    
                            
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-lg">

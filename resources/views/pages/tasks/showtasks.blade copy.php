@@ -5,11 +5,11 @@
                 <div class="flex flex-col gap-2">
                     <div
                         class="flex w-full flex-row gap-2 overflow-hidden sm:row-span-1 lg:row-span-2 xl:row-span-2 xl:flex-col">
-                        <div class="flex w-1/2 flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+                        <div class="flex w-1/2 flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                             <header
                                 class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                 <div class="flex w-full flex-row items-center justify-between">
-                                    <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                    <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                         🆔 {{ $task->docid }}
                                     </h1>
 
@@ -32,7 +32,7 @@
                                         };
                                     @endphp
 
-                                    <span class="{{ $statusClass }} rounded-lg px-3 py-1 text-sm font-semibold">
+                                    <span class="{{ $statusClass }} rounded-lg px-3 py-1 text-xs font-semibold">
                                         {{ $statusText }}
                                     </span>
                                 </div>
@@ -56,21 +56,21 @@
                                         Approval
                                             <div class="flex flex-col justify-center w-full mt-2 border-b dark:border-gray-200/10">
                                                 <header class="flex justify-between items-center px-6 pt-4 bg-white dark:bg-gray-700">
-                                                    <h2 class="font-semibold text-xl text-gray-600 dark:text-gray-100"> 🚀 Approval</h2>
+                                                    <h2 class="font-semibold text-base text-gray-600 dark:text-gray-100"> 🚀 Approval</h2>
                                                     <div class="flex gap-2">
-                                                        <div class="flex items-center gap-1 px-2 py-2 bg-green-500/15 text-green-700 text-sm font-medium rounded-md hover:bg-green-600 hover:text-white transition">
+                                                        <div class="flex items-center gap-1 px-2 py-2 bg-green-500/15 text-green-700 text-xs font-medium rounded-md hover:bg-green-600 hover:text-white transition">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
                                                             </svg>                       
                                                             <button id="approveBtn" class="focus:outline-none">Approve</button>
                                                         </div>
-                                                        <div class="flex items-center gap-1 px-2 bg-red-500/15 text-red-700 text-sm font-medium rounded-md hover:bg-red-600 hover:text-white transition">
+                                                        <div class="flex items-center gap-1 px-2 bg-red-500/15 text-red-700 text-xs font-medium rounded-md hover:bg-red-600 hover:text-white transition">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"class="w-4 h-4">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7.498 15.25H4.372c-1.026 0-1.945-.694-2.054-1.715a12.137 12.137 0 0 1-.068-1.285c0-2.848.992-5.464 2.649-7.521C5.287 4.247 5.886 4 6.504 4h4.016a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23h1.294M7.498 15.25c.618 0 .991.724.725 1.282A7.471 7.471 0 0 0 7.5 19.75 2.25 2.25 0 0 0 9.75 22a.75.75 0 0 0 .75-.75v-.633c0-.573.11-1.14.322-1.672.304-.76.93-1.33 1.653-1.715a9.04 9.04 0 0 0 2.86-2.4c.498-.634 1.226-1.08 2.032-1.08h.384m-10.253 1.5H9.7m8.075-9.75c.01.05.027.1.05.148.593 1.2.925 2.55.925 3.977 0 1.487-.36 2.89-.999 4.125m.023-8.25c-.076-.365.183-.75.575-.75h.908c.889 0 1.713.518 1.972 1.368.339 1.11.521 2.287.521 3.507 0 1.553-.295 3.036-.831 4.398-.306.774-1.086 1.227-1.918 1.227h-1.053c-.472 0-.745-.556-.5-.96a8.95 8.95 0 0 0 .303-.54" />
                                                             </svg>                        
                                                             <button id="rejectBtn" class="focus:outline-none">Reject</button>                        
                                                         </div>
-                                                        <div class="flex items-center gap-1 px-2 bg-gray-500/15 dark:bg-gray-100/10 dark:text-white text-gray-700 text-sm font-medium rounded-md hover:bg-gray-600 dark:hover:bg-gray-900 hover:text-white transition">
+                                                        <div class="flex items-center gap-1 px-2 bg-gray-500/15 dark:bg-gray-100/10 dark:text-white text-gray-700 text-xs font-medium rounded-md hover:bg-gray-600 dark:hover:bg-gray-900 hover:text-white transition">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                                                         </svg>                    
@@ -79,7 +79,7 @@
                                                     </div>
                                                 </header>
                                                 <div class="px-4 pt-4 overflow-x-auto">
-                                                    <table class="w-full text-sm mb-4">
+                                                    <table class="w-full text-xs mb-4">
                                                         <thead>
                                                             <tr class="text-gray-700 dark:text-gray-300">
                                                                 <th class="p-3 text-left">Level</th>
@@ -117,10 +117,10 @@
                                             {{-- Attachment --}}
                                 {{-- <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-12 border-b dark:border-gray-200/10 ">
                                                 <header class="flex justify-between items-center px-5 pt-4 pb-2">
-                                                    <h2 class="font-semibold text-gray-600 dark:text-gray-100 text-xl">📂 Attachment</h2>
+                                                    <h2 class="font-semibold text-gray-600 dark:text-gray-100 text-base">📂 Attachment</h2>
                                                 </header>
                                                 <div class="px-4 pt-2 overflow-x-auto">
-                                                    <table class="w-full text-sm mb-4">
+                                                    <table class="w-full text-xs mb-4">
                                                         <thead class="text-gray-600 dark:text-gray-300">
                                                             <tr>
                                                                 <th class="p-3 text-left">Filename</th>
@@ -148,7 +148,7 @@
                                             </div>
                                             <div x-data="{ isOpen: true }" class="flex flex-col justify-center w-full mt-4">
                                                 <header class="flex justify-between items-center px-5 pt-4 pb-2" @click="isOpen = !isOpen">
-                                                    <h2 class="font-semibold text-xl text-gray-700 dark:text-gray-100 flex items-center gap-2">
+                                                    <h2 class="font-semibold text-base text-gray-700 dark:text-gray-100 flex items-center gap-2">
                                                         💬 Comments
                                                     </h2>
                                                     <button>
@@ -168,7 +168,7 @@
                                                             class="flex-1 p-3 rounded-lg bg-gray-100 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200">
                                                         <button 
                                                             id="postCommentBtn" 
-                                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-md hover:  active:scale-95">
+                                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 shadow-md hover:  active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
@@ -214,7 +214,7 @@
                                                 <div>
                                                     <span
                                                         class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $detail['value'] }}</p>
                                                 </div>
                                             </div>
@@ -230,7 +230,7 @@
                                                 <div>
                                                     <span
                                                         class="text-xs text-gray-500 dark:text-gray-400">{{ $task->tasktype == 'TASK' ? 'Participant' : 'Assign' }}</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $task->tasktype == 'TASK' ? $task->participant : $task->assign }}
                                                     </p>
                                                 </div>
@@ -244,7 +244,7 @@
                                                 <div>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">Start
                                                         Date</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $task->startdate }}</p>
                                                 </div>
                                             </div>
@@ -257,7 +257,7 @@
                                                 <div>
                                                     <span class="text-xs text-gray-500 dark:text-gray-400">Due
                                                         Date</span>
-                                                    <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $task->duedate }}</p>
                                                 </div>
                                             </div>
@@ -271,7 +271,7 @@
                                                 class="lucide lucide-align-left h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                             <div>
                                                 <span class="text-xs text-gray-500 dark:text-gray-400">Summary</span>
-                                                <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $task->summary }}</p>
                                             </div>
                                         </div>
@@ -284,7 +284,7 @@
                                             <div>
                                                 <span
                                                     class="text-xs text-gray-500 dark:text-gray-400">Description</span>
-                                                <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $task->description }}</p>
                                             </div>
                                         </div>
@@ -296,15 +296,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="w-1/2 rounded-2xl bg-white shadow-sm">
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                        <div class="w-1/2 rounded-xl bg-white shadow-sm">
+                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
                                     class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
-                                    <h2 class="text-xl font-semibold text-gray-600 dark:text-gray-100">📂 Attachment
+                                    <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100">📂 Attachment
                                     </h2>
                                 </header>
                                 <div class="overflow-x-auto bg-white px-4 pt-2">
-                                    <table class="mb-4 w-full text-sm">
+                                    <table class="mb-4 w-full text-xs">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr>
                                                 <th class="p-3 text-left">Filename</th>
@@ -343,13 +343,13 @@
 
 
                         <div class="flex flex-col gap-4 sm:w-1/2 md:w-1/2">
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
                                     class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
-                                    <h2 class="text-xl font-semibold text-gray-600 dark:text-gray-100"> 🚀 Approval</h2>
+                                    <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100"> 🚀 Approval</h2>
                                     <div class="flex gap-2">
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
+                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -358,7 +358,7 @@
                                             <button id="approveBtn" class="focus:outline-none">Approve</button>
                                         </div>
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
+                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor"class="w-4 h-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -367,7 +367,7 @@
                                             <button id="rejectBtn" class="focus:outline-none">Reject</button>
                                         </div>
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-sm font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
+                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-xs font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="size-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -378,7 +378,7 @@
                                     </div>
                                 </header>
                                 <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
-                                    <table class="mb-4 w-full text-sm">
+                                    <table class="mb-4 w-full text-xs">
                                         <thead>
                                             <tr class="text-gray-700 dark:text-gray-300">
                                                 <th class="p-3 text-left">Level</th>
@@ -431,12 +431,12 @@
 
                         </div>
 
-                        <div class="rounded-2xl bg-white shadow-sm xl:w-1/2">
+                        <div class="rounded-xl bg-white shadow-sm xl:w-1/2">
                             <div class="mt-4 flex w-full flex-col justify-center xl:mt-0">
                                 <header
                                     class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                     <h2
-                                        class="flex items-center gap-2 text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                        class="flex items-center gap-2 text-base font-semibold text-gray-700 dark:text-gray-100">
                                         💬 Comments
                                     </h2>
                                 </header>
@@ -449,7 +449,7 @@
                                         <input id="commentInput" type="text" placeholder="Write a comment..."
                                             class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white" />
                                         <button id="postCommentBtn"
-                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
+                                            class="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 hover:  active:scale-95">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -470,7 +470,7 @@
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter rejection reason..."></textarea>
@@ -489,7 +489,7 @@
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter revise reason..."></textarea>
@@ -541,7 +541,7 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-sm font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username} 
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

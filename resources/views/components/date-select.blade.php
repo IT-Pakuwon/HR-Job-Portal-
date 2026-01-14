@@ -22,7 +22,7 @@
         x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
         x-transition:leave="transition ease-out duration-100" x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0" x-cloak>
-        <div class="text-sm font-medium text-gray-600 dark:text-gray-300" x-ref="options">
+        <div class="text-xs font-medium text-gray-600 dark:text-gray-300" x-ref="options">
             <button tabindex="0"
                 class="flex w-full cursor-pointer items-center px-3 py-1 hover:bg-gray-50 dark:hover:bg-gray-700/20"
                 :class="selected === 0 && 'text-violet-500'" @click="selected = 0;open = false" @focus="open = true"

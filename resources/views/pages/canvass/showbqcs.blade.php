@@ -6,36 +6,33 @@
             <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
                     <div class="flex items-center justify-between gap-4">
-                        <h2 class="text-xl font-extrabold text-gray-800 dark:text-white">
+                        <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
                             🆔 {{ $bq->bqid }} - BQ CS
                         </h2>
 
-                      
+
                         {{-- <div class="flex flex-wrap items-center justify-end gap-2">
                             @foreach ($vendors as $v)
                                 <a href="{{ route('bqcs.print.vendor', ['hash' => $hash, 'idx' => $v['idx']]) }}" target="_blank">
                                     <button
-                                        class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                         Print PDF - {{ $v['name'] }}
                                     </button>
                                 </a>
                             @endforeach
-                        </div> --}}                       
-                        <div class="relative" x-data="{ open:false }">
-                            <button
-                                type="button"
-                                @click="open=!open"
-                                @click.outside="open=false"
-                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        </div> --}}
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" @click="open=!open" @click.outside="open=false"
+                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 Print PDF
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                        d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
 
-                            <div
-                                x-show="open"
-                                x-transition.origin.top.right
+                            <div x-show="open" x-transition.origin.top.right
                                 class="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
                                 style="display:none;">
                                 <div class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
@@ -44,10 +41,9 @@
 
                                 <div class="max-h-72 overflow-y-auto">
                                     @foreach ($vendors as $v)
-                                        <a
-                                            href="{{ route('bqcs.print.vendor', ['hash' => $hash, 'idx' => $v['idx']]) }}"
+                                        <a href="{{ route('bqcs.print.vendor', ['hash' => $hash, 'idx' => $v['idx']]) }}"
                                             target="_blank"
-                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
+                                            class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
                                             @click="open=false">
                                             {{ $v['name'] }}
                                             {{-- <span class="block text-xs text-gray-500 dark:text-gray-400">
@@ -61,28 +57,28 @@
 
                     </div>
                 </div>
-                
 
-                <div class="flex flex-col gap-4 text-sm">
+
+                <div class="flex flex-col gap-4 text-xs">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->cpny_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">CSID</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->csid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->sppjtid }}
                             </div>
                         </div>
@@ -91,10 +87,10 @@
             </div>
 
             {{-- BQ Details --}}
-            <div class="flex w-full flex-col rounded-2xl bg-white shadow-md dark:bg-gray-800">
+            <div class="flex w-full flex-col rounded-xl bg-white shadow-md dark:bg-gray-800">
                 <div class="p-4">
                     <div
-                        class="border-b border-gray-200 pb-4 text-lg font-bold text-gray-800 dark:border-gray-700 dark:text-white">
+                        class="border-b border-gray-200 pb-4 text-sm font-bold text-gray-800 dark:border-gray-700 dark:text-white">
                         BQ Detail
                     </div>
 
@@ -110,7 +106,7 @@
                     @endphp
 
                     <div class="mt-4 overflow-x-auto">
-                        <table class="w-max table-auto border text-sm text-gray-700 dark:text-gray-200" id="bqTable">
+                        <table class="w-max table-auto border text-xs text-gray-700 dark:text-gray-200" id="bqTable">
                             <thead
                                 class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
                                 <tr>

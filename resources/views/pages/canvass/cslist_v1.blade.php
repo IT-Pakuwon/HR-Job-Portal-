@@ -260,62 +260,62 @@
         <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-5">
             <div
                 class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                <span class="text-xl">✏️</span>
+                <span class="text-base">✏️</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">My CS</p>
-                    <p id="count-sppk" class="text-right text-xl font-extrabold">{{ $myAll }}</p>
+                    <p class="text-sm font-medium">My CS</p>
+                    <p id="count-sppk" class="text-right text-base font-extrabold">{{ $myAll }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                <span class="text-xl">⏳</span>
+                <span class="text-base">⏳</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">On Progress</p>
-                    <p id="count-sppb" class="text-right text-xl font-extrabold">{{ $myProgress }}</p>
+                    <p class="text-sm font-medium">On Progress</p>
+                    <p id="count-sppb" class="text-right text-base font-extrabold">{{ $myProgress }}</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                <span class="text-xl">⛔️</span>
+                <span class="text-base">⛔️</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">Rejected</p>
-                    <p id="count-sppj" class="text-right text-xl font-extrabold">{{ $myRejected }}</p>
+                    <p class="text-sm font-medium">Rejected</p>
+                    <p id="count-sppj" class="text-right text-base font-extrabold">{{ $myRejected }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                <span class="text-xl">✅</span>
+                <span class="text-base">✅</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">Completed</p>
-                    <p id="count-sppt" class="text-right text-xl font-extrabold">{{ $myCompleted }}</p>
+                    <p class="text-sm font-medium">Completed</p>
+                    <p id="count-sppt" class="text-right text-base font-extrabold">{{ $myCompleted }}</p>
                 </div>
             </div>
             <div
                 class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                <span class="text-xl">📄</span>
+                <span class="text-base">📄</span>
                 <div class="flex flex-grow items-center justify-between">
-                    <p class="text-lg font-medium">All CS</p>
-                    <p id="count-all" class="text-right text-xl font-extrabold">{{ $all }}</p>
+                    <p class="text-sm font-medium">All CS</p>
+                    <p id="count-all" class="text-right text-base font-extrabold">{{ $all }}</p>
                 </div>
             </div>
         </div>
 
         <div class="grid">
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
                 <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav class="flex gap-2 p-4">
                         <button
-                            class="tab-btn active border-b-2 border-indigo-600 px-4 py-2 text-xl font-semibold text-indigo-700 dark:text-indigo-300"
+                            class="tab-btn active border-b-2 border-indigo-600 px-4 py-2 text-base font-semibold text-indigo-700 dark:text-indigo-300"
                             data-tab="my">My CS</button>
                         <button
-                            class="tab-btn border-indigo-600 px-4 py-2 text-xl font-semibold text-indigo-700 dark:text-indigo-300"
+                            class="tab-btn border-indigo-600 px-4 py-2 text-base font-semibold text-indigo-700 dark:text-indigo-300"
                             data-tab="progress">Onprogress CS</button>
                         <button
-                            class="tab-btn border-indigo-600 px-4 py-2 text-xl font-semibold text-indigo-700 dark:text-indigo-300"
+                            class="tab-btn border-indigo-600 px-4 py-2 text-base font-semibold text-indigo-700 dark:text-indigo-300"
                             data-tab="rejected">Rejected CS</button>
                         <button
-                            class="tab-btn border-indigo-600 px-4 py-2 text-xl font-semibold text-indigo-700 dark:text-indigo-300"
+                            class="tab-btn border-indigo-600 px-4 py-2 text-base font-semibold text-indigo-700 dark:text-indigo-300"
                             data-tab="completed">Completed CS</button>
                         <button
-                            class="tab-btn border-indigo-600 px-4 py-2 text-xl font-semibold text-indigo-700 dark:text-indigo-300"
+                            class="tab-btn border-indigo-600 px-4 py-2 text-base font-semibold text-indigo-700 dark:text-indigo-300"
                             data-tab="all">All CS</button>
                     </nav>
                 </div>
@@ -363,33 +363,34 @@
     </div>
 
     <script>
-    $(function () {
-        function fmtDate(v){
-            if(!v) return '';
-            const d = new Date(v);
-            return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
-        }
-        function renderCSBtn(_v,row){
-            return `<a href="/showcs/${row.eid}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold">${row.csid ?? ''}</a>`;
-        }
-        // const showMap = {
-        //  PB:'showsppbs', 
-        //  PJ:'showsppjs', 
-        //  PK:'showsppks', 
-        //  PT:'showsppts' };
-        function renderSPPBtn(_v,row){
-            const prefix = (row.sppbjkt_prefix || '').toUpperCase();
-            const srcId  = row.sppbjkt_src_id;
-            const src_eid  = row.sppbjkid_eid;
-            const docNo  = row.sppbjktid || '';
-            const base   = showMap[prefix];
-            if(!prefix || !srcId || !base) return docNo;
-            // const url = `/${base}/${srcId}`;
-            const url = `/${base}/${src_eid}`;
-            return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-semibold">${docNo}</a>`;
-        }
-        // function renderDays(v){ return (v==null) ? '' : String(v); }
-            function renderDays(v){
+        $(function() {
+            function fmtDate(v) {
+                if (!v) return '';
+                const d = new Date(v);
+                return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString('id-ID');
+            }
+
+            function renderCSBtn(_v, row) {
+                return `<a href="/showcs/${row.eid}" class="inline-flex items-center rounded px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-semibold">${row.csid ?? ''}</a>`;
+            }
+            // const showMap = {
+            //  PB:'showsppbs', 
+            //  PJ:'showsppjs', 
+            //  PK:'showsppks', 
+            //  PT:'showsppts' };
+            function renderSPPBtn(_v, row) {
+                const prefix = (row.sppbjkt_prefix || '').toUpperCase();
+                const srcId = row.sppbjkt_src_id;
+                const src_eid = row.sppbjkid_eid;
+                const docNo = row.sppbjktid || '';
+                const base = showMap[prefix];
+                if (!prefix || !srcId || !base) return docNo;
+                // const url = `/${base}/${srcId}`;
+                const url = `/${base}/${src_eid}`;
+                return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold">${docNo}</a>`;
+            }
+            // function renderDays(v){ return (v==null) ? '' : String(v); }
+            function renderDays(v) {
                 return (v == null) ? '' : `${v} days`;
             }
 

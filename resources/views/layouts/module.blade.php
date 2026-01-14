@@ -10,7 +10,7 @@
 
         <!-- Title -->
         <div class="mb-12 mt-14 w-full max-w-6xl text-center">
-            <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+            <h1 class="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
                 Application Modules
             </h1>
         </div>
@@ -19,7 +19,7 @@
         <div class="grid w-full max-w-7xl grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-5">
 
             @php
-                $card = "relative group cursor-pointer rounded-2xl 
+                $card = "relative group cursor-pointer rounded-xl 
                         bg-white dark:bg-gray-800 
                         border border-gray-100 dark:border-gray-700
                         shadow-sm hover:shadow-md
@@ -27,9 +27,9 @@
 
                 $iconWrap = "h-12 w-12 rounded-xl 
                             bg-[#EDEAFF] dark:bg-[#3A3550]
-                            flex items-center justify-center text-3xl";
+                            flex items-center justify-center text-lg";
 
-                $label = 'text-lg font-semibold text-gray-800 dark:text-gray-100';
+                $label = 'text-sm font-semibold text-gray-800 dark:text-gray-100';
             @endphp
 
 
@@ -46,11 +46,11 @@
                 <div
                     class="pointer-events-none absolute left-1/2 top-[105%] z-50 w-44 -translate-x-1/2 scale-95 overflow-hidden rounded-xl border border-gray-200 bg-white opacity-0 shadow-lg transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100 dark:border-gray-700 dark:bg-gray-800">
                     <a href="{{ route('personnels') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">
                         PRF
                     </a>
                     <a href="{{ route('jobapplicant') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">
                         Applicant Portal
                     </a>
                 </div>
@@ -78,11 +78,11 @@
                 <div
                     class="pointer-events-none absolute left-1/2 top-[105%] z-50 w-44 -translate-x-1/2 scale-95 overflow-hidden rounded-xl border border-gray-200 bg-white opacity-0 shadow-lg transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100 dark:border-gray-700 dark:bg-gray-800">
                     <a href="{{ route('polist') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">
                         PO List
                     </a>
                     <a href="{{ route('receiptlist') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">
                         Receipt List
                     </a>
                 </div>
@@ -102,13 +102,13 @@
                     class="pointer-events-none absolute left-1/2 top-[105%] z-50 w-48 -translate-x-1/2 scale-95 overflow-hidden rounded-xl border border-gray-200 bg-white opacity-0 shadow-lg transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100 dark:border-gray-700 dark:bg-gray-800">
 
                     <a href="{{ route('sppbs') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">SPP Barang</a>
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">SPP Barang</a>
                     <a href="{{ route('sppjs') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">SPP Jasa</a>
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">SPP Jasa</a>
                     <a href="{{ route('sppks') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">SPP Kendaraan</a>
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">SPP Kendaraan</a>
                     <a href="{{ route('sppts') }}"
-                        class="block px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">SPP Tenant</a>
+                        class="block px-4 py-3 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">SPP Tenant</a>
                 </div>
             </div>
 

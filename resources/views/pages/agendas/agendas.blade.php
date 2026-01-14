@@ -9,10 +9,10 @@
                 <a href="#" class="status-filter" data-status="">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-4 text-orange-600 shadow-white">
-                        <span class="text-4xl">📄</span>
+                        <span class="text-lg">📄</span>
                         <div>
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-3xl font-extrabold">{{ $all }}</p>
+                            <p class="text-sm font-medium">All</p>
+                            <p class="text-lg font-extrabold">{{ $all }}</p>
                         </div>
                     </div>
                 </a>
@@ -21,10 +21,10 @@
                 <a href="#" class="status-filter" data-status="P">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-4 text-blue-600 shadow-white">
-                        <span class="text-4xl">⏳</span>
+                        <span class="text-lg">⏳</span>
                         <div>
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $onProgress }}</p>
+                            <p class="text-sm font-medium">On Progress</p>
+                            <p class="text-left text-lg font-extrabold">{{ $onProgress }}</p>
                         </div>
                     </div>
                 </a>
@@ -33,10 +33,10 @@
                 <a href="#" class="status-filter" data-status="R">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-4 text-red-600 shadow-white">
-                        <span class="text-4xl">⛔️</span>
+                        <span class="text-lg">⛔️</span>
                         <div>
-                            <p class="text-lg font-medium">Reject</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $reject }}</p>
+                            <p class="text-sm font-medium">Reject</p>
+                            <p class="text-left text-lg font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
                 </a>
@@ -45,10 +45,10 @@
                 <a href="#" class="status-filter" data-status="D">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-4 text-gray-600 shadow-white">
-                        <span class="text-4xl">✏️</span>
+                        <span class="text-lg">✏️</span>
                         <div>
-                            <p class="text-lg font-medium">Revise</p>
-                            <p class="f text-left text-3xl font-extrabold">{{ $revise }}</p>
+                            <p class="text-sm font-medium">Revise</p>
+                            <p class="f text-left text-lg font-extrabold">{{ $revise }}</p>
                         </div>
                     </div>
                 </a>
@@ -57,10 +57,10 @@
                 <a href="#" class="status-filter" data-status="C">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-4 text-green-600 shadow-white">
-                        <span class="text-4xl">✅</span>
+                        <span class="text-lg">✅</span>
                         <div>
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-left text-3xl font-extrabold">{{ $completed }}</p>
+                            <p class="text-sm font-medium">Completed</p>
+                            <p class="text-left text-lg font-extrabold">{{ $completed }}</p>
                         </div>
                     </div>
                 </a>
@@ -261,9 +261,9 @@
             </style>
             <div class="mt-2 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <h1 class="align-middle text-2xl font-bold dark:text-white">Agenda</h1>
+                    <h1 class="align-middle text-lg font-bold dark:text-white">Agenda</h1>
                     <a href="{{ url('/createagendas') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         <i class="fas fa-plus pr-2"></i>Create Agenda</a>
                 </div>
                 <div x-data="{ tab: 'table' }" class="mt-4">
@@ -328,14 +328,14 @@
                                 render: function(data, type, row) {
                                     let url = `/showagendas/${row.id}`;
                                     let buttonClass =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                                     let buttonText = row.docid;
 
                                     // **Cek apakah user yang login sama dengan created_user dan status = D**
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editagendas/${row.id}`;
                                         buttonClass =
-                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

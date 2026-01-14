@@ -6,16 +6,16 @@
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-bold text-gray-800 dark:text-white">🏢 Department List</h1>
+                <h1 class="text-base font-bold text-gray-800 dark:text-white">🏢 Department List</h1>
                 <button id="addDepartmentBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Department
                 </button>
             </div>
 
-            <table id="departmentTable" class="text-body w-full text-left text-sm rtl:text-right">
+            <table id="departmentTable" class="text-body w-full text-left text-xs rtl:text-right">
                 <thead
-                    class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                    class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                     <tr>
                         <th class="w-32 px-4 py-3 text-center">Actions</th>
                         <th class="px-4 py-3 text-left">Department ID</th>
@@ -31,7 +31,7 @@
         <!-- Modal -->
         <div id="departmentModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
             <div class="relative w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="modalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add Department</h2>
+                <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Department</h2>
                 <form id="departmentForm">
                     @csrf
                     <input type="hidden" id="id" name="id">

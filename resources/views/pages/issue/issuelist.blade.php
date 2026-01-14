@@ -8,13 +8,13 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">↩️</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">↩️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Return Jobs</p>
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">Return Jobs</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $returnjobs }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $returnjobs }}</p>
                     </div>
                 </a>
             </button>
@@ -25,13 +25,13 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md dark:border-white dark:text-white dark:hover:bg-gray-700">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧾</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧾</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">All</p>
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">All</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $all }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                     </div>
                 </a>
             </button>
@@ -42,13 +42,13 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">On Progress</p>
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">On Progress</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $onProgress }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
                     </div>
                 </a>
             </button>
@@ -59,13 +59,13 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🛠️</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛠️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Revise</p>
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">Revise</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $revise }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
                     </div>
                 </a>
             </button>
@@ -76,13 +76,13 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">❌</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">❌</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Rejected</p>
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">Rejected</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $rejected }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $rejected }}</p>
                     </div>
                 </a>
             </button>
@@ -93,26 +93,26 @@
                     <div
                         class="scope-card flex items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-base font-medium leading-tight">Completed</p>
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">Completed</p>
                         </div>
 
-                        <p class="shrink-0 text-xl font-bold">{{ $completed }}</p>
+                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                     </div>
                 </a>
             </button>
         </div>
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Issue</h1>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Issue</h1>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="issueTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="issueTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -135,7 +135,7 @@
         $(function() {
             // default scope sekarang 'all'
             let scope = 'all';
-            const $title = $('h1.text-xl.font-extrabold');
+            const $title = $('h1.text-base.font-extrabold');
             const $thead = $('#issueTable thead');
 
             const titleMap = {
@@ -184,7 +184,7 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 const statusRaw = (row.status ?? row.xstatus ?? '').toString().trim().toUpperCase();
@@ -195,10 +195,10 @@
 
                 if (isRevise && isOwner) {
                     const url = `/editissues/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
                 }
                 const url = `/showissue/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderReturnPlusButton(row) {
@@ -207,7 +207,7 @@
 
                 return `
                             <a href="${url}" 
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium 
+                            class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium 
                                     text-white rounded bg-purple-600 hover:bg-purple-700">
                                 <i class="fas fa-plus"></i>
                             </a>
@@ -283,7 +283,7 @@
                                     t: data || '-',
                                     c: 'bg-gray-300/30 text-gray-600'
                                 };
-                                return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                                return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                             }
                         },
                     ];
@@ -345,7 +345,7 @@
                                 t: data || '-',
                                 c: 'bg-gray-300/30 text-gray-600'
                             };
-                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-base text-center rounded">${it.t}</span>`;
+                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                         }
                     },
                 ];

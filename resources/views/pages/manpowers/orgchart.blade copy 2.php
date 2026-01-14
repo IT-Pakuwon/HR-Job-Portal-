@@ -176,20 +176,20 @@
             <div id="modalForm" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 hidden">
                 <div class="bg-white p-6 rounded-lg w-full max-w-md relative">
                     <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500">&times;</button>
-                    <h3 class="text-lg font-semibold mb-4">Tambah Bawahan</h3>
+                    <h3 class="text-sm font-semibold mb-4">Tambah Bawahan</h3>
                     <form id="formAddEmployee" method="POST" action="{{ route('orgchart.store') }}">
                         @csrf
                         <input type="hidden" name="approval_line" id="modalApprovalLine">
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                            <label class="block text-xs font-medium text-gray-700">Nama Lengkap</label>
                             <input type="text" name="first_name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">Posisi</label>
+                            <label class="block text-xs font-medium text-gray-700">Posisi</label>
                             <input type="text" name="job_position" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">URL Foto</label>
+                            <label class="block text-xs font-medium text-gray-700">URL Foto</label>
                             <input type="url" name="avatar_local" placeholder="https://..." class="mt-1 block w-full border border-gray-300 rounded-md p-2">
                         </div>
                         <input type="hidden" name="status_talenta" value="Active">

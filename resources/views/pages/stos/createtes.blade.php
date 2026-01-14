@@ -9,9 +9,9 @@
                         <form id="stoForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                             @csrf
                             <div
-                                class="flex w-full w-full flex-col rounded-2xl border-b bg-white p-6 shadow-sm dark:bg-gray-800">
+                                class="flex w-full w-full flex-col rounded-xl border-b bg-white p-6 shadow-sm dark:bg-gray-800">
                                 <div class="flex justify-between border-b dark:border-gray-600">
-                                    <h2 class="mb-2 text-xl font-bold">Create STO</h2>
+                                    <h2 class="mb-2 text-base font-bold">Create STO</h2>
                                 </div>
                                 <div
                                     class="mt-2 mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2 dark:border-gray-600">
@@ -71,11 +71,11 @@
                     </div>
 
 
-                    <div class="flex w-full flex-col gap-2 rounded-2xl border-b bg-white dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
                         <div class="flex w-1/2 w-full flex-col border-b p-4">
                             <details class="group mb-4" open>
                                 <summary class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                    <span class="text-lg font-semibold">Attachments</span>
+                                    <span class="text-sm font-semibold">Attachments</span>
                                     <span class="transition-all group-open:hidden">See details</span>
                                     <span class="hidden transition-all group-open:inline">Hide details</span>
                                 </summary>
@@ -83,7 +83,7 @@
                                     <div id="attachmentsContainer">
                                         <div class="attachment-row flex items-center gap-2">
                                             <input type="file" name="attachments[]"
-                                                class="mt-4 w-full border p-3 text-lg">
+                                                class="mt-4 w-full border p-3 text-sm">
                                             <button type="button"
                                                 class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
                                                 🗑️
@@ -158,24 +158,24 @@
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
                 <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                     <div class="flex justify-end p-1">
-                        <button onclick="closeModal()" class="text-lg text-gray-500">close</button>
+                        <button onclick="closeModal()" class="text-sm text-gray-500">close</button>
                     </div>
                     <!-- Tab -->
                     <div class="mb-4 border-b border-gray-200">
-                        <ul class="-mb-px flex flex-wrap text-center text-sm font-medium" id="tabs">
+                        <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
                             <li class="mr-2">
                                 <button type="button"
-                                    class="tab-button border-blue-600 px-4 py-2 text-lg text-blue-600"
+                                    class="tab-button border-blue-600 px-4 py-2 text-sm text-blue-600"
                                     onclick="switchTab('view')">View Employee</button>
                             </li>
                             <li class="mr-2">
                                 <button type="button"
-                                    class="tab-button px-4 py-2 text-lg text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                    class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600"
                                     onclick="switchTab('employee')">Add Employee</button>
                             </li>
                             <li class="mr-2">
                                 <button type="button"
-                                    class="tab-button px-4 py-2 text-lg text-gray-600 hover:border-blue-600 hover:text-blue-600"
+                                    class="tab-button px-4 py-2 text-sm text-gray-600 hover:border-blue-600 hover:text-blue-600"
                                     onclick="switchTab('departement')">Add Sub Departement</button>
                             </li>
                         </ul>
@@ -183,8 +183,8 @@
 
                     <!-- Tab Content: View Employee -->
                     <div id="tab-view" class="tab-content hidden">
-                        <h3 class="mb-4 text-lg font-semibold">Employee List</h3>
-                        <table class="w-full border text-sm text-black">
+                        <h3 class="mb-4 text-sm font-semibold">Employee List</h3>
+                        <table class="w-full border text-xs text-black">
                             <thead class="bg-gray-300/10">
                                 <tr class="text-left">
                                     <th class="border px-2 py-1">No</th>
@@ -206,7 +206,7 @@
 
                     <!-- Tab Content: Employee -->
                     <div id="tab-employee" class="tab-content">
-                        <h3 class="mb-4 text-lg font-semibold">Add Employee</h3>
+                        <h3 class="mb-4 text-sm font-semibold">Add Employee</h3>
                         <form id="formAddEmployee" method="POST" action="{{ route('orgchart.store') }}"
                             enctype="multipart/form-data">
                             @csrf
@@ -214,7 +214,7 @@
                             {{-- <input type="hidden" name="full_name" value="Vacant">        --}}
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Company</label>
+                                <label class="block text-xs font-medium text-gray-700">Company</label>
                                 <select
                                     class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                     name="cpnyid" required>
@@ -228,7 +228,7 @@
                             <div class="mb-4">
                                 <label class="inline-flex items-center">
                                     <input type="checkbox" id="vacantCheckbox" class="form-checkbox text-blue-600">
-                                    <span class="ml-2 text-sm text-gray-700">Set as Vacant</span>
+                                    <span class="ml-2 text-xs text-gray-700">Set as Vacant</span>
                                 </label>
                             </div>
 
@@ -236,7 +236,7 @@
                             <input type="hidden" name="full_name" id="hiddenFullName" value="Vacant">
 
                             <div class="mb-4" id="fullNameGroup">
-                                <label class="block text-sm font-medium text-gray-700">Name</label>
+                                <label class="block text-xs font-medium text-gray-700">Name</label>
                                 <select id="full_name"
                                     class="mt-1 block w-full rounded-md border border-gray-300 p-2">
                                     @foreach ($users as $p)
@@ -245,7 +245,7 @@
                                 </select>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Position</label>
+                                <label class="block text-xs font-medium text-gray-700">Position</label>
                                 <select
                                     class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                     name="job_position" required>
@@ -255,12 +255,12 @@
                                 </select>
                             </div>
                             <div class="mb-4" id="imageGroup">
-                                <label class="block text-sm font-medium text-gray-700">Image</label>
+                                <label class="block text-xs font-medium text-gray-700">Image</label>
                                 <input type="file" name="image" id="imageInput" accept="image/*"
                                     class="mt-1 block w-full rounded-md border border-gray-300 p-2">
                             </div>
                             <div class="mb-4" id="qtyGroup">
-                                <label class="block text-sm font-medium text-gray-700">Qty</label>
+                                <label class="block text-xs font-medium text-gray-700">Qty</label>
                                 <input type="number" name="qty" id="qty"
                                     class="mt-1 block w-full rounded-md border border-gray-300 p-2"
                                     value="{{ old('qty', 1) }}" required>
@@ -275,18 +275,18 @@
 
                     <!-- Tab Content: Departement -->
                     <div id="tab-departement" class="tab-content hidden">
-                        <h3 class="mb-4 text-lg font-semibold">Add Sub Departement</h3>
+                        <h3 class="mb-4 text-sm font-semibold">Add Sub Departement</h3>
                         <form id="formAddDepartement" method="POST" action="{{ route('orgchart.store') }}">
                             @csrf
                             <input type="hidden" name="approval_line" id="modalApprovalLine">
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Sub Departement</label>
+                                <label class="block text-xs font-medium text-gray-700">Sub Departement</label>
                                 <input type="text" name="departement_name"
                                     class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
                             </div>
                             {{-- <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Departement</label>
+                                    <label class="block text-xs font-medium text-gray-700">Departement</label>
                                     <select id="departement_name_select" name="departement_name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
                                         @foreach ($departements as $dept)
                                             <option value="{{ $dept->deptname }}">{{ $dept->deptname }}</option>
@@ -304,8 +304,8 @@
                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-30">
                         <div class="relative w-full max-w-lg rounded-lg bg-white p-6">
                             <button onclick="closeEditModal()"
-                                class="absolute right-2 top-2 text-2xl text-gray-500">&times;</button>
-                            <h3 class="mb-4 text-lg font-bold">Edit Employee</h3>
+                                class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
+                            <h3 class="mb-4 text-sm font-bold">Edit Employee</h3>
                             <form id="editEmployeeForm" enctype="multipart/form-data">
                                 @csrf
                                 <input type="hidden" name="id" id="edit_id">
@@ -409,11 +409,11 @@
                                 <strong>Employee:</strong>
                                 <div style="margin-top:10px;">
                                     ${members.map(m => `
-                                                                                                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                        `).join('')}
+                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                                    <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                    <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                            `).join('')}
                                 </div>
                             </div>
                         </div>
@@ -725,7 +725,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-sm border rounded mt-4">
                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
             </div>
         `);

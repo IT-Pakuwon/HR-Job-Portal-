@@ -1,9 +1,9 @@
 <!-- Button -->
 {{-- @if ($canAccessSchedule) --}}
-    <button type="button" onclick="openAgendaModal()"
-        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-        <i class="fas fa-plus pr-2"></i>Create Schedule
-    </button>
+<button type="button" onclick="openAgendaModal()"
+    class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+    <i class="fas fa-plus pr-2"></i>Create Schedule
+</button>
 {{-- @endif --}}
 
 
@@ -54,8 +54,8 @@
                         <option value="">Select</option>
                         <option value="Interview User">Interview User</option>
                         <option value="Interview HC">Interview HC</option>
-                        <option value="Interview HC & User">Interview HC & User</option>                        
-                    </select>            
+                        <option value="Interview HC & User">Interview HC & User</option>
+                    </select>
                 </div>
                 <div class="flex w-1/2 flex-col">
                     <label>Site</label>
@@ -74,16 +74,14 @@
                 <div class="flex w-full flex-col">
                     <label>Location</label>
                     <input type="text" name="location" id="locationField" readonly
-                        class="form-control bg-gray-100 cursor-not-allowed"
-                        style="width: 100%; margin-bottom: 10px;" />
+                        class="form-control cursor-not-allowed bg-gray-100" style="width: 100%; margin-bottom: 10px;" />
                 </div>
             </div>
 
             <div class="flex w-full gap-8">
                 <div class="flex w-full flex-col">
                     <label>Address</label>
-                    <textarea name="location_address" id="addressField" readonly
-                        class="form-control bg-gray-100 cursor-not-allowed"
+                    <textarea name="location_address" id="addressField" readonly class="form-control cursor-not-allowed bg-gray-100"
                         style="width: 100%; margin-bottom: 10px;"></textarea>
                 </div>
             </div>
@@ -100,10 +98,10 @@
             <div style="margin-top: 10px;">
                 {{-- <button type="submit"
                     style="background-color: #22c55e; color: white; padding: 6px 12px; border: none; border-radius: 5px;">Save</button> --}}
-                    <button id="createAgendaSubmit" type="submit"
-                        style="background-color:#22c55e;color:#fff;padding:6px 12px;border:none;border-radius:5px;">
-                        Save
-                    </button>
+                <button id="createAgendaSubmit" type="submit"
+                    style="background-color:#22c55e;color:#fff;padding:6px 12px;border:none;border-radius:5px;">
+                    Save
+                </button>
 
                 <button type="button" onclick="closeAgendaModal()"
                     style="background-color: #e5e7eb; color: #374151; padding: 6px 12px; border: none; border-radius: 5px; margin-left: 10px;">
@@ -131,7 +129,7 @@
 
 
 <!-- Table -->
-<table class="w-full text-sm">
+<table class="w-full text-xs">
     <thead class="bg-gray-50 dark:bg-gray-700">
         <tr class="text-gray-600 dark:text-gray-700">
             {{-- <th>DocID</th> --}}
@@ -239,44 +237,44 @@
 </script>
 
 <script>
-  // pastikan tidak ada handler ganda jika partial ini di-load ulang
-  $(document).off('submit', '#createAgendaForm');
+    // pastikan tidak ada handler ganda jika partial ini di-load ulang
+    $(document).off('submit', '#createAgendaForm');
 
-  let isCreatingAgenda = false;
+    let isCreatingAgenda = false;
 
-  $(document).on('submit', '#createAgendaForm', function (e) {
-    e.preventDefault();
+    $(document).on('submit', '#createAgendaForm', function(e) {
+        e.preventDefault();
 
-    if (isCreatingAgenda) return;                // guard anti-double submit
-    isCreatingAgenda = true;
+        if (isCreatingAgenda) return; // guard anti-double submit
+        isCreatingAgenda = true;
 
-    const $btn = $('#createAgendaSubmit');
-    const originalText = $btn.text();
-    $btn.prop('disabled', true).text('Saving...');
+        const $btn = $('#createAgendaSubmit');
+        const originalText = $btn.text();
+        $btn.prop('disabled', true).text('Saving...');
 
-    $.ajax({
-      url: '{{ route('agendas.store') }}',
-      method: 'POST',
-      data: $(this).serialize(),
-      success: function (response) {
-        toastr.success('Schedule created successfully');
-        // Optional: tutup modal & reset form
-        $('#agendaModal').hide();
-        $('#createAgendaForm')[0].reset();
-        // refresh list
-        location.reload();
-      },
-      error: function (xhr) {
-        toastr.error('Failed to create schedule');
-        console.error(xhr.responseText);
-      },
-      complete: function () {
-        // aktifkan kembali tombol & reset flag
-        isCreatingAgenda = false;
-        $btn.prop('disabled', false).text(originalText);
-      }
+        $.ajax({
+            url: '{{ route('agendas.store') }}',
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                toastr.success('Schedule created successfully');
+                // Optional: tutup modal & reset form
+                $('#agendaModal').hide();
+                $('#createAgendaForm')[0].reset();
+                // refresh list
+                location.reload();
+            },
+            error: function(xhr) {
+                toastr.error('Failed to create schedule');
+                console.error(xhr.responseText);
+            },
+            complete: function() {
+                // aktifkan kembali tombol & reset flag
+                isCreatingAgenda = false;
+                $btn.prop('disabled', false).text(originalText);
+            }
+        });
     });
-  });
 </script>
 
 
@@ -319,14 +317,14 @@
 </script>
 
 <script>
-    $(document).ready(function () {
-        $('#siteDropdown').on('change', function () {
+    $(document).ready(function() {
+        $('#siteDropdown').on('change', function() {
             const site = $(this).val();
             if (site) {
                 $.ajax({
                     url: '/company-address/' + site,
                     type: 'GET',
-                    success: function (data) {
+                    success: function(data) {
                         if (data) {
                             $('#locationField').val(data.location);
                             $('#addressField').val(data.address2);
@@ -335,7 +333,7 @@
                             $('#addressField').val('');
                         }
                     },
-                    error: function () {
+                    error: function() {
                         toastr.error('Failed to fetch site info');
                     }
                 });

@@ -17,7 +17,7 @@
                     x-transition:enter-end="opacity-100 translate-y-0"
                     x-transition:leave="transition ease-out duration-200" x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0" x-cloak>
-                    <div class="text-sm">Sint occaecat cupidatat non proident, sunt in culpa qui
+                    <div class="text-xs">Sint occaecat cupidatat non proident, sunt in culpa qui
                         officia deserunt mollit.
                     </div>
                 </div>
@@ -26,8 +26,8 @@
     </header>
     <div class="px-5 py-3">
         <div class="flex items-start">
-            <div class="mr-2 text-3xl font-bold text-gray-800 dark:text-gray-100">+$6,796</div>
-            <div class="rounded-full bg-red-500/20 px-1.5 text-sm font-medium text-red-700">-34%</div>
+            <div class="mr-2 text-lg font-bold text-gray-800 dark:text-gray-100">+$6,796</div>
+            <div class="rounded-full bg-red-500/20 px-1.5 text-xs font-medium text-red-700">-34%</div>
         </div>
     </div>
     <div class="grow">

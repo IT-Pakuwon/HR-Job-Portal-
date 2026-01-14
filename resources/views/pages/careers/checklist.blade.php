@@ -1,4 +1,4 @@
-<table class="min-w-full border border-gray-300 text-sm dark:border-gray-600">
+<table class="min-w-full border border-gray-300 text-xs dark:border-gray-600">
     <thead>
         <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
             <th class="px-4 py-3 text-left font-semibold">No</th>
@@ -26,8 +26,9 @@
                 </td>                --}}
                 <td class="border px-3 py-2">
                     @if ($p->checklist_attachfile)
-                        📁 <a href="{{ route('checklist.view', $p->id) }}" target="_blank" class="text-blue-600 underline">
-                        View
+                        📁 <a href="{{ route('checklist.view', $p->id) }}" target="_blank"
+                            class="text-blue-600 underline">
+                            View
                         </a>
                         {{-- @if ($p->checklist_filename)
                         <span class="ml-2 text-gray-500">({{ $p->checklist_filename }})</span>
@@ -47,11 +48,11 @@
 </table>
 <div id="uploadModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
     <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
-        <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white" id="modalTitle">Upload Document</h3>
+        <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-white" id="modalTitle">Upload Document</h3>
         <form id="uploadForm" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="checklist_id" id="checklistId">
-            <input type="file" name="document" required class="mb-4 w-full text-sm text-gray-700 dark:text-white">
+            <input type="file" name="document" required class="mb-4 w-full text-xs text-gray-700 dark:text-white">
             <div class="flex justify-end gap-2">
                 <button type="button" id="cancelModal" class="rounded bg-gray-400 px-4 py-2 text-white">Cancel</button>
                 <button type="submit" class="rounded bg-indigo-600 px-4 py-2 text-white">Upload</button>
@@ -99,7 +100,7 @@
         //     });
         // });
 
-        $('#uploadForm').on('submit', function (e) {
+        $('#uploadForm').on('submit', function(e) {
             e.preventDefault();
 
             const formData = new FormData(this);
@@ -118,20 +119,21 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (res) {
+                success: function(res) {
                     if (res.success) {
                         location.reload();
                     } else {
                         alert(res.message);
                     }
                 },
-                error: function () {
+                error: function() {
                     alert('Upload failed. Try again.');
                 },
-                complete: function () {
+                complete: function() {
                     // Kembalikan tombol ke kondisi semula
                     submitBtn.prop('disabled', false).html('Upload');
-                    cancelBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                    cancelBtn.prop('disabled', false).removeClass(
+                        'opacity-50 cursor-not-allowed');
                     $('#uploadModal').removeClass('pointer-events-none');
 
                 }
@@ -141,29 +143,29 @@
     });
 </script>
 <script>
-  // Tutup via tombol Cancel
-  $(document).on('click', '#cancelModal', function (e) {
-    e.preventDefault();
-    $('#uploadModal').addClass('hidden').removeClass('flex');
-    const f = document.getElementById('uploadForm');
-    if (f) f.reset();
-  });
+    // Tutup via tombol Cancel
+    $(document).on('click', '#cancelModal', function(e) {
+        e.preventDefault();
+        $('#uploadModal').addClass('hidden').removeClass('flex');
+        const f = document.getElementById('uploadForm');
+        if (f) f.reset();
+    });
 
-  // Tutup dengan klik overlay (area gelap di luar card)
-  $(document).on('click', '#uploadModal', function (e) {
-    if (e.target.id === 'uploadModal') {
-      $('#uploadModal').addClass('hidden').removeClass('flex');
-      const f = document.getElementById('uploadForm');
-      if (f) f.reset();
-    }
-  });
+    // Tutup dengan klik overlay (area gelap di luar card)
+    $(document).on('click', '#uploadModal', function(e) {
+        if (e.target.id === 'uploadModal') {
+            $('#uploadModal').addClass('hidden').removeClass('flex');
+            const f = document.getElementById('uploadForm');
+            if (f) f.reset();
+        }
+    });
 
-  // Tutup dengan tombol ESC
-  $(document).on('keydown', function (e) {
-    if (e.key === 'Escape') {
-      $('#uploadModal').addClass('hidden').removeClass('flex');
-      const f = document.getElementById('uploadForm');
-      if (f) f.reset();
-    }
-  });
+    // Tutup dengan tombol ESC
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            $('#uploadModal').addClass('hidden').removeClass('flex');
+            const f = document.getElementById('uploadForm');
+            if (f) f.reset();
+        }
+    });
 </script>

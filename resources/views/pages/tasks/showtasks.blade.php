@@ -7,12 +7,12 @@
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
                         <div
                             class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                            <div class="rounded-2xl bg-white">
-                                <div class="flex flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+                            <div class="rounded-xl bg-white">
+                                <div class="flex flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <header
                                         class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                         <div class="flex w-full flex-row items-center justify-between">
-                                            <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                            <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                                 🆔 {{ $task->docid }}
                                             </h1>
 
@@ -36,7 +36,7 @@
                                             @endphp
 
                                             <span
-                                                class="{{ $statusClass }} rounded-lg px-3 py-1 text-sm font-semibold">
+                                                class="{{ $statusClass }} rounded-lg px-3 py-1 text-xs font-semibold">
                                                 {{ $statusText }}
                                             </span>
                                         </div>
@@ -80,7 +80,7 @@
                                                             <span
                                                                 class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</span>
                                                             <p
-                                                                class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                 {{ $detail['value'] }}</p>
                                                         </div>
                                                     </div>
@@ -98,7 +98,7 @@
                                                             <span
                                                                 class="text-xs text-gray-500 dark:text-gray-400">{{ $task->tasktype == 'TASK' ? 'Participant' : 'Assign' }}</span>
                                                             <p
-                                                                class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                 {{ $task->tasktype == 'TASK' ? $task->participant : $task->assign }}
                                                             </p>
                                                         </div>
@@ -113,7 +113,7 @@
                                                             <span class="text-xs text-gray-500 dark:text-gray-400">Start
                                                                 Date</span>
                                                             <p
-                                                                class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                 {{ $task->startdate }}</p>
                                                         </div>
                                                     </div>
@@ -127,7 +127,7 @@
                                                             <span class="text-xs text-gray-500 dark:text-gray-400">Due
                                                                 Date</span>
                                                             <p
-                                                                class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                                class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                 {{ $task->duedate }}</p>
                                                         </div>
                                                     </div>
@@ -142,8 +142,7 @@
                                                     <div>
                                                         <span
                                                             class="text-xs text-gray-500 dark:text-gray-400">Summary</span>
-                                                        <p
-                                                            class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                             {{ $task->summary }}</p>
                                                     </div>
                                                 </div>
@@ -156,8 +155,7 @@
                                                     <div>
                                                         <span
                                                             class="text-xs text-gray-500 dark:text-gray-400">Description</span>
-                                                        <p
-                                                            class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                             {{ $task->description }}</p>
                                                     </div>
                                                 </div>
@@ -166,14 +164,14 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
                                     class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
-                                    <h2 class="text-xl font-semibold text-gray-600 dark:text-gray-100">📂 Attachment
+                                    <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100">📂 Attachment
                                     </h2>
                                 </header>
                                 <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
-                                    <table class="mb-4 w-full text-sm">
+                                    <table class="mb-4 w-full text-xs">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr>
                                                 <th class="p-3 text-left">Filename</th>
@@ -207,14 +205,14 @@
 
                         <div
                             class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-2xl dark:bg-gray-800">
+                            <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
                                     class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
-                                    <h2 class="text-xl font-semibold text-gray-600 dark:text-gray-100"> 🚀 Approval
+                                    <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100"> 🚀 Approval
                                     </h2>
                                     <div class="flex gap-2">
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
+                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -223,7 +221,7 @@
                                             <button id="approveBtn" class="focus:outline-none">Approve</button>
                                         </div>
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-sm font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
+                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-xs font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="size-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -232,7 +230,7 @@
                                             <button id="reviseBtn" class="focus:outline-none">Revise</button>
                                         </div>
                                         <div
-                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
+                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor"class="w-4 h-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -244,7 +242,7 @@
                                     </div>
                                 </header>
                                 <div class="flex-grow overflow-y-auto rounded-b-2xl bg-white p-4 px-4">
-                                    <table class="mb-4 w-full text-sm">
+                                    <table class="mb-4 w-full text-xs">
                                         <thead>
                                             <tr class="text-gray-700 dark:text-gray-300">
                                                 <th class="p-3 text-left">Level</th>
@@ -294,13 +292,13 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="overflow-hidden rounded-2xl shadow-sm dark:bg-gray-800">
+                            <div class="overflow-hidden rounded-xl shadow-sm dark:bg-gray-800">
                                 <div
                                     class="col-span-full flex flex-col border-b sm:col-span-6 xl:col-span-12 dark:border-gray-200/10">
                                     <header
                                         class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
                                         <h2
-                                            class="flex items-center gap-2 text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                            class="flex items-center gap-2 text-base font-semibold text-gray-700 dark:text-gray-100">
                                             💬 Comments
                                         </h2>
                                     </header>
@@ -313,7 +311,7 @@
                                             <input id="commentInput" type="text" placeholder="Write a comment..."
                                                 class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white" />
                                             <button id="postCommentBtn"
-                                                class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
+                                                class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                 Post 🚀
                                             </button>
                                         </div>
@@ -337,7 +335,7 @@
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter rejection reason..."></textarea>
@@ -356,7 +354,7 @@
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter revise reason..."></textarea>
@@ -408,7 +406,7 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-sm font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username} 
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

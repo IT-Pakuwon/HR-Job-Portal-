@@ -3,7 +3,7 @@
 
     {{-- ======= Header & tombol Add Vendor ======= --}}
     <div class="flex items-center justify-between mb-4">
-        <h1 class="text-lg font-semibold">Canvass Sheet : {{ $docno ?? 'CSxxxx' }}</h1>
+        <h1 class="text-sm font-semibold">Canvass Sheet : {{ $docno ?? 'CSxxxx' }}</h1>
 
         {{-- klik tombol akan membuka dropdown Select2 --}}
         <button @click="$nextTick(()=>$('#vendorSelect').select2('open'))"
@@ -61,7 +61,7 @@
         </table>
 
         <div x-show="vendors.length === 0"
-             class="text-sm italic text-gray-500 mt-2">
+             class="text-xs italic text-gray-500 mt-2">
             Belum ada vendor – klik “Add Vendor”.
         </div>
     </div>

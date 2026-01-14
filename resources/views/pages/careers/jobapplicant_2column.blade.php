@@ -9,10 +9,10 @@
                 <a href="#" class="status-filter" data-status="">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600">
-                        <span class="text-xl">📄</span>
+                        <span class="text-base">📄</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">All</p>
-                            <p class="text-right text-xl font-extrabold">{{ $all }}</p>
+                            <p class="text-sm font-medium">All</p>
+                            <p class="text-right text-base font-extrabold">{{ $all }}</p>
                         </div>
                     </div>
                 </a>
@@ -23,10 +23,10 @@
                 <a href="#" class="status-filter" data-status="P">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600">
-                        <span class="text-xl">⏳</span>
+                        <span class="text-base">⏳</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">On Progress</p>
-                            <p class="text-right text-xl font-extrabold">{{ $onProgress }}</p>
+                            <p class="text-sm font-medium">On Progress</p>
+                            <p class="text-right text-base font-extrabold">{{ $onProgress }}</p>
                         </div>
                     </div>
                 </a>
@@ -37,10 +37,10 @@
                 <a href="#" class="status-filter" data-status="R">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600">
-                        <span class="text-xl">⛔️</span>
+                        <span class="text-base">⛔️</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Reject</p>
-                            <p class="text-right text-xl font-extrabold">{{ $reject }}</p>
+                            <p class="text-sm font-medium">Reject</p>
+                            <p class="text-right text-base font-extrabold">{{ $reject }}</p>
                         </div>
                     </div>
                 </a>
@@ -51,10 +51,10 @@
                 <a href="#" class="status-filter" data-status="D">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 dark:border-white dark:text-white">
-                        <span class="text-xl">✏️</span>
+                        <span class="text-base">✏️</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Revise / Draft</p>
-                            <p class="text-right text-xl font-extrabold">{{ $revise }}</p>
+                            <p class="text-sm font-medium">Revise / Draft</p>
+                            <p class="text-right text-base font-extrabold">{{ $revise }}</p>
                         </div>
                     </div>
                 </a>
@@ -65,10 +65,10 @@
                 <a href="#" class="status-filter" data-status="C">
                     <div
                         class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600">
-                        <span class="text-xl">✅</span>
+                        <span class="text-base">✅</span>
                         <div class="flex flex-grow items-center justify-between">
-                            <p class="text-lg font-medium">Completed</p>
-                            <p class="text-right text-xl font-extrabold">{{ $completed }}</p>
+                            <p class="text-sm font-medium">Completed</p>
+                            <p class="text-right text-base font-extrabold">{{ $completed }}</p>
                         </div>
                     </div>
                 </a>
@@ -402,7 +402,7 @@
                             <option value="GPS">GPS</option>
                         </select>
                     </div>
-                    <h1 class="text-2xl font-bold">List Job Posting</h1>
+                    <h1 class="text-lg font-bold">List Job Posting</h1>
                     <table id="jobpostingsTable" class="min-w-full rounded">
                         <thead>
                             <tr>
@@ -423,8 +423,8 @@
                 <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4" style="display:none;">
 
                     <div class="flex items-center justify-between">
-                        <h1 class="text-2xl font-bold">Applicants</h1>
-                        <div class="flex flex-row-reverse items-center justify-end gap-4 text-xl">
+                        <h1 class="text-lg font-bold">Applicants</h1>
+                        <div class="flex flex-row-reverse items-center justify-end gap-4 text-base">
                             <button id="detailApplicantsBtn" class="font-semibold text-blue-500 hover:text-blue-700">See
                                 Detail</button>
                             <button id="closeApplicantsBtn"
@@ -476,7 +476,7 @@
                                 render: function(data, type, row) {
                                     let url = `/showjobpostings/${row.id}`;
                                     let buttonClass =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                                     let buttonText = row.docid;
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
@@ -567,7 +567,7 @@
                                         'OFF': 'Offering',
                                         'JOIN': 'Join'
                                     };
-                                    return `<span class="w-32 bg-blue-300/30 text-blue-600 text-base font-semibold px-4 py-2 text-center rounded">${labelMap[data] || data}</span>`;
+                                    return `<span class="w-32 bg-blue-300/30 text-blue-600 text-sm font-semibold px-4 py-2 text-center rounded">${labelMap[data] || data}</span>`;
                                 }
                             }
                         ],

@@ -104,7 +104,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -151,7 +151,7 @@
                 @if ($isOwner)
                     @if ($po->status === 'H')
                         <button id="submitBtn"
-                            class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                            class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -161,7 +161,7 @@
                         </button>
                     @endif
                     <button id="cancelReuseBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                        class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -171,7 +171,7 @@
                     </button>
                     @if ($po->status !== 'H')
                         <button id="cancelBtn"
-                            class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                            class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -181,7 +181,7 @@
                         </button>
                         @if ($po->send_email == false || $po->send_email === null)
                             <button id="sendEmailBtn"
-                                class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -193,7 +193,7 @@
                     @endif
                     @if ($canShowCompletedBtn)
                         <button id="completedBtn"
-                            class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+                            class="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -213,9 +213,9 @@
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $po->ponbr }}
@@ -250,13 +250,13 @@
 
                         <div class="flex items-center gap-3">
                             <span
-                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
                             <a href="{{ url('/pdf_po') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                     title="Open PO PDF">
                                     Print PDF
                                 </button>
@@ -353,7 +353,7 @@
 
                         <div>
                             {{-- Info Grid --}}
-                            <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-xs sm:grid-cols-2">
                                 @foreach ($fields as $f)
                                     <div class="{{ $row }}">
                                         <div class="{{ $label }}">
@@ -378,7 +378,7 @@
                                     <x-heroicon-o-banknotes class="h-5 w-5 text-gray-400" />
                                     <div>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">
                                             Rp {{ number_format($po->totalamt, 0, ',', '.') }}
                                         </p>
                                     </div>
@@ -390,7 +390,7 @@
                                     <x-heroicon-o-receipt-percent class="h-5 w-5 text-gray-400" />
                                     <div>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Tax Amount</p>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">
                                             Rp {{ number_format($po->taxamt, 0, ',', '.') }}
                                         </p>
                                     </div>
@@ -402,7 +402,7 @@
                                     <x-heroicon-o-currency-dollar class="h-5 w-5 text-gray-400" />
                                     <div>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Grand Total</p>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">
                                             Rp {{ number_format($po->grandtotalamt, 0, ',', '.') }}
                                         </p>
                                     </div>
@@ -416,7 +416,7 @@
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Purpose</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        <p class="text-xs font-medium text-gray-900 dark:text-gray-100">
                                             {{ $po->keperluan }}
                                         </p>
                                     </div>
@@ -438,7 +438,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Information PO / SPK
                                 </button>
                                 <button @click="activeTab = 'attachment'"
@@ -446,7 +446,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Attachment
                                 </button>
                                 <button @click="activeTab = 'comments'"
@@ -454,7 +454,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Comments
                                 </button>
                             </nav>
@@ -481,19 +481,19 @@
                                             class="rounded-lg border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800">
                                             <div class="flex items-center justify-between">
                                                 <label for="podeliverydate"
-                                                    class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    class="whitespace-nowrap text-xs font-medium text-gray-700 dark:text-gray-300">
                                                     Delivery Date
                                                 </label>
 
                                                 @if ($readOnlyDelivery)
                                                     <p
-                                                        class="flex-1 border-b border-gray-200 pb-1 text-right text-sm text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                                                        class="flex-1 border-b border-gray-200 pb-1 text-right text-xs text-gray-900 dark:border-gray-700 dark:text-gray-100">
                                                         {{ optional($po->podeliverydate)->format('d M Y') ?? '-' }}
                                                     </p>
                                                 @else
                                                     <input type="date" name="podeliverydate" id="podeliverydate"
                                                         value="{{ old('podeliverydate', optional($po->podeliverydate)->format('Y-m-d')) }}"
-                                                        class="max-w-xs flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                        class="max-w-xs flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-900 focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                 @endif
                                             </div>
                                         </div>
@@ -504,7 +504,7 @@
                                             <section
                                                 class="rounded-lg border border-gray-200 bg-gray-50 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
                                                 <h3
-                                                    class="mb-6 text-base font-semibold text-gray-800 dark:text-gray-100">
+                                                    class="mb-6 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                     Work & Contract Summary
                                                 </h3>
 
@@ -517,7 +517,7 @@
                                                             {{-- Work Execution Date --}}
                                                             <div>
                                                                 <label
-                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                     Work Execution Date
                                                                 </label>
                                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -529,7 +529,7 @@
                                                                         <input type="date" name="work_date_from"
                                                                             id="work_date_from"
                                                                             value="{{ old('work_date_from') }}"
-                                                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                     </div>
                                                                     <div>
                                                                         <label
@@ -539,7 +539,7 @@
                                                                         <input type="date" name="work_date_to"
                                                                             id="work_date_to"
                                                                             value="{{ old('work_date_to') }}"
-                                                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -547,7 +547,7 @@
                                                             {{-- Work Duration --}}
                                                             <div>
                                                                 <label
-                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                     Work Duration
                                                                 </label>
                                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -561,12 +561,12 @@
                                                                             value="{{ old('work_days') }}"
                                                                             readonly
                                                                             placeholder="Auto"
-                                                                            class="w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 p-2 text-sm shadow-sm focus:ring-0 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                                                                            class="w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-100 p-2 text-xs shadow-sm focus:ring-0 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                                                         />
 
                                                                     </div>
                                                                     <div
-                                                                        class="flex items-end text-sm text-gray-600 dark:text-gray-400">
+                                                                        class="flex items-end text-xs text-gray-600 dark:text-gray-400">
                                                                         (Excludes weekends & public holidays)
                                                                     </div>
                                                                 </div>
@@ -576,7 +576,7 @@
                                                         {{-- Row 2: Work Execution Time + Man Power --}}
                                                         <div>
                                                             <label
-                                                                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                 Work Execution Time
                                                             </label>
 
@@ -600,7 +600,7 @@
                                                                         Day (From)
                                                                     </label>
                                                                     <select name="work_day_from" id="work_day_from"
-                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                         <option value="">Select day</option>
                                                                         @foreach ($days as $day)
                                                                             <option value="{{ $day }}"
@@ -618,7 +618,7 @@
                                                                         Day (To)
                                                                     </label>
                                                                     <select name="work_day_to" id="work_day_to"
-                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                         <option value="">Select day</option>
                                                                         @foreach ($days as $day)
                                                                             <option value="{{ $day }}"
@@ -639,7 +639,7 @@
                                                                     <input type="time" name="work_time_from"
                                                                         id="work_time_from"
                                                                         value="{{ old('work_time_from') }}"
-                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 </div>
 
                                                                 {{-- Arrow --}}
@@ -657,7 +657,7 @@
                                                                     <input type="time" name="work_time_to"
                                                                         id="work_time_to"
                                                                         value="{{ old('work_time_to') }}"
-                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                        class="rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                 </div>
 
                                                                 {{-- 24 Hours --}}
@@ -666,7 +666,7 @@
                                                                         <input type="checkbox" id="work_time_24"
                                                                             class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-0">
                                                                         <label for="work_time_24"
-                                                                            class="text-sm text-gray-600 dark:text-gray-400">
+                                                                            class="text-xs text-gray-600 dark:text-gray-400">
                                                                             24h
                                                                         </label>
                                                                     </div>
@@ -682,38 +682,38 @@
                                                             {{-- Total Man Power --}}
                                                             <div>
                                                                 <label
-                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                     Total Man Power
                                                                 </label>
                                                                 <input type="number" name="manpower_total"
                                                                     id="manpower_total" min="0" step="1"
                                                                     value="{{ old('manpower_total') }}"
                                                                     placeholder="Enter Total"
-                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                             </div>
                                                             {{-- Payment Method --}}
                                                             {{-- <div>
                                                                 <label
-                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                     Payment Method
                                                                 </label>
                                                                 <input type="text" name="payment_method"
                                                                     id="payment_method"
                                                                     value="{{ old('payment_method') }}"
                                                                     placeholder="Enter Payment Method"
-                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-xs uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                             </div> --}}
 
                                                             {{-- Work Warranty --}}
                                                             <div>
                                                                 <label
-                                                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                     Work Warranty
                                                                 </label>
                                                                 <input type="text" name="warranty" id="warranty"
                                                                     value="{{ old('warranty') }}"
                                                                     placeholder="Enter Warranty"
-                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                    class="w-full rounded-md border border-gray-300 bg-white p-2 text-xs uppercase shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                             </div>
 
                                                         </div>
@@ -721,7 +721,7 @@
                                                         {{-- Row 3: PIC / Person In Charge (2 Columns) --}}
                                                         <div>
                                                             <label
-                                                                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                                                                 PIC / Person In Charge
                                                             </label>
 
@@ -735,7 +735,7 @@
                                                                     <input type="text" name="pic_name"
                                                                         id="pic_name" value="{{ old('pic_name') }}"
                                                                         placeholder="Enter PIC Name"
-                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                 </div>
 
                                                                 {{-- PIC Phone --}}
@@ -747,7 +747,7 @@
                                                                     <input type="text" name="pic_phone"
                                                                         id="pic_phone" value="{{ old('pic_phone') }}"
                                                                         placeholder="Enter Contact Number"
-                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-xs shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -759,10 +759,10 @@
                                                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                                             <div>
                                                                 <h4
-                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    class="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                                     Work Execution Date</h4>
                                                                 <p
-                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ optional($po->spkstartworkingdate)->format('d M Y') ?? '-' }}
                                                                     —
                                                                     {{ optional($po->spkendtworkingdate)->format('d M Y') ?? '-' }}
@@ -770,10 +770,10 @@
                                                             </div>
                                                             <div>
                                                                 <h4
-                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    class="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                                     Work Duration</h4>
                                                                 <p
-                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->spktotalday }} working days (excl. weekends
                                                                     & holidays)
                                                                 </p>
@@ -784,19 +784,19 @@
                                                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                                             <div>
                                                                 <h4
-                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    class="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                                     Work Schedule</h4>
                                                                 <p
-                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->spkworkschedule }}
                                                                 </p>
                                                             </div>
                                                             <div>
                                                                 <h4
-                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    class="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                                     Total Man Power</h4>
                                                                 <p
-                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->spkmanpower }} People
                                                                 </p>
                                                             </div>
@@ -806,28 +806,28 @@
                                                         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                                                             <div>
                                                                 <h4
-                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    class="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                                     PIC</h4>
                                                                 <p
-                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->spkpic }}
                                                                 </p>
                                                             </div>
                                                             <div>
                                                                 <h4
-                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    class="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                                     Payment Method</h4>
                                                                 <p
-                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm uppercase text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-xs uppercase text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->spkpaymentmethod ?? 'GIRO' }}
                                                                 </p>
                                                             </div>
                                                             <div>
                                                                 <h4
-                                                                    class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                                    class="mb-1 text-xs font-semibold text-gray-700 dark:text-gray-300">
                                                                     Warranty</h4>
                                                                 <p
-                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-sm uppercase text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                                                    class="rounded-md border border-gray-200 bg-white p-2 text-xs uppercase text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                                                     {{ $po->spkwarranty }}
                                                                 </p>
                                                             </div>
@@ -848,7 +848,7 @@
                             <div x-show="activeTab === 'attachment'"
                                 class="flex h-full flex-1 flex-col transition-all">
                                 <div class="flex-1 overflow-auto rounded-lg">
-                                    <table class="w-full text-sm">
+                                    <table class="w-full text-xs">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr class="border-b border-gray-200 dark:border-gray-700">
                                                 <th class="p-3 text-left font-semibold">Filename</th>
@@ -875,19 +875,19 @@
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
                                             <div class="flex-1">
                                                 <label for="poAttachFiles"
-                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                    class="mb-2 block text-xs font-semibold text-gray-800 dark:text-gray-200">
                                                     Upload Attachment
                                                 </label>
                                                 <div class="flex items-center gap-3">
                                                     <input type="file" id="poAttachFiles" name="attachments[]"
                                                         multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                     <button type="button" id="btnUploadPOAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                         Upload
                                                     </button>
                                                     <button type="button" id="btnResetPOAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                                         Reset
                                                     </button>
                                                 </div>
@@ -926,7 +926,7 @@
                                             placeholder="Write a comment..."
                                             class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -939,24 +939,24 @@
 
             {{-- PO Detail table --}}
             {{-- PO Detail + PO History (Tabs) --}}
-            <div x-data="{ poTab: 'detail' }" class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+            <div x-data="{ poTab: 'detail' }" class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
 
                 <header class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <div class="flex items-center gap-3">
-                        {{-- <h2 class="text-xl font-semibold">📝 PO</h2> --}}
+                        {{-- <h2 class="text-base font-semibold">📝 PO</h2> --}}
 
                         {{-- Tabs --}}
                         <div class="ml-4 inline-flex overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800">
                             <button type="button"
                                 @click="poTab='detail'"
                                 :class="poTab==='detail' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
-                                class="px-4 py-2 text-sm font-semibold transition">
+                                class="px-4 py-2 text-xs font-semibold transition">
                                 PO Detail
                             </button>
                             <button type="button"
                                 @click="poTab='history'"
                                 :class="poTab==='history' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'"
-                                class="px-4 py-2 text-sm font-semibold transition">
+                                class="px-4 py-2 text-xs font-semibold transition">
                                 PO History
                             </button>
                         </div>
@@ -965,7 +965,7 @@
 
                 {{-- ===== TAB: PO DETAIL ===== --}}
                 <div x-show="poTab==='detail'" class="overflow-x-auto">
-                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
+                    <table class="w-full text-xs text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2 w-[60px]">No</th>
@@ -1001,7 +1001,7 @@
 
                 {{-- ===== TAB: PO HISTORY (TrReceipt) ===== --}}
                 <div x-show="poTab==='history'" class="overflow-x-auto">
-                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
+                    <table class="w-full text-xs text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2 w-[60px]">No</th>
@@ -1072,13 +1072,13 @@
 
             </div>
 
-            {{-- <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+            {{-- <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-xl font-semibold">📝 PO Detail</h2>
+                    <h2 class="text-base font-semibold">📝 PO Detail</h2>
                 </header>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
+                    <table class="w-full text-xs text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
@@ -1120,7 +1120,7 @@
     {{-- Modal: Cancel Reuse --}}
     <div id="modalCancelReuse" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reuse</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reuse</h2>
             <textarea id="reasonCancelReuse"
                 class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter reason for cancel reuse..."></textarea>
@@ -1141,7 +1141,7 @@
     {{-- Modal: Cancel --}}
     <div id="modalCancel" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Cancel PO</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Cancel PO</h2>
             <textarea id="reasonCancel" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter reason for cancel..."></textarea>
 
@@ -1229,7 +1229,7 @@
 
                             commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
-                                    <p class="text-sm font-semibold">
+                                    <p class="text-xs font-semibold">
                                         ${comment.username}
                                         <span class="text-xs text-gray-500">(${timeAgo})</span>
                                     </p>
@@ -1323,7 +1323,7 @@
                                 let timeAgo = dayjs(comment.created_at).fromNow();
                                 commentList.append(`
                                         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
-                                            <p class="text-sm font-semibold">${comment.username} 
+                                            <p class="text-xs font-semibold">${comment.username} 
                                                 <span class="text-xs text-gray-500">(${timeAgo})</span>
                                             </p>
                                             <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

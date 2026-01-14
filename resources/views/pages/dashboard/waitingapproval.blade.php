@@ -28,7 +28,7 @@
                 <!-- TAB 1 -->
                 <div x-show="tab === 'waitingapp'" x-transition>
                     <div class="overflow-x-auto">
-                        <table id="agendasTable" class="w-full text-left text-sm">
+                        <table id="agendasTable" class="w-full text-left text-xs">
                             <thead>
                                 <tr>
                                     <th></th>

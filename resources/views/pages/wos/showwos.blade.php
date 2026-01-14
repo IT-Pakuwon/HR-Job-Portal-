@@ -104,7 +104,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -115,7 +115,7 @@
 
             <div class="flex gap-3">
                 <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -124,7 +124,7 @@
                     Approve
                 </button>
                 <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -133,7 +133,7 @@
                     Revise
                 </button>
                 <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -149,9 +149,9 @@
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $wo->woid }}
@@ -178,14 +178,14 @@
 
                         <div class="flex items-center gap-3">
                             <span
-                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
                             {{-- Dropdown Print --}}
                             <div class="relative">
                                 <button id="printMenuBtn"
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
@@ -198,11 +198,11 @@
                                     class="absolute right-0 z-20 mt-2 hidden w-48 overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800">
                                     <a href="{{ route('wos.print', ['hash' => $hash]) }}?variant=default"
                                         target="_blank"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
                                         Print WO
                                     </a>
                                     <a href="{{ route('wos.print', ['hash' => $hash]) }}?variant=tenant" target="_blank"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
                                         Print WO Tenant
                                     </a>
                                 </div>
@@ -298,7 +298,7 @@
                             ];
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
 
                             {{-- Render all fields --}}
                             @foreach ($fields as $f)
@@ -342,7 +342,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Attachment
                                 </button>
                                 <button @click="activeTab = 'approval'"
@@ -350,7 +350,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Approval Details
                                 </button>
                                 <button @click="activeTab = 'comments'"
@@ -358,7 +358,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Comments
                                 </button>
                             </nav>
@@ -368,7 +368,7 @@
                         <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
-                                <table class="w-full text-sm">
+                                <table class="w-full text-xs">
                                     <thead>
                                         <tr
                                             class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -427,7 +427,7 @@
                             </div>
                             {{-- Attachment tab --}}
                             <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
-                                <table class="w-full text-sm">
+                                <table class="w-full text-xs">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
@@ -469,7 +469,7 @@
                                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                                 <div class="flex-1">
                                                     <label for="woAttachFiles"
-                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        class="mb-2 block text-xs font-semibold text-gray-800 dark:text-gray-200">
                                                         Upload Attachments
                                                     </label>
                                                     <div class="flex items-center gap-3">
@@ -479,13 +479,13 @@
                                                             value="{{ $wo->department_id }}">
                                                         <input type="file" id="woAttachFiles" name="attachments[]"
                                                             multiple
-                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                         <button type="button" id="btnUploadSppbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                             Upload
                                                         </button>
                                                         <button type="button" id="btnResetSppbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                                             Reset
                                                         </button>
                                                     </div>
@@ -512,7 +512,7 @@
                                             placeholder="Write a comment..."
                                             class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -560,7 +560,7 @@
                 <div id="jobProcessBox" class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
 
                     <button id="btnJobProcess"
-                        class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         data-mode="{{ $isPicWo ? 'save' : 'process' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="1.5">
@@ -575,11 +575,11 @@
                             <div class="flex items-end gap-4">
                                 <div class="flex-1">
                                     <label for="jobStatusSelect"
-                                        class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                        class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                                         Status Pekerjaan
                                     </label>
                                     <select id="jobStatusSelect" {{ $isPicWo ? '' : 'disabled' }}
-                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-xs focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                         <option value="">-- pilih --</option>
                                         <option value="P" @selected($wo->status_pekerjaan === 'P')>On Progress</option>
                                         <option value="X" @selected($wo->status_pekerjaan === 'X')>Cancel Jobs</option>
@@ -595,7 +595,7 @@
                                     <input type="checkbox" id="flagSppbJkt" {{ $isPicWo ? '' : 'disabled' }}
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500"
                                         @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
-                                    <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
+                                    <span class="text-xs text-gray-700 dark:text-gray-200">SPPB JKT</span>
                                 </label>
                             </div>
                         </div>
@@ -603,7 +603,7 @@
                         <div class="mb-3">
                             <div class="flex items-end gap-4">
                                 <div class="flex-1">
-                                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                                         Department
                                     </label>
                                     <select name="pic_department" id="pic_department"
@@ -622,42 +622,42 @@
 
                         <div>
                             <label for="jobComment"
-                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
+                                class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Comment</label>
                             <textarea id="jobComment" rows="3" {{ $isPicWo ? '' : 'disabled' }}
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-xs focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                 placeholder="Tuliskan catatan untuk pekerjaan ini...">{{ $wo->pic_wo_comment }}</textarea>
                         </div>
                     </div>
 
                     {{-- ✅ READ-ONLY CARD untuk info PIC (opsional) --}}
                     @if (!$isPicWo)
-                        <div class="mt-4 flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+                        <div class="mt-4 flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                             <header
                                 class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                <h2 class="text-xl font-semibold">📝 WO Detail</h2>
-                                <h2 class="text-xl font-medium">PIC : {{ $wo->pic_wo ?: '-' }}</h2>
+                                <h2 class="text-base font-semibold">📝 WO Detail</h2>
+                                <h2 class="text-base font-medium">PIC : {{ $wo->pic_wo ?: '-' }}</h2>
                             </header>
                         </div>
                     @endif
                 </div>
             @else
                 {{-- ===== READ-ONLY (bukan PIC) ===== --}}
-                <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+                <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                        <h2 class="text-xl font-semibold">📝 WO Detail</h2>
-                        <h2 class="text-xl font-medium"> PIC :
+                        <h2 class="text-base font-semibold">📝 WO Detail</h2>
+                        <h2 class="text-base font-medium"> PIC :
                             {{ $wo->pic_wo ?: '-' }}
                         </h2>
                     </header>
                     <div class="flex flex-col gap-4 p-4">
                         <div class="flex items-end gap-4">
                             <div class="flex-1">
-                                <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                                     Status Pekerjaan
                                 </label>
                                 <input type="text" readonly
-                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                                     value="@switch($wo->status_pekerjaan)
                                                 @case('P') On Progress @break
                                                 @case('X') Cancel Jobs @break
@@ -666,11 +666,11 @@
                                             @endswitch">
                             </div>
                             <div class="flex-1">
-                                <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
                                     Department
                                 </label>
                                 <input type="text" readonly
-                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                                     value="{{ $wo->pic_department ?? '-' }}">
                             </div>
 
@@ -678,14 +678,14 @@
                                 <input type="checkbox" disabled
                                     class="h-4 w-4 rounded border-gray-300 text-indigo-600 dark:border-gray-500"
                                     @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
-                                <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
+                                <span class="text-xs text-gray-700 dark:text-gray-200">SPPB JKT</span>
                             </label>
                         </div>
                         <div>
                             <label
-                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
+                                class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Comment</label>
                             <textarea rows="3" readonly
-                                class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $wo->pic_wo_comment }}</textarea>
+                                class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $wo->pic_wo_comment }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -705,7 +705,7 @@
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
 
@@ -721,7 +721,7 @@
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
 
@@ -730,7 +730,7 @@
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
 
@@ -781,7 +781,7 @@
 
                             commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
-                                    <p class="text-sm font-semibold">
+                                    <p class="text-xs font-semibold">
                                         ${comment.username}
                                         <span class="text-xs text-gray-500">(${timeAgo})</span>
                                     </p>

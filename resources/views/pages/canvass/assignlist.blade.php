@@ -10,25 +10,25 @@
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
 
         {{-- Header + Filters --}}
-        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
 
             <!-- TOP HEADER -->
             <div
                 class="flex flex-col gap-4 border-b border-gray-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
 
                 <!-- Title -->
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">
                     Purchasing Assignment
                 </h1>
 
                 <!-- Filter -->
                 <div class="flex items-center gap-2">
                     <label for="docFilter"
-                        class="whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-300">
+                        class="whitespace-nowrap text-xs font-semibold text-gray-600 dark:text-gray-300">
                         Doc Type:
                     </label>
                     <select id="docFilter"
-                        class="min-w-[140px] rounded-lg border border-gray-300 px-3 py-2 text-sm dark:bg-gray-700 dark:text-white">
+                        class="min-w-[140px] rounded-lg border border-gray-300 px-3 py-2 text-xs dark:bg-gray-700 dark:text-white">
                         <option value="">All</option>
                         <option value="SPPB">SPPB</option>
                         <option value="SPPJ">SPPJ</option>
@@ -44,12 +44,12 @@
                 <!-- Tabs -->
                 <div class="flex gap-2">
                     <button type="button" data-tab="assign"
-                        class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-sm font-semibold text-white">
+                        class="tab-btn rounded-xl border border-gray-300 bg-gray-900 px-4 py-2 text-xs font-semibold text-white">
                         Assign List
                     </button>
 
                     <button type="button" data-tab="transfer"
-                        class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-white">
+                        class="tab-btn rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-white">
                         Transfer Jobs
                     </button>
                 </div>
@@ -57,12 +57,12 @@
                 <!-- Actions -->
                 <div class="flex gap-2">
                     <button id="btnAssignPurchasing"
-                        class="tab-action assign-action hidden rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                        class="tab-action assign-action hidden rounded-xl bg-blue-600 px-5 py-2 text-xs font-semibold text-white hover:bg-blue-700">
                         Assign Purchasing
                     </button>
 
                     <button id="btnTransferJobs"
-                        class="tab-action transfer-action hidden rounded-xl bg-amber-600 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-700">
+                        class="tab-action transfer-action hidden rounded-xl bg-amber-600 px-5 py-2 text-xs font-semibold text-white hover:bg-amber-700">
                         <i class="fas fa-exchange-alt pr-2"></i>Transfer Jobs
                     </button>
                 </div>
@@ -72,9 +72,9 @@
 
             {{-- TAB: Assign List --}}
             <div id="tab-assign" class="rounded-base relative overflow-x-auto p-4">
-                <table id="canvassTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="canvassTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th
@@ -104,9 +104,9 @@
 
             {{-- TAB: Transfer Jobs --}}
             <div id="tab-transfer"class="rounded-base relative overflow-x-auto p-4">
-                <table id="transferTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="transferTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th
@@ -168,7 +168,7 @@
                 };
                 const base = map[row.doc_type] || '#';
                 const url = `/${base}/${row.eid}`;
-                return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold">${text}</a>`;
+                return `<a href="${url}" class="inline-flex items-center rounded px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold">${text}</a>`;
             }
 
             // Assign List datatable

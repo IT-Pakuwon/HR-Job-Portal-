@@ -6,9 +6,9 @@
                     <div class="flex flex-col xl:flex-col sm:col-span-1 lg:row-span-2 xl:col-span-1 gap-10 overflow-hidden">
                         <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                             @csrf
-                            <div class="flex flex-col w-full  rounded-2xl shadow-sm border-b bg-white dark:bg-gray-800 w-full p-6">
+                            <div class="flex flex-col w-full  rounded-xl shadow-sm border-b bg-white dark:bg-gray-800 w-full p-6">
                                 <div class="flex justify-between border-b dark:border-gray-600">
-                                    <h2 class="text-xl font-bold mb-2">Create Personnel Requisition</h2>
+                                    <h2 class="text-base font-bold mb-2">Create Personnel Requisition</h2>
                                 </div>
                                 <div class="grid grid-cols-1 mt-2 md:grid-cols-2 mt-2 lg:grid-cols-2 gap-6 dark:border-gray-600 ">
                                     <div class="flex items-center gap-2">
@@ -78,11 +78,11 @@
                                 </div>
                             </div>
                             <!-- Job Responsibilities -->
-                            <div class="flex flex-col w-full rounded-2xl border-b gap-2 bg-white dark:bg-gray-800 ">
-                                <div class="flex flex-col w-full rounded-2xl p-4">
+                            <div class="flex flex-col w-full rounded-xl border-b gap-2 bg-white dark:bg-gray-800 ">
+                                <div class="flex flex-col w-full rounded-xl p-4">
                                     <details class="group" open>
                                         <summary class="flex items-center justify-between cursor-pointer mb-4 rounded">
-                                            <span class="text-lg font-semibold">Job Responsibilities</span>
+                                            <span class="text-sm font-semibold">Job Responsibilities</span>
                                             <span class="transition-all group-open:hidden">See details</span>
                                             <span class="hidden transition-all group-open:inline">Hide details</span>
                                         </summary>
@@ -120,11 +120,11 @@
                                 </div>
                             </div>
                                 <!-- Job Qualification -->
-                            <div class="flex flex-col w-full rounded-2xl border-b gap-2 bg-white dark:bg-gray-800 ">
+                            <div class="flex flex-col w-full rounded-xl border-b gap-2 bg-white dark:bg-gray-800 ">
                                 <div class="flex flex-col w-full gap-4 p-4">
                                     <details class="group" open>
                                         <summary class="flex items-center justify-between cursor-pointer mb-4 rounded">
-                                            <span class="text-lg font-semibold">Job Qualification</span>
+                                            <span class="text-sm font-semibold">Job Qualification</span>
                                             <span class="transition-all group-open:hidden">See details</span>
                                             <span class="hidden transition-all group-open:inline">Hide details</span>
                                         </summary>
@@ -195,11 +195,11 @@
                                     </details>
                                 </div>
                             </div>
-                            <div class="flex flex-col w-full rounded-2xl border-b gap-2 bg-white dark:bg-gray-800 ">
+                            <div class="flex flex-col w-full rounded-xl border-b gap-2 bg-white dark:bg-gray-800 ">
                                 <div class="flex flex-col w-1/2 p-4 border-b w-full">
                                     <details class="group mb-4" open>
                                         <summary class="flex items-center justify-between cursor-pointer mb-4 rounded">
-                                            <span class="text-lg font-semibold">Attachments</span>
+                                            <span class="text-sm font-semibold">Attachments</span>
                                             <span class="transition-all group-open:hidden">See details</span>
                                             <span class="hidden transition-all group-open:inline">Hide details</span>
                                         </summary>
@@ -211,7 +211,7 @@
                                             </button>
                                             <div id="attachmentsContainer">
                                                 <div class="attachment-row flex items-center gap-2">
-                                                    <input type="file" name="attachments[]" class="w-full p-3 mt-4 text-lg border">
+                                                    <input type="file" name="attachments[]" class="w-full p-3 mt-4 text-sm border">
                                                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">
                                                         🗑️
                                                     </button>
@@ -302,7 +302,7 @@
     $('#addAttachment').click(function () {
         $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-lg border rounded mt-4">
+                <input type="file" name="attachments[]" class="w-full mt-4 p-3 text-sm border rounded mt-4">
                     <button type="button" class="removeAttachment bg-red-200/30 mt-4 text-red-600 p-3 rounded hidden border border-red-600 hover:text-white hover:bg-red-600 transition">🗑️</button>
             </div>
         `);

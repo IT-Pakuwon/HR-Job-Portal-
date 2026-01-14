@@ -407,13 +407,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-blue-700/60 bg-blue-50/40 p-3 text-blue-700 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧊</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧊</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Hold</p>
+                        <p class="break-words text-xs font-medium">Hold</p>
                     </div>
 
-                    <p class="shrink-0 text-lg font-extrabold">{{ $hold }}</p>
+                    <p class="shrink-0 text-sm font-extrabold">{{ $hold }}</p>
                 </div>
             </a>
 
@@ -422,13 +422,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-indigo-700/60 bg-indigo-50/40 p-3 text-indigo-700 transition-all duration-300 hover:-translate-y-1 hover:bg-indigo-50 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🛒</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛒</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Purchase</p>
+                        <p class="break-words text-xs font-medium">Purchase</p>
                     </div>
 
-                    <p class="shrink-0 text-lg font-extrabold">{{ $purchase }}</p>
+                    <p class="shrink-0 text-sm font-extrabold">{{ $purchase }}</p>
                 </div>
             </a>
 
@@ -437,13 +437,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-amber-700/60 bg-amber-50/40 p-3 text-amber-700 transition-all duration-300 hover:-translate-y-1 hover:bg-amber-50 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📦</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Partial</p>
+                        <p class="break-words text-xs font-medium">Partial</p>
                     </div>
 
-                    <p class="shrink-0 text-lg font-extrabold">{{ $partial }}</p>
+                    <p class="shrink-0 text-sm font-extrabold">{{ $partial }}</p>
                 </div>
             </a>
 
@@ -452,13 +452,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-green-700/60 bg-green-50/40 p-3 text-green-700 transition-all duration-300 hover:-translate-y-1 hover:bg-green-50 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Completed</p>
+                        <p class="break-words text-xs font-medium">Completed</p>
                     </div>
 
-                    <p class="shrink-0 text-lg font-extrabold">{{ $completed }}</p>
+                    <p class="shrink-0 text-sm font-extrabold">{{ $completed }}</p>
                 </div>
             </a>
 
@@ -467,13 +467,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-red-700/60 bg-red-50/40 p-3 text-red-700 transition-all duration-300 hover:-translate-y-1 hover:bg-red-50 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✖️</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✖️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Cancel</p>
+                        <p class="break-words text-xs font-medium">Cancel</p>
                     </div>
 
-                    <p class="shrink-0 text-lg font-extrabold">{{ $cancel }}</p>
+                    <p class="shrink-0 text-sm font-extrabold">{{ $cancel }}</p>
                 </div>
             </a>
 
@@ -482,13 +482,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-gray-700/60 bg-gray-50/40 p-3 text-gray-700 transition-all duration-300 hover:-translate-y-1 hover:bg-gray-50 hover:shadow-md active:scale-95 dark:border-gray-400 dark:bg-gray-700/30 dark:text-gray-200 dark:hover:bg-gray-700/40">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">♻️</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">♻️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Reuse</p>
+                        <p class="break-words text-xs font-medium">Reuse</p>
                     </div>
 
-                    <p class="shrink-0 text-lg font-extrabold">{{ $reuse }}</p>
+                    <p class="shrink-0 text-sm font-extrabold">{{ $reuse }}</p>
                 </div>
             </a>
 
@@ -497,13 +497,13 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-slate-700/60 bg-slate-50/40 p-3 text-slate-700 transition-all duration-300 hover:-translate-y-1 hover:bg-slate-50 hover:shadow-md active:scale-95 dark:border-white/50 dark:text-white dark:hover:bg-gray-700/40">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🧾</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧾</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">All PO</p>
+                        <p class="break-words text-xs font-medium">All PO</p>
                     </div>
 
-                    <p class="shrink-0 text-lg font-extrabold">{{ $all }}</p>
+                    <p class="shrink-0 text-sm font-extrabold">{{ $all }}</p>
                 </div>
             </a>
 
@@ -570,9 +570,9 @@
                 }
             </style>
 
-            <div class="mt-6 rounded-2xl bg-white dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
                 <div class="flex items-center justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
-                    <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Purchase Order</h1>
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Purchase Order</h1>
                 </div>
 
                 <div class="overflow-x-auto p-6">
@@ -623,7 +623,7 @@
                 $(document).ready(function() {
                     let scope = 'hold'; // default: Purchase Order (P)
 
-                    const $title = $('h1.text-xl.font-extrabold');
+                    const $title = $('h1.text-base.font-extrabold');
                     const titleMap = {
                         hold: 'Purchase Order - Hold',
                         purchase: 'Purchase Order - Purchase',
@@ -667,7 +667,7 @@
                     function renderPONbr(_v, row) {
                         const url = `/showpo/${row.eid}`;
                         const text = row.ponbr || row.eid;
-                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700" rel="noopener">${text}</a>`;
+                        return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700" rel="noopener">${text}</a>`;
                     }
 
                     const table = $('#poTable').DataTable({
@@ -695,7 +695,7 @@
                                         .join('');
 
                                     return hidden ?
-                                        `<table class="w-full text-sm">${hidden}</table>` :
+                                        `<table class="w-full text-xs">${hidden}</table>` :
                                         false;
                                 }
                             }

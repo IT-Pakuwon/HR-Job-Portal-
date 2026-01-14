@@ -6,23 +6,23 @@
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-xl font-bold text-gray-800 dark:text-white">📋 Sys Menu Tree</h1>
+                <h1 class="text-base font-bold text-gray-800 dark:text-white">📋 Sys Menu Tree</h1>
                 <button id="addMenuBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     + Add Menu
                 </button>
             </div>
 
             <div id="menuTreeContainer" class="mt-2">
                 <!-- Menu tree akan di-render via jQuery -->
-                <div class="text-sm text-gray-500">Loading menus...</div>
+                <div class="text-xs text-gray-500">Loading menus...</div>
             </div>
         </div>
 
         {{-- Modal --}}
         <div id="menuModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
             <div class="relative w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                <h2 id="menuModalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">
+                <h2 id="menuModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
                     Add Menu
                 </h2>
                 <form id="menuForm">
@@ -132,7 +132,7 @@
             //  LOAD & BUILD TREE
             // ==========================
             function loadMenuTree() {
-                $('#menuTreeContainer').html('<div class="text-gray-500 text-sm">Loading menus...</div>');
+                $('#menuTreeContainer').html('<div class="text-gray-500 text-xs">Loading menus...</div>');
 
                 $.get("{{ route('menus.json') }}", function(res) {
                     menus = res.data || [];
@@ -142,7 +142,7 @@
 
                     $('#menuTreeContainer').html(`
                             <div class="menu-tree">
-                                ${html || '<div class="text-gray-500 text-sm">Belum ada menu.</div>'}
+                                ${html || '<div class="text-gray-500 text-xs">Belum ada menu.</div>'}
                             </div>
                         `);
                 });
@@ -182,7 +182,7 @@
                                 <div class="flex-1 flex items-center justify-between">
                                     <div>
                                         <span class="font-mono text-[11px] bg-gray-100 dark:bg-gray-700 px-1 rounded">${m.menu_id}</span>
-                                        <span class="ml-2 font-semibold text-sm text-gray-800 dark:text-gray-100">${m.menu_name}</span>
+                                        <span class="ml-2 font-semibold text-xs text-gray-800 dark:text-gray-100">${m.menu_name}</span>
                                         <span class="ml-2 text-xs text-gray-500">
                                             ${m.menu_route || m.menu_url || '-'}
                                         </span>

@@ -168,16 +168,16 @@
 
             <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">🏢 Company List</h2>
+                    <h2 class="text-base font-bold text-gray-800 dark:text-white">🏢 Company List</h2>
                     <button id="addCompanyBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         + Add Company
                     </button>
                 </div>
 
-                <table id="companiesTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="companiesTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
@@ -195,7 +195,7 @@
             <!-- Modal -->
             <div id="companyModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="relative w-full max-w-xl rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 id="modalTitle" class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Add Company</h2>
+                    <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Company</h2>
                     <form id="companyForm">
                         <input type="hidden" id="id" name="id">
 

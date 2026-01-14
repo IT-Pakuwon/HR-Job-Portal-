@@ -7,13 +7,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📄</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">All</p>
+                        <p class="break-words text-sm font-medium">All</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $all }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </a>
 
@@ -22,13 +22,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⏳</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">On Progress</p>
+                        <p class="break-words text-sm font-medium">On Progress</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $onProgress }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $onProgress }}</p>
                 </div>
             </a>
 
@@ -37,13 +37,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">⛔️</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Reject</p>
+                        <p class="break-words text-sm font-medium">Reject</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $reject }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
                 </div>
             </a>
 
@@ -52,13 +52,13 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✏️</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Revise / Draft</p>
+                        <p class="break-words text-sm font-medium">Revise / Draft</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $revise }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
                 </div>
             </a>
 
@@ -67,31 +67,31 @@
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Completed</p>
+                        <p class="break-words text-sm font-medium">Completed</p>
                     </div>
 
-                    <p class="shrink-0 text-xl font-bold">{{ $completed }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </a>
 
         </div>
         <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                {{-- Changed text-3xl to text-xl --}}
-                <h1 class="text-xl font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
+                {{-- Changed text-lg to text-base --}}
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
                 <a href="{{ url('/createpersonnels') }}"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                     <i class="fas fa-plus pr-2"></i>Create
                 </a>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="personnelsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="personnelsTable" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th scope="col" class="w-32 px-6 py-3 font-medium">
@@ -208,14 +208,14 @@
                         render: function(data, type, row) {
                             let url = `/showpersonnels/${row.eid}`;
                             let buttonClass =
-                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                             let buttonText = row.docid; // Menggunakan row.docid untuk teks tombol
 
                             // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
                             if (row.status === 'D' && row.created_user === currentUser) {
                                 url = `/editpersonnels/${row.eid}`;
                                 buttonClass =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
 
                             return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

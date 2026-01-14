@@ -6,12 +6,12 @@
                   <div class="flex flex-col w-full">
                       {{-- Personal Information --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
                                   <div class="flex gap-10">                                            
-                                      <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔{{ $applicant->applicant_id }}</h2>
-                                      <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Personal Information</h2>
+                                      <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔{{ $applicant->applicant_id }}</h2>
+                                      <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Personal Information</h2>
                                       <form id="applicantprofile" class="flex-shrink-0">
                                           @csrf
                                           <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
@@ -46,14 +46,14 @@
                                                     <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                     <div>
                                                         <span class="text-xs text-gray-500 dark:text-gray-400">Full Name</span>
-                                                        <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->full_name }}</p>
+                                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->full_name }}</p>
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-2 p-3 bg-gray-200/10 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"">
                                                     <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                     <div>
                                                         <span class="text-xs text-gray-500 dark:text-gray-400">Email</span>
-                                                        <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->email_address }}</p>
+                                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->email_address }}</p>
                                                     </div>
                                                 </div>
                                                 </div>
@@ -65,14 +65,14 @@
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Birth Place</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->birth_place }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->birth_place }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">DOB</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->date_of_birth }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->date_of_birth }}</p>
                                                           </div>
                                                       </div>
                                                   </div>
@@ -81,14 +81,14 @@
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Gender</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->gender }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->gender }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Blood Type</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->blood_type }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->blood_type }}</p>
                                                           </div>
                                                       </div>
 
@@ -100,21 +100,21 @@
                                                           <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Age</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->age }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->age }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Height</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->height }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->height }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Weight</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->weight }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->weight }}</p>
                                                           </div>
                                                       </div>
                                                   </div>
@@ -125,14 +125,14 @@
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Citizenship</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->citizenship }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->citizenship }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">KTP ID</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->ktp_id }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->ktp_id }}</p>
                                                           </div>
                                                       </div>
                                                   </div>
@@ -141,14 +141,14 @@
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Marital Status</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->martial_status }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->martial_status }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Religion</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->religion }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->religion }}</p>
                                                           </div>
                                                       </div>
                                                   </div>
@@ -158,7 +158,7 @@
                                                       <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                       <div>
                                                           <span class="text-xs text-gray-500 dark:text-gray-400">Address</span>
-                                                          <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->id_address }} {{ $applicant->domicile_address }} {{ $applicant->domicile_city }}</p>
+                                                          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->id_address }} {{ $applicant->domicile_address }} {{ $applicant->domicile_city }}</p>
                                                       </div>
                                                   </div>
                                               </div> 
@@ -168,28 +168,28 @@
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Facebook</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_facebook_account }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_facebook_account }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Instagram</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_instagram_account }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_instagram_account }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">Twitter</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_x_account }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_x_account }}</p>
                                                           </div>
                                                       </div>
                                                       <div class="flex items-center gap-2">
                                                           <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                           <div>
                                                               <span class="text-xs text-gray-500 dark:text-gray-400">LinkedIn</span>
-                                                              <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_linkedin_account }}</p>
+                                                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->sosmed_linkedin_account }}</p>
                                                           </div>
                                                       </div>
                                                   </div>
@@ -202,8 +202,8 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <label for="" class="font-semibold text-lg">Reference Information</label>
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm my-4">
+                                          <label for="" class="font-semibold text-sm">Reference Information</label>
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs my-4">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Name</th>
@@ -227,10 +227,10 @@
                       </div>
                       {{-- Education Information --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                                  <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Education</h2>
+                                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Education</h2>
                                   <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                       <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                   </button>
@@ -239,7 +239,7 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Name</th>
@@ -269,10 +269,10 @@
                       </div>
                       {{-- Work Experienced --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                                  <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Work Experience</h2>
+                                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Work Experience</h2>
                                   <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                       <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                   </button>
@@ -281,7 +281,7 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Name</th>
@@ -312,10 +312,10 @@
                       </div>
                       {{-- Skill --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                                  <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Skill</h2>
+                                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Skill</h2>
                                   <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                       <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                   </button>
@@ -324,7 +324,7 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Name</th>
@@ -347,10 +347,10 @@
                       </div>
                       {{-- Language --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                                  <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Languange</h2>
+                                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Languange</h2>
                                   <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                       <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                   </button>
@@ -359,7 +359,7 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Name</th>
@@ -382,10 +382,10 @@
                       </div>
                       {{-- Certificate --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                                  <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Certificate</h2>
+                                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Certificate</h2>
                                   <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                       <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                   </button>
@@ -394,7 +394,7 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Name</th>
@@ -421,10 +421,10 @@
                       </div>
                       {{-- Strengths & Weaknesses --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                             <!-- Header -->
                             <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                              <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Strengths & Weaknesses</h2>
+                              <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Strengths & Weaknesses</h2>
                               <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                 <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                               </button>
@@ -434,7 +434,7 @@
                             <div class="p-6">
                               <div x-show="isOpen" x-transition.opacity>
                                 <div class="overflow-x-auto">
-                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                       <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                         <tr>
                                           <th class="px-4 py-2 border">Type</th>
@@ -460,10 +460,10 @@
                   <div class="flex flex-col w-full">
                       {{-- Expectation --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                                  <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Detail Information</h2>
+                                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Detail Information</h2>
                                   <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                   <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                   </button>
@@ -479,14 +479,14 @@
                                                       <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                       <div>
                                                           <span class="text-xs text-gray-500 dark:text-gray-400">Last Salary</span>
-                                                          <p class="text-base font-medium text-gray-900 dark:text-gray-100">Rp. {{ $applicant->existing_last_thp }}</p>
+                                                          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Rp. {{ $applicant->existing_last_thp }}</p>
                                                       </div>
                                                   </div>
                                                   <div class="flex items-center gap-2 p-3 bg-gray-200/10 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"">
                                                       <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                       <div>
                                                           <span class="text-xs text-gray-500 dark:text-gray-400">Expected Salary</span>
-                                                          <p class="text-base font-medium text-gray-900 dark:text-gray-100">Rp. {{ $applicant->expected_thp }}</p>
+                                                          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Rp. {{ $applicant->expected_thp }}</p>
                                                       </div>
                                                   </div>
                                               </div>
@@ -495,14 +495,14 @@
                                                       <i class="lucide lucide-bar-chart-2 w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                       <div>
                                                           <span class="text-xs text-gray-500 dark:text-gray-400">Expectations</span>
-                                                          <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->expectations }}</p>
+                                                          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->expectations }}</p>
                                                       </div>
                                                   </div>
                                                   <div class="flex items-center gap-2 p-3 bg-gray-200/10 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"">
                                                       <i class="lucide lucide-map-pin w-6 h-6 text-gray-600 dark:text-gray-300"></i>
                                                       <div>
                                                           <span class="text-xs text-gray-500 dark:text-gray-400">Career Achievement</span>
-                                                          <p class="text-base font-medium text-gray-900 dark:text-gray-100">{{ $applicant->applicant_achievement }}</p>
+                                                          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $applicant->applicant_achievement }}</p>
                                                       </div>
                                                   </div>
                                               </div>
@@ -514,8 +514,8 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <label for="" class="font-semibold text-lg">Attachment</label>
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm my-4">
+                                          <label for="" class="font-semibold text-sm">Attachment</label>
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs my-4">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Name</th>
@@ -553,10 +553,10 @@
                       </div> 
                       {{-- Family Information --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <!-- Header -->
                               <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                                  <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Family</h2>
+                                  <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Family</h2>
                                   <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                       <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                   </button>
@@ -565,7 +565,7 @@
                               <div class="p-6">
                                   <div x-show="isOpen" x-transition.opacity>
                                       <div class="overflow-x-auto">
-                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                          <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                               <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                                 <tr>
                                                   <th class="px-4 py-2 border">Nama</th>
@@ -597,10 +597,10 @@
                       
                       {{-- Marital Status --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                             <!-- Header -->
                             <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                              <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Marital Status & Children</h2>
+                              <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Marital Status & Children</h2>
                               <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                 <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                               </button>
@@ -610,7 +610,7 @@
                             <div class="p-6">
                               <div x-show="isOpen" x-transition.opacity>
                                 <div class="overflow-x-auto">
-                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                     <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                       <tr>
                                         <th class="px-4 py-2 border">Nama</th>
@@ -642,10 +642,10 @@
                       
                       {{-- Emergency Contact --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                             <!-- Header -->
                             <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                              <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Emergency Contact</h2>
+                              <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Emergency Contact</h2>
                               <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                 <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                               </button>
@@ -655,7 +655,7 @@
                             <div class="p-6">
                               <div x-show="isOpen" x-transition.opacity>
                                 <div class="overflow-x-auto">
-                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                     <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                       <tr>
                                         <th class="px-4 py-2 border">Name</th>
@@ -679,10 +679,10 @@
 
                       {{-- Relative Information --}}
                       <div x-data="{ isOpen: true }" class="pb-4">
-                          <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                          <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                             <!-- Header -->
                             <header class="flex justify-between items-center px-6 py-4 border-b border-gray-300/10 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-                              <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Relative Information</h2>
+                              <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Relative Information</h2>
                               <button @click="isOpen = !isOpen" class="text-gray-500 dark:text-gray-200 focus:outline-none flex items-center">
                                 <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                               </button>
@@ -692,7 +692,7 @@
                             <div class="p-6">
                               <div x-show="isOpen" x-transition.opacity>
                                 <div class="overflow-x-auto">
-                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-sm">
+                                  <table class="min-w-full border border-gray-300 dark:border-gray-700 text-xs">
                                     <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                       <tr>
                                         <th class="px-4 py-2 border">Name</th>

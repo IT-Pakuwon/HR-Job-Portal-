@@ -23,7 +23,7 @@
         <div class="px-3 pb-2 pt-1.5 text-xs font-semibold uppercase text-gray-400 dark:text-gray-500">Need help?</div>
         <ul>
             <li>
-                <a class="flex items-center px-3 py-1 text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
+                <a class="flex items-center px-3 py-1 text-xs font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
                     href="#0" @click="open = false" @focus="open = true" @focusout="open = false">
                     <svg class="mr-2 h-3 w-3 shrink-0 fill-current text-violet-500" viewBox="0 0 12 12">
                         <rect y="3" width="12" height="9" rx="1" />
@@ -33,7 +33,7 @@
                 </a>
             </li>
             <li>
-                <a class="flex items-center px-3 py-1 text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
+                <a class="flex items-center px-3 py-1 text-xs font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
                     href="#0" @click="open = false" @focus="open = true" @focusout="open = false">
                     <svg class="mr-2 h-3 w-3 shrink-0 fill-current text-violet-500" viewBox="0 0 12 12">
                         <path
@@ -43,7 +43,7 @@
                 </a>
             </li>
             <li>
-                <a class="flex items-center px-3 py-1 text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
+                <a class="flex items-center px-3 py-1 text-xs font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
                     href="#0" @click="open = false" @focus="open = true" @focusout="open = false">
                     <svg class="mr-2 h-3 w-3 shrink-0 fill-current text-violet-500" viewBox="0 0 12 12">
                         <path

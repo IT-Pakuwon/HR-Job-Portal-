@@ -104,7 +104,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -115,7 +115,7 @@
 
             <div class="flex gap-3">
                 <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -124,7 +124,7 @@
                     Approve
                 </button>
                 <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -133,7 +133,7 @@
                     Revise
                 </button>
                 <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -149,9 +149,9 @@
                 <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $spb->spbid }}
@@ -178,13 +178,13 @@
 
                         <div class="flex items-center gap-3">
                             <span
-                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
                             <a href="{{ url('/pdf_spbs') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
                             </a>
@@ -229,7 +229,7 @@
                             }
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
 
                             {{-- Top Fields --}}
                             @foreach ($fields as $f)
@@ -297,7 +297,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Attachment
                                 </button>
                                 <button @click="activeTab = 'approval'"
@@ -305,7 +305,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Approval Details
                                 </button>
                                 <button @click="activeTab = 'comments'"
@@ -313,7 +313,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
                                     Comments
                                 </button>
                             </nav>
@@ -323,7 +323,7 @@
                         <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
                             <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
-                                <table class="w-full text-sm">
+                                <table class="w-full text-xs">
                                     <thead>
                                         <tr
                                             class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -382,7 +382,7 @@
                             </div>
                             {{-- Attachment tab --}}
                             <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
-                                <table class="w-full text-sm">
+                                <table class="w-full text-xs">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
@@ -402,7 +402,7 @@
                                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                                 <div class="flex-1">
                                                     <label for="spbAttachFiles"
-                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                        class="mb-2 block text-xs font-semibold text-gray-800 dark:text-gray-200">
                                                         Upload Attachments
                                                     </label>
                                                     <div class="flex items-center gap-3">
@@ -412,13 +412,13 @@
                                                             value="{{ $spb->department_id }}">
                                                         <input type="file" id="spbAttachFiles"
                                                             name="attachments[]" multiple
-                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                         <button type="button" id="btnUploadSpbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                             Upload
                                                         </button>
                                                         <button type="button" id="btnResetSpbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                                             Reset
                                                         </button>
                                                     </div>
@@ -445,7 +445,7 @@
                                             placeholder="Write a comment..."
                                             class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -458,12 +458,12 @@
 
 
             {{-- SPB Detail table --}}
-            <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
+            <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-xl font-semibold">📝 SPB Detail</h2>
+                    <h2 class="text-base font-semibold">📝 SPB Detail</h2>
                     <button id="btnEditCoa"
-                        class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-xs font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -473,7 +473,7 @@
                     </button>
                 </header>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
+                    <table class="w-full text-xs text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
@@ -518,7 +518,7 @@
                     {{-- Header modal --}}
                     <div
                         class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             Edit COA
                         </h3>
                         <button id="btnCloseEditCoa"
@@ -529,7 +529,7 @@
 
                     {{-- Body modal: table --}}
                     <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
-                        <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
+                        <table class="w-full min-w-max border-separate border-spacing-0 text-xs">
                             <thead
                                 class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
@@ -594,11 +594,11 @@
                     <div
                         class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
                         <button id="btnCancelEditCoa"
-                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                             Cancel
                         </button>
                         <button id="btnSaveEditCoa"
-                            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             Save
                         </button>
                     </div>
@@ -627,7 +627,7 @@
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
 
@@ -643,7 +643,7 @@
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+            <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
 
@@ -652,7 +652,7 @@
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
 
@@ -702,7 +702,7 @@
 
                             commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
-                                    <p class="text-sm font-semibold">
+                                    <p class="text-xs font-semibold">
                                         ${comment.username}
                                         <span class="text-xs text-gray-500">(${timeAgo})</span>
                                     </p>
@@ -1244,12 +1244,12 @@
                                         .activity_descr;
 
                                     console.log('%c[Select2] MAP ITEM',
-                                    'color:#E74C3C', {
-                                        row_index: idx,
-                                        comboId,
-                                        comboText,
-                                        original: item
-                                    });
+                                        'color:#E74C3C', {
+                                            row_index: idx,
+                                            comboId,
+                                            comboText,
+                                            original: item
+                                        });
 
                                     return {
                                         id: comboId, // ⬅️ ID unik

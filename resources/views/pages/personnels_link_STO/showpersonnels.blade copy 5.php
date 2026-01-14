@@ -10,10 +10,10 @@
                         <header
                             class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             {{-- Rounded-t-xl, stronger border, and darker background for header --}}
-                            <h1 class="text-lg flex items-center gap-2 font-bold text-gray-800 dark:text-gray-100">
+                            <h1 class="text-sm flex items-center gap-2 font-bold text-gray-800 dark:text-gray-100">
                                 {{-- Larger, bolder title --}}
                                     <span
-                                    class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                    class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
                                     ID
                                 </span> {{-- Iconic color for the ID icon --}}
                                 {{ $personnel->docid }}
@@ -46,7 +46,7 @@
                                 }
                             @endphp
                             <span
-                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
                         </header>
@@ -77,7 +77,7 @@
                                         <div>
                                             <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                 {{ $detail['label'] }}</p> {{-- Label above value, smaller text --}}
-                                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                                 {{ $detail['value'] }}</p> {{-- Bolder value --}}
                                         </div>
                                     </div>
@@ -108,7 +108,7 @@
                                             <div>
                                                 <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                     {{ $details['label'] }}</p>
-                                                <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                                     {{ $details['value'] }}</p>
                                             </div>
                                         </div>
@@ -137,7 +137,7 @@
                                             <div>
                                                 <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                     {{ $details['label'] }}</p>
-                                                <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                                     {{ $details['value'] }}</p>
                                             </div>
                                         </div>
@@ -149,7 +149,7 @@
                                 class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
                                 {{-- Rounded-xl, stronger shadow --}}
                                 <h3
-                                    class="mb-4 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
+                                    class="mb-4 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                                     {{-- Larger, bolder title --}}
                                     <span class="text-emerald-500">📊</span> Job Numbers
                                 </h3>
@@ -169,7 +169,7 @@
                                             <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
                                                 {{ $job['label'] }}</span>
                                             <span
-                                                class="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{{ $job['value'] }}</span>
+                                                class="text-base font-extrabold text-indigo-600 dark:text-indigo-400">{{ $job['value'] }}</span>
                                             {{-- Much larger and bolder value --}}
                                         </div>
                                     @endforeach
@@ -180,11 +180,11 @@
                                 class="rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
                                 {{-- Rounded-xl, stronger shadow --}}
                                 <h3
-                                    class="mb-3 flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
+                                    class="mb-3 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                                     {{-- Larger, bolder title --}}
                                     <span class="text-pink-500">🤔</span> Reason for Vacancy
                                 </h3>
-                                <p class="text-base leading-relaxed text-gray-700 dark:text-gray-300">
+                                <p class="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                                     {{ $personnel->reason_vacancy }}</p> {{-- Adjusted text color and line height --}}
                             </div>
 
@@ -193,16 +193,16 @@
                                 {{-- Rounded-xl, stronger shadow --}}
                                 <div class="flex flex-col md:flex-row md:items-center md:gap-4">
                                     <h3
-                                        class="mb-3 flex flex-shrink-0 items-center gap-2 text-xl font-bold text-gray-800 md:mb-0 dark:text-gray-100">
+                                        class="mb-3 flex flex-shrink-0 items-center gap-2 text-base font-bold text-gray-800 md:mb-0 dark:text-gray-100">
                                         {{-- Larger, bolder title --}}
-                                        <span class="text-2xl text-purple-500">🏷️</span>
+                                        <span class="text-lg text-purple-500">🏷️</span>
                                         Tags
                                     </h3>
                                     <div x-data="{ isOpen: true }" class="mt-2 flex max-w-full flex-wrap gap-3 md:mt-0">
                                         {{-- Added margin-top for mobile, consistent gap --}}
                                         @foreach ($jobtag as $jt)
                                             <span
-                                                class="inline-block cursor-pointer rounded-full bg-purple-100 px-4 py-1.5 text-sm font-semibold text-purple-700 shadow-sm transition-all duration-300 hover:bg-purple-200 hover:  dark:bg-purple-800/30 dark:text-purple-300 dark:hover:bg-purple-800">
+                                                class="inline-block cursor-pointer rounded-full bg-purple-100 px-4 py-1.5 text-xs font-semibold text-purple-700 shadow-sm transition-all duration-300 hover:bg-purple-200 hover:  dark:bg-purple-800/30 dark:text-purple-300 dark:hover:bg-purple-800">
                                                 {{-- Adjusted colors for tags, hover effects --}}
                                                 {{ $jt->job_tags }}
                                             </span>
@@ -219,7 +219,7 @@
                         <header
                             class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
                             @click="isOpen = !isOpen"> {{-- Clickable header for accordion --}}
-                            <h2 class="flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
+                            <h2 class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                                 {{-- Larger, bolder title --}}
                                 <span class="text-orange-500">📝</span> Job Responsibilities
                             </h2>
@@ -251,10 +251,10 @@
                                 @foreach ($jobres as $jr)
                                     <li class="flex items-start gap-2"> {{-- Changed space-x-3 to gap-2 --}}
                                         <span
-                                            class="flex-shrink-0 text-lg leading-none text-indigo-500 dark:text-indigo-400">•</span>
+                                            class="flex-shrink-0 text-sm leading-none text-indigo-500 dark:text-indigo-400">•</span>
                                         {{-- Larger bullet point, aligned --}}
                                         <span
-                                            class="text-base leading-relaxed">{{ $jr->job_responsibilities_descr }}</span>
+                                            class="text-sm leading-relaxed">{{ $jr->job_responsibilities_descr }}</span>
                                         {{-- Adjusted text size and line height --}}
                                     </li>
                                 @endforeach
@@ -272,7 +272,7 @@
                         <header
                             class="flex cursor-pointer items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700"
                             @click="isOpen = !isOpen"> {{-- Clickable header for accordion --}}
-                            <h2 class="flex items-center gap-2 text-xl font-bold text-gray-800 dark:text-gray-100">
+                            <h2 class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">
                                 {{-- Larger, bolder title --}}
                                 <span class="text-green-500">🎯</span> Job Qualification
                             </h2>
@@ -304,7 +304,7 @@
                                         class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
                                         {{-- Smoother background, better padding, border --}}
                                         <span
-                                            class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">🎓</span>
+                                            class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">🎓</span>
                                         {{-- Larger icon --}}
                                         <span class="font-semibold text-gray-800 dark:text-gray-100">Pendidikan
                                             minimum
@@ -315,7 +315,7 @@
                                         class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
                                         {{-- Smoother background, better padding, border --}}
                                         <span
-                                            class="flex-shrink-0 text-xl text-indigo-500 dark:text-indigo-400">💼</span>
+                                            class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">💼</span>
                                         {{-- Larger icon --}}
                                         <span class="font-semibold text-gray-800 dark:text-gray-100">Pengalaman
                                             minimum
@@ -327,10 +327,10 @@
                                 @foreach ($jobqua as $jq)
                                     <li class="flex items-start gap-2 pt-2"> {{-- Adjusted gap and padding-top --}}
                                         <span
-                                            class="flex-shrink-0 text-lg leading-none text-indigo-500 dark:text-indigo-400">•</span>
+                                            class="flex-shrink-0 text-sm leading-none text-indigo-500 dark:text-indigo-400">•</span>
                                         {{-- Larger bullet point, aligned --}}
                                         <span
-                                            class="text-base font-medium leading-relaxed text-gray-700 dark:text-gray-300">{{ $jq->job_qualification_descr }}</span>
+                                            class="text-sm font-medium leading-relaxed text-gray-700 dark:text-gray-300">{{ $jq->job_qualification_descr }}</span>
                                         {{-- Adjusted text size and line height --}}
                                     </li>
                                 @endforeach
@@ -353,7 +353,7 @@
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
                                     }"
-                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                     Approval Details
                                 </button>
                                 <button @click="activeTab = 'attachment'"
@@ -361,7 +361,7 @@
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'attachment'
                                     }"
-                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                     Attachment
                                 </button>
                                 <button @click="activeTab = 'comments'"
@@ -369,7 +369,7 @@
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'comments'
                                     }"
-                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                    class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
                                     Comments
                                 </button>
                             </nav>
@@ -384,7 +384,7 @@
                                 x-transition:leave="transition ease-in duration-200"
                                 x-transition:leave-start="opacity-100 translate-y-0"
                                 x-transition:leave-end="opacity-0 translate-y-2">
-                                <table class="w-full text-sm">
+                                <table class="w-full text-xs">
                                     <thead>
                                         <tr
                                             class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -447,7 +447,7 @@
                                 x-transition:leave="transition ease-in duration-200"
                                 x-transition:leave-start="opacity-100 translate-y-0"
                                 x-transition:leave-end="opacity-0 translate-y-2">
-                                <table class="w-full text-sm">
+                                <table class="w-full text-xs">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
@@ -505,7 +505,7 @@
                                             class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-700 hover:  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white   transition-all duration-200 hover:bg-indigo-700 hover:  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -519,7 +519,7 @@
                             <header class="flex items-center justify-between overflow-y-auto"
                                 @click="isOpen = !isOpen">
                                 <h2
-                                    class="flex items-center gap-2 text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                    class="flex items-center gap-2 text-base font-semibold text-gray-700 dark:text-gray-100">
                                     💬 Comments
                                 </h2>
                                 <button>
@@ -540,7 +540,7 @@
                                             class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                         <button id="postCommentBtn"
                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white   transition-all duration-200 hover:bg-indigo-700 hover:  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white   transition-all duration-200 hover:bg-indigo-700 hover:  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                             Post 🚀
                                         </button>
                                     </div>
@@ -565,7 +565,7 @@
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
         <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Reject Task</h2>
+            <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
@@ -585,7 +585,7 @@
 
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
         <div class="w-full max-w-md rounded-lg bg-white p-6   dark:bg-gray-700">
-            <h2 class="mb-4 text-xl font-bold text-gray-800 dark:text-white">Revise Task</h2>
+            <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
@@ -635,7 +635,7 @@
 
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-sm font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username} 
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>

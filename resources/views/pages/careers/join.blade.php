@@ -2,7 +2,7 @@
     <!-- Pakta Integritas -->
     <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm dark:bg-transparent">
         <div class="flex items-center justify-between">
-            <h3 class="font text-lg text-gray-700 dark:text-white">Form Pakta Integritas</h3>
+            <h3 class="font text-sm text-gray-700 dark:text-white">Form Pakta Integritas</h3>
             <form id="integritasForm" class="flex-shrink-0">
                 @csrf
                 <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
@@ -22,7 +22,7 @@
     <!-- Surat Pernyataan -->
     <div class="min-w-[300px] flex-1 rounded-lg bg-white p-4 shadow-sm dark:bg-transparent">
         <div class="flex items-center justify-between">
-            <h3 class="font text-lg text-gray-700 dark:text-white">Surat Pernyataan Penggunaan Fasilitas Elektronik</h3>
+            <h3 class="font text-sm text-gray-700 dark:text-white">Surat Pernyataan Penggunaan Fasilitas Elektronik</h3>
             <form id="pernyataanForm" class="flex-shrink-0">
                 @csrf
                 <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
@@ -43,7 +43,7 @@
     data-docid="{{ optional($onboarding)->docid }}">
 
     <header class="mb-6 flex items-center gap-2"> {{-- Section header with enhanced styling --}}
-        <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+        <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">
             <span class="text-green-500">✅</span> Checklist Onboarding
         </h3>
     </header>
@@ -55,7 +55,7 @@
 
         <div class="mt-8 flex justify-end">
             <button type="submit"
-                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 Save Checklist
             </button>
         </div>
@@ -67,19 +67,19 @@
         <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
         <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">
 
-        <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">Jadwal Onboarding</h3>
+        <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100">Jadwal Onboarding</h3>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">            
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="flex flex-col">
                 <label for="sch_work_start_date"
-                    class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai Kerja</label>
+                    class="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai Kerja</label>
                 <input type="date" id="sch_work_start_date" name="work_start_date"
                     class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     required>
             </div>
             <div class="flex flex-col">
                 <label for="sch_availability_date"
-                    class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai Kerja</label>
+                    class="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai Kerja</label>
                 <input type="date" id="sch_availability_date" name="availability_date"
                     class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     required>
@@ -88,7 +88,7 @@
 
         <div class="mt-6 flex justify-end">
             <button type="submit" id="btnSaveSchedule"
-                class="inline-flex items-center rounded-xl bg-emerald-600 px-6 py-2 text-base font-semibold text-white transition-colors duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="inline-flex items-center rounded-xl bg-emerald-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                 <span class="sch-text">Save Schedule & Send Email</span>
                 <svg class="sch-spin ml-2 hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
@@ -199,23 +199,23 @@
     //         });
     //     });
     // });
-    $(document).ready(function () {
+    $(document).ready(function() {
         const docidOnboarding = $('#docid_onboarding').data('docid');
         console.log('docid:', docidOnboarding);
 
         if (!docidOnboarding) {
             $('#checklistArea').html(
-            '<p class="text-gray-500 italic">Onboarding belum dibuat atau docid tidak tersedia.</p>'
+                '<p class="text-gray-500 italic">Onboarding belum dibuat atau docid tidak tersedia.</p>'
             );
             return; // ⟵ stop supaya tidak nembak /onboarding tanpa docid
         }
 
         const url = `/onboarding/${encodeURIComponent(docidOnboarding)}`;
-        $.get(url, function (data) {
+        $.get(url, function(data) {
             let html = '';
             data.forEach(item => {
-            const checked = item.checklist_onboarding_receive ? 'checked' : '';
-            html += `
+                const checked = item.checklist_onboarding_receive ? 'checked' : '';
+                html += `
                 <label>
                 <input type="checkbox" name="checklist[]" value="${item.id}" ${checked}>
                 ${item.checklist_onboarding_descr}
@@ -223,11 +223,10 @@
             `;
             });
             $('#checklistArea').html(html);
-        }).fail(function(xhr){
+        }).fail(function(xhr) {
             toastr.error('Gagal memuat checklist onboarding.');
         });
     });
-
 </script>
 
 <script>

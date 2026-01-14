@@ -4,10 +4,11 @@
             <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
                 <div class="gap-6">
                     <div
-                        class="col-span-full flex flex-col overflow-hidden rounded-2xl bg-white sm:col-span-12 xl:col-span-12 dark:bg-gray-800">
+                        class="col-span-full flex flex-col overflow-hidden rounded-xl bg-white sm:col-span-12 xl:col-span-12 dark:bg-gray-800">
                         <header
                             class="flex items-center justify-between border-b border-gray-300/10 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700">
-                            <h1 class="text-xl font-semibold text-gray-700 dark:text-gray-100">🆔 {{ $personnel->docid }}
+                            <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
+                                {{ $personnel->docid }}
                             </h1>
                             <div x-data="{ open: false }">
                                 <!-- Button to Open Modal -->
@@ -31,11 +32,11 @@
                                         class="mt-2 flex w-full flex-col justify-center border-b dark:border-gray-200/10">
                                         <header
                                             class="flex items-center justify-between bg-white px-6 pt-4 dark:bg-gray-700">
-                                            <h2 class="text-xl font-semibold text-gray-600 dark:text-gray-100"> 🚀
+                                            <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100"> 🚀
                                                 Approval</h2>
                                             <div class="flex gap-2">
                                                 <div
-                                                    class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
+                                                    class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                         class="h-4 w-4">
@@ -45,7 +46,7 @@
                                                     <button id="approveBtn" class="focus:outline-none">Approve</button>
                                                 </div>
                                                 <div
-                                                    class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
+                                                    class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                         viewBox="0 0 24 24" stroke-width="1.5"
                                                         stroke="currentColor"class="w-4 h-4">
@@ -55,7 +56,7 @@
                                                     <button id="rejectBtn" class="focus:outline-none">Reject</button>
                                                 </div>
                                                 <div
-                                                    class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-sm font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
+                                                    class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-xs font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                         class="size-4">
@@ -67,7 +68,7 @@
                                             </div>
                                         </header>
                                         <div class="overflow-x-auto px-4 pt-4">
-                                            <table class="mb-4 w-full text-sm">
+                                            <table class="mb-4 w-full text-xs">
                                                 <thead>
                                                     <tr class="text-gray-700 dark:text-gray-300">
                                                         <th class="p-3 text-left">Level</th>
@@ -121,11 +122,11 @@
                                     <div
                                         class="col-span-full flex flex-col border-b sm:col-span-6 xl:col-span-12 dark:border-gray-200/10">
                                         <header class="flex items-center justify-between px-5 pb-2 pt-4">
-                                            <h2 class="text-xl font-semibold text-gray-600 dark:text-gray-100">📂
+                                            <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100">📂
                                                 Attachment</h2>
                                         </header>
                                         <div class="overflow-x-auto px-4 pt-2">
-                                            <table class="mb-4 w-full text-sm">
+                                            <table class="mb-4 w-full text-xs">
                                                 <thead class="text-gray-600 dark:text-gray-300">
                                                     <tr>
                                                         <th class="p-3 text-left">Filename</th>
@@ -162,7 +163,7 @@
                                         <header class="flex items-center justify-between px-5 pb-2 pt-4"
                                             @click="isOpen = !isOpen">
                                             <h2
-                                                class="flex items-center gap-2 text-xl font-semibold text-gray-700 dark:text-gray-100">
+                                                class="flex items-center gap-2 text-base font-semibold text-gray-700 dark:text-gray-100">
                                                 💬 Comments
                                             </h2>
                                             <button>
@@ -180,7 +181,7 @@
                                                     placeholder="Write a comment..."
                                                     class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                 <button id="postCommentBtn"
-                                                    class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 active:scale-95">
+                                                    class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                     Post 🚀
                                                 </button>
                                             </div>
@@ -240,7 +241,7 @@
                                             <div>
                                                 <span
                                                     class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</span>
-                                                <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $detail['value'] }}</p>
                                             </div>
                                         </div>
@@ -254,7 +255,7 @@
                                                 class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                             <div>
                                                 <span class="text-xs text-gray-500 dark:text-gray-400">Level</span>
-                                                <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $personnel->job_level }}</p>
                                             </div>
                                         </div>
@@ -264,7 +265,7 @@
                                             <div>
                                                 <span class="text-xs text-gray-500 dark:text-gray-400">State
                                                     Position</span>
-                                                <p class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $personnel->state_position }}</p>
                                             </div>
                                         </div>
@@ -274,7 +275,7 @@
                                 <!-- Job Numbers -->
                                 <div
                                     class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                    <h3 class="mb-3 text-lg font-semibold text-gray-700 dark:text-gray-200">Job Numbers
+                                    <h3 class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-200">Job Numbers
                                     </h3>
                                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                         @php
@@ -291,7 +292,7 @@
                                                 <span
                                                     class="text-xs text-gray-500 dark:text-gray-400">{{ $job['label'] }}</span>
                                                 <span
-                                                    class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $job['value'] }}</span>
+                                                    class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $job['value'] }}</span>
                                             </div>
                                         @endforeach
                                     </div>
@@ -299,19 +300,19 @@
                                 <!-- Reason for Vacancy -->
                                 <div
                                     class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-                                    <h3 class="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Reason for
+                                    <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Reason for
                                         Vacancy</h3>
-                                    <p class="text-base text-gray-900 dark:text-gray-100">
+                                    <p class="text-sm text-gray-900 dark:text-gray-100">
                                         {{ $personnel->reason_vacancy }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div x-data="{ isOpen: true }" class="pb-4 pt-4">
-                        <div class="overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
+                        <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                             <header
                                 class="flex items-center justify-between border-b border-gray-300/10 px-5 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100">📝 Job
+                                <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">📝 Job
                                     Responsibilities</h2>
                                 <button @click="isOpen = !isOpen"
                                     class="text-grey-500 dark:text-grey-200 flex items-center focus:outline-none">
@@ -333,10 +334,10 @@
                     </div>
                     <!-- Job Qualification -->
                     <div x-data="{ isOpen: true }" class="pb-3">
-                        <div class="overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
+                        <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                             <header
                                 class="flex items-center justify-between border-b border-gray-300/10 px-5 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-100"> 🎯 Job
+                                <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100"> 🎯 Job
                                     Qualification</h2>
                                 <button @click="isOpen = !isOpen"
                                     class="text-grey-500 dark:text-grey-200 flex items-center focus:outline-none">
@@ -369,7 +370,7 @@
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter rejection reason..."></textarea>
@@ -388,7 +389,7 @@
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter revise reason..."></textarea>
@@ -432,15 +433,15 @@
                                 if (response.comments.length === 0) {
                                     commentList.append(
                                         '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
-                                        );
+                                    );
                                 } else {
                                     response.comments.forEach(comment => {
                                         let timeAgo = moment(comment.created_at)
-                                    .fromNow(); // Format waktu seperti "4 days ago"
+                                            .fromNow(); // Format waktu seperti "4 days ago"
 
                                         commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                    <p class="text-sm font-semibold">${comment.username} 
+                                    <p class="text-xs font-semibold">${comment.username} 
                                         <span class="text-xs text-gray-500">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -490,7 +491,7 @@
                             },
                             complete: function() {
                                 $('#postCommentBtn').prop('disabled', false).text(
-                                'Post'); // Aktifkan kembali tombol
+                                    'Post'); // Aktifkan kembali tombol
                             }
                         });
                     }
@@ -535,7 +536,7 @@
                                     .removeClass()
                                     .addClass(
                                         "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                        );
+                                    );
 
                                 // Tampilkan alert sukses
                                 toastr.success("Personnel approved successfully!");
@@ -609,7 +610,7 @@
                                         .removeClass()
                                         .addClass(
                                             "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                            );
+                                        );
                                     $spinner.fadeOut();
 
                                     window.location.href = "/personnels";
@@ -676,7 +677,7 @@
                                         .removeClass()
                                         .addClass(
                                             "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                                            );
+                                        );
                                     $spinner.fadeOut();
                                     window.location.href = "/personnels";
                                 } else {

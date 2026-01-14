@@ -12,13 +12,13 @@
                 <div id="btn-mine"
                     class="filter-card flex h-full items-center gap-2 rounded-lg border border-indigo-700 bg-indigo-200/20 p-2 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🗂️</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🗂️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">CS Jobs</p>
+                        <p class="break-words text-sm font-medium">CS Jobs</p>
                     </div>
 
-                    <p id="count-mine" class="shrink-0 text-xl font-bold">{{ $mine }}</p>
+                    <p id="count-mine" class="shrink-0 text-base font-bold">{{ $mine }}</p>
                 </div>
             </button>
 
@@ -27,13 +27,13 @@
                 <div id="btn-revision"
                     class="filter-card flex h-full items-center gap-2 rounded-lg border border-amber-700 bg-amber-200/20 p-2 text-amber-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">📝</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">CS Revision</p>
+                        <p class="break-words text-sm font-medium">CS Revision</p>
                     </div>
 
-                    <p id="count-revision" class="shrink-0 text-xl font-bold">{{ $revision }}</p>
+                    <p id="count-revision" class="shrink-0 text-base font-bold">{{ $revision }}</p>
                 </div>
             </button>
 
@@ -42,13 +42,13 @@
                 <div id="btn-all"
                     class="filter-card flex h-full items-center gap-2 rounded-lg border border-gray-700 bg-gray-200/20 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🌐</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🌐</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">All CS Jobs</p>
+                        <p class="break-words text-sm font-medium">All CS Jobs</p>
                     </div>
 
-                    <p id="count-all" class="shrink-0 text-xl font-bold">{{ $all }}</p>
+                    <p id="count-all" class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </button>
 
@@ -57,13 +57,13 @@
                 <div id="btn-sppbjkt"
                     class="filter-card flex h-full items-center gap-2 rounded-lg border border-green-700 bg-green-200/20 p-2 text-green-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">🚦</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">SPPBJKT IN Progress</p>
+                        <p class="break-words text-sm font-medium">SPPBJKT IN Progress</p>
                     </div>
 
-                    <p id="count-sppbjkt" class="shrink-0 text-xl font-bold">{{ $sppbjkt }}</p>
+                    <p id="count-sppbjkt" class="shrink-0 text-base font-bold">{{ $sppbjkt }}</p>
                 </div>
             </button>
 
@@ -72,13 +72,13 @@
                 <div id="btn-completed"
                     class="filter-card flex h-full items-center gap-2 rounded-lg border border-slate-900 bg-slate-200/20 p-2 text-slate-900 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-lg">✅</div>
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-base font-medium">Completed Jobs</p>
+                        <p class="break-words text-sm font-medium">Completed Jobs</p>
                     </div>
 
-                    <p id="count-completed" class="shrink-0 text-xl font-bold">{{ $completed ?? 0 }}</p>
+                    <p id="count-completed" class="shrink-0 text-base font-bold">{{ $completed ?? 0 }}</p>
                 </div>
             </button>
 
@@ -89,10 +89,10 @@
             {{-- === PANE: CS Jobs + Entry CS (dua tabel) === --}}
             <div id="pane-mine">
                 <div>
-                    <h2 class="mb-2 text-xl font-semibold">CS Jobs</h2>
-                    <table id="tblMine" class="text-body w-full text-left text-sm rtl:text-right">
+                    <h2 class="mb-2 text-base font-semibold">CS Jobs</h2>
+                    <table id="tblMine" class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-4 py-3 text-center">
@@ -130,10 +130,10 @@
                 </div>
 
                 <div class="mt-10">
-                    <h2 class="mb-2 text-xl font-semibold">Entry CS (My CS)</h2>
-                    <table id="tblEntryCS" class="text-body w-full text-left text-sm rtl:text-right">
+                    <h2 class="mb-2 text-base font-semibold">Entry CS (My CS)</h2>
+                    <table id="tblEntryCS" class="text-body w-full text-left text-xs rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-4 py-3 text-center">CSID
@@ -161,10 +161,10 @@
 
             {{-- === PANE: My Revision (TrPO Reuse) === --}}
             <div id="pane-revision" class="hidden">
-                <h2 class="mb-2 text-xl font-semibold">My Revision</h2>
-                <table id="tblRevision" class="text-body w-full text-left text-sm rtl:text-right">
+                <h2 class="mb-2 text-base font-semibold">My Revision</h2>
+                <table id="tblRevision" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-2 w-32 px-4 py-3 text-center">
@@ -201,10 +201,10 @@
 
             {{-- === PANE: All Jobs === --}}
             <div id="pane-all" class="hidden">
-                <h2 class="mb-2 text-xl font-semibold">All Jobs</h2>
-                <table id="tblAll" class="text-body w-full text-left text-sm rtl:text-right">
+                <h2 class="mb-2 text-base font-semibold">All Jobs</h2>
+                <table id="tblAll" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -236,10 +236,10 @@
 
             {{-- === PANE: SPPBJKT IN Progress === --}}
             <div id="pane-sppbjkt" class="hidden">
-                <h2 class="mb-2 text-xl font-semibold">SPPBJKT IN Progress</h2>
-                <table id="tblSppbjkt" class="text-body w-full text-left text-sm rtl:text-right">
+                <h2 class="mb-2 text-base font-semibold">SPPBJKT IN Progress</h2>
+                <table id="tblSppbjkt" class="text-body w-full text-left text-xs rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -270,9 +270,9 @@
 
             {{-- === PANE: Completed Jobs === --}}
             <div id="pane-completed" class="hidden">
-                <h2 class="mb-2 text-xl font-semibold">Completed Jobs</h2>
+                <h2 class="mb-2 text-base font-semibold">Completed Jobs</h2>
 
-                <table id="tblCompleted" class="text-body w-full text-left text-sm rtl:text-right">
+                <table id="tblCompleted" class="text-body w-full text-left text-xs rtl:text-right">
                     {{-- <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th class="w-32 px-4 py-3 text-center">DocID</th>
@@ -284,7 +284,7 @@
                             </tr>
                         </thead> --}}
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -336,7 +336,7 @@
 
             function renderDocBtn(row) {
                 const base = mapShowUrl[row.doc_type] || '#';
-                return `<a href="/${base}/${row.eid}" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${row.doc_no}</a>`;
+                return `<a href="/${base}/${row.eid}" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700'>${row.doc_no}</a>`;
             }
 
             function colSetWithoutCreate() {
@@ -397,19 +397,19 @@
                         return `
                         <div class="inline-flex gap-2">
                         <a href="${createUrl}"
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
                             title="Create CS">
                             <i class="fas fa-plus"></i>
                         </a>
 
                         <button type="button"
-                            class="btn-complete-open inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-red-500 hover:bg-red-700"
+                            class="btn-complete-open inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-red-500 hover:bg-red-700"
                             data-doc="${row.doc_type}" data-eid="${row.eid}" title="Complete sisa yang tidak jadi diorder">
                             <i class="fas fa-times"></i>
                         </button>
 
                         <button type="button"
-                            class="btn-revise-doc inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-amber-500 hover:bg-amber-700"
+                            class="btn-revise-doc inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-amber-500 hover:bg-amber-700"
                             data-doc="${row.doc_type}"
                             data-docno="${row.doc_no}"
                             data-cpny="${row.cpny_id}"
@@ -561,7 +561,7 @@
                         render: (v, _t, row) =>
                             `<a href="/editcs/${row.eid}" 
                             class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 
-                                    text-base leading-tight font-semibold text-white rounded text-center 
+                                    text-sm leading-tight font-semibold text-white rounded text-center 
                                     transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">
                                 ${v}
                             </a>`
@@ -583,7 +583,7 @@
 
                             return `
                                 <a href="/${base}/${row.sppbjkt_eid}"
-                                class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">
+                                class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">
                                     ${v}
                                 </a>
                             `;
@@ -967,7 +967,7 @@
                     return `
                     <div class="inline-flex gap-2">
                         <a href="${createUrl}"
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
                             title="Create CS dari PO">
                             <i class="fas fa-plus"></i>
                         </a>
@@ -981,7 +981,7 @@
                     data: 'ponbr',
                     className: 'text-left',
                     render: (v, _t, row) =>
-                        `<a href="/showpo/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${v}</a>`
+                        `<a href="/showpo/${row.eid}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700">${v}</a>`
                 },
 
                 {

@@ -25,11 +25,11 @@
                     <a href="#" class="status-filter" data-status_app="H">
                         <div
                             class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-4 text-orange-600 shadow-white">
-                            <span class="text-4xl">📄</span>
+                            <span class="text-lg">📄</span>
                             <div>
-                                <p class="text-lg font-medium">Incompleted Profile</p>
-                                {{-- <p class="text-3xl font-extrabold">{{ $incompletedprofile }}</p> --}}
-                                <p class="text-3xl font-extrabold" id="incompletedprofile">{{ $incompletedprofile }}</p>
+                                <p class="text-sm font-medium">Incompleted Profile</p>
+                                {{-- <p class="text-lg font-extrabold">{{ $incompletedprofile }}</p> --}}
+                                <p class="text-lg font-extrabold" id="incompletedprofile">{{ $incompletedprofile }}</p>
                             </div>
                         </div>
                     </a>
@@ -38,11 +38,11 @@
                     <a href="#" class="status-filter" data-status_app="P">
                         <div
                             class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-4 text-blue-600 shadow-white">
-                            <span class="text-4xl">✅</span>
+                            <span class="text-lg">✅</span>
                             <div>
-                                <p class="text-lg font-medium">Completed Profile</p>
-                                {{-- <p class="text-3xl text-left font-extrabold">{{ $completedprofile }}</p> --}}
-                                <p class="text-3xl font-extrabold" id="completedprofile">{{ $completedprofile }}</p>
+                                <p class="text-sm font-medium">Completed Profile</p>
+                                {{-- <p class="text-lg text-left font-extrabold">{{ $completedprofile }}</p> --}}
+                                <p class="text-lg font-extrabold" id="completedprofile">{{ $completedprofile }}</p>
                             </div>
                         </div>
                     </a>
@@ -51,11 +51,11 @@
                     <a href="#" class="status-filter" data-status="H">
                         <div
                             class="flex items-center gap-4 rounded-lg border border-orange-700 bg-orange-200/20 p-4 text-orange-600 shadow-white">
-                            <span class="text-4xl">📄</span>
+                            <span class="text-lg">📄</span>
                             <div>
-                                <p class="text-lg font-medium">Applicant</p>
-                                {{-- <p class="text-3xl font-extrabold">{{ $nocandidate }}</p> --}}
-                                <p class="text-3xl font-extrabold" id="nocandidate">{{ $nocandidate }}</p>
+                                <p class="text-sm font-medium">Applicant</p>
+                                {{-- <p class="text-lg font-extrabold">{{ $nocandidate }}</p> --}}
+                                <p class="text-lg font-extrabold" id="nocandidate">{{ $nocandidate }}</p>
                             </div>
                         </div>
                     </a>
@@ -64,11 +64,11 @@
                     <a href="#" class="status-filter" data-status="P">
                         <div
                             class="flex items-center gap-4 rounded-lg border border-blue-700 bg-blue-200/20 p-4 text-blue-600 shadow-white">
-                            <span class="text-4xl">⏳</span>
+                            <span class="text-lg">⏳</span>
                             <div>
-                                <p class="text-lg font-medium">Candidate</p>
-                                {{-- <p class="text-3xl text-left font-extrabold">{{ $candidate }}</p> --}}
-                                <p class="text-3xl font-extrabold" id="candidate">{{ $candidate }}</p>
+                                <p class="text-sm font-medium">Candidate</p>
+                                {{-- <p class="text-lg text-left font-extrabold">{{ $candidate }}</p> --}}
+                                <p class="text-lg font-extrabold" id="candidate">{{ $candidate }}</p>
                             </div>
                         </div>
                     </a>
@@ -77,11 +77,11 @@
                     <a href="#" class="status-filter" data-status="C">
                         <div
                             class="flex items-center gap-4 rounded-lg border border-green-700 bg-green-200/20 p-4 text-green-600 shadow-white">
-                            <span class="text-4xl">✅</span>
+                            <span class="text-lg">✅</span>
                             <div>
-                                <p class="text-lg font-medium">Completed Join</p>
-                                {{-- <p class="text-3xl  text-left font-extrabold">{{ $join }}</p> --}}
-                                <p class="text-3xl font-extrabold" id="join">{{ $join }}</p>
+                                <p class="text-sm font-medium">Completed Join</p>
+                                {{-- <p class="text-lg  text-left font-extrabold">{{ $join }}</p> --}}
+                                <p class="text-lg font-extrabold" id="join">{{ $join }}</p>
 
                             </div>
                         </div>
@@ -281,7 +281,7 @@
             </style>
             <div class="mt-6 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <h1 class="align-middle text-2xl font-bold dark:text-white">List Job Applicant</h1>
+                    <h1 class="align-middle text-lg font-bold dark:text-white">List Job Applicant</h1>
                 </div>
                 <div class="rounded-lg bg-white dark:bg-gray-800">
                     <table id="careersTable" class="mt-5 min-w-full rounded">
@@ -318,13 +318,13 @@
                                 render: function(data, type, row) {
                                     let url = `/showcareers/${row.id}`;
                                     let buttonClass =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
                                     let buttonText = row.docid;
 
                                     if (row.status === 'D' && row.created_user === currentUser) {
                                         url = `/editcareers/${row.id}`;
                                         buttonClass =
-                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-base leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                            'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                                     }
 
                                     return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;

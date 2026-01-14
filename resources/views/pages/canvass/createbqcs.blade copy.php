@@ -9,33 +9,33 @@
             <!-- Header Card -->
             <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
-                    <h2 class="text-xl font-extrabold text-gray-800 dark:text-white"><span
+                    <h2 class="text-base font-extrabold text-gray-800 dark:text-white"><span
                             class="text-indigo-500"></span>
                         Create BQ CS : 🆔 {{ $cs->csid }}</h2>
                 </div>
 
                 <!-- Grid Form -->
-                <div class="flex flex-col gap-4 text-sm">
+                <div class="flex flex-col gap-4 text-xs">
                     <!-- Row 1 -->
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->cpny_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Department</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->department_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">BQ ID</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->bqid }}
                             </div>
                         </div>
@@ -46,14 +46,14 @@
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->sppbjktid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Requester</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->user_peminta }}
                             </div>
                         </div>
@@ -64,10 +64,10 @@
             <!-- BQ Details -->
             <div class="w-full rounded-xl bg-white shadow-md dark:bg-gray-800">
                 <div class="border-b border-gray-200 p-5 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">BQ Details</h3>
+                    <h3 class="text-sm font-semibold text-gray-800 dark:text-white">BQ Details</h3>
                 </div>
                 <div class="overflow-x-auto p-5">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-xs">
                         <!-- HEADER -->
                         <thead
                             class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">

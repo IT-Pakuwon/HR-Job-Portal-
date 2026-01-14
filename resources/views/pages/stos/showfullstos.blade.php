@@ -6,7 +6,7 @@
                     <div
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
                         <div class="flex flex-row gap-4 sm:w-1/2 md:w-full">
-                            <div class="flex w-full flex-col rounded-2xl bg-white shadow-sm dark:bg-gray-800">
+                            <div class="flex w-full flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
 
                                 <!-- Main Content -->
                                 <div>
@@ -24,18 +24,18 @@
                                                     </li>
                                                 </ul>
                                                 <button onclick="closeModal()"
-                                                    class="text-lg text-gray-500">close</button>
+                                                    class="text-sm text-gray-500">close</button>
 
                                             </div>
 
                                             <div id="tab-view" class="tab-content hidden">
                                                 <div class="flex justify-between">
-                                                    <h3 class="mb-4 text-lg font-semibold">Employee List</h3>
-                                                    <h4 id="departmentLabel" class="mb-4 text-lg font-semibold">
+                                                    <h3 class="mb-4 text-sm font-semibold">Employee List</h3>
+                                                    <h4 id="departmentLabel" class="mb-4 text-sm font-semibold">
                                                     </h4>
                                                 </div>
                                                 <div class="overflow-y-auto" style="max-height: 500px;">
-                                                    <table class="w-full border bg-gray-300/10 text-sm text-black">
+                                                    <table class="w-full border bg-gray-300/10 text-xs text-black">
                                                         <thead>
                                                             <tr class="text-left">
                                                                 <th class="border px-2 py-1">No</th>
@@ -75,7 +75,7 @@
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Reject Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter rejection reason..."></textarea>
@@ -94,7 +94,7 @@
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
                 <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
-                    <h2 class="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Revise Task</h2>
+                    <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                         placeholder="Enter revise reason..."></textarea>
@@ -118,19 +118,19 @@
                     class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
                     <div
                         class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">
                             Job Profile <span id="jobLevelLabel"
                                 class="font-bold text-indigo-600 dark:text-indigo-400"></span>
                         </h3>
                         <button onclick="$('#modalJobProfile').addClass('hidden')"
-                            class="text-2xl leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                            class="text-lg leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                             &times;
                         </button>
                     </div>
 
                     <div class="mb-6 overflow-x-auto rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
                         <table
-                            class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
+                            class="min-w-full divide-y divide-gray-200 text-xs text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th scope="col"
@@ -148,7 +148,7 @@
                         </table>
                     </div>
 
-                    <div id="jobSpecInfo" class="space-y-3 text-base text-gray-700 dark:text-gray-300">
+                    <div id="jobSpecInfo" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                     </div>
                 </div>
             </div>
@@ -276,13 +276,13 @@
                                         <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                    ${m.name} (${m.company})
-                                                                                                                                                </span>
-                                                                                                                                            </div>
-                                                                                                                                        `).join('')}
+                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                            ${m.name} (${m.company})
+                                                                                                                                                                                                                        </span>
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                `).join('')}
                                             </div>
                                         </div>
                                     </div>
