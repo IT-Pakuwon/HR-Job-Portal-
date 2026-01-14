@@ -48,7 +48,7 @@
 
 
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
@@ -210,7 +210,7 @@
 
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-[2px] text-sm sm:grid-cols-2">
                             {{-- Top fields --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
@@ -260,7 +260,7 @@
 
                     <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                         <header
-                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-1 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
                                     :class="activeTab === 'attachment'
@@ -470,7 +470,7 @@
             <!-- CS Detail -->
             <div class="flex w-full flex-col rounded-2xl bg-white dark:bg-gray-800">
                 <header
-                    class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                    class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
                     {{-- Button Edit COA --}}
                     {{-- <button
@@ -1941,10 +1941,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                    target="_blank"
-                                                                                                                                                                                                                                                                                                    class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                    ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                </a>`
+                                                                                                                                                                                                                                                                                                                                target="_blank"
+                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                            </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
