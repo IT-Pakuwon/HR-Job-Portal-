@@ -13,6 +13,8 @@ use App\Models\SysMenu;
 use App\Models\SysUserRole;
 use App\Models\SysRoleMenu;
 
+use Cmixin\BusinessDay;
+
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
@@ -22,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        BusinessDay::enable(Carbon::class);
+
         // === reCAPTCHA (punyamu) ===
         Validator::extendImplicit('captcha', function ($attribute, $value, $parameters, $validator) {
             return $this->validateRecaptcha($value);

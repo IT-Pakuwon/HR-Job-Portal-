@@ -9,7 +9,7 @@ use App\Models\TrBast;
 use App\Models\TrPOterm;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Str;
-use App\Models\TrPo;
+use App\Models\TrPO;
 use App\Http\Controllers\TrAttachmentController;
 use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
@@ -32,8 +32,22 @@ use App\Models\MsBASTRatingLegend;
 
 class BastController extends Controller
 {
-  public function createBast(Request $request)
+    public function createBast(Request $request)
     {
+
+       
+
+// Carbon::parse('2026-01-17')->isBusinessDay(); // false (Sabtu)
+// Carbon::parse('2026-01-17')->isWeekend();     // true
+// $date = Carbon::parse('2026-01-17');
+
+// if($date->isBusinessDay()) {
+//     echo "Hari kerja";
+// } else {
+//     echo "Weekend / holiday";
+// }
+
+
         // Expect: /bast/create?term=<hashid-of-TrPOterm.id>
         $termHash = (string) $request->query('term', '');
         if (!$termHash) {
@@ -57,7 +71,7 @@ class BastController extends Controller
 
     public function storeBast(Request $request)
     {
-    //    dd($request->all());
+        //    dd($request->all());
         $request->validate([
             'term_eid'      => 'required|string',
             'location_id'     => 'required','string',

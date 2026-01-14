@@ -23,7 +23,7 @@ use App\Models\TrSPPT;
 use App\Models\TrCS;
 use App\Models\Company;
 use App\Models\Dept;
-use App\Models\TrPo;
+use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
