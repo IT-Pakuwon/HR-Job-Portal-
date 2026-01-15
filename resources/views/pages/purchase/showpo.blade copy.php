@@ -768,14 +768,14 @@
                                                 $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
                                             @endphp
                                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">
                                                     <a href="{{ $fileUrl }}" target="_blank"
                                                     class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
                                                     📎 {{ $at->name }}.{{ $at->extention }}
                                                     </a>
                                                 </td>
-                                                <td class="p-3">{{ $at->created_user }}</td>
-                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                <td class="px-3 py-2">{{ $at->created_user }}</td>
+                                                <td class="px-3 py-2">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                                 @if ($po->status === 'H')
                                                 <td class="p-3 text-center">
                                                     {{-- <button type="button" class="btn-del-attachment rounded bg-red-600/90 px-3 py-1 text-white text-xs"
@@ -956,7 +956,7 @@
 
                         if (response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                         } else {
                             response.comments.forEach(comment => {
@@ -1291,14 +1291,14 @@
 
                     const tr = $(`
                         <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                            <td class="p-3">
+                            <td class="px-3 py-2">
                                 <a href="${at.url}" target="_blank"
                                 class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
                                 📎 ${at.name}
                                 </a>
                             </td>
-                            <td class="p-3">${at.created_user ?? '-'}</td>
-                            <td class="p-3">${dateStr}</td>
+                            <td class="px-3 py-2">${at.created_user ?? '-'}</td>
+                            <td class="px-3 py-2">${dateStr}</td>
                             ${actionTd}
                         </tr>
                     `);

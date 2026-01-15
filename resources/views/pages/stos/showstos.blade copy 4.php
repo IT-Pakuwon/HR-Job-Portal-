@@ -646,7 +646,7 @@
 
                             if (response.comments.length === 0) {
                                 commentList.append(
-                                    '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                    '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                                 );
                             } else {
                                 response.comments.forEach(comment => {

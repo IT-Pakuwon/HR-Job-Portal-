@@ -263,13 +263,13 @@
                                                     $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
                                                 @endphp
                                                 <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                    <td class="p-3">
+                                                    <td class="px-3 py-2">
                                                         <a href="{{ $fileUrl }}" target="_blank"
                                                             class="flex items-center gap-2 text-gray-600 hover:underline dark:text-gray-300">📎
                                                             {{ $at->name }}</a>
                                                     </td>
-                                                    <td class="p-3">{{ $at->created_user }}</td>
-                                                    <td class="p-3">
+                                                    <td class="px-3 py-2">{{ $at->created_user }}</td>
+                                                    <td class="px-3 py-2">
                                                         {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
                                                     </td>
                                                 </tr>
@@ -401,7 +401,7 @@
 
                                 if (response.comments.length === 0) {
                                     commentList.append(
-                                        '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                        '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                                     );
                                 } else {
                                     response.comments.forEach(comment => {

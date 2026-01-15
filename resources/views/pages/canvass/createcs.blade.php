@@ -459,7 +459,7 @@
                                             @foreach ($attachment as $at)
                                                 <tr
                                                     class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                    <td class="p-3">
+                                                    <td class="px-3 py-2">
                                                         @if (!empty($at->url))
                                                             <a href="{{ $at->url }}" target="_blank"
                                                                 class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
@@ -474,8 +474,8 @@
                                                                 unavailable)</span>
                                                         @endif
                                                     </td>
-                                                    <td class="p-3">{{ $at->created_by }}</td>
-                                                    <td class="p-3">{{ $at->created_at }}</td>
+                                                    <td class="px-3 py-2">{{ $at->created_by }}</td>
+                                                    <td class="px-3 py-2">{{ $at->created_at }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

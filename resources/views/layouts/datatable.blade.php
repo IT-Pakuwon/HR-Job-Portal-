@@ -961,4 +961,149 @@ Approval / Attachment / Comments tables
         color: #e5e7eb;
         /* gray-200 */
     }
+
+    /* ===============================
+   SELECT2 – DARK MODE SUPPORT
+=============================== */
+
+    /* Dropdown container */
+    .dark .select2-dropdown {
+        background-color: #1f2933;
+        /* gray-800 */
+        border-color: #374151;
+        /* gray-700 */
+        color: #e5e7eb;
+        /* gray-200 */
+    }
+
+    /* Dropdown when opens below */
+    .dark .select2-dropdown--below {
+        background-color: #1f2933;
+        border-color: #374151;
+    }
+
+    /* Search input inside dropdown */
+    .dark .select2-search__field {
+        background-color: #111827;
+        /* gray-900 */
+        border: 1px solid #374151;
+        color: #f9fafb;
+    }
+
+    .dark .select2-search__field::placeholder {
+        color: #9ca3af;
+        /* gray-400 */
+    }
+
+    /* Options */
+    .dark .select2-results__option {
+        background-color: transparent;
+        color: #e5e7eb;
+    }
+
+    /* Hover option */
+    .dark .select2-results__option--highlighted {
+        background-color: #374151;
+        /* gray-700 */
+        color: #fff;
+    }
+
+    /* Selected option */
+    .dark .select2-results__option--selected {
+        background-color: #4b5563;
+        /* gray-600 */
+        color: #fff;
+    }
+
+    /* No results */
+    .dark .select2-results__message {
+        color: #9ca3af;
+    }
+
+    /* Dark mode text */
+    .dark .select2-selection__rendered {
+        color: #e5e7eb;
+        /* light text */
+    }
+
+    /* Placeholder text */
+    .dark .select2-selection__placeholder {
+        color: #9ca3af;
+        /* muted gray */
+    }
+
+    .dark .select2-container--default .select2-selection--single {
+        background-color: #1f2937;
+        /* gray-800 */
+        border-color: #374151;
+        /* gray-700 */
+    }
+
+    /* =====================================
+   Base select
+   ===================================== */
+
+    .dark select {
+        background-color: #1f2937;
+        /* gray-800 */
+        color: #e5e7eb;
+        /* text */
+        border: 1px solid #374151;
+        /* gray-700 */
+        border-radius: 0.5rem;
+        padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+        height: 42px;
+        font-size: 14px;
+
+        /* remove default OS styles */
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+
+        /* custom arrow */
+        background-image:
+            linear-gradient(45deg, transparent 50%, #9ca3af 50%),
+            linear-gradient(135deg, #9ca3af 50%, transparent 50%);
+        background-position:
+            calc(100% - 18px) 55%,
+            calc(100% - 12px) 55%;
+        background-size: 6px 6px, 6px 6px;
+        background-repeat: no-repeat;
+    }
+
+    /* =====================================
+   Focus
+   ===================================== */
+
+    .dark select:focus {
+        outline: none;
+        border-color: #6366f1;
+        /* indigo */
+        box-shadow: 0 0 0 1px #6366f1;
+    }
+
+    /* =====================================
+   Disabled
+   ===================================== */
+
+    .dark select:disabled {
+        background-color: #111827;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+    /* =====================================
+   Option list (limited support)
+   ===================================== */
+
+    .dark select option {
+        background-color: #1f2937;
+        color: #e5e7eb;
+    }
+
+    /* Hover / selected (browser dependent) */
+    .dark select option:checked {
+        background-color: #4f46e5;
+        color: #ffffff;
+    }
 </style>

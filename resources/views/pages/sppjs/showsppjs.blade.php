@@ -299,7 +299,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+                <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         {{-- Tabs Header --}}
                         <header
@@ -352,12 +352,12 @@
                                         @foreach ($approval as $ap)
                                             <tr
                                                 class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">{{ $ap->aprvid }}</td>
-                                                <td class="p-3">{{ $ap->name }}</td>
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">{{ $ap->aprvid }}</td>
+                                                <td class="px-3 py-2">{{ $ap->name }}</td>
+                                                <td class="px-3 py-2">
                                                     {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
                                                 </td>
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">
                                                     @php
                                                         $statusText = '';
                                                         $statusClass = '';
@@ -407,7 +407,7 @@
                                     {{-- <tbody>
                                         @forelse ($attachments as $at)
                                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">
                                                     @if ($at->url)
                                                         <a href="{{ $at->url }}" target="_blank"
                                                         class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
@@ -418,8 +418,8 @@
                                                         <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
                                                     @endif
                                                 </td>
-                                                <td class="p-3">{{ $at->created_by }}</td>
-                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                <td class="px-3 py-2">{{ $at->created_by }}</td>
+                                                <td class="px-3 py-2">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -756,7 +756,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -1119,9 +1119,9 @@
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="p-3">${linkHtml}</td>
-                <td class="p-3">${createdBy}</td>
-                <td class="p-3">${dateStr}</td>
+                <td class="px-3 py-2">${linkHtml}</td>
+                <td class="px-3 py-2">${createdBy}</td>
+                <td class="px-3 py-2">${dateStr}</td>
                 </tr>
             `);
                 });
@@ -1214,12 +1214,12 @@
 
                         tbody.innerHTML += `
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                <td class="p-3">${row.aprv_leveling}</td>
-                                <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">
+                                <td class="px-3 py-2">${row.aprv_leveling}</td>
+                                <td class="px-3 py-2">${row.aprv_name}</td>
+                                <td class="px-3 py-2">
     ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
 </td>
-                                <td class="p-3">${statusLabel}</td>
+                                <td class="px-3 py-2">${statusLabel}</td>
                             </tr>
                         `;
                     });

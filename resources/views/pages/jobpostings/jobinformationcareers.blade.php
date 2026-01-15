@@ -3,7 +3,7 @@
                    class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
 
                    {{-- Main Job Posting Card (remains the same) --}}
-                   <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                   <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                        <header
                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                            <h1 class="flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-100">

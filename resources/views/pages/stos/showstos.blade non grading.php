@@ -5,7 +5,7 @@
                 <div class="gap-1">
                     <div
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-                        <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                        <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                             <div class="flex flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                 <header
                                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
@@ -308,14 +308,14 @@
                                                                 @endphp
                                                                 <tr
                                                                     class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                                    <td class="p-3">
+                                                                    <td class="px-3 py-2">
                                                                         <a href="{{ $fileUrl }}" target="_blank"
                                                                             class="flex items-center gap-2 text-gray-600 hover:underline dark:text-gray-300">📎
                                                                             {{ $at->name }}</a>
                                                                     </td>
-                                                                    <td class="p-3">{{ $at->created_user }}
+                                                                    <td class="px-3 py-2">{{ $at->created_user }}
                                                                     </td>
-                                                                    <td class="p-3">
+                                                                    <td class="px-3 py-2">
                                                                         {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
                                                                     </td>
                                                                 </tr>
@@ -491,7 +491,7 @@
 
                                 if (response.comments.length === 0) {
                                     commentList.append(
-                                        '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                        '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                                     );
                                 } else {
                                     response.comments.forEach(comment => {

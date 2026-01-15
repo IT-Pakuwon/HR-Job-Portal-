@@ -33,7 +33,10 @@
                 <x-dropdown-help align="right" /> --}}
 
                 <!-- Dark mode toggle -->
-                <x-theme-toggle />
+                <div class="relative z-[50]">
+                    <x-theme-toggle />
+                </div>
+
 
                 <!-- Divider -->
                 <hr class="h-6 w-px border-none bg-gray-200 dark:bg-gray-700/60" />

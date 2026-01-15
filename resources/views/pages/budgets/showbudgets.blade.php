@@ -190,7 +190,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -936,9 +936,9 @@
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="p-3">${linkHtml}</td>
-                <td class="p-3">${createdBy}</td>
-                <td class="p-3">${dateStr}</td>
+                <td class="px-3 py-2">${linkHtml}</td>
+                <td class="px-3 py-2">${createdBy}</td>
+                <td class="px-3 py-2">${dateStr}</td>
                 </tr>
             `);
                 });
@@ -1019,12 +1019,12 @@
 
                         tbody.innerHTML += `
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                <td class="p-3">${row.aprv_leveling}</td>
-                                <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">
+                                <td class="px-3 py-2">${row.aprv_leveling}</td>
+                                <td class="px-3 py-2">${row.aprv_name}</td>
+                                <td class="px-3 py-2">
                                     ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
                                 </td>
-                                <td class="p-3">${statusLabel}</td>
+                                <td class="px-3 py-2">${statusLabel}</td>
                             </tr>
                         `;
                     });

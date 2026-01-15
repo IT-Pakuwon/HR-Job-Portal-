@@ -475,7 +475,7 @@
                                             @endphp
                                             <tr
                                                 class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">
                                                     <a href="{{ $fileUrl }}" target="_blank"
                                                         class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎
                                                         {{ $at->name }}</a>
@@ -606,7 +606,7 @@
 
                                 if (response.comments.length === 0) {
                                     commentList.append(
-                                        '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                        '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                                     );
                                 } else {
                                     response.comments.forEach(comment => {

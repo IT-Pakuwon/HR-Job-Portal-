@@ -128,11 +128,11 @@
                                                                     $fileUrl = url('/attachments/' . $year . '/' . $at->attachfile);
                                                                 @endphp
                                                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                                                    <td class="p-3">
+                                                                    <td class="px-3 py-2">
                                                                         <a href="{{ $fileUrl }}" target="_blank" class="text-gray-600 dark:text-gray-300 hover:underline flex items-center gap-2">📎 {{ $at->name }}</a>
                                                                     </td>
-                                                                    <td class="p-3">{{ $at->created_user }}</td>
-                                                                    <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                                    <td class="px-3 py-2">{{ $at->created_user }}</td>
+                                                                    <td class="px-3 py-2">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                                                 </tr>
                                                             @endforeach
                                                         </tbody>
@@ -378,7 +378,7 @@
                         commentList.empty();
     
                         if (response.comments.length === 0) {
-                            commentList.append('<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>');
+                            commentList.append('<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>');
                         } else {
                             response.comments.forEach(comment => {
                                 let timeAgo = moment(comment.created_at).fromNow(); // Format waktu seperti "4 days ago"

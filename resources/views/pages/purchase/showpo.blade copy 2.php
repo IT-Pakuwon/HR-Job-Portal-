@@ -428,7 +428,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'information_po' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -1217,7 +1217,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -1314,7 +1314,7 @@
 
                         if (response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                         } else {
                             response.comments.forEach(comment => {
@@ -1658,14 +1658,14 @@
 
                     const tr = $(`
                         <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                            <td class="p-3">
+                            <td class="px-3 py-2">
                                 <a href="${at.url}" target="_blank"
                                 class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
                                 📎 ${at.name}
                                 </a>
                             </td>
-                            <td class="p-3">${at.created_user ?? '-'}</td>
-                            <td class="p-3">${dateStr}</td>
+                            <td class="px-3 py-2">${at.created_user ?? '-'}</td>
+                            <td class="px-3 py-2">${dateStr}</td>
                             ${actionTd}
                         </tr>
                     `);
@@ -1873,9 +1873,9 @@
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="p-3">${link}</td>
-                <td class="p-3">${by}</td>
-                <td class="p-3">${date}</td>
+                <td class="px-3 py-2">${link}</td>
+                <td class="px-3 py-2">${by}</td>
+                <td class="px-3 py-2">${date}</td>
                 ${action}
                 </tr>
             `);

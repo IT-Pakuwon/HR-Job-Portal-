@@ -607,7 +607,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -926,9 +926,9 @@
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="p-3">${linkHtml}</td>
-                <td class="p-3">${createdBy}</td>
-                <td class="p-3">${dateStr}</td>
+                <td class="px-3 py-2">${linkHtml}</td>
+                <td class="px-3 py-2">${createdBy}</td>
+                <td class="px-3 py-2">${dateStr}</td>
                 </tr>
             `);
                 });
@@ -1009,12 +1009,12 @@
 
                         tbody.innerHTML += `
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                <td class="p-3">${row.aprv_leveling}</td>
-                                <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">
+                                <td class="px-3 py-2">${row.aprv_leveling}</td>
+                                <td class="px-3 py-2">${row.aprv_name}</td>
+                                <td class="px-3 py-2">
                                     ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
                                 </td>
-                                <td class="p-3">${statusLabel}</td>
+                                <td class="px-3 py-2">${statusLabel}</td>
                             </tr>
                         `;
                     });

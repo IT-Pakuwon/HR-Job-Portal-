@@ -282,7 +282,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+                <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
@@ -314,32 +314,30 @@
                             </nav>
                         </header>
 
-                        {{-- Tabs Content --}}
-                        <div class="flex flex-1 flex-col">
-                            {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
-                                <table class="w-full text-xs">
-                                    <thead>
-                                        <tr
-                                            class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                            <th class="p-3 text-left font-semibold">Level</th>
-                                            <th class="p-3 text-left font-semibold">Name</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                            <th class="p-3 text-left font-semibold">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="approval-table-body">
-                                    </tbody>
-                                    {{-- <tbody>
+                        {{-- Approval tab --}}
+                        <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                            <table class="w-full text-xs">
+                                <thead>
+                                    <tr
+                                        class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                        <th class="p-3 text-left font-semibold">Level</th>
+                                        <th class="p-3 text-left font-semibold">Name</th>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                        <th class="p-3 text-left font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approval-table-body">
+                                </tbody>
+                                {{-- <tbody>
                                         @foreach ($approval as $ap)
                                             <tr
                                                 class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">{{ $ap->aprvid }}</td>
-                                                <td class="p-3">{{ $ap->name }}</td>
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">{{ $ap->aprvid }}</td>
+                                                <td class="px-3 py-2">{{ $ap->name }}</td>
+                                                <td class="px-3 py-2">
                                                     {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
                                                 </td>
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">
                                                     @php
                                                         $statusText = '';
                                                         $statusClass = '';
@@ -373,23 +371,23 @@
                                             </tr>
                                         @endforeach
                                     </tbody> --}}
-                                </table>
-                            </div>
+                            </table>
+                        </div>
 
-                            {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
-                                <table class="w-full text-xs">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                        </tr>
-                                    </thead>
-                                    {{-- <tbody>
+                        {{-- Attachment tab --}}
+                        <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                            <table class="w-full text-xs">
+                                <thead class="text-gray-600 dark:text-gray-300">
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="p-3 text-left font-semibold">Filename</th>
+                                        <th class="p-3 text-left font-semibold">Created By</th>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                    </tr>
+                                </thead>
+                                {{-- <tbody>
                                         @forelse ($attachments as $at)
                                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="p-3">
+                                                <td class="px-3 py-2">
                                                     @if ($at->url)
                                                         <a href="{{ $at->url }}" target="_blank"
                                                         class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
@@ -400,8 +398,8 @@
                                                         <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
                                                     @endif
                                                 </td>
-                                                <td class="p-3">{{ $at->created_by }}</td>
-                                                <td class="p-3">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
+                                                <td class="px-3 py-2">{{ $at->created_by }}</td>
+                                                <td class="px-3 py-2">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -411,62 +409,60 @@
                                             </tr>
                                         @endforelse
                                     </tbody> --}}
-                                    <tbody id="sppkAttachmentTbody"></tbody>
-                                </table>
-                                @if ($canUpload)
-                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <form id="sppkAttachmentUploadForm" enctype="multipart/form-data">
-                                            @csrf
-                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                                <div class="flex-1">
-                                                    <label for="sppkAttachFiles"
-                                                        class="mb-2 block text-xs font-semibold text-gray-800 dark:text-gray-200">
-                                                        Upload Attachments
-                                                    </label>
-                                                    <div class="flex items-center gap-3">
-                                                        <input type="hidden" name="cpnyid"
-                                                            value="{{ $sppk->cpny_id }}">
-                                                        <input type="hidden" name="departementid"
-                                                            value="{{ $sppk->department_id }}">
-                                                        <input type="file" id="sppkAttachFiles"
-                                                            name="attachments[]" multiple
-                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        <button type="button" id="btnUploadSppbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                            Upload
-                                                        </button>
-                                                        <button type="button" id="btnResetSppbAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                            Reset
-                                                        </button>
-                                                    </div>
-                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                        Max 10 files, PDF / Image preferred.
-                                                    </p>
+                                <tbody id="sppkAttachmentTbody"></tbody>
+                            </table>
+                            @if ($canUpload)
+                                <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <form id="sppkAttachmentUploadForm" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                            <div class="flex-1">
+                                                <label for="sppkAttachFiles"
+                                                    class="mb-2 block text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                                    Upload Attachments
+                                                </label>
+                                                <div class="flex items-center gap-3">
+                                                    <input type="hidden" name="cpnyid"
+                                                        value="{{ $sppk->cpny_id }}">
+                                                    <input type="hidden" name="departementid"
+                                                        value="{{ $sppk->department_id }}">
+                                                    <input type="file" id="sppkAttachFiles" name="attachments[]"
+                                                        multiple
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                    <button type="button" id="btnUploadSppbAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        Upload
+                                                    </button>
+                                                    <button type="button" id="btnResetSppbAttachment"
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        Reset
+                                                    </button>
                                                 </div>
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Max 10 files, PDF / Image preferred.
+                                                </p>
                                             </div>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
 
-                            {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
-                                <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
-                                    <div id="commentList"
-                                        class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <input id="commentInput" x-model="newComment" type="text"
-                                            placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
-                                        <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
-                                            Post 🚀
-                                        </button>
-                                    </div>
+                        {{-- Comments tab --}}
+                        <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                            <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
+                                <div id="commentList"
+                                    class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                </div>
+                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                    <input id="commentInput" x-model="newComment" type="text"
+                                        placeholder="Write a comment..."
+                                        class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
+                                    <button id="postCommentBtn" type="button"
+                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        Post 🚀
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -715,7 +711,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -1080,9 +1076,9 @@
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="p-3">${linkHtml}</td>
-                <td class="p-3">${createdBy}</td>
-                <td class="p-3">${dateStr}</td>
+                <td class="px-3 py-2">${linkHtml}</td>
+                <td class="px-3 py-2">${createdBy}</td>
+                <td class="px-3 py-2">${dateStr}</td>
                 </tr>
             `);
                 });
@@ -1163,12 +1159,12 @@
 
                         tbody.innerHTML += `
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                <td class="p-3">${row.aprv_leveling}</td>
-                                <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">
+                                <td class="px-3 py-2">${row.aprv_leveling}</td>
+                                <td class="px-3 py-2">${row.aprv_name}</td>
+                                <td class="px-3 py-2">
     ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
 </td>
-                                <td class="p-3">${statusLabel}</td>
+                                <td class="px-3 py-2">${statusLabel}</td>
                             </tr>
                         `;
                     });

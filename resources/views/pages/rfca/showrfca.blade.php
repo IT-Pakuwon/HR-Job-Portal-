@@ -157,10 +157,10 @@
 
         </div>
 
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div class="flex w-full flex-col gap-6 xl:flex-col">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
                 {{-- Left card (Rfca Info) --}}
-                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
@@ -374,7 +374,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 rounded-xl duration-300 sm:w-1/2 md:w-full">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                         <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                             <header
@@ -730,7 +730,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -845,9 +845,9 @@
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="p-3">${linkHtml}</td>
-                <td class="p-3">${createdBy}</td>
-                <td class="p-3">${dateStr}</td>
+                <td class="px-3 py-2">${linkHtml}</td>
+                <td class="px-3 py-2">${createdBy}</td>
+                <td class="px-3 py-2">${dateStr}</td>
                 </tr>
             `);
                 });
@@ -928,12 +928,12 @@
 
                         tbody.innerHTML += `
                             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                <td class="p-3">${row.aprv_leveling}</td>
-                                <td class="p-3">${row.aprv_name}</td>
-                                <td class="p-3">
+                                <td class="px-3 py-2">${row.aprv_leveling}</td>
+                                <td class="px-3 py-2">${row.aprv_name}</td>
+                                <td class="px-3 py-2">
                                     ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
                                 </td>
-                                <td class="p-3">${statusLabel}</td>
+                                <td class="px-3 py-2">${statusLabel}</td>
                             </tr>
                         `;
                     });

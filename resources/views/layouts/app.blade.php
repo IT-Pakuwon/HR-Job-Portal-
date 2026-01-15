@@ -72,15 +72,42 @@
     @livewireStyles
 
     <script>
-        if (localStorage.getItem('dark-mode') === 'false' || !('dark-mode' in localStorage)) {
-            document.querySelector('html').classList.remove('dark');
-            document.querySelector('html').style.colorScheme = 'light';
-        } else {
-            document.querySelector('html').classList.add('dark');
-            document.querySelector('html').style.colorScheme = 'dark';
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('light-switch');
+            const root = document.documentElement;
+
+            if (!toggle) return;
+
+            // INIT STATE
+            const isDark = localStorage.getItem('dark-mode') === 'true';
+            toggle.checked = isDark;
+
+            if (isDark) {
+                root.classList.add('dark');
+                root.style.colorScheme = 'dark';
+            } else {
+                root.classList.remove('dark');
+                root.style.colorScheme = 'light';
+            }
+
+            // TOGGLE
+            toggle.addEventListener('change', () => {
+                if (toggle.checked) {
+                    root.classList.add('dark');
+                    root.style.colorScheme = 'dark';
+                    localStorage.setItem('dark-mode', 'true');
+                } else {
+                    root.classList.remove('dark');
+                    root.style.colorScheme = 'light';
+                    localStorage.setItem('dark-mode', 'false');
+                }
+            });
+        });
     </script>
+
+
 </head>
+
 
 <body class="font-inter bg-gray-100 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400"
     :class="{ 'sidebar-expanded': sidebarExpanded }" x-data="{ sidebarOpen: false, sidebarExpanded: localStorage.getItem('sidebar-expanded') == 'true' }" x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebar-expanded', value))">
@@ -114,5 +141,27 @@
 
     @livewireScriptConfig
 </body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggle = document.getElementById('light-switch');
+        const root = document.documentElement;
+
+        if (!toggle) return;
+
+        // init state
+        toggle.checked = localStorage.getItem('dark-mode') === 'true';
+
+        toggle.addEventListener('change', () => {
+            if (toggle.checked) {
+                root.classList.add('dark');
+                localStorage.setItem('dark-mode', 'true');
+            } else {
+                root.classList.remove('dark');
+                localStorage.setItem('dark-mode', 'false');
+            }
+        });
+    });
+</script>
 
 </html>
