@@ -777,7 +777,7 @@ class IMBudgetController extends Controller
             $activity = 'Submit';
             $docid = $header->imbudgetid;
 
-            // $this->reserveBudget($doctype, $docid, $activity, $username);
+            $this->reserveBudget($doctype, $docid, $activity, $username);
 
             // 4) Generate TrApproval utk dokumen IM
             $ctx = [

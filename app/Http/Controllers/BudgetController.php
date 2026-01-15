@@ -1615,10 +1615,17 @@ class BudgetController extends Controller
             ->get();
 
         // Approval list (non-cancelled)
-        $approval = T_approval::where('docid', $budget->budget_id)
-            ->where('status', '<>', 'X')
-            ->orderBy('aprvid')
-            ->orderBy('created_at')
+        // $approval = T_approval::where('docid', $budget->budget_id)
+        //     ->where('status', '<>', 'X')
+        //     ->orderBy('aprvid')
+        //     ->orderBy('created_at')
+        //     ->get();
+
+        $approval = TrApproval::query()
+            ->where('refnbr', $budget->budget_id)          // dulu: docid
+            ->where('status', '<>', 'X')           
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
             ->get();
 
         $approve_count = $approval->count();
