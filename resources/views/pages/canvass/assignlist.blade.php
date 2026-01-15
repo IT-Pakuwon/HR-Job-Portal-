@@ -7,7 +7,7 @@
     {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script> --}}
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
 
         {{-- Header + Filters --}}
         <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
@@ -83,13 +83,13 @@
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 Assign Purchasing</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Created By</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
@@ -118,13 +118,13 @@
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 Assign Purchasing New</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Created By</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">

@@ -114,7 +114,7 @@
                                                 <span x-text="isOpen ? 'Close' : 'See Details'"></span>
                                             </button>
                                         </header>
-                                        <div class="p-6">
+                                        <div class="p-4">
                                             <div x-show="isOpen" x-transition.opacity>
                                                 <table
                                                     class="w-full border border-gray-300 text-left text-xs text-gray-700 dark:border-gray-600 dark:text-gray-300">
@@ -338,7 +338,7 @@
             </div>
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Manpower</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -357,7 +357,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Manpower</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"

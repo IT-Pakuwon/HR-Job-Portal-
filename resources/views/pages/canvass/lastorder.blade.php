@@ -44,7 +44,7 @@
 
 
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
             <div class="border-b border-gray-200 p-4 dark:border-gray-700">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -73,7 +73,7 @@
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 PONbr</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 PO Date</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
@@ -111,7 +111,7 @@
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 PONbr</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 PO Date</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">

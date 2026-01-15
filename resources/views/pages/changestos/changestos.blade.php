@@ -53,7 +53,7 @@
             color: rgb(21 128 61);
         }
     </style>
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- All Status --}}
             <button>
@@ -336,7 +336,7 @@
                     transform: translateX(18px);
                 }
             </style>
-            <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     {{-- Changed text-lg to text-base --}}
                     <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request Additional</h1>
@@ -351,28 +351,28 @@
                         <thead
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     DocID
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     Date
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     Company
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     Department
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     Sub Department
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     Sub Gradename
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     Note
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-3 font-medium">
+                                <th scope="col" class="w-32 px-6 py-2 font-medium">
                                     Status
                                 </th>
                             </tr>

@@ -5,7 +5,7 @@
 
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <!-- Dashboard actions -->
-        <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
+        <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <!-- Breadcrumb dengan Dropdown -->
         {{-- <div class="flex items-center justify-between mb-4 sm:mb-0">               
                 <h1 class="text-lg md:text-lg text-gray-800 dark:text-gray-100 font-bold">{{ $currentPage }}</h1>               

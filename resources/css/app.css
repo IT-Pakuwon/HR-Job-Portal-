@@ -87,7 +87,7 @@
 
     --font-inter: "Inter", "sans-serif";
 
-    --text-xs: 10px;
+    --text-xs: 11px;
     --text-xs--line-height: 1.5;
     --text-sm: 12px;
     --text-sm--line-height: 1.5715;
@@ -97,9 +97,10 @@
     --text-lg: 16px;
     --text-lg--line-height: 1.5;
     --text-lg--letter-spacing: -0.01em;
-    /* --text-xl: 1.25rem;
+    --text-xl: 18px;
     --text-xl--line-height: 1.5;
     --text-xl--letter-spacing: -0.01em;
+    /* 
     --text-2xl: 1.5rem;
     --text-2xl--line-height: 1.33;
     --text-2xl--letter-spacing: -0.01em;

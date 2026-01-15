@@ -100,7 +100,7 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
@@ -502,7 +502,7 @@
                                         <div class="space-y-5">
                                             {{-- SECTION: Work & Contract Summary --}}
                                             <section
-                                                class="rounded-lg border border-gray-200 bg-gray-50 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
+                                                class="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
                                                 <h3
                                                     class="mb-6 text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                     Work & Contract Summary
@@ -1136,7 +1136,7 @@
 
     {{-- Modal: Cancel Reuse --}}
     <div id="modalCancelReuse" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reuse</h2>
             <textarea id="reasonCancelReuse"
                 class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -1157,7 +1157,7 @@
 
     {{-- Modal: Cancel --}}
     <div id="modalCancel" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Cancel PO</h2>
             <textarea id="reasonCancel" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter reason for cancel..."></textarea>

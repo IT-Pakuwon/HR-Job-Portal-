@@ -33,7 +33,6 @@
 </head>
 
 <body class="font-inter bg-gray-100 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400">
-
     <main class="bg-gray/50 dark:bg-gray-900">
         <div class="relative flex">
             <div class="w-full">

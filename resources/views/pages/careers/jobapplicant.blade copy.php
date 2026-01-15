@@ -5,7 +5,7 @@
     <div class="max-w-9xl mx-auto w-full px-2 py-0 sm:px-6 lg:px-2">
         {{-- <div class="px-4 sm:px-6 lg:px-8 w-full max-w-9xl mx-auto"> --}}
         <!-- Dashboard actions -->
-        <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
+        <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <div class="mb-4 flex items-center justify-end">
             {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700"></label> --}}
             <select id="cpnyidFilter" class="rounded border px-3 py-1">

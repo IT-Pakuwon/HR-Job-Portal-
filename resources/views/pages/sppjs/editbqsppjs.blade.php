@@ -101,7 +101,7 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="max-w-9xl mx-auto w-full px-4">
             <div class="gap-6">
                 <div class="flex flex-col gap-10">

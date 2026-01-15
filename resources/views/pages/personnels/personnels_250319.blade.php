@@ -4,7 +4,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <!-- Dashboard actions -->
-        <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
+        <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <!-- Breadcrumb dengan Dropdown -->
         <div class="mb-4 flex items-center justify-end sm:mb-0">
             <!-- Title Page -->

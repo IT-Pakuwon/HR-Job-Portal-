@@ -7,7 +7,7 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="overflow-hidden bg-white p-6 sm:rounded-lg dark:bg-gray-800">
+            <div class="overflow-hidden bg-white p-4 sm:rounded-lg dark:bg-gray-800">
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                     <!-- Left Column (Profile Sidebar) -->
                     <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-900">
@@ -49,7 +49,7 @@
 
                     <div id="changePasswordModal"
                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                        <div class="w-full max-w-md rounded-lg bg-white p-6">
+                        <div class="w-full max-w-md rounded-lg bg-white p-4">
                             <h2 class="mb-4 text-sm font-semibold">Change Password</h2>
                             <form id="changePasswordForm">
                                 @csrf
@@ -81,7 +81,7 @@
 
                     <!-- Right Column (User Info) -->
                     <div class="md:col-span-2">
-                        <div class="mb-6 rounded-lg bg-gray-100 p-6 dark:bg-gray-700">
+                        <div class="mb-6 rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
                             <h4 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100">User Information
                             </h4>
                             <div class="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2">

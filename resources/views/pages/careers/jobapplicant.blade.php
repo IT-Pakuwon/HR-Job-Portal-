@@ -2,7 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
@@ -81,7 +81,7 @@
             </a>
 
         </div>
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div
                 class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 sm:flex-row sm:items-center dark:border-gray-700">
                 {{-- Changed text-lg to text-base --}}

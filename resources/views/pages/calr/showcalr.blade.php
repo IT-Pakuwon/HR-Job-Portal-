@@ -124,7 +124,7 @@
         $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
     @endphp
 
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
@@ -212,7 +212,7 @@
                         };
                     @endphp
 
-                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-1">
 
                         @php
                             // Reusable layout classes
@@ -481,7 +481,7 @@
 
 
             {{-- CALR / PO Detail (TrPOdetail) --}}
-            <div class="mt-6 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+            <div class="mt-6 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                 <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                     <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
                         PO Detail
@@ -529,7 +529,7 @@
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
             <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
@@ -544,7 +544,7 @@
         </div>
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>

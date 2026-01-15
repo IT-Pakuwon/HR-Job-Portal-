@@ -178,7 +178,7 @@
 
 
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
 
@@ -188,7 +188,7 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
 
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
@@ -1163,7 +1163,7 @@
                     </div>
 
                     {{-- ===== Attachments (optional ditampilkan sesuai kebutuhan) ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

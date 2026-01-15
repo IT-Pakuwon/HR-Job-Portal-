@@ -1,6 +1,6 @@
 @props(['tr_approval'])
 
-<div class="col-span-12 col-span-full rounded-xl bg-white p-6 dark:bg-gray-800">
+<div class="col-span-12 col-span-full rounded-xl bg-white p-4 dark:bg-gray-800">
     <!-- Tabs -->
     <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
         <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="approvalTabs" role="tablist">
@@ -9,7 +9,7 @@
             <li class="mr-2">
                 <button id="tab-waiting" type="button" role="tab" aria-controls="content-waiting" aria-selected="true"
                     onclick="switchTab('waiting')"
-                    class="inline-block rounded-t-lg border-b-2 border-violet-600 p-4 text-violet-600 dark:border-violet-400 dark:text-violet-400">
+                    class="inline-block rounded-t-lg border-b-2 border-violet-600 p-2 text-violet-600 dark:border-violet-400 dark:text-violet-400">
                     Waiting Approval
                 </button>
             </li>
@@ -18,7 +18,7 @@
             <li class="mr-2">
                 <button id="tab-approved" type="button" role="tab" aria-controls="content-approved"
                     aria-selected="false" onclick="switchTab('approved')"
-                    class="inline-block rounded-t-lg border-b-2 border-transparent p-4 text-gray-500 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300">
+                    class="inline-block rounded-t-lg border-b-2 border-transparent p-2 text-gray-500 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300">
                     Approval
                 </button>
             </li>

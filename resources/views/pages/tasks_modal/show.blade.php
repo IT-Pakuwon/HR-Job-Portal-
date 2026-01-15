@@ -1,8 +1,8 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid">
             <div class="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
-                <div class="mx-auto max-w-7xl rounded-lg bg-white p-6 dark:bg-gray-800">
+                <div class="mx-auto max-w-7xl rounded-lg bg-white p-4 dark:bg-gray-800">
                     {{-- <h2 class="text-lg font-bold text-gray-800 dark:text-white">Show Task</h2> --}}
                     <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
 

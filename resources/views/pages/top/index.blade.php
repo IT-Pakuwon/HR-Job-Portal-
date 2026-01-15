@@ -5,7 +5,7 @@
 
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <!-- TOP: HEADER TABLE -->
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h1 class="text-base font-bold text-gray-800 dark:text-white">💳 Terms Of Payment (TOP)</h1>
@@ -39,7 +39,7 @@
         </div>
 
         <!-- BOTTOM: DETAIL TABLE -->
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h2 class="text-base font-bold text-gray-800 dark:text-white">🧾 TOP Detail</h2>
@@ -78,7 +78,7 @@
 
         <!-- TOP MODAL -->
         <div id="topModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-2xl rounded-lg bg-white p-6 dark:bg-gray-700">
+            <div class="w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="topModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add TOP</h2>
                 <form id="topForm">
                     <input type="hidden" id="top_id" name="id">
@@ -130,7 +130,7 @@
 
         <!-- TOP DETAIL MODAL -->
         <div id="topDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-3xl rounded-lg bg-white p-6 dark:bg-gray-700">
+            <div class="w-full max-w-3xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="topDetailModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add TOP
                     Detail
                 </h2>

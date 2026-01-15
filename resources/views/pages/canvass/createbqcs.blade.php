@@ -7,7 +7,7 @@
             <input type="hidden" name="cpny_id" value="{{ $cs->cpny_id }}">
 
             <!-- Header Card -->
-            <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+            <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                 <div class="mb-5 border-b border-gray-200 pb-4 dark:border-gray-700">
                     <h2 class="text-base font-extrabold text-gray-800 dark:text-white"><span
                             class="text-indigo-500"></span>

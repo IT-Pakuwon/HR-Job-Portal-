@@ -39,7 +39,7 @@
         </div>
     </div>
 </div>
-<div class="mt-6 w-full rounded-xl bg-white p-6 dark:bg-gray-800" id="docid_onboarding"
+<div class="mt-6 w-full rounded-xl bg-white p-4 dark:bg-gray-800" id="docid_onboarding"
     data-docid="{{ optional($onboarding)->docid }}">
 
     <header class="mb-6 flex items-center gap-2"> {{-- Section header with enhanced styling --}}
@@ -62,7 +62,7 @@
     </form>
 
     {{-- ===== Jadwal Onboarding (Form Terpisah) ===== --}}
-    <form id="scheduleForm" class="mt-10 rounded-xl border border-gray-200 p-6 dark:border-gray-700">
+    <form id="scheduleForm" class="mt-10 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         @csrf
         <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
         <input type="hidden" name="jobapply_id" value="{{ $career->docid ?? '' }}">

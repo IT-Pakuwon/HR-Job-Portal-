@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
@@ -42,9 +42,9 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
-            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+        <div class="flex w-full flex-col gap-6 xl:flex-col">
+            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
@@ -87,8 +87,8 @@
                             {{ $statusText }}
                         </span>
                     </header>
-                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
+                    <div class="flex flex-1 flex-col gap-4 rounded-xl duration-300 sm:w-1/2 md:w-full">
+                        <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
 
                             {{-- Reusable Row Class: mobile = vertical, desktop = horizontal --}}
                             @php
@@ -557,7 +557,7 @@
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="-lg w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -577,7 +577,7 @@
     </div>
 
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="-lg w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"

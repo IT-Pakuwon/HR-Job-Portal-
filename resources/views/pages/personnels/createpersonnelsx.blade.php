@@ -8,7 +8,7 @@
                         <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                             @csrf
                             <div
-                                class="flex w-full w-full flex-col rounded-xl border-b bg-white p-6 shadow-sm dark:bg-gray-800">
+                                class="flex w-full w-full flex-col rounded-xl border-b bg-white p-4 shadow-sm dark:bg-gray-800">
                                 <div class="flex justify-between border-b dark:border-gray-600">
                                     <h2 class="mb-2 text-base font-bold">Create Personnel Requisition</h2>
                                 </div>
@@ -94,7 +94,7 @@
                                     </div>
                                 </div>
                                 <div
-                                    class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-6 sm:grid-cols-3">
+                                    class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-4 sm:grid-cols-3">
                                     <div class="flex items-center gap-4">
                                         <label class="font-medium text-gray-700 dark:text-gray-300">Actual</label>
                                         <input type="number" name="actual" id="actual" min="0"

@@ -194,7 +194,7 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="csForm" class="flex flex-col gap-6" enctype="multipart/form-data">
@@ -216,7 +216,7 @@
                     <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}">
 
                     <!-- Create CS Header -->
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
@@ -438,7 +438,7 @@
                     <!-- Attachments -->
                     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <!-- Existing Attachments -->
-                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                                 <h3 class="text-sm font-bold text-gray-800 dark:text-white">Attachments
@@ -489,7 +489,7 @@
 
 
                         <!-- New Attachments -->
-                        <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <!-- Attachments Header -->
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">

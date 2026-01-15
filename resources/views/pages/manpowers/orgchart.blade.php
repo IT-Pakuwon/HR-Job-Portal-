@@ -5,7 +5,7 @@
 
     <div class="max-w-9xl mx-auto w-full px-2 py-0 sm:px-6 lg:px-2">
         <!-- Dashboard actions -->
-        <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
+        <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <!-- Breadcrumb dengan Dropdown -->
 
         <div class="grid grid-cols-12 gap-4">
@@ -210,7 +210,7 @@
                 <!-- Modal dengan Tab -->
                 <div id="modalForm"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black bg-opacity-30">
-                    <div class="relative w-full max-w-xl rounded-lg bg-white p-6">
+                    <div class="relative w-full max-w-xl rounded-lg bg-white p-4">
                         <button onclick="closeModal()"
                             class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
 
@@ -430,11 +430,11 @@
                                         <strong>Employee:</strong>
                                         <div style="margin-top:10px;">
                                             ${members.map(m => `
-                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                        <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                        <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                    </div>
-                                                                                                                                `).join('')}
+                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                            </div>
+                                                                                                                                                        `).join('')}
                                         </div>
                                     </div>
                                 </div>

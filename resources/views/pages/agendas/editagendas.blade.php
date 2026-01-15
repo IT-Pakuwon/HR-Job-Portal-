@@ -9,7 +9,7 @@
                             @csrf
                             @method('PUT')
                             <div
-                                class="flex w-full w-full flex-col rounded-xl border-b bg-white p-6 shadow-sm dark:bg-gray-800">
+                                class="flex w-full w-full flex-col rounded-xl border-b bg-white p-4 shadow-sm dark:bg-gray-800">
                                 <div class="flex justify-between border-b dark:border-gray-600">
                                     <h2 class="mb-2 text-base font-bold">Edit Tasks</h2>
                                     <h2 class="mb-4 text-base font-bold">{{ $task->docid }}</h2>

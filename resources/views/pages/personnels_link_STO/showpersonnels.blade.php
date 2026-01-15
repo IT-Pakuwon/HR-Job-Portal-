@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
@@ -496,7 +496,7 @@
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="-lg w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -516,7 +516,7 @@
     </div>
 
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 p-4">
-        <div class="-lg w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="-lg w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-bold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"

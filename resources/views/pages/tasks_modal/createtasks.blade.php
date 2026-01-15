@@ -1,10 +1,10 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-        <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
+        <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <div class="mb-4 flex items-center justify-end sm:mb-0"></div>
-        <div class="mb-2 mt-2 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mb-2 mt-2 rounded-xl bg-white p-4 dark:bg-gray-800">
             <h2 class="mb-4 mt-6 bg-white text-lg font-bold">Create Tasks</h2>
-            <form id="taskForm" enctype="multipart/form-data" class="space-y-6 rounded-lg bg-white p-6">
+            <form id="taskForm" enctype="multipart/form-data" class="space-y-6 rounded-lg bg-white p-4">
                 @csrf
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div>
@@ -111,7 +111,7 @@
                 Tasks Created Successfully!
             </div>
         </div>
-        <div class="mb-8 sm:flex sm:items-center sm:justify-between"></div>
+        <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <div class="mb-4 flex items-center justify-end sm:mb-0"></div>
     </div>
 

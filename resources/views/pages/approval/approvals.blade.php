@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             {{-- header + tombol add --}}
             <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <h1 class="text-base font-bold text-gray-800 dark:text-white">✅ Ms Approval List</h1>
@@ -83,7 +83,7 @@
 
         {{-- Modal --}}
         <div id="approvalModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-            <div class="relative w-full max-w-6xl rounded-lg bg-white p-6 dark:bg-gray-700">
+            <div class="relative w-full max-w-6xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="approvalModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
                     Add Approval
                 </h2>

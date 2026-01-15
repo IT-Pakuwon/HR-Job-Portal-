@@ -49,7 +49,7 @@
             color: rgb(21 128 61);
         }
     </style>
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- All Status --}}
             <a href="#" class="status-filter group block" data-status="">
@@ -319,12 +319,12 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto p-6"> {{-- Padding applied here instead of outer container --}}
+                <div class="overflow-x-auto p-4"> {{-- Padding applied here instead of outer container --}}
                     <table id="stosTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th scope="col"
-                                    class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="w-32 px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     DocID
                                 </th>
                                 <th scope="col"
@@ -344,7 +344,7 @@
                                     User
                                 </th>
                                 <th scope="col"
-                                    class="w-32 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="w-32 px-6 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Status
                                 </th>
                             </tr>

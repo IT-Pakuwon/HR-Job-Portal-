@@ -113,7 +113,7 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
 
@@ -123,7 +123,7 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="w-full rounded-xl bg-white p-6 shadow dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow dark:bg-gray-800">
 
                         <!-- Header -->
                         <div class="mb-6 flex items-center justify-between border-b pb-3 dark:border-gray-700">
@@ -350,7 +350,7 @@
                     {{-- ===== Modal Jenis Pekerjaan ===== --}}
                     <div id="modalJenisPekerjaan"
                         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-6 dark:bg-gray-800">
+                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-4 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
                                 <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Jenis Pekerjaan
                                 </h3>
@@ -386,7 +386,7 @@
 
                     {{-- ===== Modal Lokasi ===== --}}
                     <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-6 dark:bg-gray-800">
+                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-4 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
                                 <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
                                 <button type="button" id="closeLokasi"
@@ -420,7 +420,7 @@
                     </div>
 
                     {{-- ===== Attachments ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

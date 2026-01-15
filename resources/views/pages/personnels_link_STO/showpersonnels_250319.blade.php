@@ -19,7 +19,7 @@
                                     x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
                                     x-transition:leave="transform transition ease-in-out duration-300"
                                     x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
-                                    class="fixed right-0 top-0 z-50 h-full w-full overflow-y-auto bg-white p-6 md:w-1/3 dark:bg-gray-700">
+                                    class="fixed right-0 top-0 z-50 h-full w-full overflow-y-auto bg-white p-4 md:w-1/3 dark:bg-gray-700">
                                     <header class="flex items-center justify-end px-6 py-4">
                                         <button @click="open = false"
                                             class="text-gray-500 transition-all duration-200 hover:text-gray-700 dark:text-gray-50 dark:hover:text-white">
@@ -319,7 +319,7 @@
                                     <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                 </button>
                             </header>
-                            <div class="p-6">
+                            <div class="p-4">
                                 <ul x-show="isOpen" x-transition.opacity
                                     class="space-y-3 text-gray-700 dark:text-gray-300">
                                     @foreach ($jobres as $jr)
@@ -344,7 +344,7 @@
                                     <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                 </button>
                             </header>
-                            <div class="p-6">
+                            <div class="p-4">
                                 <ul x-show="isOpen" x-transition.opacity
                                     class="space-y-3 text-gray-700 dark:text-gray-300">
                                     @foreach ($jobqua as $jq)
@@ -369,7 +369,7 @@
             </div>
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -388,7 +388,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"

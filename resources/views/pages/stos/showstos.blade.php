@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
@@ -190,7 +190,7 @@
                         </nav>
                     </header>
 
-                    <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-6 dark:bg-gray-800">
+                    <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-4 dark:bg-gray-800">
                         <div x-show="activeTab === 'structure'" x-transition:enter="transition ease-out duration-300"
                             x-transition:enter-start="opacity-0 translate-y-2"
                             x-transition:enter-end="opacity-100 translate-y-0"
@@ -225,7 +225,7 @@
                             </div>
 
                             <div
-                                class="mt-8 rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
+                                class="mt-8 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                                 <h3
                                     class="mb-4 flex items-center gap-2 text-base font-extrabold text-gray-800 dark:text-white">
                                     📊 Vacant Summary
@@ -423,7 +423,7 @@
     </div>
 
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -440,7 +440,7 @@
         </div>
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -459,7 +459,7 @@
     <div id="modalJobProfile"
         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
         <div
-            class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+            class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                 <h3 class="text-base font-semibold text-gray-800 dark:text-white">
                     Job Profile <span id="jobLevelLabel"
@@ -908,13 +908,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                        ${m.name} (${m.company})
-                                                                                                                                                                    </span>
-                                                                                                                                                                </div>
-                                                                                                                                                            `).join('')}
+                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                ${m.name} (${m.company})
+                                                                                                                                                                            </span>
+                                                                                                                                                                        </div>
+                                                                                                                                                                    `).join('')}
                                     </div>
                                 </div>
                             </div>

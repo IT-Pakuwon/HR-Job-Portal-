@@ -2,7 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'spbs' ? 'HR' : '';
     @endphp
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 
             {{-- All --}}
@@ -99,7 +99,7 @@
 
         </div>
 
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 {{-- Changed text-lg to text-base --}}
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request SPB</h1>
@@ -125,7 +125,7 @@
         <!-- ================== TRACKING MODAL ================== -->
         <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-6 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
                 <!-- Header -->
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">

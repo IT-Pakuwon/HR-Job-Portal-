@@ -54,7 +54,7 @@
         ->toJson();
 @endphp
 
-<div class="col-span-12 rounded-xl bg-white p-6 dark:bg-gray-800">
+<div class="col-span-12 rounded-xl bg-white p-4 dark:bg-gray-800">
     <!-- Header -->
     <div class="mb-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
         <div>
@@ -118,7 +118,7 @@
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
             style="display: none">
             <div
-                class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6 dark:bg-gray-800">
+                class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
                 <!-- Close Button -->
                 <button @click="closeModal()"
                     class="absolute right-3 top-3 text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">

@@ -47,7 +47,7 @@
     </tbody>
 </table>
 <div id="uploadModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-    <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-800">
+    <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-800">
         <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-white" id="modalTitle">Upload Document</h3>
         <form id="uploadForm" enctype="multipart/form-data">
             @csrf

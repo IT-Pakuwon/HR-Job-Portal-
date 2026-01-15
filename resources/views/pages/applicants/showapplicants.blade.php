@@ -25,7 +25,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-1">
@@ -284,7 +284,7 @@
                                         </div>
                                     </div>
                                     <hr class="mx-6">
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <label for="" class="text-sm font-semibold">Reference
@@ -331,7 +331,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -384,7 +384,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -438,7 +438,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -478,7 +478,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -522,7 +522,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -573,7 +573,7 @@
                                     </header>
 
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -617,7 +617,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-1">
@@ -682,7 +682,7 @@
                                         </div>
                                     </div>
                                     <hr class="mx-6">
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <label for="" class="text-sm font-semibold">Attachment</label>
@@ -735,7 +735,7 @@
                                         </button>
                                     </header>
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -792,7 +792,7 @@
                                     </header>
 
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -849,7 +849,7 @@
                                     </header>
 
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
@@ -895,7 +895,7 @@
                                     </header>
 
                                     <!-- Tabel -->
-                                    <div class="p-6">
+                                    <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table

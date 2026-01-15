@@ -53,7 +53,7 @@
     </div>
 
     <!-- Payroll Section -->
-    <div class="rounded-xl bg-white p-6 dark:bg-gray-800">
+    <div class="rounded-xl bg-white p-4 dark:bg-gray-800">
 
         <div class="mb-6 flex items-center justify-between">
             <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Payroll Confirmation Data</h3>
@@ -283,7 +283,7 @@
             </table>
         </div>
     </div>
-    <div class="rounded-xl bg-white p-6 dark:bg-gray-800">
+    <div class="rounded-xl bg-white p-4 dark:bg-gray-800">
 
         <div class="mb-6 flex items-center justify-between">
             <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Payroll Sign</h3>
@@ -437,7 +437,7 @@
         </div>
 
         <div id="salaryPasswordModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-            <div class="w-full max-w-md rounded-xl bg-white p-6 dark:bg-gray-700">
+            <div class="w-full max-w-md rounded-xl bg-white p-4 dark:bg-gray-700">
                 <h3 class="mb-4 text-sm font-semibold text-gray-800 dark:text-white"></h3>
                 <form id="salaryPasswordForm">
                     @csrf

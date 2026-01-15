@@ -156,14 +156,14 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="gap-4">
             <div class="flex flex-col gap-4">
                 {{-- Form Import --}}
                 <form id="budgetForm" action="{{ route('budgets.import') }}" method="POST" enctype="multipart/form-data"
                     class="flex flex-col gap-4">
                     @csrf
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
 
                         <!-- header -->
                         <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-600">
@@ -243,7 +243,7 @@
                 {{-- Table Preview Import --}}
                 @if (isset($tempData) && count($tempData) > 0)
                     <div class="flex flex-col gap-4">
-                        <div class="flex-1 gap-4 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <div class="flex-1 gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between border-b pb-2 dark:border-gray-600">
                                 <h2 class="flex items-center gap-2 text-sm font-bold">
                                     📊 Budget Details
@@ -306,7 +306,7 @@
                         </div>
 
 
-                        <div class="flex-1 gap-4 rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                        <div class="flex-1 gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <form id="submitApprovalForm" method="POST" action="{{ route('budgets.store') }}">
                                 @csrf
                                 <div class="flex w-full flex-col gap-4">

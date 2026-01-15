@@ -3,7 +3,7 @@
         $currentPage = Route::currentRouteName() == 'polist.index' ? 'PO' : '';
     @endphp
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
 
             {{-- Hold --}}
@@ -114,7 +114,7 @@
         </div>
 
 
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Purchase Order</h1>
             </div>
@@ -128,27 +128,27 @@
                             <th
                                 class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 PO Nbr</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 PO Date</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Company
                             </th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 PO Type
                             </th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Vendor</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Delivery Date</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Total</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Tax</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Grand Total</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Created By</th>
-                            <th class="w-32 px-6 py-3 font-medium">
+                            <th class="w-32 px-6 py-2 font-medium">
                                 Status
                             </th>
 

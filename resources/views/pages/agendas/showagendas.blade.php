@@ -281,7 +281,7 @@
 
             <div id="rejectAgendaModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Agenda</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -301,7 +301,7 @@
             </div>
             <div id="reviseAgendaModal"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Agenda</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"

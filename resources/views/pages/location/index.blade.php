@@ -5,7 +5,7 @@
 
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <!-- TOP: LOCATION -->
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h1 class="text-base font-bold text-gray-800 dark:text-white">📍 Location</h1>
@@ -38,7 +38,7 @@
         </div>
 
         <!-- BOTTOM: SUB LOCATION -->
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h2 class="text-base font-bold text-gray-800 dark:text-white">🧩 Sub Location</h2>
@@ -72,7 +72,7 @@
 
         <!-- LOCATION MODAL -->
         <div id="locationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-xl rounded-lg bg-white p-6 dark:bg-gray-700">
+            <div class="w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="locationModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Location
                 </h2>
                 <form id="locationForm">
@@ -108,7 +108,7 @@
 
         <!-- SUB LOCATION MODAL -->
         <div id="subLocationModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div class="w-full max-w-xl rounded-lg bg-white p-6 dark:bg-gray-700">
+            <div class="w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="subLocationModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Sub
                     Location</h2>
                 <form id="subLocationForm">

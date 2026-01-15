@@ -3,7 +3,7 @@
         $currentPage = Route::currentRouteName() == 'users' ? 'Users' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Users List</h1>
                 <button id="addAppBtn"
@@ -70,7 +70,7 @@
 
         <!-- Modal -->
         <div id="appModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-            <div class="relative w-1/3 rounded-lg bg-white p-6 dark:bg-gray-700">
+            <div class="relative w-1/3 rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add User</h2>
                 <form id="appForm">
                     <input type="hidden" id="id">

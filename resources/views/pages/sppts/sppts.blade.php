@@ -2,7 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'sppts' ? 'HR' : '';
     @endphp
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
@@ -93,7 +93,7 @@
         </div>
 
 
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 {{-- Changed text-lg to text-base --}}
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request SPPT</h1>
@@ -109,25 +109,25 @@
                         class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 DocID
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Date
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Company
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Department
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Request Type
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Description
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Status
                             </th>
                         </tr>
@@ -142,7 +142,7 @@
         <!-- ================== TRACKING MODAL ================== -->
         <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-6 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
                 <!-- Header -->
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">

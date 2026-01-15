@@ -1,14 +1,14 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full py-4">
         <div class="grid">
-            <div class="max-w-9xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
+            <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-12 gap-6">
                     <div
                         class="shadow-xs col-span-full flex flex-col rounded-xl bg-white sm:col-span-6 xl:col-span-6 dark:bg-gray-800">
                         <header class="border-b border-gray-100 px-5 py-4 dark:border-gray-700/60">
                             <h2 class="font-semibold text-gray-800 dark:text-gray-100">{{ $task->taskid }}</h2>
                         </header>
-                        <div class="p-6">
+                        <div class="p-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div><strong class="text-gray-700 dark:text-gray-300">Company:</strong> <span
                                         id="company">{{ $task->cpnyid }}</span></div>
@@ -70,7 +70,7 @@
                             </div>
 
                         </div>
-                        <div class="p-6">
+                        <div class="p-4">
                             <table id="approvalTable"
                                 class="w-full rounded-lg border border-gray-300 dark:border-gray-700">
                                 <thead class="bg-gray-100 dark:bg-gray-700">
@@ -128,14 +128,14 @@
 
                 </div>
             </div>
-            <div class="max-w-9xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
+            <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-12 gap-6">
                     <div
                         class="shadow-xs col-span-full flex flex-col rounded-xl bg-white sm:col-span-6 xl:col-span-5 dark:bg-gray-800">
                         <header class="border-b border-gray-100 px-5 py-4 dark:border-gray-700/60">
                             <h2 class="font-semibold text-gray-800 dark:text-gray-100">Attachment</h2>
                         </header>
-                        <div class="p-6">
+                        <div class="p-4">
                             <table class="w-full rounded-lg border border-gray-300 dark:border-gray-700">
                                 <thead class="bg-gray-100 dark:bg-gray-700">
                                     <tr>
@@ -171,7 +171,7 @@
                         <header class="border-b border-gray-100 px-5 py-4 dark:border-gray-700/60">
                             <h2 class="font-semibold text-gray-800 dark:text-gray-100">Comment</h2>
                         </header>
-                        <div class="p-6">
+                        <div class="p-4">
                             <div id="commentList"
                                 class="h-35 space-y-2 overflow-y-auto border-b bg-white p-4 dark:bg-gray-200/5">
                                 <p class="italic text-gray-500">Loading comments...</p>
@@ -194,7 +194,7 @@
         </div>
     </div>
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
 
             <label for="rejectReason" class="text-xs text-gray-600 dark:text-white">Reason for Rejection:</label>
@@ -213,7 +213,7 @@
         </div>
     </div>
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+        <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
 
             <label for="reviseReason" class="text-xs text-gray-600 dark:text-white">Reason for Revise:</label>

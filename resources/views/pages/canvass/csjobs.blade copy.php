@@ -355,7 +355,7 @@
                         <table id="tblMine" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="w-32 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                    <th class="w-32 px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider">
                                         Action</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">DocID
                                     </th>

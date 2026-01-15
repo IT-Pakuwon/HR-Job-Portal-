@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- 1. Issue New Jobs (TrSPB) --}}
@@ -104,7 +104,7 @@
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Issue</h1>
             </div>
 
-            <div class="overflow-x-auto p-6">
+            <div class="overflow-x-auto p-4">
                 <table id="issueTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr id="thead-row"></tr>

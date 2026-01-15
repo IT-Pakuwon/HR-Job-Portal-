@@ -116,7 +116,7 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="bastForm" class="flex flex-col gap-4" enctype="multipart/form-data">
@@ -126,7 +126,7 @@
                     <input type="hidden" name="ponbr" value="{{ $term->ponbr }}">
 
                     {{-- ===== Header ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Bast</h2>
                         </div>
@@ -258,7 +258,7 @@
                     </div>
 
                     {{-- ===== Photo Before ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Photo Before</h2>
                         </div>
@@ -314,7 +314,7 @@
 
                     <!-- Modal Lokasi -->
                     <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-6 dark:bg-gray-800">
+                        <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-4 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
                                 <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
                                 <button type="button" id="closeLokasi"
@@ -353,7 +353,7 @@
                     </div>
 
                     {{-- ===== Attachments ===== --}}
-                    <div class="w-full rounded-xl bg-white p-6 shadow-md dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

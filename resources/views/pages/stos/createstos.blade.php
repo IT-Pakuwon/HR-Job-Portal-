@@ -1,11 +1,11 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:col-span-2 lg:row-span-1">
                 <div class="flex flex-col gap-4">
                     <form id="stoForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                         @csrf
-                        <div class="gap-5.5 flex w-full flex-col rounded-xl bg-white p-6 dark:bg-gray-800">
+                        <div class="gap-5.5 flex w-full flex-col rounded-xl bg-white p-4 dark:bg-gray-800">
                             <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                                 <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create ORG Structure
                                 </h2>
@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="flex flex-col gap-4">
-                    <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-6 dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-8 rounded-xl bg-white p-4 dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -119,7 +119,7 @@
             </div>
 
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-start-2">
-                <details class="group w-full rounded-xl bg-white p-6 dark:bg-gray-800" open>
+                <details class="group w-full rounded-xl bg-white p-4 dark:bg-gray-800" open>
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                         <span>ORG Chart Visualization</span>
@@ -200,7 +200,7 @@
                     </button>
                 </div>
 
-                <div class="max-h-[80vh] overflow-y-auto p-6">
+                <div class="max-h-[80vh] overflow-y-auto p-4">
                     <div id="tab-view" class="tab-content hidden">
                         <div class="flex justify-between">
                             {{-- <h3 class="text-sm font-semibold">Employee List</h3> --}}
@@ -490,7 +490,7 @@
 
                 <div id="editModal"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-lg rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <button onclick="closeEditModal()"
                             class="absolute right-3 top-3 text-lg leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                             &times;
@@ -548,7 +548,7 @@
 
                 <div id="modalChangeDept"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <h3 class="mb-6 text-base font-bold text-gray-800 dark:text-white">Change Department</h3>
 
                         <div class="mb-4">
@@ -580,7 +580,7 @@
 
                 <div id="modalChangeParent"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
-                    <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    <div class="relative w-full max-w-md rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <h3 class="mb-6 text-base font-bold text-gray-800 dark:text-white">Change Parent
                             Department
                         </h3>
@@ -615,7 +615,7 @@
                 <div id="modalJobProfile"
                     class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                     <div
-                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                        class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <div
                             class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h3 class="text-base font-semibold text-gray-800 dark:text-white">
@@ -802,13 +802,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                                                                                                                        </span>
-                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                            ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                        </span>
+                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1105,13 +1105,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                                                                                                                        </span>
-                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                            ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                        </span>
+                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                `).join('')}
                                             </div>
                                         </div>
                                     </div>

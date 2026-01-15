@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="grid">
             <div class="mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                 <div class="gap-1">
@@ -13,7 +13,7 @@
                                     <div class="chart-container"></div>
                                     <div id="modalForm"
                                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
-                                        <div class="relative w-[95vw] max-w-6xl rounded-lg bg-white p-6 md:w-auto">
+                                        <div class="relative w-[95vw] max-w-6xl rounded-lg bg-white p-4 md:w-auto">
                                             <div class="border-gray-200s mb-4 flex justify-between border-b">
                                                 <ul class="text-md flex flex-wrap text-center font-medium"
                                                     id="tabs">
@@ -74,7 +74,7 @@
             </div>
 
             <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
                     <textarea id="rejectReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -93,7 +93,7 @@
                 </div>
             </div>
             <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-                <div class="w-full max-w-md rounded-lg bg-white p-6 dark:bg-gray-700">
+                <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
                     <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
                     <textarea id="reviseReason"
                         class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
@@ -115,7 +115,7 @@
             <div id="modalJobProfile"
                 class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
                 <div
-                    class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+                    class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                     <div
                         class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                         <h3 class="text-base font-semibold text-gray-800 dark:text-white">
@@ -276,13 +276,13 @@
                                         <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                                                                                        </span>
-                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                    ${m.name} (${m.company})
+                                                                                                                                                                                                                                                </span>
+                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                        `).join('')}
                                             </div>
                                         </div>
                                     </div>

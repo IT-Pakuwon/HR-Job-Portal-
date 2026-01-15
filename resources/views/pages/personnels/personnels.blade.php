@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
@@ -78,7 +78,7 @@
             </a>
 
         </div>
-        <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 {{-- Changed text-lg to text-base --}}
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
@@ -94,10 +94,10 @@
                         class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                         <tr>
                             <th></th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 DocID
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Date
                             </th>
                             <th scope="col" class="px-6 py-3 font-medium">
@@ -109,13 +109,13 @@
                             <th scope="col" class="px-6 py-3 font-medium">
                                 Title
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Level
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 User
                             </th>
-                            <th scope="col" class="w-32 px-6 py-3 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Status
                             </th>
                         </tr>

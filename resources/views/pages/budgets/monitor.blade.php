@@ -1,6 +1,6 @@
 <x-app-layout>
 
-    <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-4">
             <div>
                 <label class="text-xs font-semibold text-gray-700 dark:text-gray-200">Tahun</label>
@@ -40,7 +40,7 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
             {{-- MASTER BUDGET --}}
-            <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Master Budget</h1>
                 </div>
@@ -51,25 +51,25 @@
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
                             <tr>
                                 <th class="w-8"></th>
-                                <th class="w-32 px-6 py-3 font-medium">
+                                <th class="w-32 px-6 py-2 font-medium">
                                     COA
                                 </th>
-                                <th class="w-32 px-6 py-3 font-medium">
+                                <th class="w-32 px-6 py-2 font-medium">
                                     Activity
                                 </th>
                                 <th class="px-6 py-3 font-medium">
                                     Description
                                 </th>
-                                <th class="w-32 px-6 py-3 font-medium">
+                                <th class="w-32 px-6 py-2 font-medium">
                                     Budget
                                 </th>
-                                <th class="w-32 px-6 py-3 font-medium">
+                                <th class="w-32 px-6 py-2 font-medium">
                                     Additional
                                 </th>
-                                <th class="w-32 px-6 py-3 font-medium">
+                                <th class="w-32 px-6 py-2 font-medium">
                                     Reserved
                                 </th>
-                                <th class="w-32 px-6 py-3 font-medium">
+                                <th class="w-32 px-6 py-2 font-medium">
                                     Used
                                 </th>
                             </tr>
@@ -155,7 +155,7 @@
             </div>
 
             {{-- TRX BUDGET --}}
-            <div class="mt-6 flex flex-col gap-6 rounded-xl bg-white p-6 dark:bg-gray-800">
+            <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Trx Budget</h1>
                 </div>
