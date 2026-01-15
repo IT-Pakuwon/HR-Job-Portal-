@@ -405,7 +405,7 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                           <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                 <table class="w-full text-xs">
                                     <thead>
                                         <tr
@@ -558,7 +558,7 @@
                             </div>
 
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                            <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">

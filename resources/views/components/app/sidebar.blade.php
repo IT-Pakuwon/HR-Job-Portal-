@@ -67,7 +67,7 @@
                                 </svg>
 
                                 <span
-                                    class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                    class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">
                                     Dashboard
                                 </span>
                             </div>
@@ -92,7 +92,7 @@
                                         d="M11.92 6.851c.044-.027.09-.05.137-.07.481-.275.758-.68.908-1.256.126-.55.169-.81.357-2.058.075-.498.144-.91.217-1.264-4.122.75-7.087 2.984-9.12 6.284a18.087 18.087 0 0 0-1.985 4.585 17.07 17.07 0 0 0-.354 1.506c-.05.265-.076.448-.086.535a1 1 0 0 1-1.988-.226c.056-.49.209-1.312.502-2.357a20.063 20.063 0 0 1 2.208-5.09C5.31 3.226 9.306.494 14.913.004a1 1 0 0 1 .954 1.494c-.237.414-.375.993-.567 2.267-.197 1.306-.244 1.586-.392 2.235-.285 1.094-.789 1.853-1.552 2.363-.748 3.816-3.976 5.06-8.515 4.326a1 1 0 0 1 .318-1.974c2.954.477 4.918.025 5.808-1.556-.628.085-1.335.121-2.127.121a1 1 0 1 1 0-2c1.458 0 2.434-.116 3.08-.429Z" />
                                 </svg>
                                 <span
-                                    class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">ORG
+                                    class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">ORG
                                     Structure</span>
                             </div>
                         </a>
@@ -164,7 +164,7 @@
                                     </svg>
 
                                     <span
-                                        class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Recruitment</span>
+                                        class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Recruitment</span>
                                 </div>
                                 <div
                                     class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
@@ -195,14 +195,14 @@
                                     <a class="@if (Route::is('personnels', 'createPersonnel', 'editPersonnel', 'showpersonnels/{hash}')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('personnels') }}">
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">PRF</span>
+                                            class="lg:sidebar-expanded:opacity-100 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">PRF</span>
                                     </a>
                                 </li>
                                 <li class="mb-1 last:mb-0">
                                     <a class="@if (Route::is('jobapplicant')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('jobapplicant') }}">
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Applicant
+                                            class="lg:sidebar-expanded:opacity-100 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Applicant
                                             Portal</span>
                                     </a>
                                 </li>
@@ -210,7 +210,7 @@
                                     <a class="@if (Route::is('changestos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                         href="{{ route('changestos') }}">
                                         <span
-                                            class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
+                                            class="lg:sidebar-expanded:opacity-100 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
                                             Additional</span>
                                     </a>
                                 </li> --}}
@@ -265,7 +265,7 @@
                                                         d="{{ $menu->menu_icon }}" />
                                                 </svg>
                                                 <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m ml-4 whitespace-normal break-words font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
+                                                    class="lg:sidebar-expanded:opacity-100 ml-4 whitespace-normal break-words text-sm font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
                                                     {{ $menu->menu_name }}
                                                 </span>
                                             </div>
@@ -293,7 +293,7 @@
                                                             d="{{ $menu->menu_icon }}" />
                                                     </svg>
                                                     <span
-                                                        class="lg:sidebar-expanded:opacity-100 text-m ml-4 whitespace-normal break-words font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
+                                                        class="lg:sidebar-expanded:opacity-100 ml-4 whitespace-normal break-words text-sm font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
                                                         {{ $menu->menu_name }}
                                                     </span>
                                                 </div>
@@ -313,7 +313,7 @@
                                                         <a class="{{ Route::is($child->menu_route . '*') ? 'text-violet-500!' : '' }} block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                                             href="{{ $child->menu_route ? route($child->menu_route) : '#' }}">
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                                                class="lg:sidebar-expanded:opacity-100 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">
                                                                 {{ $child->menu_name }}
                                                             </span>
                                                         </a>
@@ -501,7 +501,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Application</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Application</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -518,7 +518,7 @@
                                                                     d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
                                                             </svg>
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -538,7 +538,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -579,7 +579,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Company</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Company</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -596,7 +596,7 @@
                                                                     d="M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 14.25h6v6h-6v-6zm10.5 0h6v6h-6v-6z" />
                                                             </svg>
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Department</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Department</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -616,7 +616,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Tenant</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Tenant</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -635,7 +635,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Location</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Location</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -679,12 +679,12 @@
                                                                 stroke="currentColor" width="16" height="16">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     d="
-                                                                                                                                                                                                                                                                                                                                                                                                                                                M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
                                                             </svg>
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Category</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Category</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -704,7 +704,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Vendor</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Vendor</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -724,7 +724,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Inventory</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Inventory</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -744,7 +744,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Autonbr</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Autonbr</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -764,7 +764,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TOP</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">TOP</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -805,7 +805,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Approval</span>
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Approval</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -825,7 +825,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TEST
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">TEST
                                                                 Monitor</span>
                                                         </div>
                                                     </a>
@@ -877,7 +877,7 @@
                                                 </svg>
 
                                                 <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                                    class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
                                                     Settings
                                                 </span>
                                             </div>
@@ -907,7 +907,7 @@
                                                     d="M18 18.72a9.094 9.094 0 00-6-2.22 9.094 9.094 0 00-6 2.22M15 7.5a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Users</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Users</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -923,7 +923,7 @@
                                                     d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM2.25 21h4.5l1.5-4.5h4.5" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Access
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Access
                                                 Right</span>
                                         </div>
                                     </a>
@@ -940,7 +940,7 @@
                                                     d="M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Role</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Role</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -959,7 +959,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Role
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Role
                                                 Menu</span>
                                         </div>
                                     </a>
@@ -978,7 +978,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Application</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Application</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -994,7 +994,7 @@
                                                     d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1012,7 +1012,7 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1029,7 +1029,7 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Approval</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Approval</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1046,7 +1046,7 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Company</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Company</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1062,7 +1062,7 @@
                                                     d="M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 14.25h6v6h-6v-6zm10.5 0h6v6h-6v-6z" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Department</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Department</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1081,7 +1081,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Category</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Category</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1099,7 +1099,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Autonbr</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Autonbr</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1117,7 +1117,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Vendor</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Vendor</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1135,7 +1135,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Inventory</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Inventory</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1153,7 +1153,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Tenant</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Tenant</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1170,7 +1170,7 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Location</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Location</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1188,7 +1188,7 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-m ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TOP</span>
+                                                class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TOP</span>
                                         </div>
                                     </a>
                                 </li> --}}

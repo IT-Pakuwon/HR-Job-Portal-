@@ -258,7 +258,7 @@
                 <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
 
 
-                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
+                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-1 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
@@ -1077,7 +1077,7 @@
 
                         if (!response.comments || response.comments.length === 0) {
                             commentList.append(
-                                '<p class="text-gray-500 italic">No comments yet. Be the first to comment!</p>'
+                                '<p class="text-gray-500 text-sm italic">No comments yet. Be the first to comment!</p>'
                             );
                             return;
                         }
@@ -1941,10 +1941,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                            </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                        target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                        class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                        ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                    </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>

@@ -711,7 +711,7 @@
 
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
                                 @if ($po->status === 'H')
                                     <form id="attachmentUploadForm" class="mb-4 rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600"
                                         enctype="multipart/form-data">
@@ -804,7 +804,7 @@
 
 
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                            <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">

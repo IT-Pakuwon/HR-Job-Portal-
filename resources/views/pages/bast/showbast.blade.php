@@ -406,7 +406,7 @@
                 {{-- Right card (Tabs) --}}
                 <div class="flex flex-1 flex-col gap-4 rounded-xl duration-300 sm:w-1/2 md:w-full">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                        <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                             <header
                                 class="sticky top-0 z-10 flex items-center rounded-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
@@ -434,7 +434,7 @@
                             </header>
 
                             <div class="flex flex-1 flex-col">
-                                <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                                <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-xs">
                                         <thead>
                                             <tr
@@ -505,7 +505,7 @@
                                 </div>
 
                                 {{-- Comments Tab --}}
-                                <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                     <div class="flex h-full flex-col">
                                         <div id="commentList"
                                             class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">

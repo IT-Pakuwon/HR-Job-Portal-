@@ -382,7 +382,7 @@
                             </header>
 
                             <div class="flex flex-1 flex-col">
-                                <div x-show="activeTab === 'approval'" class="flex-1 p-4 transition-all">
+                                <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-xs">
                                         <thead>
                                             <tr
@@ -453,7 +453,7 @@
                                 </div>
 
                                 {{-- Comments Tab --}}
-                                <div x-show="activeTab === 'comments'" class="flex-1 transition-all">
+                                <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                     <div class="flex h-full flex-col">
                                         <div id="commentList"
                                             class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
