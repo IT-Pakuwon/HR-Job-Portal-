@@ -1,162 +1,6 @@
 <x-app-layout>
-    <style>
-        /* DataTables scroll fix */
-        .dataTables_scrollBody {
-            overflow-x: auto !important;
-        }
-
-        /* Force equal width between header & body */
-        .dataTables_scrollHeadInner,
-        .dataTables_scrollBody table {
-            width: 100% !important;
-        }
-
-        .dtfc-fixed-left {
-            overflow: hidden;
-        }
-
-        /* ===============================
-   FIXED COLUMNS (FIRST 7)
-   =============================== */
-
-        /* lock row height so clones align */
-        .dataTable tbody tr,
-        .dtfc-fixed-left tbody tr {
-            min-height: 52px;
-        }
-
-        /* default: no wrapping */
-        .dataTable td {
-            white-space: nowrap;
-        }
-
-        /* ONLY frozen columns may wrap */
-        .dtfc-fixed-left td {
-            white-space: normal !important;
-            word-break: break-word;
-            vertical-align: top;
-            max-width: 220px;
-        }
-
-        /* background sync */
-        .dtfc-fixed-left {
-            background: white;
-            /* box-shadow: 2px 0 8px rgba(0, 0, 0, .06); */
-
-        }
-
-        .dark .dtfc-fixed-left {
-            background: #4b5563;
-        }
-
-        /* divider line */
-        .dtfc-fixed-left td,
-        .dtfc-fixed-left th {
-            border-right: 1px solid #d1d5db;
-        }
-
-        /* hover sync */
-        .dataTable tbody tr:hover td,
-        .dtfc-fixed-left tbody tr:hover td {
-            background-color: #f3f4f6 !important;
-        }
-
-        .dark .dataTable tbody tr:hover td,
-        .dark .dtfc-fixed-left tbody tr:hover td {
-            background-color: #374151 !important;
-        }
-
-        /* Make scroll body same as fixed columns */
-        .dataTables_scrollBody {
-            background: white;
-        }
-
-        .dark .dataTables_scrollBody {
-            background: #4b5563;
-        }
-
-        .dataTable tbody tr:nth-child(even) td,
-        .dtfc-fixed-left tbody tr:nth-child(even) td {
-            background-color: #f9fafb;
-        }
-
-        .dark .dataTable tbody tr:nth-child(even) td,
-        .dark .dtfc-fixed-left tbody tr:nth-child(even) td {
-            background-color: #374151;
-        }
-    </style>
 
     <style>
-        /* Overlay full-screen */
-        #loadingSpinnerContainer {
-            position: fixed;
-            inset: 0;
-            display: none;
-            /* akan ditampilkan via JS */
-            background: rgba(17, 24, 39, .55);
-            backdrop-filter: blur(2px);
-            z-index: 2000;
-        }
-
-        /* Kartu spinner di tengah */
-        #loadingSpinnerContainer .loading-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 18px 22px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
-        }
-
-        /* Spinner dual ring */
-        #loadingSpinnerContainer .loading-spinner {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: #6366f1;
-            /* indigo-500 */
-            animation: spin 1s linear infinite;
-            position: relative;
-        }
-
-        #loadingSpinnerContainer .loading-spinner::after {
-            content: "";
-            position: absolute;
-            inset: 6px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-left-color: #a5b4fc;
-            /* indigo-200 */
-            animation: spinReverse .75s linear infinite;
-        }
-
-        #loadingSpinnerContainer .loading-text {
-            color: #e5e7eb;
-            font-weight: 600;
-            letter-spacing: .02em;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span {
-            display: inline-block;
-            animation: blink 1.4s infinite both;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
-            animation-delay: .2s;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
-            animation-delay: .4s;
-        }
-
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -231,10 +75,10 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
-                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         {{-- Header with rounded top and dark mode support --}}
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             {{-- Budget ID label --}}
@@ -280,7 +124,7 @@
                     </header>
 
                     <!-- Main Content -->
-                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-xs sm:grid-cols-2">
 
                             {{-- Reusable classes (same as PRF UI) --}}
@@ -345,12 +189,9 @@
                             @endforeach
                         </div>
                     </div>
-
-
-
                 </div>
-                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
@@ -384,7 +225,7 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                 <table class="w-full text-xs">
                                     <thead>
                                         <tr
@@ -401,7 +242,7 @@
                             </div>
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
                                 <table class="w-full text-xs">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -450,7 +291,7 @@
                             </div>
 
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
@@ -474,68 +315,142 @@
             </div>
             <div class="min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                 <header
-                    class="-b -gray-300/10 dark: -gray-600 flex items-center justify-between rounded-t-2xl bg-gray-50 px-6 py-4 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-base font-semibold">📝 Budget Detail</h2>
+                    class="flex items-center justify-between rounded-t-2xl bg-gray-50 px-6 py-4 dark:bg-gray-700 dark:text-gray-100">
+
+                    <div class="flex flex-row gap-6">
+                        <h2 class="text-base font-semibold">📝 Budget Detail</h2>
+                        <button id="exportExcelBtn"
+                            class="rounded-md bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-200">
+                            Export Excel
+                        </button>
+                    </div>
+
+
+                    <div class="flex flex-row gap-6">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-500">View in:</span>
+                            <button id="toggleUnitBtn"
+                                class="rounded-md bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-200">
+                                In Million
+                            </button>
+                        </div>
+
+                        <button id="toggleViewBtn"
+                            class="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-200">
+                            View Full
+                        </button>
+
+                    </div>
+
                 </header>
 
+                @php
+                    $months = [
+                        'January',
+                        'February',
+                        'March',
+                        'April',
+                        'May',
+                        'June',
+                        'July',
+                        'August',
+                        'September',
+                        'October',
+                        'November',
+                        'December',
+                    ];
+                @endphp
+
                 <!-- scrollable container -->
-                <div class="relative overflow-x-auto">
-                    <table id="budget-table" class="display nowrap w-full">
+                <div id="budgetTableWrapper" class="relative max-h-[420px] overflow-y-auto overflow-x-hidden">
+                    <table class="w-full table-fixed border-collapse">
                         <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="px-4 py-2">Account</th>
-                                <th class="px-4 py-2">Activity ID</th>
-                                <th class="px-4 py-2">Description</th>
-                                <th class="px-4 py-2">Detail</th>
-                                <th class="px-4 py-2">Qty</th>
-                                <th class="px-4 py-2">Unit Price</th>
-                                <th class="px-4 py-2 text-left">Total Budget</th>
-                                @php
-                                    $months = [
-                                        'January',
-                                        'February',
-                                        'March',
-                                        'April',
-                                        'May',
-                                        'June',
-                                        'July',
-                                        'August',
-                                        'September',
-                                        'October',
-                                        'November',
-                                        'December',
-                                    ];
-                                @endphp
+                                <th style="width:80px; white-space:normal; word-break:break-word;" class="px-2 py-2">
+                                    Account</th>
+                                {{-- <th style="width:85px; white-space:normal; word-break:break-word;" class="px-2 py-2">
+                                    Activity ID</th> --}}
+                                <th class="col-full hidden" style="width:85px;">Activity ID</th>
+                                <th style="width:100px; white-space:normal; word-break:break-word;" class="px-2 py-2">
+                                    Description</th>
+                                <th style="width:100px; white-space:normal; word-break:break-word;" class="px-2 py-2">
+                                    Detail</th>
+                                {{-- <th style="width:50px;  white-space:normal; word-break:break-word;" class="px-2 py-2">
+                                    Qty</th>
+                                <th style="width:80px; white-space:normal; word-break:break-word;" class="px-2 py-2">
+                                    Unit Price</th> --}}
+                                <th class="col-full hidden" style="width:50px;">Qty</th>
+                                <th class="col-full hidden" style="width:80px;">Unit Price</th>
 
-                                @foreach ($months as $month)
-                                    <th class="px-4 py-2 text-right">
-                                        {{ $month }}
+                                <th style="width:80px; white-space:normal; word-break:break-word;" class="px-2 py-2">
+                                    Total Budget</th>
+
+                                @foreach ($months as $m)
+                                    <th style="width:80px; white-space:normal; word-break:break-word; text-align:right;"
+                                        class="px-2 py-2">
+                                        {{ $m }}
                                     </th>
                                 @endforeach
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach ($budgetdetail as $item)
-                                <tr
-                                    class="-t dark: -gray-600 bg-white hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-2">{{ $item->account_id }}</td>
-                                    <td class="px-4 py-2">{{ $item->activity_id }}</td>
-                                    <td class="px-4 py-2">{{ $item->activity_descr }}</td>
-                                    <td class="px-4 py-2">{{ $item->activity_detail }}</td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty_budget, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-2">{{ $item->unit_price_budget }}</td>
-                                    <td class="px-4 py-2 text-right">
+                                <tr class="bg-white hover:bg-gray-50 dark:bg-gray-600 dark:hover:bg-gray-700">
+
+                                    <td style="width:80px;  white-space:normal; word-break:break-word;"
+                                        class="px-2 py-2">{{ $item->account_id }}</td>
+                                    {{-- <td style="width:80px; white-space:normal; word-break:break-word;"
+                                        class="px-2 py-2">{{ $item->activity_id }}</td> --}}
+                                    <td class="col-full hidden" style="width:80px;">
+                                        {{ $item->activity_id }}
+                                    </td>
+                                    <td style="width:80px; white-space:normal; word-break:break-word;"
+                                        class="px-2 py-2">{{ $item->activity_descr }}</td>
+                                    <td style="width:80px; white-space:normal; word-break:break-word;"
+                                        class="px-2 py-2">{{ $item->activity_detail }}</td>
+
+                                    {{-- <td style="width:50px; white-space:normal; word-break:break-word;"
+                                        class="px-2 py-2">
+                                        {{ number_format($item->qty_budget, 2, ',', '.') }}
+                                    </td>
+
+                                    <td class="budget-cell px-2 py-2 text-right"
+                                        style="width:50px; white-space:normal; word-break:break-word;"
+                                        data-value="{{ $item->unit_price_budget }}">
+                                        {{ number_format($item->unit_price_budget) }}
+                                    </td> --}}
+                                    <td class="col-full hidden" style="width:50px;">
+                                        {{ number_format($item->qty_budget, 2, ',', '.') }}
+                                    </td>
+
+                                    <td class="col-full budget-cell hidden text-right" style="width:50px;"
+                                        data-value="{{ $item->unit_price_budget }}">
+                                        {{ number_format($item->unit_price_budget) }}
+                                    </td>
+
+                                    <td class="budget-cell px-2 py-2 text-right"
+                                        style="width:50px; white-space:normal; word-break:break-word;"
+                                        data-value="{{ $item->totalbudget }}">
                                         {{ number_format($item->totalbudget) }}
                                     </td>
+
                                     @for ($i = 1; $i <= 12; $i++)
-                                        @php $period='period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget' ; @endphp
-                                        <td class="px-4 py-2 text-right">{{ number_format($item->$period) }}</td>
+                                        @php $p='period'.str_pad($i,2,'0',STR_PAD_LEFT).'_budget'; @endphp
+                                        <td class="budget-cell px-2 py-2 text-right"
+                                            style="width:80px; white-space:normal; word-break:break-word;"
+                                            data-value="{{ $item->$p }}">
+                                            {{ number_format($item->$p) }}
+                                        </td>
                                     @endfor
+
                                 </tr>
                             @endforeach
                         </tbody>
+
                     </table>
                 </div>
+
             </div>
 
         </div>
@@ -594,6 +509,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
         dayjs.extend(dayjs_plugin_relativeTime);
 
@@ -602,59 +519,124 @@
         // ...
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
+    <script>
+        $(document).on('click', '#exportExcelBtn', function() {
+
+            const table = document.querySelector('#budgetTableWrapper table');
+            if (!table) {
+                alert('Table not found');
+                return;
+            }
+
+            // clone table so we can modify without touching UI
+            const clone = table.cloneNode(true);
+
+            // 🔹 remove hidden columns from export (compact view)
+            $(clone).find('.hidden').remove();
+
+            // 🔹 convert to worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.table_to_sheet(clone);
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Budget Detail');
+
+            // 🔹 file name
+            const fileName = `Budget_Detail_{{ $budget->budget_id }}.xlsx`;
+
+            XLSX.writeFile(wb, fileName);
+        });
+    </script>
 
     <script>
         $(document).ready(function() {
-            $('#budget-table').DataTable({
-                scrollX: true,
-                scrollY: '400px',
-                scrollCollapse: true,
 
-                fixedColumns: {
-                    leftColumns: 2 // ✅ FREEZE FIRST 7 COLUMNS
-                },
+            let budgetViewMode = 'regular'; // regular | million
 
-                columnDefs: [{
-                        targets: 0,
-                        width: 100
-                    }, // Account
-                    {
-                        targets: 1,
-                        width: 120
-                    }, // Activity ID
-                    {
-                        targets: 2,
-                        width: 260
-                    }, // Description
-                    {
-                        targets: 3,
-                        width: 200
-                    }, // Detail
-                    {
-                        targets: 4,
-                        width: 70
-                    }, // Qty
-                    {
-                        targets: 5,
-                        width: 120
-                    }, // Unit Price
-                    {
-                        targets: 6,
-                        width: 150
-                    }, // Total Budget
+            function formatNumber(num) {
+                return new Intl.NumberFormat('id-ID').format(num);
+            }
 
-                    // 🚫 DO NOT set width for months here
-                ],
+            function formatMillion(num) {
+                return (num / 1_000_000).toLocaleString('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                });
+            }
 
-                paging: false,
-                searching: false,
-                ordering: false,
-                info: false,
-                autoWidth: false
+            function refreshBudgetView() {
+                $('.budget-cell').each(function() {
+                    const raw = parseFloat($(this).data('value')) || 0;
+
+                    if (budgetViewMode === 'million') {
+                        $(this).text(formatMillion(raw));
+                    } else {
+                        $(this).text(formatNumber(raw));
+                    }
+                });
+
+                // 🔹 update button text
+                if (budgetViewMode === 'million') {
+                    $('#toggleUnitBtn').text('Million');
+                } else {
+                    $('#toggleUnitBtn').text('Regular');
+                }
+            }
+
+            // toggle handler
+            $(document).on('click', '#toggleUnitBtn', function() {
+                budgetViewMode = (budgetViewMode === 'regular') ? 'million' : 'regular';
+                refreshBudgetView();
             });
+
+            // initial render
+            refreshBudgetView();
         });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+
+            let isFullView = false;
+
+            function refreshViewMode() {
+
+                const $wrapper = $('#budgetTableWrapper');
+
+                if (isFullView) {
+                    // show extra columns
+                    $('.col-full').removeClass('hidden');
+
+                    // enable horizontal scroll
+                    $wrapper.removeClass('overflow-x-hidden')
+                        .addClass('overflow-x-auto');
+
+                    $('#toggleViewBtn').text('Compact View');
+                } else {
+                    // hide extra columns
+                    $('.col-full').addClass('hidden');
+
+                    // disable horizontal scroll
+                    $wrapper.removeClass('overflow-x-auto')
+                        .addClass('overflow-x-hidden');
+
+                    $('#toggleViewBtn').text('View Full');
+                }
+            }
+
+            // toggle button
+            $(document).on('click', '#toggleViewBtn', function() {
+                isFullView = !isFullView;
+                refreshViewMode();
+            });
+
+            // initial state
+            refreshViewMode();
+        });
+    </script>
 
 
+
+    <script>
         $(document).ready(function() {
             const budget_id = "{{ $budget->budget_id }}";
             const doctype = "BD";
@@ -749,60 +731,6 @@
 
         });
     </script>
-
-
-    <script>
-        $(document).on("click", "#approveBtn", function() {
-            let budget_id = "{{ $budget->budget_id }}"; // Ambil Task ID dari modal        
-            approveBudget(budget_id);
-        });
-
-        function approveBudget(budget_id) {
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
-
-            // Tampilkan spinner di kanan bawah
-            $spinner.fadeIn();
-
-            $.ajax({
-                url: `/budget/${budget_id}/approve`,
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    budget_id: budget_id
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Update status di UI
-                        $("#xstatus").text("Approved")
-                            .removeClass()
-                            .addClass(
-                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
-                            );
-
-                        // Tampilkan alert sukses
-                        toastr.success("Budget approved successfully!");
-                        window.location.href = "/budgets";
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-
-                    if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this budget.");
-                    } else {
-                        // toastr.error("Error: Unable to approve budget.");
-                    }
-                },
-                complete: function() {
-                    // Sembunyikan spinner setelah request selesai
-                    $spinner.fadeOut();
-                }
-            });
-        }
-    </script>
-
 
     <script>
         $(document).ready(function() {

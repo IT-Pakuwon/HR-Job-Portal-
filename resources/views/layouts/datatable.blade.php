@@ -630,4 +630,316 @@ MISC
     .edu-col.hidden {
         display: none;
     }
+
+    /* =====================================================
+DARK MODE SUPPORT
+===================================================== */
+
+    .dark body {
+        background-color: #111827;
+        /* gray-900 */
+        color: #e5e7eb;
+        /* gray-200 */
+    }
+
+    /* ================= TABLE ================= */
+
+    .dark table.dataTable {
+        background-color: #1f2933;
+        /* gray-800 */
+        color: #e5e7eb;
+    }
+
+    .dark table.dataTable th {
+        background-color: #374151;
+        /* gray-700 */
+        color: #f9fafb;
+        /* gray-50 */
+        border-color: #4b5563;
+        /* gray-600 */
+    }
+
+    .dark table.dataTable td {
+        background-color: #1f2933;
+        /* gray-800 */
+        color: #e5e7eb;
+        border-color: #374151;
+    }
+
+    /* hover row */
+    .dark table.dataTable tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ================= DATATABLE TOOLBAR ================= */
+
+    .dark .dataTables_wrapper .dt-toolbar {
+        color: #e5e7eb;
+    }
+
+    .dark .dataTables_length,
+    .dark .dt-buttons,
+    .dark .dataTables_filter {
+        color: #e5e7eb;
+    }
+
+    /* select + search input */
+    .dark .dataTables_wrapper .dataTables_length select,
+    .dark .dataTables_wrapper .dataTables_filter input {
+        background: #374151 !important;
+        color: #e5e7eb !important;
+        border-color: #4b5563 !important;
+    }
+
+    /* ================= BUTTONS ================= */
+
+    .dark .dt-button {
+        background: #374151 !important;
+        color: #e5e7eb !important;
+        border-color: #4b5563 !important;
+    }
+
+    .dark .dt-button:hover {
+        background: #4b5563 !important;
+    }
+
+    /* Excel button */
+    .dark .dt-button.buttons-excel {
+        background: rgba(16, 185, 129, .15) !important;
+        /* emerald */
+        color: #6ee7b7 !important;
+        border-color: rgba(16, 185, 129, .35) !important;
+    }
+
+    /* CSV button */
+    .dark .dt-button.buttons-csv {
+        background: rgba(59, 130, 246, .15) !important;
+        /* blue */
+        color: #93c5fd !important;
+        border-color: rgba(59, 130, 246, .35) !important;
+    }
+
+    /* ================= SEARCH / FILTER ================= */
+
+    .dark .dataTables_filter label,
+    .dark .dataTables_length label {
+        color: #d1d5db;
+    }
+
+    /* ================= CHILD ROW ================= */
+
+    .dark table.dataTable>tbody>tr.child {
+        background: #1f2933;
+    }
+
+    .dark table.dataTable>tbody>tr.child ul.dtr-details>li {
+        color: #e5e7eb;
+    }
+
+    /* ================= GROUP ROW ================= */
+
+    .dark tr.group-row {
+        background: #374151;
+        color: #f9fafb;
+    }
+
+    .dark tr.group-row:hover {
+        background: #4b5563;
+    }
+
+    /* ================= SCROLLBAR (optional) ================= */
+
+    .dark ::-webkit-scrollbar-thumb {
+        background-color: #4b5563;
+    }
+
+    .dark ::-webkit-scrollbar-track {
+        background-color: #1f2933;
+    }
+
+    /* =====================================================
+SELECT2 – DARK MODE SEARCH FIELD
+===================================================== */
+
+    /* input inside dropdown */
+    .dark .select2-container--default .select2-search--dropdown .select2-search__field {
+        background-color: #1f2933;
+        /* gray-800 */
+        color: #e5e7eb;
+        /* gray-200 */
+        border: 1px solid #4b5563;
+        /* gray-600 */
+    }
+
+    /* input inside multi-select box */
+    .dark .select2-container--default .select2-selection--multiple .select2-search__field {
+        background-color: transparent;
+        color: #e5e7eb;
+    }
+
+    /* placeholder text */
+    .dark .select2-container--default .select2-search__field::placeholder {
+        color: #9ca3af;
+        /* gray-400 */
+    }
+
+    /* focus state */
+    .dark .select2-container--default .select2-search__field:focus {
+        border-color: #6366f1;
+        /* indigo-500 */
+        outline: none;
+        box-shadow: 0 0 0 1px rgba(99, 102, 241, .4);
+    }
+
+    /* =====================================================
+IMPORT BUDGET – DARK MODE SUPPORT
+===================================================== */
+
+    /* ---------- Card / Panel ---------- */
+    .dark .bg-white {
+        background-color: #1f2933 !important;
+        /* gray-800 */
+    }
+
+    /* ---------- Headers ---------- */
+    .dark h2,
+    .dark h5 {
+        color: #f9fafb;
+        /* gray-50 */
+    }
+
+    /* ---------- Borders ---------- */
+    .dark .border,
+    .dark .border-b {
+        border-color: #4b5563 !important;
+        /* gray-600 */
+    }
+
+    /* ---------- Labels ---------- */
+    .dark label {
+        color: #d1d5db;
+        /* gray-300 */
+    }
+
+    /* ---------- Inputs & Select ---------- */
+    .dark input[type="text"],
+    .dark input[type="file"],
+    .dark select {
+        background-color: #1f2933;
+        color: #e5e7eb;
+        border-color: #4b5563;
+    }
+
+    .dark input::placeholder {
+        color: #9ca3af;
+        /* gray-400 */
+    }
+
+    /* focus */
+    .dark input:focus,
+    .dark select:focus {
+        border-color: #6366f1;
+        /* indigo-500 */
+        box-shadow: 0 0 0 1px rgba(99, 102, 241, .4);
+    }
+
+    /* ---------- File input button ---------- */
+    .dark input[type="file"]::file-selector-button {
+        background: #374151;
+        color: #e5e7eb;
+    }
+
+    .dark input[type="file"]::file-selector-button:hover {
+        background: #4b5563;
+    }
+
+    /* ---------- Table Preview ---------- */
+    .dark table {
+        background-color: #1f2933;
+        color: #e5e7eb;
+    }
+
+    .dark thead {
+        background-color: #374151;
+        color: #f9fafb;
+    }
+
+    .dark tbody tr {
+        border-color: #374151;
+    }
+
+    .dark tbody tr:hover {
+        background-color: rgba(255, 255, 255, .06);
+    }
+
+    /* ---------- Preview badge ---------- */
+    .dark h5.bg-red-100\/50 {
+        background-color: rgba(185, 28, 28, .25) !important;
+        color: #fca5a5 !important;
+    }
+
+    /* ---------- Buttons ---------- */
+
+    /* primary */
+    .dark .bg-blue-600 {
+        background-color: #4f46e5 !important;
+    }
+
+    .dark .bg-blue-600:hover {
+        background-color: #4338ca !important;
+    }
+
+    /* secondary */
+    .dark .bg-gray-200 {
+        background-color: #374151 !important;
+        color: #e5e7eb !important;
+    }
+
+    .dark .bg-gray-200:hover {
+        background-color: #4b5563 !important;
+    }
+
+    /* success */
+    .dark .bg-green-600 {
+        background-color: #16a34a !important;
+    }
+
+    .dark .bg-green-600:hover {
+        background-color: #15803d !important;
+    }
+
+    /* ---------- Attachment area ---------- */
+    .dark .attachment-row input[type="file"] {
+        background-color: #1f2933;
+        color: #e5e7eb;
+        border-color: #4b5563;
+    }
+
+    .dark .attachment-row button.removeAttachment {
+        border-color: #ef4444;
+        color: #fca5a5;
+    }
+
+    .dark .attachment-row button.removeAttachment:hover {
+        background-color: #dc2626;
+        color: #fff;
+    }
+
+    /* ---------- Details summary ---------- */
+    .dark summary {
+        color: #e5e7eb;
+    }
+
+    /* ---------- Add attachment button ---------- */
+    .dark #addAttachment {
+        background-color: rgba(255, 255, 255, .05);
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+
+    .dark #addAttachment:hover {
+        background-color: rgba(239, 68, 68, .15);
+        border-color: #ef4444;
+        color: #fca5a5;
+    }
 </style>

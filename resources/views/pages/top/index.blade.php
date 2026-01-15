@@ -240,7 +240,23 @@
                             }
                         }
                     ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0 // 👈 this is REQUIRED
+                        }
+                    },
+
+                    columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
                     columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, // DTR control
+                        {
                             data: 'id',
                             render: function(data, type, row) {
                                 return `
@@ -328,7 +344,23 @@
                             }
                         }
                     ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0 // 👈 this is REQUIRED
+                        }
+                    },
+
+                    columnDefs: [{
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
                     columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, // DTR control
+                        {
                             data: 'id',
                             render: function(data, type, row) {
                                 return `

@@ -44,11 +44,11 @@
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (CS Info) --}}
-                <div class="dark:bg-gray-80 flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white">
+                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
 
 
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
@@ -92,7 +92,7 @@
                         </div>
                     </header>
 
-                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         @php
                             // Build the SPPB/J/K/T link
                             $routeMap = [
@@ -1941,10 +1941,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                        target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                        class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                        ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                    </a>`
+                                                                                                                                                                                                                                                                                                                                                                                    target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                    class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                    ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>

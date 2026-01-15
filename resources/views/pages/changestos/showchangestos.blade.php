@@ -46,7 +46,7 @@
             <div class="flex flex-col gap-6 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                 <div>
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             {{-- Larger, bolder title --}}
@@ -87,7 +87,7 @@
                             {{ $statusText }}
                         </span>
                     </header>
-                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         <div class="grid grid-cols-1 gap-x-8 gap-y-4 text-xs sm:grid-cols-2">
 
                             @php

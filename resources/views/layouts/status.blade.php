@@ -314,6 +314,8 @@
             /* yellow-100 */
             border-color: rgb(202 138 4);
             /* yellow-600 */
-            color: rgb(202 138 4);
+            color:
+
+                rgb(202 138 4);
         }
     </style>

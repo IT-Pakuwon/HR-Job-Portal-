@@ -145,11 +145,11 @@
         </div>
 
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (ItemReq Info) --}}
-                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
@@ -191,7 +191,7 @@
                             </a>
                         </div>
                     </header>
-                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
 
                             {{-- Reusable Classes --}}
@@ -275,8 +275,8 @@
 
                 </div>
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">

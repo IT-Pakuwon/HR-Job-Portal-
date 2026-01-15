@@ -170,10 +170,10 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
-            <div class="flex flex-col gap-6 sm:w-1/2 md:w-full xl:flex-row">
-                <div class="rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         {{-- Header with rounded top and dark mode support --}}
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             {{-- Budget ID label --}}
@@ -219,7 +219,7 @@
                     </header>
 
                     <!-- Main Content -->
-                    <div class="flex flex-1 flex-col overflow-y-auto p-4">
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
 
                             {{-- Reusable classes (same as PRF UI) --}}
@@ -288,8 +288,8 @@
 
 
                 </div>
-                <div class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex flex-1 flex-col">
+                <div class="flex flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
@@ -323,7 +323,7 @@
                         {{-- Tabs Content --}}
                         <div class="flex flex-1 flex-col">
                             {{-- Approval tab --}}
-                            <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                 <table class="w-full text-xs">
                                     <thead>
                                         <tr
@@ -340,7 +340,7 @@
                             </div>
 
                             {{-- Attachment tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
                                 <table class="w-full text-xs">
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -389,7 +389,7 @@
                             </div>
 
                             {{-- Comments tab --}}
-                            <div x-show="activeTab === 'comments'" class="flex-1 p-2 transition-all">
+                            <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
                                 <div x-data="{ comments: [], newComment: '', currentUser: 'User1' }" class="flex h-full flex-col">
                                     <div id="commentList"
                                         class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
