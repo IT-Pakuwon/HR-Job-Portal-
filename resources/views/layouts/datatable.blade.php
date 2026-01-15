@@ -942,4 +942,23 @@ IMPORT BUDGET – DARK MODE SUPPORT
         border-color: #ef4444;
         color: #fca5a5;
     }
+
+    /* =====================================================
+DARK MODE – HEADER FIX (ONLY FOR TABS)
+Approval / Attachment / Comments tables
+===================================================== */
+
+    /* wrapper of your tabs */
+    .dark [x-show="activeTab === 'approval'"] thead,
+    .dark [x-show="activeTab === 'attachment'"] thead {
+        background-color: #1f2937;
+        /* gray-700 */
+    }
+
+    .dark [x-show="activeTab === 'approval'"] thead th,
+    .dark [x-show="activeTab === 'attachment'"] thead th {
+        background-color: #1f2937;
+        color: #e5e7eb;
+        /* gray-200 */
+    }
 </style>
