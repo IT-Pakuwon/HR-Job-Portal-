@@ -40,7 +40,7 @@
         @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
             <div class="mt-6">
                 <label class="flex items-start">
-                    <input type="checkbox" class="form-checkbox mt-1" name="terms" id="terms" />
+                    <input type="checkbox" class="form-checkbox mt-2" name="terms" id="terms" />
                     <span class="ml-2 text-xs">
                         {!! __('I agree to the :terms_of_service and :privacy_policy', [
                             'terms_of_service' =>
