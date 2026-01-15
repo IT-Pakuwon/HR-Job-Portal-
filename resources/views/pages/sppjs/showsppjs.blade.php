@@ -1322,7 +1322,7 @@
                         allowClear: true,
 
                         ajax: {
-                            url: "{{ route('coa.byDept') }}",
+                            url: "{{ route('editcoa.byDept') }}",
                             dataType: 'json',
                             delay: 250,
 

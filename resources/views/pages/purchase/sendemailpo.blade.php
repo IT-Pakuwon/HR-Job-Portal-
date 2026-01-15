@@ -292,6 +292,60 @@
 
         $('#editor').summernote('code', `{!! $initial_html !!}`);
 
+        // --- Send ---
+        $('#btnSend').on('click', async function(){
+            // sweep leftovers (user typed but didn’t press Enter)
+            if($('#toInput').value?.trim){ const v=$('#toInput').val().trim(); if(v){ addChip('to', v); $('#toInput').val(''); } }
+            if($('#ccInput').value?.trim){ const v=$('#ccInput').val().trim(); if(v){ addChip('cc', v); $('#ccInput').val(''); } }
+            if($('#bccInput').value?.trim){ const v=$('#bccInput').val().trim(); if(v){ addChip('bcc', v); $('#bccInput').val(''); } }
+
+            const payload = {
+            from:   $('#from').val(),
+            to:     state.to,
+            cc:     state.cc,
+            bcc:    state.bcc,
+            subject: $('#subject').val().trim(),
+            html:   $('#editor').summernote('code')
+            };
+
+            if (!payload.to.length) { toastr.error('Field "To" wajib diisi'); return; }
+            if (!payload.subject)   { toastr.error('Subject wajib diisi'); return; }
+
+
+            try{
+            const res = await fetch(`/po/${encodeURIComponent($('#orderNbr').val())}/email/send`, {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',              // ask server for JSON even on errors
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const text = await res.text();                 // always read as text first
+            let json;
+            try { json = JSON.parse(text); }               // try JSON parse
+            catch (e) {
+                console.error('Non-JSON response:', text);
+                toastr.error('Server mengembalikan non-JSON. Cek console.');
+                return;
+            }
+
+            if(res.ok && json.success){
+                toastr.success('Email terkirim.');
+                const encodedId = @json($eid);
+                window.location.href = `/showpo/${encodedId}`;
+            }else{
+                toastr.error(json.message || 'Gagal mengirim email.');
+            }
+            }catch(err){
+            console.error(err);
+            toastr.error('Terjadi kesalahan jaringan.');
+            }
+        });
+        
+
         })();
     </script>
 

@@ -778,6 +778,7 @@ class MasterController extends Controller
         return response()->json($departments);
     }
 
+    
     public function CoaBudget(Request $request)
     {
         // dd($request->all());
@@ -810,7 +811,7 @@ class MasterController extends Controller
             ->where('cpny_id', $cpnyid)
             ->where('department_fin_id', $msdepartment->department_fin_id)
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-            ->first();
+            ->get();
 
         if (!$budget) {
             return response()->json([
@@ -832,7 +833,7 @@ class MasterController extends Controller
                 $j->on('a.activity_id', '=', 'b.activity_id')
                 ->on('a.cpny_id', '=', 'b.cpny_id');
             })
-            ->where('b.budget_id', $budget->budget_id)
+            // ->where('b.budget_id', $budget->budget_id)
             ->where('b.cpny_id', $cpnyid)
             ->where('b.department_fin_id', $msdepartment->department_fin_id)
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
@@ -876,6 +877,88 @@ class MasterController extends Controller
                 DB::raw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) as availablebudget"),
                 DB::raw("(COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))   as usedbudget"),
                 DB::raw("((COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) - (COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))) as remaining"),
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+    public function editCoaBudget(Request $request)
+    {
+        $cpnyid  = $request->get('cpnyid');
+        // dari view kamu kirim budget_department_fin_id, jadi ini sebenarnya dept FIN
+        $deptFinId = $request->get('deptid'); 
+        $perpost = $request->get('perpost');
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = max((int) $request->get('per_page', 10), 1);
+
+        if (!$cpnyid || !$deptFinId) {
+            return response()->json([
+                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
+            ]);
+        }
+
+        // Header budget harus ada (status Completed/Closed)
+        $budget = Budget::where('status', 'C')
+            ->where('cpny_id', $cpnyid)
+            ->where('department_fin_id', $deptFinId)
+            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+            ->first();
+
+        if (!$budget) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, DeptFin {$deptFinId}, Perpost {$perpost}."
+            ]);
+        }
+
+        $q = BudgetDetail::query()
+            ->from('ms_budget as b')
+            ->join('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'b.account_id')
+                ->on('c.cpny_id', '=', 'b.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'b.activity_id')
+                ->on('a.cpny_id', '=', 'b.cpny_id');
+            })
+            ->where('b.budget_id', $budget->budget_id)
+            ->where('b.cpny_id', $cpnyid)
+            ->where('b.department_fin_id', $deptFinId)
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+
+        if ($search !== '') {
+            $q->where(function ($w) use ($search) {
+                $w->where('b.account_id', 'ilike', "%{$search}%")
+                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                ->orWhere('b.activity_id', 'ilike', "%{$search}%")
+                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
+                ->orWhere('a.activity_descr', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $q)->count();
+
+        $rows = $q->orderBy('b.account_id')
+            ->orderBy('b.activity_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'b.account_id',
+                'c.account_descr',
+                'b.activity_id',
+                'b.activity_descr as activity_descr',
+                'a.activity_descr as act_descr',
+                'b.business_unit_id',
+                'b.department_fin_id',
             ]);
 
         return response()->json([

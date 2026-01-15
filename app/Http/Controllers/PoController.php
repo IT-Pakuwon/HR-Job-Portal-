@@ -880,9 +880,11 @@ class PoController extends Controller
         $eid = Hashids::encode($po->id);
         // $emailfrom = User::where('username', $po->created_by)->value('notification_email');
         $user = User::where('username', $po->created_by)
-            ->first(['name', 'notification_email']);
+            ->first(['name', 'notification_email','email']);
 
-        $fromEmail = $user->notification_email;
+        // $fromEmail = $user->notification_email;
+        $fromEmail = $user->email;
+        
         $purchaser = ucwords(strtolower($user->name));
 
         // $emailto   = MsVendor::where('vendor_id', $po->vendorid)->value('email');
@@ -929,7 +931,7 @@ class PoController extends Controller
     public function sendNowPO(Request $req, string $ponbr)
     {
         $authUser = Auth::user();
-        $stamp = Carbon::now()->format('d/m/Y H:i');
+        $stamp = Carbon::now();
 
         $data = $req->validate([
             'from'    => ['required','email'],
