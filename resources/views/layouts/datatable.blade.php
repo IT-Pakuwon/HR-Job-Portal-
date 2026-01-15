@@ -1052,7 +1052,7 @@ Approval / Attachment / Comments tables
         /* gray-700 */
         border-radius: 0.5rem;
         padding: 0.5rem 2.5rem 0.5rem 0.75rem;
-        height: 42px;
+        /* height: 42px; */
         font-size: 14px;
 
         /* remove default OS styles */
@@ -1105,5 +1105,35 @@ Approval / Attachment / Comments tables
     .dark select option:checked {
         background-color: #4f46e5;
         color: #ffffff;
+    }
+
+    /* ===============================
+   Select2 Single (Dark Mode)
+   =============================== */
+
+    .dark .select2-container--default .select2-selection--single {
+        background-color: #1f2937;
+        /* gray-800 */
+        border: 1px solid #374151;
+        /* gray-700 */
+        height: 36px;
+    }
+
+    /* Selected text */
+    .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e5e7eb;
+        /* gray-200 */
+        line-height: 34px;
+    }
+
+    /* Placeholder */
+    .dark .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #9ca3af;
+        /* gray-400 */
+    }
+
+    /* Arrow */
+    .dark .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #9ca3af transparent transparent transparent;
     }
 </style>

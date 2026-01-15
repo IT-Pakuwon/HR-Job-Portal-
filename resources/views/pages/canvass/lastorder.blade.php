@@ -198,6 +198,7 @@
                     },
                     {
                         data: 'inventory_descr',
+                        className: 'text-left',
                         render: function(data) {
                             if (!data) return '';
                             // bungkus supaya wrap lebih "nempel" dan aman dari CSS DataTables

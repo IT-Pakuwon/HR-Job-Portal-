@@ -359,7 +359,7 @@
                             {{-- Render rows normally --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $rowClass }}">
-                                    <div class="{{ $labelClass }}">
+                                    <div class="{{ $labelClass }} whitespace-nowrap break-words">
                                         <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
                                         <span>{{ $f['label'] }}</span>
                                     </div>
@@ -374,11 +374,11 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col gap-6">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                         <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                             <header
-                                class="sticky top-0 z-10 flex items-center rounded-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
                                     <button @click="activeTab = 'attachment'"
                                         :class="activeTab === 'attachment' ?
@@ -403,7 +403,7 @@
                                 </nav>
                             </header>
 
-                            <div class="flex flex-1 flex-col">
+                            <div class="flex flex-1 flex-col rounded-xl">
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
                                     <table class="w-full text-xs">
                                         <thead>
@@ -497,19 +497,27 @@
                     </div>
 
                     {{-- RFCA Steps Table --}}
-                    <div class="mt-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                        <div class="mb-3 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                        <header
+                            class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+
+                            <div class="flex flex-grow items-center gap-3">
                                 <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                     RFCA Progress Steps
                                 </h2>
+
                                 @if ($rfca->rfca_type)
                                     <span
-                                        class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
+                                        class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
                                         Type: {{ $rfca->rfca_type }}
                                     </span>
                                 @endif
                             </div>
+
+                            {{-- Optional right-side actions --}}
+                            {{-- <button class="text-xs text-indigo-600 hover:underline">Action</button> --}}
+
+
 
                             {{-- Button Process Step hanya muncul jika:
                                 - MASIH ada step dengan progress_approval = true & status_rfca = 'P'
@@ -549,7 +557,7 @@
                                     {{-- All steps already processed. --}}
                                 </span>
                             @endif
-                        </div>
+                        </header>
 
 
                         <div class="overflow-x-auto">
@@ -615,7 +623,8 @@
                                         <tr>
                                             <td colspan="5"
                                                 class="p-3 text-center text-xs italic text-gray-500 dark:text-gray-400">
-                                                No RFCA steps generated yet. Click <strong>Submit</strong> to choose
+                                                No RFCA steps generated yet. Click <strong>Submit</strong> to
+                                                choose
                                                 RFCA Type and generate steps.
                                             </td>
                                         </tr>
@@ -624,9 +633,6 @@
                             </table>
                         </div>
                     </div>
-
-
-
                 </div>
 
                 {{-- Modal Choose RFCA Type --}}

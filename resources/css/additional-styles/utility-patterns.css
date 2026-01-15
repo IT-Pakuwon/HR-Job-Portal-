@@ -1,14 +1,14 @@
 /* Typography */
 .h1 {
-    @apply text-4xl font-extrabold tracking-tighter;
+    @apply text-lg font-extrabold tracking-tighter;
 }
 
 .h2 {
-    @apply text-3xl font-extrabold tracking-tighter;
+    @apply text-lg font-extrabold tracking-tighter;
 }
 
 .h3 {
-    @apply text-3xl font-extrabold;
+    @apply text-lg font-extrabold;
 }
 
 .h4 {
@@ -17,11 +17,11 @@
 
 @media (width >= theme(--breakpoint-md)) {
     .h1 {
-        @apply text-5xl;
+        @apply text-lg;
     }
 
     .h2 {
-        @apply text-4xl;
+        @apply text-lg;
     }
 }
 
