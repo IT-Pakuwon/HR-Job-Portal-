@@ -39,6 +39,20 @@
                     </select>
                 </div>
 
+                <div class="min-w-[200px] flex-1">
+                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                        Filter Business Unit
+                    </label>
+                    <select id="filterBusinessUnit"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        <option value="">All Business Unit</option>
+                        @foreach ($businessUnits as $bu)
+                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+
                 <div class="mt-6">
                     <button id="clearUserFilters" type="button"
                         class="rounded-lg border px-3 py-1 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
@@ -59,6 +73,7 @@
                             <th class="px-4 py-3 text-left font-medium">Email</th>
                             <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Departement</th>
+                            <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
                             <th class="w-32 px-4 py-3 text-center font-medium">Status</th>
                         </tr>
                     </thead>
@@ -102,6 +117,16 @@
                                 required>
                                 @foreach ($department as $p)
                                     <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
+                                @endforeach
+                            </select>
+
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 dark:text-white">Business Unit</label>
+                            <select name="business_unit_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
+                                required>
+                                @foreach ($businessUnits as $p)
+                                    <option value="{{ $p->business_unit_id }}">{{ $p->business_unit_id }}</option>
                                 @endforeach
                             </select>
 
@@ -266,6 +291,10 @@
                         className: 'no-pointer'
                     },
                     {
+                        data: 'business_unit_id',
+                        className: 'no-pointer'
+                    },
+                    {
                         data: 'status',
                         className: 'no-pointer',
                         render: function(data) {
@@ -297,13 +326,24 @@
                     .draw();
             });
 
+            $('#filterBusinessUnit').on('change', function() {
+                const val = $(this).val();
+                table
+                    .column(7) // business_unit_id
+                    .search(val || '', false, false)
+                    .draw();
+            });
+
+
             // ===== Clear Filter =====
             $('#clearUserFilters').on('click', function() {
                 $('#filterCompany').val('');
                 $('#filterDepartment').val('');
+                $('#filterBusinessUnit').val('');
 
                 table.column(3).search('');
                 table.column(4).search('');
+                table.column(7).search('');
                 table.draw();
             });
 
@@ -330,6 +370,7 @@
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
                     $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
+                    $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger('change');
                     $('select[name="role"]').val(app.role).trigger('change');
 
                     // ⬇️ Set app roles (sys_user_role)
