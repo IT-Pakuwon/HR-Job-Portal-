@@ -41,7 +41,7 @@ use Maatwebsite\Excel\Validators\ValidationException;
 use App\Models\MsBudgetTemp;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
-use App\Models\BusinessUnitPG;
+use App\Models\BusinessUnit;
 use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Http\Controllers\TrAttachmentController;
@@ -433,7 +433,7 @@ class BudgetController extends Controller
   
     public function getBusinessUnits($cpny_id)
     {        
-        $units = BusinessUnitPG::where('cpny_id', $cpny_id)->get();
+        $units = BusinessUnit::where('cpny_id', $cpny_id)->get();
 
         return response()->json($units);
     }
@@ -675,7 +675,7 @@ class BudgetController extends Controller
                         ->where('status','A')->get();
 
         // business‑unit untuk company yg sedang diedit
-        $businessUnits = BusinessUnitPG::where('cpny_id', $budget->cpny_id)
+        $businessUnits = BusinessUnit::where('cpny_id', $budget->cpny_id)
                         ->select('business_unit_id','business_unit_name')
                         ->get();
 

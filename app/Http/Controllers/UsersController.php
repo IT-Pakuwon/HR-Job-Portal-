@@ -10,9 +10,11 @@ use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
+use App\Models\Userbusinessunit;
 use Illuminate\Support\Facades\Hash;
 use App\Models\SysRole;
 use App\Models\SysUserRole;
+use App\Models\BusinessUnit;
 
 
 class UsersController extends Controller
@@ -22,15 +24,16 @@ class UsersController extends Controller
     {
         $company = MsCompany::select('cpny_id')->where('status', 'A')->get();
         $department = MsDepartment::select('department_id')->where('status', 'A')->get();
+        $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
         $roles = SysRole::where('status', 'A')->orderBy('role_id')->get();
 
-        return view('pages.users.users', compact('company', 'department', 'roles'));
+        return view('pages.users.users', compact('company', 'department', 'businessUnits', 'roles'));
     }
 
 
     public function json()
     {
-        $users = User::select(['id','name','username','email','cpny_id','department_id','jabatan','npk','status'])
+        $users = User::select(['id','name','username','email','cpny_id','department_id','business_unit_id','jabatan','npk','status'])
             ->orderByDesc('id')
             ->get();
 
@@ -45,6 +48,7 @@ class UsersController extends Controller
             'email'         => 'required',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
+            'business_unit_id' => 'required|array',
             'jabatan'       => 'required',            
             'role'          => 'required',          // user/admin (yang lama)
             'role_ids'      => 'nullable|array',    // ⬅️ daftar role RBAC (sys_user_role)
@@ -57,6 +61,7 @@ class UsersController extends Controller
 
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
+            $businessUnitIdsString = implode(',', $request->business_unit_id);
 
             $email    = $request->email;
             $username = explode('@', $email)[0];
@@ -69,6 +74,7 @@ class UsersController extends Controller
                 'username'           => $username,
                 'cpny_id'            => $companyIdsString,
                 'department_id'      => $deptIdsString,
+                'business_unit_id'   => $businessUnitIdsString,
                 'jabatan'            => $request->jabatan,
                 'password'           => $password,
                 'user_role'          => $request->role, // user/admin (level UI)
@@ -93,6 +99,16 @@ class UsersController extends Controller
                 Userdept::create([
                     'username'      => $username,
                     'department_id' => $dept,
+                    'status'        => 'A',
+                    'created_by'    => $loginUser->username,
+                ]);
+            }
+
+            // USERBUSINESSUNIT
+            foreach ($request->business_unit_id as $bu) {
+                Userbusinessunit::create([
+                    'username'      => $username,
+                    'business_unit_id' => $bu,
                     'status'        => 'A',
                     'created_by'    => $loginUser->username,
                 ]);
@@ -138,6 +154,7 @@ class UsersController extends Controller
             'role'          => $user->user_role, // user/admin
             'cpny_id'       => explode(',', $user->cpny_id),
             'department_id' => explode(',', $user->department_id),
+            'business_unit_id' => explode(',', $user->business_unit_id),
             'role_ids'      => $userRoles,       // ⬅️ untuk di-set di select2
         ]);
     }
@@ -150,6 +167,7 @@ class UsersController extends Controller
             'email'         => 'required',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
+            'business_unit_id' => 'required|array',
             'jabatan'       => 'required',
             'role'          => 'required',
             'role_ids'      => 'nullable|array',
@@ -164,12 +182,14 @@ class UsersController extends Controller
 
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
+            $businessUnitIdsString = implode(',', $request->business_unit_id);
 
             $user->update([
                 'name'          => strtoupper($request->name),
                 'email'         => $request->email,
                 'cpny_id'       => $companyIdsString,
                 'department_id' => $deptIdsString,
+                'business_unit_id' => $businessUnitIdsString,
                 'user_role'     => $request->role,
                 'npk'           => $request->npk,
                 'jabatan'       => $request->jabatan,
@@ -179,6 +199,7 @@ class UsersController extends Controller
             // DELETE OLD ACCESS (company / dept)
             Usercpny::where('username', $user->username)->delete();
             Userdept::where('username', $user->username)->delete();
+            Userbusinessunit::where('username', $user->username)->delete();
 
             foreach ($request->cpny_id as $cpny) {
                 Usercpny::create([
@@ -193,6 +214,15 @@ class UsersController extends Controller
                 Userdept::create([
                     'username'      => $user->username,
                     'department_id' => $dept,
+                    'status'        => 'A',
+                    'created_by'    => $loginUser->username,
+                ]);
+            }
+
+            foreach ($request->business_unit_id as $bu) {
+                Userbusinessunit::create([
+                    'username'      => $user->username,
+                    'business_unit_id' => $bu,
                     'status'        => 'A',
                     'created_by'    => $loginUser->username,
                 ]);
