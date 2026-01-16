@@ -667,10 +667,8 @@
                             <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="invCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="invPrev"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="invNext"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button type="button" id="invPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button type="button" id="invNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
