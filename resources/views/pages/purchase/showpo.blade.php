@@ -1430,7 +1430,7 @@
             const ponbr = "{{ $po->ponbr ?? $po->ponbr }}";
             const statusNow = "{{ $po->status }}";
             const isPO = "{{ strtoupper($po->potype ?? '') }}" === "PO";
-            const hash = "{{ request()->query('hash', '') }}";
+            const hash = @json($hash ?? '');
 
             function markInvalid($el) {
                 $el.addClass('ring-2 ring-red-400 border-red-400');
@@ -1560,7 +1560,12 @@
                             toastr.success(
                                 'Submit berhasil. Status berubah menjadi Purchase Order (P).'
                             );
-                            window.location.href = "/showpo/" + hash;
+                            if (hash) {
+                                window.location.href = `/showpo/${encodeURIComponent(hash)}`;
+                            } else {
+                                // fallback kalau entah kenapa hash kosong
+                                window.location.reload();
+                            }
                         } else {
                             toastr.error(res.message || 'Gagal submit.');
                         }
