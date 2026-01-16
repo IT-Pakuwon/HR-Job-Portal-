@@ -56,6 +56,7 @@ class PoController extends Controller
 
         // Detail PO
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')
             ->get();
 
@@ -180,6 +181,7 @@ class PoController extends Controller
             'csUrl'       => $csUrl,     
             'hasReceiptCompleted' => $hasReceiptCompleted,
             'poHistory'   => $poHistory,
+            'hash'        => $hash,
         ]);
     }
 
@@ -1003,11 +1005,24 @@ class PoController extends Controller
             ->values()
             ->all();
 
+        // // CC dari request (kalau ada)
+        // $ccFromRequest = $norm($data['cc'] ?? []);
+
+        // // merge + unique
+        // $cc  = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest)));
+        
         // CC dari request (kalau ada)
         $ccFromRequest = $norm($data['cc'] ?? []);
 
+        // (NEW) CC otomatis ke email pengirim (from)
+        $fromEmail = $data['from']; // ini pasti email valid karena sudah validate 'from' => email
+        $ccFromSender = filter_var($fromEmail, FILTER_VALIDATE_EMAIL) ? [$fromEmail] : [];
+
         // merge + unique
-        $cc  = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest)));
+        $cc = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest, $ccFromSender)));
+
+        // optional: jangan sampai from masuk juga ke TO (biar ga double)
+        $cc = array_values(array_diff($cc, $to));
 
         $bcc = $norm($data['bcc'] ?? []);
 

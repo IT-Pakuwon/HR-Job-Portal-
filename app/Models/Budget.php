@@ -21,11 +21,11 @@ class Budget extends Model
         return $this->belongsTo(User::class, 'created_by', 'username');
     }
 
-    // Relasi ke BusinessUnitPG
+    // Relasi ke BusinessUnit
     public function businessUnit()
     {
         return $this->setConnection('pgsql2')
-            ->belongsTo(BusinessUnitPG::class, 'business_unit_id', 'business_unit_id');
+            ->belongsTo(BusinessUnit::class, 'business_unit_id', 'business_unit_id');
     }
 
     // Relasi ke DepartmentFin
