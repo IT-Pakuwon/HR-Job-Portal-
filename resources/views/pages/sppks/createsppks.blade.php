@@ -169,6 +169,66 @@
         }
     </style>
 
+    <style>
+        /* ===== FORCE HEIGHT SELECT2 (SINGLE) ===== */
+        .select2-container {
+        width: 100% !important;
+        }
+
+        .select2-container .select2-selection--single {
+        height: 50px !important;              /* ⬅️ NAIK JELAS */
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        display: flex !important;
+        align-items: center !important;
+        background-color: #fff;
+        }
+
+        .select2-container--default
+        .select2-selection--single
+        .select2-selection__rendered {
+        line-height: 50px !important;          /* ⬅️ SAMA DENGAN HEIGHT */
+        padding-left: 16px !important;
+        padding-right: 44px !important;        /* ruang arrow */
+        font-size: 14px;
+        color: #374151;
+        }
+
+        .select2-container--default
+        .select2-selection--single
+        .select2-selection__arrow {
+        height: 50px !important;               /* ⬅️ arrow ikut tinggi */
+        right: 12px;
+        }
+
+        /* ===== Dropdown list ===== */
+        .select2-results__options {
+        max-height: 320px;
+        }
+
+        /* ===== Dark mode ===== */
+        .dark .select2-container--default .select2-selection--single {
+        background-color: #374151;
+        border-color: #4b5563;
+        }
+
+        .dark .select2-container--default
+        .select2-selection--single
+        .select2-selection__rendered {
+        color: #e5e7eb;
+        }
+
+        .select2-dropdown {
+        border: 1px solid #d1d5db;
+        }
+
+        .dark .select2-dropdown {
+        background: #111827;
+        border-color: #4b5563;
+        }
+
+    </style>
+
 
     <div class="max-w-9xl mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
@@ -2207,8 +2267,162 @@
         });
     </script>
 
-
     <script>
+        $(function() {
+            const $lokasiModal = $('#modalLokasi');
+            const $selLoc = $('#modal_location_id');
+            const $selSub = $('#modal_sub_location_id');
+            let currentLocRow = null;
+
+            function initSelect2() {
+            // destroy dulu kalau sudah ada (biar aman saat open berkali-kali)
+            if ($selLoc.hasClass("select2-hidden-accessible")) $selLoc.select2('destroy');
+            if ($selSub.hasClass("select2-hidden-accessible")) $selSub.select2('destroy');
+
+            // init dengan dropdownParent = modal (wajib biar dropdown muncul di atas modal)
+            $selLoc.select2({
+                dropdownParent: $lokasiModal,
+                placeholder: '-- choose --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $selSub.select2({
+                dropdownParent: $lokasiModal,
+                placeholder: '-- choose --',
+                allowClear: true,
+                width: '100%'
+            });
+            }
+
+            function openLokasiModal(forRow) {
+            currentLocRow = forRow;
+            const cpny = $('select[name="cpnyid"]').val();
+
+            if (!cpny) {
+                toastr.warning('Pilih Company terlebih dahulu.');
+                return;
+            }
+
+            // tampilkan modal dulu supaya Select2 bisa hitung width
+            $lokasiModal.removeClass('hidden').addClass('flex');
+
+            // init select2
+            initSelect2();
+
+            // reset options
+            $selLoc.empty().append('<option value=""></option>').trigger('change');
+            $selSub.empty().append('<option value=""></option>').trigger('change');
+
+            // load locations
+            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                .done(function(list) {
+                // isi options location
+                list.forEach(it => {
+                    $selLoc.append(new Option(it.text, it.value, false, false));
+                });
+
+                // preselect dari row kalau ada
+                const curLoc = (currentLocRow.find('.locationIdField').val() || '').trim();
+                if (curLoc) {
+                    $selLoc.val(curLoc).trigger('change'); // trigger change -> load subloc
+                } else {
+                    // fokuskan search select2
+                    setTimeout(() => $selLoc.select2('open'), 100);
+                }
+                })
+                .fail(function() {
+                toastr.error('Gagal memuat lokasi.');
+                });
+            }
+
+            function closeLokasiModal() {
+            $lokasiModal.addClass('hidden').removeClass('flex');
+            }
+
+            // Open modal dari tombol di row
+            $(document).on('click', '.openLokasiPicker', function() {
+            openLokasiModal($(this).closest('tr'));
+            });
+
+            // Close modal
+            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+            // ketika location berubah → load sublocations
+            $selLoc.on('change', function() {
+            const cpny = $('select[name="cpnyid"]').val();
+            const loc = $(this).val();
+
+            $selSub.empty().append('<option value=""></option>').trigger('change');
+
+            if (!loc) return;
+
+            $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                .done(function(list) {
+                list.forEach(it => {
+                    $selSub.append(new Option(it.text, it.value, false, false));
+                });
+
+                // preselect subloc dari row kalau ada
+                if (currentLocRow) {
+                    const curSub = (currentLocRow.find('.subLocationIdField').val() || '').trim();
+                    if (curSub) {
+                    $selSub.val(curSub).trigger('change');
+                    } else {
+                    setTimeout(() => $selSub.select2('open'), 100);
+                    }
+                }
+                })
+                .fail(function() {
+                toastr.error('Gagal memuat sub location.');
+                });
+            });
+
+            // Save ke row aktif
+            $('#saveLokasi').on('click', function() {
+            const locId = $selLoc.val();
+            const locText = $selLoc.find('option:selected').text();
+            const subId = $selSub.val();
+            const subText = $selSub.find('option:selected').text();
+
+            if (!locId || !subId) {
+                toastr.error('Pilih Location dan Sub Location.');
+                return;
+            }
+
+            currentLocRow.find('.locationIdField').val(locId);
+            currentLocRow.find('.subLocationIdField').val(subId);
+            currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+
+            currentLocRow.find('.locationDisplayField')
+                .removeClass('is-invalid')
+                .next('.error-feedback').remove();
+
+            closeLokasiModal();
+            });
+
+            // Jika company berubah dan modal terbuka → reload lokasi (tanpa re-open recursion)
+            $('select[name="cpnyid"]').on('change', function() {
+            if (!$lokasiModal.is(':visible')) return;
+
+            const cpny = $(this).val();
+            $selLoc.empty().append('<option value=""></option>').trigger('change');
+            $selSub.empty().append('<option value=""></option>').trigger('change');
+
+            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                .done(function(list) {
+                list.forEach(it => $selLoc.append(new Option(it.text, it.value, false, false)));
+                setTimeout(() => $selLoc.select2('open'), 100);
+                })
+                .fail(function() {
+                toastr.error('Gagal memuat lokasi.');
+                });
+            });
+        });
+    </script>
+
+
+    {{-- <script>
         $(function() {
             const $lokasiModal = $('#modalLokasi');
             const $selLoc = $('#modal_location_id');
@@ -2315,7 +2529,7 @@
                 }
             });
         });
-    </script>
+    </script> --}}
 
     <script>
         $(function() {
@@ -2632,5 +2846,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 </x-app-layout>
