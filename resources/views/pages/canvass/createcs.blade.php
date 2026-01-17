@@ -294,7 +294,7 @@
                                 </div>
 
                                 <!-- Vendor -->
-                                <div class="flex flex-col gap-2">
+                                <div class="col-span-2 flex flex-col gap-2">
                                     <label class="req text-xs font-medium text-gray-600 dark:text-gray-400">Select
                                         Vendor</label>
                                     <select id="vendorSelect"
@@ -1999,6 +1999,21 @@
                     toastr.error(msg);
                 }
             });
+        });
+
+        document.getElementById('csForm').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+
+                const inputs = Array.from(
+                    this.querySelectorAll('input, select, textarea')
+                ).filter(el => !el.disabled && el.tabIndex !== -1);
+
+                const index = inputs.indexOf(document.activeElement);
+                if (index > -1 && index + 1 < inputs.length) {
+                    inputs[index + 1].focus();
+                }
+            }
         });
     </script>
 

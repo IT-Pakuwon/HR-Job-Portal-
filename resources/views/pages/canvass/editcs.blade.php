@@ -2249,6 +2249,21 @@
                 }
             });
         });
+
+        document.getElementById('csForm').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+
+                const inputs = Array.from(
+                    this.querySelectorAll('input, select, textarea')
+                ).filter(el => !el.disabled && el.tabIndex !== -1);
+
+                const index = inputs.indexOf(document.activeElement);
+                if (index > -1 && index + 1 < inputs.length) {
+                    inputs[index + 1].focus();
+                }
+            }
+        });
     </script>
 
 
