@@ -1678,13 +1678,14 @@ class MasterController extends Controller
         return response()->json($items);
     }
 
-
     public function getLocations(string $cpny_id)
     {
         $items = MsLocation::query()
-            // ->where('cpny_id', $cpny_id)
-            ->whereIn('cpny_id', [$cpny_id, 'ALL'])
             ->where('status', 'A')
+            ->where(function ($q) use ($cpny_id) {
+                $q->where('cpny_id', $cpny_id)
+                ->orWhere('cpny_id', 'ALL');
+            })
             ->orderBy('location_name')
             ->get(['location_id as value', 'location_name as text']);
 
@@ -1694,15 +1695,44 @@ class MasterController extends Controller
     public function getSubLocations(string $cpny_id, string $location_id)
     {
         $items = MsSubLocation::query()
-            // ->where('cpny_id', $cpny_id)
-            ->whereIn('cpny_id', [$cpny_id, 'ALL'])
-            ->where('location_id', $location_id)
             ->where('status', 'A')
+            ->where('location_id', $location_id)
+            ->where(function ($q) use ($cpny_id) {
+                $q->where('cpny_id', $cpny_id)
+                ->orWhere('cpny_id', 'ALL');
+            })
             ->orderBy('sub_location_name')
             ->get(['sub_location_id as value', 'sub_location_name as text']);
 
         return response()->json($items);
     }
+
+
+
+    // public function getLocations(string $cpny_id)
+    // {
+    //     $items = MsLocation::query()
+    //         // ->where('cpny_id', $cpny_id)
+    //         ->whereIn('cpny_id', [$cpny_id, 'ALL'])
+    //         ->where('status', 'A')
+    //         ->orderBy('location_name')
+    //         ->get(['location_id as value', 'location_name as text']);
+
+    //     return response()->json($items);
+    // }
+
+    // public function getSubLocations(string $cpny_id, string $location_id)
+    // {
+    //     $items = MsSubLocation::query()
+    //         // ->where('cpny_id', $cpny_id)
+    //         ->whereIn('cpny_id', [$cpny_id, 'ALL'])
+    //         ->where('location_id', $location_id)
+    //         ->where('status', 'A')
+    //         ->orderBy('sub_location_name')
+    //         ->get(['sub_location_id as value', 'sub_location_name as text']);
+
+    //     return response()->json($items);
+    // }
 
     
     public function showTenant(Request $req)

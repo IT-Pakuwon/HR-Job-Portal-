@@ -232,7 +232,7 @@
                     </span>
                 </td>               
                 <td>{{ optional($dt->location)->location_name }} - {{ optional($dt->subLocation)->sub_location_name }}</td>
-                <td>{{ $dt->budget_department_fin_id }} - {{ $dt->budget_account_id }} - {{ $dt->budget_activity_descr }}</td>
+                <td>{{ $dt->budget_account_id }} - {{ $dt->budget_activity_descr }}</td>
             </tr>
         @empty
             <tr>
