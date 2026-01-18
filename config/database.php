@@ -164,6 +164,19 @@ return [
             'schema' => 'public',
             'sslmode' => 'prefer',
         ],
+        
+        'pgsql3' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HOST_3', '127.0.0.1'),
+            'port' => env('DB_PGSQL_PORT_3', '5432'),
+            'database' => env('DB_PGSQL_DATABASE_3', 'forge'),
+            'username' => env('DB_PGSQL_USERNAME_3', 'forge'),
+            'password' => env('DB_PGSQL_PASSWORD_3', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
 
         // 'sqlsrv' => [
         //     'driver' => 'sqlsrv',

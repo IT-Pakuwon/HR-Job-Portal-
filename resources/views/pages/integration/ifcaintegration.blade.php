@@ -92,6 +92,7 @@
                                         <th class="px-3 py-2 w-56">Inventory ID</th>
                                         <th class="px-3 py-2">Description</th>
                                         <th class="px-3 py-2 w-28">UOM</th>
+                                        <th class="px-3 py-2 w-20">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="nsTbody" class="divide-y divide-gray-100">
@@ -210,6 +211,14 @@
                         <td class="px-3 py-2 font-medium text-gray-800">${r.inventoryid ?? ''}</td>
                         <td class="px-3 py-2 text-gray-700">${r.inventory_descr ?? ''}</td>
                         <td class="px-3 py-2 text-gray-700">${r.purchase_unit ?? ''}</td>
+                        <td class="px-3 py-2">
+                            <span class="px-2 py-1 rounded text-xs font-semibold
+                                ${r.stage_status === 'H' ? 'bg-gray-200 text-gray-800' :
+                                r.stage_status === 'P' ? 'bg-yellow-200 text-yellow-800' :
+                                'bg-green-200 text-green-800'}">
+                                ${r.stage_status}
+                            </span>
+                        </td>
                     </tr>
                 `).join('');
 
