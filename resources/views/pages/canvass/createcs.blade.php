@@ -238,8 +238,23 @@
                                     <label class="text-xs font-medium text-gray-600 dark:text-gray-400">
                                         SPPB/J/K/T ID
                                     </label>
-                                    <input type="text" value="{{ $docno }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                    @if(!empty($sourceShowUrl))
+                                        <a href="{{ $sourceShowUrl }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
+                                                text-indigo-600 underline hover:text-indigo-800
+                                                dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
+                                            {{ $docno }}
+                                        </a>
+                                    @else
+                                        <input type="text" value="{{ $docno }}" readonly
+                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
+                                                dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                    @endif
+
+                                    {{-- <input type="text" value="{{ $docno }}" readonly
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
                                 </div>
 
                                 <!-- User -->
@@ -831,7 +846,16 @@
                             ${TOPS_OPTIONS_HTML}
                         </select>
                     </div>
-
+                    <!-- Vendor Note -->
+                    <div class="mt-2">                        
+                        <textarea
+                            name="vendornote_${id}"
+                            class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
+                                focus:border-indigo-500 focus:ring focus:ring-indigo-500/50
+                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                            rows="2"
+                            placeholder="Vendor Note"></textarea>
+                    </div>
                 </div>
 
                         <!-- Delete Button -->
@@ -1416,7 +1440,7 @@
                     vendortelp: String($th.data('vendor-phone') || ''),
                     vendorcp: String($th.data('vendor-cp') || ''),
                     vendortop: $th.find('select.cara-bayar').val() || '',
-                    vendornote: '',
+                    vendornote: String($th.find('textarea.vendornote').val() || ''),
 
                     total: round2(total),
                     ppn: round2(ppn),

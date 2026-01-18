@@ -230,8 +230,22 @@
                                 <div>
                                     <label class="text-xs font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
                                         ID</label>
-                                    <input type="text" value="{{ $docno }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        @if(!empty($sourceShowUrl))
+                                            <a href="{{ $sourceShowUrl }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
+                                                    text-indigo-600 underline hover:text-indigo-800
+                                                    dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
+                                                {{ $docno }}
+                                            </a>
+                                        @else
+                                            <input type="text" value="{{ $docno }}" readonly
+                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
+                                                    dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        @endif
+                                    {{-- <input type="text" value="{{ $docno }}" readonly
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
                                 </div>
 
                                 <!-- User -->
@@ -272,8 +286,22 @@
                                         <div class="flex-1">
                                             <label class="text-xs font-medium text-gray-600 dark:text-gray-400">BQ
                                                 ID</label>
-                                            <input type="text" value="{{ $header->bqid }}" readonly
-                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                                    @if(!empty($bqShowUrl) && !empty($header->bqid))
+                                                        <a href="{{ $bqShowUrl }}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
+                                                                text-indigo-600 underline hover:text-indigo-800
+                                                                dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
+                                                            {{ $header->bqid }}
+                                                        </a>
+                                                    @else
+                                                        <input type="text" value="{{ $header->bqid ?? '' }}" readonly
+                                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
+                                                                dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                                    @endif
+                                            {{-- <input type="text" value="{{ $header->bqid }}" readonly
+                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
                                         </div>
 
                                         <div class="flex-1">
@@ -286,17 +314,17 @@
                                             @if ($bq && $bq_eid)
                                                 <a href="{{ route('bqcs.edit', $bq_eid) }}"
                                                     class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-center text-xs font-semibold text-white hover:bg-emerald-700">
-                                                    Open BQ
+                                                    Open BQ CS
                                                 </a>
                                             @elseif ($csidForBQ)
                                                 <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
                                                     class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-center text-xs font-semibold text-white hover:bg-blue-700">
-                                                    Create BQ
+                                                    Create BQ CS
                                                 </a>
                                             @else
                                                 <button type="button" title="Simpan CS dulu, baru buat BQ"
                                                     class="mt-8 inline-flex w-full cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-center text-xs font-semibold text-white">
-                                                    Create BQ
+                                                    Create BQ CS
                                                 </button>
                                             @endif
                                         </div>
@@ -957,6 +985,17 @@
                             ${TOPS_OPTIONS_HTML}
                         </select>
                     </div>
+                    <!-- Vendor Note -->
+                    <div class="mt-2">                        
+                        <textarea
+                            name="vendornote_${idKey}"
+                            class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
+                                focus:border-indigo-500 focus:ring focus:ring-indigo-500/50
+                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                            rows="2"
+                            placeholder="Vendor Note"></textarea>
+                    </div>
+
 
                 </div>
 
@@ -1532,7 +1571,7 @@
                     vendortelp: String($th.data('vendor-phone') || ''),
                     vendorcp: String($th.data('vendor-cp') || ''),
                     vendortop: $th.find('select.cara-bayar').val() || '',
-                    vendornote: '',
+                    vendornote: String($th.find('textarea.vendornote').val() || ''),
 
                     total: round2(total),
                     ppn: round2(ppn),

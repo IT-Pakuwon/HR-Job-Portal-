@@ -58,6 +58,7 @@ use App\Models\TrBQCSDetail;
 use App\Models\MsTop;
 use App\Models\TrPOReuse;
 use App\Models\TrPoLastPrice;
+use App\Models\Bq;
 
 
 class CanvassController extends Controller
@@ -192,6 +193,23 @@ class CanvassController extends Controller
 
 
         }
+
+        $sourceShowUrl = null;
+        switch ($doc) {
+            case 'SPPB':
+                $sourceShowUrl = url('/showsppbs/' . $hash);
+                break;
+            case 'SPPJ':
+                $sourceShowUrl = url('/showsppjs/' . $hash);
+                break;
+            case 'SPPK':
+                $sourceShowUrl = url('/showsppks/' . $hash);
+                break;
+            case 'SPPT':
+                $sourceShowUrl = url('/showsppts/' . $hash);
+                break;
+        }
+
         
         // ===== Ambil lampiran dari TrAttachment (berdasarkan refnbr) =====
         $rows = TrAttachment::where('refnbr', $refnbr)
@@ -291,7 +309,8 @@ class CanvassController extends Controller
             'items'      => $items,
             'tops'       => $tops,
             'poHeader'   => $poHeader ?? null,
-            'prefix2'    => $prefix2 ?? null,            
+            'prefix2'    => $prefix2 ?? null,       
+            'sourceShowUrl' => $sourceShowUrl,  
 
         ]);
     }
@@ -1081,8 +1100,42 @@ class CanvassController extends Controller
             $safeSet($cs, $csTable, 'spbid',          $spbid          ?? null);
 
             // Header vendor (display)
+            // for ($slot = 1; $slot <= 6; $slot++) {
+            //     $v = $vendors[$slot-1] ?? null;
+
+            //     $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
+            //     $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
+            //     $safeSet($cs, $csTable, "vendoralamat{$slot}",  $v['vendoralamat'] ?? null);
+            //     $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
+            //     $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
+            //     $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
+            //     $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
+
+            //     $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
+            //     $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
+            //     $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
+            //     $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
+            //     $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
+            //     $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
+
+            //     // akan diisi ulang setelah detail
+            //     $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
+            //     $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
+            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
+            // }
+
+            // Header vendor (display)
             for ($slot = 1; $slot <= 6; $slot++) {
-                $v = $vendors[$slot-1] ?? null;
+                $v = $vendors[$slot - 1] ?? null;
+
+                // ===== vendornote: trim + kosong jadi null + limit panjang =====
+                $vendorNote = $v['vendornote'] ?? null;
+                if ($vendorNote !== null) {
+                    $vendorNote = trim((string) $vendorNote);
+                    if ($vendorNote === '') $vendorNote = null;
+                    // batasi panjang (sesuaikan dengan tipe kolom kamu)
+                    if ($vendorNote !== null) $vendorNote = mb_substr($vendorNote, 0, 500);
+                }
 
                 $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
                 $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
@@ -1090,7 +1143,9 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
                 $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
                 $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
-                $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
+
+                // ✅ vendor note masuk ke vendornote1..6
+                $safeSet($cs, $csTable, "vendornote{$slot}",    $vendorNote);
 
                 $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
                 $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
@@ -1104,6 +1159,7 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
                 $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
             }
+
 
             $cs->save();
 
@@ -1550,9 +1606,41 @@ class CanvassController extends Controller
             $cs->created_by = $username;
 
             // Map maksimal 6 vendor
+            // for ($i = 0; $i < min(count($vendors), 6); $i++) {
+            //     $idx = $i + 1;
+            //     $v   = $vendors[$i];
+
+            //     $safeSet($cs, $csTable, "vendorid{$idx}",      $v['vendorid']        ?? null);
+            //     $safeSet($cs, $csTable, "vendorname{$idx}",    $v['vendorname']      ?? null);
+            //     $safeSet($cs, $csTable, "vendoralamat{$idx}",  $v['vendoralamat']    ?? null);
+            //     $safeSet($cs, $csTable, "vendortelp{$idx}",    $v['vendortelp']      ?? null);
+            //     $safeSet($cs, $csTable, "vendorcp{$idx}",      $v['vendorcp']        ?? null);
+            //     $safeSet($cs, $csTable, "vendortop{$idx}",     $v['vendortop']       ?? null);
+            //     $safeSet($cs, $csTable, "vendornote{$idx}",    $v['vendornote']      ?? null);
+
+            //     $safeSet($cs, $csTable, "totalvendor{$idx}",              $round2($v['total']          ?? 0));
+            //     $safeSet($cs, $csTable, "taxcodevendor{$idx}",            $v['taxcode']                ?? null);
+            //     $safeSet($cs, $csTable, "ppnvendor{$idx}",                $round2($v['ppn']            ?? 0));
+            //     $safeSet($cs, $csTable, "pphvendor{$idx}",                $round2($v['pph']            ?? 0));
+            //     $safeSet($cs, $csTable, "taxvendor{$idx}",                $round2($v['tax']            ?? 0));
+            //     $safeSet($cs, $csTable, "grandtotalvendor{$idx}",         $round2($v['grand']          ?? 0));
+            //     $safeSet($cs, $csTable, "totalselectedvendor{$idx}",      $round2($v['selected_total'] ?? 0));
+            //     $safeSet($cs, $csTable, "taxselectedvendor{$idx}",        $round2($v['selected_tax']   ?? 0));
+            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$idx}", $round2($v['selected_grand'] ?? 0));
+            // }
+            // Map maksimal 6 vendor
             for ($i = 0; $i < min(count($vendors), 6); $i++) {
                 $idx = $i + 1;
                 $v   = $vendors[$i];
+
+                // note vendor: trim + batasi panjang (mis 500)
+                $vendorNote = $v['vendornote'] ?? null;
+                if ($vendorNote !== null) {
+                    $vendorNote = trim((string) $vendorNote);
+                    if ($vendorNote === '') $vendorNote = null;
+                    // batasi panjang agar aman (sesuaikan jika kolom kamu lebih kecil/besar)
+                    if ($vendorNote !== null) $vendorNote = mb_substr($vendorNote, 0, 500);
+                }
 
                 $safeSet($cs, $csTable, "vendorid{$idx}",      $v['vendorid']        ?? null);
                 $safeSet($cs, $csTable, "vendorname{$idx}",    $v['vendorname']      ?? null);
@@ -1560,7 +1648,9 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "vendortelp{$idx}",    $v['vendortelp']      ?? null);
                 $safeSet($cs, $csTable, "vendorcp{$idx}",      $v['vendorcp']        ?? null);
                 $safeSet($cs, $csTable, "vendortop{$idx}",     $v['vendortop']       ?? null);
-                $safeSet($cs, $csTable, "vendornote{$idx}",    $v['vendornote']      ?? null);
+
+                // ✅ Vendor note
+                $safeSet($cs, $csTable, "vendornote{$idx}",    $vendorNote);
 
                 $safeSet($cs, $csTable, "totalvendor{$idx}",              $round2($v['total']          ?? 0));
                 $safeSet($cs, $csTable, "taxcodevendor{$idx}",            $v['taxcode']                ?? null);
@@ -1572,6 +1662,7 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "taxselectedvendor{$idx}",        $round2($v['selected_tax']   ?? 0));
                 $safeSet($cs, $csTable, "grandtotalselectedvendor{$idx}", $round2($v['selected_grand'] ?? 0));
             }
+
             $cs->save();
 
             // ==== 5) Simpan detail TrCSdetail (lengkapi dari sumber / TrPOReuse) ====
@@ -1935,6 +2026,42 @@ class CanvassController extends Controller
             ->orderByRaw('COALESCE(top_days, 9999), top_name') 
             ->get(['topid','top_name','top_days','top_type']);
 
+        $sourceShowUrl = null;
+        switch ($doc) {
+            case 'SPPB':
+                $eid_doc = Hashids::encode($header->id);
+                $sourceShowUrl = url('/showsppbs/' . $eid_doc);
+                break;
+            case 'SPPJ':
+                $eid_doc = Hashids::encode($header->id);
+                $sourceShowUrl = url('/showsppjs/' . $eid_doc);
+                break;
+            case 'SPPK':
+                $eid_doc = Hashids::encode($header->id);
+                $sourceShowUrl = url('/showsppks/' . $eid_doc);
+                break;
+            case 'SPPT':
+                $eid_doc = Hashids::encode($header->id);
+                $sourceShowUrl = url('/showsppts/' . $eid_doc);
+                break;
+        }
+
+        // ===== Build URL untuk show BQ (BQ awal) dari SPPJ/SPPT =====
+        $bqShowUrl = null;
+        $bqHeader = null;
+
+        if (in_array($doc, ['SPPJ', 'SPPT'], true) && !empty($header) && !empty($header->bqid)) {
+            // asumsi kolom bq number di tabel bq adalah "bqid"
+            // kalau nama kolomnya beda (mis: bqno / bq_id), ganti di where ini
+            $bqHeader = Bq::where('bqid', $header->bqid)->first();
+
+            if ($bqHeader) {
+                $eid_bq = Hashids::encode($bqHeader->id);
+                $bqShowUrl = url('/showbqsppjs/' . $eid_bq);
+            }
+        }
+
+
         return view('pages.canvass.editcs', [
             'eid'        => $eid,
             'doc'        => $doc,
@@ -1952,7 +2079,9 @@ class CanvassController extends Controller
             'bq'         => $bq,
             'bq_eid'     => $bq_eid,
             'csVendorTotals'  => $csVendorTotals,
-            'bqVendorTotals'  => $bqVendorTotals,            
+            'bqVendorTotals'  => $bqVendorTotals,      
+            'sourceShowUrl' => $sourceShowUrl,      
+            'bqShowUrl'     => $bqShowUrl,
         ]);
     }
 
@@ -2461,8 +2590,18 @@ class CanvassController extends Controller
             $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
 
             // Tulis ulang vendor header & reset kolom selected
+            // Tulis ulang vendor header & reset kolom selected
             for ($slot = 1; $slot <= 6; $slot++) {
-                $v = $vendors[$slot-1] ?? null;
+                $v = $vendors[$slot - 1] ?? null;
+
+                // ===== vendornote: trim + kosong jadi null + limit panjang =====
+                $vendorNote = $v['vendornote'] ?? null;
+                if ($vendorNote !== null) {
+                    $vendorNote = trim((string) $vendorNote);
+                    if ($vendorNote === '') $vendorNote = null;
+                    // batasi panjang (sesuaikan jika kamu pakai varchar)
+                    if ($vendorNote !== null) $vendorNote = mb_substr($vendorNote, 0, 500);
+                }
 
                 $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
                 $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
@@ -2470,7 +2609,9 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
                 $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
                 $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
-                $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
+
+                // ✅ vendor note masuk ke vendornote1..6
+                $safeSet($cs, $csTable, "vendornote{$slot}",    $vendorNote);
 
                 $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
                 $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
@@ -2484,6 +2625,30 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
                 $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
             }
+
+            // for ($slot = 1; $slot <= 6; $slot++) {
+            //     $v = $vendors[$slot-1] ?? null;
+
+            //     $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
+            //     $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
+            //     $safeSet($cs, $csTable, "vendoralamat{$slot}",  $v['vendoralamat'] ?? null);
+            //     $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
+            //     $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
+            //     $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
+            //     $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
+
+            //     $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
+            //     $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
+            //     $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
+            //     $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
+            //     $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
+            //     $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
+
+            //     // reset kolom selected
+            //     $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
+            //     $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
+            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
+            // }
 
             if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
                 $cs->updated_by = $username;
