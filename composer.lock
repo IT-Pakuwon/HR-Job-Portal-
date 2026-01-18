@@ -490,16 +490,16 @@
         },
         {
             "name": "cmixin/business-day",
-            "version": "1.20.5",
+            "version": "1.20.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kylekatarnls/business-day.git",
-                "reference": "54bc05bf24d203e59b1949acb205528502431af2"
+                "reference": "4e13fc2180e0001e3d3e96495e920c63b5eb8370"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kylekatarnls/business-day/zipball/54bc05bf24d203e59b1949acb205528502431af2",
-                "reference": "54bc05bf24d203e59b1949acb205528502431af2",
+                "url": "https://api.github.com/repos/kylekatarnls/business-day/zipball/4e13fc2180e0001e3d3e96495e920c63b5eb8370",
+                "reference": "4e13fc2180e0001e3d3e96495e920c63b5eb8370",
                 "shasum": ""
             },
             "require": {
@@ -545,7 +545,7 @@
             "description": "Carbon mixin to handle business days",
             "support": {
                 "issues": "https://github.com/kylekatarnls/business-day/issues",
-                "source": "https://github.com/kylekatarnls/business-day/tree/1.20.5"
+                "source": "https://github.com/kylekatarnls/business-day/tree/1.20.6"
             },
             "funding": [
                 {
@@ -557,7 +557,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-06T17:44:05+00:00"
+            "time": "2026-01-15T18:41:43+00:00"
         },
         {
             "name": "composer/pcre",
@@ -11097,12 +11097,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }

@@ -89,6 +89,7 @@ use App\Http\Controllers\StockJobsController;
 use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\BudgetMonitorController;
 use App\Http\Controllers\LastOrderController;
+use App\Http\Controllers\Integration\IFCAIntegrationController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -1248,7 +1249,12 @@ Route::post('/logout', function () {
     Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
     Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
 
-    
+    // === IFCA Integration MASTER ===
+    // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('ifcaintegration');
+    // Route::get('/ifcaintegration/json', [IFCAIntegrationController::class, 'json'])->name('ifcaintegration.json');
+    Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
+    Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');
+    Route::post('/ifcaintegration/nonstock/process', [IFCAIntegrationController::class, 'processNonStock'])->name('integration.ifcaintegration.nonstock.process');
 
 
 });

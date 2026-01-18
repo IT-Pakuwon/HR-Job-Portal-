@@ -832,6 +832,88 @@
                                                 </li>
                                             </ul>
                                         </li>
+
+                                        <!-- Integration -->
+                                        @php
+                                            $IntegrationSegments = ['ifcaintegration'];
+                                        @endphp
+                                        <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $IntegrationSegments) ? 1 : 0 }} }">
+
+                                            <!-- Header -->
+                                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                                class="flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+
+                                                <span>Integration</span>
+
+                                                <svg class="h-3 w-3 fill-current text-gray-400 transition-transform"
+                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                                </svg>
+                                            </a>
+
+                                            <!-- Children -->
+                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
+
+                                                <li
+                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['integration.ifcaintegration'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                                    <a class="@if (!in_array(Request::segment(1), ['integration.ifcaintegration'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                                        href="{{ route('integration.ifcaintegration') }}">
+                                                        <div class="flex items-center">
+                                                            <svg class="@if (in_array(Request::segment(1), ['ifcaintegration'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                viewBox="0 0 24 24" stroke-width="1.5"
+                                                                stroke="currentColor" width="16" height="16">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    d="M9 12h6m-6 4h6M7.5 3.75h9A2.25 2.25 0 0118.75 6v12A2.25 2.25 0 0116.5 20.25h-9A2.25 2.25 0 015.25 18V6A2.25 2.25 0 017.5 3.75z" />
+                                                            </svg>
+
+
+                                                            <span
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">IFCA Integration</span>
+                                                        </div>
+                                                    </a>
+                                                </li>
+
+                                                <!-- <li
+                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['screens'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                                    <a class="@if (!in_array(Request::segment(1), ['screens'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                                        href="{{ route('screens') }}">
+                                                        <div class="flex items-center">
+                                                            <svg class="@if (in_array(Request::segment(1), ['screens'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                viewBox="0 0 24 24" stroke-width="1.5"
+                                                                stroke="currentColor" width="16" height="16">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
+                                                            </svg>
+                                                            <span
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
+                                                        </div>
+                                                    </a>
+                                                </li>
+
+                                                <li
+                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                                    <a class="@if (!in_array(Request::segment(1), ['menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                                        href="{{ route('menus') }}">
+                                                        <div class="flex items-center">
+                                                            <svg class="@if (in_array(Request::segment(1), ['menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                viewBox="0 0 24 24" stroke-width="1.5"
+                                                                stroke="currentColor" width="16" height="16">
+
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    d="M3.75 4.5h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 13.5h16.5v6H3.75v-6z" />
+                                                            </svg>
+
+                                                            <span
+                                                                class="lg:sidebar-expanded:opacity-100 ml-4 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
+                                                        </div>
+                                                    </a>
+                                                </li> -->
+                                            </ul>
+                                        </li>
+
                                     </ul>
                                 </li>
 
