@@ -46,13 +46,19 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // $doctypes = Autonbr::query()
+        //     ->select('doctype')
+        //     ->distinct()
+        //     ->where('status', 'A')
+        //     ->orderBy('doctype')
+        //     ->pluck('doctype')
+        //     ->values();
         $doctypes = Autonbr::query()
-            ->select('doctype')
-            ->distinct()
+            ->select('doctype', 'doctype_descr')
             ->where('status', 'A')
+            ->groupBy('doctype', 'doctype_descr') // aman di PostgreSQL
             ->orderBy('doctype')
-            ->pluck('doctype')
-            ->values();
+            ->get();
 
         return view('pages/dashboard/dashboard', [
             'dataFeed'   => $dataFeed,

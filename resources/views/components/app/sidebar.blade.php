@@ -76,28 +76,127 @@
 
                     <!-- Structure Organization -->
 
-                    <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                    {{-- LABEL GROUP HUMAN RESOURCES --}}                   
+
+                    @php
+                        // cari menu parent "Human Resources"
+                        // 🔥 GANTI 'HR' sesuai menu_id parent kamu di table ms_menu
+                        $hrMenu = $rootMenus->firstWhere('menu_id', 'HR');
+
+                        // siapkan helper array allowed IDs
+                        $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
+                    @endphp
+
+                    {{-- <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
                         :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
                         Human Resources
-                    </li>
-                    {{-- <li
-                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['stos', 'showstos'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                        <a class="@if (!in_array(Request::segment(1), ['stos', 'showstos'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                            href="{{ route('stos', 'showstos') }}">
-                            <div class="flex items-center">
-                                <svg class="@if (in_array(Request::segment(1), ['stos', 'showstos'])) {{ 'text-violet-500' }}@else{{ 'text-gray-400 dark:text-gray-500' }} @endif shrink-0 fill-current"
-                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M11.92 6.851c.044-.027.09-.05.137-.07.481-.275.758-.68.908-1.256.126-.55.169-.81.357-2.058.075-.498.144-.91.217-1.264-4.122.75-7.087 2.984-9.12 6.284a18.087 18.087 0 0 0-1.985 4.585 17.07 17.07 0 0 0-.354 1.506c-.05.265-.076.448-.086.535a1 1 0 0 1-1.988-.226c.056-.49.209-1.312.502-2.357a20.063 20.063 0 0 1 2.208-5.09C5.31 3.226 9.306.494 14.913.004a1 1 0 0 1 .954 1.494c-.237.414-.375.993-.567 2.267-.197 1.306-.244 1.586-.392 2.235-.285 1.094-.789 1.853-1.552 2.363-.748 3.816-3.976 5.06-8.515 4.326a1 1 0 0 1 .318-1.974c2.954.477 4.918.025 5.808-1.556-.628.085-1.335.121-2.127.121a1 1 0 1 1 0-2c1.458 0 2.434-.116 3.08-.429Z" />
-                                </svg>
-                                <span
-                                    class="lg:sidebar-expanded:opacity-100 text-sm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">ORG
-                                    Structure</span>
-                            </div>
-                        </a>
                     </li> --}}
-                    <!-- Dashboard -->
+                    @if ($hrMenu)
+                        <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                            :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
+                            {{ $hrMenu->menu_name }}
+                        </li>
+                    @endif
+
+                    @if ($hrMenu)
+                        @php
+                            // FILTER anak-anak langsung dari HR
+                            $parentChildren = $allowedIds
+                                ? $hrMenu->children->whereIn('menu_id', $allowedIds)
+                                : $hrMenu->children;
+                        @endphp
+
+                        {{-- Loop children dari Human Resources --}}
+                        @foreach ($parentChildren as $menu)
+                            @php
+                                // FILTER anak level 2 (submenu)
+                                $children = $allowedIds
+                                    ? $menu->children->whereIn('menu_id', $allowedIds)
+                                    : $menu->children;
+                            @endphp
+
+                            @if ($children->isEmpty())
+                                {{-- MENU TANPA SUB --}}
+                                <li
+                                    class="bg-linear-to-r {{ Route::is($menu->menu_route . '*') ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                    <a class="{{ !Route::is($menu->menu_route . '*') ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="{{ $menu->menu_route ? route($menu->menu_route) : '#' }}">
+                                        <div class="flex items-center">
+                                            <svg class="{{ Route::is($menu->menu_route . '*') ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $menu->menu_icon }}" />
+                                            </svg>
+
+                                            <span
+                                                class="lg:sidebar-expanded:opacity-100 ml-4 whitespace-normal break-words text-sm font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
+                                                {{ $menu->menu_name }}
+                                            </span>
+                                        </div>
+                                    </a>
+                                </li>
+                            @else
+                                {{-- MENU DENGAN SUBMENU --}}
+                                @php
+                                    $isGroupActive = $children->contains(function ($child) {
+                                        return Route::is($child->menu_route . '*');
+                                    });
+                                @endphp
+
+                                <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
+                                    x-data="{ open: {{ $isGroupActive ? 'true' : 'false' }} }">
+
+                                    <a class="{{ !$isGroupActive ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100"
+                                    href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <svg class="{{ $isGroupActive ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                    width="16" height="16">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $menu->menu_icon }}" />
+                                                </svg>
+
+                                                <span
+                                                    class="lg:sidebar-expanded:opacity-100 ml-4 whitespace-normal break-words text-sm font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
+                                                    {{ $menu->menu_name }}
+                                                </span>
+                                            </div>
+
+                                            <div class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
+                                                <svg class="ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </a>
+
+                                    <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
+                                        <ul class="mt-1 pl-8" :class="open ? 'block!' : 'hidden'">
+                                            @foreach ($children as $child)
+                                                <li class="mb-1 last:mb-0">
+                                                    <a class="{{ Route::is($child->menu_route . '*') ? 'text-violet-500!' : '' }} block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                                    href="{{ $child->menu_route ? route($child->menu_route) : '#' }}">
+                                                        <span class="lg:sidebar-expanded:opacity-100 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                                            {{ $child->menu_name }}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </li>
+                            @endif
+                        @endforeach
+                    @endif
+
+
+                    {{-- <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                        :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
+                        Human Resources
+                    </li>                
                     <li class="bg-linear-to-r @if (in_array(Request::segment(1), [
                             'personnels',
                             'createPersonnel',
@@ -205,25 +304,18 @@
                                             class="lg:sidebar-expanded:opacity-100 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Applicant
                                             Portal</span>
                                     </a>
-                                </li>
-                                {{-- <li class="mb-1 last:mb-0">
-                                    <a class="@if (Route::is('changestos')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        href="{{ route('changestos') }}">
-                                        <span
-                                            class="lg:sidebar-expanded:opacity-100 text-sm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Request
-                                            Additional</span>
-                                    </a>
-                                </li> --}}
+                                </li>                              
                             </ul>
                         </div>
-                    </li>
+                    </li> --}}
                     @auth
                         {{-- @if (auth()->user()->username === 'rikiparahat' || auth()->user()->username === 'bedriamaail' || auth()->user()->username === 'sugiartoongkowijoyo' || auth()->user()->username === 'ariwibowo' || auth()->user()->username === 'junpianto' || auth()->user()->username === 'ariewibisono' || auth()->user()->username === 'adefahmi' || auth()->user()->username === 'williemhalim') --}}
                         {{-- LABEL GROUP PURCHASING --}}
-                        <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                        
+                        {{-- <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
                             :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
                             Purchasing
-                        </li>
+                        </li> --}}
 
                         @php
                             // cari menu parent "Purchasing"
@@ -232,6 +324,13 @@
                             // siapkan helper array allowed IDs
                             $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
                         @endphp
+
+                        @if ($purchasingMenu)
+                            <li class="py-2 pl-4 pr-3 text-xs font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
+                                :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
+                                {{ $purchasingMenu->menu_name }}
+                            </li>
+                        @endif
 
                         @if ($purchasingMenu)
                             @php

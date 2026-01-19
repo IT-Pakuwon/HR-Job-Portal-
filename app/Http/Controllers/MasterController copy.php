@@ -778,126 +778,8 @@ class MasterController extends Controller
         return response()->json($departments);
     }
 
-    public function CoaBudget(Request $request)
-    {
-        $user = Auth::user();
-
-        $businessUnitIds = collect(explode(',', (string) ($user->business_unit_id ?? '')))
-            ->map(fn($x) => trim($x))
-            ->filter()
-            ->values()
-            ->all();
-
-        $cpnyid  = $request->get('cpnyid');
-        $deptid  = $request->get('deptid');
-        $perpost = $request->get('perpost');
-        $search  = trim($request->get('search', ''));
-        $page    = max((int) $request->get('page', 1), 1);
-        $perPage = max((int) $request->get('per_page', 10), 1);
-
-        if (!$cpnyid || !$deptid) {
-            return response()->json([
-                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
-            ]);
-        }
-
-        $msdepartment = MsDepartment::query()
-            ->where('department_id', $deptid)
-            ->where('status', 'A')
-            ->first(['department_fin_id']);
-
-        if (!$msdepartment) {
-            return response()->json([
-                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage,
-                'message' => "Department {$deptid} tidak ditemukan / tidak aktif."
-            ]);
-        }
-
-        // ✅ cek budget header pakai exists() (lebih cepat)
-        $budgetExists = Budget::query()
-            ->where('status', 'C')
-            ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $msdepartment->department_fin_id)
-            ->when(!empty($businessUnitIds), fn ($q) =>
-                $q->whereIn('business_unit_id', $businessUnitIds) // ✅ tanpa alias b
-            )
-            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-            ->exists();
-
-        if (!$budgetExists) {
-            return response()->json([
-                'data' => [],
-                'total' => 0,
-                'page' => $page,
-                'per_page' => $perPage,
-                'message' => "Budget Belum Tersedia untuk Company {$cpnyid}, Dept {$deptid}, Perpost {$perpost}."
-            ]);
-        }
-
-        // ✅ query detail (alias b memang ada di sini)
-        $q = BudgetDetail::query()
-            ->from('ms_budget as b')
-            ->join('ms_coa as c', function ($j) {
-                $j->on('c.account_id', '=', 'b.account_id')
-                ->on('c.cpny_id', '=', 'b.cpny_id');
-            })
-            ->leftJoin('ms_activity as a', function ($j) {
-                $j->on('a.activity_id', '=', 'b.activity_id')
-                ->on('a.cpny_id', '=', 'b.cpny_id');
-            })
-            ->where('b.cpny_id', $cpnyid)
-            ->where('b.department_fin_id', $msdepartment->department_fin_id)
-            ->when(!empty($businessUnitIds), fn ($qq) =>
-                $qq->whereIn('b.business_unit_id', $businessUnitIds)
-            )
-            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
-
-        if ($search !== '') {
-            $q->where(function ($w) use ($search) {
-                $w->where('b.account_id', 'ilike', "%{$search}%")
-                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
-                ->orWhere('b.activity_id', 'ilike', "%{$search}%")
-                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
-                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
-                ->orWhereRaw(
-                    "(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?",
-                    ["%{$search}%"]
-                );
-            });
-        }
-
-        $total = (clone $q)->count();
-
-        $rows = $q->orderBy('a.activity_descr')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get([
-                'b.account_id',
-                'c.account_descr',
-                'b.activity_id',
-                'b.activity_descr as activity_descr',
-                'a.activity_descr as act_descr',
-                'b.business_unit_id',
-                'b.department_fin_id',
-                DB::raw("COALESCE(b.totalbudget,0)      as totalbudget"),
-                DB::raw("COALESCE(b.totalbudget_add,0)  as totalbudget_add"),
-                DB::raw("COALESCE(b.total_reserve,0)    as total_reserve"),
-                DB::raw("COALESCE(b.total_used,0)       as total_used"),
-                DB::raw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) as availablebudget"),
-                DB::raw("(COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))   as usedbudget"),
-                DB::raw("((COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) - (COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))) as remaining"),
-            ]);
-
-        return response()->json([
-            'data' => $rows,
-            'total' => $total,
-            'page' => $page,
-            'per_page' => $perPage,
-        ]);
-    }
-
     
-    public function CoaBudget_tanpa_businessunit(Request $request)
+    public function CoaBudget(Request $request)
     {
         // dd($request->all());
         $cpnyid  = $request->get('cpnyid');
@@ -1006,113 +888,6 @@ class MasterController extends Controller
     }
 
     public function editCoaBudget(Request $request)
-    {
-        $user = Auth::user();
-
-        // 🔹 ambil business unit user (support multi)
-        $businessUnitIds = collect(explode(',', (string) ($user->business_unit_id ?? '')))
-            ->map(fn ($x) => trim($x))
-            ->filter()
-            ->values()
-            ->all();
-
-        $cpnyid    = $request->get('cpnyid');
-        $deptFinId = $request->get('deptid');   // department_fin_id
-        $perpost   = $request->get('perpost');
-        $search    = trim($request->get('search', ''));
-        $page      = max((int) $request->get('page', 1), 1);
-        $perPage   = max((int) $request->get('per_page', 10), 1);
-
-        if (!$cpnyid || !$deptFinId) {
-            return response()->json([
-                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
-            ]);
-        }
-
-        /**
-         * ===============================
-         * HEADER BUDGET (status = C)
-         * ===============================
-         */
-        $budget = Budget::query()
-            ->where('status', 'C')
-            ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $deptFinId)
-            ->when(!empty($businessUnitIds), fn ($q) =>
-                $q->whereIn('business_unit_id', $businessUnitIds)
-            )
-            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-            ->get();
-
-        if (!$budget) {
-            return response()->json([
-                'data' => [],
-                'total' => 0,
-                'page' => $page,
-                'per_page' => $perPage,
-                'message' => "Budget Belum Tersedia untuk Company {$cpnyid}, DeptFin {$deptFinId}, Perpost {$perpost}."
-            ]);
-        }
-
-        /**
-         * ===============================
-         * DETAIL BUDGET
-         * ===============================
-         */
-        $q = BudgetDetail::query()
-            ->from('ms_budget as b')
-            ->join('ms_coa as c', function ($j) {
-                $j->on('c.account_id', '=', 'b.account_id')
-                ->on('c.cpny_id', '=', 'b.cpny_id');
-            })
-            ->leftJoin('ms_activity as a', function ($j) {
-                $j->on('a.activity_id', '=', 'b.activity_id')
-                ->on('a.cpny_id', '=', 'b.cpny_id');
-            })
-            // ->where('b.budget_id', $budget->budget_id)
-            ->where('b.cpny_id', $cpnyid)
-            ->where('b.department_fin_id', $deptFinId)
-            ->when(!empty($businessUnitIds), fn ($qq) =>
-                $qq->whereIn('b.business_unit_id', $businessUnitIds)
-            )
-            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
-
-        if ($search !== '') {
-            $q->where(function ($w) use ($search) {
-                $w->where('b.account_id', 'ilike', "%{$search}%")
-                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
-                ->orWhere('b.activity_id', 'ilike', "%{$search}%")
-                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
-                ->orWhere('a.activity_descr', 'ilike', "%{$search}%");
-            });
-        }
-
-        $total = (clone $q)->count();
-
-        $rows = $q->orderBy('b.account_id')
-            ->orderBy('b.activity_descr')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get([
-                'b.account_id',
-                'c.account_descr',
-                'b.activity_id',
-                'b.activity_descr as activity_descr',
-                'a.activity_descr as act_descr',
-                'b.business_unit_id',
-                'b.department_fin_id',
-            ]);
-
-        return response()->json([
-            'data' => $rows,
-            'total' => $total,
-            'page' => $page,
-            'per_page' => $perPage,
-        ]);
-    }
-
-
-    public function editCoaBudget_xxx(Request $request)
     {
         $cpnyid  = $request->get('cpnyid');
         // dari view kamu kirim budget_department_fin_id, jadi ini sebenarnya dept FIN
@@ -1903,13 +1678,14 @@ class MasterController extends Controller
         return response()->json($items);
     }
 
-
     public function getLocations(string $cpny_id)
     {
         $items = MsLocation::query()
-            // ->where('cpny_id', $cpny_id)
-            ->whereIn('cpny_id', [$cpny_id, 'ALL'])
             ->where('status', 'A')
+            ->where(function ($q) use ($cpny_id) {
+                $q->where('cpny_id', $cpny_id)
+                ->orWhere('cpny_id', 'ALL');
+            })
             ->orderBy('location_name')
             ->get(['location_id as value', 'location_name as text']);
 
@@ -1919,15 +1695,44 @@ class MasterController extends Controller
     public function getSubLocations(string $cpny_id, string $location_id)
     {
         $items = MsSubLocation::query()
-            // ->where('cpny_id', $cpny_id)
-            ->whereIn('cpny_id', [$cpny_id, 'ALL'])
-            ->where('location_id', $location_id)
             ->where('status', 'A')
+            ->where('location_id', $location_id)
+            ->where(function ($q) use ($cpny_id) {
+                $q->where('cpny_id', $cpny_id)
+                ->orWhere('cpny_id', 'ALL');
+            })
             ->orderBy('sub_location_name')
             ->get(['sub_location_id as value', 'sub_location_name as text']);
 
         return response()->json($items);
     }
+
+
+
+    // public function getLocations(string $cpny_id)
+    // {
+    //     $items = MsLocation::query()
+    //         // ->where('cpny_id', $cpny_id)
+    //         ->whereIn('cpny_id', [$cpny_id, 'ALL'])
+    //         ->where('status', 'A')
+    //         ->orderBy('location_name')
+    //         ->get(['location_id as value', 'location_name as text']);
+
+    //     return response()->json($items);
+    // }
+
+    // public function getSubLocations(string $cpny_id, string $location_id)
+    // {
+    //     $items = MsSubLocation::query()
+    //         // ->where('cpny_id', $cpny_id)
+    //         ->whereIn('cpny_id', [$cpny_id, 'ALL'])
+    //         ->where('location_id', $location_id)
+    //         ->where('status', 'A')
+    //         ->orderBy('sub_location_name')
+    //         ->get(['sub_location_id as value', 'sub_location_name as text']);
+
+    //     return response()->json($items);
+    // }
 
     
     public function showTenant(Request $req)

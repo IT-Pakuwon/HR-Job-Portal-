@@ -13,6 +13,7 @@ class Autonbr extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'doctype',
+        'doctype_descr',
         'year',
         'month',
         'number',

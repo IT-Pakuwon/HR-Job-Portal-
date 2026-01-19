@@ -1641,7 +1641,7 @@
                     vendortelp: String($th.data('vendor-phone') || ''),
                     vendorcp: String($th.data('vendor-cp') || ''),
                     vendortop: $th.find('select.cara-bayar').val() || '',
-                    vendornote: '',
+                    vendornote: String($th.find('textarea.vendornote').val() || ''),
 
                     total: round2(total),
                     ppn: round2(ppn),

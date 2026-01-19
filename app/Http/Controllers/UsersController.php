@@ -24,7 +24,12 @@ class UsersController extends Controller
     {
         $company = MsCompany::select('cpny_id')->where('status', 'A')->get();
         $department = MsDepartment::select('department_id')->where('status', 'A')->get();
-        $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
+        // $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
+        $businessUnits = BusinessUnit::select('business_unit_id')
+            ->where('status', 'A')
+            ->distinct()
+            ->get();
+
         $roles = SysRole::where('status', 'A')->orderBy('role_id')->get();
 
         return view('pages.users.users', compact('company', 'department', 'businessUnits', 'roles'));

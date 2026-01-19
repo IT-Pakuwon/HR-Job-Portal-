@@ -36,12 +36,16 @@
                 </div>
                 <div class="flex gap-2">
                     <select id="waitingDoctype"
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-[11px] text-gray-700 dark:bg-gray-700 dark:text-white">
-                        <option class="text-[11px]" value="ALL">All Doctype</option>
-                        @foreach ($doctypes ?? [] as $dt)
-                            <option value="{{ $dt }}">{{ $dt }}</option>
+                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
+                        <option value="ALL">ALL Doctype</option>
+
+                        @foreach(($doctypes ?? collect()) as $dt)
+                            <option value="{{ $dt->doctype }}">
+                            {{ $dt->doctype }}{{ $dt->doctype_descr ? ' - '.$dt->doctype_descr : '' }}
+                            </option>
                         @endforeach
                     </select>
+
 
                     <input id="waitingSearch" type="text" placeholder="Search..."
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
@@ -90,12 +94,16 @@
                 </div>
                 <div class="flex gap-2">
                     <select id="approvedDoctype"
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-[11px] text-gray-700 dark:bg-gray-700 dark:text-white">
-                        <option class="text-[11px]" value="ALL">All Doctype</option>
-                        @foreach ($doctypes ?? [] as $dt)
-                            <option value="{{ $dt }}">{{ $dt }}</option>
+                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
+                        <option value="ALL">ALL Doctype</option>
+
+                        @foreach(($doctypes ?? collect()) as $dt)
+                            <option value="{{ $dt->doctype }}">
+                            {{ $dt->doctype }}{{ $dt->doctype_descr ? ' - '.$dt->doctype_descr : '' }}
+                            </option>
                         @endforeach
                     </select>
+
 
                     <input id="approvedSearch" type="text" placeholder="Search..."
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
