@@ -42,9 +42,9 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+        <div class="flex w-full flex-col gap-6 xl:flex-row">
+            <div class="flex w-full flex-1 items-stretch gap-6 xl:flex-row">
+                <div class="gap flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         {{-- Rounded-t-xl, stronger border, and darker background for header --}}
@@ -87,161 +87,158 @@
                             {{ $statusText }}
                         </span>
                     </header>
-                    <div class="flex flex-1 flex-col gap-4 rounded-xl duration-300 sm:w-1/2 md:w-full">
-                        <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                    <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
 
-                            {{-- Reusable Row Class: mobile = vertical, desktop = horizontal --}}
-                            @php
-                                $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
-                                $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
-                                $value = 'font-medium text-gray-900 sm:flex-1 break-words';
-                            @endphp
+                        {{-- Reusable Row Class: mobile = vertical, desktop = horizontal --}}
+                        @php
+                            $row = 'flex flex-col sm:flex-row sm:items-center sm:gap-3';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                            $value = 'font-medium text-gray-900 sm:flex-1 break-words';
+                        @endphp
 
-                            {{-- Company --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                    <span>Company</span>
-                                </div>
-                                <span class="{{ $value }}">{{ $personnel->cpnyid }}</span>
+                        {{-- Company --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                <span>Company</span>
                             </div>
-
-                            {{-- Department --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-rectangle-group class="h-5 w-5 text-gray-400" />
-                                    <span>Department</span>
-                                </div>
-                                <span class="{{ $value }}">{{ $personnel->departementid }}</span>
-                            </div>
-
-                            {{-- Date --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
-                                    <span>Date</span>
-                                </div>
-                                <span class="{{ $value }}">
-                                    {{ \Carbon\Carbon::parse($personnel->date)->translatedFormat('d F Y') }}
-                                </span>
-                            </div>
-
-                            {{-- Job Title --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
-                                    <span>Job Title</span>
-                                </div>
-                                <span class="{{ $value }}">
-                                    {{ ucwords(strtolower(optional($personnel)->job_title)) }}
-                                </span>
-                            </div>
-
-                            {{-- Job Type --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-briefcase class="h-5 w-5 text-gray-400" />
-                                    <span>Job Type</span>
-                                </div>
-                                <span class="{{ $value }}">
-                                    {{ ucwords(strtolower(optional($personnel)->job_type)) }}
-                                </span>
-                            </div>
-
-                            {{-- Immediate Superior --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-user-group class="h-5 w-5 text-gray-400" />
-                                    <span>Immediate Superior</span>
-                                </div>
-                                <span class="{{ $value }}">
-                                    {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
-                                </span>
-                            </div>
-
-                            {{-- Job Level --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-arrow-trending-up class="h-5 w-5 text-gray-400" />
-                                    <span>Job Level</span>
-                                </div>
-                                <span class="{{ $value }}">
-                                    {{ ucwords(strtolower(optional($personnel)->job_level)) }}
-                                </span>
-                            </div>
-
-                            {{-- State Position --}}
-                            <div class="{{ $row }}">
-                                <div class="{{ $label }}">
-                                    <x-heroicon-o-map-pin class="h-5 w-5 text-gray-400" />
-                                    <span>State Position</span>
-                                </div>
-                                <span class="{{ $value }}">
-                                    {{ ucwords(strtolower(optional($personnel)->state_position)) }}
-                                </span>
-                            </div>
-
-                            {{-- Reason for Vacancy --}}
-                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="flex items-center gap-2 text-gray-500">
-                                    <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
-                                    <span>Reason for Vacancy</span>
-                                </div>
-                                <span class="font-medium text-gray-900">
-                                    {{ $personnel->reason_vacancy ?: '-' }}
-                                </span>
-                            </div>
-
-                            {{-- Job Numbers --}}
-                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="flex items-center gap-2 text-gray-500">
-                                    <x-heroicon-o-chart-bar class="h-5 w-5 text-emerald-500" />
-                                    <span>Job Numbers</span>
-                                </div>
-
-                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                    <div class="flex flex-col">
-                                        <span class="text-xs text-gray-500">Total Required</span>
-                                        <span class="font-bold text-indigo-600">{{ $personnel->required }}</span>
-                                    </div>
-
-                                    <div class="flex flex-col">
-                                        <span class="text-xs text-gray-500">Actual</span>
-                                        <span class="font-bold text-indigo-600">{{ $personnel->actual }}</span>
-                                    </div>
-
-                                    <div class="flex flex-col">
-                                        <span class="text-xs text-gray-500">Actual Number</span>
-                                        <span class="font-bold text-indigo-600">{{ $personnel->total_actual }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Tags --}}
-                            <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="flex items-center gap-2 text-gray-500">
-                                    <x-heroicon-o-tag class="h-5 w-5 text-purple-500" />
-                                    <span>Tags</span>
-                                </div>
-
-                                <div class="flex flex-wrap gap-2">
-                                    @forelse ($jobtag as $jt)
-                                        <span
-                                            class="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
-                                            {{ $jt->job_tags }}
-                                        </span>
-                                    @empty
-                                        <span class="text-xs italic text-gray-400">No tags</span>
-                                    @endforelse
-                                </div>
-                            </div>
-
+                            <span class="{{ $value }}">{{ $personnel->cpnyid }}</span>
                         </div>
-                    </div>
 
+                        {{-- Department --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-rectangle-group class="h-5 w-5 text-gray-400" />
+                                <span>Department</span>
+                            </div>
+                            <span class="{{ $value }}">{{ $personnel->departementid }}</span>
+                        </div>
+
+                        {{-- Date --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }} w-5">
+                                <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                <span>Date</span>
+                            </div>
+                            <span class="{{ $value }}">
+                                {{ \Carbon\Carbon::parse($personnel->date)->translatedFormat('d F Y') }}
+                            </span>
+                        </div>
+
+                        {{-- Job Title --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
+                                <span>Job Title</span>
+                            </div>
+                            <span class="{{ $value }}">
+                                {{ ucwords(strtolower(optional($personnel)->job_title)) }}
+                            </span>
+                        </div>
+
+                        {{-- Job Type --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-briefcase class="h-5 w-5 text-gray-400" />
+                                <span>Job Type</span>
+                            </div>
+                            <span class="{{ $value }}">
+                                {{ ucwords(strtolower(optional($personnel)->job_type)) }}
+                            </span>
+                        </div>
+
+                        {{-- Immediate Superior --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-user-group class="h-5 w-5 text-gray-400" />
+                                <span>Immediate Superior</span>
+                            </div>
+                            <span class="{{ $value }}">
+                                {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
+                            </span>
+                        </div>
+
+                        {{-- Job Level --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-arrow-trending-up class="h-5 w-5 text-gray-400" />
+                                <span>Job Level</span>
+                            </div>
+                            <span class="{{ $value }}">
+                                {{ ucwords(strtolower(optional($personnel)->job_level)) }}
+                            </span>
+                        </div>
+
+                        {{-- State Position --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-map-pin class="h-5 w-5 text-gray-400" />
+                                <span>State Position</span>
+                            </div>
+                            <span class="{{ $value }}">
+                                {{ ucwords(strtolower(optional($personnel)->state_position)) }}
+                            </span>
+                        </div>
+
+                        {{-- Reason for Vacancy --}}
+                        <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            <div class="flex items-center gap-2 text-gray-500">
+                                <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
+                                <span>Reason for Vacancy</span>
+                            </div>
+                            <span class="font-medium text-gray-900">
+                                {{ $personnel->reason_vacancy ?: '-' }}
+                            </span>
+                        </div>
+
+                        {{-- Job Numbers --}}
+                        <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            <div class="flex items-center gap-2 text-gray-500">
+                                <x-heroicon-o-chart-bar class="h-5 w-5 text-emerald-500" />
+                                <span>Job Numbers</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-500">Total Required</span>
+                                    <span class="font-bold text-indigo-600">{{ $personnel->required }}</span>
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-500">Actual</span>
+                                    <span class="font-bold text-indigo-600">{{ $personnel->actual }}</span>
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <span class="text-xs text-gray-500">Actual Number</span>
+                                    <span class="font-bold text-indigo-600">{{ $personnel->total_actual }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Tags --}}
+                        <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            <div class="flex items-center gap-2 text-gray-500">
+                                <x-heroicon-o-tag class="h-5 w-5 text-purple-500" />
+                                <span>Tags</span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                @forelse ($jobtag as $jt)
+                                    <span
+                                        class="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                        {{ $jt->job_tags }}
+                                    </span>
+                                @empty
+                                    <span class="text-xs italic text-gray-400">No tags</span>
+                                @endforelse
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-col gap-4 sm:w-1/2 md:w-full">
+            <div class="flex flex-1 flex-col gap-4 sm:w-1/2 md:w-full">
                 <div x-data="{ activeTab: 'Responsibilities' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
                         class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
