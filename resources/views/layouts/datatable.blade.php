@@ -26,6 +26,16 @@ GLOBAL / UTILITY
     width: 100%;
     }
 
+    @layer base {
+
+        select,
+        option,
+        input {
+            @apply text-[11px];
+        }
+    }
+
+
     /*
     /* =====================================================
 DATATABLES BASE LAYOUT
@@ -281,16 +291,19 @@ CUSTOM COMPONENTS (UNCHANGED)
         display: flex !important;
         flex-wrap: wrap !important;
         padding: 2px 4px !important;
+        font-size: 11px
     }
 
     .select2-container--default .select2-selection--multiple .select2-selection__choice {
         float: none !important;
         margin: 1px 4px 1px 0 !important;
+        font-size: 11px
     }
 
     .select2-container--default .select2-selection--multiple .select2-search__field {
         margin-top: 2px !important;
         padding: 0 !important;
+        font-size: 11px
     }
 
     /* =====================================================
@@ -307,7 +320,7 @@ TABLE-SPECIFIC OVERRIDES (KEEP)
         padding: 6px 8px;
         border: 1px solid #d1d5db;
         border-radius: 6px;
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .dark #applicantsTable thead .input-filter,
@@ -768,19 +781,22 @@ SELECT2 – DARK MODE SEARCH FIELD
         color: #e5e7eb;
         /* gray-200 */
         border: 1px solid #4b5563;
-        /* gray-600 */
+        font-size: 11px
+            /* gray-600 */
     }
 
     /* input inside multi-select box */
     .dark .select2-container--default .select2-selection--multiple .select2-search__field {
         background-color: transparent;
         color: #e5e7eb;
+        font-size: 11px
     }
 
     /* placeholder text */
     .dark .select2-container--default .select2-search__field::placeholder {
         color: #9ca3af;
-        /* gray-400 */
+        font-size: 11px
+            /* gray-400 */
     }
 
     /* focus state */
@@ -789,6 +805,7 @@ SELECT2 – DARK MODE SEARCH FIELD
         /* indigo-500 */
         outline: none;
         box-shadow: 0 0 0 1px rgba(99, 102, 241, .4);
+        font-size: 11px
     }
 
     /* =====================================================
@@ -805,7 +822,8 @@ IMPORT BUDGET – DARK MODE SUPPORT
     .dark h2,
     .dark h5 {
         color: #f9fafb;
-        /* gray-50 */
+        font-size: 11px
+            /* gray-50 */
     }
 
     /* ---------- Borders ---------- */
@@ -828,6 +846,7 @@ IMPORT BUDGET – DARK MODE SUPPORT
         background-color: #1f2933;
         color: #e5e7eb;
         border-color: #4b5563;
+        font-size: 11px
     }
 
     .dark input::placeholder {
@@ -972,7 +991,7 @@ Approval / Attachment / Comments tables
         /* gray-800 */
         border-color: #374151;
         /* gray-700 */
-        color: #e5e7eb;
+        font-size: 11px color: #e5e7eb;
         /* gray-200 */
     }
 
@@ -988,17 +1007,20 @@ Approval / Attachment / Comments tables
         /* gray-900 */
         border: 1px solid #374151;
         color: #f9fafb;
+        font-size: 11px
     }
 
     .dark .select2-search__field::placeholder {
         color: #9ca3af;
-        /* gray-400 */
+        font-size: 11px
+            /* gray-400 */
     }
 
     /* Options */
     .dark .select2-results__option {
         background-color: transparent;
         color: #e5e7eb;
+        font-size: 11px
     }
 
     /* Hover option */
@@ -1006,6 +1028,7 @@ Approval / Attachment / Comments tables
         background-color: #374151;
         /* gray-700 */
         color: #fff;
+        font-size: 11px
     }
 
     /* Selected option */
@@ -1013,23 +1036,27 @@ Approval / Attachment / Comments tables
         background-color: #4b5563;
         /* gray-600 */
         color: #fff;
+        font-size: 11px
     }
 
     /* No results */
     .dark .select2-results__message {
         color: #9ca3af;
+        font-size: 11px
     }
 
     /* Dark mode text */
     .dark .select2-selection__rendered {
         color: #e5e7eb;
         /* light text */
+        font-size: 11px
     }
 
     /* Placeholder text */
     .dark .select2-selection__placeholder {
         color: #9ca3af;
         /* muted gray */
+        font-size: 11px
     }
 
     .dark .select2-container--default .select2-selection--single {
@@ -1053,7 +1080,7 @@ Approval / Attachment / Comments tables
         border-radius: 0.5rem;
         padding: 0.5rem 2.5rem 0.5rem 0.75rem;
         /* height: 42px; */
-        font-size: 14px;
+        font-size: 11px;
 
         /* remove default OS styles */
         appearance: none;
@@ -1079,7 +1106,7 @@ Approval / Attachment / Comments tables
         outline: none;
         border-color: #6366f1;
         /* indigo */
-        box-shadow: 0 0 0 1px #6366f1;
+        font-size: 11px box-shadow: 0 0 0 1px #6366f1;
     }
 
     /* =====================================
@@ -1090,6 +1117,7 @@ Approval / Attachment / Comments tables
         background-color: #111827;
         color: #6b7280;
         cursor: not-allowed;
+        font-size: 11px
     }
 
     /* =====================================
@@ -1099,12 +1127,14 @@ Approval / Attachment / Comments tables
     .dark select option {
         background-color: #1f2937;
         color: #e5e7eb;
+        font-size: 11px
     }
 
     /* Hover / selected (browser dependent) */
     .dark select option:checked {
         background-color: #4f46e5;
         color: #ffffff;
+        font-size: 11px
     }
 
     /* ===============================
@@ -1117,19 +1147,21 @@ Approval / Attachment / Comments tables
         border: 1px solid #374151;
         /* gray-700 */
         height: 36px;
+        font-size: 11px
     }
 
     /* Selected text */
     .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
         color: #e5e7eb;
         /* gray-200 */
-        line-height: 34px;
+        font-size: 11px
     }
 
     /* Placeholder */
     .dark .select2-container--default .select2-selection--single .select2-selection__placeholder {
         color: #9ca3af;
         /* gray-400 */
+        font-size: 11px
     }
 
     /* Arrow */

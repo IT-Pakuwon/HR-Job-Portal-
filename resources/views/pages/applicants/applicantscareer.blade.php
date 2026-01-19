@@ -376,7 +376,7 @@
 
                             <header
                                 class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
+                                <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
                                     <button @click="activeTab = 'Education'"
                                         :class="{
                                             'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Education',
@@ -638,7 +638,7 @@
 
                             <header
                                 class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
-                                <nav class="-mb-px flex flex-grow"> {{-- Added -mb-px to negative margin to overlap border --}}
+                                <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
                                     <button @click="activeTab = 'Family'"
                                         :class="{
                                             'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Family',

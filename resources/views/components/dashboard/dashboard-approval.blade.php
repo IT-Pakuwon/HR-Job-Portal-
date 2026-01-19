@@ -4,7 +4,7 @@
 <div class="col-span-12 col-span-full rounded-xl bg-white p-4 dark:bg-gray-800">
     <!-- Tabs -->
     <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
-        <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="approvalTabs" role="tablist">
+        <ul class="flex flex-wrap text-center text-xs font-medium" id="approvalTabs" role="tablist">
 
             <!-- Waiting Approval -->
             <li class="mr-2">
@@ -19,7 +19,7 @@
             <li class="mr-2">
                 <button id="tab-approved" type="button" role="tab" aria-controls="content-approved"
                     aria-selected="false" onclick="switchTab('approved')"
-                    class="inline-block rounded-t-lg border-b-2 border-transparent p-2 text-gray-500 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300">
+                    class="rounded-t-l inline-block border-b-2 border-transparent p-2 text-gray-500 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300">
                     Approval
                 </button>
             </li>
@@ -36,9 +36,9 @@
                 </div>
                 <div class="flex gap-2">
                     <select id="waitingDoctype"
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
-                        <option value="ALL">ALL Doctype</option>
-                        @foreach(($doctypes ?? []) as $dt)
+                        class="rounded-md border bg-gray-100 px-3 py-2 text-[11px] text-gray-700 dark:bg-gray-700 dark:text-white">
+                        <option class="text-[11px]" value="ALL">All Doctype</option>
+                        @foreach ($doctypes ?? [] as $dt)
                             <option value="{{ $dt }}">{{ $dt }}</option>
                         @endforeach
                     </select>
@@ -90,9 +90,9 @@
                 </div>
                 <div class="flex gap-2">
                     <select id="approvedDoctype"
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
-                        <option value="ALL">ALL Doctype</option>
-                        @foreach(($doctypes ?? []) as $dt)
+                        class="rounded-md border bg-gray-100 px-3 py-2 text-[11px] text-gray-700 dark:bg-gray-700 dark:text-white">
+                        <option class="text-[11px]" value="ALL">All Doctype</option>
+                        @foreach ($doctypes ?? [] as $dt)
                             <option value="{{ $dt }}">{{ $dt }}</option>
                         @endforeach
                     </select>
@@ -325,10 +325,12 @@
 
             if (name === tab) {
                 btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-                btn.classList.add('border-violet-600', 'text-violet-600', 'dark:border-violet-400', 'dark:text-violet-400');
+                btn.classList.add('border-violet-600', 'text-violet-600', 'dark:border-violet-400',
+                    'dark:text-violet-400');
                 content.classList.remove('hidden');
             } else {
-                btn.classList.remove('border-violet-600', 'text-violet-600', 'dark:border-violet-400', 'dark:text-violet-400');
+                btn.classList.remove('border-violet-600', 'text-violet-600', 'dark:border-violet-400',
+                    'dark:text-violet-400');
                 btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
                 content.classList.add('hidden');
             }
@@ -379,10 +381,15 @@
             tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center">No data found.</td></tr>';
         }
 
-        return { total, filteredCount: total, page: safePage, maxPage };
+        return {
+            total,
+            filteredCount: total,
+            page: safePage,
+            maxPage
+        };
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         let waitingData = [];
         let approvedData = [];
 
@@ -409,7 +416,8 @@
         }
 
         function updateApprovedTable() {
-            const res = renderTable(approvedData, '#approvedTable tbody', approvedPage, perPage, approvedSearch);
+            const res = renderTable(approvedData, '#approvedTable tbody', approvedPage, perPage,
+                approvedSearch);
             approvedPage = res.page;
 
             document.getElementById('approvedPaginationInfo').innerText =
@@ -448,53 +456,52 @@
         loadApproved();
 
         // Search handlers
-        document.getElementById('waitingSearch')?.addEventListener('input', function (e) {
+        document.getElementById('waitingSearch')?.addEventListener('input', function(e) {
             waitingSearch = e.target.value;
             waitingPage = 1;
             updateWaitingTable();
         });
 
-        document.getElementById('approvedSearch')?.addEventListener('input', function (e) {
+        document.getElementById('approvedSearch')?.addEventListener('input', function(e) {
             approvedSearch = e.target.value;
             approvedPage = 1;
             updateApprovedTable();
         });
 
         // Doctype handlers -> reload from server
-        document.getElementById('waitingDoctype')?.addEventListener('change', function (e) {
+        document.getElementById('waitingDoctype')?.addEventListener('change', function(e) {
             waitingDoctype = e.target.value || 'ALL';
             loadWaiting();
         });
 
-        document.getElementById('approvedDoctype')?.addEventListener('change', function (e) {
+        document.getElementById('approvedDoctype')?.addEventListener('change', function(e) {
             approvedDoctype = e.target.value || 'ALL';
             loadApproved();
         });
 
         // Pagination handlers
-        document.getElementById('waitingPrev')?.addEventListener('click', function () {
+        document.getElementById('waitingPrev')?.addEventListener('click', function() {
             if (waitingPage > 1) {
                 waitingPage--;
                 updateWaitingTable();
             }
         });
 
-        document.getElementById('waitingNext')?.addEventListener('click', function () {
+        document.getElementById('waitingNext')?.addEventListener('click', function() {
             waitingPage++;
             updateWaitingTable();
         });
 
-        document.getElementById('approvedPrev')?.addEventListener('click', function () {
+        document.getElementById('approvedPrev')?.addEventListener('click', function() {
             if (approvedPage > 1) {
                 approvedPage--;
                 updateApprovedTable();
             }
         });
 
-        document.getElementById('approvedNext')?.addEventListener('click', function () {
+        document.getElementById('approvedNext')?.addEventListener('click', function() {
             approvedPage++;
             updateApprovedTable();
         });
     });
 </script>
-

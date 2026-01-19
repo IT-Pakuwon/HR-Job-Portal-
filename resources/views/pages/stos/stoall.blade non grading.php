@@ -53,7 +53,7 @@
                         class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
                         <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                             <div class="border-gray-200s mb-4 flex justify-between border-b">
-                                <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
+                                <ul class="  flex flex-wrap text-center text-xs font-medium" id="tabs">
                                     <li class="mr-2">
                                         <button type="button"
                                             class="tab-button border-blue-600 px-4 py-2 text-sm text-blue-600"

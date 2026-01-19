@@ -148,7 +148,7 @@
             class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
             <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
                 <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
-                    <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
+                    <ul class="flex flex-wrap text-center text-xs font-medium" id="tabs">
                         <li class="mr-2">
                             <button type="button"
                                 class="tab-button active-tab inline-flex items-center justify-center rounded-t-lg border-b-2 border-transparent p-4 text-sm text-gray-500 transition-colors duration-200 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
@@ -853,13 +853,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                    ${m.name} (${m.company})
-                                                                                                                                                                </span>
-                                                                                                                                                            </div>
-                                                                                                                                                        `).join('')}
+                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                        ${m.name} (${m.company})
+                                                                                                                                                                    </span>
+                                                                                                                                                                </div>
+                                                                                                                                                            `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1151,13 +1151,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                    ${m.name} (${m.company})
-                                                                                                                                                                </span>
-                                                                                                                                                            </div>
-                                                                                                                                                        `).join('')}
+                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                        ${m.name} (${m.company})
+                                                                                                                                                                    </span>
+                                                                                                                                                                </div>
+                                                                                                                                                            `).join('')}
                                             </div>
                                         </div>
                                     </div>

@@ -231,26 +231,21 @@
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 
                             <!-- LEFT SIDE: auto grid of fields -->
-                            <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-4">
+                            <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-3">
 
                                 <!-- SPPB/J/K/T -->
                                 <div>
                                     <label class="text-xs font-medium text-gray-600 dark:text-gray-400">
                                         SPPB/J/K/T ID
                                     </label>
-                                    @if(!empty($sourceShowUrl))
-                                        <a href="{{ $sourceShowUrl }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
-                                                text-indigo-600 underline hover:text-indigo-800
-                                                dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
+                                    @if (!empty($sourceShowUrl))
+                                        <a href="{{ $sourceShowUrl }}" target="_blank" rel="noopener noreferrer"
+                                            class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
                                             {{ $docno }}
                                         </a>
                                     @else
                                         <input type="text" value="{{ $docno }}" readonly
-                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs
-                                                dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                     @endif
 
                                     {{-- <input type="text" value="{{ $docno }}" readonly
@@ -301,15 +296,15 @@
 
 
                                 <!-- Purpose -->
-                                <div>
+                                {{-- <div>
                                     <label
                                         class="req text-xs font-medium text-gray-600 dark:text-gray-400">Purpose</label>
                                     <input type="text" value="{{ $header->keperluan }}" readonly
                                         class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
+                                </div> --}}
 
                                 <!-- Vendor -->
-                                <div class="col-span-2 flex flex-col gap-2">
+                                <div class="flex flex-col gap-2">
                                     <label class="req text-xs font-medium text-gray-600 dark:text-gray-400">Select
                                         Vendor</label>
                                     <select id="vendorSelect"
@@ -320,12 +315,23 @@
                                 </div>
                             </div>
 
-                            <!-- RIGHT SIDE: NOTE -->
-                            <div class="flex flex-col">
-                                <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Note CS</label>
-                                <textarea name="csnote" id="csnote"
-                                    class="h-30 mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
+                            <div class="grid grid-cols-1 gap-4 md:col-span-1 md:grid-cols-2">
+                                <!-- RIGHT SIDE: NOTE -->
+                                <div>
+                                    <label
+                                        class="req text-xs font-medium text-gray-600 dark:text-gray-400">Purpose</label>
+                                    <input type="text" value="{{ $header->keperluan }}" readonly
+                                        class="h-35 mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Note CS</label>
+                                    <textarea name="csnote" id="csnote"
+                                        class="h-35 mt-1 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
+                                </div>
+
+
                             </div>
+
 
                         </div>
 

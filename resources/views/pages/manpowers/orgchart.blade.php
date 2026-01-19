@@ -216,7 +216,7 @@
 
                         <!-- Tab -->
                         <div class="mb-4 border-b border-gray-200">
-                            <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
+                            <ul class="flex flex-wrap text-center text-xs font-medium" id="tabs">
                                 <li class="mr-2">
                                     <button type="button"
                                         class="tab-button border-b-2 border-blue-600 px-4 py-2 text-blue-600"
@@ -430,11 +430,11 @@
                                         <strong>Employee:</strong>
                                         <div style="margin-top:10px;">
                                             ${members.map(m => `
-                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                                            </div>
-                                                                                                                                                        `).join('')}
+                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                            <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                            <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                                        </div>
+                                                                                                                                                                    `).join('')}
                                         </div>
                                     </div>
                                 </div>

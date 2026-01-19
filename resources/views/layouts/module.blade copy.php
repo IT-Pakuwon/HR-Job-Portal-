@@ -281,7 +281,7 @@
         <div class="grid h-full grid-rows-2 gap-4 md:gap-6 lg:grid-rows-2 xl:grid-rows-2">
 
             {{-- ================= WEEKLY TODO ================= --}}
-            <div x-data="todoApp()"
+``            <div x-data="todoApp()"
                 class="flex flex-col overflow-hidden rounded-xl border bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                 <!-- HEADER -->
@@ -393,7 +393,7 @@
 
                     </div>
                 </div>
-            </div>
+            </div>``
 
 
 
