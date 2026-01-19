@@ -8,7 +8,7 @@
 
                         <!-- Task Details -->
                         <div class="rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
-                            <div class="border-b px-6 py-4">
+                            <div class="border-b px-6 py-2">
                                 <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Task</h2>
                             </div>
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -80,7 +80,7 @@
                         <!-- Task Actions -->
                         <div class="rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
                             <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
-                                <div class="border-b px-6 py-4">
+                                <div class="border-b px-6 py-2">
                                     <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Approval</h2>
                                 </div>
 
@@ -105,12 +105,12 @@
                                         <tbody>
                                             @foreach ($t_approval as $p)
                                                 <tr class="border-b dark:border-gray-700">
-                                                    <td class="px-6 py-4 text-gray-800 dark:text-white">
+                                                    <td class="px-6 py-2 text-gray-800 dark:text-white">
                                                         {{ $p->aprvid }}</td>
-                                                    <td class="px-6 py-4 text-gray-500 dark:text-gray-300">
+                                                    <td class="px-6 py-2 text-gray-500 dark:text-gray-300">
                                                         {{ $p->name }}</td>
-                                                    <td class="px-6 py-4 text-right">{{ $p->aprvdateafter }}</td>
-                                                    <td class="px-6 py-4 text-center">
+                                                    <td class="px-6 py-2 text-right">{{ $p->aprvdateafter }}</td>
+                                                    <td class="px-6 py-2 text-center">
                                                         <span
                                                             class="rounded-lg bg-yellow-200 px-3 py-1 text-xs font-semibold text-yellow-700">
                                                             In Progress

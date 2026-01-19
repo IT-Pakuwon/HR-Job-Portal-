@@ -7,7 +7,7 @@
                         class="flex w-full flex-col gap-2 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-row">
                         <div class="flex w-full flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                             <header
-                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
+                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
                                 <div class="flex max-w-5xl justify-end gap-2">
                                     <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                         {{ $news->docid }}</h1>

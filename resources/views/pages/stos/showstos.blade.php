@@ -46,7 +46,7 @@
             <div class="lg:col-span-1">
                 <div class="flex h-full flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="text-base font-semibold text-gray-800 dark:text-gray-100">
                             🆔 {{ $sto->sto_id }}
                         </h1>
@@ -108,7 +108,7 @@
 
                                 </div>
 
-                                <div id="tab-view" class="tab-content hidden px-6 py-4">
+                                <div id="tab-view" class="tab-content hidden px-6 py-2">
                                     <div class="table-responsive-container w-full overflow-x-auto">
                                         <div class="overflow-y-auto" style="max-height: 500px;">
                                             <table class="base-table w-full text-xs">
@@ -153,7 +153,7 @@
                 <div x-data="{ activeTab: 'structure' }" class="rounded-xl bg-white dark:bg-gray-800">
 
                     <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
                             <button @click="activeTab = 'structure'"
                                 :class="{
@@ -908,13 +908,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                    ${m.name} (${m.company})
-                                                                                                                                                                                </span>
-                                                                                                                                                                            </div>
-                                                                                                                                                                        `).join('')}
+                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                        ${m.name} (${m.company})
+                                                                                                                                                                                    </span>
+                                                                                                                                                                                </div>
+                                                                                                                                                                            `).join('')}
                                     </div>
                                 </div>
                             </div>

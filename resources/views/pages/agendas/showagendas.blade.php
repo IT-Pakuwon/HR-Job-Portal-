@@ -10,7 +10,7 @@
                             <div class="rounded-xl bg-white">
                                 <div class="flex flex-col rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <header
-                                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
+                                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
                                         <div class="flex max-w-5xl justify-end gap-10">
                                             <h1 class="text-base font-semibold text-gray-700 dark:text-gray-100">🆔
                                                 {{ $agenda->docid }}</h1>
@@ -116,7 +116,7 @@
                             </div>
                             <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
-                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
+                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
                                     <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100">📂
                                         Attachment</h2>
                                 </header>
@@ -156,7 +156,7 @@
                             class="flex flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
                             <div class="flex max-h-96 min-h-[12rem] flex-col rounded-xl dark:bg-gray-800">
                                 <header
-                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
+                                    class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
                                     <h2 class="text-base font-semibold text-gray-600 dark:text-gray-100"> 🚀
                                         Approval</h2>
                                     <div class="flex gap-2">
@@ -244,7 +244,7 @@
                                 <div
                                     class="col-span-full flex flex-col border-b sm:col-span-6 xl:col-span-12 dark:border-gray-200/10">
                                     <header
-                                        class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-600">
+                                        class="flex flex-row justify-between rounded-t-2xl border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-600">
                                         <h2
                                             class="flex items-center gap-2 text-base font-semibold text-gray-700 dark:text-gray-100">
                                             💬 Comments

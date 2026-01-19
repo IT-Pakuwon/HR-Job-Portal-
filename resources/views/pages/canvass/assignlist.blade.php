@@ -14,7 +14,7 @@
 
             <!-- TOP HEADER -->
             <div
-                class="flex flex-col gap-4 border-b border-gray-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
+                class="flex flex-col gap-4 border-b border-gray-200 px-6 py-2 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
 
                 <!-- Title -->
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">

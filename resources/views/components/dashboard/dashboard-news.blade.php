@@ -86,10 +86,10 @@
                     <template x-for="(event, index) in paginatedEvents" :key="index">
                         <tr class="cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td @click="openModal(event)"
-                                class="px-6 py-4 font-medium text-violet-600 hover:underline dark:text-violet-400"
+                                class="px-6 py-2 font-medium text-violet-600 hover:underline dark:text-violet-400"
                                 x-text="event.title"></td>
-                            <td class="px-6 py-4" x-text="event.date ?? '—'"></td>
-                            <td class="px-6 py-4" x-text="event.author ?? '—'"></td>
+                            <td class="px-6 py-2" x-text="event.date ?? '—'"></td>
+                            <td class="px-6 py-2" x-text="event.author ?? '—'"></td>
                         </tr>
                     </template>
                 </tbody>

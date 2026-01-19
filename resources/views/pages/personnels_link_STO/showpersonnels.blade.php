@@ -217,7 +217,7 @@
             <div class="flex flex-col gap-4 rounded-xl sm:w-1/2 md:w-full">
                 <div x-data="{ activeTab: 'Responsibilities' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
                             <button @click="activeTab = 'Responsibilities'"
                                 :class="{
@@ -320,7 +320,7 @@
                 </div>
                 <div x-data="{ activeTab: 'approval' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
                             <button @click="activeTab = 'approval'"
                                 :class="{

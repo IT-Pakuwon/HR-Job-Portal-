@@ -149,7 +149,7 @@
                 {{-- Left card (SPPB Info) --}}
                 <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
@@ -270,7 +270,7 @@
                 <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                         <header
-                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
                                     :class="activeTab === 'attachment'
@@ -464,7 +464,7 @@
             {{-- SPPB Detail table --}}
             <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-base font-semibold">📝 SPPB Detail</h2>
                     {{-- Button Edit COA --}}
                     @if ($akses_cc && empty($sppb->spbid))
@@ -495,34 +495,61 @@
                         </thead>
                         <tbody>
                             @foreach ($sppbdetail as $item)
+                                @php
+                                    $rowClass = 'bg-white dark:bg-gray-900'; // default
+
+                                    if ($item->ordered == $item->qty && $item->qty > 0) {
+                                        $rowClass = 'bg-blue-100 dark:bg-blue-900/40';
+                                    } elseif ($item->ordered > 0 && $item->ordered < $item->qty) {
+                                        $rowClass = 'bg-yellow-100 dark:bg-yellow-900/40';
+                                    }
+                                @endphp
+
                                 <tr
-                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                    class="{{ $rowClass }} border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+
                                     <td class="px-4 py-2">{{ $item->sppb_no }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventory_descr }} ( {{ $item->inventoryid }}
-                                        )<br>
+
+                                    <td class="px-4 py-2">
+                                        {{ $item->inventory_descr }} ({{ $item->inventoryid }})<br>
                                         <span class="text-xs text-gray-500 dark:text-gray-400">
                                             Note: {{ $item->note }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty, 2, ',', '.') }}<br>
+
+                                    <td class="px-4 py-2">
+                                        {{ number_format($item->qty, 2, ',', '.') }}<br>
                                         <span class="text-xs text-gray-500 dark:text-gray-400">
                                             {{ $item->uom }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }} -
-                                        {{ optional($item->subLocation)->sub_location_name }}</td>
-                                    <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
-                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
+
                                     <td class="px-4 py-2">
-                                        {{ number_format($item->ordered, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-2"> {{ number_format($item->rejectordered, 2, ',', '.') }}
-                                    </td>
-                                    <td class="px-4 py-2"> {{ number_format($item->completeordered, 2, ',', '.') }}
+                                        {{ optional($item->location)->location_name }} -
+                                        {{ optional($item->subLocation)->sub_location_name }}
                                     </td>
 
+                                    <td class="px-4 py-2">
+                                        {{ $item->budget_department_fin_id }} -
+                                        {{ $item->budget_account_id }} -
+                                        {{ $item->budget_activity_descr }}
+                                    </td>
+
+                                    <td class="px-4 py-2">
+                                        {{ number_format($item->ordered, 2, ',', '.') }}
+                                    </td>
+
+                                    <td class="px-4 py-2">
+                                        {{ number_format($item->rejectordered, 2, ',', '.') }}
+                                    </td>
+
+                                    <td class="px-4 py-2">
+                                        {{ number_format($item->completeordered, 2, ',', '.') }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
+
                     </table>
                 </div>
             </div>

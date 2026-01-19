@@ -6,7 +6,7 @@
                 <div class="flex w-full flex-col">
                     <div x-data="tabsComponent()" x-init="initializeComponent()">
                         <div
-                            class="flex items-center rounded-t-lg border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="flex items-center rounded-t-lg border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                             <button @click="tab = 'tab1'; content1Loaded = true"
                                 :class="tab === 'tab1' ?
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :

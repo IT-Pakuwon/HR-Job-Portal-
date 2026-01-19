@@ -431,7 +431,7 @@
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'information_po' }" class="flex flex-1 flex-col">
                         <header
-                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'information_po'"
                                     :class="activeTab === 'information_po'
@@ -943,7 +943,7 @@
             <div x-data="{ poTab: 'detail' }" class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
 
                 <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <div class="flex items-center gap-3">
                         {{-- <h2 class="text-base font-semibold">📝 PO</h2> --}}
 
@@ -1091,7 +1091,7 @@
 
             {{-- <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white  px-6 py-2  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-base font-semibold">📝 PO Detail</h2>
                 </header>
                 <div class="overflow-x-auto">

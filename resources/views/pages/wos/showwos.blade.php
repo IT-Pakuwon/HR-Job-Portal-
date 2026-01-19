@@ -335,7 +335,7 @@
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                         <header
-                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                             <nav class="flex flex-grow">
                                 <button @click="activeTab = 'attachment'"
                                     :class="activeTab === 'attachment'
@@ -557,7 +557,7 @@
 
 
             @if ($canProcess)
-                <div id="jobProcessBox" class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                <div id="jobProcessBox" class="border-b border-gray-200 px-6 py-2 dark:border-gray-700">
 
                     <button id="btnJobProcess"
                         class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -633,7 +633,7 @@
                     @if (!$isPicWo)
                         <div class="mt-4 flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                             <header
-                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                 <h2 class="text-base font-semibold">📝 WO Detail</h2>
                                 <h2 class="text-base font-medium">PIC : {{ $wo->pic_wo ?: '-' }}</h2>
                             </header>
@@ -644,7 +644,7 @@
                 {{-- ===== READ-ONLY (bukan PIC) ===== --}}
                 <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
-                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                         <h2 class="text-base font-semibold">📝 WO Detail</h2>
                         <h2 class="text-base font-medium"> PIC :
                             {{ $wo->pic_wo ?: '-' }}

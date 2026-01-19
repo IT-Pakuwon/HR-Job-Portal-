@@ -11,7 +11,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <div class="flex gap-10">
                                             <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                                 🆔{{ $applicant->applicant_id }}</h2>
@@ -322,7 +322,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Education
                                         </h2>
                                         <button @click="isOpen = !isOpen"
@@ -375,7 +375,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Work
                                             Experience</h2>
                                         <button @click="isOpen = !isOpen"
@@ -430,7 +430,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Skill</h2>
                                         <button @click="isOpen = !isOpen"
                                             class="flex items-center text-gray-500 focus:outline-none dark:text-gray-200">
@@ -469,7 +469,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Languange
                                         </h2>
                                         <button @click="isOpen = !isOpen"
@@ -512,7 +512,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                             Certificate
                                         </h2>
@@ -562,7 +562,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Strengths
                                             &
                                             Weaknesses</h2>
@@ -608,7 +608,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Detail
                                             Information</h2>
                                         <button @click="isOpen = !isOpen"
@@ -726,7 +726,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Family
                                         </h2>
                                         <button @click="isOpen = !isOpen"
@@ -782,7 +782,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Marital
                                             Status & Children</h2>
                                         <button @click="isOpen = !isOpen"
@@ -839,7 +839,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Emergency
                                             Contact</h2>
                                         <button @click="isOpen = !isOpen"
@@ -885,7 +885,7 @@
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
                                     <!-- Header -->
                                     <header
-                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                        class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                         <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Relative
                                             Information</h2>
                                         <button @click="isOpen = !isOpen"

@@ -238,17 +238,17 @@
                     @forelse ($payrolls as $p)
                         <tr data-id="{{ $p->id }}"
                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-900 dark:text-gray-100">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-900 dark:text-gray-100">
                                 {{ $p->tax_liability }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->npwp_id }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->bank_account }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->bank_name }}</td>
-                            {{-- <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            {{-- <td class="whitespace-nowrap  px-6 py-2  text-xs text-gray-700 dark:text-gray-300">
                                 {{ number_format($p->net_salary, 0, ',', '.') }}</td> --}}
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 <span class="salary-mask" data-id="{{ $p->id }}">••••••</span>
                                 <button type="button"
                                     class="revealSalaryBtn ml-2 inline-flex items-center rounded-md bg-gray-200 px-2 py-1 text-xs hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
@@ -256,17 +256,17 @@
                                     <i data-lucide="eye" class="h-4 w-4"></i>
                                 </button>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->other_facility }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{-- {{ \Carbon\Carbon::parse($p->work_start_date)->format('d F Y') }}</td> --}}
                                 {{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{-- {{ \Carbon\Carbon::parse($p->availability_date)->format('d F Y') }}</td> --}}
                                 {{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs">
                                 <button
                                     class="editPayrollBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Edit</button>
                             </td>
@@ -405,13 +405,13 @@
                     @forelse ($sign as $p)
                         <tr data-id="{{ $p->id }}"
                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-900 dark:text-gray-100">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-900 dark:text-gray-100">
                                 {{ $p->aprvid }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
                                 {{ $p->jabatan }}</td>
-                            <td class="space-x-2 whitespace-nowrap px-6 py-4 text-xs">
+                            <td class="space-x-2 whitespace-nowrap px-6 py-2 text-xs">
                                 <button
                                     class="editsignBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                                     Edit

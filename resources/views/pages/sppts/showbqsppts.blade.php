@@ -228,7 +228,7 @@
                 {{-- Right Card (Photo Before) --}}
                 <div class="flex flex-col gap-4 bg-white sm:w-1/2 md:w-full dark:bg-gray-800">
                     <header
-                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                        class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">📸 Photo Before</h2>
                     </header>
 
@@ -280,7 +280,7 @@
             <div class="flex max-h-[50rem] min-h-[12rem] w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 {{-- Header --}}
                 <header
-                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-white px-6 py-4 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                    class="flex items-center justify-between rounded-t-2xl border-b border-gray-300/10 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-base font-semibold">📝 BQ Detail</h2>
                 </header>
 

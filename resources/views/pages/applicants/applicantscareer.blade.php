@@ -7,7 +7,7 @@
                         <div x-data="{ isOpen: true }" class="pb-4">
                             <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                                 <header
-                                    class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                    class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                     {{-- <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
                                                🆔{{ $applicant->applicant_id }}</h2> --}}
                                     <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
@@ -375,7 +375,7 @@
                         <div x-data="{ activeTab: 'Education' }" class="rounded-xl bg-white dark:bg-gray-800">
 
                             <header
-                                class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
                                     <button @click="activeTab = 'Education'"
                                         :class="{
@@ -637,7 +637,7 @@
                         <div x-data="{ activeTab: 'Family' }" class="rounded-xl bg-white dark:bg-gray-800">
 
                             <header
-                                class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
                                     <button @click="activeTab = 'Family'"
                                         :class="{
@@ -821,7 +821,7 @@
                         </div>
                         <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
                             <header
-                                class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-700">
+                                class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Detail
                                     Information</h2>
                                 <button @click="isOpen = !isOpen"
