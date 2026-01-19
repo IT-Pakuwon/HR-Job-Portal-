@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\MsVendorController;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
+use App\Http\Controllers\GoogleCalendarController;
 
 Route::get('/auth-header-debug', function (Request $request) {
     return response()->json([
@@ -19,6 +20,9 @@ Route::get('/auth-header-debug', function (Request $request) {
         'all_headers'          => collect($request->headers->all())->map(fn($v)=>$v[0] ?? $v),
     ]);
 });
+
+Route::post('/google/calendar/event', [GoogleCalendarController::class, 'createEvent'])
+    ->middleware('auth');
 
 // Route::get('/__authdebug', function (Request $r) {
 //     $bearer = $r->bearerToken();

@@ -90,6 +90,7 @@ use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\BudgetMonitorController;
 use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\Integration\IFCAIntegrationController;
+use App\Http\Controllers\GoogleCalendarController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -150,9 +151,21 @@ Route::post('/login', function (Request $request) {
 })->name('login');
 
 
-// Route::get('/modules', function () {
-//     return view('layouts.module');
-// })->name('modules');
+Route::get('/auth/google/calendar', [GoogleCalendarController::class, 'redirect'])
+    ->middleware('auth');
+
+Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, 'callback'])
+    ->middleware('auth');
+
+Route::post('/google/calendar/event', [GoogleCalendarController::class, 'createEvent'])
+    ->middleware('auth');
+
+    Route::get('/google/calendar/events', [GoogleCalendarController::class, 'listEvents'])
+    ->middleware('auth');
+
+Route::get('/modules', function () {
+    return view('layouts.module');
+})->name('modules');
 
 
 Route::post('/logout', function () {
@@ -167,6 +180,12 @@ Route::post('/logout', function () {
     // Dashboard Approval JSON endpoints
     Route::get('/waitingjson', [DashboardController::class, 'Waitingjson'])->name('dashboard.waitingjson');
     Route::get('/approvejson', [DashboardController::class, 'Approvejson'])->name('dashboard.approvejson');
+
+    
+
+Route::get('/auth/google/calendar', [GoogleCalendarController::class, 'redirect']);
+Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, 'callback']);
+
 
     // Ambil semua screens dan buat route otomatis
     // $screens = MsScreen::all();
