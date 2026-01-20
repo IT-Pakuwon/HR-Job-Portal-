@@ -180,61 +180,58 @@
     <style>
         /* ===== FORCE HEIGHT SELECT2 (SINGLE) ===== */
         .select2-container {
-        width: 100% !important;
+            width: 100% !important;
         }
 
         .select2-container .select2-selection--single {
-        height: 50px !important;              /* ⬅️ NAIK JELAS */
-        border-radius: 0.5rem;
-        border: 1px solid #d1d5db;
-        display: flex !important;
-        align-items: center !important;
-        background-color: #fff;
+            height: 50px !important;
+            /* ⬅️ NAIK JELAS */
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            display: flex !important;
+            align-items: center !important;
+            background-color: #fff;
         }
 
-        .select2-container--default
-        .select2-selection--single
-        .select2-selection__rendered {
-        line-height: 50px !important;          /* ⬅️ SAMA DENGAN HEIGHT */
-        padding-left: 16px !important;
-        padding-right: 44px !important;        /* ruang arrow */
-        font-size: 14px;
-        color: #374151;
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 50px !important;
+            /* ⬅️ SAMA DENGAN HEIGHT */
+            padding-left: 16px !important;
+            padding-right: 44px !important;
+            /* ruang arrow */
+            font-size: 14px;
+            color: #374151;
         }
 
-        .select2-container--default
-        .select2-selection--single
-        .select2-selection__arrow {
-        height: 50px !important;               /* ⬅️ arrow ikut tinggi */
-        right: 12px;
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 50px !important;
+            /* ⬅️ arrow ikut tinggi */
+            right: 12px;
         }
 
         /* ===== Dropdown list ===== */
         .select2-results__options {
-        max-height: 320px;
+            max-height: 320px;
         }
 
         /* ===== Dark mode ===== */
         .dark .select2-container--default .select2-selection--single {
-        background-color: #374151;
-        border-color: #4b5563;
+            background-color: #374151;
+            border-color: #4b5563;
         }
 
-        .dark .select2-container--default
-        .select2-selection--single
-        .select2-selection__rendered {
-        color: #e5e7eb;
+        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #e5e7eb;
         }
 
         .select2-dropdown {
-        border: 1px solid #d1d5db;
+            border: 1px solid #d1d5db;
         }
 
         .dark .select2-dropdown {
-        background: #111827;
-        border-color: #4b5563;
+            background: #111827;
+            border-color: #4b5563;
         }
-
     </style>
 
 
@@ -631,7 +628,7 @@
                                     </div>
 
                                     <button type="button" id="addSppt"
-                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
                                             <path fill-rule="evenodd"
@@ -2376,74 +2373,74 @@
             let currentLocRow = null;
 
             function initSelect2() {
-            // destroy dulu kalau sudah ada (biar aman saat open berkali-kali)
-            if ($selLoc.hasClass("select2-hidden-accessible")) $selLoc.select2('destroy');
-            if ($selSub.hasClass("select2-hidden-accessible")) $selSub.select2('destroy');
+                // destroy dulu kalau sudah ada (biar aman saat open berkali-kali)
+                if ($selLoc.hasClass("select2-hidden-accessible")) $selLoc.select2('destroy');
+                if ($selSub.hasClass("select2-hidden-accessible")) $selSub.select2('destroy');
 
-            // init dengan dropdownParent = modal (wajib biar dropdown muncul di atas modal)
-            $selLoc.select2({
-                dropdownParent: $lokasiModal,
-                placeholder: '-- choose --',
-                allowClear: true,
-                width: '100%'
-            });
+                // init dengan dropdownParent = modal (wajib biar dropdown muncul di atas modal)
+                $selLoc.select2({
+                    dropdownParent: $lokasiModal,
+                    placeholder: '-- choose --',
+                    allowClear: true,
+                    width: '100%'
+                });
 
-            $selSub.select2({
-                dropdownParent: $lokasiModal,
-                placeholder: '-- choose --',
-                allowClear: true,
-                width: '100%'
-            });
+                $selSub.select2({
+                    dropdownParent: $lokasiModal,
+                    placeholder: '-- choose --',
+                    allowClear: true,
+                    width: '100%'
+                });
             }
 
             function openLokasiModal(forRow) {
-            currentLocRow = forRow;
-            const cpny = $('select[name="cpnyid"]').val();
+                currentLocRow = forRow;
+                const cpny = $('select[name="cpnyid"]').val();
 
-            if (!cpny) {
-                toastr.warning('Pilih Company terlebih dahulu.');
-                return;
-            }
-
-            // tampilkan modal dulu supaya Select2 bisa hitung width
-            $lokasiModal.removeClass('hidden').addClass('flex');
-
-            // init select2
-            initSelect2();
-
-            // reset options
-            $selLoc.empty().append('<option value=""></option>').trigger('change');
-            $selSub.empty().append('<option value=""></option>').trigger('change');
-
-            // load locations
-            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-                .done(function(list) {
-                // isi options location
-                list.forEach(it => {
-                    $selLoc.append(new Option(it.text, it.value, false, false));
-                });
-
-                // preselect dari row kalau ada
-                const curLoc = (currentLocRow.find('.locationIdField').val() || '').trim();
-                if (curLoc) {
-                    $selLoc.val(curLoc).trigger('change'); // trigger change -> load subloc
-                } else {
-                    // fokuskan search select2
-                    setTimeout(() => $selLoc.select2('open'), 100);
+                if (!cpny) {
+                    toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
                 }
-                })
-                .fail(function() {
-                toastr.error('Gagal memuat lokasi.');
-                });
+
+                // tampilkan modal dulu supaya Select2 bisa hitung width
+                $lokasiModal.removeClass('hidden').addClass('flex');
+
+                // init select2
+                initSelect2();
+
+                // reset options
+                $selLoc.empty().append('<option value=""></option>').trigger('change');
+                $selSub.empty().append('<option value=""></option>').trigger('change');
+
+                // load locations
+                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                    .done(function(list) {
+                        // isi options location
+                        list.forEach(it => {
+                            $selLoc.append(new Option(it.text, it.value, false, false));
+                        });
+
+                        // preselect dari row kalau ada
+                        const curLoc = (currentLocRow.find('.locationIdField').val() || '').trim();
+                        if (curLoc) {
+                            $selLoc.val(curLoc).trigger('change'); // trigger change -> load subloc
+                        } else {
+                            // fokuskan search select2
+                            setTimeout(() => $selLoc.select2('open'), 100);
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat lokasi.');
+                    });
             }
 
             function closeLokasiModal() {
-            $lokasiModal.addClass('hidden').removeClass('flex');
+                $lokasiModal.addClass('hidden').removeClass('flex');
             }
 
             // Open modal dari tombol di row
             $(document).on('click', '.openLokasiPicker', function() {
-            openLokasiModal($(this).closest('tr'));
+                openLokasiModal($(this).closest('tr'));
             });
 
             // Close modal
@@ -2451,73 +2448,74 @@
 
             // ketika location berubah → load sublocations
             $selLoc.on('change', function() {
-            const cpny = $('select[name="cpnyid"]').val();
-            const loc = $(this).val();
+                const cpny = $('select[name="cpnyid"]').val();
+                const loc = $(this).val();
 
-            $selSub.empty().append('<option value=""></option>').trigger('change');
+                $selSub.empty().append('<option value=""></option>').trigger('change');
 
-            if (!loc) return;
+                if (!loc) return;
 
-            $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-                .done(function(list) {
-                list.forEach(it => {
-                    $selSub.append(new Option(it.text, it.value, false, false));
-                });
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                    .done(function(list) {
+                        list.forEach(it => {
+                            $selSub.append(new Option(it.text, it.value, false, false));
+                        });
 
-                // preselect subloc dari row kalau ada
-                if (currentLocRow) {
-                    const curSub = (currentLocRow.find('.subLocationIdField').val() || '').trim();
-                    if (curSub) {
-                    $selSub.val(curSub).trigger('change');
-                    } else {
-                    setTimeout(() => $selSub.select2('open'), 100);
-                    }
-                }
-                })
-                .fail(function() {
-                toastr.error('Gagal memuat sub location.');
-                });
+                        // preselect subloc dari row kalau ada
+                        if (currentLocRow) {
+                            const curSub = (currentLocRow.find('.subLocationIdField').val() || '')
+                            .trim();
+                            if (curSub) {
+                                $selSub.val(curSub).trigger('change');
+                            } else {
+                                setTimeout(() => $selSub.select2('open'), 100);
+                            }
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat sub location.');
+                    });
             });
 
             // Save ke row aktif
             $('#saveLokasi').on('click', function() {
-            const locId = $selLoc.val();
-            const locText = $selLoc.find('option:selected').text();
-            const subId = $selSub.val();
-            const subText = $selSub.find('option:selected').text();
+                const locId = $selLoc.val();
+                const locText = $selLoc.find('option:selected').text();
+                const subId = $selSub.val();
+                const subText = $selSub.find('option:selected').text();
 
-            if (!locId || !subId) {
-                toastr.error('Pilih Location dan Sub Location.');
-                return;
-            }
+                if (!locId || !subId) {
+                    toastr.error('Pilih Location dan Sub Location.');
+                    return;
+                }
 
-            currentLocRow.find('.locationIdField').val(locId);
-            currentLocRow.find('.subLocationIdField').val(subId);
-            currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+                currentLocRow.find('.locationIdField').val(locId);
+                currentLocRow.find('.subLocationIdField').val(subId);
+                currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
 
-            currentLocRow.find('.locationDisplayField')
-                .removeClass('is-invalid')
-                .next('.error-feedback').remove();
+                currentLocRow.find('.locationDisplayField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
 
-            closeLokasiModal();
+                closeLokasiModal();
             });
 
             // Jika company berubah dan modal terbuka → reload lokasi (tanpa re-open recursion)
             $('select[name="cpnyid"]').on('change', function() {
-            if (!$lokasiModal.is(':visible')) return;
+                if (!$lokasiModal.is(':visible')) return;
 
-            const cpny = $(this).val();
-            $selLoc.empty().append('<option value=""></option>').trigger('change');
-            $selSub.empty().append('<option value=""></option>').trigger('change');
+                const cpny = $(this).val();
+                $selLoc.empty().append('<option value=""></option>').trigger('change');
+                $selSub.empty().append('<option value=""></option>').trigger('change');
 
-            $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-                .done(function(list) {
-                list.forEach(it => $selLoc.append(new Option(it.text, it.value, false, false)));
-                setTimeout(() => $selLoc.select2('open'), 100);
-                })
-                .fail(function() {
-                toastr.error('Gagal memuat lokasi.');
-                });
+                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                    .done(function(list) {
+                        list.forEach(it => $selLoc.append(new Option(it.text, it.value, false, false)));
+                        setTimeout(() => $selLoc.select2('open'), 100);
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat lokasi.');
+                    });
             });
         });
     </script>

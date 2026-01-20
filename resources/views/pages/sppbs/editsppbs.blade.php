@@ -618,7 +618,7 @@
                                     <input type="hidden" id="deletedDetails" name="deleted_detail_ids">
 
                                     <button type="button" id="addSppb"
-                                        class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-gray-700 bg-gray-200/10 p-2 text-gray-800 hover:border-red-700 hover:bg-red-200/10 hover:font-medium hover:text-red-800">
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
                                             <path fill-rule="evenodd"
@@ -703,8 +703,10 @@
                             <div class="mt-3 flex items-center justify-between text-xs">
                                 <span id="invCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button type="button" id="invPrev" class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button type="button" id="invNext" class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                    <button type="button" id="invPrev"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button type="button" id="invNext"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
@@ -3197,10 +3199,12 @@
 
     <script>
         // Guard: tombol-tombol dalam modal jangan pernah submit form
-        $(document).on('click', '#inventoryModal button, #requestTypeModal button, #coaModal button, #uomModal button, #woModal button, #modalLokasi button', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+        $(document).on('click',
+            '#inventoryModal button, #requestTypeModal button, #coaModal button, #uomModal button, #woModal button, #modalLokasi button',
+            function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
     </script>
 
 
