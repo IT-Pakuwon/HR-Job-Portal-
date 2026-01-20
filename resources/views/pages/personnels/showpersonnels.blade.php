@@ -100,7 +100,7 @@
                         <div class="{{ $row }}">
                             <div class="{{ $label }}">
                                 <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
-                                <span class="w-5">Company</span>
+                                <span>Company</span>
                             </div>
                             <span class="{{ $value }}">{{ $personnel->cpnyid }}</span>
                         </div>
