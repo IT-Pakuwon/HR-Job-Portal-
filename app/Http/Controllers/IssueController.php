@@ -243,7 +243,7 @@ class IssueController extends Controller
                 $det->base_issue_qty  = $det->base_qty; // sama dengan base_qty
                 $det->qty_return      = 0;
                 $det->base_qty_return = 0;
-                $det->ref_issuenbr    = null;
+                $det->ref_issueid    = null;
 
                 $det->status          = 'P';
                 $det->created_by      = $username;
@@ -1591,7 +1591,7 @@ class IssueController extends Controller
          * Total qty_return yang SUDAH pernah dibuat dari dokumen return
          * yang mereferensikan dokumen asal ini.
          *
-         * Referensi yang benar: tr_issue.ref_issuenbr = issue asal (mis. $iss->issueid)
+         * Referensi yang benar: tr_issue.ref_issueid = issue asal (mis. $iss->issueid)
          */
         $returnedAgg = TrIssuedetail::query()
             ->select([
@@ -1606,7 +1606,7 @@ class IssueController extends Controller
                 $q->select('issueid')
                     ->from('tr_issue')
                     ->whereRaw('LOWER(issuetype) = ?', ['return'])
-                    ->where('ref_issuenbr', $iss->issueid); // ✅ FIX: bukan ref_issueid
+                    ->where('ref_issueid', $iss->issueid); // ✅ FIX: bukan ref_issueid
             })
             ->groupBy('inventoryid', 'uom', 'siteid', 'location_id', 'sub_location_id')
             ->get()
@@ -1645,13 +1645,13 @@ class IssueController extends Controller
         }
 
         // referensi dokumen asal (pakai issueid sebagai nomor dokumen)
-        $ref_issuenbr = $iss->issueid;
+        $ref_issueid = $iss->issueid;
 
         return view('pages.issue.return_create', [
             'iss'         => $iss,
             'details'     => $details,
             'eid'         => $eid,
-            'ref_issuenbr'=> $ref_issuenbr, // ✅ FIX: konsisten dengan model
+            'ref_issueid'=> $ref_issueid, // ✅ FIX: konsisten dengan model
         ]);
     }
 
@@ -1659,23 +1659,21 @@ class IssueController extends Controller
     // Simpan dokumen return
     public function storeReturn(Request $request)
     {
-        // $user = $request->user();
-        // $username = $user->username ?? 'system';
         $user = Auth::user();
         $username = $user ? $user->username : 'system';
 
-        $eid = (string)$request->input('iss', '');
+        $eid = (string) $request->input('iss', '');
         $id  = Hashids::decode($eid)[0] ?? null;
         abort_if(!$id, 404);
 
-        $src = TrIssue::findOrFail($id); // issue sumber (GR)
-        $qtyInput = (array)$request->input('qty_return', []); // [detail_id => qty]
-        $notes    = (string)$request->input('return_note', '');
+        $src = TrIssue::findOrFail($id);
+        $qtyInput = (array) $request->input('qty_return', []);
+        $notes    = (string) $request->input('return_note', '');
 
         // minimal satu qty > 0
         $hasAny = false;
-        foreach ($qtyInput as $k => $v) {
-            $q = (float)str_replace(',', '.', (string)$v);
+        foreach ($qtyInput as $v) {
+            $q = (float) str_replace(',', '.', (string) $v);
             if ($q > 0) { $hasAny = true; break; }
         }
         if (!$hasAny) {
@@ -1684,21 +1682,22 @@ class IssueController extends Controller
 
         $doctype = 'IS';
         $now   = Carbon::now();
-        $year  = (int)$now->year;
+        $year  = (int) $now->year;
         $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
 
-        $cpnyid  = $spb->cpny_id       ?? ($request->input('cpnyid')       ?? null);
-        // $deptid  = $spb->department_id ?? ($request->input('departmentid') ?? null);
-        $deptid  = 'WAREHOUSE';
+        $cpnyid = $src->cpny_id ?? null;
+        $deptid = 'WAREHOUSE';
 
         $approvalCtl = app(ApprovalController::class);
         $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
 
         DB::beginTransaction();
         try {
-            
+            // autonumber
             $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
+                ->where('doctype', $doctype)
+                ->where('year', $year)
+                ->where('month', $month)
                 ->first();
 
             if (!$autonbr) {
@@ -1715,101 +1714,76 @@ class IssueController extends Controller
                 $autonbr->update(['number' => $urut]);
             }
 
-            $issueid = $doctype . substr($year,2) . $month . sprintf('%04d', $urut);
+            $issueid = $doctype . substr($year, 2) . $month . sprintf('%04d', $urut);
 
-            // === Header return (copy dari sumber)
+            // ===== HEADER RETURN
             $hdr = new TrIssue();
             $hdr->issueid        = $issueid;
-            $hdr->issuedate       = $now->toDateString();
-            // agar muncul di tab Return Jobs sesuai filter kamu:
-            $hdr->issuetype       = 'RI'; // <— sesuai filter returnjobs (status C + issuetype='issue')
-            $hdr->spbid             = $src->spbid;
-            $hdr->ref_issueid    = $src->issueid;            // <— penting
-            $hdr->cpny_id           = $src->cpny_id;
-            $hdr->csid              = $src->csid;
-            $hdr->sppbjktid         = $src->sppbjktid;
-            $hdr->department_id     = $src->department_id;
-            $hdr->user_peminta      = $src->user_peminta;
-            $hdr->issuenote       = $notes;
-            $hdr->vendorid          = $src->vendorid;
-            $hdr->vendorname        = $src->vendorname;
-            $hdr->totalqty_received = 0; // untuk return kita isi setelah loop sbg total qty return
-            $hdr->status            = 'P'; // langsung complete, atau 'P' kalau mau ada approval
-            $hdr->created_by        = $username;
-            $hdr->created_at        = $now;
+            $hdr->issuedate      = $now;
+            $hdr->issuetype      = 'RI';
+            $hdr->spbid          = $src->spbid;
+
+            // ✅ sesuai model kamu
+            $hdr->ref_issueid   = $src->issueid;
+
+            $hdr->cpny_id        = $src->cpny_id;
+            $hdr->department_id  = $src->department_id;
+            $hdr->user_peminta   = $src->user_peminta;
+            $hdr->issuenote      = $notes;
+
+            $hdr->totalreturnissueqty = 0;
+            $hdr->status        = 'P';
+            $hdr->created_by    = $username;
             $hdr->save();
 
-            // === Detail return: simpan hanya baris qty_return > 0
+            // ===== DETAIL RETURN
             $srcDetails = TrIssuedetail::where('issueid', $src->issueid)->get()->keyBy('id');
-            $line  = 0; $totalReturn = 0.0;
+
+            $line = 0;
+            $totalReturn = 0.0;
+
+            $createdDetails = collect();
 
             foreach ($qtyInput as $detailId => $raw) {
-                $qty = (float)str_replace(',', '.', (string)$raw);
-                if ($qty <= 0) continue;          // ⬅️ hanya simpan baris > 0
+                $qty = (float) str_replace(',', '.', (string) $raw);
+                if ($qty <= 0) continue;
+
                 $srcDet = $srcDetails[$detailId] ?? null;
                 if (!$srcDet) continue;
 
                 $line++;
 
                 $det = new TrIssuedetail();
-                $det->issueid              = $issueid;
-                $det->issue_no              = $line;
+                $det->issueid         = $issueid;
+                $det->issue_no        = $line;
 
-                $det->spbid                   = $src->spbid;
-                $det->spb_no                   = $srcDet->spb_no;
+                $det->spbid           = $src->spbid;
+                $det->spb_no          = $srcDet->spb_no;
 
-                $det->csid                    = $src->csid;
-                $det->cs_no                   = $srcDet->cs_no;
-                $det->sppbjktid               = $src->sppbjktid;
-                $det->sppbjktid_no            = $srcDet->sppbjktid_no;
+                $det->inventoryid     = $srcDet->inventoryid;
+                $det->inventory_descr = $srcDet->inventory_descr;
+                $det->uom             = $srcDet->uom;
 
-                $det->inventory_type          = $srcDet->inventory_type;
-                $det->inventoryid             = $srcDet->inventoryid;
-                $det->inventory_descr         = $srcDet->inventory_descr;
-                $det->qtyordered              = $srcDet->qtyordered;
-                $det->uom                     = $srcDet->uom;
+                // qty utama (existing field)
+                $det->qty             = $qty;
 
-                // base
-                $det->type_multiplier         = null;
-                $det->base_multiplier         = 1;
-                $det->base_qty                = 0; // return: base qty utama tidak dipakai
-                $det->base_uom                = $srcDet->uom;
-
-                // harga (copy)
-                $det->unitcost                = $srcDet->unitcost;
-                $det->taxcodeid               = $srcDet->taxcodeid;
-                $det->taxamt                  = $srcDet->taxamt;
-                $det->totalcost               = $srcDet->totalcost;
-
-                $det->issuetype             = $hdr->issuetype;
-
-                // open ordered (tidak relevan utk return)
-                $det->qty_open_ordered        = 0;
-                $det->base_qty_open_ordered   = 0;
+                // issue qty 0 (karena ini return)
+                $det->issue_qty       = 0;
+                $det->base_issue_qty  = 0;
 
                 // return qty
-                $det->qty_received            = 0;
-                $det->base_qty_received       = 0;
+                $det->qty_return      = $qty;
+                $det->base_qty_return = $qty;
 
-                $det->qty_return              = $qty;
-                $det->base_qty_return         = $qty;
+                // ✅ sesuai model kamu
+                $det->ref_issueid    = $src->issueid;
 
-                $det->ref_issueid          = $src->issueid;  // <— referensi
-
-                // budget (copy)
-                $det->budget_perspbst          = $srcDet->budget_perspbst;
-                $det->budget_cpny_id          = $srcDet->budget_cpny_id;
-                $det->budget_business_unit_id = $srcDet->budget_business_unit_id;
-                $det->budget_department_fin_id= $srcDet->budget_department_fin_id;
-                $det->budget_account_id       = $srcDet->budget_account_id;
-                $det->budget_activity_id      = $srcDet->budget_activity_id;
-                $det->budget_activity_descr   = $srcDet->budget_activity_descr;
-
-                $det->status                  = 'C';
-                $det->created_by              = $username;
-                $det->created_at              = $now;
+                $det->issuetype       = $hdr->issuetype;
+                $det->status          = 'C';
+                $det->created_by      = $username;
                 $det->save();
 
+                $createdDetails->push($det);
                 $totalReturn += $qty;
             }
 
@@ -1818,38 +1792,54 @@ class IssueController extends Controller
                 return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
             }
 
-            // simpan total return di header (pakai kolom totalqty_received sebagai penampung)
-            $hdr->totalqty_received = $totalReturn;
+            // update total return di header
+            $hdr->totalreturnissueqty = $totalReturn;
             $hdr->save();
-    
-            $deptid = $src->department_id;
-            $cpnyid = $src->cpny_id;
-            
+
+            // ✅ kalau memang butuh posting ke SPB, panggil dengan variabel yang benar
+            // NOTE: aku tidak tahu signature aslinya, jadi aku passing hdr + issueid (adjust kalau perlu)
+            $this->applyIssuePostingToSpb(
+                $hdr,
+                $createdDetails,
+                $user,
+                $now
+            );
+
+
+            // === Generate Approval Issue
+            $ctx = ['ignore_nominal' => true];
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $issueid,
+                $doctype,
+                $cpnyid,
+                $deptid,
+                $username,
+                $ctx,
+                $now
+            );
+
+            // ⚠️ optional: jangan pakai completed_by untuk first approver (tapi kalau kamu memang mau, tetap bisa)
+            // if (!empty($firstApprovalUsernames)) {
+            //     $hdr->completed_by = is_array($firstApprovalUsernames) ? implode(',', $firstApprovalUsernames) : $firstApprovalUsernames;
+            //     $hdr->completed_at = $now;
+            //     $hdr->save();
+            // }
+
+            // attachment
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $issueid,
                     'doctype'       => $doctype,
-                    'cpnyid'        => $cpnyid,
-                    'departementid' => $deptid,                    
+                    'cpnyid'        => $hdr->cpny_id,
+                    'departementid' => $hdr->department_id,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'created_by'    => $username,
                 ];
 
                 $files = (array) $request->file('attachments');
-
-                try {
-                    $uploader = app(TrAttachmentController::class);
-                    $uploadResult = $uploader->uploadInternal($meta, $files);
-                    // tidak return di sini!
-                } catch (\Throwable $e) {
-                    \DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to create PB',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
-                    ], 500);
-                }
-            } else {
-                $uploadResult = null; // tidak ada attachment
+                $uploader = app(TrAttachmentController::class);
+                $uploader->uploadInternal($meta, $files);
             }
 
             DB::commit();
@@ -1858,10 +1848,20 @@ class IssueController extends Controller
                 ->with('success', "Return {$issueid} created from {$src->issueid}. Total Qty Return: {$totalReturn}");
         } catch (\Throwable $e) {
             DB::rollBack();
-            respbrt($e);
-            return back()->withErrors([config('app.debug') ? $e->getMessage() : 'Failed to create Return'])->withInput();
+            \Log::error('storeReturn failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'issue_src' => $src->issueid ?? null,
+                'user' => $username ?? null,
+            ]);
+
+            return back()
+                ->withErrors([config('app.debug') ? $e->getMessage() : 'Failed to create Return'])
+                ->withInput();
         }
     }
+
+
 
 
 

@@ -1954,6 +1954,7 @@ class MasterController extends Controller
 
     public function getWoComplated(Request $request)
     {
+        // dd($request->all());
         $status        = $request->input('status', 'C');
         $worktypeid    = trim($request->input('worktypeid', ''));
         $subworktypeid = trim($request->input('subworktypeid', ''));

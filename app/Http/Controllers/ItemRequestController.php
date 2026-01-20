@@ -189,6 +189,7 @@ class ItemRequestController extends Controller
        
     public function storeItemReq(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'cpny_id'               => 'required|string',
             'department_id'         => 'required|string',
@@ -256,8 +257,18 @@ class ItemRequestController extends Controller
             $itemReq->created_by            = $username;
             $itemReq->save();
 
-            $ctx = [          
-                'ignore_nominal'           => true,   // Item Request diminta tidak cek nominal                
+            // =========================
+            // CTX approval
+            // =========================
+            $invType = strtoupper(trim($request->inventory_type)); // STOCK | NONSTOCK
+
+            $ctx = [
+                'ignore_nominal' => true,
+                // pilih jalur approval berdasarkan inventory_type
+                // pastikan string ini sesuai yang ada di MsApproval (condition)
+                'approval_conditions' => [
+                    $invType === 'STOCK' ? 'STOCK' : 'NONSTOCK'
+                ],
             ];
 
             // Generate TrApproval
@@ -475,8 +486,18 @@ class ItemRequestController extends Controller
             // 2️⃣ load rule approval
             $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
 
+            // =========================
+            // CTX approval
+            // =========================
+            $invType = strtoupper(trim($request->inventory_type)); // STOCK | NONSTOCK
+
             $ctx = [
                 'ignore_nominal' => true,
+                // pilih jalur approval berdasarkan inventory_type
+                // pastikan string ini sesuai yang ada di MsApproval (condition)
+                'approval_conditions' => [
+                    $invType === 'STOCK' ? 'STOCK' : 'NONSTOCK'
+                ],
             ];
 
             // 3️⃣ generate approval baru

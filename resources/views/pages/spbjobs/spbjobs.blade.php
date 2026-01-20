@@ -259,39 +259,63 @@
                 if (type === 'spb') {
                     const isSppbJobs = (sc === 'onprogress'); // scope SPPB Jobs
 
-                    return [dtControlColumn,
+                    return [
+                        dtControlColumn,
+
+                        // ✅ ACTION COLUMN (Create Issue / Create SPPB)
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-left',
+                            render: (_v, _t, row) => {
+                                // kalau scope = onprogress => buat SPPB
+                                if (isSppbJobs) return renderSppbCreate(row);
+                                // selain itu => buat Issue
+                                return renderIssueCreate(row);
+                            }
+                        },
+
+                        // SPB ID
                         {
                             data: 'spbid',
                             defaultContent: '',
                             render: (_v, _t, row) => renderSpbLink(row)
                         },
+
+                        // SPB Date
                         {
                             data: 'spbdate',
                             defaultContent: '',
                             render: (value, _t, row) => value || row.spbdate_fmt || '',
                             className: 'text-center'
                         },
+
+                        // Company
                         {
                             data: 'cpny_id',
                             defaultContent: '',
                             className: 'text-center'
                         },
+
+                        // Keperluan
                         {
                             data: 'keperluan',
                             defaultContent: ''
                         },
+
+                        // Created By
                         {
                             data: 'created_by',
                             defaultContent: ''
                         },
+
+                        // Status Issue / Status SPPB
                         {
                             data: null,
                             defaultContent: '',
                             render: (_v, _t, row) => {
-                                const isSppbJobs = (sc === 'onprogress');
-                                const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ??
-                                    '-');
-
+                                const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ?? '-');
                                 const map = {
                                     'Open': 'bg-gray-200/50 text-gray-700',
                                     'Partial': 'bg-amber-200/50 text-amber-700',
@@ -302,9 +326,58 @@
                                 return `<span class="inline-block ${cls} font-semibold px-3 py-1.5 text-xs text-center rounded">${val}</span>`;
                             }
                         }
-
                     ];
                 }
+
+                // if (type === 'spb') {
+                //     const isSppbJobs = (sc === 'onprogress'); // scope SPPB Jobs
+
+                //     return [dtControlColumn,
+                //         {
+                //             data: 'spbid',
+                //             defaultContent: '',
+                //             render: (_v, _t, row) => renderSpbLink(row)
+                //         },
+                //         {
+                //             data: 'spbdate',
+                //             defaultContent: '',
+                //             render: (value, _t, row) => value || row.spbdate_fmt || '',
+                //             className: 'text-center'
+                //         },
+                //         {
+                //             data: 'cpny_id',
+                //             defaultContent: '',
+                //             className: 'text-center'
+                //         },
+                //         {
+                //             data: 'keperluan',
+                //             defaultContent: ''
+                //         },
+                //         {
+                //             data: 'created_by',
+                //             defaultContent: ''
+                //         },
+                //         {
+                //             data: null,
+                //             defaultContent: '',
+                //             render: (_v, _t, row) => {
+                //                 const isSppbJobs = (sc === 'onprogress');
+                //                 const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ??
+                //                     '-');
+
+                //                 const map = {
+                //                     'Open': 'bg-gray-200/50 text-gray-700',
+                //                     'Partial': 'bg-amber-200/50 text-amber-700',
+                //                     'Completed': 'bg-green-200/50 text-green-700',
+                //                     'Full': 'bg-green-200/50 text-green-700',
+                //                 };
+                //                 const cls = map[val] || 'bg-gray-200/50 text-gray-700';
+                //                 return `<span class="inline-block ${cls} font-semibold px-3 py-1.5 text-xs text-center rounded">${val}</span>`;
+                //             }
+                //         }
+
+                //     ];
+                // }
 
                 if (type === 'issue') {
                     return [dtControlColumn, {

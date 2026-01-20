@@ -1073,6 +1073,57 @@
         }
     </script>
 
+    <script>
+        $(document).on("click", "#approveBtn", function() {
+            let budget_id = "{{ $budget->budget_id }}"; // Ambil Task ID dari modal        
+            approveBudget(budget_id);
+        });
+
+        function approveBudget(budget_id) {
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+
+            // Tampilkan spinner di kanan bawah
+            $spinner.fadeIn();
+
+            $.ajax({
+                url: `/budget/${budget_id}/approve`,
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    budget_id: budget_id
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update status di UI
+                        $("#xstatus").text("Approved")
+                            .removeClass()
+                            .addClass(
+                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                            );
+
+                        // Tampilkan alert sukses
+                        toastr.success("Budget approved successfully!");
+                        window.location.href = "/budgets";
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+
+                    if (xhr.status === 403) {
+                        toastr.error("You are not authorized to approve this budget.");
+                    } else {
+                        // toastr.error("Error: Unable to approve budget.");
+                    }
+                },
+                complete: function() {
+                    // Sembunyikan spinner setelah request selesai
+                    $spinner.fadeOut();
+                }
+            });
+        }
+    </script>
 
 
 </x-app-layout>

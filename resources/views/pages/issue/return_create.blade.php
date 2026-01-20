@@ -83,7 +83,7 @@
 
                     {{-- hidden refs --}}
                     <input type="hidden" name="iss" value="{{ $eid }}">
-                    <input type="hidden" name="ref_issuenbr" value="{{ $ref_issuenbr }}">
+                    <input type="hidden" name="ref_issueid" value="{{ $ref_issueid }}">
 
                     {{-- ===== Header ===== --}}
                     <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">

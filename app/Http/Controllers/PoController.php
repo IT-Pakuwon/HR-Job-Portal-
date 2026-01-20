@@ -325,7 +325,7 @@ class PoController extends Controller
         $po->updated_at = Carbon::now();
 
         // simpan reason ke ponote (append) 
-        $stamp = Carbon::now()->format('d/m/Y H:i');
+        $stamp = Carbon::now();
         $who   = Auth::user()->username ?? 'user';
         $reasonLine = "CANCEL REUSE: ".$data['reason'];       
         $po->reuse = true;
@@ -682,7 +682,7 @@ class PoController extends Controller
         $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
         $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
-        $purchaser = ucwords(strtolower($authUser->name ?? 'System'));
+        $purchaser = ucwords(strtolower($po->created_by ?? 'System'));
 
         $data = [
             'po'        => $po,

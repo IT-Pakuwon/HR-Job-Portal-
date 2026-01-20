@@ -595,7 +595,7 @@
                                     <input type="checkbox" id="flagSppbJkt" {{ $isPicWo ? '' : 'disabled' }}
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500"
                                         @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
-                                    <span class="text-xs text-gray-700 dark:text-gray-200">SPPB JKT</span>
+                                    <span class="text-xs text-gray-700 dark:text-gray-200">SPB/SPPBJKT</span>
                                 </label>
                             </div>
                         </div>
