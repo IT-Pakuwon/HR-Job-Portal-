@@ -37,72 +37,75 @@ class IFCAIntegrationController extends Controller
     {
         $from = $request->query('from');
         $to   = $request->query('to');
-
+    
         if (!$from || !$to) {
             return response()->json([
-                'ok'      => false,
+                'ok' => false,
                 'message' => 'Start date dan end date wajib diisi',
-                'data'    => [],
+                'data' => [],
             ], 422);
         }
-
+    
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
-
-        // 1) Ambil ms_inventory dari pgsql
-        $rows = MsInventory::query()
+    
+        // 1) ambil inventory dari pgsql
+        $invRows = MsInventory::query()
             ->select([
                 'id',
                 'inventoryid',
                 'inventory_descr',
                 'stock_unit',
+                'purchase_unit',
             ])
-            ->whereIn('item_type', ['SE','NS'])
+            ->whereIn('item_type', ['SE', 'NS'])
             ->where('status', 'A')
             ->whereBetween('created_at', [$fromDt, $toDt])
             ->orderBy('inventoryid')
             ->limit(100)
             ->get();
-
-        if ($rows->isEmpty()) {
-            return response()->json([
-                'ok' => true,
-                'data' => [],
-            ]);
+    
+        if ($invRows->isEmpty()) {
+            return response()->json(['ok' => true, 'data' => []]);
         }
-
-        // 2) Ambil status staging dari pgsql3 (tanpa join)
-        $codes = $rows->pluck('inventoryid')->map(fn($v) => (string)$v)->all();
-
-        $stMap = StagingIfcaPoItem::query() // model sudah connection=pgsql3
-            ->whereIn('item_cd', $codes)
-            ->get(['item_cd','process_flag'])
+    
+        $itemCds = $invRows->pluck('inventoryid')->map(fn($v) => (string)$v)->all();
+    
+        // 2) ambil staging dari pgsql3
+        $stagingMap = StagingIfcaPoItem::query()
+            ->whereIn('item_cd', $itemCds)
+            ->get(['item_cd', 'process_flag'])
             ->keyBy('item_cd');
-
-        // 3) Merge + tentukan stage_status (H/P/C)
-        $data = $rows->map(function ($r) use ($stMap) {
-            $st = $stMap->get((string)$r->inventoryid);
-
-            if (!$st) $status = 'H';
-            else if ($st->process_flag === 'N') $status = 'P';
-            else if ($st->process_flag === 'Y') $status = 'C';
-            else $status = 'H';
-
+    
+        // 3) merge status + uom fallback
+        $rows = $invRows->map(function ($r) use ($stagingMap) {
+            $st = $stagingMap->get((string)$r->inventoryid);
+    
+            // H = belum ada di staging
+            // P = ada di staging, belum terkirim
+            // C = sudah terkirim
+            $stageStatus = 'H';
+            if ($st) {
+                $stageStatus = ($st->process_flag === 'Y') ? 'C' : 'P';
+            }
+    
+            $uom = $r->stock_unit ?: $r->purchase_unit ?: '';
+    
             return [
-                'id'              => $r->id,
-                'inventoryid'     => $r->inventoryid,
+                'id' => $r->id,
+                'inventoryid' => $r->inventoryid,
                 'inventory_descr' => $r->inventory_descr,
-                'stock_unit'      => $r->stock_unit,
-                'stage_status'    => $status,
+                'uom_cd' => $uom,
+                'stage_status' => $stageStatus,
             ];
         })->values();
-
+    
         return response()->json([
-            'ok'   => true,
-            'data' => $data,
+            'ok' => true,
+            'data' => $rows,
         ]);
     }
-
+    
     
     /**
      * Tombol Process Non Stock
@@ -354,29 +357,97 @@ class IFCAIntegrationController extends Controller
         ]);
     }
 
+    // private function getIfcaToken(string $usernameForLog): string
+    // {
+    //     $url = $this->buildUrl('api.token.url');
+    //     if ($url === '') {
+    //         throw new \RuntimeException('Setting api.token.url kosong');
+    //     }
+
+    //     $payload = [
+    //         'username' => $this->getSettingStr('api.token.username'),
+    //         'password' => $this->getSettingStr('api.token.password'),
+    //     ];
+
+    //     $settingName = $this->getSettingName('api.token.url', 'IFCA Token');
+
+    //     try {
+    //         $resp = Http::timeout(30)
+    //             ->acceptJson()
+    //             ->asJson()
+    //             ->post($url, $payload);
+
+    //         $body = $resp->body();
+
+    //         // log token response
+    //         $this->writeIntegrationLog([
+    //             'setting_id'       => 'api.token.url',
+    //             'setting_name'     => $settingName,
+    //             'refnbr'           => 'TOKEN',
+    //             'payload'          => json_encode($payload),
+    //             'payload_response' => $body,
+    //             'payload_status'   => (string)$resp->status(),
+    //             'payload_message'  => $resp->successful() ? 'OK' : 'ERROR',
+    //             'created_by'       => $usernameForLog,
+    //         ]);
+
+    //         if (!$resp->successful()) {
+    //             throw new \RuntimeException("Token API failed ({$resp->status()})");
+    //         }
+
+    //         $json = $resp->json();
+
+    //         // beberapa kemungkinan nama field token
+    //         $token =
+    //             $json['token'] ??
+    //             $json['access_token'] ??
+    //             $json['accessToken'] ??
+    //             $json['data']['token'] ??
+    //             null;
+
+    //         if (!$token) {
+    //             throw new \RuntimeException('Token tidak ditemukan di response');
+    //         }
+
+    //         return (string)$token;
+
+    //     } catch (\Throwable $e) {
+    //         // kalau request benar-benar gagal sebelum dapat response
+    //         $this->writeIntegrationLog([
+    //             'setting_id'       => 'api.token.url',
+    //             'setting_name'     => $settingName,
+    //             'refnbr'           => 'TOKEN',
+    //             'payload'          => json_encode($payload),
+    //             'payload_response' => null,
+    //             'payload_status'   => 'EXCEPTION',
+    //             'payload_message'  => $e->getMessage(),
+    //             'created_by'       => $usernameForLog,
+    //         ]);
+    //         throw $e;
+    //     }
+    // }
+
     private function getIfcaToken(string $usernameForLog): string
     {
         $url = $this->buildUrl('api.token.url');
-        if ($url === '') {
-            throw new \RuntimeException('Setting api.token.url kosong');
-        }
-
+        if ($url === '') throw new \RuntimeException('Setting api.token.url kosong');
+    
+        // IFCA: wajib email & pass (bukan username/password)
         $payload = [
-            'username' => $this->getSettingStr('api.token.username'),
-            'password' => $this->getSettingStr('api.token.password'),
+            'email' => $this->getSettingStr('api.token.username'),
+            'pass'  => $this->getSettingStr('api.token.password'),
         ];
-
+    
         $settingName = $this->getSettingName('api.token.url', 'IFCA Token');
-
+    
         try {
             $resp = Http::timeout(30)
                 ->acceptJson()
                 ->asJson()
                 ->post($url, $payload);
-
+    
             $body = $resp->body();
-
-            // log token response
+    
             $this->writeIntegrationLog([
                 'setting_id'       => 'api.token.url',
                 'setting_name'     => $settingName,
@@ -387,29 +458,23 @@ class IFCAIntegrationController extends Controller
                 'payload_message'  => $resp->successful() ? 'OK' : 'ERROR',
                 'created_by'       => $usernameForLog,
             ]);
-
+    
             if (!$resp->successful()) {
                 throw new \RuntimeException("Token API failed ({$resp->status()})");
             }
-
+    
             $json = $resp->json();
-
-            // beberapa kemungkinan nama field token
-            $token =
-                $json['token'] ??
-                $json['access_token'] ??
-                $json['accessToken'] ??
-                $json['data']['token'] ??
-                null;
-
+    
+            // IFCA: field token = accessToken (sesuai doc & Postman Anda)
+            $token = $json['accessToken'] ?? null;
+    
             if (!$token) {
                 throw new \RuntimeException('Token tidak ditemukan di response');
             }
-
-            return (string)$token;
-
+    
+            return (string) $token;
+    
         } catch (\Throwable $e) {
-            // kalau request benar-benar gagal sebelum dapat response
             $this->writeIntegrationLog([
                 'setting_id'       => 'api.token.url',
                 'setting_name'     => $settingName,
@@ -423,34 +488,52 @@ class IFCAIntegrationController extends Controller
             throw $e;
         }
     }
+    
 
     private function sendNonStockToErp(StagingIfcaPoItem $item, string $token, string $usernameForLog): array
     {
         $url = $this->buildUrl('api.NonStockItem.url');
-        if ($url === '') {
-            throw new \RuntimeException('Setting api.NonStockItem.url kosong');
-        }
-
+        if ($url === '') throw new \RuntimeException('Setting api.NonStockItem.url kosong');
+    
         $settingName = $this->getSettingName('api.NonStockItem.url', 'IFCA Non Stock Item');
-
-        // payload minimal (sesuaikan jika dok ERP butuh field lain)
+    
+        // IFCA minta array of object + field lengkap
         $payload = [[
-            'item_cd'     => $item->item_cd,
-            'item_descs'  => $item->item_descs,
-            'uom_cd'      => $item->uom_cd,
-            'item_type'   => $item->item_type, // 'N'
+            "item_cd"          => (string)$item->item_cd,
+            "item_descs"       => (string)$item->item_descs,
+            "uom_cd"           => (string)$item->uom_cd,
+            "item_type"        => (string)$item->item_type,          // 'N'
+            "stock_cd"         => (string)($item->stock_cd ?? ""),
+            "item_remarks"     => (string)($item->item_remarks ?? ""),
+            "costcode"         => (string)($item->costcode ?? ""),
+            "expense_acct"     => (string)($item->expense_acct ?? ""),
+            "asset_acct"       => (string)($item->asset_acct ?? ""),
+            "management_acct"  => (string)($item->management_acct ?? ""),
+            "latest_cost"      => (float)($item->latest_cost ?? 0),
+            "std_cost"         => (float)($item->std_cost ?? 0),
+            "budget_rate"      => (float)($item->budget_rate ?? 0),
+            "supplier_cd"      => (string)($item->supplier_cd ?? ""),
+            "product_cd"       => (string)($item->product_cd ?? ""),
+            "leadtime"         => (int)($item->leadtime ?? 0),
+            "alt_supplier_cd"  => (string)($item->alt_supplier_cd ?? ""),
+            "alt_product_cd"   => (string)($item->alt_product_cd ?? ""),
+            "alt_leadtime"     => (int)($item->alt_leadtime ?? 0),
+            "process_flag"     => (string)($item->process_flag ?? "N"),
+            "create_date"      => (string)($item->create_date ?? ""),
+            "process_dt"       => (string)($item->process_dt ?? ""),
+            "process_note"     => (string)($item->process_note ?? ""),
         ]];
-
+    
         try {
             $resp = Http::timeout(60)
                 ->acceptJson()
                 ->asJson()
-                ->withToken($token)
+                // IFCA: Authorization Bearer <accessToken>
+                ->withHeaders(['Authorization' => 'Bearer '.$token])
                 ->post($url, $payload);
-
+    
             $body = $resp->body();
-
-            // log send item
+    
             $this->writeIntegrationLog([
                 'setting_id'       => 'api.NonStockItem.url',
                 'setting_name'     => $settingName,
@@ -461,13 +544,13 @@ class IFCAIntegrationController extends Controller
                 'payload_message'  => $resp->successful() ? 'OK' : 'ERROR',
                 'created_by'       => $usernameForLog,
             ]);
-
+    
             return [
                 'ok' => $resp->successful(),
                 'http_status' => $resp->status(),
                 'response_body' => $body,
             ];
-
+    
         } catch (\Throwable $e) {
             $this->writeIntegrationLog([
                 'setting_id'       => 'api.NonStockItem.url',
@@ -479,7 +562,7 @@ class IFCAIntegrationController extends Controller
                 'payload_message'  => $e->getMessage(),
                 'created_by'       => $usernameForLog,
             ]);
-
+    
             return [
                 'ok' => false,
                 'http_status' => null,
@@ -487,5 +570,5 @@ class IFCAIntegrationController extends Controller
             ];
         }
     }
-
+    
 }
