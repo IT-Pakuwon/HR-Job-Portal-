@@ -476,32 +476,48 @@
                     {
                         data: 'sppkid',
                         render: function(data, type, row) {
-                            // let url = `/showsppks/${row.id}`;
+                            // default: view
                             let url = `/showsppks/${row.eid}`;
                             let cls =
                                 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+
                             const text = data || row.id;
 
+                            const isDraftOwner = (row.status === 'D' && row.created_by === currentUser);
+
+                            // icon view (mata)
+                            const viewBtn = `
+                                <a href="/showsppks/${row.eid}" target="_blank"
+                                class="inline-flex items-center justify-center rounded-full p-2
+                                        text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                                aria-label="View" title="View">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            `;
+
                             // jika status Draft & milik current user → ke halaman edit
-                            if (row.status === 'D' && row.created_by === currentUser) {
-                                // url = `/editsppks/${row.id}`;
+                            if (isDraftOwner) {
                                 url = `/editsppks/${row.eid}`;
                                 cls =
                                     'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
 
                             return `
-                             <div class="flex items-left gap-2 whitespace-nowrap">
-                                        <a href="${url}" class="${cls}">${text}</a>
-                                        <button type="button"
+                                <div class="flex items-center gap-2 whitespace-nowrap">
+                                    <a href="${url}" class="${cls}">${text}</a>
+
+                                    ${isDraftOwner ? viewBtn : ''}
+
+                                    <button type="button"
                                         class="tracking-btn inline-flex items-center justify-center rounded-full p-2
-                                                text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            text-red-600 hover:text-red-700 hover:bg-red-50"
                                         data-id="${row.eid}" aria-label="Tracking" title="Tracking">
                                         <i class="fa-solid fa-paper-plane"></i>
-                                        </button>
-                                    </div>
-                                    `;
+                                    </button>
+                                </div>
+                            `;
                         }
+
                     },
 
                     {

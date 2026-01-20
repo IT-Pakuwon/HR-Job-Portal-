@@ -410,34 +410,67 @@
                     {
                         data: 'sppbid',
                         render: function(data, type, row) {
-                            // let url = `/showsppbs/${row.id}`;
-                            let url = `/showsppbs/${row.eid}`;
-                            let cls =
-                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                            let showUrl = `/showsppbs/${row.eid}`;
+                            let editUrl = `/editsppbs/${row.eid}`;
+
+                            let viewCls =
+                                'inline-flex items-center justify-center rounded-full p-2 ' +
+                                'text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50';
+
+                            let editCls =
+                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 ' +
+                                'text-sm font-semibold text-white rounded transition-colors ' +
+                                'bg-yellow-500 hover:bg-yellow-700';
+
+                            let defaultCls =
+                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 ' +
+                                'text-sm font-semibold text-white rounded transition-colors ' +
+                                'bg-gray-500 hover:bg-gray-700';
 
                             const text = data || row.id;
 
-                            // jika status Draft & milik current user → ke halaman edit
+                            // ===== DRAFT & OWNER =====
                             if (row.status === 'D' && row.created_by === currentUser) {
-                                // url = `/editsppbs/${row.id}`;
-                                url = `/editsppbs/${row.eid}`;
-                                cls =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                return `
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <!-- EDIT -->
+                                        <a href="${editUrl}" class="${editCls}">
+                                            ${text}
+                                        </a>
 
-                            }
+                                        <!-- VIEW (EYE ICON) -->
+                                        <a href="${showUrl}"  target="_blank" class="${viewCls}" title="View">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
 
-                            return `
-                                    <div class="flex items-left gap-2 whitespace-nowrap">
-                                        <a href="${url}" class="${cls}">${text}</a>
+                                        <!-- TRACKING -->
                                         <button type="button"
-                                        class="tracking-btn inline-flex items-left justify-center rounded-full p-2
+                                            class="tracking-btn inline-flex items-center justify-center rounded-full p-2
                                                 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        data-id="${row.eid}" aria-label="Tracking" title="Tracking">
-                                        <i class="fa-solid fa-paper-plane"></i>
+                                            data-id="${row.eid}" aria-label="Tracking" title="Tracking">
+                                            <i class="fa-solid fa-paper-plane"></i>
                                         </button>
                                     </div>
-                                    `;
+                                `;
+                            }
+
+                            // ===== DEFAULT (NON-DRAFT / BUKAN OWNER) =====
+                            return `
+                                <div class="flex items-center gap-2 whitespace-nowrap">
+                                    <a href="${showUrl}" class="${defaultCls}">
+                                        ${text}
+                                    </a>
+
+                                    <button type="button"
+                                        class="tracking-btn inline-flex items-center justify-center rounded-full p-2
+                                            text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        data-id="${row.eid}" aria-label="Tracking" title="Tracking">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            `;
                         }
+
                     },
 
                     {

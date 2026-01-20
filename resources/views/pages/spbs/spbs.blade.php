@@ -500,28 +500,48 @@
                         {
                             data: 'spbid',
                             render: function(data, type, row) {
+                                // default: view
                                 let url = `/showspbs/${row.eid}`;
                                 let cls =
                                     'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-gray-500 hover:bg-gray-700';
+
                                 const text = data || row.id;
 
-                                if (row.status === 'D' && row.created_by === currentUser) {
+                                const isDraftOwner = (row.status === 'D' && row.created_by === currentUser);
+
+                                // icon view (mata)
+                                const viewBtn = `
+                                    <a href="/showspbs/${row.eid}" target="_blank"
+                                    class="inline-flex items-center justify-center rounded-full p-2
+                                            text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                                    aria-label="View" title="View">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                `;
+
+                                // Draft & owner → Edit
+                                if (isDraftOwner) {
                                     url = `/editspbs/${row.eid}`;
                                     cls =
                                         'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-yellow-500 hover:bg-yellow-700';
                                 }
 
                                 return `
-                            <div class="flex items-center gap-2 whitespace-nowrap">
-                            <a href="${url}" class="${cls}">${text}</a>
-                            <button type="button"
-                                class="tracking-btn inline-flex items-center justify-center rounded-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                data-id="${row.eid}" data-doc="${text}" title="Tracking">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
-                            </div>
-                        `;
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <a href="${url}" class="${cls}">${text}</a>
+
+                                        ${isDraftOwner ? viewBtn : ''}
+
+                                        <button type="button"
+                                            class="tracking-btn inline-flex items-center justify-center rounded-full p-2
+                                                text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            data-id="${row.eid}" data-doc="${text}" title="Tracking">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                `;
                             }
+
                         },
                         {
                             data: 'spbdate'
