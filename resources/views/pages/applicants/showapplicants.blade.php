@@ -397,7 +397,7 @@
                                                             <th class="border px-4 py-2">Start</th>
                                                             <th class="border px-4 py-2">End</th>
                                                             <th class="border px-4 py-2">Superior Name</th>
-                                                            <th class="border px-4 py-2">Reasor For Leasing</th>
+                                                            <th class="border px-4 py-2">Reasor For Leaving </th>
                                                         </tr>
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
