@@ -253,9 +253,8 @@
                                 </h5>
                             </div>
 
-                            <div class="w-full overflow-x-auto">
-                                <table
-                                    class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-xs">
+                            <div class="w-full min-w-[355px] overflow-x-auto">
+                                <table class="h-full w-full table-auto whitespace-nowrap border text-left text-xs">
                                     <thead class="bg-gray-100 font-bold text-gray-700">
                                         <tr>
                                             <th class="px-4 py-2">Perpost</th>
@@ -301,6 +300,70 @@
                                             </tr>
                                         @endforeach
                                     </tbody>
+                                    <tfoot
+                                        class="sticky bottom-0 z-10 border-t bg-gray-100 font-semibold text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+
+                                        @php
+                                            $qtyTotal = 0;
+                                            $unitPriceSum = 0;
+                                            $unitPriceCount = 0;
+
+                                            $totalBudgetSum = 0;
+                                            $periodSums = array_fill(1, 12, 0);
+                                        @endphp
+
+                                        @foreach ($tempData as $item)
+                                            @php
+                                                // QTY
+                                                $qtyTotal += $item->qty_budget;
+
+                                                // UNIT PRICE (AVG)
+                                                if ($item->unit_price_budget > 0) {
+                                                    $unitPriceSum += $item->unit_price_budget;
+                                                    $unitPriceCount++;
+                                                }
+
+                                                // TOTAL BUDGET
+                                                $totalBudgetSum += $item->totalbudget;
+
+                                                // PERIODS
+                                                for ($i = 1; $i <= 12; $i++) {
+                                                    $p = 'period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget';
+                                                    $periodSums[$i] += $item->$p;
+                                                }
+                                            @endphp
+                                        @endforeach
+
+                                        <tr>
+                                            {{-- LABEL --}}
+                                            <td colspan="8"
+                                                class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                                TOTAL
+                                            </td>
+
+                                            {{-- QTY --}}
+                                            <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                                {{ number_format($qtyTotal, 2, ',', '.') }}
+                                            </td>
+
+                                            {{-- AVG UNIT PRICE --}}
+                                            <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                                {{ $unitPriceCount > 0 ? number_format($unitPriceSum / $unitPriceCount, 2, ',', '.') : '–' }}
+                                            </td>
+
+                                            {{-- TOTAL BUDGET --}}
+                                            <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                                {{ number_format($totalBudgetSum) }}
+                                            </td>
+
+                                            {{-- TOTAL PER PERIOD --}}
+                                            @for ($i = 1; $i <= 12; $i++)
+                                                <td class="bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                                    {{ $periodSums[$i] == 0 ? '–' : number_format($periodSums[$i]) }}
+                                                </td>
+                                            @endfor
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>
@@ -322,7 +385,8 @@
                                             <div class="flex flex-col pt-6">
                                                 <div id="attachmentsContainer">
                                                     <div class="attachment-row flex items-center gap-2">
-                                                        <input type="file" name="attachments[]" {{-- class="mt-4 w-full border p-3 text-sm"> --}}
+                                                        <input type="file" name="attachments[]"
+                                                            {{-- class="mt-4 w-full border p-3 text-sm"> --}}
                                                             class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                                         <button type="button"
                                                             class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 px-4 py-2 text-red-600 transition hover:bg-red-600 hover:text-white">

@@ -1,5 +1,13 @@
+@php
+    $isPR = strtolower($rcp->receipttype ?? '') === 'pr';
+
+    $docTitle = $isPR ? 'Surat Tanda Terima Barang' : 'Surat Pengembalian Barang';
+
+    $qtyField = $isPR ? 'qty_received' : 'qty_return';
+@endphp
 <!DOCTYPE html>
 <html lang="id">
+
 
 <head>
     <meta charset="UTF-8">
@@ -17,7 +25,7 @@
                 </td>
                 <td
                     style="width:50%;padding-left:50px;text-align:center;vertical-align:middle;font-size:18px;font-weight:700;">
-                    Surat Tanda Terima Barang
+                    {{ $docTitle }}
                 </td>
                 <td style="width:25%;text-align:right;vertical-align:middle;">
                     <div
@@ -36,7 +44,7 @@
                             <td style="width:4mm;">:</td>
                             <td>
                                 <div><strong>{{ $po->vendorname ?? '' }} ( {{ $po->vendorid ?? '' }} )</strong></div>
-                                <div>{{ $po->vendoralamat ?? ''}}</div>
+                                <div>{{ $po->vendoralamat ?? '' }}</div>
                                 {{-- <div>KOTA ADM. JAKARTA UTARA 14439</div> --}}
                             </td>
                         </tr>
@@ -53,7 +61,8 @@
                         <tr>
                             <td>Receipt Date</td>
                             <td>:</td>
-                            <td>{{ $rcp->receiptdate ? \Carbon\Carbon::parse($rcp->receiptdate)->format('d/m/Y') : '' }}</td>
+                            <td>{{ $rcp->receiptdate ? \Carbon\Carbon::parse($rcp->receiptdate)->format('d/m/Y') : '' }}
+                            </td>
                         </tr>
                         <tr>
                             <td>PO Nbr</td>
@@ -88,7 +97,7 @@
                 </tr>
             </thead>
             <tbody>
-                 @php
+                @php
                     $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
                     $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
                 @endphp
@@ -99,9 +108,10 @@
                         <td style="border:1px solid #000;padding:4px;">{{ $item->inventory_descr }}</td>
                         <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->siteid }}</td>
                         <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->uom }}</td>
-                        <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $nf2($item->qty_received) }}</td>
+                        <td style="border:1px solid #000;text-align:center;padding:4px;">
+                            {{ $nf2($item->{$qtyField}) }}</td>
                     </tr>
-                @endforeach               
+                @endforeach
                 <tr>
                     <td colspan="6" style="border:1px solid #000;height:25mm;">&nbsp;</td>
                 </tr>
@@ -115,7 +125,8 @@
                     <div style="font-weight:600;margin-bottom:18mm;">Input Computer</div>
                     <div>{{ ucwords(strtolower(optional($rcp->creator)->name)) }}</div>
                     <div style="border-top:1px solid #000;width:60%;margin:6px auto 0;"></div>
-                    <div style="font-size:11px;margin-top:2mm;">{{ $rcp->receiptdate ? \Carbon\Carbon::parse($rcp->created_at)->format('d/m/Y') : '' }}</div>
+                    <div style="font-size:11px;margin-top:2mm;">
+                        {{ $rcp->receiptdate ? \Carbon\Carbon::parse($rcp->created_at)->format('d/m/Y') : '' }}</div>
                 </td>
                 <td style="border:1px solid #000;text-align:center;vertical-align:bottom;height:30mm;">
                     <div style="font-weight:600;margin-bottom:18mm;">Diterima Oleh</div>

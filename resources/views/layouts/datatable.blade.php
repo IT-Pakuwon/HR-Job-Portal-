@@ -1168,4 +1168,72 @@ Approval / Attachment / Comments tables
     .dark .select2-container--default .select2-selection--single .select2-selection__arrow b {
         border-color: #9ca3af transparent transparent transparent;
     }
+
+    /* ===== Select2 Dark Mode ===== */
+    .dark .select2-container--default .select2-selection--multiple {
+        background-color: #374151;
+        /* gray-700 */
+        border-color: #4b5563;
+        /* gray-600 */
+        color: #f9fafb;
+        /* gray-50 */
+    }
+
+    .dark .select2-selection--multiple .select2-selection__rendered {
+        color: #f9fafb;
+    }
+
+    /* Selected item (chip) */
+    .dark .select2-selection--multiple .select2-selection__choice {
+        background-color: #4b5563;
+        /* gray-600 */
+        border: 1px solid #6b7280;
+        /* gray-500 */
+        color: #f9fafb;
+    }
+
+    /* Remove (x) button */
+    .dark .select2-selection__choice__remove {
+        color: #d1d5db;
+        /* gray-300 */
+    }
+
+    .dark .select2-selection__choice__remove:hover {
+        color: #f87171;
+        /* red-400 */
+    }
+
+    /* Search input */
+    .dark .select2-search__field {
+        color: #f9fafb;
+    }
+
+    /* Dropdown */
+    .dark .select2-dropdown {
+        background-color: #1f2933;
+        /* gray-800 */
+        border-color: #4b5563;
+    }
+
+    /* Dropdown options */
+    .dark .select2-results__option {
+        color: #e5e7eb;
+    }
+
+    /* Hovered option */
+    .dark .select2-results__option--highlighted {
+        background-color: #4b5563;
+        color: #ffffff;
+    }
+
+    /* Selected option */
+    .dark .select2-results__option[aria-selected="true"] {
+        background-color: #374151;
+    }
+
+    .budget-wrap {
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
 </style>

@@ -299,7 +299,7 @@
                 </div>
 
                 {{-- Right card (Tabs) --}}
-                <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
                         {{-- Tabs Header --}}
                         <header

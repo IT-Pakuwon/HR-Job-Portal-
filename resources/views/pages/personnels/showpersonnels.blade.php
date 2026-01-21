@@ -92,8 +92,8 @@
                         {{-- Reusable Row Class: mobile = vertical, desktop = horizontal --}}
                         @php
                             $row = 'flex flex-col sm:flex-row sm:items-center sm:gap-3';
-                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
-                            $value = 'font-medium text-gray-900 sm:flex-1 break-words';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-44 max-w-44';
+                            $value = 'font-medium text-gray-900 sm:flex-1 break-words dark:text-gray-100';
                         @endphp
 
                         {{-- Company --}}
@@ -186,7 +186,7 @@
                                 <x-heroicon-o-question-mark-circle class="h-5 w-5 text-pink-400" />
                                 <span>Reason for Vacancy</span>
                             </div>
-                            <span class="font-medium text-gray-900">
+                            <span class="font-medium text-gray-900 dark:text-gray-100">
                                 {{ $personnel->reason_vacancy ?: '-' }}
                             </span>
                         </div>

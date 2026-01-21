@@ -1,4 +1,9 @@
 <x-app-layout>
+    @php
+        $isNonStock = collect($rcpdetail)->contains(fn($d) => strtoupper($d->inventory_type ?? '') === 'NS');
+    @endphp
+
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- === Styles (fixed CSS typos) === --}}
     <style>
@@ -198,33 +203,19 @@
                             </span>
 
                             {{-- Dropdown Print --}}
-                            <div class="relative">
-                                <button id="printMenuBtn"
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                    aria-haspopup="true" aria-expanded="false">
-                                    Print PDF
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
+                            @if ($isNonStock)
+                                <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg" target="_blank"
+                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white hover:bg-indigo-700">
+                                    Print BPG Non Stock
+                                </a>
+                            @else
+                                <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb" target="_blank"
+                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white hover:bg-indigo-700">
+                                    Print STTB / SPB
+                                </a>
+                            @endif
 
-                                <div id="printMenu"
-                                    class="absolute right-0 z-20 mt-2 hidden w-56 overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800"
-                                    role="menu" aria-labelledby="printMenuBtn">
-                                    <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb" target="_blank"
-                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                        role="menuitem">
-                                        Print STTB
-                                    </a>
-                                    <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg" target="_blank"
-                                        class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                        role="menuitem">
-                                        Print BPG Non Stock
-                                    </a>
-                                </div>
-                            </div>
+
                         </div>
                     </header>
 
@@ -452,8 +443,7 @@
                             </div>
 
                             {{-- Attachment Tab --}}
-                            <div x-show="activeTab === 'attachment'"
-                                class="flex h-full flex-1 flex-col transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
                                 <div class="flex-1 overflow-auto rounded-lg">
                                     <table class="w-full text-xs">
                                         <thead class="text-gray-600 dark:text-gray-300">
@@ -562,11 +552,13 @@
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
+                                <th class="hidden px-4 py-2">Inventory Type</th>
                                 <th class="px-4 py-2">Inventory ID</th>
                                 <th class="px-4 py-2">Description</th>
                                 <th class="px-4 py-2 text-right">Qty Ordered</th>
                                 <th class="px-4 py-2">UoM</th>
                                 <th class="px-4 py-2 text-right">Qty Received</th>
+                                <th class="px-4 py-2 text-right">Qty Returned</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -574,11 +566,13 @@
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
+                                    <td class="hidden px-4 py-2">{{ $item->inventory_type }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->qtyordered) }}</td>
                                     <td class="px-4 py-2">{{ $item->uom }}</td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->qty_received) }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $nf2($item->qty_return) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Bukti Pengeluaran Gudang</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.35;color:#000;">
 
     <div style="width:100%;page-break-after:auto;">
@@ -15,7 +17,8 @@
                 <td style="width:25%;text-align:left;vertical-align:middle;font-weight:700;">
                     {{ optional($company)->cpny_name ?? 'PT. ARTISAN WAHYU' }}
                 </td>
-                <td style="width:50%;padding-left:50px;text-align:center;vertical-align:middle;font-size:18px;font-weight:700;text-decoration:underline;">
+                <td
+                    style="width:50%;padding-left:50px;text-align:center;vertical-align:middle;font-size:18px;font-weight:700;text-decoration:underline;">
                     Bukti Pengeluaran Gudang
                 </td>
                 <td style="width:25%;text-align:right;vertical-align:middle;"></td>
@@ -47,19 +50,19 @@
                             <td>:</td>
                             <td>{{ $iss->user_peminta ?: '-' }}</td>
                         </tr>
-                        @if(!empty($spb))
-                        <tr>
-                            <td>SPB No</td>
-                            <td>:</td>
-                            <td>{{ $spb->spbid }}</td>
-                        </tr>
+                        @if (!empty($spb))
+                            <tr>
+                                <td>SPB No</td>
+                                <td>:</td>
+                                <td>{{ $spb->spbid }}</td>
+                            </tr>
                         @endif
-                        @if(!empty($iss->issuenote))
-                        <tr>
-                            <td>Note</td>
-                            <td>:</td>
-                            <td>{{ $iss->issuenote }}</td>
-                        </tr>
+                        @if (!empty($iss->issuenote))
+                            <tr>
+                                <td>Note</td>
+                                <td>:</td>
+                                <td>{{ $iss->issuenote }}</td>
+                            </tr>
                         @endif
                     </table>
                 </td>
@@ -74,7 +77,8 @@
                         <tr>
                             <td>Issue Date</td>
                             <td>:</td>
-                            <td>{{ $iss->issuedate ? \Carbon\Carbon::parse($iss->issuedate)->format('d/m/Y') : '' }}</td>
+                            <td>{{ $iss->issuedate ? \Carbon\Carbon::parse($iss->issuedate)->format('d/m/Y') : '' }}
+                            </td>
                         </tr>
                         <tr>
                             <td>Total Qty</td>
@@ -115,12 +119,13 @@
                         <td style="border:1px solid #000;padding:4px;">{{ $item->inventory_descr }}</td>
                         <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->siteid }}</td>
                         <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->uom }}</td>
-                        <td style="border:1px solid #000;text-align:right;padding:4px;">{{ $nf2($item->issue_qty ?? $item->qty ?? 0) }}</td>
+                        <td style="border:1px solid #000;text-align:right;padding:4px;">
+                            {{ $nf2($item->issue_qty ?? ($item->qty ?? 0)) }}</td>
                     </tr>
                 @endforeach
 
                 {{-- Baris kosong untuk ruang tanda tangan jika item sedikit --}}
-                @for ($k = count($issdetails); $k < max(8, count($issdetails)); $k++)
+                {{-- @for ($k = count($issdetails); $k < max(8, count($issdetails)); $k++)
                     <tr>
                         <td style="border:1px solid #000;padding:4px;">&nbsp;</td>
                         <td style="border:1px solid #000;padding:4px;">&nbsp;</td>
@@ -129,7 +134,7 @@
                         <td style="border:1px solid #000;padding:4px;">&nbsp;</td>
                         <td style="border:1px solid #000;padding:4px;">&nbsp;</td>
                     </tr>
-                @endfor
+                @endfor --}}
             </tbody>
         </table>
 
@@ -161,4 +166,5 @@
 
     </div>
 </body>
+
 </html>

@@ -939,6 +939,7 @@
                     const $input = $(`
                     <input
                         type="text"
+                        data-type="money"
                         class="price-input  w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                         data-row="${rowIdx}" data-vendor="${id}"
                         value="0,00" inputmode="decimal" autocomplete="off" placeholder="0,00"> 
@@ -968,6 +969,36 @@
                         calcCellTotal($(this));
                     });
                 });
+            }
+
+            $(document).on('input', '.price-input', function() {
+                if (this.value === '') return;
+
+                const cursorPos = this.selectionStart;
+                const beforeLength = this.value.length;
+
+                let raw = this.value.replace(/[^\d]/g, '');
+                this.value = formatRupiah(raw);
+
+                // maintain cursor position (UX penting)
+                const afterLength = this.value.length;
+                this.selectionEnd = cursorPos + (afterLength - beforeLength);
+            });
+
+            $(document).on('focus', '.price-input', function() {
+                if (this.value === '0' || this.value === '0,00') {
+                    this.value = '';
+                }
+            });
+
+            function formatRupiah(value) {
+                if (!value) return '';
+
+                // remove everything except digit
+                let number = value.replace(/[^\d]/g, '');
+
+                // add thousand separator
+                return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             }
 
 
