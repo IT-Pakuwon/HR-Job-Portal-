@@ -433,6 +433,7 @@ MISC
         z-index: 2000;
     }
 
+    /* Kartu spinner di tengah */
     #loadingSpinnerContainer .loading-card {
         position: absolute;
         top: 50%;
@@ -519,6 +520,8 @@ MISC
             transform: translateY(0);
         }
     }
+
+
 
     Kolom kecil table#applicantsTable td.small-col,
     table#applicantsTable th.small-col {
@@ -1252,5 +1255,59 @@ Approval / Attachment / Comments tables
         padding-left: 8px !important;
         padding-right: 8px !important;
         text-align: center;
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: 40px !important;
+        border: 1px solid #e9e9ea;
+        /* = border-gray-300 */
+        border-radius: 0.375rem;
+        /* = rounded-md */
+        background-color: #f5f5f59d;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 40px !important;
+        padding-left: 10px;
+        /* biar sejajar dengan p-2.5 */
+        padding-right: 28px;
+        color: #111827;
+        /* text-gray-900 */
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 42px !important;
+        right: 6px;
+    }
+
+    /* Optional: Dark mode */
+    .dark .select2-container--default .select2-selection--single {
+        background-color: #1f2937;
+        /* gray-800 */
+        border-color: #4b5563;
+        /* gray-600 */
+    }
+
+    .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #e5e7eb;
+        /* gray-200 */
+    }
+
+    .dark .select2-dropdown {
+        background-color: #111827;
+        /* gray-900 */
+        color: #e5e7eb;
+        border-color: #374151;
+        /* gray-700 */
+    }
+
+    .dark .select2-results__option--highlighted {
+        background-color: #2563eb;
+        /* blue-600 */
+        color: #fff;
     }
 </style>

@@ -1,34 +1,7 @@
 <x-app-layout>
 
     <style>
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
 
-        @keyframes spinReverse {
-            to {
-                transform: rotate(-360deg);
-            }
-        }
-
-        @keyframes blink {
-            0% {
-                opacity: .3;
-                transform: translateY(0);
-            }
-
-            20% {
-                opacity: 1;
-                transform: translateY(-2px);
-            }
-
-            100% {
-                opacity: .3;
-                transform: translateY(0);
-            }
-        }
     </style>
 
     <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
