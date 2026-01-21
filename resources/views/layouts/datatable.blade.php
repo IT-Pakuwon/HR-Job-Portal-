@@ -1310,4 +1310,8 @@ Approval / Attachment / Comments tables
         /* blue-600 */
         color: #fff;
     }
+
+    button {
+        white-space: nowrap;
+    }
 </style>
