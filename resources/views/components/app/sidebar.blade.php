@@ -67,7 +67,7 @@
                                 </svg>
 
                                 <span
-                                    class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                    class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">
                                     Dashboard
                                 </span>
                             </div>
@@ -468,7 +468,8 @@
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     d="M18 18.72a9.094 9.094 0 00-6-2.22 9.094 9.094 0 00-6 2.22M15 7.5a3 3 0 11-6 0 3 3 0 016 0z" />
                                                             </svg>
-                                                            <span class="text-smm ml-4 font-medium">Users</span>
+                                                            <span
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Users</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -486,7 +487,8 @@
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     d="M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z" />
                                                             </svg>
-                                                            <span class="text-smm ml-4 font-medium">Role</span>
+                                                            <span
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Role</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -504,7 +506,9 @@
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM2.25 21h4.5l1.5-4.5h4.5" />
                                                             </svg>
-                                                            <span class="text-smm ml-4 font-medium">Access Right</span>
+                                                            <span
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Access
+                                                                Right</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -522,7 +526,9 @@
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.008M3.75 12h.008M3.75 17.25h.008" />
                                                             </svg>
-                                                            <span class="text-smm ml-4 font-medium">Role Menu</span>
+                                                            <span
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Role
+                                                                Menu</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -566,7 +572,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Application</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Application</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -583,7 +589,7 @@
                                                                     d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
                                                             </svg>
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Screen</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -603,7 +609,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Menu</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -644,7 +650,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Company</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Company</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -661,7 +667,7 @@
                                                                     d="M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 14.25h6v6h-6v-6zm10.5 0h6v6h-6v-6z" />
                                                             </svg>
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Department</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Department</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -681,7 +687,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Tenant</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Tenant</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -700,7 +706,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Location</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Location</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -744,12 +750,12 @@
                                                                 stroke="currentColor" width="16" height="16">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                                     d="
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
                                                             </svg>
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Category</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Category</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -769,7 +775,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Vendor</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Vendor</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -789,7 +795,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Inventory</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Inventory</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -809,7 +815,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Autonbr</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Autonbr</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -829,7 +835,7 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TOP</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">TOP</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -870,7 +876,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Approval</span>
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Approval</span>
                                                         </div>
                                                     </a>
                                                 </li>
@@ -890,7 +896,7 @@
                                                             </svg>
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TEST
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">TEST
                                                                 Monitor</span>
                                                         </div>
                                                     </a>
@@ -934,49 +940,49 @@
 
 
                                                             <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">IFCA
+                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">IFCA
                                                                 Integration</span>
                                                         </div>
                                                     </a>
                                                 </li>
 
                                                 <!-- <li
-                                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['screens'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                                    <a class="@if (!in_array(Request::segment(1), ['screens'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                                        href="{{ route('screens') }}">
-                                                                        <div class="flex items-center">
-                                                                            <svg class="@if (in_array(Request::segment(1), ['screens'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                                stroke="currentColor" width="16" height="16">
-                                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                                    d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
-                                                                            </svg>
-                                                                            <span
-                                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
-                                                                        </div>
-                                                                    </a>
-                                                                </li>
+                                                                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['screens'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                                                        <a class="@if (!in_array(Request::segment(1), ['screens'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                                                            href="{{ route('screens') }}">
+                                                                            <div class="flex items-center">
+                                                                                <svg class="@if (in_array(Request::segment(1), ['screens'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                                    viewBox="0 0 24 24" stroke-width="1.5"
+                                                                                    stroke="currentColor" width="16" height="16">
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                        d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
+                                                                                </svg>
+                                                                                <span
+                                                                                   class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Screen</span>
+                                                                            </div>
+                                                                        </a>
+                                                                    </li>
 
-                                                                <li
-                                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                                    <a class="@if (!in_array(Request::segment(1), ['menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                                        href="{{ route('menus') }}">
-                                                                        <div class="flex items-center">
-                                                                            <svg class="@if (in_array(Request::segment(1), ['menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                                stroke="currentColor" width="16" height="16">
+                                                                    <li
+                                                                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                                                                        <a class="@if (!in_array(Request::segment(1), ['menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
+                                                                            href="{{ route('menus') }}">
+                                                                            <div class="flex items-center">
+                                                                                <svg class="@if (in_array(Request::segment(1), ['menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                                    viewBox="0 0 24 24" stroke-width="1.5"
+                                                                                    stroke="currentColor" width="16" height="16">
 
-                                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                                    d="M3.75 4.5h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 13.5h16.5v6H3.75v-6z" />
-                                                                            </svg>
+                                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                                        d="M3.75 4.5h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 13.5h16.5v6H3.75v-6z" />
+                                                                                </svg>
 
-                                                                            <span
-                                                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
-                                                                        </div>
-                                                                    </a>
-                                                                </li> -->
+                                                                                <span
+                                                                                   class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Menu</span>
+                                                                            </div>
+                                                                        </a>
+                                                                    </li> -->
                                             </ul>
                                         </li>
 
@@ -1025,7 +1031,10 @@
                                                 </svg>
 
                                                 <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                                   class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">
                                                     Settings
                                                 </span>
                                             </div>
@@ -1055,7 +1064,10 @@
                                                     d="M18 18.72a9.094 9.094 0 00-6-2.22 9.094 9.094 0 00-6 2.22M15 7.5a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Users</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Users</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1071,7 +1083,10 @@
                                                     d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM2.25 21h4.5l1.5-4.5h4.5" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Access
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Access
                                                 Right</span>
                                         </div>
                                     </a>
@@ -1088,7 +1103,10 @@
                                                     d="M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Role</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Role</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1107,7 +1125,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Role
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Role
                                                 Menu</span>
                                         </div>
                                     </a>
@@ -1126,7 +1147,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Application</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Application</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1142,7 +1166,10 @@
                                                     d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Screen</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Screen</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1160,7 +1187,10 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Menu</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Menu</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1177,7 +1207,10 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Approval</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Approval</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1194,7 +1227,10 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Company</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Company</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1210,7 +1246,10 @@
                                                     d="M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 14.25h6v6h-6v-6zm10.5 0h6v6h-6v-6z" />
                                             </svg>
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Department</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Department</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1229,7 +1268,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Category</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Category</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1247,7 +1289,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Autonbr</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Autonbr</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1265,7 +1310,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Vendor</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Vendor</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1283,7 +1331,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Inventory</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Inventory</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1301,7 +1352,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Tenant</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Tenant</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1318,7 +1372,10 @@
                                             </svg>
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">Location</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">Location</span>
                                         </div>
                                     </a>
                                 </li> --}}
@@ -1336,7 +1393,10 @@
 
 
                                             <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 font-medium duration-200 lg:opacity-0 2xl:opacity-100">TOP</span>
+                                               class="text-sm font-medium leading-tight transition-all duration-200
+           lg:sidebar-expanded:ml-4
+           lg:sidebar-expanded:opacity-100
+           lg:opacity-0">TOP</span>
                                         </div>
                                     </a>
                                 </li> --}}
