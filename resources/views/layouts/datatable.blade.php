@@ -35,6 +35,12 @@ GLOBAL / UTILITY
         }
     }
 
+    /* Global text wrapping */
+    * {
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
 
     /*
     /* =====================================================
@@ -1235,5 +1241,16 @@ Approval / Attachment / Comments tables
         white-space: normal;
         word-break: break-word;
         overflow-wrap: anywhere;
+    }
+
+    /* DataTables responsive control column */
+    table.dataTable th.dtr-control,
+    table.dataTable td.dtr-control {
+        width: 28px !important;
+        min-width: 28px !important;
+        max-width: 28px !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        text-align: center;
     }
 </style>
