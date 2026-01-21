@@ -9,7 +9,7 @@
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h1 class="text-base font-bold text-gray-800 dark:text-white">📍 Location</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-300">
+                    <p class="text-sm text-gray-500 dark:text-gray-300">
                         Klik 1 location untuk filter sub location.
                     </p>
                 </div>
@@ -20,9 +20,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="locationsTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="locationsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>
@@ -42,7 +42,7 @@
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h2 class="text-base font-bold text-gray-800 dark:text-white">🧩 Sub Location</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-300">
+                    <p class="text-sm text-gray-500 dark:text-gray-300">
                         Selected Location: <span id="selectedLocationText" class="font-semibold">-</span>
                     </p>
                 </div>
@@ -53,9 +53,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="subLocationsTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="subLocationsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>

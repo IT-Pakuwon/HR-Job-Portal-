@@ -68,18 +68,18 @@
 
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::emailVerification()) &&
                     !$this->user->hasVerifiedEmail())
-                <p class="mt-2 text-xs dark:text-white">
+                <p class="mt-2 text-sm dark:text-white">
                     {{ __('Your email address is unverified.') }}
 
                     <button type="button"
-                        class="focus:outline-hidden rounded-md text-xs text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
+                        class="focus:outline-hidden rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
                         wire:click.prevent="sendEmailVerification">
                         {{ __('Click here to re-send the verification email.') }}
                     </button>
                 </p>
 
                 @if ($this->verificationLinkSent)
-                    <p class="mt-2 text-xs font-medium text-green-700">
+                    <p class="mt-2 text-sm font-medium text-green-700">
                         {{ __('A new verification link has been sent to your email address.') }}
                     </p>
                 @endif

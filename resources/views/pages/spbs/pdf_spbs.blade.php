@@ -199,7 +199,7 @@
         <tr>
             <th style="text-align:center; width:15px;">No</th>
             <th style="text-align:center;">Description / Note</th>
-            <th style="text-align:center; width:30px;">Qty / UoM</th>           
+            <th style="text-align:center; width:30px;">Qty / UoM</th>
             <th style="text-align:center; width:150px;">Location</th>
             <th style="text-align:center; width:150px;">Budget Department</th>
         </tr>
@@ -209,16 +209,17 @@
             <tr>
                 <td style="text-align:center;">{{ $i + 1 }}</td>
                 <td>{{ $dt->inventory_descr }} ( {{ $dt->inventoryid }} ) <br>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
                         Note: {{ $dt->note }}
                     </span>
                 </td>
                 <td style="text-align:right;">{{ number_format((float) $dt->qty, 2) }} <br>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
                         {{ $dt->uom }}
                     </span>
-                </td>               
-                <td>{{ optional($dt->location)->location_name }} - {{ optional($dt->subLocation)->sub_location_name }}</td>
+                </td>
+                <td>{{ optional($dt->location)->location_name }} - {{ optional($dt->subLocation)->sub_location_name }}
+                </td>
                 <td>{{ $dt->budget_account_id }} - {{ $dt->budget_activity_descr }}</td>
             </tr>
         @empty

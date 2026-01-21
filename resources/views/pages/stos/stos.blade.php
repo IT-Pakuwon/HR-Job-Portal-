@@ -324,27 +324,27 @@
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th scope="col"
-                                    class="w-32 px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="w-32 px-6 py-2 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     DocID
                                 </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Date
                                 </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Company
                                 </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Department
                                 </th>
                                 <th scope="col"
-                                    class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     User
                                 </th>
                                 <th scope="col"
-                                    class="w-32 px-6 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="w-32 px-6 py-2 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Status
                                 </th>
                             </tr>

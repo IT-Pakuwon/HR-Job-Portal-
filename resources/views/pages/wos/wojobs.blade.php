@@ -88,9 +88,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="wosTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="wosTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-32 px-6 py-2 font-medium">
@@ -195,13 +195,13 @@
                         render: function(data, type, row) {
                             let url = `/showwos/${row.eid}`;
                             let cls =
-                                'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-xs';
+                                'shrink-0 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700  text-sm ';
                             const text = data || row.eid;
 
                             if (row.status === 'D' && row.created_by === currentUser) {
                                 url = `/editwos/${row.eid}`;
                                 cls =
-                                    'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700 text-xs';
+                                    'shrink-0 px-3 py-1.5 bg-yellow-500 text-white rounded hover:bg-yellow-700  text-sm ';
                             }
 
                             return `

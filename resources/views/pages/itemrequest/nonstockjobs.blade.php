@@ -70,9 +70,9 @@
                     <h1 id="jobsTitle" class="text-base font-extrabold text-gray-700 dark:text-white">Nonstock Jobs</h1>
                 </div>
                 <div class="rounded-base relative overflow-x-auto">
-                    <table id="nonstockJobsTable" class="text-body w-full text-left text-xs rtl:text-right">
+                    <table id="nonstockJobsTable" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-6 py-2 font-medium">
@@ -112,9 +112,9 @@
                 </div>
 
                 <div class="rounded-base relative overflow-x-auto">
-                    <table id="inventoryTable" class="text-body w-full text-left text-xs rtl:text-right">
+                    <table id="inventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-6 py-2 font-medium">
@@ -304,20 +304,20 @@
                         class="rounded-lg bg-red-500 px-4 py-2 text-white">Close</button>
                 </div>
 
-                <div class="mb-3 text-xs text-gray-500 dark:text-gray-300">
+                <div class="mb-3 text-sm text-gray-500 dark:text-gray-300">
                     IRID: <span id="pick_irid" class="font-semibold text-gray-700 dark:text-white">-</span>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table id="pickInventoryTable" class="text-body w-full text-left text-xs rtl:text-right">
+                    <table id="pickInventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th
-                                    class="w-52 px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="w-52 px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Inventory ID</th>
                                 <th
-                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                     Inventory Description</th>
                             </tr>
                         </thead>
@@ -600,7 +600,7 @@
                                         <div class="flex items-center gap-2">
                                             <span class="text-gray-400"></span>
                                             <button type="button"
-                                                class="btnPickInventory inline-flex items-center justify-center rounded bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                                                class="btnPickInventory inline-flex items-center justify-center rounded bg-indigo-600 px-2.5 py-1.5  text-sm  font-semibold text-white hover:bg-indigo-700"
                                                 data-id="${row.id ?? ''}"
                                                 data-trid="${row.trid ?? ''}"
                                                 data-irid="${row.irid ?? ''}">

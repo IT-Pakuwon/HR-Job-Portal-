@@ -322,7 +322,7 @@
                                 className: 'no-pointer',
                                 render: function(data, type, row) {
                                     return `
-                                        <div class="text-xs font-semibold text-gray-800 dark:text-white">
+                                        <div class=" text-sm  font-semibold text-gray-800 dark:text-white">
                                             ${data}
                                         </div>
                                     `;
@@ -333,7 +333,7 @@
                                 className: 'no-pointer',
                                 render: function(data, type, row) {
                                     return `
-                                        <div class="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                                        <div class=" text-sm  text-gray-600 dark:text-gray-300 line-clamp-2">
                                             ${data}
                                         </div>
                                     `;

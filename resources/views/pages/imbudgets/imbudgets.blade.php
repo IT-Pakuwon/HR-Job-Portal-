@@ -103,9 +103,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
-                <table id="imbudgetsTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="imbudgetsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-32 px-6 py-2 font-medium">
@@ -150,11 +150,11 @@
                 <!-- Controls (opsional) -->
                 <div class="mb-3 flex items-center justify-end gap-2">
                     <button type="button" id="tlPrev"
-                        class="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                         ‹ Prev
                     </button>
                     <button type="button" id="tlNext"
-                        class="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                         Next ›
                     </button>
                 </div>
@@ -184,7 +184,7 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class="text-xs text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class=" text-sm  text-gray-500">No tracking history found.</p>`;
                 return;
             }
 
@@ -238,9 +238,9 @@
 
                 // tampilkan jadi multi-line: status, nama, waktu
                 let detailHtml = '';
-                if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
-                if (by) detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
-                if (when) detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+                if (statusText) detailHtml += `<p class=" text-sm  text-gray-500">${statusText}</p>`;
+                if (by) detailHtml += `<p class=" text-sm  text-gray-500">${by}</p>`;
+                if (when) detailHtml += `<p class=" text-sm  text-gray-500">${when}</p>`;
 
                 const isLast = i === steps.length - 1;
                 const connector = !isLast ?
@@ -254,7 +254,7 @@
                                 <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
                             </div>
                             <div class="ml-3">
-                                <p class="text-xs font-semibold ${C.colorTitle}">${title}</p>
+                                <p class=" text-sm  font-semibold ${C.colorTitle}">${title}</p>
                                 ${detailHtml}
                             </div>
                             </div>

@@ -11,11 +11,11 @@
             </div>
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Doc Type
                     </label>
                     <select id="filterDoctype"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Document Type</option>
                         @foreach ($doctypes as $dt)
                             <option value="{{ $dt->doctype }}">{{ $dt->doctype }}</option>
@@ -24,11 +24,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Company
                     </label>
                     <select id="filterCompany"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Company</option>
                         @foreach ($companies as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
@@ -37,11 +37,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Department
                     </label>
                     <select id="filterDept"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Department</option>
                         @foreach ($departments as $d)
                             <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -51,16 +51,16 @@
 
                 <div class="mt-6">
                     <button id="clearUserFilters" type="button"
-                        class="rounded-lg border px-3 py-1 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                        class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                         Clear Filter
                     </button>
                 </div>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="approvalTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="approvalTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="col-actions w-24 px-2 py-3 text-center">Actions</th>
@@ -137,17 +137,17 @@
                     {{-- Approval Lines --}}
                     <div class="rounded-lg border bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800">
                         <div class="mb-2 flex items-center justify-between">
-                            <span class="text-xs font-semibold text-gray-800 dark:text-gray-100">
+                            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                 Approval Lines
                             </span>
                             <button type="button" id="addLineBtn"
-                                class="rounded bg-indigo-500 px-3 py-1 text-xs font-semibold text-white">
+                                class="rounded bg-indigo-500 px-3 py-1 text-sm font-semibold text-white">
                                 ADD
                             </button>
                         </div>
 
                         <div
-                            class="mb-1 hidden grid-cols-6 gap-2 text-xs font-semibold text-gray-600 md:grid dark:text-gray-300">
+                            class="mb-1 hidden grid-cols-6 gap-2 text-sm font-semibold text-gray-600 md:grid dark:text-gray-300">
                             <div>Level</div>
                             <div>Name</div>
                             <div>Type</div>
@@ -357,10 +357,10 @@
                 return `
                             <div class="grid grid-cols-1 items-start gap-2 md:grid-cols-6 line-row" data-row="${idx}">
                                 <div>
-                                    <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Level</label>
+                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Level</label>
                                     <input type="text"
                                         name="aprv_leveling[]"
-                                        class="level-input w-full rounded-lg border px-2 py-1 text-xs dark:bg-gray-700"
+                                        class="level-input w-full rounded-lg border px-2 py-1  text-sm  dark:bg-gray-700"
                                         value="${level}"
                                         placeholder="0.00"
                                         inputmode="decimal"
@@ -369,18 +369,18 @@
                                 </div>
 
                                 <div>
-                                    <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Name</label>
+                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Name</label>
                                     <select name="aprv_username[${idx}][]"
-                                            class="w-full rounded-lg border px-2 py-1 text-xs sel-username dark:bg-gray-700"
+                                            class="w-full rounded-lg border px-2 py-1  text-sm  sel-username dark:bg-gray-700"
                                             multiple
                                             required>
                                     </select>
                                 </div>
 
                                 <div>
-                                    <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Type</label>
+                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Type</label>
                                     <select name="aprv_type[]"
-                                            class="w-full rounded-lg border px-2 py-1 text-xs sel-type dark:bg-gray-700">
+                                            class="w-full rounded-lg border px-2 py-1  text-sm  sel-type dark:bg-gray-700">
                                         <option value=""></option>
                                         @foreach ($type as $t)
                                             <option value="{{ $t->category_name }}"
@@ -392,9 +392,9 @@
                                 </div>
 
                                 <div>
-                                    <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Condition</label>
+                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Condition</label>
                                     <select name="aprv_condition[]"
-                                            class="w-full rounded-lg border px-2 py-1 text-xs sel-condition dark:bg-gray-700">
+                                            class="w-full rounded-lg border px-2 py-1  text-sm  sel-condition dark:bg-gray-700">
                                         <option value=""></option>
                                         @foreach ($condition as $c)
                                             <option value="{{ $c->category_name }}"
@@ -406,10 +406,10 @@
                                 </div>
 
                                 <div>
-                                    <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">Start Nominal</label>
+                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Start Nominal</label>
                                     <input type="text"
                                         name="aprv_start_nominal[]"
-                                        class="nominal-input w-full rounded-lg border px-2 py-1 text-xs dark:bg-gray-700"
+                                        class="nominal-input w-full rounded-lg border px-2 py-1  text-sm  dark:bg-gray-700"
                                         value="${startNom}"
                                         inputmode="decimal"
                                         autocomplete="off">
@@ -417,16 +417,16 @@
 
                                 <div class="flex gap-2">
                                     <div class="flex-1">
-                                        <label class="md:hidden text-xs text-gray-500 dark:text-gray-300">End Nominal</label>
+                                        <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">End Nominal</label>
                                         <input type="text"
                                             name="aprv_end_nominal[]"
-                                            class="nominal-input w-full rounded-lg border px-2 py-1 text-xs dark:bg-gray-700"
+                                            class="nominal-input w-full rounded-lg border px-2 py-1  text-sm  dark:bg-gray-700"
                                             value="${endNom}"
                                             inputmode="decimal"
                                             autocomplete="off">
                                     </div>
                                     <button type="button"
-                                            class="removeLineBtn self-center rounded bg-red-500 px-2 py-1 text-xs font-semibold text-white">
+                                            class="removeLineBtn self-center rounded bg-red-500 px-2 py-1  text-sm  font-semibold text-white">
                                         ✕
                                     </button>
                                 </div>

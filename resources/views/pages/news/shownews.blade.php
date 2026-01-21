@@ -60,7 +60,7 @@
                                                     Approval</h2>
                                                 <div class="flex gap-2">
                                                     <div
-                                                        class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
+                                                        class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                             class="h-4 w-4">
@@ -73,7 +73,7 @@
                                                             class="focus:outline-none">Approve</button>
                                                     </div>
                                                     <div
-                                                        class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-xs font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
+                                                        class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-sm font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                             class="size-4">
@@ -84,7 +84,7 @@
                                                             class="focus:outline-none">Revise</button>
                                                     </div>
                                                     <div
-                                                        class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
+                                                        class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 24 24" stroke-width="1.5"
                                                             stroke="currentColor"class="w-4 h-4">
@@ -98,7 +98,7 @@
                                                 </div>
                                             </header>
                                             <div class="overflow-x-auto px-4 pt-4">
-                                                <table class="mb-4 w-full text-xs">
+                                                <table class="mb-4 w-full text-sm">
                                                     <thead>
                                                         <tr class="text-gray-700 dark:text-gray-300">
                                                             <th class="p-3 text-left">Level</th>
@@ -158,7 +158,7 @@
                                                     Attachment</h2>
                                             </header>
                                             <div class="overflow-x-auto px-4 pt-2">
-                                                <table class="mb-4 w-full text-xs">
+                                                <table class="mb-4 w-full text-sm">
                                                     <thead class="text-gray-600 dark:text-gray-300">
                                                         <tr>
                                                             <th class="p-3 text-left">Filename</th>
@@ -216,7 +216,7 @@
                                                                 'self-end bg-indigo-500 text-white' :
                                                                 'self-start bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'"
                                                                 class="max-w-xs rounded-lg p-3">
-                                                                <p class="text-xs"><strong
+                                                                <p class="text-sm"><strong
                                                                         x-text="comment.user"></strong>: <span
                                                                         x-text="comment.text"></span></p>
                                                             </div>
@@ -232,7 +232,7 @@
                                                             class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                         <button id="postCommentBtn"
                                                             @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                                            class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
+                                                            class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
@@ -353,8 +353,8 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-xs font-semibold">${comment.username} 
-                                            <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                        <p class=" text-sm  font-semibold">${comment.username} 
+                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>

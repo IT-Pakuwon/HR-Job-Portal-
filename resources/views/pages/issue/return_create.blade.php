@@ -94,14 +94,14 @@
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Issue Nbr
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue Nbr
                                     (Ref)</label>
                                 <input type="text" value="{{ $iss->issueid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Issue
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue
                                     Date</label>
                                 <input type="text"
                                     value="{{ $iss->issuedate ? \Carbon\Carbon::parse($iss->issuedate)->format('Y-m-d') : '-' }}"
@@ -110,14 +110,14 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Issue
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue
                                     Type</label>
                                 <input type="text" value="{{ $iss->issuetype ?? '-' }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">SPB ID</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB ID</label>
                                 <input type="text" value="{{ $iss->spbid ?? '-' }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -126,20 +126,20 @@
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Company</label>
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
                                 <input type="text" value="{{ $iss->cpny_id ?? '-' }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Department</label>
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
                                 <input type="text" value="{{ $iss->department_id ?? '-' }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Requested
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Requested
                                     By</label>
                                 <input type="text" value="{{ $iss->user_peminta ?? '-' }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
@@ -154,15 +154,15 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Return Detail</span>
-                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details →</span>
                                     <span
-                                        class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                         details ↓</span>
                                 </summary>
 
                                 <div class="mt-6 overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200 text-xs dark:divide-gray-700">
+                                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                                         <thead class="bg-gray-50 dark:bg-gray-700">
                                             <tr>
                                                 <th
@@ -227,7 +227,7 @@
                                         </tbody>
                                     </table>
 
-                                    <p class="mt-3 text-xs text-gray-500">
+                                    <p class="mt-3 text-sm text-gray-500">
                                         Catatan: Qty Sisa Return berasal dari (Qty Issue - Total Qty Return sebelumnya).
                                     </p>
                                 </div>
@@ -241,10 +241,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details →</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details ↓</span>
                             </summary>
 
@@ -252,7 +252,7 @@
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>
                                     </div>
@@ -260,7 +260,7 @@
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                 + Add Attachment
                             </button>
                         </details>
@@ -419,7 +419,7 @@
             $('#addAttachment').on('click', function() {
                 $('#attachmentsContainer').append(
                     '<div class="attachment-row flex items-center gap-2">' +
-                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
+                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
                     '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>' +
                     '</div>'
                 );

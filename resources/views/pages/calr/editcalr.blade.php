@@ -138,7 +138,7 @@
                                 <span class="text-emerald-600">{{ $calr->calrid }}</span>
                             </h2>
                             <a href="{{ url()->previous() }}"
-                                class="inline-flex items-center justify-center rounded-lg bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                class="inline-flex items-center justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                 Back
                             </a>
                         </div>
@@ -146,31 +146,31 @@
                         {{-- Row 1 --}}
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">RFCA
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">RFCA
                                     ID</label>
                                 <input type="text" value="{{ $calr->rfcaid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">CALR
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">CALR
                                     ID</label>
                                 <input type="text" value="{{ $calr->calrid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
                                 <input type="text" value="{{ $calr->ponbr }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Company</label>
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
                                 <input type="text" value="{{ $calr->cpny_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Department</label>
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
                                 <input type="text" value="{{ $calr->department_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -179,13 +179,13 @@
                         {{-- Row 2 --}}
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2 lg:col-span-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">Vendor</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
                                 <input type="text" value="{{ $calr->vendorname }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2 lg:col-span-3">
                                 <label
-                                    class="block text-xs font-medium text-gray-600 dark:text-gray-300">Purpose</label>
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Purpose</label>
                                 <input type="text" value="{{ $calr->keperluan }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -195,7 +195,7 @@
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             {{-- RFCA Amount --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">RFCA
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">RFCA
                                     Amount</label>
                                 <input type="text" value="Rp {{ number_format($rfcaAmount, 0, ',', '.') }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 font-semibold dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
@@ -204,18 +204,18 @@
 
                             {{-- CALR Amount (editable) --}}
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">CALR
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">CALR
                                     Amount</label>
                                 <input type="text" id="calr_amount_display"
                                     value="{{ $calrAmount > 0 ? number_format($calrAmount, 0, ',', '.') : '' }}"
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-xs text-gray-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                     autocomplete="off" inputmode="numeric" />
                                 <input type="hidden" name="calr_amount" id="calr_amount" value="{{ $calrAmount }}">
                             </div>
 
                             {{-- Balance --}}
                             <div class="flex flex-col gap-2 lg:col-span-3">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">
                                     Balance Amount (RFCA - CALR)
                                 </label>
                                 <input type="text" id="balance_amount"
@@ -232,7 +232,7 @@
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 text-xs dark:divide-gray-700">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th class="px-3 py-2 text-left font-semibold">Inventory</th>
@@ -271,10 +271,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments (Add More)</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -299,7 +299,7 @@
                                                         {{ $att->display_name }} (no link)
                                                     </span>
                                                 @endif
-                                                <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                                <div class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                                                     {{ strtoupper($att->extention ?? '-') }}
                                                     @if (!empty($att->size))
                                                         • {{ number_format($att->size / 1024, 0) }} KB
@@ -313,14 +313,14 @@
                                         </div>
 
                                         <button type="button"
-                                            class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                                            class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
                                             aria-label="Remove attachment">
                                             🗑️
                                         </button>
                                     </div>
                                 @empty
                                     <div
-                                        class="rounded-lg border border-dashed border-gray-300 p-4 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                                        class="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
                                         No existing attachments.
                                     </div>
                                 @endforelse
@@ -330,7 +330,7 @@
                                 <div id="attachmentsContainer">
                                     <div class="attachment-row flex items-center gap-2">
                                         <input type="file" name="attachments[]"
-                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                         <button type="button"
                                             class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
                                     </div>
@@ -338,7 +338,7 @@
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -465,7 +465,7 @@
             $('#addAttachment').on('click', function() {
                 $('#attachmentsContainer').append(
                     '<div class="attachment-row flex items-center gap-2">' +
-                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
+                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
                     '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>' +
                     '</div>'
                 );

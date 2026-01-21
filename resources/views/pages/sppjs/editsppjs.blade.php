@@ -142,7 +142,7 @@
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid"
                                     class="w-full rounded-lg border border-gray-300 bg-gray-100/50 p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -158,7 +158,7 @@
                             {{-- Department --}}
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid"
                                     class="w-full rounded-lg border border-gray-300 bg-gray-100/50 p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -173,7 +173,7 @@
 
                             {{-- Request Type --}}
                             {{-- <div class="flex flex-col gap-2">
-                                <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Request
+                                <label class="req block  text-sm  font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
                                 <select id="requesttypeid" name="requesttypeid"
                                     class="w-full rounded-lg border border-gray-300 bg-gray-100/50 p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -182,7 +182,7 @@
                                 </select>
                             </div> --}}
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Request
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
 
                                 <div class="flex w-full">
@@ -220,7 +220,7 @@
                             {{-- Perpost --}}
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Perpost</label>
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
                                 @php $year = \Carbon\Carbon::now()->year; @endphp
                                 <select id="perpost" name="perpost"
                                     class="w-full rounded-lg border border-gray-300 bg-gray-100/50 p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -240,20 +240,20 @@
                         {{-- Description --}}
                         <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     SPPJ Emergency
                                 </label>
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         {{ old('is_urgent', $sppj->is_urgent ?? 0) ? 'checked' : '' }}>
-                                    <label for="is_urgent" class="text-xs text-gray-700 dark:text-gray-300">
+                                    <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">
                                         Tandai sebagai emergency
                                     </label>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     WO ID
                                 </label>
                                 <div class="flex">
@@ -274,7 +274,7 @@
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">BQ
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">BQ
                                     Type</label>
                                 <select name="bqtype" id="bqtype" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -292,7 +292,7 @@
 
                             <div class="flex flex-col gap-2">
                                 <label for="keperluan"
-                                    class="req block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
                                 </label>
                                 <textarea name="keperluan" id="keperluan" required
@@ -309,10 +309,10 @@
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>SPPJ Detail</span>
-                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                         details &darr;</span>
                                 </summary>
 
@@ -629,7 +629,7 @@
                                     <input type="hidden" id="deletedDetails" name="deleted_detail_ids">
 
                                     <button type="button" id="addSppj"
-                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
                                             <path fill-rule="evenodd"
@@ -663,7 +663,7 @@
                                     data-type="se">Jasa</button>
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
-                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="rounded border border-gray-300 bg-white px-3 py-1  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                     <button id="invRefresh" type="button"
                                         class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                                 </div>
@@ -671,14 +671,14 @@
 
                             <div class="mb-4 ml-auto flex items-center justify-between gap-2">
                                 <input id="invSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="invRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
@@ -687,12 +687,12 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="invTableBody" class="text-xs"></tbody>
+                                    <tbody id="invTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
                             <!-- Pagination (optional simple) -->
-                            <div class="mt-3 flex items-center justify-between text-xs">
+                            <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="invCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="invPrev" type="button"
@@ -714,7 +714,7 @@
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-xs">
+                            <div class="mb-3 flex items-center gap-2 text-sm">
                                 <input id="rtSearch" type="text" placeholder="Search Request Type..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="rtRefresh" type="button"
@@ -726,7 +726,7 @@
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left text-xs">
+                                <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Request Type ID</th>
@@ -734,11 +734,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="rtTableBody" class="text-xs"></tbody>
+                                    <tbody id="rtTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-xs">
+                            <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="rtCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="rtPrev" type="button"
@@ -759,7 +759,7 @@
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
                                 <h3 class="text-sm font-bold text-gray-800 dark:text-white">Pilih Location & Sub
                                     Location</h3>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
                                 </div>
                                 <button type="button" id="closeLokasi"
                                     class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
@@ -771,25 +771,25 @@
                                     <!-- Location -->
                                     <div>
                                         <label
-                                            class="req mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                         <select id="modal_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                             <option value="">-- choose --</option>
                                         </select>
-                                        <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib
+                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih Location.</small>
                                     </div>
 
                                     <!-- Sub Location -->
                                     <div>
                                         <label
-                                            class="req mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Sub
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
                                             Location</label>
                                         <select id="modal_sub_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                             <option value="">-- choose --</option>
                                         </select>
-                                        <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">Wajib
+                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih sub location.</small>
                                     </div>
                                 </div>
@@ -820,7 +820,7 @@
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-xs">
+                            <div class="mb-3 flex items-center gap-2 text-sm">
                                 <input id="coaSearch" type="text" placeholder="Search code/name..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="coaRefresh" type="button"
@@ -834,7 +834,7 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">Account ID</th>
                                             <th class="border p-2">Account Descr</th>
@@ -844,11 +844,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="coaTableBody" class="text-xs"></tbody>
+                                    <tbody id="coaTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-xs">
+                            <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="coaCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="coaPrev" type="button"
@@ -870,7 +870,7 @@
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-xs">
+                            <div class="mb-3 flex items-center gap-2 text-sm">
                                 <input id="uomSearch" type="text" placeholder="Search from/to..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="uomRefresh" type="button"
@@ -882,7 +882,7 @@
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50 text-xs dark:bg-gray-900">
+                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">From</th>
                                             <th class="border p-2">To</th>
@@ -891,11 +891,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="uomTableBody" class="text-xs"></tbody>
+                                    <tbody id="uomTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-xs">
+                            <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="uomCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="uomPrev" type="button"
@@ -917,7 +917,7 @@
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
-                            <div class="mb-3 flex items-center gap-2 text-xs">
+                            <div class="mb-3 flex items-center gap-2 text-sm">
                                 <input id="woSearch" type="text" placeholder="Search WO ID / Created By..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="woRefresh" type="button"
@@ -930,7 +930,7 @@
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left text-xs">
+                                <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
                                             <th class="border p-2">WO ID</th>
@@ -939,11 +939,11 @@
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="woTableBody" class="text-xs"></tbody>
+                                    <tbody id="woTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
-                            <div class="mt-3 flex items-center justify-between text-xs">
+                            <div class="mt-3 flex items-center justify-between text-sm">
                                 <span id="woCount" class="opacity-80"></span>
                                 <div class="space-x-2">
                                     <button id="woPrev" type="button"
@@ -961,10 +961,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
 
@@ -989,7 +989,7 @@
                                                         {{ $att->display_name }} (no link)
                                                     </span>
                                                 @endif
-                                                <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                                <div class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                                                     {{ strtoupper($att->extention ?? '-') }}
                                                     @if (!empty($att->size))
                                                         • {{ number_format($att->size / 1024, 0) }} KB
@@ -1003,14 +1003,14 @@
                                         </div>
 
                                         <button type="button"
-                                            class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                                            class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
                                             aria-label="Remove attachment">
                                             🗑️
                                         </button>
                                     </div>
                                 @empty
                                     <div
-                                        class="rounded-lg border border-dashed border-gray-300 p-4 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                                        class="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
                                         No existing attachments.
                                     </div>
                                 @endforelse
@@ -1021,7 +1021,7 @@
                             <div id="attachmentsContainer" class="mt-6">
                                 <div class="attachment-row flex items-center gap-2">
                                     <input type="file" name="attachments[]"
-                                        class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                        class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                     <button type="button"
                                         class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                                         🗑️
@@ -1030,7 +1030,7 @@
                             </div>
 
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -1664,7 +1664,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
@@ -2341,8 +2341,8 @@
                     <td class="border p-2">${actDescr}</td>
                     <td class="border p-2">
                         <div class="font-semibold">${remaining}</div>
-                        <div class="text-xs opacity-70">Available : ${available}</div>
-                        <div class="text-xs opacity-70">Used: ${used}</div>
+                        <div class=" text-sm  opacity-70">Available : ${available}</div>
+                        <div class=" text-sm  opacity-70">Used: ${used}</div>
                     </td>
                     <td class="border p-2 text-center">
                         <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"

@@ -1,4 +1,4 @@
-<table class="min-w-full border border-gray-300 text-xs dark:border-gray-600">
+<table class="min-w-full border border-gray-300 text-sm dark:border-gray-600">
     <thead>
         <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
             <th class="px-4 py-3 text-left font-semibold">No</th>
@@ -19,7 +19,7 @@
                     @else
                         <span class="italic text-gray-400">No document</span>
                     @endif
-                    <button class="upload-btn rounded bg-indigo-500 px-3 py-1 text-xs text-white hover:bg-indigo-600"
+                    <button class="upload-btn rounded bg-indigo-500 px-3 py-1  text-sm  text-white hover:bg-indigo-600"
                         data-id="{{ $p->id }}" data-descr="{{ $p->checklist_descr }}">
                         Upload
                     </button>
@@ -37,7 +37,7 @@
                         <span class="italic text-gray-400">No document</span>
                     @endif
 
-                    <button class="upload-btn rounded bg-indigo-500 px-3 py-1 text-xs text-white hover:bg-indigo-600"
+                    <button class="upload-btn rounded bg-indigo-500 px-3 py-1 text-sm text-white hover:bg-indigo-600"
                         data-id="{{ $p->id }}" data-descr="{{ $p->checklist_descr }}">
                         Upload
                     </button>
@@ -52,7 +52,7 @@
         <form id="uploadForm" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="checklist_id" id="checklistId">
-            <input type="file" name="document" required class="mb-4 w-full text-xs text-gray-700 dark:text-white">
+            <input type="file" name="document" required class="mb-4 w-full text-sm text-gray-700 dark:text-white">
             <div class="flex justify-end gap-2">
                 <button type="button" id="cancelModal" class="rounded bg-gray-400 px-4 py-2 text-white">Cancel</button>
                 <button type="submit" class="rounded bg-indigo-600 px-4 py-2 text-white">Upload</button>

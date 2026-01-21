@@ -15,7 +15,7 @@
 
                     <!-- TEXT WRAP -->
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-xs font-medium leading-tight">All</p>
+                        <p class="break-words text-sm font-medium leading-tight">All</p>
                     </div>
 
                     <!-- VALUE -->
@@ -31,7 +31,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-xs font-medium leading-tight">On Progress</p>
+                        <p class="break-words text-sm font-medium leading-tight">On Progress</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-bold">{{ $onProgress }}</p>
@@ -46,7 +46,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-xs font-medium leading-tight">Reject</p>
+                        <p class="break-words text-sm font-medium leading-tight">Reject</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-bold">{{ $reject }}</p>
@@ -61,7 +61,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-xs font-medium leading-tight">Revise / Draft</p>
+                        <p class="break-words text-sm font-medium leading-tight">Revise / Draft</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-bold">{{ $revise }}</p>
@@ -76,7 +76,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-xs font-medium leading-tight">Completed</p>
+                        <p class="break-words text-sm font-medium leading-tight">Completed</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-bold">{{ $completed }}</p>
@@ -89,7 +89,7 @@
                     class="status-card flex h-full items-center gap-2 rounded-lg border border-purple-700 bg-purple-200/20 p-2 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-lg active:scale-95">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧭</div>
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-xs font-medium leading-tight">SPB Tracking</p>
+                        <p class="break-words text-sm font-medium leading-tight">SPB Tracking</p>
                     </div>
                     <p class="shrink-0 text-sm font-bold">{{ $tracking }}</p>
                 </div>
@@ -111,7 +111,7 @@
 
             <div class="rounded-base relative overflow-x-auto">
 
-                <table id="spbsTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="spbsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead id="spbsHead" class="bg-gray-50 dark:bg-gray-700"></thead>
                     <tbody>
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
@@ -141,11 +141,11 @@
                 <!-- Controls (opsional) -->
                 <div class="mb-3 flex items-center justify-end gap-2">
                     <button type="button" id="tlPrev"
-                        class="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                         ‹ Prev
                     </button>
                     <button type="button" id="tlNext"
-                        class="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                         Next ›
                     </button>
                 </div>
@@ -184,7 +184,7 @@
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class="text-xs text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class=" text-sm  text-gray-500">No tracking history found.</p>`;
                 return;
             }
 
@@ -232,9 +232,9 @@
 
                 // tampilkan jadi multi-line: status, nama, waktu
                 let detailHtml = '';
-                if (statusText) detailHtml += `<p class="text-xs text-gray-500">${statusText}</p>`;
-                if (by) detailHtml += `<p class="text-xs text-gray-500">${by}</p>`;
-                if (when) detailHtml += `<p class="text-xs text-gray-500">${when}</p>`;
+                if (statusText) detailHtml += `<p class=" text-sm  text-gray-500">${statusText}</p>`;
+                if (by) detailHtml += `<p class=" text-sm  text-gray-500">${by}</p>`;
+                if (when) detailHtml += `<p class=" text-sm  text-gray-500">${when}</p>`;
 
                 const isLast = i === steps.length - 1;
                 const connector = !isLast ?
@@ -248,7 +248,7 @@
                                 <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
                             </div>
                             <div class="ml-3">
-                                <p class="text-xs font-semibold ${C.colorTitle}">${title}</p>
+                                <p class=" text-sm  font-semibold ${C.colorTitle}">${title}</p>
                                 ${detailHtml}
                             </div>
                             </div>
@@ -507,7 +507,8 @@
 
                                 const text = data || row.id;
 
-                                const isDraftOwner = (row.status === 'D' && row.created_by === currentUser);
+                                const isDraftOwner = (row.status === 'D' && row.created_by ===
+                                    currentUser);
 
                                 // icon view (mata)
                                 const viewBtn = `

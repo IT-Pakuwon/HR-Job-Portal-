@@ -223,7 +223,7 @@
                 </div>
                 <div class="space-y-4 p-4">
                     <!-- Top Info Section -->
-                    <div class="grid grid-cols-2 gap-4 rounded bg-gray-100 p-4 text-xs">
+                    <div class="grid grid-cols-2 gap-4 rounded bg-gray-100 p-4 text-sm">
                         <div><strong>DocID:</strong> <span id="wi_docid"></span></div>
                         <div><strong>Task Date:</strong> <span id="wi_taskdate"></span></div>
                         <div><strong>Company:</strong> <span id="wi_cpnyid"></span></div>

@@ -188,7 +188,7 @@
                             <!-- Company -->
                             <div>
                                 <label
-                                    class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpny_id" required
                                     class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     <option value="" disabled selected>Select</option>
@@ -200,7 +200,7 @@
 
                             <!-- Business Unit -->
                             <div>
-                                <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Business
+                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
                                     Unit</label>
                                 <select name="business_unit_id" required
                                     class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
@@ -211,7 +211,7 @@
                             <!-- Department -->
                             <div>
                                 <label
-                                    class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="department_fin_id" id="department_select" required
                                     class="select2 h-[42px] w-full rounded-md border border-gray-200 bg-white px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                     {{-- @foreach ($departements as $p)
@@ -222,7 +222,7 @@
 
                             <!-- File Upload -->
                             <div>
-                                <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Import
+                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
                                     Excel</label>
                                 <input type="file" name="file" id="file" required
                                     class="block h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
@@ -253,8 +253,8 @@
                                 </h5>
                             </div>
 
-                            <div class="w-full min-w-[355px] overflow-x-auto">
-                                <table class="h-full w-full table-auto whitespace-nowrap border text-left text-xs">
+                            <div class="w-full min-w-[55px] overflow-x-auto">
+                                <table class="h-full w-full table-auto whitespace-nowrap border text-left text-sm">
                                     <thead class="bg-gray-100 font-bold text-gray-700">
                                         <tr>
                                             <th class="px-4 py-2">Perpost</th>
@@ -387,7 +387,7 @@
                                                     <div class="attachment-row flex items-center gap-2">
                                                         <input type="file" name="attachments[]"
                                                             {{-- class="mt-4 w-full border p-3 text-sm"> --}}
-                                                            class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                                         <button type="button"
                                                             class="removeAttachment mt-4 hidden rounded border border-red-600 bg-red-200/30 px-4 py-2 text-red-600 transition hover:bg-red-600 hover:text-white">
                                                             🗑️
@@ -395,7 +395,7 @@
                                                     </div>
                                                 </div>
                                                 <button type="button" id="addAttachment"
-                                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                                    class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                                                         viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd"
@@ -554,7 +554,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);

@@ -119,25 +119,25 @@
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">BQID</label>
+                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">BQID</label>
                                     <input
                                         class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         value="{{ $bq->bqid }}" readonly>
                                 </div>
                                 <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">SPPJ ID</label>
+                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">SPPJ ID</label>
                                     <input
                                         class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         value="{{ $bq->sppjtid }}" readonly>
                                 </div>
                                 <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Company</label>
+                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">Company</label>
                                     <input
                                         class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                         value="{{ $bq->cpny_id }}" readonly>
                                 </div>
                                 <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-xs text-gray-500 dark:text-gray-400">Created
+                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">Created
                                         By</label>
                                     <input
                                         class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
@@ -174,7 +174,7 @@
 
                         {{-- ✅ Scroll Container --}}
                         <div class="w-full overflow-x-auto">
-                            <table class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-xs">
+                            <table class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-sm">
                                 <thead class="bg-gray-100 font-bold text-gray-700">
                                     <tr>
                                         <th class="px-4 py-2">No</th>
@@ -265,7 +265,7 @@
 
                                                         
                                                         <div class="absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1">
-                                                            <div class="truncate text-xs text-white" title="{{ $at->name }}">{{ $at->name }}</div>
+                                                            <div class="truncate  text-sm  text-white" title="{{ $at->name }}">{{ $at->name }}</div>
                                                         </div>
 
                                                        
@@ -314,12 +314,12 @@
                                                                     d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                                     clip-rule="evenodd" />
                                                             </svg>
-                                                            <span class="text-xs font-medium">Add Photo</span>
+                                                            <span class="text-sm font-medium">Add Photo</span>
                                                         </div>
                                                     </button>
                                                 </div>
 
-                                                <p class="mt-2 text-xs text-gray-500">Accepted: JPG/PNG, max 5 MB per
+                                                <p class="mt-2 text-sm text-gray-500">Accepted: JPG/PNG, max 5 MB per
                                                     photo.</p>
                                             </div>
                                         </details>
@@ -726,7 +726,7 @@
                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition"></div>
 
                 <div class="absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1">
-                <div class="truncate text-xs text-white" title="${name}">${name}</div>
+                <div class="truncate  text-sm  text-white" title="${name}">${name}</div>
                 </div>
 
                 <button type="button"

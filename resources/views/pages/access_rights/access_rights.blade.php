@@ -15,11 +15,11 @@
 
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Role
                     </label>
                     <select id="filterRole"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Role</option>
                         @foreach ($roles as $r)
                             <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
@@ -28,11 +28,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Screen
                     </label>
                     <select id="filterScreen"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Screen</option>
                         @foreach ($screens as $s)
                             <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
@@ -42,16 +42,16 @@
 
                 <div class="mt-6">
                     <button id="clearUserFilters" type="button"
-                        class="rounded-lg border px-3 py-1 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                        class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                         Clear Filter
                     </button>
                 </div>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="accessRightsTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="accessRightsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
@@ -164,7 +164,7 @@
                                     ADD
                                 </button>
                             </div>
-                            <p class="mt-1 text-xs text-gray-500">
+                            <p class="mt-1 text-sm text-gray-500">
                                 Ketik satu nama lalu klik ADD. Untuk beberapa nama, klik ADD berkali-kali.
                             </p>
                             <div id="customAccessContainer" class="mt-2 flex flex-wrap gap-3">

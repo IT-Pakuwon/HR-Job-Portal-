@@ -77,7 +77,7 @@
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div class="flex flex-col">
                             <label for="tax_liability"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Dependants</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Dependants</label>
                             <select name="tax_liability" id="tax_liability"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -91,7 +91,7 @@
 
                         <div class="flex flex-col">
                             <label for="npwp_id"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">NPWP</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">NPWP</label>
                             <input type="text" name="npwp_id" id="npwp_id"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -99,7 +99,7 @@
 
                         <div class="flex flex-col">
                             <label for="bank_account"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Rekening</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Rekening</label>
                             <input type="text" name="bank_account" id="bank_account"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -107,7 +107,7 @@
 
                         <div class="flex flex-col">
                             <label for="bank_name"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Bank</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank</label>
                             <select name="bank_name" id="bank_name"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -119,7 +119,7 @@
 
                         <div class="flex flex-col">
                             <label for="net_salary"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Salary</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Salary</label>
                             <input type="text" name="net_salary" id="net_salary" inputmode="numeric"
                                 class="money-separator w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 placeholder="0" required>
@@ -127,7 +127,7 @@
 
                         <div class="flex flex-col">
                             <label for="other_facility"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Fasilitas</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Fasilitas</label>
                             <input type="text" name="other_facility" id="other_facility"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -135,7 +135,7 @@
 
                         <div class="flex flex-col">
                             <label for="work_start_date"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Tgl
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tgl
                                 Masuk Kerja</label>
                             <input type="date" name="work_start_date" id="work_start_date"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -144,7 +144,7 @@
 
                         <div class="flex flex-col">
                             <label for="availability_date"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Tgl
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tgl
                                 Selesai Kerja</label>
                             <input type="date" name="availability_date" id="availability_date"
                                 class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -157,7 +157,7 @@
 
                     <div class="mt-6 flex flex-col">
                         <label for="employment_status"
-                            class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Status
+                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status
                             Kepegawaian</label>
                         <select name="employment_status" id="employment_status"
                             class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
@@ -168,7 +168,7 @@
                         </select>
                         <div id="contract_term_wrap" class="mt-4 hidden">
                             <label for="contract_term"
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Contract Term (PKWT)
                             </label>
                             <select name="contract_term" id="contract_term"
@@ -202,35 +202,35 @@
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Tanggungan</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             NPWP</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Rekening</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Bank</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Gaji</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Fasilitas</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Tgl Masuk Kerja</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Tgl Selesai Kerja</th>
 
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Status Kepegawaian</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Aksi</th>
                     </tr>
                 </thead>
@@ -238,43 +238,43 @@
                     @forelse ($payrolls as $p)
                         <tr data-id="{{ $p->id }}"
                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-900 dark:text-gray-100">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-900 dark:text-gray-100">
                                 {{ $p->tax_liability }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->npwp_id }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->bank_account }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->bank_name }}</td>
-                            {{-- <td class="whitespace-nowrap  px-6 py-2  text-xs text-gray-700 dark:text-gray-300">
+                            {{-- <td class="whitespace-nowrap  px-6 py-2   text-sm  text-gray-700 dark:text-gray-300">
                                 {{ number_format($p->net_salary, 0, ',', '.') }}</td> --}}
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 <span class="salary-mask" data-id="{{ $p->id }}">••••••</span>
                                 <button type="button"
-                                    class="revealSalaryBtn ml-2 inline-flex items-center rounded-md bg-gray-200 px-2 py-1 text-xs hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+                                    class="revealSalaryBtn ml-2 inline-flex items-center rounded-md bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
                                     data-id="{{ $p->id }}" aria-label="Reveal salary" title="Lihat gaji">
                                     <i data-lucide="eye" class="h-4 w-4"></i>
                                 </button>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->other_facility }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{-- {{ \Carbon\Carbon::parse($p->work_start_date)->format('d F Y') }}</td> --}}
                                 {{ \Carbon\Carbon::parse($p->work_start_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{-- {{ \Carbon\Carbon::parse($p->availability_date)->format('d F Y') }}</td> --}}
                                 {{ \Carbon\Carbon::parse($p->availability_date)->translatedFormat('d F Y') }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->employment_status }} - Contract {{ $p->contract_term }} bulan</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm">
                                 <button
-                                    class="editPayrollBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Edit</button>
+                                    class="editPayrollBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Edit</button>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="10"
-                                class="py-6 text-center text-xs italic text-gray-500 dark:text-gray-400">
+                                class="py-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
                                 No payroll data found.
                             </td>
                         </tr>
@@ -310,7 +310,7 @@
                     <!-- Tombol Add -->
                     <div class="mt-4">
                         <button type="button" id="addSignRow"
-                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow transition hover:bg-indigo-700">
+                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-indigo-700">
                             + Add Row
                         </button>
                     </div>
@@ -333,7 +333,7 @@
                         <!-- Urutan -->
                         <div class="flex flex-col">
                             <label
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Urutan</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Urutan</label>
                             <select name="aprvid[]"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -346,7 +346,7 @@
 
                         <!-- Nama -->
                         <div class="flex flex-col">
-                            <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Nama</label>
+                            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nama</label>
                             <select name="aprvusername[]"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 required>
@@ -362,7 +362,7 @@
                         <!-- Jabatan -->
                         <div class="flex flex-col">
                             <label
-                                class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Jabatan</label>
+                                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Jabatan</label>
                             <input type="text" name="jabatan[]"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
@@ -370,7 +370,7 @@
 
                         <!-- Tombol hapus baris -->
                         <button type="button"
-                            class="removeSignRow absolute -right-3 -top-3 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow hover:bg-red-700">
+                            class="removeSignRow absolute -right-3 -top-3 rounded-full bg-red-600 px-2.5 py-1 text-sm font-semibold text-white shadow hover:bg-red-700">
                             Hapus
                         </button>
                     </div>
@@ -388,16 +388,16 @@
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Urutan</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Nama</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Jabatan</th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                            class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                             Aksi</th>
                     </tr>
                 </thead>
@@ -405,20 +405,20 @@
                     @forelse ($sign as $p)
                         <tr data-id="{{ $p->id }}"
                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-900 dark:text-gray-100">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-900 dark:text-gray-100">
                                 {{ $p->aprvid }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                            <td class="whitespace-nowrap px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $p->jabatan }}</td>
-                            <td class="space-x-2 whitespace-nowrap px-6 py-2 text-xs">
+                            <td class="space-x-2 whitespace-nowrap px-6 py-2 text-sm">
                                 <button
-                                    class="editsignBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                    class="editsignBtn inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                                     Edit
                                 </button>
 
                                 <button
-                                    class="deletesignBtn inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                                    class="deletesignBtn inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                                     Delete
                                 </button>
                             </td>
@@ -427,7 +427,7 @@
                     @empty
                         <tr>
                             <td colspan="10"
-                                class="py-6 text-center text-xs italic text-gray-500 dark:text-gray-400">
+                                class="py-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
                                 No Sign data found.
                             </td>
                         </tr>
@@ -443,7 +443,7 @@
                     @csrf
                     <input type="hidden" id="salary_payroll_id" name="payroll_id">
                     <div class="mb-4">
-                        <label class="mb-1 block text-xs text-gray-600 dark:text-gray-300">Password Anda</label>
+                        <label class="mb-1 block text-sm text-gray-600 dark:text-gray-300">Password Anda</label>
                         <input type="password" id="salary_password" name="password" autocomplete="current-password"
                             class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                             required>
@@ -949,7 +949,7 @@
                     if ($('#signTable tbody tr').length === 0) {
                         $('#signTable tbody').html(`
               <tr>
-                <td colspan="10" class="py-6 text-center text-xs italic text-gray-500 dark:text-gray-400">
+                <td colspan="10" class="py-6 text-center  text-sm  italic text-gray-500 dark:text-gray-400">
                   No Sign data found.
                 </td>
               </tr>

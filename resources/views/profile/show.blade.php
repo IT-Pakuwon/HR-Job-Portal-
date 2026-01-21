@@ -20,24 +20,24 @@
                             <h3 class="mt-4 text-sm font-semibold text-gray-800 dark:text-white">
                                 {{ Auth::user()->name }}
                             </h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
                                 {{ Auth::user()->departmentid }}
                             </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
                                 {{ $talenta->branch }}
                             </p>
 
                             <div class="mt-4 flex justify-center gap-2">
-                                {{-- <button class="px-3 py-1 text-xs bg-blue-500 text-white rounded">Follow</button> --}}
+                                {{-- <button class="px-3 py-1  text-sm  bg-blue-500 text-white rounded">Follow</button> --}}
                                 <button id="btnChangePassword"
-                                    class="rounded border border-blue-500 px-3 py-1 text-xs text-blue-500">
+                                    class="rounded border border-blue-500 px-3 py-1 text-sm text-blue-500">
                                     Change Password
                                 </button>
                             </div>
                         </div>
 
                         {{-- <div class="mt-6 border-t pt-4">
-                            <ul class="space-y-2 text-xs text-gray-700 dark:text-gray-300">
+                            <ul class="space-y-2  text-sm  text-gray-700 dark:text-gray-300">
                                 <li><strong>Websitex:</strong> yourwebsite.com</li>
                                 <li><strong>Github:</strong> github.com/username</li>
                                 <li><strong>Twitter:</strong> @username</li>
@@ -54,17 +54,17 @@
                             <form id="changePasswordForm">
                                 @csrf
                                 <div class="mb-4">
-                                    <label class="block text-xs font-medium">Current Password</label>
+                                    <label class="block text-sm font-medium">Current Password</label>
                                     <input type="password" name="current_password"
                                         class="w-full rounded border px-3 py-2" required>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-xs font-medium">New Password</label>
+                                    <label class="block text-sm font-medium">New Password</label>
                                     <input type="password" name="password" class="w-full rounded border px-3 py-2"
                                         required>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-xs font-medium">Confirm New Password</label>
+                                    <label class="block text-sm font-medium">Confirm New Password</label>
                                     <input type="password" name="password_confirmation"
                                         class="w-full rounded border px-3 py-2" required>
                                 </div>
@@ -84,7 +84,7 @@
                         <div class="mb-6 rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
                             <h4 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100">User Information
                             </h4>
-                            <div class="grid grid-cols-1 gap-4 text-xs sm:grid-cols-2">
+                            <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                 <div><strong>Full Name:</strong> {{ Auth::user()->name }}</div>
                                 <div><strong>Email:</strong> {{ Auth::user()->email }}</div>
                                 <div><strong>Position:</strong> {{ $talenta->job_position }}</div>
@@ -94,7 +94,7 @@
                             </div>
                             {{-- <div class="mt-4">
                                 <a href="{{ route('profile.show') }}"
-                                    class="bg-green-600 text-white px-4 py-2 rounded text-xs hover:bg-green-700">Edit</a>
+                                    class="bg-green-600 text-white px-4 py-2 rounded  text-sm  hover:bg-green-700">Edit</a>
                             </div> --}}
                         </div>
 
@@ -102,7 +102,7 @@
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             {{-- @foreach (['Web Design', 'Website Markup', 'One Page', 'Mobile Template'] as $project)
                                 <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                                    <div class="text-xs text-gray-600 dark:text-gray-300 mb-2">
+                                    <div class=" text-sm  text-gray-600 dark:text-gray-300 mb-2">
                                         <span class="italic text-blue-600">assignment</span> {{ $project }}
                                     </div>
                                     <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">

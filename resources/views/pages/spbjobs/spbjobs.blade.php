@@ -156,13 +156,13 @@
                     const isSppbJobs = (sc === 'onprogress');
                     return `
                     <th></th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">SPB Date</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Keperluan</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPB ID</th>
+                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">SPB Date</th>
+                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Keperluan</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">
                                 ${isSppbJobs ? 'Status SPPB' : 'Status Issue'}
                                 </th>
                             `;
@@ -172,26 +172,26 @@
                     // TrIssue header
                     return `
                     <th></th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Issue ID</th>
+                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Issue Date</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Issue Type</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPB ID</th>
+                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                                 `;
 
                 }
                 // SPPB (TrSPPB) header
                 return `
                 <th></th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB ID</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">SPPB Date</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Department</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Request Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Description</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB ID</th>
+                            <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">SPPB Date</th>
+                            <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Department</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Request Type</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Description</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
             }
 
@@ -200,7 +200,7 @@
                 const hash = row.spb_eid || row.spb_hash || row.hash || row.id;
                 if (!label) return '';
                 const url = `/showspbs/${encodeURIComponent(hash ?? '')}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderSppbLink(row) {
@@ -208,7 +208,7 @@
                 const hash = row.eid || row.sppb_hash || row.hash || row.id;
                 if (!label) return '';
                 const url = `/showsppbs/${encodeURIComponent(hash ?? '')}`; // sesuaikan dengan route detail SPPB-mu
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderIssueLinkCell(_value, _type, row) {
@@ -217,7 +217,7 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 const statusRaw = (row.status ?? row.xstatus ?? '').toString().trim().toUpperCase();
@@ -227,28 +227,28 @@
                 const isOwner = creator === (currentUser ?? '');
                 if (isRevise && isOwner) {
                     const url = `/editissues/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
                 }
                 const url = `/showissue/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             // function renderPlusCreate(row) {
             //     const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-            //     return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+            //     return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
         //         <i class="fas fa-plus"></i>
         //     </a>`;
             // }
             function renderIssueCreate(row) {
                 const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
+                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
                             <i class="fas fa-plus"></i>
                         </a>`;
             }
 
             function renderSppbCreate(row) {
                 const url = `{{ route('sppb.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-amber-600 hover:bg-amber-700">
+                return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-amber-600 hover:bg-amber-700">
                             <i class="fas fa-plus"></i>
                         </a>`;
             }
@@ -315,7 +315,8 @@
                             data: null,
                             defaultContent: '',
                             render: (_v, _t, row) => {
-                                const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ?? '-');
+                                const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ??
+                                    '-');
                                 const map = {
                                     'Open': 'bg-gray-200/50 text-gray-700',
                                     'Partial': 'bg-amber-200/50 text-amber-700',
@@ -323,7 +324,7 @@
                                     'Full': 'bg-green-200/50 text-green-700',
                                 };
                                 const cls = map[val] || 'bg-gray-200/50 text-gray-700';
-                                return `<span class="inline-block ${cls} font-semibold px-3 py-1.5 text-xs text-center rounded">${val}</span>`;
+                                return `<span class="inline-block ${cls} font-semibold px-3 py-1.5  text-sm  text-center rounded">${val}</span>`;
                             }
                         }
                     ];
@@ -372,7 +373,7 @@
                 //                     'Full': 'bg-green-200/50 text-green-700',
                 //                 };
                 //                 const cls = map[val] || 'bg-gray-200/50 text-gray-700';
-                //                 return `<span class="inline-block ${cls} font-semibold px-3 py-1.5 text-xs text-center rounded">${val}</span>`;
+                //                 return `<span class="inline-block ${cls} font-semibold px-3 py-1.5  text-sm  text-center rounded">${val}</span>`;
                 //             }
                 //         }
 

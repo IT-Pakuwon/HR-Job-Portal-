@@ -90,9 +90,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="itemReqTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="itemReqTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-32 px-6 py-2 font-medium">
@@ -104,10 +104,10 @@
                             <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 Description</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 PIC</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Status</th>

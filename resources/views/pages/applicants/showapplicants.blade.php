@@ -45,7 +45,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Full
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Full
                                                                         Name</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -58,7 +58,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Email</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Email</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->email_address }}</p>
@@ -75,7 +75,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Birth
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Birth
                                                                         Place</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -87,7 +87,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">DOB</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">DOB</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->date_of_birth }}</p>
@@ -101,7 +101,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Gender</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Gender</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->gender }}</p>
@@ -112,7 +112,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Blood
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Blood
                                                                         Type</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -130,7 +130,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Age</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Age</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->age }}</p>
@@ -141,7 +141,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Height</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Height</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->height }}</p>
@@ -152,7 +152,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Weight</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Weight</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->weight }}</p>
@@ -168,7 +168,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Citizenship</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Citizenship</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->citizenship }}</p>
@@ -179,7 +179,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">KTP
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">KTP
                                                                         ID</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -194,7 +194,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Marital
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Marital
                                                                         Status</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -206,7 +206,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Religion</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Religion</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->religion }}</p>
@@ -221,7 +221,7 @@
                                                                 class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
-                                                                    class="text-xs text-gray-500 dark:text-gray-400">Address</span>
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Address</span>
                                                                 <p
                                                                     class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->id_address }}
@@ -238,7 +238,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Facebook</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Facebook</span>
                                                                     <p
                                                                         class="word-break: break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->sosmed_facebook_account }}</p>
@@ -249,7 +249,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Instagram</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Instagram</span>
                                                                     <p
                                                                         class="word-break: break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->sosmed_instagram_account }}</p>
@@ -260,7 +260,7 @@
                                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">Twitter</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Twitter</span>
                                                                     <p
                                                                         class="word-break: break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->sosmed_x_account }}</p>
@@ -271,7 +271,7 @@
                                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                 <div>
                                                                     <span
-                                                                        class="text-xs text-gray-500 dark:text-gray-400">LinkedIn</span>
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">LinkedIn</span>
                                                                     <p
                                                                         class="word-break: break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $applicant->sosmed_linkedin_account }}</p>
@@ -290,7 +290,7 @@
                                                 <label for="" class="text-sm font-semibold">Reference
                                                     Information</label>
                                                 <table
-                                                    class="my-4 min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -335,7 +335,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -388,7 +388,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -442,7 +442,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -482,7 +482,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -526,7 +526,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -577,7 +577,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -629,7 +629,7 @@
                                                                 class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
-                                                                    class="text-xs text-gray-500 dark:text-gray-400">Last
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Last
                                                                     Salary</span>
                                                                 <p
                                                                     class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -642,7 +642,7 @@
                                                                 class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
-                                                                    class="text-xs text-gray-500 dark:text-gray-400">Expected
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Expected
                                                                     Salary</span>
                                                                 <p
                                                                     class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -657,7 +657,7 @@
                                                                 class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
-                                                                    class="text-xs text-gray-500 dark:text-gray-400">Expectations</span>
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Expectations</span>
                                                                 <p
                                                                     class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                     {{ $applicant->expectations }}</p>
@@ -669,7 +669,7 @@
                                                                 class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
                                                                 <span
-                                                                    class="text-xs text-gray-500 dark:text-gray-400">Career
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Career
                                                                     Achievement</span>
                                                                 <p
                                                                     class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -687,7 +687,7 @@
                                             <div class="overflow-x-auto">
                                                 <label for="" class="text-sm font-semibold">Attachment</label>
                                                 <table
-                                                    class="my-4 min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -739,7 +739,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -796,7 +796,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -853,7 +853,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
@@ -899,7 +899,7 @@
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <table
-                                                    class="min-w-full border border-gray-300 text-xs dark:border-gray-700">
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead
                                                         class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>

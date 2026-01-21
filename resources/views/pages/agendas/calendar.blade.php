@@ -40,12 +40,12 @@
                         <header class="mb-2 text-center text-sm font-semibold text-indigo-600 dark:text-indigo-400"
                             x-text="monthNames[m - 1]"></header>
                         <div
-                            class="mb-2 grid select-none grid-cols-7 text-center text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            class="mb-2 grid select-none grid-cols-7 text-center text-sm font-semibold text-gray-500 dark:text-gray-400">
                             <template x-for="d in weekDays" :key="d">
                                 <div x-text="d"></div>
                             </template>
                         </div>
-                        <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                        <div class="grid grid-cols-7 gap-1 text-center text-sm">
                             <template x-for="blank in blanksYearly(m - 1)" :key="'blank-' + blank">
                                 <div>&nbsp;</div>
                             </template>
@@ -101,15 +101,15 @@
             <div x-show="view === 'week'" x-transition>
                 <!-- Week Navigation -->
                 <div class="mb-4 flex items-center justify-between px-4 py-2">
-                    <button @click="prevWeek()" class="btn-nav text-xs">← Previous Week</button>
-                    <div class="text-xs font-semibold text-gray-700 dark:text-gray-300"
+                    <button @click="prevWeek()" class="btn-nav text-sm">← Previous Week</button>
+                    <div class="text-sm font-semibold text-gray-700 dark:text-gray-300"
                         x-text="`${formatDayWithDate(weekRange[0])} - ${formatDayWithDate(weekRange[6])}`"></div>
-                    <button @click="nextWeek()" class="btn-nav text-xs">Next Week →</button>
+                    <button @click="nextWeek()" class="btn-nav text-sm">Next Week →</button>
                 </div>
 
                 <!-- Week Header -->
                 <div
-                    class="grid grid-cols-8 border-b bg-gray-100 text-center text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    class="grid grid-cols-8 border-b bg-gray-100 text-center text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                     <div class="p-2">Hour</div>
                     <template x-for="(day, index) in weekRange" :key="index">
                         <div class="p-2" x-text="formatDayWithDate(day)"></div>
@@ -119,7 +119,7 @@
                 <!-- Week Hours -->
                 <div class="h-[500px] select-none overflow-y-auto">
                     <template x-for="hour in 24" :key="hour">
-                        <div class="grid grid-cols-8 border-t text-xs">
+                        <div class="grid grid-cols-8 border-t text-sm">
                             <div class="select-none p-2 text-right text-gray-500 dark:text-gray-400">
                                 <span x-text="`${String(hour).padStart(2, '0')}:00`"></span>
                             </div>
@@ -141,15 +141,15 @@
 
             <!-- Day View -->
             <div x-show="view === 'day'" x-transition style="height: 500px; overflow-y:auto; user-select:none;">
-                <div class="grid grid-cols-1 text-xs text-gray-600 dark:text-gray-300">
+                <div class="grid grid-cols-1 text-sm text-gray-600 dark:text-gray-300">
                     <template x-for="hour in 24" :key="hour">
                         <div class="grid grid-cols-[60px_1fr] border-b border-gray-200 py-3 dark:border-gray-700">
-                            <div class="select-none pr-3 text-right text-xs text-gray-500 dark:text-gray-400">
+                            <div class="select-none pr-3 text-right text-sm text-gray-500 dark:text-gray-400">
                                 <span x-text="`${String(hour).padStart(2,'0')}:00`"></span>
                             </div>
                             <div>
                                 <template x-for="event in eventsForHour(hour)" :key="event.id">
-                                    <div class="mb-1 w-fit rounded bg-indigo-300 px-2 py-1 text-xs shadow">
+                                    <div class="mb-1 w-fit rounded bg-indigo-300 px-2 py-1 text-sm shadow">
                                         <div x-text="event.title"></div>
                                         <div class="text-[9px] text-gray-700"
                                             x-text="formatEventTime(event.startdate, event.enddate)"></div>
@@ -172,7 +172,7 @@
                     <template x-for="event in events[selectedDate]" :key="event.id">
                         <li class="rounded border bg-indigo-50 p-3 shadow-sm dark:bg-indigo-900">
                             <div class="font-semibold text-indigo-700 dark:text-indigo-300" x-text="event.title"></div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400"
+                            <div class="text-sm text-gray-600 dark:text-gray-400"
                                 x-text="formatEventTime(event.startdate, event.enddate)"></div>
                         </li>
                     </template>

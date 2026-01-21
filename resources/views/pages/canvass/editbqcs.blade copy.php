@@ -113,23 +113,23 @@
                     </h2>
                 </div>
 
-                <div class="flex flex-col gap-4 text-xs">
+                <div class="flex flex-col gap-4  text-sm ">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
-                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->cpny_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">CSID</span>
-                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->csid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
-                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <div class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->sppjtid }}
                             </div>
                         </div>
@@ -144,7 +144,7 @@
                 </div>
 
                 <div class="overflow-x-auto p-5">
-                    <table class="w-full text-xs" id="bqTable">
+                    <table class="w-full  text-sm " id="bqTable">
                         <thead class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
                             <tr>
                                 <th class="border px-4 py-3 text-left font-semibold">No</th>
@@ -155,10 +155,10 @@
                                 @foreach ($vendors as $v)
                                     <th class="border px-4 py-3 text-left font-semibold">
                                         <div>{{ $v['name'] }}</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">✉️ {{ $v['cp'] ?? '-' }}</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">☎️ {{ $v['telp'] ?? '-' }}</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">🏠 {{ $v['addr'] ?? '-' }}</div>
-                                        <div class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Material / Jasa</div>
+                                        <div class=" text-sm  text-gray-500 dark:text-gray-400">✉️ {{ $v['cp'] ?? '-' }}</div>
+                                        <div class=" text-sm  text-gray-500 dark:text-gray-400">☎️ {{ $v['telp'] ?? '-' }}</div>
+                                        <div class=" text-sm  text-gray-500 dark:text-gray-400">🏠 {{ $v['addr'] ?? '-' }}</div>
+                                        <div class="mt-1  text-sm  font-medium text-gray-500 dark:text-gray-400">Material / Jasa</div>
                                     </th>
                                 @endforeach
                             </tr>
@@ -189,7 +189,7 @@
                                             // $totJsa  = $d->{"vendortotaljasaprice{$i}"} ?? 0;
                                         @endphp
                                         <td class="border px-4 py-3 align-top">
-                                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                            <div class="grid grid-cols-2 gap-3  text-sm ">
                                                 <label class="flex flex-col gap-1">
                                                     <span class="font-medium text-gray-600 dark:text-gray-300">Harga Material</span>
                                                     <input type="number" step="0.01" min="0"
@@ -215,10 +215,10 @@
                                 <td colspan="5" class="border px-4 py-4 text-right">Grand Total per Vendor</td>
                                 @foreach ($vendors as $i => $v)
                                     <td class="border px-4 py-4 text-right">
-                                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                                        <div class=" text-sm  text-gray-600 dark:text-gray-300">
                                             Harga Total Material: <span class="sum-mat font-semibold" data-vendor="{{ $i + 1 }}">0</span>
                                         </div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-300">
+                                        <div class=" text-sm  text-gray-600 dark:text-gray-300">
                                             Harga Total Jasa: <span class="sum-jsa font-semibold" data-vendor="{{ $i + 1 }}">0</span>
                                         </div>
                                         <div class="mt-1 font-bold text-indigo-600 dark:text-indigo-400">

@@ -191,7 +191,7 @@
                                 <!-- Company -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <select name="cpny_id" required
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         {{-- @foreach ($companies as $p)
@@ -209,7 +209,7 @@
                                 <!-- Business Unit -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Business
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Business
                                         Unit</label>
                                     <select name="business_unit_id" required
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
@@ -225,7 +225,7 @@
                                 <!-- Department -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                     <select name="department_fin_id" id="department_select" required
                                         class="bg-gray-100/50px-3 h-[40px] w-full rounded-md border border-gray-200 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                                         @foreach ($departements as $d)
@@ -240,7 +240,7 @@
                                 <!-- File Upload -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Import
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
                                         Excel</label>
                                     <input type="file" name="file" id="file" required
                                         class="block h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 py-2 text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-gray-700 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
@@ -277,7 +277,7 @@
 
                             <div class="w-full overflow-x-auto">
                                 <table
-                                    class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-xs">
+                                    class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-sm">
                                     <thead class="bg-gray-100 font-bold text-gray-700">
                                         <tr>
                                             <th class="px-4 py-2">Perpost</th>
@@ -368,7 +368,7 @@
                                                                     </span>
                                                                 @endif
                                                                 <div
-                                                                    class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                                                    class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                                                                     {{ strtoupper($att->extention ?? '-') }}
                                                                     @if (!empty($att->size))
                                                                         • {{ number_format($att->size / 1024, 0) }} KB
@@ -382,14 +382,14 @@
                                                         </div>
 
                                                         <button type="button"
-                                                            class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                                                            class="removeAttachment2 inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
                                                             aria-label="Remove attachment">
                                                             🗑️
                                                         </button>
                                                     </div>
                                                 @empty
                                                     <div
-                                                        class="rounded-lg border border-dashed border-gray-300 p-4 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                                                        class="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
                                                         No existing attachments.
                                                     </div>
                                                 @endforelse
@@ -399,16 +399,16 @@
                                             <div id="attachmentsContainer" class="mt-6">
                                                 <div class="attachment-row flex items-center gap-2">
                                                     <input type="file" name="attachments[]"
-                                                        class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                                        class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                                     <button type="button"
-                                                        class="removeAttachment inline-flex hidden items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30">
+                                                        class="removeAttachment inline-flex hidden items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30">
                                                         🗑️
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <button type="button" id="addAttachment"
-                                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                                                     viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd"
@@ -601,14 +601,14 @@
             const rowTemplate = `
             <div class="attachment-row flex items-center gap-2">
                 <input type="file" name="attachments[]"
-                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700
+                class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700
                         file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2
-                        file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
+                        file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
                         dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300
                         dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                 <button type="button"
                 class="removeAttachment inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1.5
-                        text-xs font-medium text-red-700 transition hover:bg-red-100 focus:outline-none
+                         text-sm  font-medium text-red-700 transition hover:bg-red-100 focus:outline-none
                         focus:ring-2 focus:ring-red-500 focus:ring-offset-2
                         dark:border-red-700/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30">
                 🗑️

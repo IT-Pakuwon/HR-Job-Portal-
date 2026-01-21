@@ -25,7 +25,7 @@
                 :class="subtab === 'step' ?
                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                     'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                class="whitespace-nowrap px-3 py-3 text-xs font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Step
             </button>
             {{-- @if ($canAccessSchedule) --}}
@@ -34,7 +34,7 @@
                     ?
                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                     'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                class="whitespace-nowrap px-3 py-3 text-xs font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Schedule
             </button>
             {{-- @endif --}}
@@ -42,7 +42,7 @@
                 :class="subtab === 'checklist' ?
                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                     'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                class="whitespace-nowrap px-3 py-3 text-xs font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Checklist
             </button>
             @if ($canAccessAssessment)
@@ -50,7 +50,7 @@
                     :class="subtab === 'assessment' ?
                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                         'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                    class="whitespace-nowrap px-3 py-3 text-xs font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                    class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                     Form Interview HC
                 </button>
             @endif
@@ -58,7 +58,7 @@
                 :class="subtab === 'assessmentuser' ?
                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                     'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                class="whitespace-nowrap px-3 py-3 text-xs font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Form Interview User
             </button>
             @if ($canAccessPayroll)
@@ -66,7 +66,7 @@
                     :class="subtab === 'payroll' ?
                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                         'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                    class="whitespace-nowrap px-3 py-3 text-xs font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                    class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                     Payroll
                 </button>
             @endif
@@ -75,7 +75,7 @@
                     :class="subtab === 'join' ?
                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                         'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
-                    class="whitespace-nowrap px-3 py-3 text-xs font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                    class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                     Join
                 </button>
             @endif
@@ -93,7 +93,7 @@
                     <div class="flex w-full flex-shrink-0 flex-grow md:w-1/2"> {{-- Added flex-grow, flex-shrink-0 --}}
                         <div class="w-full overflow-x-auto rounded-lg px-4">
                             {{-- Added w-full here --}}
-                            <table class="w-full text-xs">
+                            <table class="w-full text-sm">
                                 <thead>
                                     <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
                                         <th class="px-4 py-3 text-left font-semibold">No</th>
@@ -144,32 +144,32 @@
                                                         @php $firstPendingShown = true; @endphp
                                                         <div class="flex flex-col gap-2 sm:flex-row sm:gap-2">
                                                             <button id="approveBtn"
-                                                                class="inline-flex items-center gap-1 rounded-md bg-green-500/15 px-3 py-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white focus:outline-none">
+                                                                class="inline-flex items-center gap-1 rounded-md bg-green-500/15 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white focus:outline-none">
                                                                 Approve
                                                             </button>
                                                             <button id="rejectBtn"
-                                                                class="inline-flex items-center gap-1 rounded-md bg-red-500/15 px-3 py-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white focus:outline-none">
+                                                                class="inline-flex items-center gap-1 rounded-md bg-red-500/15 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white focus:outline-none">
                                                                 Reject
                                                             </button>
                                                         </div>
                                                     @else
                                                         <span
-                                                            class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                            class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                                                             Pending
                                                         </span>
                                                     @endif
                                                 @elseif ($step->status === 'A')
                                                     <div class="flex items-center gap-2">
                                                         <span
-                                                            class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                            class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                                                             Approved
                                                         </span>
                                                         {{-- <button id="rollbackBtn"
-                                                            class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5  text-sm  font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button> --}}
                                                         <button
-                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-sm font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button>
 
@@ -177,26 +177,26 @@
                                                 @elseif ($step->status === 'R')
                                                     <div class="flex items-center gap-2">
                                                         <span
-                                                            class="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                                                            class="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-sm font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
                                                             Rejected
                                                         </span>
                                                         {{-- <button id="rollbackBtn"
-                                                            class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5  text-sm  font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button> --}}
                                                         <button
-                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-xs font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-sm font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
                                                             Rollback
                                                         </button>
                                                     </div>
                                                 @elseif ($step->status === 'D')
                                                     <span
-                                                        class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/10">
+                                                        class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-sm font-medium text-blue-700 ring-1 ring-inset ring-blue-600/10">
                                                         Revised
                                                     </span>
                                                 @else
                                                     <span
-                                                        class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                        class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                                                         Pending
                                                     </span>
                                                 @endif
@@ -255,7 +255,7 @@
                                     <input id="commentInput" type="text" placeholder="Write a comment..."
                                         class="flex-1 rounded-lg border-gray-300 bg-white p-2 text-gray-800 focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                     <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
                                         Post 🚀
                                     </button>
                                 </div>
@@ -408,8 +408,8 @@
 
                             commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                    <p class="text-xs font-semibold">${comment.username} 
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                    <p class=" text-sm  font-semibold">${comment.username} 
+                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

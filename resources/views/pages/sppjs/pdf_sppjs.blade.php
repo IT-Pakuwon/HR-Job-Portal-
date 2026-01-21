@@ -215,12 +215,12 @@
             <tr>
                 <td>{{ $i + 1 }}</td>
                 <td>{{ $dt->inventory_descr }} ( {{ $dt->inventoryid }} ) <br>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
                         Note: {{ $dt->note }}
                     </span>
                 </td>
                 <td style="text-align:right;">{{ number_format((float) $dt->qty, 2) }} <br>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
                         {{ $dt->uom }}
                     </span>
                 </td>

@@ -139,7 +139,7 @@
 
 
 <!-- Table -->
-<table class="w-full text-xs">
+<table class="w-full text-sm">
     <thead class="bg-gray-50 dark:bg-gray-700">
         <tr class="text-gray-600 dark:text-gray-700">
             {{-- <th>DocID</th> --}}

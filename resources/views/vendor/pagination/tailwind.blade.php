@@ -23,7 +23,7 @@
             </div>
 
             {{-- Pagination Elements --}}
-            <ul class="shadow-xs inline-flex -space-x-px rounded-lg text-xs font-medium">
+            <ul class="shadow-xs inline-flex -space-x-px rounded-lg text-sm font-medium">
                 @foreach ($elements as $element)
                     {{-- "Three Dots" Separator --}}
                     @if (is_string($element))
@@ -74,7 +74,7 @@
             </div>
         </nav>
 
-        <div class="text-center text-xs text-gray-500 sm:text-left">
+        <div class="text-center text-sm text-gray-500 sm:text-left">
             {!! __('Showing') !!}
             @if ($paginator->firstItem())
                 <span class="font-medium text-gray-600 dark:text-gray-300">{{ $paginator->firstItem() }}</span>

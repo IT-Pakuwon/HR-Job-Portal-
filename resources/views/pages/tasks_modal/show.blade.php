@@ -89,16 +89,16 @@
                                         <thead class="bg-gray-100 dark:bg-gray-700">
                                             <tr>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-left text-sm font-medium text-gray-600 dark:text-white">
                                                     Level</th>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-left text-sm font-medium text-gray-600 dark:text-white">
                                                     User</th>
                                                 <th
-                                                    class="px-6 py-3 text-center text-xs font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-center text-sm font-medium text-gray-600 dark:text-white">
                                                     Date</th>
                                                 <th
-                                                    class="px-6 py-3 text-right text-xs font-medium text-gray-600 dark:text-white">
+                                                    class="px-6 py-3 text-right text-sm font-medium text-gray-600 dark:text-white">
                                                     Status</th>
                                             </tr>
                                         </thead>
@@ -112,7 +112,7 @@
                                                     <td class="px-6 py-2 text-right">{{ $p->aprvdateafter }}</td>
                                                     <td class="px-6 py-2 text-center">
                                                         <span
-                                                            class="rounded-lg bg-yellow-200 px-3 py-1 text-xs font-semibold text-yellow-700">
+                                                            class="rounded-lg bg-yellow-200 px-3 py-1 text-sm font-semibold text-yellow-700">
                                                             In Progress
                                                         </span>
                                                     </td>

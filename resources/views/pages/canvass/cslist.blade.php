@@ -84,16 +84,16 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="csTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="csTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 CS ID</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 SPPB/J/K/T</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 CS Date</th>
@@ -102,10 +102,10 @@
                             <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 Created By</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 Note</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Assign Date</th>
@@ -318,7 +318,7 @@
                 const src_eid = row.sppbjkid_eid;
                 if (!prefix || !base || !src_eid) return docNo;
                 const url = `/${base}/${src_eid}`;
-                return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-xs leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
+                return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
             }
 
             function renderDays(v) {
@@ -328,7 +328,7 @@
             function renderStatusBadge(row) {
                 const label = row.status_label ?? row.status ?? '-';
                 const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
-                return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
+                return `<span class="inline-flex items-center rounded-full border px-3 py-1  text-sm  font-semibold ${cls}">${label}</span>`;
             }
 
 

@@ -101,9 +101,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="calrTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="calrTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -145,27 +145,27 @@
                     // Jobs dari TrRfca + TrRfcaStep
                     return `
                     <th></th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">RFCA ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Vendor</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">RFCA Step</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">RFCA Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA ID</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA Step</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA Type</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
                             `;
                 }
                 // TrCalr scopes
                 return `
                 <th></th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Calr ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Calr Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">RFCA ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">CS ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Vendor</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Calr ID</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Calr Date</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">RFCA ID</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">CS ID</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
             }
 
@@ -298,7 +298,7 @@
                 // buat ulang thead + tr
                 const theadHtml = `
                         <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b  text-sm ">
                             <tr id="thead-row">${headerFor(sc)}</tr>
                             </thead>`;
                 $table.prepend(theadHtml);
@@ -383,7 +383,7 @@
                 const url = `{{ route('calr.create') }}` + `?rfca=${encodeURIComponent(row.rfca_eid ?? '')}`;
                 return `
                             <a href="${url}"
-                            class="inline-flex justify-center items-center px-4 py-2 text-xs leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+                            class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
                                 <i class="fas fa-plus"></i>
                             </a>`;
             }
@@ -394,13 +394,13 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 const url = `/showrfca/${encodeURIComponent(hash)}`;
                 return `
                             <a href="${url}"
-                            class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">
+                            class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">
                             ${label}
                             </a>`;
             }
@@ -430,7 +430,7 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 const statusRaw = (row.status ?? '').toString().trim().toUpperCase();
@@ -440,11 +440,11 @@
 
                 if (isRevise && isOwner) {
                     const url = `/editcalrs/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
                 }
 
                 const url = `/showcalr/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             // init

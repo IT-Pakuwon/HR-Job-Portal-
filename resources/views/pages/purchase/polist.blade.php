@@ -14,7 +14,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧊</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium">Hold</p>
+                        <p class="break-words text-sm font-medium">Hold</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $hold }}</p>
@@ -29,7 +29,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛒</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium">Purchase</p>
+                        <p class="break-words text-sm font-medium">Purchase</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $purchase }}</p>
@@ -44,7 +44,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium">Partial</p>
+                        <p class="break-words text-sm font-medium">Partial</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $partial }}</p>
@@ -59,7 +59,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium">Completed</p>
+                        <p class="break-words text-sm font-medium">Completed</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $completed }}</p>
@@ -74,7 +74,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✖️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium">Cancel</p>
+                        <p class="break-words text-sm font-medium">Cancel</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $cancel }}</p>
@@ -89,7 +89,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">♻️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium">Reuse</p>
+                        <p class="break-words text-sm font-medium">Reuse</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $reuse }}</p>
@@ -104,7 +104,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧾</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-xs font-medium">All PO</p>
+                        <p class="break-words text-sm font-medium">All PO</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $all }}</p>
@@ -120,13 +120,13 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="poTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="poTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr class="transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                             <th class="dtr-control"></th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 PO Nbr</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 PO Date</th>
@@ -210,7 +210,7 @@
             function renderPONbr(_v, row) {
                 const url = `/showpo/${row.eid}`;
                 const text = row.ponbr || row.eid;
-                return `<a href="${url}" class="inline-flex min-w-[90px] justify-center rounded bg-gray-500 px-2 py-1 text-xs font-semibold text-white hover:bg-gray-700" rel="noopener">${text}</a>`;
+                return `<a href="${url}" class="inline-flex min-w-[90px] justify-center rounded bg-gray-500 px-2 py-1  text-sm  font-semibold text-white hover:bg-gray-700" rel="noopener">${text}</a>`;
             }
 
             const table = $('#poTable').DataTable({
@@ -424,7 +424,7 @@
             function renderStatusBadge(row) {
                 const label = row.status_label ?? row.status ?? '-';
                 const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
-                return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${label}</span>`;
+                return `<span class="inline-flex items-center rounded-full border px-3 py-1  text-sm  font-semibold ${cls}">${label}</span>`;
             }
 
 

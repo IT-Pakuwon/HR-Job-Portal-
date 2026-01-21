@@ -110,9 +110,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="issueTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="issueTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -153,27 +153,27 @@
                 if (sc === 'returnjobs') {
                     return `
                     <th></th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Issue ID</th>
+                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Issue Date</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Issue Type</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPB ID</th>
+                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                             `;
                 }
 
                 // Default scopes
                 return `
                 <th></th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue ID</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Issue Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Issue Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPB ID</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Issue ID</th>
+                            <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Issue Date</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Issue Type</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPB ID</th>
+                            <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
             }
 
@@ -184,7 +184,7 @@
 
                 if (!label) return '';
                 if (!hash) {
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 const statusRaw = (row.status ?? row.xstatus ?? '').toString().trim().toUpperCase();
@@ -195,10 +195,10 @@
 
                 if (isRevise && isOwner) {
                     const url = `/editissues/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">${label}</a>`;
                 }
                 const url = `/showissue/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderReturnPlusButton(row) {
@@ -207,7 +207,7 @@
 
                 return `
                             <a href="${url}" 
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium 
+                            class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium 
                                     text-white rounded bg-purple-600 hover:bg-purple-700">
                                 <i class="fas fa-plus"></i>
                             </a>

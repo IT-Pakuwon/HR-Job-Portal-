@@ -125,7 +125,7 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                 <!-- SPPJID -->
                                 <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         SPPJ ID
                                     </label>
                                     <!-- kirim id SPPJ untuk import -->
@@ -138,7 +138,7 @@
 
                                 <!-- Company -->
                                 <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Company
                                     </label>
                                     <input type="text" name="company"
@@ -149,7 +149,7 @@
 
                                 <!-- Departement -->
                                 <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Departement
                                     </label>
                                     <input type="text" name="departement"
@@ -160,7 +160,7 @@
 
                                 <!-- File -->
                                 <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Import Excel
                                     </label>
                                     <input type="file" name="file" id="file" required
@@ -193,7 +193,7 @@
 
                                 <div class="w-full overflow-x-auto">
                                     <table
-                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-xs">
+                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-sm">
                                         <thead class="bg-gray-100 font-bold text-gray-700">
                                             <tr>
                                                 <th class="px-4 py-2">Line No</th>
@@ -271,12 +271,12 @@
                                                                         d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                                         clip-rule="evenodd" />
                                                                 </svg>
-                                                                <span class="text-xs font-medium">Add Photo</span>
+                                                                <span class="text-sm font-medium">Add Photo</span>
                                                             </div>
                                                         </button>
                                                     </div>
 
-                                                    <p class="mt-2 text-xs text-gray-500">Accepted: JPG/PNG, maks 5 MB
+                                                    <p class="mt-2 text-sm text-gray-500">Accepted: JPG/PNG, maks 5 MB
                                                         per foto.</p>
                                                 </div>
                                             </details>

@@ -9,7 +9,7 @@
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h1 class="text-base font-bold text-gray-800 dark:text-white">💳 Terms Of Payment (TOP)</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-300">Klik TOP untuk menampilkan detail di bawah.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-300">Klik TOP untuk menampilkan detail di bawah.</p>
                 </div>
                 <button id="addTopBtn"
                     class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
@@ -18,9 +18,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="topTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="topTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>
@@ -43,7 +43,7 @@
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h2 class="text-base font-bold text-gray-800 dark:text-white">🧾 TOP Detail</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-300">
+                    <p class="text-sm text-gray-500 dark:text-gray-300">
                         Selected TOP: <span id="selectedTopText" class="font-semibold">-</span>
                     </p>
                 </div>
@@ -54,9 +54,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="topDetailTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="topDetailTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-28 px-3 py-3 text-center">Actions</th>

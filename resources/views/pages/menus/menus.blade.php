@@ -15,7 +15,7 @@
 
             <div id="menuTreeContainer" class="mt-2">
                 <!-- Menu tree akan di-render via jQuery -->
-                <div class="text-xs text-gray-500">Loading menus...</div>
+                <div class="text-sm text-gray-500">Loading menus...</div>
             </div>
         </div>
 
@@ -132,7 +132,7 @@
             //  LOAD & BUILD TREE
             // ==========================
             function loadMenuTree() {
-                $('#menuTreeContainer').html('<div class="text-gray-500 text-xs">Loading menus...</div>');
+                $('#menuTreeContainer').html('<div class="text-gray-500  text-sm ">Loading menus...</div>');
 
                 $.get("{{ route('menus.json') }}", function(res) {
                     menus = res.data || [];
@@ -142,7 +142,7 @@
 
                     $('#menuTreeContainer').html(`
                             <div class="menu-tree">
-                                ${html || '<div class="text-gray-500 text-xs">Belum ada menu.</div>'}
+                                ${html || '<div class="text-gray-500  text-sm ">Belum ada menu.</div>'}
                             </div>
                         `);
                 });
@@ -166,8 +166,8 @@
                 children.forEach(m => {
                     const hasChildren = menus.some(x => (x.parent_menu_id || null) === (m.menu_id || null));
                     const statusBadge = m.status === 'A' ?
-                        '<span class="bg-green-300/30 text-green-600 text-xs font-semibold px-2 py-0.5 rounded">Active</span>' :
-                        '<span class="bg-red-300/30 text-red-600 text-xs font-semibold px-2 py-0.5 rounded">Inactive</span>';
+                        '<span class="bg-green-300/30 text-green-600  text-sm  font-semibold px-2 py-0.5 rounded">Active</span>' :
+                        '<span class="bg-red-300/30 text-red-600  text-sm  font-semibold px-2 py-0.5 rounded">Inactive</span>';
 
                     html += `
                         <li>
@@ -182,8 +182,8 @@
                                 <div class="flex-1 flex items-center justify-between">
                                     <div>
                                         <span class="font-mono text-[11px] bg-gray-100 dark:bg-gray-700 px-1 rounded">${m.menu_id}</span>
-                                        <span class="ml-2 font-semibold text-xs text-gray-800 dark:text-gray-100">${m.menu_name}</span>
-                                        <span class="ml-2 text-xs text-gray-500">
+                                        <span class="ml-2 font-semibold  text-sm  text-gray-800 dark:text-gray-100">${m.menu_name}</span>
+                                        <span class="ml-2  text-sm  text-gray-500">
                                             ${m.menu_route || m.menu_url || '-'}
                                         </span>
                                         <span class="ml-1 text-[10px] text-gray-400">
@@ -200,12 +200,12 @@
                                             <span class="slider round"></span>
                                         </label>
 
-                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 text-xs rounded editMenuBtn"
+                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1  text-sm  rounded editMenuBtn"
                                             data-id="${m.id}">
                                             <i class="fas fa-edit"></i>
                                         </button>
 
-                                        <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1 text-xs rounded addChildBtn"
+                                        <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1  text-sm  rounded addChildBtn"
                                             data-parent-menu="${m.menu_id}">
                                             + Child
                                         </button>

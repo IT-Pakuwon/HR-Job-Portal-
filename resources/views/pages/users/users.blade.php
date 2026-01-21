@@ -14,11 +14,11 @@
             {{-- Filter Company & Department --}}
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Company
                     </label>
                     <select id="filterCompany"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Company</option>
                         @foreach ($company as $c)
                             <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
@@ -27,11 +27,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Department
                     </label>
                     <select id="filterDepartment"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Department</option>
                         @foreach ($department as $d)
                             <option value="{{ $d->department_id }}">{{ $d->department_id }}</option>
@@ -40,11 +40,11 @@
                 </div>
 
                 <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Business Unit
                     </label>
                     <select id="filterBusinessUnit"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs dark:bg-gray-700">
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Business Unit</option>
                         @foreach ($businessUnits as $bu)
                             <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }}</option>
@@ -55,16 +55,16 @@
 
                 <div class="mt-6">
                     <button id="clearUserFilters" type="button"
-                        class="rounded-lg border px-3 py-1 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                        class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                         Clear Filter
                     </button>
                 </div>
             </div>
             {{-- Table --}}
             <div class="rounded-base relative overflow-x-auto">
-                <table id="usersTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="usersTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-48 px-4 py-3 font-medium">Actions</th>
@@ -123,8 +123,8 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">Business Unit</label>
-                            <select name="business_unit_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
-                                required>
+                            <select name="business_unit_id[]" class="select2 w-full rounded-lg border px-3 py-2"
+                                multiple required>
                                 @foreach ($businessUnits as $p)
                                     <option value="{{ $p->business_unit_id }}">{{ $p->business_unit_id }}</option>
                                 @endforeach
@@ -370,7 +370,8 @@
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
                     $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
-                    $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger('change');
+                    $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(
+                        'change');
                     $('select[name="role"]').val(app.role).trigger('change');
 
                     // ⬇️ Set app roles (sys_user_role)

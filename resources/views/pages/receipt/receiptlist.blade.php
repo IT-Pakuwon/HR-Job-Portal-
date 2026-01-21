@@ -116,9 +116,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="receiptTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="receiptTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>
@@ -161,40 +161,40 @@
 
                     return `
                     <th></th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Vendor</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Delivery Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Date</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Delivery Date</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                             `;
                 }
                 if (sc === 'returnjobs') {
                     return `
                     <th></th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Action</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Nbr</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Receipt Nbr</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Receipt Date</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                             `;
                 }
                 // TrReceipt scopes (tanpa kolom "+")
                 return `
                 <th></th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Nbr</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Receipt Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">PO Nbr</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Created By</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Receipt Nbr</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Receipt Date</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Receipt Type</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
             }
 
@@ -439,14 +439,14 @@
 
             function renderPlusCreate(row) {
                 const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2 text-xs leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+                return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
                     <i class="fas fa-plus"></i></a>`;
             }
 
             function renderPlusReturn(row) {
                 const url = `{{ route('receipt.return.create') }}` +
                     `?rcp=${encodeURIComponent(row.receiptnbr_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white text-xs font-bold hover:bg-indigo-700">+</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center rounded bg-indigo-600 px-2 py-1 text-white  text-sm  font-bold hover:bg-indigo-700">+</a>`;
             }
 
 
@@ -482,7 +482,7 @@
                 if (!label) return '';
                 if (!hash) {
                     // fallback bila hash tidak ada
-                    return `<span class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-400 text-white">${label}</span>`;
+                    return `<span class="inline-flex items-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-400 text-white">${label}</span>`;
                 }
 
                 // baca status & creator
@@ -494,12 +494,12 @@
                 // Jika Revise dan pemilik dokumen = user sekarang → arahkan ke EDIT
                 if (isRevise && isOwner) {
                     const url = `/editreceipts/${encodeURIComponent(hash)}`;
-                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
+                    return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
                 }
 
                 // default → SHOW
                 const url = `/showreceipt/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderStatusBadge(row) {
@@ -507,7 +507,7 @@
                 const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
 
                 return `
-                        <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${cls}">
+                        <span class="inline-flex items-center rounded-full border px-3 py-1  text-sm  font-semibold ${cls}">
                             ${label}
                         </span>
                         `;

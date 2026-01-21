@@ -15,7 +15,7 @@
                             @foreach ($vendors as $v)
                                 <a href="{{ route('bqcs.print.vendor', ['hash' => $hash, 'idx' => $v['idx']]) }}" target="_blank">
                                     <button
-                                        class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1  text-sm  font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                         Print PDF - {{ $v['name'] }}
                                     </button>
                                 </a>
@@ -23,7 +23,7 @@
                         </div> --}}
                         <div class="relative" x-data="{ open: false }">
                             <button type="button" @click="open=!open" @click.outside="open=false"
-                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 Print PDF
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                     <path fill-rule="evenodd"
@@ -35,7 +35,7 @@
                             <div x-show="open" x-transition.origin.top.right
                                 class="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
                                 style="display:none;">
-                                <div class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                <div class="px-3 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400">
                                     Pilih Vendor
                                 </div>
 
@@ -43,10 +43,10 @@
                                     @foreach ($vendors as $v)
                                         <a href="{{ route('bqcs.print.vendor', ['hash' => $hash, 'idx' => $v['idx']]) }}"
                                             target="_blank"
-                                            class="block px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
                                             @click="open=false">
                                             {{ $v['name'] }}
-                                            {{-- <span class="block text-xs text-gray-500 dark:text-gray-400">
+                                            {{-- <span class="block  text-sm  text-gray-500 dark:text-gray-400">
                                                 {{ $v['cp'] ?? '-' }} • {{ $v['telp'] ?? '-' }}
                                             </span> --}}
                                         </a>
@@ -59,26 +59,26 @@
                 </div>
 
 
-                <div class="flex flex-col gap-4 text-xs">
+                <div class="flex flex-col gap-4 text-sm">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->cpny_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">CSID</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->csid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $bq->sppjtid }}
                             </div>
                         </div>
@@ -106,7 +106,7 @@
                     @endphp
 
                     <div class="mt-4 overflow-x-auto">
-                        <table class="w-max table-auto border text-xs text-gray-700 dark:text-gray-200" id="bqTable">
+                        <table class="w-max table-auto border text-sm text-gray-700 dark:text-gray-200" id="bqTable">
                             <thead
                                 class="bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
                                 <tr>
@@ -118,16 +118,16 @@
                                     @foreach ($vendors as $v)
                                         <th class="border px-4 py-3 text-left align-top font-semibold">
                                             <div>{{ $v['name'] }}</div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">✉️
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">✉️
                                                 {{ $v['cp'] ?? '-' }}
                                             </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">☎️
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">☎️
                                                 {{ $v['telp'] ?? '-' }}
                                             </div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">🏠
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">🏠
                                                 {{ $v['addr'] ?? '-' }}
                                             </div>
-                                            <div class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            <div class="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
                                                 Material / Jasa
                                             </div>
                                         </th>
@@ -166,7 +166,7 @@
                                                 $sumJsa[$i] += $qty * $unitJsa;
                                             @endphp
                                             <td class="border px-4 py-3 align-top">
-                                                <div class="grid grid-cols-2 gap-3 text-xs">
+                                                <div class="grid grid-cols-2 gap-3 text-sm">
                                                     <div class="flex flex-col gap-1">
                                                         <span class="font-medium text-gray-600 dark:text-gray-300">Harga
                                                             Material</span>
@@ -201,13 +201,13 @@
                                             $grand = $totMat + $totJsa;
                                         @endphp
                                         <td class="border px-4 py-4 text-right">
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
+                                            <div class="text-sm text-gray-600 dark:text-gray-300">
                                                 Harga Total Material:
                                                 <span class="font-semibold">
                                                     {{ number_format($totMat, 2, ',', '.') }}
                                                 </span>
                                             </div>
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
+                                            <div class="text-sm text-gray-600 dark:text-gray-300">
                                                 Harga Total Jasa:
                                                 <span class="font-semibold">
                                                     {{ number_format($totJsa, 2, ',', '.') }}

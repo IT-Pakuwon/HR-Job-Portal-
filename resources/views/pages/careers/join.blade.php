@@ -72,14 +72,14 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="flex flex-col">
                 <label for="sch_work_start_date"
-                    class="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai Kerja</label>
+                    class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai Kerja</label>
                 <input type="date" id="sch_work_start_date" name="work_start_date"
                     class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     required>
             </div>
             <div class="flex flex-col">
                 <label for="sch_availability_date"
-                    class="mb-1 text-xs font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai Kerja</label>
+                    class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai Kerja</label>
                 <input type="date" id="sch_availability_date" name="availability_date"
                     class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     required>

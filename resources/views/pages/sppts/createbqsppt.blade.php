@@ -125,7 +125,7 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                 <!-- SPPT ID -->
                                 <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">SPPT
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">SPPT
                                         ID</label>
                                     <input type="hidden" name="idx" value="{{ $sppt->id ?? '' }}">
                                     <input type="hidden" name="sppjtid" value="{{ $sppt->spptid ?? '' }}">
@@ -137,7 +137,7 @@
                                 <!-- Company -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                     <input type="text" name="company"
                                         value="{{ $sppt->cpny_id ?? ($sppt->cpny_name ?? '') }}"
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
@@ -147,7 +147,7 @@
                                 <!-- Departement -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Departement</label>
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Departement</label>
                                     <input type="text" name="departement"
                                         value="{{ $sppt->department_id ?? ($sppt->department ?? '') }}"
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-gray-100/50 px-3 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
@@ -157,7 +157,7 @@
                                 <!-- File Upload -->
                                 <div>
                                     <label
-                                        class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Import
+                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Import
                                         Excel</label>
                                     <input type="file" name="file" id="file" required
                                         class="h-[40px] w-full rounded-md border border-gray-200 bg-white px-3 py-2 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 focus:ring focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:file:bg-gray-700 dark:file:text-gray-200" />
@@ -191,7 +191,7 @@
 
                                 <div class="w-full overflow-x-auto">
                                     <table
-                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-xs">
+                                        class="w-full min-w-[1100px] table-auto whitespace-nowrap border text-left text-sm">
                                         <thead class="bg-gray-100 font-bold text-gray-700">
                                             <tr>
                                                 <th class="px-4 py-2">Line No</th>
@@ -268,12 +268,12 @@
                                                                         d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                                         clip-rule="evenodd" />
                                                                 </svg>
-                                                                <span class="text-xs font-medium">Add Photo</span>
+                                                                <span class="text-sm font-medium">Add Photo</span>
                                                             </div>
                                                         </button>
                                                     </div>
 
-                                                    <p class="mt-2 text-xs text-gray-500">Accepted: JPG/PNG, maks 5 MB
+                                                    <p class="mt-2 text-sm text-gray-500">Accepted: JPG/PNG, maks 5 MB
                                                         per foto.</p>
                                                 </div>
                                             </details>

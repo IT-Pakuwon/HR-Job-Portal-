@@ -168,7 +168,7 @@
 
         .summary-label {
             font-size: 2rem;
-            /* sedikit lebih besar dari text-xs */
+            /* sedikit lebih besar dari  text-sm  */
             font-weight: 600;
             color: #374151;
             /* gray-700 */
@@ -228,70 +228,70 @@
 
                                 <!-- SPPB/J/K/T -->
                                 <div>
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
                                         ID</label>
                                     @if (!empty($sourceShowUrl))
                                         <a href="{{ $sourceShowUrl }}" target="_blank" rel="noopener noreferrer"
-                                            class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
+                                            class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
                                             {{ $docno }}
                                         </a>
                                     @else
                                         <input type="text" value="{{ $docno }}" readonly
-                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                     @endif
                                     {{-- <input type="text" value="{{ $docno }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
                                 </div>
 
                                 <!-- User -->
                                 <div>
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">User</label>
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">User</label>
                                     <input type="text"
                                         value="{{ ucwords(strtolower(optional($header->creator)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- Company -->
                                 <div>
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Company</label>
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Company</label>
                                     <input type="text" value="{{ $header->cpny_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- Department -->
                                 <div>
                                     <label
-                                        class="text-xs font-medium text-gray-600 dark:text-gray-400">Department</label>
+                                        class="text-sm font-medium text-gray-600 dark:text-gray-400">Department</label>
                                     <input type="text" value="{{ $header->department_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- Purchaser -->
                                 <div>
                                     <label
-                                        class="text-xs font-medium text-gray-600 dark:text-gray-400">Purchaser</label>
+                                        class="text-sm font-medium text-gray-600 dark:text-gray-400">Purchaser</label>
                                     <input type="text"
                                         value="{{ ucwords(strtolower(optional($header->purchaser)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
                                 <!-- BQ ID -->
                                 <div class="flex flex-row justify-between gap-2">
                                     @if (in_array($doc, ['SPPJ', 'SPPT']))
                                         <div class="flex-1">
-                                            <label class="text-xs font-medium text-gray-600 dark:text-gray-400">BQ
+                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
                                                 ID</label>
                                             @if (!empty($bqShowUrl) && !empty($header->bqid))
                                                 <a href="{{ $bqShowUrl }}" target="_blank" rel="noopener noreferrer"
-                                                    class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
+                                                    class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
                                                     {{ $header->bqid }}
                                                 </a>
                                             @else
                                                 <input type="text" value="{{ $header->bqid ?? '' }}" readonly
-                                                    class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                                    class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                             @endif
                                             {{-- <input type="text" value="{{ $header->bqid }}" readonly
-                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
+                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
                                         </div>
 
                                         <div class="flex-1">
@@ -303,17 +303,17 @@
                                             {{-- Kondisi: jika BQ SUDAH ADA → tombol Open BQ, kalau BELUM → tombol Create BQ --}}
                                             @if ($bq && $bq_eid)
                                                 <a href="{{ route('bqcs.edit', $bq_eid) }}"
-                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-center text-xs font-semibold text-white hover:bg-emerald-700">
+                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700">
                                                     Open BQ CS
                                                 </a>
                                             @elseif ($csidForBQ)
                                                 <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
-                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-center text-xs font-semibold text-white hover:bg-blue-700">
+                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
                                                     Create BQ CS
                                                 </a>
                                             @else
                                                 <button type="button" title="Simpan CS dulu, baru buat BQ"
-                                                    class="mt-8 inline-flex w-full cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-center text-xs font-semibold text-white">
+                                                    class="mt-8 inline-flex w-full cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-center text-sm font-semibold text-white">
                                                     Create BQ CS
                                                 </button>
                                             @endif
@@ -327,17 +327,17 @@
                                 <!-- Purpose -->
                                 {{-- <div>
                                     <label
-                                        class="req text-xs font-medium text-gray-600 dark:text-gray-400">Purpose</label>
+                                        class="req  text-sm  font-medium text-gray-600 dark:text-gray-400">Purpose</label>
                                     <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div> --}}
 
                                 <!-- Vendor -->
                                 <div class="col-span-2 flex flex-col gap-2">
-                                    <label class="req text-xs font-medium text-gray-600 dark:text-gray-400">Select
+                                    <label class="req text-sm font-medium text-gray-600 dark:text-gray-400">Select
                                         Vendor</label>
                                     <select id="vendorSelect"
-                                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                         <option value="">Select</option>
                                     </select>
 
@@ -348,14 +348,14 @@
                                 <!-- RIGHT SIDE: NOTE -->
                                 <div>
                                     <label
-                                        class="req text-xs font-medium text-gray-600 dark:text-gray-400">Purpose</label>
+                                        class="req text-sm font-medium text-gray-600 dark:text-gray-400">Purpose</label>
                                     <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 </div>
                                 <div class="flex flex-col">
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Note CS</label>
+                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
                                     <textarea name="csnote" id="csnote"
-                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">{{ $cs->csnote }}</textarea>
+                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">{{ $cs->csnote }}</textarea>
                                 </div>
 
 
@@ -375,7 +375,7 @@
                             </div>
                             <div class="mt-4 overflow-x-auto">
                                 <table id="cvTable"
-                                    class="w-max table-auto border text-xs text-gray-700 dark:text-gray-200">
+                                    class="w-max table-auto border text-sm text-gray-700 dark:text-gray-200">
                                     <thead>
                                         <tr class="bg-gray-100 dark:bg-gray-700">
                                             <th class="w-64 border px-3 py-2">Inventory Descr</th>
@@ -447,7 +447,7 @@
 
                             @if (($attachment ?? collect())->count())
                                 <div class="mt-4 overflow-x-auto">
-                                    <table class="w-full text-xs">
+                                    <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">
                                             <tr class="border-b border-gray-200 dark:border-gray-700">
                                                 <th class="p-3 text-left font-semibold">Filename</th>
@@ -488,7 +488,7 @@
                                                             <span
                                                                 class="flex items-center gap-2 text-gray-500 dark:text-gray-300"
                                                                 title="Signed URL tidak tersedia/expired">
-                                                                📎 {{ $at->display_name }} <em class="text-xs">(no
+                                                                📎 {{ $at->display_name }} <em class="text-sm">(no
                                                                     link)</em>
                                                             </span>
                                                         @endif
@@ -504,7 +504,7 @@
                                     </table>
                                 </div>
                             @else
-                                <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">Attachment Empty.</p>
+                                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Attachment Empty.</p>
                             @endif
                         </div>
 
@@ -516,10 +516,10 @@
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                     <span>Attachments CS</span>
                                     <span
-                                        class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
-                                        class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                         details &darr;</span>
                                 </summary>
                                 <div class="flex h-auto flex-col justify-start">
@@ -550,7 +550,7 @@
                                                 @else
                                                     <div class="mt-4 w-full border p-3 text-sm text-gray-500 dark:text-gray-300"
                                                         title="Signed URL tidak tersedia/expired">
-                                                        📎 {{ $attach->display_name }} <em class="text-xs">(no
+                                                        📎 {{ $attach->display_name }} <em class="text-sm">(no
                                                             link)</em>
                                                     </div>
                                                 @endif
@@ -563,7 +563,7 @@
                                     </div>
                                 </div>
                                 <button type="button" id="addAttachment"
-                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                         fill="currentColor">
                                         <path fill-rule="evenodd"
@@ -648,17 +648,17 @@
                     <div class="p-4">
                         <div class="mb-3 flex items-center gap-2">
                             <input id="taxSearch" type="text" placeholder="Cari taxid/descr..."
-                                class="w-full rounded border border-gray-300 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="w-full rounded border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         </div>
                         <div class="max-h-[55vh] overflow-auto">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">
+                                        <th class="px-3 py-2 text-left text-sm font-semibold uppercase tracking-wider">
                                             Tax ID</th>
-                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">
+                                        <th class="px-3 py-2 text-left text-sm font-semibold uppercase tracking-wider">
                                             Rate (%)</th>
-                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">
+                                        <th class="px-3 py-2 text-left text-sm font-semibold uppercase tracking-wider">
                                             Description</th>
                                         <th class="px-3 py-2"></th>
                                     </tr>
@@ -685,12 +685,12 @@
                         <button id="bqcsMismatchClose"
                             class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                     </div>
-                    <p class="mb-3 text-xs text-gray-700 dark:text-gray-300">
+                    <p class="mb-3 text-sm text-gray-700 dark:text-gray-300">
                         Terdapat vendor dengan nilai berbeda antara <b>(BQ: Total BQ)</b> dan <b>(CS: Total CS)</b>.
                         Periksa tabel di bawah ini:
                     </p>
                     <div class="max-h-[60vh] overflow-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-xs dark:divide-gray-700">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-3 py-2 text-left font-semibold">Vendor</th>
@@ -706,7 +706,7 @@
                     </div>
                     <div class="mt-4 text-right">
                         <button id="bqcsMismatchOk"
-                            class="rounded bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">OK</button>
+                            class="rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">OK</button>
                     </div>
                 </div>
             </div>
@@ -719,7 +719,7 @@
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                         <div class="flex flex-col">
                             <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
-                            {{-- <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div> --}}
+                            {{-- <div id="lpTitle" class=" text-sm  text-gray-500 dark:text-gray-300"></div> --}}
                             <h3 id="lpTitle" class="text-sm font-semibold text-gray-800 dark:text-gray-100"></h3>
                         </div>
                         <button type="button" id="lastPriceModalClose"
@@ -727,12 +727,12 @@
                     </div>
 
                     <div class="p-4">
-                        <div id="lpLoading" class="mb-3 hidden text-xs text-gray-600 dark:text-gray-300">
+                        <div id="lpLoading" class="mb-3 hidden text-sm text-gray-600 dark:text-gray-300">
                             Loading...
                         </div>
 
                         <div class="max-h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700">
-                            <table class="min-w-full text-xs">
+                            <table class="min-w-full text-sm">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
                                         <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
@@ -750,7 +750,7 @@
                             </table>
                         </div>
 
-                        <div id="lpEmpty" class="mt-3 hidden text-xs text-gray-500 dark:text-gray-300">
+                        <div id="lpEmpty" class="mt-3 hidden text-sm text-gray-500 dark:text-gray-300">
                             No history found.
                         </div>
                     </div>
@@ -798,7 +798,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);
@@ -943,7 +943,7 @@
                 data-vendor-addr="${_.escape(v.vendor_addr1 ?? '')}"
                 data-vendor-phone="${_.escape(v.phone_number ?? '')}"
                 data-vendor-cp="${_.escape(v.contact_person ?? '')}">
-                <div class="flex flex-col text-left text-xs">
+                <div class="flex flex-col text-left  text-sm ">
 
                     <!-- Vendor Name + Info Icon -->
                     <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
@@ -959,7 +959,7 @@
 
                             <!-- TOOLTIP -->
                             <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
-                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs text-gray-200 
+                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3  text-sm  text-gray-200 
                                         shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible 
                                         transition-opacity duration-200">
 
@@ -979,11 +979,11 @@
 
                     <!-- Payment Term -->
                     <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
+                        <span class=" text-sm  font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
 
                         <select name="cara_bayar_${idKey}" 
                             class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-                                text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                                 text-sm  font-medium shadow-sm focus:border-indigo-500 focus:ring 
                                 focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                             ${TOPS_OPTIONS_HTML}
                         </select>
@@ -992,7 +992,7 @@
                     <div class="mt-2">                        
                         <textarea
                             name="vendornote_${idKey}"
-                            class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
+                            class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2  text-sm  text-gray-900 shadow-sm
                                 focus:border-indigo-500 focus:ring focus:ring-indigo-500/50
                                 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                             rows="2"
@@ -1002,26 +1002,26 @@
 
                 </div>
 
-                <button type="button" class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700" data-id="${idKey}">✕</button>
+                <button type="button" class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600  text-sm  text-white shadow hover:bg-red-700" data-id="${idKey}">✕</button>
             </th>
             `);
                 $('#cvTable thead tr').append($th);
 
                 const $sumTd = $(`
-            <td id="td-sum-${idKey}" class="border px-3 py-2 text-xs align-top" style="width:${colWidth};max-width:${colWidth};">
+            <td id="td-sum-${idKey}" class="border px-3 py-2  text-sm  align-top" style="width:${colWidth};max-width:${colWidth};">
                 <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
                 <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
                 <div class="flex justify-between gap-2">
                     <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class="text-xs font-medium">PPN</span>
-                    <input type="number" class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="11.00" step="0.01" min="0">
-                    <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="ppn" data-vendor="${idKey}" title="Pilih PPN">🔍</button>
+                    <span class=" text-sm  font-medium">PPN</span>
+                    <input type="number" class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right  text-sm  focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="11.00" step="0.01" min="0">
+                    <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1  text-sm  text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="ppn" data-vendor="${idKey}" title="Pilih PPN">🔍</button>
                     <input type="hidden" class="sum-ppn-id" value="">
                     </div>
                     <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class="text-xs font-medium">PPh</span>
-                    <input type="number" class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="0" step="0.01" min="0">
-                    <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="pph" data-vendor="${idKey}" title="Pilih PPh">🔍</button>
+                    <span class=" text-sm  font-medium">PPh</span>
+                    <input type="number" class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right  text-sm  focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="0" step="0.01" min="0">
+                    <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1  text-sm  text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="pph" data-vendor="${idKey}" title="Pilih PPh">🔍</button>
                     <input type="hidden" class="sum-pph-id" value="">
                     </div>
                 </div>
@@ -1050,7 +1050,7 @@
                         `<td class="border px-3 py-2"><div class="flex flex-col items-center gap-0.5 w-full"></div></td>`
                     );
                     const $total = $(
-                        `<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0</small>`
+                        `<small class="total-label text-right  text-sm  dark:text-gray-300 font-bold text-gray-600">0</small>`
                     );
                     const $radio = $(`
                 <div class="flex justify-center mt-0.5">
@@ -1416,11 +1416,11 @@
                 rows.forEach(r => {
                     $tbody.append(`
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td class="px-3 py-2 text-xs">${r.taxid ?? ''}</td>
-                <td class="px-3 py-2 text-xs">${Number(r.taxrate ?? 0).toFixed(2)}</td>
-                <td class="px-3 py-2 text-xs">${r.descr ?? ''}</td>
+                <td class="px-3 py-2  text-sm ">${r.taxid ?? ''}</td>
+                <td class="px-3 py-2  text-sm ">${Number(r.taxrate ?? 0).toFixed(2)}</td>
+                <td class="px-3 py-2  text-sm ">${r.descr ?? ''}</td>
                 <td class="px-3 py-2 text-right">
-                    <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
+                    <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1  text-sm  font-semibold text-white hover:bg-indigo-700"
                     data-taxid="${r.taxid}" data-taxrate="${r.taxrate}">
                     Choose
                     </button>

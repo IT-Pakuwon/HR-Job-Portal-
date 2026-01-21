@@ -126,7 +126,7 @@
 
                     {{-- Company --}}
                     <div class="flex flex-col gap-2">
-                        <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
+                        <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                         <select name="cpny_id"
                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                             required>
@@ -141,7 +141,7 @@
 
                     {{-- Department --}}
                     <div class="flex flex-col gap-2">
-                        <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
+                        <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                         <select name="department_id" id="department_id"
                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                             required>
@@ -156,7 +156,7 @@
 
                     {{-- Inventory Type --}}
                     <div class="flex flex-col gap-2">
-                        <label class="req block text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Inventory Type
                         </label>
                         <select name="inventory_type"
@@ -171,7 +171,7 @@
                     {{-- Inventory Description --}}
                     <div class="flex flex-col gap-2">
                         <label for="inventory_descr_req"
-                            class="req block text-xs font-medium text-gray-700 dark:text-gray-300">
+                            class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Inventory Description
                         </label>
                         <textarea name="inventory_descr_req" id="inventory_descr_req" rows="3" required
@@ -188,9 +188,9 @@
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                         <span>Attachments</span>
-                        <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See details
+                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details
                             →</span>
-                        <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                             details ↓</span>
                     </summary>
 
@@ -198,7 +198,7 @@
                         <div id="attachmentsContainer">
                             <div class="attachment-row flex items-center gap-2">
                                 <input type="file" name="attachments[]"
-                                    class="flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                    class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                 <button type="button"
                                     class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                                     🗑️
@@ -207,7 +207,7 @@
                         </div>
 
                         <button type="button" id="addAttachment"
-                            class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                            class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path fill-rule="evenodd"
@@ -284,8 +284,8 @@
             $('#attachmentsContainer').append(`
                 <div class="attachment-row flex items-center gap-2">
                     <input type="file" name="attachments[]"
-                        class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700
-                               file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700
+                        class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700
+                               file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700
                                hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button"
                         class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">

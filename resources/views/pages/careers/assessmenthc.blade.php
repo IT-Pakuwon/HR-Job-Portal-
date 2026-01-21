@@ -36,7 +36,7 @@
         </tr>
     </table>
 
-    <table class="w-full text-xs">
+    <table class="w-full text-sm">
         <thead class="bg-gray-50 dark:bg-gray-700">
             <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
                 <th class="px-4 py-3 text-left font-semibold">Kriteria</th>
@@ -83,7 +83,7 @@
             <thead class="bg-gray-50 dark:bg-gray-700">
                 <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
                     <th colspan="2"
-                        class="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-700">
+                        class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-700">
                         STANDARD SCORING
                     </th>
                 </tr>
@@ -91,23 +91,23 @@
             <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                 <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td
-                        class="whitespace-nowrap border-r border-gray-200 px-6 py-2 text-xs font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                        class="whitespace-nowrap border-r border-gray-200 px-6 py-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
                         SUITABLE</td>
-                    <td class="px-6 py-2 text-xs text-gray-700 dark:text-gray-300">
+                    <td class="px-6 py-2 text-sm text-gray-700 dark:text-gray-300">
                         21–28 FOR LEVEL<br class="md:hidden">MANAGER/SUPERVISOR<br>20–25 FOR STAFF
                     </td>
                 </tr>
                 <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td
-                        class="whitespace-nowrap border-r border-gray-200 px-6 py-2 text-xs font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                        class="whitespace-nowrap border-r border-gray-200 px-6 py-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
                         CONSIDER</td>
-                    <td class="px-6 py-2 text-xs text-gray-700 dark:text-gray-300">15–19</td>
+                    <td class="px-6 py-2 text-sm text-gray-700 dark:text-gray-300">15–19</td>
                 </tr>
                 <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td
-                        class="whitespace-nowrap border-r border-gray-200 px-6 py-2 text-xs font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                        class="whitespace-nowrap border-r border-gray-200 px-6 py-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-gray-100">
                         NOT SUITABLE</td>
-                    <td class="px-6 py-2 text-xs text-gray-700 dark:text-gray-300">0–14</td>
+                    <td class="px-6 py-2 text-sm text-gray-700 dark:text-gray-300">0–14</td>
                 </tr>
             </tbody>
         </table>

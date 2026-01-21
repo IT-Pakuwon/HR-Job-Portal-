@@ -90,9 +90,9 @@
             <div id="pane-mine">
                 <div>
                     <h2 class="mb-2 text-base font-semibold">CS Jobs</h2>
-                    <table id="tblMine" class="text-body w-full text-left text-xs rtl:text-right">
+                    <table id="tblMine" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-4 py-3 text-center">
@@ -131,9 +131,9 @@
 
                 <div class="mt-10">
                     <h2 class="mb-2 text-base font-semibold">Entry CS (My CS)</h2>
-                    <table id="tblEntryCS" class="text-body w-full text-left text-xs rtl:text-right">
+                    <table id="tblEntryCS" class="text-body w-full text-left text-sm rtl:text-right">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th></th>
                                 <th class="w-32 px-4 py-3 text-center">CSID
@@ -162,9 +162,9 @@
             {{-- === PANE: My Revision (TrPO Reuse) === --}}
             <div id="pane-revision" class="hidden">
                 <h2 class="mb-2 text-base font-semibold">My Revision</h2>
-                <table id="tblRevision" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="tblRevision" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-2 w-32 px-4 py-3 text-center">
@@ -202,9 +202,9 @@
             {{-- === PANE: All Jobs === --}}
             <div id="pane-all" class="hidden">
                 <h2 class="mb-2 text-base font-semibold">All Jobs</h2>
-                <table id="tblAll" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="tblAll" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -237,9 +237,9 @@
             {{-- === PANE: SPPBJKT IN Progress === --}}
             <div id="pane-sppbjkt" class="hidden">
                 <h2 class="mb-2 text-base font-semibold">SPPBJKT IN Progress</h2>
-                <table id="tblSppbjkt" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="tblSppbjkt" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -272,7 +272,7 @@
             <div id="pane-completed" class="hidden">
                 <h2 class="mb-2 text-base font-semibold">Completed Jobs</h2>
 
-                <table id="tblCompleted" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="tblCompleted" class="text-body w-full text-left text-sm rtl:text-right">
                     {{-- <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th class="w-32 px-4 py-3 text-center">DocID</th>
@@ -284,7 +284,7 @@
                             </tr>
                         </thead> --}}
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">DocID
@@ -397,19 +397,19 @@
                         return `
                         <div class="inline-flex gap-2">
                         <a href="${createUrl}"
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
                             title="Create CS">
                             <i class="fas fa-plus"></i>
                         </a>
 
                         <button type="button"
-                            class="btn-complete-open inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-red-500 hover:bg-red-700"
+                            class="btn-complete-open inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-red-500 hover:bg-red-700"
                             data-doc="${row.doc_type}" data-eid="${row.eid}" title="Complete sisa yang tidak jadi diorder">
                             <i class="fas fa-times"></i>
                         </button>
 
                         <button type="button"
-                            class="btn-revise-doc inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-amber-500 hover:bg-amber-700"
+                            class="btn-revise-doc inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-amber-500 hover:bg-amber-700"
                             data-doc="${row.doc_type}"
                             data-docno="${row.doc_no}"
                             data-cpny="${row.cpny_id}"
@@ -967,7 +967,7 @@
                     return `
                     <div class="inline-flex gap-2">
                         <a href="${createUrl}"
-                            class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
                             title="Create CS dari PO">
                             <i class="fas fa-plus"></i>
                         </a>

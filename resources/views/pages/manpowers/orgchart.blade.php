@@ -216,7 +216,7 @@
 
                         <!-- Tab -->
                         <div class="mb-4 border-b border-gray-200">
-                            <ul class="flex flex-wrap text-center text-xs font-medium" id="tabs">
+                            <ul class="flex flex-wrap text-center text-sm font-medium" id="tabs">
                                 <li class="mr-2">
                                     <button type="button"
                                         class="tab-button border-b-2 border-blue-600 px-4 py-2 text-blue-600"
@@ -238,7 +238,7 @@
                         <!-- Tab Content: View Employee -->
                         <div id="tab-view" class="tab-content hidden">
                             <h3 class="mb-4 text-sm font-semibold">Employee List</h3>
-                            <table class="w-full border border-gray-200 bg-blue-300 text-xs text-black">
+                            <table class="w-full border border-gray-200 bg-blue-300 text-sm text-black">
                                 <thead>
                                     <tr class="text-left">
                                         <th class="border border-gray-200 px-2 py-1">No</th>
@@ -262,7 +262,7 @@
                                 <input type="hidden" name="approval_line" id="modalApprovalLine">
                                 <input type="hidden" name="full_name" value="Vacant">
                                 <div class="mb-4">
-                                    <label class="block text-xs font-medium text-gray-700">Company</label>
+                                    <label class="block text-sm font-medium text-gray-700">Company</label>
                                     <select
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="cpnyid" required>
@@ -272,7 +272,7 @@
                                     </select>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-xs font-medium text-gray-700">Position</label>
+                                    <label class="block text-sm font-medium text-gray-700">Position</label>
                                     <select
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="job_position" required>
@@ -282,13 +282,13 @@
                                     </select>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="block text-xs font-medium text-gray-700">Qty</label>
+                                    <label class="block text-sm font-medium text-gray-700">Qty</label>
                                     <input type="number" name="qty"
                                         class="mt-1 block w-full rounded-md border border-gray-300 p-2" value="1"
                                         required>
                                 </div>
                                 {{-- <div class="mb-4">
-                                    <label class="block text-xs font-medium text-gray-700">URL Foto</label>
+                                    <label class="block  text-sm  font-medium text-gray-700">URL Foto</label>
                                     <input type="url" name="avatar_local" placeholder="https://..." class="mt-1 block w-full border border-gray-300 rounded-md p-2">
                                 </div> --}}
                                 <input type="hidden" name="status_talenta" value="Active">
@@ -306,11 +306,11 @@
                                 @csrf
                                 <input type="hidden" name="approval_line" id="modalApprovalLine">
                                 {{-- <div class="mb-4">
-                                    <label class="block text-xs font-medium text-gray-700">Departement</label>
+                                    <label class="block  text-sm  font-medium text-gray-700">Departement</label>
                                     <input type="text" name="departement_name" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
                                 </div> --}}
                                 <div class="mb-4">
-                                    <label class="block text-xs font-medium text-gray-700">Departement</label>
+                                    <label class="block text-sm font-medium text-gray-700">Departement</label>
                                     <select id="departement_name_select" name="departement_name"
                                         class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
                                         @foreach ($departements as $dept)
@@ -334,25 +334,25 @@
                     <form id="headerForm" method="POST" action="#">
                         @csrf
                         <div class="mb-4">
-                            <label class="block text-xs font-medium text-gray-700">STO ID</label>
+                            <label class="block text-sm font-medium text-gray-700">STO ID</label>
                             <input type="text" name="sto_id"
                                 class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2"
                                 placeholder="STO ID" readonly>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-xs font-medium text-gray-700">Date</label>
+                            <label class="block text-sm font-medium text-gray-700">Date</label>
                             <input type="date" name="sto_date"
                                 class="mt-1 block w-full rounded-md border border-gray-300 p-2"
                                 value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" required>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-xs font-medium text-gray-700">Created</label>
+                            <label class="block text-sm font-medium text-gray-700">Created</label>
                             <input type="text" name="user"
                                 class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2"
                                 placeholder="Created" readonly>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-xs font-medium text-gray-700">Status</label>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
                             <input type="text" name="status"
                                 class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 p-2"
                                 placeholder="Status" readonly>
@@ -430,11 +430,11 @@
                                         <strong>Employee:</strong>
                                         <div style="margin-top:10px;">
                                             ${members.map(m => `
-                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                            <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                            <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                                                        </div>
-                                                                                                                                                                    `).join('')}
+                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                        <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                        <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                `).join('')}
                                         </div>
                                     </div>
                                 </div>

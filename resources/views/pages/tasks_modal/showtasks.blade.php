@@ -42,7 +42,7 @@
                         </header>
                         <div class="flex gap-2">
                             <div
-                                class="flex items-center gap-1 rounded-md border border-green-700 bg-green-500/15 px-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
+                                class="flex items-center gap-1 rounded-md border border-green-700 bg-green-500/15 px-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -51,7 +51,7 @@
                                 <button id="approveBtn" class="focus:outline-none">Approve</button>
                             </div>
                             <div
-                                class="flex items-center gap-1 rounded-md border border-gray-700 bg-gray-500/15 px-2 text-xs font-medium transition hover:bg-gray-600 hover:text-white dark:text-gray-200">
+                                class="flex items-center gap-1 rounded-md border border-gray-700 bg-gray-500/15 px-2 text-sm font-medium transition hover:bg-gray-600 hover:text-white dark:text-gray-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-4">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -60,7 +60,7 @@
                                 <button id="reviseBtn" class="focus:outline-none">Revise</button>
                             </div>
                             <div
-                                class="flex items-center gap-1 rounded-md border border-red-700 bg-red-500/15 px-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
+                                class="flex items-center gap-1 rounded-md border border-red-700 bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor"class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -180,7 +180,7 @@
                             <div
                                 class="flex items-center gap-2 border-t border-gray-200 bg-white p-2 dark:border-gray-300 dark:bg-gray-200/5">
                                 <input id="commentInput" type="text" placeholder="Write a comment..."
-                                    class="flex-1 rounded bg-gray-100 p-2 text-xs focus:outline-none dark:bg-gray-700 dark:text-white">
+                                    class="flex-1 rounded bg-gray-100 p-2 text-sm focus:outline-none dark:bg-gray-700 dark:text-white">
                                 <button id="postCommentBtn"
                                     class="text-m rounded bg-indigo-500 px-4 py-2.5 text-white">Post</button>
                             </div>
@@ -197,7 +197,7 @@
         <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
 
-            <label for="rejectReason" class="text-xs text-gray-600 dark:text-white">Reason for Rejection:</label>
+            <label for="rejectReason" class="text-sm text-gray-600 dark:text-white">Reason for Rejection:</label>
             <textarea id="rejectReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter rejection reason..."></textarea>
@@ -216,7 +216,7 @@
         <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
 
-            <label for="reviseReason" class="text-xs text-gray-600 dark:text-white">Reason for Revise:</label>
+            <label for="reviseReason" class="text-sm text-gray-600 dark:text-white">Reason for Revise:</label>
             <textarea id="reviseReason"
                 class="mt-2 w-full rounded-lg border p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
@@ -261,8 +261,8 @@
 
                                 commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                    <p class="text-xs font-semibold">${comment.username} 
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                    <p class=" text-sm  font-semibold">${comment.username} 
+                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>

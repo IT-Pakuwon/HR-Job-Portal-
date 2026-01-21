@@ -3,7 +3,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -14,7 +14,7 @@
 
             <div class="flex gap-3">
                 <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -23,7 +23,7 @@
                     Approve
                 </button>
                 <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -32,7 +32,7 @@
                     Revise
                 </button>
                 <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -55,7 +55,7 @@
                             @elseif($sto->status === 'P') bg-blue-300/30 text-blue-600 dark:text-blue-400
                             @elseif($sto->status === 'C') bg-green-300/30 text-green-600 dark:text-green-400
                             @elseif($sto->status === 'R') bg-red-300/30 text-red-600 dark:text-red-400
-                            @else bg-gray-300/30 text-gray-600 dark:text-white @endif rounded-full px-3 py-1 text-xs font-semibold">
+                            @else bg-gray-300/30 text-gray-600 dark:text-white @endif rounded-full px-3 py-1 text-sm font-semibold">
                             @if ($sto->status === 'D')
                                 Draft
                             @elseif($sto->status === 'P')
@@ -93,7 +93,7 @@
                                 <div
                                     class="card-header flex flex-col items-start justify-between border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
                                     <button onclick="closeModal()"
-                                        class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-xs font-medium text-gray-700 transition-colors dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                                        class="inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -111,7 +111,7 @@
                                 <div id="tab-view" class="tab-content hidden px-6 py-2">
                                     <div class="table-responsive-container w-full overflow-x-auto">
                                         <div class="overflow-y-auto" style="max-height: 500px;">
-                                            <table class="base-table w-full text-xs">
+                                            <table class="base-table w-full text-sm">
                                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                                     <tr>
                                                         <th
@@ -160,7 +160,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'structure',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'structure'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                 Structure Details
                             </button>
                             <button @click="activeTab = 'approval'"
@@ -168,7 +168,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'approval',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'approval'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                 Approval Details
                             </button>
                             <button @click="activeTab = 'attachment'"
@@ -176,7 +176,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'attachment',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'attachment'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                 Attachment
                             </button>
                             <button @click="activeTab = 'comments'"
@@ -184,7 +184,7 @@
                                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'comments',
                                     'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'comments'
                                 }"
-                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-xs font-medium transition-colors duration-200 focus:outline-none">
+                                class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                 Comments
                             </button>
                         </nav>
@@ -215,7 +215,7 @@
                                         <div class="flex-shrink-0 text-base text-indigo-600">{{ $detail['icon'] }}
                                         </div>
                                         <div>
-                                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                                                 {{ $detail['label'] }}</p>
                                             <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                                 {{ $detail['value'] }}</p>
@@ -252,7 +252,7 @@
                                         @foreach ($levels as $level)
                                             <button @click="tab = '{{ $level }}'"
                                                 :class="{ 'bg-indigo-600 text-white shadow-md': tab === '{{ $level }}', 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700': tab !== '{{ $level }}' }"
-                                                class="rounded-md px-4 py-2 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                                class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                                 {{ $level }}
                                             </button>
                                         @endforeach
@@ -266,7 +266,7 @@
                                                         class="flex justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-700">
                                                         <h4 class="font-bold text-gray-800 dark:text-white">
                                                             {{ $company }}</h4>
-                                                        <p class="text-xs text-indigo-600 dark:text-indigo-400">
+                                                        <p class="text-sm text-indigo-600 dark:text-indigo-400">
                                                             Vacant:
                                                             {{ $count }}</p>
                                                     </div>
@@ -284,7 +284,7 @@
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-2">
-                            <table class="w-full text-xs">
+                            <table class="w-full text-sm">
                                 <thead>
                                     <tr
                                         class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -332,7 +332,7 @@
                                                     }
                                                 @endphp
                                                 <span
-                                                    class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">{{ $statusText }}</span>
+                                                    class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-sm font-semibold">{{ $statusText }}</span>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -346,7 +346,7 @@
                             x-transition:leave="transition ease-in duration-200"
                             x-transition:leave-start="opacity-100 translate-y-0"
                             x-transition:leave-end="opacity-0 translate-y-2">
-                            <table class="w-full text-xs">
+                            <table class="w-full text-sm">
                                 <thead class="text-gray-600 dark:text-gray-300">
                                     <tr class="border-b border-gray-200 dark:border-gray-700">
                                         <th class="p-3 text-left font-semibold">Filename</th>
@@ -402,7 +402,7 @@
                                         class="flex-1 rounded-lg border border-transparent bg-gray-100 p-3 text-gray-800 transition-all duration-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn"
                                         @click="if(newComment.trim()) { comments.push({ text: newComment, user: currentUser }); newComment = ''; }"
-                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="hover: rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>
@@ -473,7 +473,7 @@
 
             <div class="mb-6 overflow-x-auto shadow-sm">
                 <table
-                    class="min-w-full divide-y divide-gray-200 text-xs text-gray-800 dark:divide-gray-700 dark:text-gray-200">
+                    class="min-w-full divide-y divide-gray-200 text-sm text-gray-800 dark:divide-gray-700 dark:text-gray-200">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th scope="col"
@@ -554,8 +554,8 @@
 
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-xs font-semibold">${comment.username} 
-                                            <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                        <p class=" text-sm  font-semibold">${comment.username} 
+                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>
@@ -908,13 +908,13 @@
                                 <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
-                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                        ${m.name} (${m.company})
-                                                                                                                                                                                    </span>
-                                                                                                                                                                                </div>
-                                                                                                                                                                            `).join('')}
+                                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                            ${m.name} (${m.company})
+                                                                                                                                                                                        </span>
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                `).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -986,7 +986,7 @@
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
-                                        class="btn-profile flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-2 text-xs transition"
+                                        class="btn-profile flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-2  text-sm  transition"
                                         title="Job Profile"
                                         data-id="${emp.id}">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"

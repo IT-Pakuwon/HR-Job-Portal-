@@ -56,7 +56,7 @@
                                                     class="lucide lucide-{{ $detail['icon'] }} h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                 <div>
                                                     <span
-                                                        class="text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</span>
+                                                        class="text-sm text-gray-500 dark:text-gray-400">{{ $detail['label'] }}</span>
                                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $detail['value'] }}</p>
                                                 </div>
@@ -70,7 +70,7 @@
                                                 <i
                                                     class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                 <div>
-                                                    <span class="text-xs text-gray-500 dark:text-gray-400">Level</span>
+                                                    <span class="text-sm text-gray-500 dark:text-gray-400">Level</span>
                                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $jobposting->job_level }}</p>
                                                 </div>
@@ -79,7 +79,7 @@
                                                 <i
                                                     class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                 <div>
-                                                    <span class="text-xs text-gray-500 dark:text-gray-400">State
+                                                    <span class="text-sm text-gray-500 dark:text-gray-400">State
                                                         Position</span>
                                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                         {{ $jobposting->state_position }}</p>
@@ -102,7 +102,7 @@
                                 
                                             @foreach ($jobNumbers as $job)
                                                 <div class="flex flex-col items-center p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
-                                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ $job['label'] }}</span>
+                                                    <span class=" text-sm  text-gray-500 dark:text-gray-400">{{ $job['label'] }}</span>
                                                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $job['value'] }}</span>
                                                 </div>
                                             @endforeach

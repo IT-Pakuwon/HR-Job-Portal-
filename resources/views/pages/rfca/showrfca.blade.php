@@ -132,7 +132,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -144,7 +144,7 @@
             @if (!empty($canSubmit) && $canSubmit)
                 <div class="flex gap-3">
                     <button id="submitBtn"
-                        class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                        class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="h-4 w-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -165,18 +165,18 @@
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">ID</span>
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">ID</span>
                             {{ $rfca->rfcaid }}
                         </h1>
 
                         <div class="flex items-center gap-3">
                             <span
-                                class="{{ $statusRfcaClass }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
+                                class="{{ $statusRfcaClass }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusRfcaText }}
                             </span>
                             <a href="{{ url('/pdf_rfca') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
                             </a>
@@ -354,7 +354,7 @@
                         @endphp
 
 
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             {{-- Render rows normally --}}
                             @foreach ($fields as $f)
@@ -384,14 +384,14 @@
                                         :class="activeTab === 'attachment' ?
                                             'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                             'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                        class="flex-1 px-4 py-2 text-center text-xs font-medium">Attachment
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment
                                     </button>
                                     <button @click="activeTab = 'approval'"
                                         :class="activeTab === 'approval'
                                             ?
                                             'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                             'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                        class="flex-1 px-4 py-2 text-center text-xs font-medium transition-colors duration-200">
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
                                         Approval Details
                                     </button>
 
@@ -399,13 +399,13 @@
                                         :class="activeTab === 'comments' ?
                                             'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                             'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                        class="flex-1 px-4 py-2 text-center text-xs font-medium">Comments</button>
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium">Comments</button>
                                 </nav>
                             </header>
 
                             <div class="flex flex-1 flex-col rounded-xl">
                                 <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
-                                    <table class="w-full text-xs">
+                                    <table class="w-full text-sm">
                                         <thead>
                                             <tr
                                                 class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -425,7 +425,7 @@
                                 <div x-show="activeTab === 'attachment'"
                                     class="flex h-full flex-1 flex-col transition-all">
                                     <div class="flex-1 overflow-auto rounded-lg">
-                                        <table class="w-full text-xs">
+                                        <table class="w-full text-sm">
                                             <thead class="text-gray-600 dark:text-gray-300">
                                                 <tr class="border-b border-gray-200 dark:border-gray-700">
                                                     <th class="p-3 text-left font-semibold">Filename</th>
@@ -443,7 +443,7 @@
                                                     <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                                         <div class="flex-1">
                                                             <label for="rcpAttachFiles"
-                                                                class="mb-2 block text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                                                class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
                                                                 Upload Attachments
                                                             </label>
                                                             <div class="flex items-center gap-3">
@@ -453,17 +453,17 @@
                                                                     value="{{ $rfca->department_id }}">
                                                                 <input type="file" id="rcpAttachFiles"
                                                                     name="attachments[]" multiple
-                                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                                 <button type="button" id="btnUploadSppbAttachment"
-                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                                     Upload
                                                                 </button>
                                                                 <button type="button" id="btnResetSppbAttachment"
-                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                                                     Reset
                                                                 </button>
                                                             </div>
-                                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                                                 Max 10 files, PDF / Image preferred.
                                                             </p>
                                                         </div>
@@ -486,7 +486,7 @@
                                             <input id="commentInput" type="text" placeholder="Write a comment..."
                                                 class="flex-1 rounded-lg bg-gray-100 px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                             <button id="postCommentBtn" type="button"
-                                                class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                                class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                                 Post 🚀
                                             </button>
                                         </div>
@@ -508,14 +508,14 @@
 
                                 @if ($rfca->rfca_type)
                                     <span
-                                        class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
+                                        class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
                                         Type: {{ $rfca->rfca_type }}
                                     </span>
                                 @endif
                             </div>
 
                             {{-- Optional right-side actions --}}
-                            {{-- <button class="text-xs text-indigo-600 hover:underline">Action</button> --}}
+                            {{-- <button class=" text-sm  text-indigo-600 hover:underline">Action</button> --}}
 
 
 
@@ -548,12 +548,12 @@
 
                             @if ($canProcessStep)
                                 <button type="button" id="rfcaStepApproveBtn"
-                                    class="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    class="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                     <x-heroicon-o-check class="h-4 w-4" />
                                     Process Step
                                 </button>
                             @else
-                                <span class="text-xs italic text-gray-500 dark:text-gray-400">
+                                <span class="text-sm italic text-gray-500 dark:text-gray-400">
                                     {{-- All steps already processed. --}}
                                 </span>
                             @endif
@@ -561,7 +561,7 @@
 
 
                         <div class="overflow-x-auto">
-                            <table class="min-w-full text-xs">
+                            <table class="min-w-full text-sm">
                                 <thead
                                     class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                     <tr>
@@ -614,7 +614,7 @@
                                             </td>
                                             <td class="p-2 align-top">
                                                 <span
-                                                    class="{{ $cls }} inline-flex rounded-full px-2 py-0.5 text-xs font-semibold">
+                                                    class="{{ $cls }} inline-flex rounded-full px-2 py-0.5 text-sm font-semibold">
                                                     {{ $lbl }}
                                                 </span>
                                             </td>
@@ -622,7 +622,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="5"
-                                                class="p-3 text-center text-xs italic text-gray-500 dark:text-gray-400">
+                                                class="p-3 text-center text-sm italic text-gray-500 dark:text-gray-400">
                                                 No RFCA steps generated yet. Click <strong>Submit</strong> to
                                                 choose
                                                 RFCA Type and generate steps.
@@ -642,30 +642,30 @@
                             Purchasing - Choose RFCA Type
                         </h2>
 
-                        <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
+                        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
                             Please select RFCA type for this document:
                         </p>
 
                         <div class="mb-4 space-y-3">
                             <label
-                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-xs hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                                 <input type="radio" name="rfca_type_choice" value="RFCA"
                                     class="h-4 w-4 text-indigo-600">
                                 <div>
                                     <div class="font-semibold text-gray-800 dark:text-gray-100">RFCA</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
                                         Standard RFCA process
                                     </div>
                                 </div>
                             </label>
 
                             <label
-                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-xs hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                                 <input type="radio" name="rfca_type_choice" value="RFP"
                                     class="h-4 w-4 text-indigo-600">
                                 <div>
                                     <div class="font-semibold text-gray-800 dark:text-gray-100">RFP</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
                                         RFCA for RFP (Request for Payment)
                                     </div>
                                 </div>
@@ -674,11 +674,11 @@
 
                         <div class="mt-4 flex justify-end gap-2">
                             <button type="button" id="rfcaTypeCancel"
-                                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                 Cancel
                             </button>
                             <button type="button" id="rfcaTypeConfirm"
-                                class="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 Confirm
                             </button>
                         </div>
@@ -748,9 +748,9 @@
 
                             commentList.append(`
                                 <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
-                                    <p class="text-xs font-semibold">
+                                    <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>
@@ -847,7 +847,7 @@
                         `<a href="${at.url}" target="_blank"
                     class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
                         `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
-                <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
+                <span class="ml-2  text-sm  text-red-500">(link unavailable)</span>`;
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -984,7 +984,7 @@
                     statusClass = "bg-gray-500 text-white";
             }
 
-            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
         }
     </script>
 

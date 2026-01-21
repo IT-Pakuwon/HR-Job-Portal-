@@ -14,7 +14,7 @@
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" required>
@@ -27,7 +27,7 @@
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Division</label>
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="division" required>
@@ -41,7 +41,7 @@
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="departementid" required>
@@ -53,7 +53,7 @@
                                 </select>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Lokasi
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lokasi
                                     Kerja</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -68,16 +68,16 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Job Detail Info</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="pt-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Job
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Type</label>
                                         <select name="job_type" id="job_type"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -91,7 +91,7 @@
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Job
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Title</label>
                                         <select name="job_title" id="job_title"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -100,7 +100,7 @@
                                         </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Job
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Level</label>
                                         <input type="hidden" name="subgrade_id" id="subgrade_id">
                                         <input type="text" name="job_level" id="job_level"
@@ -109,21 +109,21 @@
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label
-                                            class="block text-xs font-medium text-gray-700 dark:text-gray-300">Immediate
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
                                             Superior</label>
                                         <input type="text" name="immediate_superior" id="immediate_superior"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('immediate_superior', $personnel->immediate_superior ?? '') }}">
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">State
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
                                             Position</label>
                                         <input type="text" name="state_position" id="state_position"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('state_position', $personnel->state_position ?? '') }}">
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Reason
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
                                             for Vacancy</label>
                                         <textarea name="reason_vacancy" id="reason_vacancy"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -134,20 +134,20 @@
                                     class="mt-8 grid grid-cols-1 gap-6 rounded-lg bg-gray-100/40 p-4 sm:grid-cols-3 dark:bg-gray-700/40">
                                     <div class="flex flex-col gap-2">
                                         <label
-                                            class="block text-xs font-medium text-gray-700 dark:text-gray-300">Actual</label>
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Actual</label>
                                         <input type="number" name="actual" id="actual" min="0"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly>
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Number
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Number
                                             Required</label>
                                         <input type="number" name="required" id="required" min="0"
                                             class="pointer-events-none w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             readonly>
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Total
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total
                                             Actual
                                             Number</label>
                                         <input type="number" name="total_actual" id="total_actual" min="0"
@@ -164,10 +164,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Job Responsibilities</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex max-h-60 flex-col overflow-y-auto pt-6">
@@ -176,10 +176,10 @@
                                     <thead>
                                         <tr class="bg-gray-50 dark:bg-gray-700">
                                             <th
-                                                class="w-10 border border-gray-200 p-3 text-center text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                class="w-10 border border-gray-200 p-3 text-center text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                                 No</th>
                                             <th
-                                                class="border border-gray-200 p-3 text-left text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                                 Job Purpose</th>
                                         </tr>
                                     </thead>
@@ -195,15 +195,15 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Job Qualification</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex flex-col gap-6 pt-6">
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-xs font-semibold text-gray-800 dark:text-gray-200">🔹
+                                    <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">🔹
                                         Education</label>
                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <input type="text" name="education" id="education_min"
@@ -216,7 +216,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-xs font-semibold text-gray-800 dark:text-gray-200">🔹
+                                    <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">🔹
                                         Experience</label>
                                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <input type="text" name="experience_start" id="experience_start"
@@ -229,7 +229,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-xs font-semibold text-gray-800 dark:text-gray-200">🔹
+                                    <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">🔹
                                         Tags</label>
                                     <select name="tags[]" id="tags" multiple
                                         class="tags-input w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -237,7 +237,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-2">
-                                    <label class="block text-xs font-semibold text-gray-800 dark:text-gray-200">🔹
+                                    <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">🔹
                                         Skill</label>
                                     <div class="max-h-60 overflow-y-auto">
                                         <table
@@ -245,13 +245,13 @@
                                             <thead>
                                                 <tr class="bg-gray-50 dark:bg-gray-700">
                                                     <th
-                                                        class="w-10 border border-gray-200 p-3 text-center text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                        class="w-10 border border-gray-200 p-3 text-center text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                                         No</th>
                                                     <th
-                                                        class="border border-gray-200 p-3 text-left text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                        class="border border-gray-200 p-3 text-left text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                                         Skill</th>
                                                     <th
-                                                        class="w-16 border border-gray-200 p-3 text-center text-xs font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                        class="w-16 border border-gray-200 p-3 text-center text-sm font-semibold text-gray-600 dark:border-gray-700 dark:text-gray-300">
                                                     </th>
                                                 </tr>
                                             </thead>
@@ -282,7 +282,7 @@
                                         </table>
                                     </div>
                                     <button type="button" id="addQualification"
-                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
                                             <path fill-rule="evenodd"
@@ -300,10 +300,10 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
-                                    class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
                                     details &darr;</span>
                             </summary>
                             <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
@@ -323,7 +323,7 @@
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -431,7 +431,7 @@
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
             <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2  text-sm  text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file: text-sm  file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                     <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
             </div>
         `);

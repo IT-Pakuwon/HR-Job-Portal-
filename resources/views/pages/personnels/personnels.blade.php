@@ -89,9 +89,9 @@
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
-                <table id="personnelsTable" class="text-body w-full text-left text-xs rtl:text-right">
+                <table id="personnelsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th></th>
                             <th scope="col" class="w-32 px-6 py-2 font-medium">

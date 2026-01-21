@@ -111,7 +111,7 @@
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                         <span
-                                                                            class="mr-1 text-xs text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
+                                                                            class="mr-1 text-sm text-gray-500 dark:text-gray-400">{{ $detail['label'] }}:</span>
                                                                         {{ $detail['value'] }}
                                                                     </p>
                                                                 </div>
@@ -158,7 +158,7 @@
                                                                     @foreach ($levels as $level)
                                                                         <button @click="tab = '{{ $level }}'"
                                                                             :class="{ 'bg-indigo-600 text-white': tab === '{{ $level }}' }"
-                                                                            class="rounded-lg border px-4 py-2 text-xs font-medium text-gray-700 hover:bg-indigo-50 dark:text-gray-200 dark:hover:bg-gray-700">
+                                                                            class="rounded-lg border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-50 dark:text-gray-200 dark:hover:bg-gray-700">
                                                                             {{ $level }}
                                                                         </button>
                                                                     @endforeach
@@ -172,7 +172,7 @@
                                                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                                             @foreach ($employee as $p)
                                                                 <div
-                                                                    class="hover: flex w-auto flex-wrap items-center justify-center space-x-2 whitespace-normal rounded-xl border border-gray-200 bg-white px-5 py-3 text-xs font-semibold text-gray-700 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+                                                                    class="hover: flex w-auto flex-wrap items-center justify-center space-x-2 whitespace-normal rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
                                                                     <span>{{ $p['employee_name'] }}:</span>
                                                                     <span
                                                                         class="text-indigo-600 dark:text-indigo-400">{{ $p['employee_company'] }}</span>
@@ -194,7 +194,7 @@
                                                                                         class="font-semibold text-gray-800 dark:text-white">
                                                                                         {{ $company }}</h4>
                                                                                     <p
-                                                                                        class="text-xs text-indigo-600 dark:text-indigo-400">
+                                                                                        class="text-sm text-indigo-600 dark:text-indigo-400">
                                                                                         Vacant: {{ $count }}</p>
                                                                                 </div>
                                                                             @endforeach
@@ -223,7 +223,7 @@
                                                         🚀 Approval</h2>
                                                     <div class="flex gap-2">
                                                         <div
-                                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-xs font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
+                                                            class="flex items-center gap-1 rounded-md bg-green-500/15 px-2 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 24 24" stroke-width="1.5"
                                                                 stroke="currentColor" class="h-4 w-4">
@@ -234,7 +234,7 @@
                                                                 class="focus:outline-none">Approve</button>
                                                         </div>
                                                         <div
-                                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-xs font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
+                                                            class="flex items-center gap-1 rounded-md bg-red-500/15 px-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 24 24" stroke-width="1.5"
                                                                 stroke="currentColor"class="w-4 h-4">
@@ -245,7 +245,7 @@
                                                                 class="focus:outline-none">Reject</button>
                                                         </div>
                                                         <div
-                                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-xs font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
+                                                            class="flex items-center gap-1 rounded-md bg-gray-500/15 px-2 text-sm font-medium text-gray-700 transition hover:bg-gray-600 hover:text-white dark:bg-gray-100/10 dark:text-white dark:hover:bg-gray-900">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 24 24" stroke-width="1.5"
                                                                 stroke="currentColor" class="size-4">
@@ -258,7 +258,7 @@
                                                     </div>
                                                 </header>
                                                 <div class="overflow-x-auto px-4 pt-4">
-                                                    <table class="mb-4 w-full text-xs">
+                                                    <table class="mb-4 w-full text-sm">
                                                         <thead>
                                                             <tr class="text-gray-700 dark:text-gray-300">
                                                                 <th class="p-3 text-left">Level</th>
@@ -326,7 +326,7 @@
                                                         📂 Attachment</h2>
                                                 </header>
                                                 <div class="overflow-x-auto px-4 pt-2">
-                                                    <table class="mb-4 w-full text-xs">
+                                                    <table class="mb-4 w-full text-sm">
                                                         <thead class="text-gray-600 dark:text-gray-300">
                                                             <tr>
                                                                 <th class="p-3 text-left">Filename</th>
@@ -386,7 +386,7 @@
                                                             placeholder="Write a comment..."
                                                             class="flex-1 rounded-lg bg-gray-100 p-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:bg-gray-800 dark:text-white">
                                                         <button id="postCommentBtn"
-                                                            class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
+                                                            class="hover: rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-600 active:scale-95">
                                                             Post 🚀
                                                         </button>
                                                     </div>
@@ -426,7 +426,7 @@
                                                     </h4>
                                                 </div>
 
-                                                <table class="w-full border bg-gray-300/10 text-xs text-black">
+                                                <table class="w-full border bg-gray-300/10 text-sm text-black">
                                                     <thead>
                                                         <tr class="text-left">
                                                             <th class="border px-2 py-1">No</th>
@@ -535,8 +535,8 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-xs font-semibold">${comment.username} 
-                                            <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                        <p class=" text-sm  font-semibold">${comment.username} 
+                                            <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                     </div>
@@ -908,11 +908,11 @@
                                             <strong>Employee:</strong>
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:20px;height:20px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px;">${m.name} (${m.company} - ${m.position})</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `).join('')}
                                             </div>
                                         </div>
                                     </div>

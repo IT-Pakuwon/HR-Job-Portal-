@@ -103,7 +103,7 @@
         <div class="mb-4 flex items-center justify-between">
             <div>
                 <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -114,7 +114,7 @@
 
             <div class="flex gap-3">
                 <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -123,7 +123,7 @@
                     Approve
                 </button>
                 <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -132,7 +132,7 @@
                     Revise
                 </button>
                 <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-xs font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700/30 dark:text-red-300 dark:hover:bg-red-600/50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="h-4 w-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -150,7 +150,7 @@
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $sppk->sppkid }}
@@ -177,13 +177,13 @@
 
                         <div class="flex items-center gap-3">
                             <span
-                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-xs font-semibold transition-colors duration-200">
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
 
                             <a href="{{ url('/pdf_sppks') }}/{{ $hash }}" target="_blank">
                                 <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
                             </a>
@@ -191,7 +191,7 @@
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
                             @php
                                 $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
@@ -292,7 +292,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-1 text-center text-xs font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-1 text-center text-sm font-medium transition-colors duration-200">
                                     Attachment
                                 </button>
                                 <button @click="activeTab = 'approval'"
@@ -300,7 +300,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-1 text-center text-xs font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-1 text-center text-sm font-medium transition-colors duration-200">
                                     Approval Details
                                 </button>
                                 <button @click="activeTab = 'comments'"
@@ -308,7 +308,7 @@
                                         ?
                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-1 text-center text-xs font-medium transition-colors duration-200">
+                                    class="flex-1 px-4 py-1 text-center text-sm font-medium transition-colors duration-200">
                                     Comments
                                 </button>
                             </nav>
@@ -316,7 +316,7 @@
 
                         {{-- Approval tab --}}
                         <div x-show="activeTab === 'approval'" class="flex-1 p-2 transition-all">
-                            <table class="w-full text-xs">
+                            <table class="w-full text-sm">
                                 <thead>
                                     <tr
                                         class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -364,7 +364,7 @@
                                                         }
                                                     @endphp
                                                     <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1 text-xs font-semibold">
+                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1  text-sm  font-semibold">
                                                         {{ $statusText }}
                                                     </span>
                                                 </td>
@@ -376,7 +376,7 @@
 
                         {{-- Attachment tab --}}
                         <div x-show="activeTab === 'attachment'" class="flex-1 p-2 transition-all">
-                            <table class="w-full text-xs">
+                            <table class="w-full text-sm">
                                 <thead class="text-gray-600 dark:text-gray-300">
                                     <tr class="border-b border-gray-200 dark:border-gray-700">
                                         <th class="p-3 text-left font-semibold">Filename</th>
@@ -395,7 +395,7 @@
                                                         </a>
                                                     @else
                                                         <span class="text-gray-700 dark:text-gray-300">📎 {{ $at->display_name }}</span>
-                                                        <span class="ml-2 text-xs text-red-500">(link unavailable)</span>
+                                                        <span class="ml-2  text-sm  text-red-500">(link unavailable)</span>
                                                     @endif
                                                 </td>
                                                 <td class="px-3 py-2">{{ $at->created_by }}</td>
@@ -418,7 +418,7 @@
                                         <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                             <div class="flex-1">
                                                 <label for="sppkAttachFiles"
-                                                    class="mb-2 block text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                                    class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
                                                     Upload Attachments
                                                 </label>
                                                 <div class="flex items-center gap-3">
@@ -428,17 +428,17 @@
                                                         value="{{ $sppk->department_id }}">
                                                     <input type="file" id="sppkAttachFiles" name="attachments[]"
                                                         multiple
-                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                        class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
                                                     <button type="button" id="btnUploadSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                         Upload
                                                     </button>
                                                     <button type="button" id="btnResetSppbAttachment"
-                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                        class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                                                         Reset
                                                     </button>
                                                 </div>
-                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                                     Max 10 files, PDF / Image preferred.
                                                 </p>
                                             </div>
@@ -460,7 +460,7 @@
                                         placeholder="Write a comment..."
                                         class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white dark:focus:ring-indigo-400">
                                     <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
+                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95 dark:focus:ring-offset-gray-800">
                                         Post 🚀
                                     </button>
                                 </div>
@@ -477,7 +477,7 @@
                     <h2 class="text-base font-semibold">📝 SPPK Detail</h2>
                     {{-- Button Edit COA --}}
                     <button id="btnEditCoa"
-                        class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-xs font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -487,7 +487,7 @@
                     </button>
                 </header>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-gray-700 dark:text-gray-200">
+                    <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
@@ -507,12 +507,12 @@
                                     <td class="px-4 py-2">{{ $item->sppk_no }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }} ( {{ $item->inventoryid }}
                                         )<br>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
                                             Note: {{ $item->note }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-2">{{ number_format($item->qty, 2, ',', '.') }}<br>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
                                             {{ $item->uom }}
                                         </span>
                                     </td>
@@ -550,9 +550,9 @@
 
                     {{-- Body modal: table --}}
                     <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
-                        <table class="w-full min-w-max border-separate border-spacing-0 text-xs">
+                        <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
                             <thead
-                                class="bg-gray-100 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="bg-gray-100 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <tr>
                                     <th class="w-64 px-3 py-2 text-left">
                                         Inventory Descr / Note
@@ -575,15 +575,15 @@
                                         data-perpost="{{ $row->budget_perpost }}">
 
                                         <td>{{ $row->inventory_descr }}<br>
-                                            <span class="text-xs text-gray-500">Note : {{ $row->note }}</span><br>
-                                            <span class="text-xs text-gray-500">Location :
+                                            <span class="text-sm text-gray-500">Note : {{ $row->note }}</span><br>
+                                            <span class="text-sm text-gray-500">Location :
                                                 {{ optional($row->location)->location_name }} -
                                                 {{ optional($row->subLocation)->sub_location_name }}</span>
                                         </td>
 
                                         <td class="text-center">
                                             {{ number_format($row->qty, 2, ',', '.') }} <br>
-                                            <span class="text-xs text-gray-500">{{ $row->uom }}</span>
+                                            <span class="text-sm text-gray-500">{{ $row->uom }}</span>
                                         </td>
 
                                         <td>{{ $row->budget_activity_descr }}</td>
@@ -615,11 +615,11 @@
                     <div
                         class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
                         <button id="btnCancelEditCoa"
-                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                             Cancel
                         </button>
                         <button id="btnSaveEditCoa"
-                            class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             Save
                         </button>
                     </div>
@@ -673,7 +673,7 @@
                     Cancel
                 </button>
                 <button id="confirmReviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-xs font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
 
@@ -723,9 +723,9 @@
 
                             commentList.append(`
                                 <div class="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2">
-                                    <p class="text-xs font-semibold">
+                                    <p class=" text-sm  font-semibold">
                                         ${comment.username}
-                                        <span class="text-xs text-gray-500">(${timeAgo})</span>
+                                        <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
                                 </div>
@@ -1072,7 +1072,7 @@
                         `<a href="${at.url}" target="_blank"
                     class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
                         `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
-                <span class="ml-2 text-xs text-red-500">(link unavailable)</span>`;
+                <span class="ml-2  text-sm  text-red-500">(link unavailable)</span>`;
 
                     $tb.append(`
                 <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -1209,7 +1209,7 @@
                     statusClass = "bg-gray-500 text-white";
             }
 
-            return `<span class="${statusClass} inline-block rounded-full px-3 py-1 text-xs font-semibold">${statusText}</span>`;
+            return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
         }
     </script>
 

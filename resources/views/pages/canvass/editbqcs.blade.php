@@ -43,40 +43,40 @@
                     </h2>
                 </div>
 
-                <div class="flex flex-col gap-4 text-xs">
+                <div class="flex flex-col gap-4 text-sm">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->cpny_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Department</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->department_id }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">BQ ID</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->bqid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">SPPJ/K/T</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->sppbjktid }}
                             </div>
                         </div>
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Requester</span>
                             <div
-                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                class="rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 {{ $cs->user_peminta }}
                             </div>
                         </div>
@@ -93,7 +93,7 @@
                     </div>
                     <div class="mb-3 flex justify-end">
                         <button type="button" id="btnAddRow"
-                            class="rounded-md bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                             + Add Row
                         </button>
                     </div>
@@ -102,9 +102,9 @@
 
                 <div class="rounded-base relative overflow-x-auto">
 
-                    <table class="text-body w-full table-auto text-left text-xs rtl:text-right" id="bqTable">
+                    <table class="text-body w-full table-auto text-left text-sm rtl:text-right" id="bqTable">
                         <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-xs">
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th class="border px-4 py-3 text-left font-semibold">No</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Line</th>
@@ -117,7 +117,7 @@
 
                                         <div class="flex items-start justify-between gap-1">
                                             <div class="space-y-0.5">
-                                                <div class="text-xs font-semibold">
+                                                <div class="text-sm font-semibold">
                                                     {{ $v['name'] }}
                                                 </div>
                                             </div>
@@ -128,7 +128,7 @@
                                                     class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
 
                                                 <div
-                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-xs shadow-lg group-hover:block">
+                                                    class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-sm shadow-lg group-hover:block">
                                                     <div><strong>Contact:</strong> {{ $v['cp'] ?: '-' }}
                                                     </div>
                                                     <div><strong>Phone:</strong> {{ $v['telp'] ?: '-' }}
@@ -218,7 +218,7 @@
 
                                         <span class="font-medium md:hidden">Estimates:</span>
 
-                                        <div class="grid grid-cols-2 gap-3 text-xs">
+                                        <div class="grid grid-cols-2 gap-3 text-sm">
                                             <div class="flex flex-col gap-1">
                                                 <span>Est. Material</span>
                                                 <span class="text-gray-800 dark:text-gray-200">
@@ -247,7 +247,7 @@
 
                                             <span class="font-medium md:hidden">{{ $v['name'] }}:</span>
 
-                                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                            <div class="grid grid-cols-2 gap-3 text-sm">
                                                 <label class="flex flex-col gap-1">
                                                     <span>Total Material</span>
                                                     <input type="number" step="0.01" min="0"
@@ -290,11 +290,11 @@
                                 @foreach ($vendors as $i => $v)
                                     <td class="border px-4 py-4 text-left">
                                         <div class="flex flex-row justify-between gap-6">
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
+                                            <div class="text-sm text-gray-600 dark:text-gray-300">
                                                 Total Material: <span class="sum-mat font-semibold"
                                                     data-vendor="{{ $i + 1 }}">0</span>
                                             </div>
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
+                                            <div class="text-sm text-gray-600 dark:text-gray-300">
                                                 Total Jasa: <span class="sum-jsa font-semibold"
                                                     data-vendor="{{ $i + 1 }}">0</span>
                                             </div>
@@ -618,7 +618,7 @@
                 const td = document.createElement('td');
                 td.className = 'block border px-4 py-2 md:table-cell md:border';
                 td.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="grid grid-cols-2 gap-3  text-sm ">
                         <div class="flex flex-col gap-1">
                             <span>Est. Material</span><span class="text-gray-800 dark:text-gray-200">0,00</span>
                         </div>
@@ -634,7 +634,7 @@
                 const td = document.createElement('td');
                 td.className = 'block border px-4 py-2 md:table-cell md:border';
                 td.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="grid grid-cols-2 gap-3  text-sm ">
                         <label class="flex flex-col gap-1">
                             <span>Total Material</span>
                             <input type="number" step="0.01" min="0"

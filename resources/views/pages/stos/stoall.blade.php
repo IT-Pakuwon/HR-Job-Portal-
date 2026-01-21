@@ -142,7 +142,7 @@
             <div class="relative w-full max-w-5xl rounded-xl bg-white p-8 shadow-xl dark:bg-gray-700">
                 {{-- Modal Header with Tabs and Close Button --}}
                 <div class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-600">
-                    <ul class="flex flex-wrap text-center text-xs font-medium" id="tabs">
+                    <ul class="flex flex-wrap text-center text-sm font-medium" id="tabs">
                         <li class="mr-2">
                             <button type="button"
                                 class="tab-button inline-flex items-center rounded-t-lg border-b-2 border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 transition-colors duration-200 dark:border-blue-500 dark:text-blue-400"
@@ -167,22 +167,22 @@
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                        class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                         No</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                        class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                         Name</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                        class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                         Company</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                        class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                         Position</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                        class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                         Photo</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                        class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                         Action</th>
                                 </tr>
                             </thead>
@@ -191,7 +191,7 @@
                                 {{-- Employee data will be loaded here by JS --}}
                                 <tr class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                     <td colspan="6"
-                                        class="py-4 text-center text-xs italic text-gray-500 dark:text-gray-400">Loading
+                                        class="py-4 text-center text-sm italic text-gray-500 dark:text-gray-400">Loading
                                         employees...</td>
                                 </tr>
                             </tbody>
@@ -220,10 +220,10 @@
                                     <thead class="bg-gray-50 dark:bg-gray-700">
                                         <tr>
                                             <th
-                                                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                                class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                                 No</th>
                                             <th
-                                                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                                class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                                 Job Purpose</th>
                                         </tr>
                                     </thead>
@@ -234,7 +234,7 @@
                                         <tr
                                             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                             <td colspan="2"
-                                                class="py-4 text-center text-xs italic text-gray-500 dark:text-gray-400">
+                                                class="py-4 text-center text-sm italic text-gray-500 dark:text-gray-400">
                                                 Loading job purposes...</td>
                                         </tr>
                                     </tbody>
@@ -243,7 +243,7 @@
                         </div>
 
                         <div id="jobSpecInfo"
-                            class="space-y-4 rounded-lg bg-gray-50 p-4 text-xs text-gray-700 shadow-inner dark:bg-gray-700 dark:text-gray-200">
+                            class="space-y-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-700 shadow-inner dark:bg-gray-700 dark:text-gray-200">
                             {{-- Job Spec details will be injected here by JS --}}
                             <p class="text-center italic text-gray-500 dark:text-gray-400">Job specification details
                                 will appear here.</p>
@@ -311,7 +311,7 @@
                                 <div class="inline-flex gap-2">
                                     <!-- Job Profile Button -->
                                     <button
-                                        class="btn-profile flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-2 text-xs transition"
+                                        class="btn-profile flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-2  text-sm  transition"
                                         title="Job Profile"
                                         data-id="${emp.id}">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24"
@@ -418,7 +418,7 @@
                         // let legendHTML = `
                 // <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:260px">
                 //     <div class="font-bold mb-1">Legend:</div>
-                //     <table class="text-xs">
+                //     <table class=" text-sm ">
                 //     <thead>
                 //         <tr>
                 //         <th class="pr-4">Department</th>
@@ -460,7 +460,7 @@
                         let legendHTML = `
                         <div class="p-2 rounded border bg-white shadow" style="display:inline-block; min-width:160px">
                             <div class="font-bold mb-1">Legend (Company):</div>
-                            <table class="text-xs">
+                            <table class=" text-sm ">
                             <thead>
                                 <tr>
                                 <th class="pr-4">Company</th>
@@ -469,11 +469,11 @@
                             </thead>
                             <tbody>
                                 ${legendCompany.map(item => `
-                                                                                                                                                                                                                                                                                                                                                <tr>
-                                                                                                                                                                                                                                                                                                                                                    <td class="pr-4">${item.company}</td>
-                                                                                                                                                                                                                                                                                                                                                    <td>${item.count}</td>
-                                                                                                                                                                                                                                                                                                                                                </tr>
-                                                                                                                                                                                                                                                                                                                                                `).join('')}
+                                                                                                                                                                                                                                                                                                                                                        <tr>
+                                                                                                                                                                                                                                                                                                                                                            <td class="pr-4">${item.company}</td>
+                                                                                                                                                                                                                                                                                                                                                            <td>${item.count}</td>
+                                                                                                                                                                                                                                                                                                                                                        </tr>
+                                                                                                                                                                                                                                                                                                                                                        `).join('')}
                             </tbody>
                             </table>
                         </div>
@@ -525,13 +525,13 @@
                                             <div style="font-size:12px;color:#333">                                    
                                                 <div style="margin-top:10px;">
                                                     ${members.map(m => `
-                                                                                                                                                                                                                                                                                                                                                                        <div style="display:flex;align-items:center;margin-bottom:2px;">
-                                                                                                                                                                                                                                                                                                                                                                            <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                                                                                                                                                                                                                            <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                                                                                                                                                                                                                                ${m.name} (${m.company})
-                                                                                                                                                                                                                                                                                                                                                                            </span>
-                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                    `).join('')}
+                                                                                                                                                                                                                                                                                                                                                                                <div style="display:flex;align-items:center;margin-bottom:2px;">
+                                                                                                                                                                                                                                                                                                                                                                                    <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                                                                                                                                                                                                                    <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                                                                                                                                                                                                                        ${m.name} (${m.company})
+                                                                                                                                                                                                                                                                                                                                                                                    </span>
+                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                            `).join('')}
                                                 </div>
                                             </div>
                                         </div>
