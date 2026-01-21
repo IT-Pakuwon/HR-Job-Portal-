@@ -190,7 +190,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex h-[250px] flex-col overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                         <header
                             class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
@@ -362,9 +362,9 @@
                 @endphp
 
                 <!-- scrollable container -->
-                <div id="budgetTableWrapper" class="relative max-h-[420px] overflow-y-auto overflow-x-hidden">
+                <div id="budgetTableWrapper" class="relative max-h-[420px] overflow-x-auto overflow-y-auto">
                     <table class="w-full table-fixed border-collapse">
-                        <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700">
+                        <thead class="sticky top-0 z-10 bg-gray-50 text-sm dark:bg-gray-700">
                             <tr>
                                 <th style="width:80px; white-space:normal; word-break:break-word;" class="px-2 py-2">
                                     Account</th>
@@ -396,19 +396,19 @@
 
                         <tbody>
                             @foreach ($budgetdetail as $item)
-                                <tr class="bg-white hover:bg-gray-50 dark:bg-gray-600 dark:hover:bg-gray-700">
+                                <tr class="bg-white text-xs hover:bg-gray-50 dark:bg-gray-600 dark:hover:bg-gray-700">
 
-                                    <td style="width:80px;  white-space:normal; word-break:break-word;"
-                                        class="px-2 py-2">{{ $item->account_id }}</td>
+                                    <td style="width:80px; white-space:normal; word-break:break-word;"
+                                        class="budget-wrap px-2 py-2">{{ $item->account_id }}</td>
                                     {{-- <td style="width:80px; white-space:normal; word-break:break-word;"
                                         class="px-2 py-2">{{ $item->activity_id }}</td> --}}
-                                    <td class="col-full hidden" style="width:80px;">
+                                    <td class="col-full budget-wrap hidden" style="width:80px;">
                                         {{ $item->activity_id }}
                                     </td>
                                     <td style="width:80px; white-space:normal; word-break:break-word;"
-                                        class="px-2 py-2">{{ $item->activity_descr }}</td>
-                                    <td style="width:80px; white-space:normal; word-break:break-word;"
-                                        class="px-2 py-2">{{ $item->activity_detail }}</td>
+                                        class="budget-wrap px-2 py-2">{{ $item->activity_descr }}</td>
+                                    <td style="width:80px;  white-space:normal; word-break:break-word;"
+                                        class="budget-wrap px-2 py-2">{{ $item->activity_detail }}</td>
 
                                     {{-- <td style="width:50px; white-space:normal; word-break:break-word;"
                                         class="px-2 py-2">
@@ -420,33 +420,92 @@
                                         data-value="{{ $item->unit_price_budget }}">
                                         {{ number_format($item->unit_price_budget) }}
                                     </td> --}}
-                                    <td class="col-full hidden" style="width:50px;">
+                                    <td class="col-full budget-wrap hidden" style="width:50px;">
                                         {{ number_format($item->qty_budget, 2, ',', '.') }}
                                     </td>
 
-                                    <td class="col-full budget-cell hidden text-right" style="width:50px;"
+                                    <td class="col-full budget-wrap budget-cell hidden text-left" style="width:50px;"
                                         data-value="{{ $item->unit_price_budget }}">
                                         {{ number_format($item->unit_price_budget) }}
                                     </td>
 
-                                    <td class="budget-cell px-2 py-2 text-right"
+                                    @php $total = floatval($item->totalbudget); @endphp
+                                    <td class="budget-cell budget-wrap px-2 py-2 text-right"
                                         style="width:50px; white-space:normal; word-break:break-word;"
-                                        data-value="{{ $item->totalbudget }}">
-                                        {{ number_format($item->totalbudget) }}
+                                        data-value="{{ $total }}">
+                                        {!! $total == 0 ? '<span class="text-gray-400">–</span>' : number_format($total) !!}
                                     </td>
-
                                     @for ($i = 1; $i <= 12; $i++)
-                                        @php $p='period'.str_pad($i,2,'0',STR_PAD_LEFT).'_budget'; @endphp
-                                        <td class="budget-cell px-2 py-2 text-right"
-                                            style="width:80px; white-space:normal; word-break:break-word;"
-                                            data-value="{{ $item->$p }}">
-                                            {{ number_format($item->$p) }}
+                                        @php
+                                            $p = 'period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget';
+                                            $val = floatval($item->$p);
+                                        @endphp
+
+                                        <td class="budget-cell budget-wrap px-2 py-2 text-right"
+                                            data-value="{{ $val }}">
+                                            {!! $val == 0 ? '<span class="text-gray-400">–</span>' : number_format($val) !!}
                                         </td>
                                     @endfor
-
                                 </tr>
                             @endforeach
                         </tbody>
+                        <tfoot
+                            class="sticky bottom-0 z-10 border-t bg-gray-100 text-xs font-semibold text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+                            @php
+                                $totalBudgetSum = 0;
+                                $totalQtySum = 0;
+                                $totalUnitPriceSum = 0;
+
+                                $periodSums = array_fill(1, 12, 0);
+
+                                foreach ($budgetdetail as $item) {
+                                    $totalBudgetSum += (float) $item->totalbudget;
+                                    $totalQtySum += (float) $item->qty_budget;
+                                    $totalUnitPriceSum += (float) $item->unit_price_budget;
+
+                                    for ($i = 1; $i <= 12; $i++) {
+                                        $p = 'period' . str_pad($i, 2, '0', STR_PAD_LEFT) . '_budget';
+                                        $periodSums[$i] += (float) $item->$p;
+                                    }
+                                }
+                            @endphp
+
+
+                            <tr>
+                                <td id="tfootLabelCompact" colspan="3"
+                                    class="budget-wrap bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                    TOTAL
+                                </td>
+
+                                <td id="tfootLabelFull" colspan="4"
+                                    class="budget-wrap hidden bg-gray-200 px-4 py-2 text-right dark:bg-gray-800">
+                                    TOTAL
+                                </td>
+
+                                <td class="budget-cell col-full hidden text-left" data-type="qty"
+                                    data-value="{{ $totalQtySum }}">
+
+                                    <!-- TOTAL UNIT PRICE (FULL VIEW ONLY) -->
+                                <td class="budget-cell budget-wrap col-full hidden bg-gray-200 px-4 py-2 text-left"
+                                    data-value="{{ $totalUnitPriceSum }}">
+                                    {{ number_format($totalUnitPriceSum) }}
+                                </td>
+
+                                {{-- TOTAL BUDGET --}}
+                                <td class="budget-cell budget-wrap bg-gray-200 px-4 py-2 text-right dark:bg-gray-800"
+                                    data-value="{{ $totalBudgetSum }}">
+                                    {{ number_format($totalBudgetSum) }}
+                                </td>
+
+                                {{-- TOTAL PERIOD --}}
+                                @for ($i = 1; $i <= 12; $i++)
+                                    <td class="budget-cell budget-wrap bg-gray-200 px-4 py-2 text-right dark:bg-gray-800"
+                                        data-value="{{ $periodSums[$i] }}">
+                                        {{ number_format($periodSums[$i]) }}
+                                    </td>
+                                @endfor
+                            </tr>
+                        </tfoot>
 
                     </table>
                 </div>
@@ -548,92 +607,96 @@
     </script>
 
     <script>
+        function formatMoney(num) {
+            return new Intl.NumberFormat('id-ID').format(num);
+        }
+
+        function formatMillion(num) {
+            return (num / 1_000_000).toLocaleString('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatQty(num) {
+            return num.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+    </script>
+
+    <script>
         $(document).ready(function() {
 
-            let budgetViewMode = 'regular'; // regular | million
-
-            function formatNumber(num) {
-                return new Intl.NumberFormat('id-ID').format(num);
-            }
-
-            function formatMillion(num) {
-                return (num / 1_000_000).toLocaleString('id-ID', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 2
-                });
-            }
+            let budgetViewMode = 'regular';
 
             function refreshBudgetView() {
                 $('.budget-cell').each(function() {
-                    const raw = parseFloat($(this).data('value')) || 0;
 
+                    const raw = parseFloat($(this).data('value')) || 0;
+                    const type = $(this).data('type');
+
+                    if (raw === 0) {
+                        $(this).html('<span class="text-gray-400">–</span>');
+                        return;
+                    }
+
+                    if (type === 'qty') {
+                        $(this).text(formatQty(raw));
+                        return;
+                    }
+
+                    // money
                     if (budgetViewMode === 'million') {
                         $(this).text(formatMillion(raw));
                     } else {
-                        $(this).text(formatNumber(raw));
+                        $(this).text(formatMoney(raw));
                     }
                 });
 
-                // 🔹 update button text
-                if (budgetViewMode === 'million') {
-                    $('#toggleUnitBtn').text('Million');
-                } else {
-                    $('#toggleUnitBtn').text('Regular');
-                }
+                $('#toggleUnitBtn').text(
+                    budgetViewMode === 'million' ? 'Regular' : 'In Million'
+                );
             }
 
-            // toggle handler
-            $(document).on('click', '#toggleUnitBtn', function() {
+            // 🔥 MISSING CLICK HANDLER
+            $('#toggleUnitBtn').on('click', function() {
                 budgetViewMode = (budgetViewMode === 'regular') ? 'million' : 'regular';
                 refreshBudgetView();
             });
 
-            // initial render
             refreshBudgetView();
         });
     </script>
-
     <script>
         $(document).ready(function() {
 
             let isFullView = false;
 
             function refreshViewMode() {
-
-                const $wrapper = $('#budgetTableWrapper');
-
                 if (isFullView) {
-                    // show extra columns
                     $('.col-full').removeClass('hidden');
-
-                    // enable horizontal scroll
-                    $wrapper.removeClass('overflow-x-hidden')
-                        .addClass('overflow-x-auto');
-
+                    $('#tfootLabelCompact').addClass('hidden');
+                    $('#tfootLabelFull').removeClass('hidden');
                     $('#toggleViewBtn').text('Compact View');
                 } else {
-                    // hide extra columns
                     $('.col-full').addClass('hidden');
-
-                    // disable horizontal scroll
-                    $wrapper.removeClass('overflow-x-auto')
-                        .addClass('overflow-x-hidden');
-
+                    $('#tfootLabelCompact').removeClass('hidden');
+                    $('#tfootLabelFull').addClass('hidden');
                     $('#toggleViewBtn').text('View Full');
                 }
             }
 
-            // toggle button
-            $(document).on('click', '#toggleViewBtn', function() {
+            // 🔥 MISSING CLICK HANDLER
+            $('#toggleViewBtn').on('click', function() {
                 isFullView = !isFullView;
                 refreshViewMode();
             });
 
-            // initial state
             refreshViewMode();
         });
     </script>
-
 
 
     <script>
