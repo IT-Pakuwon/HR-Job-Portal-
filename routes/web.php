@@ -91,6 +91,7 @@ use App\Http\Controllers\BudgetMonitorController;
 use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\Integration\IFCAIntegrationController;
 use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\SelfRegisterApplicantController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -160,7 +161,7 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
 Route::post('/google/calendar/event', [GoogleCalendarController::class, 'createEvent'])
     ->middleware('auth');
 
-    Route::get('/google/calendar/events', [GoogleCalendarController::class, 'listEvents'])
+Route::get('/google/calendar/events', [GoogleCalendarController::class, 'listEvents'])
     ->middleware('auth');
 
 Route::get('/modules', function () {
@@ -387,6 +388,10 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     // Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
     
     Route::get('/job-filters/tl', [JobapplicantController::class, 'jobTitleLevels'])->name('jobfilters.tl');
+
+    Route::get('/selfregister', [SelfRegisterApplicantController::class, 'index'])->name('selfregister');
+    Route::get('/selfregister/json', [SelfRegisterApplicantController::class, 'json'])->name('selfregister.json'); 
+    Route::get('/showselfregister/{hash}', [SelfRegisterApplicantController::class, 'showSelfRegister']);
 
 
 
