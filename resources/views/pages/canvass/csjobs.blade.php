@@ -415,7 +415,7 @@
                             data-cpny="${row.cpny_id}"
                             data-dept="${row.department_id}"
                             title="Revise dokumen (set status D)">
-                            <i class="fas fa-pen"></i>
+<i class="fas fa-undo"></i>
                         </button>
                         </div>`;
                     }
