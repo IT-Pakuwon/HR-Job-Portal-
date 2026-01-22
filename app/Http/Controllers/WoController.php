@@ -1849,7 +1849,7 @@ class WoController extends Controller
             'wodate'              => \Carbon\Carbon::parse($wo->wodate)->format('d F Y'),
             'keperluan'           => $wo->keperluan,
             'status_doc'          => $status_doc,
-
+            'budget_use'          => $wo->budget_use,    
             // info tambahan yang sering dipakai di template
             'wotype'              => $wo->wotype,                      // disimpan string category_name
             'worequest'           => $wo->worequest,                   // disimpan string category_name
