@@ -366,7 +366,7 @@ class IssueController extends Controller
             $spbId = TrSPB::where('spbid', $iss->spbid)->value('id');
             if ($spbId) {
                 $spbHash = Hashids::encode($spbId);
-                $spbUrl  = url("/showissue/{$spbHash}");
+                $spbUrl  = url("/showspbs/{$spbHash}");
             }
         }
 

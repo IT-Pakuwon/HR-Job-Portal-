@@ -369,6 +369,8 @@
                                     @csrf
                                     <input type="hidden" name="potype"
                                         value="{{ strtoupper($po->potype ?? '') }}">
+                                        <input type="hidden" name="cpny_id" value="{{ $po->cpny_id }}">
+                                        <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
                                     @php
                                         $isPO = strtoupper($po->potype ?? '') === 'PO';
                                         $readOnlyDelivery = $po->status === 'P';
@@ -1483,7 +1485,7 @@
 
     <script>
         $(function() {
-            const ponbr = "{{ $po->ponbr ?? $po->ponbr }}"; // sudah ada di bawah, biar konsisten
+            const hash = "{{ $hash }}"; // sudah ada di bawah, biar konsisten
 
             // ===== Modal helpers =====
             const $modalCancel = $('#modalCancel');
@@ -1523,7 +1525,7 @@
                     return;
                 }
                 $("#loadingSpinnerContainer").fadeIn();
-                $.post(`/po/${ponbr}/cancel`, {
+                $.post(`/po/${hash}/cancel`, {
                         reason,
                         _token: '{{ csrf_token() }}'
                     })
@@ -1544,7 +1546,7 @@
                     return;
                 }
                 $("#loadingSpinnerContainer").fadeIn();
-                $.post(`/po/${ponbr}/cancel-reuse`, {
+                $.post(`/po/${hash}/cancel-reuse`, {
                         reason,
                         _token: '{{ csrf_token() }}'
                     })
@@ -1732,6 +1734,7 @@
             $('#sendEmailBtn').on('click', function() {
                 const ponbr = @json($po->ponbr);
                 const eid_ponbr = @json($eid_ponbr);
+                const cpnyId = @json($po->cpny_id);
                 const statusNow = @json($po->status); // "H","P","O","C","X","R"
                 const alreadySent = @json((bool) ($po->send_email ?? false)); // true/false
 
@@ -1752,14 +1755,15 @@
                     toastr.info('Email untuk dokumen ini sudah pernah dikirim.');
                     return;
                 }
-
-
-                // const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}".replace('__HASH__',
-                //     encodeURIComponent(eid_ponbr))
-                // window.open(url, '_blank');
-                const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}"
+                
+                // const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}"
+                //     .replace('__HASH__', encodeURIComponent(eid_ponbr));
+                // window.location.href = url;
+                const baseUrl = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}"
                     .replace('__HASH__', encodeURIComponent(eid_ponbr));
+                const url = baseUrl + '?cpny_id=' + encodeURIComponent(cpnyId);
                 window.location.href = url;
+
             });
         });
     </script>
@@ -1767,8 +1771,8 @@
     <script>
         $(function() {
             const isHold = @json($po->status === 'H');
-            const listUrl = @json(route('attachments.list', ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
-            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $po->ponbr]));
+            const listUrl = @json(route('attachments.list', ['doctype' => 'PO', 'refnbr' => $hash]));
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $hash]));
             // const delRoute = @json(route('attachments.delete', ':id'));
             const removeUrlTpl = @json(url('/remove-attachment/:id'));
 

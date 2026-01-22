@@ -184,6 +184,8 @@
             </div>
 
             <input type="hidden" id="ponbr" value="{{ $ponbr }}">
+            <input type="hidden" id="cpny_id" value="{{ $cpny_id ?? ($po->cpny_id ?? '') }}">
+
         </div>
     </div>
 
@@ -300,6 +302,8 @@
             if($('#bccInput').value?.trim){ const v=$('#bccInput').val().trim(); if(v){ addChip('bcc', v); $('#bccInput').val(''); } }
 
             const payload = {
+            ponbr:   $('#ponbr').val(),                
+            cpny_id: $('#cpny_id').val(),
             from:   $('#from').val(),
             to:     state.to,
             cc:     state.cc,
@@ -313,7 +317,10 @@
 
 
             try{
-            const res = await fetch(`/po/${encodeURIComponent($('#orderNbr').val())}/email/send`, {
+                
+            const ponbr = encodeURIComponent($('#orderNbr').val());
+            const cpny  = encodeURIComponent($('#cpny_id').val() || '');
+            const res = await fetch(`/po/${ponbr}/email/send?cpny_id=${cpny}`, {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',

@@ -18,6 +18,23 @@
             font-weight: 700;
         }
     </style>
+    <style>
+        /* select2 biar full dan tinggi sama input */
+        .select2-container { width: 100% !important; }
+        .select2-container .select2-selection--single {
+            height: 42px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+    </style>
+
+
 
 
     <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
@@ -365,7 +382,7 @@
 
 
                     <!-- Modal: Location + Sub Location -->
-                    <div id="modalLokasi"
+                    {{-- <div id="modalLokasi"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
                         <div class="w-full max-w-2xl rounded-xl bg-white shadow-xl dark:bg-gray-800">
                             <!-- Header -->
@@ -376,6 +393,64 @@
                                         Location</h3>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">
                                     </div>
+                                </div>
+                                <button type="button" id="closeLokasi"
+                                    class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="px-5 py-5">
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <!-- Location -->
+                                    <div>
+                                        <label
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                        <select id="modal_location_id"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">-- choose --</option>
+                                        </select>
+                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
+                                            memilih Location.</small>
+                                    </div>
+
+                                    <!-- Sub Location -->
+                                    <div>
+                                        <label
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                            Location</label>
+                                        <select id="modal_sub_location_id"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">-- choose --</option>
+                                        </select>
+                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
+                                            memilih sub location.</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div
+                                class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+                                <button type="button" id="cancelLokasi"
+                                    class="rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Cancel
+                                </button>
+                                <button type="button" id="saveLokasi"
+                                    class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div> --}}
+
+                    <div id="modalLokasi"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <!-- Header -->
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Pilih Location & Sub
+                                    Location</h3>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
                                 </div>
                                 <button type="button" id="closeLokasi"
                                     class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
@@ -1947,7 +2022,7 @@
             });
         });
     </script>
-    <script>
+    {{-- <script>
         $(function() {
             const $lokasiModal = $('#modalLokasi');
             const $selLoc = $('#modal_location_id');
@@ -2054,7 +2129,158 @@
                 }
             });
         });
+    </script> --}}
+
+    <script>
+        $(function () {
+            const $lokasiModal = $('#modalLokasi');
+            const $selLoc = $('#modal_location_id');
+            const $selSub = $('#modal_sub_location_id');
+            let currentLocRow = null;
+
+            // init select2 sekali
+            function initSelect2() {
+                // kalau sudah pernah init, destroy dulu agar aman
+                if ($selLoc.hasClass("select2-hidden-accessible")) $selLoc.select2('destroy');
+                if ($selSub.hasClass("select2-hidden-accessible")) $selSub.select2('destroy');
+
+                $selLoc.select2({
+                    dropdownParent: $lokasiModal,   // penting karena modal overlay
+                    width: '100%',
+                    placeholder: '-- choose --',
+                    allowClear: true
+                });
+
+                $selSub.select2({
+                    dropdownParent: $lokasiModal,
+                    width: '100%',
+                    placeholder: '-- choose --',
+                    allowClear: true
+                });
+            }
+
+            function openLokasiModal(forRow) {
+                currentLocRow = forRow;
+
+                const cpny = ($('select[name="cpnyid"]').val() || '').trim();
+                if (!cpny) {
+                    toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+
+                // tampilkan modal dulu agar select2 dropdown bisa render benar
+                $lokasiModal.removeClass('hidden').addClass('flex');
+
+                // init select2
+                initSelect2();
+
+                // reset option
+                $selLoc.empty().append('<option value=""></option>'); // allowClear
+                $selSub.empty().append('<option value=""></option>');
+
+                // load locations
+                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                    .done(function (list) {
+                        (list || []).forEach(it => {
+                            $selLoc.append(new Option(it.text, it.value, false, false));
+                        });
+
+                        // preselect dari row jika ada
+                        const curLoc = (currentLocRow.find('.locationIdField').val() || '').trim();
+                        if (curLoc) {
+                            $selLoc.val(curLoc).trigger('change'); // akan load sublocations juga
+                        } else {
+                            $selLoc.trigger('change.select2'); // refresh ui
+                        }
+                    })
+                    .fail(function () {
+                        toastr.error('Gagal memuat lokasi.');
+                    });
+
+                // fokus search field select2
+                setTimeout(() => {
+                    $selLoc.select2('open');
+                }, 150);
+            }
+
+            function closeLokasiModal() {
+                $lokasiModal.addClass('hidden').removeClass('flex');
+            }
+
+            // Open modal dari tombol di row
+            $(document).on('click', '.openLokasiPicker', function () {
+                openLokasiModal($(this).closest('tr'));
+            });
+
+            // Close modal
+            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+            // Ketika location dipilih → load sublocations
+            $selLoc.on('change', function () {
+                const cpny = ($('select[name="cpnyid"]').val() || '').trim();
+                const loc = ($selLoc.val() || '').trim();
+
+                $selSub.empty().append('<option value=""></option>'); // allowClear
+
+                if (!loc) {
+                    $selSub.trigger('change.select2');
+                    return;
+                }
+
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                    .done(function (list) {
+                        (list || []).forEach(it => {
+                            $selSub.append(new Option(it.text, it.value, false, false));
+                        });
+
+                        // preselect jika row sudah punya sub_location_id
+                        if (currentLocRow) {
+                            const curSub = (currentLocRow.find('.subLocationIdField').val() || '').trim();
+                            if (curSub) $selSub.val(curSub).trigger('change');
+                        } else {
+                            $selSub.trigger('change.select2');
+                        }
+                    })
+                    .fail(function () {
+                        toastr.error('Gagal memuat sub location.');
+                    });
+            });
+
+            // Save ke row aktif
+            $('#saveLokasi').on('click', function () {
+                const locId = ($selLoc.val() || '').trim();
+                const subId = ($selSub.val() || '').trim();
+
+                const locText = $('#modal_location_id option:selected').text();
+                const subText = $('#modal_sub_location_id option:selected').text();
+
+                if (!locId || !subId) {
+                    toastr.error('Pilih Location dan Sub Location.');
+                    return;
+                }
+
+                currentLocRow.find('.locationIdField').val(locId);
+                currentLocRow.find('.subLocationIdField').val(subId);
+                currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+
+                // bersihkan error UI jika ada
+                currentLocRow.find('.locationDisplayField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+
+                closeLokasiModal();
+            });
+
+            // Jika company berubah dan modal terbuka → reload lokasi (dan reset sub)
+            $('select[name="cpnyid"]').on('change', function () {
+                if (!$lokasiModal.is(':visible')) return;
+
+                // kalau modal sedang terbuka, reload locations untuk company baru
+                if (currentLocRow) openLokasiModal(currentLocRow);
+            });
+        });
     </script>
+
 
     <script>
         function toggleWoSection() {
@@ -2164,5 +2390,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 
 </x-app-layout>

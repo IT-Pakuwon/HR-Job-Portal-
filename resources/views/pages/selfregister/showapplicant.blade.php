@@ -1,356 +1,295 @@
 <x-app-layout>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="gap">
-            <div
-                class="rounded-lgsm:col-span-1 flex w-full flex-col gap-2 overflow-hidden lg:row-span-2 xl:row-span-2 xl:flex-row dark:bg-gray-800">
+            <div class="rounded-lg sm:col-span-1 flex w-full flex-col gap-2 overflow-hidden lg:row-span-2 xl:row-span-2 xl:flex-row dark:bg-gray-800">
                 <div class="flex w-full flex-col">
+
                     <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
                         <div class="gap">
-                            <div
-                                class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-row">
+                            <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-row">
+
+                                {{-- =========================
+                                    KIRI: Personal Information
+                                ========================= --}}
                                 <div class="flex w-full flex-col">
-                                    {{-- Personal Information --}}
                                     <div x-data="{ isOpen: true }" class="pb-4">
                                         <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
-                                            <header
-                                                class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                                                {{-- <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
-                                                        🆔{{ $applicant->applicant_id }}</h2> --}}
+                                            <header class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                                 <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
-                                                    Personal
-                                                    Information</h2>
-                                                <form id="applicantprofile" class="flex-shrink-0">
+                                                    Personal Information
+                                                </h2>
+
+                                                {{-- <form id="applicantprofile" class="flex-shrink-0"> --}}
+                                                <form id="applicantprofile" action="{{ route('applicantprofile.pdf') }}" method="POST" class="flex-shrink-0">
                                                     @csrf
-                                                    <input type="hidden" name="applicant_id"
-                                                        value="{{ $applicant->applicant_id ?? '' }}">
+                                                    <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
                                                     <input type="hidden" name="job_title" value="{{ $career->job_title ?? '' }}">
-                                                    <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
-                                                    <input type="hidden" name="departementid"
-                                                        value="{{ $career->departementid ?? '' }}">
-                                                    <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
+                                                    <input type="hidden" name="cpnyid" value="AW">
+                                                    <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
+                                                    <input type="hidden" name="job_level" value="-">
+
                                                     <button type="submit"
                                                         class="inline-flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700">
                                                         Preview
                                                     </button>
                                                 </form>
                                             </header>
+
                                             <div class="p-4">
                                                 <div x-show="isOpen" x-transition.opacity>
                                                     <div class="overflow-x-auto">
                                                         <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
+
                                                             <div class="grid grid-cols-2 gap-4">
-                                                                <div
-                                                                    class="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                                    {{-- <img src="#" alt="Applicant Photo" class="w-50 h-50 rounded-full object-cover">      --}}
+                                                                <div class="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                                     <img src="{{ $photo }}" alt="Applicant Photo"
                                                                         onerror="this.onerror=null;this.src='{{ asset('images/sample.png') }}';"
                                                                         class="w-50 h-50 rounded-full object-cover">
                                                                 </div>
+
                                                                 <div class="grid-row-2 grid gap-4">
-                                                                    <div
-                                                                        class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                    <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Full
-                                                                                Name</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->full_name }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Full Name</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->full_name }}
+                                                                            </p>
                                                                         </div>
                                                                     </div>
-                                                                    <div
-                                                                        class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+
+                                                                    <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Email</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->email_address }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Email</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->email_address }}
+                                                                            </p>
                                                                         </div>
                                                                     </div>
-                                                                    <!-- Phone Number -->
-                                                                    <div
-                                                                        class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                                        <i
-                                                                            class="lucide lucide-phone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+
+                                                                    <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                        <i class="lucide lucide-phone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Phone
-                                                                                Number</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Phone Number</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                                 {{ $applicant->phone_number }}
                                                                             </p>
                                                                         </div>
                                                                     </div>
 
-                                                                    <!-- Mobile Number -->
-                                                                    <div
-                                                                        class="mt-2 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                                        <i
-                                                                            class="lucide lucide-smartphone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                    <div class="mt-2 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                        <i class="lucide lucide-smartphone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Mobile
-                                                                                Number</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Mobile Number</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                                 {{ $applicant->mobile_phone }}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
                                                             </div>
+
                                                             <div class="grid grid-cols-2 gap-4">
-                                                                <div
-                                                                    class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                <div class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Birth
-                                                                                Place</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->birth_place }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Birth Place</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->birth_place }}
+                                                                            </p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">DOB</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">DOB</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                                 {{ \Carbon\Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y') }}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div
-                                                                    class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+
+                                                                <div class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Gender</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->gender }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Gender</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->gender }}
+                                                                            </p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Blood
-                                                                                Type</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->blood_type }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Blood Type</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->blood_type }}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="grid grid-cols-1 gap-4">
+                                                                <div class="grid grid-cols-3 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <div>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Age</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->age }}
+                                                                            </p>
                                                                         </div>
                                                                     </div>
 
-                                                                </div>
-                                                            </div>
-                                                            <div class="grid grid-cols-1 gap-4">
-                                                                <div
-                                                                    class="grid grid-cols-3 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Age</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->age }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Height</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->height }} cm
+                                                                            </p>
                                                                         </div>
                                                                     </div>
+
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Height</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->height }} cm</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
-                                                                        <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Weight</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->weight }} kg</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Weight</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->weight }} kg
+                                                                            </p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
+
                                                             <div class="grid grid-cols-2 gap-4">
-                                                                <div
-                                                                    class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                <div class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Citizenship</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->citizenship }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Citizenship</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->citizenship }}
+                                                                            </p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-2">
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">KTP
-                                                                                ID</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->ktp_id }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">KTP ID</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->ktp_id }}
+                                                                            </p>
                                                                         </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                                    <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
-                                                                        <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Marital
-                                                                                Status</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->martial_status }}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
-                                                                        <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Religion</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->religion }}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div
-                                                                class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                                <div class="flex items-center gap-2">
-                                                                    <i
-                                                                        class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
-                                                                    <div>
-                                                                        <span
-                                                                            class="text-sm text-gray-500 dark:text-gray-400">Domicile
-                                                                            Address</span>
-                                                                        <p class="text-sm italic text-gray-400">Listed on
-                                                                            official ID (KTP).</p>
-                                                                        <p
-                                                                            class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                            {{ $applicant->id_address }}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="flex items-center gap-2">
-                                                                    <i
-                                                                        class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
-                                                                    <div>
-                                                                        <span
-                                                                            class="text-sm text-gray-500 dark:text-gray-400">Residential
-                                                                            Address</span>
-                                                                        <p class="text-sm italic text-gray-400">Current
-                                                                            residential address.</p>
-                                                                        <p
-                                                                            class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                            {{ $applicant->domicile_address }}
-                                                                            {{ $applicant->domicile_city }}</p>
                                                                     </div>
                                                                 </div>
 
-                                                            </div>
-                                                            <div class="grid grid-cols-1 gap-4">
-                                                                <div
-                                                                    class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                <div class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Facebook</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Marital Status</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->martial_status }}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="flex items-center gap-2">
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <div>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Religion</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->religion }}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                <div class="flex items-center gap-2">
+                                                                    <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                    <div>
+                                                                        <span class="text-sm text-gray-500 dark:text-gray-400">Domicile Address</span>
+                                                                        <p class="text-sm italic text-gray-400">Listed on official ID (KTP).</p>
+                                                                        <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            {{ $applicant->id_address }}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex items-center gap-2">
+                                                                    <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                    <div>
+                                                                        <span class="text-sm text-gray-500 dark:text-gray-400">Residential Address</span>
+                                                                        <p class="text-sm italic text-gray-400">Current residential address.</p>
+                                                                        <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            {{ $applicant->domicile_address }} {{ $applicant->domicile_city }}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="grid grid-cols-1 gap-4">
+                                                                <div class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <div>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Facebook</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                                 {{ $applicant->sosmed_facebook_account }}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Instagram</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Instagram</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                                 {{ $applicant->sosmed_instagram_account }}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">Twitter</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                                {{ $applicant->sosmed_x_account }}</p>
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Twitter</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                                {{ $applicant->sosmed_x_account }}
+                                                                            </p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-2">
-                                                                        <i
-                                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                        <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                                         <div>
-                                                                            <span
-                                                                                class="text-sm text-gray-500 dark:text-gray-400">LinkedIn</span>
-                                                                            <p
-                                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            <span class="text-sm text-gray-500 dark:text-gray-400">LinkedIn</span>
+                                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
                                                                                 {{ $applicant->sosmed_linkedin_account }}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
+
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <hr class="mx-6 dark:border-gray-500">
+
                                             <div class="p-4">
                                                 <div x-show="isOpen" x-transition.opacity>
                                                     <div class="overflow-x-auto">
-                                                        <label for="" class="text-sm font-semibold">Reference
-                                                            Information</label>
-                                                        <table
-                                                            class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
-                                                            <thead
-                                                                class="bg-gray-100 text-center text-gray-700 dark:bg-gray-800 dark:text-gray-700">
+                                                        <label class="text-sm font-semibold">Reference Information</label>
+                                                        <table class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                            <thead class="bg-gray-100 text-center text-gray-700 dark:bg-gray-800 dark:text-gray-700">
                                                                 <tr>
                                                                     <th class="border px-4 py-2">Name</th>
                                                                     <th class="border px-4 py-2">Division</th>
@@ -358,31 +297,30 @@
                                                                 </tr>
                                                             </thead>
                                                             <tbody class="text-gray-700 dark:text-gray-300">
-                                                                <tr
-                                                                    class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                    <td class="border px-4 py-2">
-                                                                        {{ $applicant->reference_name }}
-                                                                    </td>
-                                                                    <td class="border px-4 py-2">
-                                                                        {{ $applicant->reference_division }}</td>
-                                                                    <td class="border px-4 py-2">
-                                                                        {{ $applicant->reference_contact_number }}</td>
+                                                                <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                    <td class="border px-4 py-2">{{ $applicant->reference_name }}</td>
+                                                                    <td class="border px-4 py-2">{{ $applicant->reference_division }}</td>
+                                                                    <td class="border px-4 py-2">{{ $applicant->reference_contact_number }}</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
                                                     </div>
                                                 </div>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
 
+                                {{-- =========================
+                                    KANAN: Tabs Education/Family + Detail Info
+                                ========================= --}}
                                 <div class="flex w-full flex-col">
-                                    <div x-data="{ activeTab: 'Education' }" class="rounded-xl bg-white dark:bg-gray-800">
 
-                                        <header
-                                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                                            <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
+                                    {{-- === EDUCATION TAB GROUP === --}}
+                                    <div x-data="{ activeTab: 'Education' }" class="rounded-xl bg-white dark:bg-gray-800">
+                                        <header class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
+                                            <nav class="flex flex-grow">
                                                 <button @click="activeTab = 'Education'"
                                                     :class="{
                                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Education',
@@ -391,23 +329,25 @@
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                                     Education
                                                 </button>
+
                                                 <button @click="activeTab = 'WorkExperience'"
                                                     :class="{
-                                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab
-                                                        === 'WorkExperience',
+                                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'WorkExperience',
                                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'WorkExperience'
                                                     }"
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                                     Work Experience
                                                 </button>
+
                                                 <button @click="activeTab = 'Skill'"
                                                     :class="{
                                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Skill',
                                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Skill'
                                                     }"
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                                    Skill & Languange
+                                                    Skill & Language
                                                 </button>
+
                                                 <button @click="activeTab = 'Certificate'"
                                                     :class="{
                                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Certificate',
@@ -416,6 +356,7 @@
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                                     Certificate
                                                 </button>
+
                                                 <button @click="activeTab = 'sdanw'"
                                                     :class="{
                                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'sdanw',
@@ -424,11 +365,12 @@
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                                     Strengths & Weaknesses
                                                 </button>
-
                                             </nav>
                                         </header>
 
                                         <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-4 dark:bg-gray-800">
+
+                                            {{-- Education --}}
                                             <div x-show="activeTab === 'Education'"
                                                 x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="opacity-0 translate-y-2"
@@ -448,27 +390,19 @@
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_education as $education)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $education->education_name }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $education->education_type }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $education->start_year }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $education->end_year }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $education->education_score }}</td>
-
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $education->education_name }}</td>
+                                                                <td class="border px-4 py-2">{{ $education->education_type }}</td>
+                                                                <td class="border px-4 py-2">{{ $education->start_year }}</td>
+                                                                <td class="border px-4 py-2">{{ $education->end_year }}</td>
+                                                                <td class="border px-4 py-2">{{ $education->education_score }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
                                             </div>
 
+                                            {{-- Work Experience --}}
                                             <div x-show="activeTab === 'WorkExperience'"
                                                 x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="opacity-0 translate-y-2"
@@ -489,31 +423,20 @@
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_working as $working)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $working->company_name }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $working->job_title }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $working->start_date }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $working->end_date }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $working->superior_name }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $working->reason_for_leaving }}</td>
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $working->company_name }}</td>
+                                                                <td class="border px-4 py-2">{{ $working->job_title }}</td>
+                                                                <td class="border px-4 py-2">{{ $working->start_date }}</td>
+                                                                <td class="border px-4 py-2">{{ $working->end_date }}</td>
+                                                                <td class="border px-4 py-2">{{ $working->superior_name }}</td>
+                                                                <td class="border px-4 py-2">{{ $working->reason_for_leaving }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
                                             </div>
 
+                                            {{-- Skill & Language --}}
                                             <div x-show="activeTab === 'Skill'"
                                                 x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="opacity-0 translate-y-2"
@@ -521,59 +444,45 @@
                                                 x-transition:leave="transition ease-in duration-200"
                                                 x-transition:leave-start="opacity-100 translate-y-0"
                                                 x-transition:leave-end="opacity-0 translate-y-2">
-                                                <div>
-                                                    <div>
-                                                        <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Skill
-                                                            <table
-                                                                class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
-                                                                <thead
-                                                                    class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-                                                                    <tr>
-                                                                        <th class="border px-4 py-2">Description</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody class="text-gray-700 dark:text-gray-300">
-                                                                    @foreach ($applicant_skill as $skill)
-                                                                        <tr
-                                                                            class="font-light odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                            <td class="border px-4 py-2">
-                                                                                {{ $skill->skill_descr }}
-                                                                            </td>
 
-                                                                        </tr>
-                                                                    @endforeach
-                                                                </tbody>
-                                                            </table>
-                                                    </div>
-                                                    <hr class="py-4">
-                                                    <div>
-                                                        <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
-                                                            Languange
-                                                            <table
-                                                                class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
-                                                                <thead
-                                                                    class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-                                                                    <tr>
-                                                                        <th class="border px-4 py-2">Name</th>
-                                                                        <th class="border px-4 py-2">Score</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody class="text-gray-700 dark:text-gray-300">
-                                                                    @foreach ($applicant_language as $language)
-                                                                        <tr
-                                                                            class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                            <td class="border px-4 py-2">
-                                                                                {{ $language->language_descr }}</td>
-                                                                            <td class="border px-4 py-2">
-                                                                                {{ $language->language_score }}</td>
-                                                                        </tr>
-                                                                    @endforeach
-                                                                </tbody>
-                                                            </table>
-                                                    </div>
-                                                </div>
+                                                <h2 class="mb-2 text-base font-semibold text-gray-700 dark:text-gray-100">Skill</h2>
+                                                <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                                        <tr>
+                                                            <th class="border px-4 py-2">Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="text-gray-700 dark:text-gray-300">
+                                                        @foreach ($applicant_skill as $skill)
+                                                            <tr class="font-light odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $skill->skill_descr }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+
+                                                <hr class="my-4">
+
+                                                <h2 class="mb-2 text-base font-semibold text-gray-700 dark:text-gray-100">Language</h2>
+                                                <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                                        <tr>
+                                                            <th class="border px-4 py-2">Name</th>
+                                                            <th class="border px-4 py-2">Score</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="text-gray-700 dark:text-gray-300">
+                                                        @foreach ($applicant_language as $language)
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $language->language_descr }}</td>
+                                                                <td class="border px-4 py-2">{{ $language->language_score }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
                                             </div>
 
+                                            {{-- Certificate --}}
                                             <div x-show="activeTab === 'Certificate'"
                                                 x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="opacity-0 translate-y-2"
@@ -592,25 +501,18 @@
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_course as $course)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $course->course_name }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $course->course_type }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $course->start_year }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $course->end_year }}
-                                                                </td>
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $course->course_name }}</td>
+                                                                <td class="border px-4 py-2">{{ $course->course_type }}</td>
+                                                                <td class="border px-4 py-2">{{ $course->start_year }}</td>
+                                                                <td class="border px-4 py-2">{{ $course->end_year }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
                                             </div>
+
+                                            {{-- Strengths & Weaknesses --}}
                                             <div x-show="activeTab === 'sdanw'"
                                                 x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="opacity-0 translate-y-2"
@@ -627,24 +529,22 @@
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_sw as $sw)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                <td class="border px-4 py-2">{{ $sw->sw_type }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">{{ $sw->sw_descr }}
-                                                                </td>
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $sw->sw_type }}</td>
+                                                                <td class="border px-4 py-2">{{ $sw->sw_descr }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
                                             </div>
+
                                         </div>
                                     </div>
-                                    <div x-data="{ activeTab: 'Family' }" class="rounded-xl bg-white dark:bg-gray-800">
 
-                                        <header
-                                            class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                                            <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
+                                    {{-- === FAMILY TAB GROUP === --}}
+                                    <div x-data="{ activeTab: 'Family' }" class="mt-4 rounded-xl bg-white dark:bg-gray-800">
+                                        <header class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
+                                            <nav class="flex flex-grow">
                                                 <button @click="activeTab = 'Family'"
                                                     :class="{
                                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Family',
@@ -653,23 +553,25 @@
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                                     Family Information
                                                 </button>
+
                                                 <button @click="activeTab = 'MaritalStatus'"
                                                     :class="{
-                                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab
-                                                        === 'MaritalStatus',
+                                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'MaritalStatus',
                                                         'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'MaritalStatus'
                                                     }"
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                                     Marital Status
                                                 </button>
+
                                                 <button @click="activeTab = 'Emergency'"
                                                     :class="{
                                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Emergency',
-                                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Skill'
+                                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Emergency'
                                                     }"
                                                     class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
                                                     Emergency Contact
                                                 </button>
+
                                                 <button @click="activeTab = 'Relative'"
                                                     :class="{
                                                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Relative',
@@ -682,6 +584,7 @@
                                         </header>
 
                                         <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-4 dark:bg-gray-800">
+
                                             <div x-show="activeTab === 'Family'"
                                                 x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="opacity-0 translate-y-2"
@@ -702,23 +605,13 @@
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_family as $family)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->family_name }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->family_type }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->family_gender }}
-                                                                </td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->family_birt_of_date }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->family_education }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->family_profession }}</td>
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $family->family_name }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->family_type }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->family_gender }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->family_birt_of_date }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->family_education }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->family_profession }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
@@ -745,20 +638,13 @@
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_marital as $family)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->core_family_name }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->core_family_type }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->core_family_gender }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->core_family_birt_of_date }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->core_family_education }}</td>
-                                                                <td class="border px-4 py-2">
-                                                                    {{ $family->core_family_profession }}</td>
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">{{ $family->core_family_name }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->core_family_type }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->core_family_gender }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->core_family_birt_of_date }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->core_family_education }}</td>
+                                                                <td class="border px-4 py-2">{{ $family->core_family_profession }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
@@ -781,15 +667,10 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
-                                                        <tr
-                                                            class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                            <td class="border px-4 py-2">
-                                                                {{ $applicant->urgent_contact_name }}</td>
-                                                            <td class="border px-4 py-2">
-                                                                {{ $applicant->urgent_contact_relation }}</td>
-                                                            <td class="border px-4 py-2">
-                                                                {{ $applicant->urgent_phone }}
-                                                            </td>
+                                                        <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                            <td class="border px-4 py-2">{{ $applicant->urgent_contact_name }}</td>
+                                                            <td class="border px-4 py-2">{{ $applicant->urgent_contact_relation }}</td>
+                                                            <td class="border px-4 py-2">{{ $applicant->urgent_phone }}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -811,102 +692,82 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
-                                                        <tr
-                                                            class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                            <td class="border px-4 py-2">
-                                                                {{ $applicant->relative_work_name }}</td>
-                                                            <td class="border px-4 py-2">
-                                                                {{ $applicant->relative_work_division }}</td>
-                                                            <td class="border px-4 py-2">
-                                                                {{ $applicant->relative_work_status }}</td>
+                                                        <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                            <td class="border px-4 py-2">{{ $applicant->relative_work_name }}</td>
+                                                            <td class="border px-4 py-2">{{ $applicant->relative_work_division }}</td>
+                                                            <td class="border px-4 py-2">{{ $applicant->relative_work_status }}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
+
                                         </div>
                                     </div>
-                                    <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
-                                        <header
-                                            class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                                            <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Detail
-                                                Information</h2>
-                                            <button @click="isOpen = !isOpen"
+
+                                    {{-- === DETAIL + ATTACHMENT (fix scope isOpen) === --}}
+                                    <div x-data="{ isOpen: true }" class="mt-4 overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                                        <header class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
+                                            <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Detail Information</h2>
+                                            <button type="button" @click="isOpen = !isOpen"
                                                 class="flex items-center text-gray-500 focus:outline-none dark:text-gray-200">
                                                 <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                             </button>
                                         </header>
-                                        <div class="p-4">
+
+                                        <div class="p-4" x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
                                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
                                                     <div class="grid grid-cols-2 gap-4">
+                                                        <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span class="text-sm text-gray-500 dark:text-gray-400">Last Salary</span>
+                                                                <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    Rp. {{ isset($applicant->existing_last_thp) ? number_format((int) $applicant->existing_last_thp, 0, ',', '.') : '-' }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
 
-                                                        <div
-                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                            <i
-                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                        <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
-                                                                <span class="text-sm text-gray-500 dark:text-gray-400">Last
-                                                                    Salary</span>
-                                                                <p
-                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                    {{-- Rp. {{ $applicant->existing_last_thp }} --}}
-                                                                    Rp.
-                                                                    {{ isset($applicant->existing_last_thp) ? number_format((int) $applicant->existing_last_thp, 0, ',', '.') : '-' }}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <div
-                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
-                                                            <i
-                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
-                                                            <div>
-                                                                <span class="text-sm text-gray-500 dark:text-gray-400">Expected
-                                                                    Salary</span>
-                                                                <p
-                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                    {{-- Rp. {{ $applicant->expected_thp }} --}}
-                                                                    Rp.
-                                                                    {{ isset($applicant->expected_thp) ? number_format((int) $applicant->expected_thp, 0, ',', '.') : '-' }}
+                                                                <span class="text-sm text-gray-500 dark:text-gray-400">Expected Salary</span>
+                                                                <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    Rp. {{ isset($applicant->expected_thp) ? number_format((int) $applicant->expected_thp, 0, ',', '.') : '-' }}
                                                                 </p>
                                                             </div>
                                                         </div>
                                                     </div>
+
                                                     <div class="grid grid-cols-1 gap-4">
-                                                        <div
-                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
-                                                            <i
-                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                        <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
-                                                                <span
-                                                                    class="text-sm text-gray-500 dark:text-gray-400">Expectations</span>
-                                                                <p
-                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                    {{-- {{ $applicant->expectations }} --}}
-                                                                    Rp.
-                                                                    {{ isset($applicant->expectations) ? number_format((int) $applicant->expectations, 0, ',', '.') : '-' }}
+                                                                <span class="text-sm text-gray-500 dark:text-gray-400">Expectations</span>
+                                                                <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    Rp. {{ isset($applicant->expectations) ? number_format((int) $applicant->expectations, 0, ',', '.') : '-' }}
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <div
-                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
-                                                            <i
-                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+
+                                                        <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
                                                             <div>
-                                                                <span class="text-sm text-gray-500 dark:text-gray-400">Career
-                                                                    Achievement</span>
-                                                                <p
-                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                    {{ $applicant->applicant_achievement }}</p>
+                                                                <span class="text-sm text-gray-500 dark:text-gray-400">Career Achievement</span>
+                                                                <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->applicant_achievement }}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
+
                                                 </div>
                                             </div>
-                                        </div>
-                                        <hr class="mx-6 dark:border-gray-500">
-                                        <div class="p-4">
+
+                                            <hr class="my-4 dark:border-gray-500">
+
                                             <div class="overflow-x-auto">
-                                                <label for="" class="text-sm font-semibold">Attachment</label>
+                                                <label class="text-sm font-semibold">Attachment</label>
                                                 <table class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
                                                     <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                         <tr>
@@ -915,108 +776,177 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody class="text-gray-700 dark:text-gray-300">
-                                                        <tr
-                                                            class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                        <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
                                                             <td class="border px-4 py-2">CV</td>
                                                             <td class="border px-4 py-2">
-                                                                📁 @if ($cv)
-                                                                    <a href="{{ $cv }}" target="_blank"
-                                                                        class="text-blue-600 hover:underline">Download
-                                                                        CV</a>
+                                                                📁
+                                                                @if ($cv)
+                                                                    <a href="{{ $cv }}" target="_blank" class="text-blue-600 hover:underline">
+                                                                        Download CV
+                                                                    </a>
                                                                 @else
-                                                                    <span class="italic text-gray-400">No cover
-                                                                        letter</span>
+                                                                    <span class="italic text-gray-400">No CV</span>
                                                                 @endif
-
                                                             </td>
                                                         </tr>
-                                                        {{-- <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                <td class="px-4 py-2 border">Cover Letter</td>
-                                                                <td class="px-4 py-2 border">                                                         
-                                                                    📁 @if ($coverletter)
-                                                                            <a href="{{ $coverletter }}" target="_blank" class="text-blue-600 hover:underline">Download</a>
-                                                                        @else
-                                                                            <span class="text-gray-400 italic">No cover letter</span>
-                                                                        @endif
-                                                                </td> 
-                                                            </tr>                                                        --}}
                                                     </tbody>
                                                 </table>
                                             </div>
+
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
-
-                            <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-                            <script src="https://unpkg.com/lucide@latest"></script>
-                            <script>
-                                lucide.createIcons();
-                            </script>
-
-                            <script>
-                                $('#applicantprofile').on('submit', function(e) {
-                                    e.preventDefault();
-                                    var form = $(this);
-
-                                    $.ajax({
-                                        url: "{{ route('applicantprofile.pdf') }}",
-                                        method: 'POST',
-                                        data: form.serialize(),
-                                        xhrFields: {
-                                            responseType: 'blob'
-                                        },
-                                        headers: {
-                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                        },
-                                        success: function(blob, status, xhr) {
-                                            // Cek apakah response berupa PDF atau error JSON
-                                            var contentType = xhr.getResponseHeader('Content-Type');
-                                            if (contentType && contentType.indexOf('application/pdf') !== -1) {
-                                                const url = window.URL.createObjectURL(blob);
-                                                window.open(url, '_blank');
-                                            } else {
-                                                // Jika error JSON
-                                                var reader = new FileReader();
-                                                reader.onload = function() {
-                                                    var resp = JSON.parse(reader.result);
-                                                    alert(resp.message || 'Gagal generate PDF');
-                                                };
-                                                reader.readAsText(blob);
-                                            }
-                                        },
-                                        error: function(xhr) {
-                                            alert('Gagal generate PDF. Pastikan data sudah lengkap.');
-                                        }
-                                    });
-                                });
-                            </script>
-
                         </div>
                     </div>
+
+                    {{-- libs --}}
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+                    <script src="https://unpkg.com/lucide@latest"></script>
+
+                    {{-- ajax pdf --}}
+                    {{-- <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            if (window.lucide) {
+                                lucide.createIcons();
+                            }
+
+                            if (typeof window.$ === 'undefined') {
+                                console.error('jQuery not loaded. Pastikan jQuery sudah ada di layout.');
+                                return;
+                            }
+
+                            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+                            $('#applicantprofile').on('submit', function(e) {
+                                e.preventDefault();
+                                const form = $(this);
+
+                                $.ajax({
+                                    url: "{{ route('applicantprofile.pdf') }}",
+                                    method: "POST",
+                                    data: form.serialize(), // sudah include _token dari @csrf
+                                    xhrFields: { responseType: 'blob' },
+                                    headers: {
+                                        'X-CSRF-TOKEN': csrf,
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/pdf'
+                                    },
+                                    success: function(blob, status, xhr) {
+                                        const contentType = (xhr.getResponseHeader('Content-Type') || '').toLowerCase();
+
+                                        if (contentType.includes('application/pdf')) {
+                                            const url = window.URL.createObjectURL(blob);
+                                            window.open(url, '_blank');
+                                            return;
+                                        }
+
+                                        // kalau bukan pdf, baca isi error
+                                        const reader = new FileReader();
+                                        reader.onload = function() {
+                                            console.error('Not PDF response:', reader.result);
+                                            try {
+                                                const resp = JSON.parse(reader.result);
+                                                alert(resp.message || 'Gagal generate PDF');
+                                            } catch (e) {
+                                                alert('Gagal generate PDF (response bukan PDF). Cek console.');
+                                            }
+                                        };
+                                        reader.readAsText(blob);
+                                    },
+                                    error: function(xhr) {
+                                        console.error('PDF error status:', xhr.status);
+
+                                        if (xhr.response) {
+                                            const reader = new FileReader();
+                                            reader.onload = function() {
+                                                console.error('Server response:', reader.result);
+                                            };
+                                            reader.readAsText(xhr.response);
+                                        }
+
+                                        alert('Gagal generate PDF (HTTP ' + xhr.status + '). Cek console.');
+                                    }
+                                });
+                            });
+                        });
+                    </script> --}}
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                        const form = document.getElementById('applicantprofile');
+                        if (!form) return;
+
+                        form.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+
+                            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                            const url = form.getAttribute('action') || "{{ route('applicantprofile.pdf') }}";
+
+                            const formData = new FormData(form);
+
+                            try {
+                            const res = await fetch(url, {
+                                method: 'POST',
+                                headers: {
+                                'X-CSRF-TOKEN': csrf,
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/pdf'
+                                },
+                                body: formData
+                            });
+
+                            // kalau server balikin error (500/419 dll)
+                            if (!res.ok) {
+                                const text = await res.text();
+                                console.error('PDF ERROR:', res.status, text);
+                                alert('Gagal generate PDF (HTTP ' + res.status + '). Cek console.');
+                                return;
+                            }
+
+                            const contentType = (res.headers.get('content-type') || '').toLowerCase();
+
+                            // kalau bukan pdf, tampilkan isi response (biasanya HTML / JSON)
+                            if (!contentType.includes('application/pdf')) {
+                                const text = await res.text();
+                                console.error('NOT PDF response:', contentType, text);
+
+                                try {
+                                const json = JSON.parse(text);
+                                alert(json.message || 'Gagal generate PDF');
+                                } catch (_) {
+                                alert('Gagal generate PDF (response bukan PDF). Cek console.');
+                                }
+                                return;
+                            }
+
+                            // ambil blob pdf
+                            const blob = await res.blob();
+
+                            // safety check
+                            if (!(blob instanceof Blob) || blob.size === 0) {
+                                console.error('Invalid blob:', blob);
+                                alert('PDF kosong / invalid. Cek console.');
+                                return;
+                            }
+
+                            const pdfUrl = URL.createObjectURL(blob);
+                            window.open(pdfUrl, '_blank');
+                            // optional: revoke setelah beberapa detik
+                            setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
+
+                            } catch (err) {
+                            console.error('Fetch error:', err);
+                            alert('Gagal generate PDF. Cek console.');
+                            }
+                        });
+                        });
+                    </script>
+
+
                 </div>
             </div>
         </div>
     </div>
-    <script>
-        function tabsComponent() {
-            return {
-                // state tabs
-                tab: 'tab1',
-                content1Loaded: true,
-                content2Loaded: false,
-                content3Loaded: false,
-
-                // fallback state umum yang sering dipakai partial
-                isOpen: false,
-
-                // methods
-                initializeComponent() {
-                    // jalankan inisialisasi awal di sini bila perlu
-                    // contoh: this.content1Loaded = true
-                }
-            }
-        }
-    </script>
-
 </x-app-layout>

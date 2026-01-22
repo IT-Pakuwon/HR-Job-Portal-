@@ -187,7 +187,10 @@ class PoController extends Controller
 
     public function submitPO(Request $req, $ponbr)
     {
-        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        // dd($req->all());
+        $po = TrPO::where('ponbr', $ponbr)
+            ->where('cpny_id', $req->input('cpny_id'))    
+            ->firstOrFail();
 
         if ($po->status !== 'H') {
             return response()->json([
@@ -312,9 +315,15 @@ class PoController extends Controller
 
 
     /** POST /po/{ponbr}/cancel-reuse */
-    public function ReusePO(Request $req, $ponbr)
+    public function ReusePO(Request $req, $hash)
     {
-        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+        $id = $decoded[0];
+
+
+        // $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $po = TrPO::findOrFail($id);
 
         $data = $req->validate([
             'reason' => ['required','string']
@@ -356,9 +365,15 @@ class PoController extends Controller
     }
 
     /** POST /po/{ponbr}/cancel */
-    public function cancelPO(Request $req, $ponbr)
+    public function cancelPO(Request $req, $hash)
     {
-        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+        $id = $decoded[0];
+
+        // $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $po = TrPO::findOrFail($id);
+       
 
         $data = $req->validate([
             'reason' => ['required','string']
@@ -462,13 +477,17 @@ class PoController extends Controller
         }
     }
 
-    public function uploadAttachments(Request $request, $ponbr)
+    public function uploadAttachments(Request $request, $hash)
     {
         try {
-            $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+            $decoded = Hashids::decode($hash);
+            abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+            $id = $decoded[0];
+
+            $po = TrPO::findOrFail($id);
             $user       = $request->user();
             $year       = (int) ($request->input('year') ?? now()->year);
-            $refnbr     = (string) $ponbr;     // PO => pakai ponbr sebagai refnbr
+            $refnbr     = (string) $po->ponbr;     // PO => pakai ponbr sebagai refnbr
             $doctype    = 'PO';
             $cpnyid     = $po->cpny_id;
             $deptId     = $po->department_id;
@@ -506,6 +525,7 @@ class PoController extends Controller
 
             // === Ambil ulang daftar attachment untuk dikembalikan ke FE (dengan Signed URL) ===
             $rows = TrAttachment::where('refnbr', $refnbr)
+                ->where('cpnyid', $cpnyid)
                 ->where('doctype', $doctype)
                 ->where('status', 'A')
                 ->orderBy('created_at', 'desc')
@@ -564,31 +584,18 @@ class PoController extends Controller
         }
     }
    
-    public function listAttachment_xxx($ponbr)
+    
+    Public function listAttachment($hash)
     {
-        $rows = Attachment::where('docid', $ponbr)
-            ->where('status', 'A')
-            ->orderByDesc('id')->get()
-            ->map(function($a){
-            return [
-                'id'         => $a->id,
-                'name'       => $a->name . '.' . $a->extention,
-                'attachfile' => $a->attachfile,               // sudah termasuk extension
-                'year'       => optional($a->created_at)->year ?? now()->year,
-                'created_at' => optional($a->created_at)->toDateTimeString(),
-                'created_user'=> $a->created_user,
-                'url'        => url('/attachments/'.(optional($a->created_at)->year ?? now()->year).'/'.$a->attachfile),
-            ];
-        });
-
-        return response()->json(['success'=>true, 'attachments'=>$rows]);
-    }
-
-    Public function listAttachment($ponbr)
-    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+        $id = $decoded[0];
+        $po = TrPO::findOrFail($id);
+        $ponbr = $po->ponbr;
         $doctype = 'PO';
 
         $rows = TrAttachment::where('refnbr', $ponbr)
+            ->where('cpnyid', $po->cpny_id)
             ->where('doctype', $doctype)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
@@ -736,92 +743,9 @@ class PoController extends Controller
         $basename = ($potype === 'PO') ? 'PO' : 'SPK';
         return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
     }
+  
 
-
-   
-
-    public function printPO_xxx(string $hash)
-    {
-        $decoded = Hashids::decode($hash);
-        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
-        $id = $decoded[0];
-
-        $authUser = Auth::user();
-        if (!$authUser) {
-            return redirect()->route('login');
-        }
-
-        // Header PO
-        $po = TrPO::findOrFail($id);
-
-        // Detail pakai ponbr
-        $podetail = TrPOdetail::where('ponbr', $po->ponbr)
-            ->orderBy('cs_no')
-            ->get();
-
-        // Header amount
-        $dpp    = $po->totalamt;
-        $ppn    = $po->taxamt;
-        $grand  = $po->grandtotalamt;
-        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-
-        $company = MsCompany::where('cpny_id', $po->cpny_id)->first();
-
-        // tampilkan nama pembuat / pengirim
-        $purchaser = ucwords(strtolower($authUser->name));
-
-        $data = [
-            'po'        => $po,
-            'podetail'  => $podetail,
-            'dpp'       => $dpp,
-            'ppn'       => $ppn,
-            'grand'     => $grand,
-            'terbilang' => $terbilang,
-            'company'   => $company,
-            'now'       => Carbon::now(),
-            'purchaser' => $purchaser,
-        ];
-
-        $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
-
-        // 1) render view -> Dompdf
-        $pdf = Pdf::loadView($view, $data)->setPaper('A4', 'portrait');
-
-        // 2) Ambil Dompdf & RENDER lebih dulu (supaya PAGE_COUNT terisi)
-        /** @var \Dompdf\Dompdf $dompdf */
-        $dompdf = $pdf->getDomPDF();
-        $dompdf->render();
-
-        // 3) Tulis footer via canvas
-        $canvas  = $dompdf->get_canvas();
-        $w       = $canvas->get_width();
-        $h       = $canvas->get_height();
-
-        // pakai font aman unicode
-        $metrics = $dompdf->getFontMetrics();
-        $font    = $metrics->get_font('sans-serif', 'normal'); // bundled Dompdf
-        $size    = 9;
-
-        $now     = $data['now'];
-        $leftTxt = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
-        $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
-
-        $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
-        $y = $h - 28; // ~10mm dari bawah
-
-        $x = $canvas->get_width() - $w - 75;
-
-        // kiri & kanan
-        $canvas->page_text(20, $y, $leftTxt,  $font, $size, [0,0,0]);
-        $canvas->page_text($w - $x - $rightWidth, $y, $rightTpl, $font, $size, [0,0,0]);
-
-        // 4) Stream seperti biasa
-        $basename = $po->potype === 'PO' ? 'PO' : 'SPK';
-        // return $dompdf->stream("{$basename}_{$po->ponbr}.pdf");
-        return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
-    }
-
-
+    
     private function terbilang($angka): string
     {
         if (is_string($angka)) {
@@ -872,12 +796,16 @@ class PoController extends Controller
         }
     }
 
-    public function viewEmailPO(string $hash)
+    public function viewEmailPO(string $hash, Request $request)
     {
         $ponbr = Hashids::decode($hash)[0] ?? null;
         abort_if(!$ponbr, 404);
 
-        $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
+        $cpnyId = $request->query('cpny_id'); 
+
+        $po = TrPO::where('ponbr', $ponbr)
+            ->where('cpny_id', $cpnyId)
+            ->firstOrFail();
 
         $eid = Hashids::encode($po->id);
         // $emailfrom = User::where('username', $po->created_by)->value('notification_email');
@@ -932,6 +860,7 @@ class PoController extends Controller
 
     public function sendNowPO(Request $req, string $ponbr)
     {
+       
         $authUser = Auth::user();
         $stamp = Carbon::now();
 
@@ -946,8 +875,15 @@ class PoController extends Controller
 
         ]);
 
-        $po       = TrPO::where('ponbr', $ponbr)->firstOrFail();
-        $podetail = TrPOdetail::where('ponbr', $po->ponbr)->orderBy('cs_no')->get();
+        $cpnyId = $req->input('cpny_id') ?? $req->query('cpny_id');
+
+        $po  = TrPO::where('ponbr', $ponbr)
+            ->where('cpny_id', $cpnyId)
+            ->firstOrFail();
+
+        $podetail = TrPOdetail::where('ponbr', $po->ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
+            ->orderBy('cs_no')->get();
 
         $dpp       = $po->totalamt;
         $ppn       = $po->taxamt;
