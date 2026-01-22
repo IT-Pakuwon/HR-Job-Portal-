@@ -173,6 +173,7 @@
     <script>
         const dtControlColumn = {
             data: null,
+            width: '28px',
             className: 'dtr-control',
             orderable: false,
             searchable: false,
@@ -337,14 +338,15 @@
             let dt = null;
             // const dtControlColumn = {
             //     data: null,
-            //     className: 'dtr-control',
-            //     orderable: false,
-            //     searchable: false,
-            //     defaultContent: ''
-            // };
+            //     width: '28px',
+            className: 'dtr-control',
+                //     orderable: false,
+                //     searchable: false,
+                //     defaultContent: ''
+                // };
 
-            // guard init sekali
-            if (window.__SPB_DT_DEBUG_INIT__) return;
+                // guard init sekali
+                if (window.__SPB_DT_DEBUG_INIT__) return;
             window.__SPB_DT_DEBUG_INIT__ = true;
 
             function headNormal() {
@@ -479,6 +481,7 @@
 
                     columnDefs: [{
                         targets: 0,
+                        width: '28px',
                         className: 'dtr-control',
                         orderable: false
                     }],
@@ -653,6 +656,7 @@
 
                     columnDefs: [{
                         targets: 0,
+                        width: '28px',
                         className: 'dtr-control',
                         orderable: false
                     }],

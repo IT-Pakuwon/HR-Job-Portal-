@@ -153,6 +153,7 @@
 
             const dtControlColumn = {
                 data: null,
+                width: '28px',
                 className: 'dtr-control',
                 orderable: false,
                 searchable: false,
@@ -190,6 +191,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],
@@ -320,6 +322,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],

@@ -415,7 +415,7 @@
                             data-cpny="${row.cpny_id}"
                             data-dept="${row.department_id}"
                             title="Revise dokumen (set status D)">
-                            <i class="fas fa-pen"></i>
+<i class="fas fa-undo"></i>
                         </button>
                         </div>`;
                     }
@@ -426,6 +426,7 @@
 
             const dtControlColumn = {
                 data: null,
+                width: '28px',
                 className: 'dtr-control',
                 orderable: false,
                 searchable: false,
@@ -452,6 +453,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],
@@ -514,6 +516,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],
@@ -637,6 +640,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],
@@ -699,6 +703,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],
@@ -760,6 +765,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],
@@ -820,6 +826,7 @@
 
                 columnDefs: [{
                     targets: 0,
+                    width: '28px',
                     className: 'dtr-control',
                     orderable: false
                 }],

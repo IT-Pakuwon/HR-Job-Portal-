@@ -466,6 +466,7 @@
                 },
                 columnDefs: [{
                         targets: 0,
+                        width: '28px',
                         className: 'dtr-control',
                         orderable: false,
                         searchable: false,
@@ -533,6 +534,7 @@
                     [0, 'desc']
                 ],
                 columns: [{
+                        width: '28px',
                         className: 'dtr-control',
                         orderable: false,
                         searchable: false,

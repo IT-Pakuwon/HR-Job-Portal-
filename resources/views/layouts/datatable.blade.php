@@ -1247,7 +1247,7 @@ Approval / Attachment / Comments tables
     }
 
     /* DataTables responsive control column */
-    table.dataTable th.dtr-control,
+    /* table.dataTable th.dtr-control,
     table.dataTable td.dtr-control {
         width: 28px !important;
         min-width: 28px !important;
@@ -1255,7 +1255,7 @@ Approval / Attachment / Comments tables
         padding-left: 8px !important;
         padding-right: 8px !important;
         text-align: center;
-    }
+    } */
 
     .select2-container {
         width: 100% !important;
