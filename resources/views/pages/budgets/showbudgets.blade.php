@@ -455,8 +455,8 @@
                                     TOTAL
                                 </td>
 
-                                <td class="budget-cell budget-wrap col-full hidden bg-gray-200 px-4 py-2 text-left"
-                                    data-type="qty" data-value="{{ $totalQtySum }}">
+                                <td class="budget-cell col-full hidden text-left" data-type="qty"
+                                    data-value="{{ $totalQtySum }}">
 
                                     <!-- TOTAL UNIT PRICE (FULL VIEW ONLY) -->
                                 <td class="budget-cell budget-wrap col-full hidden bg-gray-200 px-4 py-2 text-left"

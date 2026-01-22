@@ -211,20 +211,7 @@
             <td>:</td>
             <td>{{ $sub_location_name }}</td>
 
-            @php
-                $budgetText =
-                    $budget_use === 'Internal'
-                        ? 'Pemberi Kerja'
-                        : ($budget_use === 'External'
-                            ? 'Penerima Kerja'
-                            : '-');
-            @endphp
-
-            <td>Budget</td>
-            <td>:</td>
-            <td>{{ $budgetText }}</td>
-
-            {{-- <td colspan="3"></td> --}}
+            <td colspan="3"></td>
         </tr>
     </table>
 
