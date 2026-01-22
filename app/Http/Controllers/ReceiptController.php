@@ -1311,9 +1311,17 @@ class ReceiptController extends Controller
         $company = Company::where('cpnyid', $rcp->cpny_id)->first();
 
         $data = compact('rcp','po','rcpdetails','company');
-
+        $copy = strtoupper((string) $request->query('copy', 'ASLI'));
         $type = strtolower((string)$request->query('type', 'sttb'));
-        $view = $type === 'bpg' ? 'pages.receipt.pdf_bpg' : 'pages.receipt.pdf_receipt';
+        if ($type === 'bpg') {
+            $view = 'pages.receipt.pdf_bpg';
+        } else {
+            // sttb
+            $view = $copy === 'COPY'
+                ? 'pages.receipt.pdf_receipt_copy'
+                : 'pages.receipt.pdf_receipt';
+        }
+
 
         $createdName = ucwords(strtolower(optional($rcp->creator)->name ?? $rcp->created_by));
         $now = now();
