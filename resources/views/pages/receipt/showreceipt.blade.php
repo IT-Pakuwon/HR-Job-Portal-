@@ -103,18 +103,71 @@
                                 {{ $statusText }}
                             </span>
 
-                            {{-- Dropdown Print --}}
+                            <div class="relative inline-block text-left">
+                                {{-- Trigger --}}
+                                <button type="button"
+                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none"
+                                    onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                    Print PDF
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                {{-- Dropdown --}}
+                                <div
+                                    class="absolute right-0 z-50 mt-2 hidden w-48 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+                                    <div class="py-1 text-sm text-gray-700">
+                                        @if ($isNonStock)
+                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg"
+                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                                Print BPG Non Stock
+                                            </a>
+
+                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=ASLI"
+                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                                Print STTB/SPB (ASLI)
+                                            </a>
+
+                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=COPY"
+                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                                Print STTB/SPB (COPY)
+                                            </a>
+                                        @else
+                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=ASLI"
+                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                                Print STTB/SPB (ASLI)
+                                            </a>
+
+                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=COPY"
+                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                                Print STTB/SPB (COPY)
+                                            </a>
+                                        @endif
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            {{-- Dropdown Print
                             @if ($isNonStock)
                                 <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg" target="_blank"
                                     class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
                                     Print BPG Non Stock
+                                </a>
+                                <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb" target="_blank"
+                                    class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
+                                    Print STTB / SPB
                                 </a>
                             @else
                                 <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb" target="_blank"
                                     class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
                                     Print STTB / SPB
                                 </a>
-                            @endif
+                            @endif --}}
 
 
                         </div>
@@ -344,7 +397,8 @@
                             </div>
 
                             {{-- Attachment Tab --}}
-                            <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
+                            <div x-show="activeTab === 'attachment'"
+                                class="flex h-full flex-1 flex-col transition-all">
                                 <div class="flex-1 overflow-auto rounded-lg">
                                     <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">
