@@ -169,7 +169,7 @@
                         data: 'docid',
                         name: 'docid',
                         render: function(data, type, row) {
-                            return `<a href="/showcareers/${row.eid}" target="_blank"
+                            return `<a href="/showselfregister/${row.eid}" target="_blank"
                                 class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-gray-500 hover:bg-gray-700">
                                 ${data}
                             </a>`;

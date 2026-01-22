@@ -5,26 +5,24 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
-use App\Models\JobLevel;
-use App\Models\JobResponsiblities;
-use App\Models\JobQualification;
-use App\Models\Usercpny;
-use App\Models\Userdept;
 use App\Models\User;
-use App\Models\Jobposting;
-use App\Models\JobpostingResponsiblities;
-use App\Models\JobpostingQualification;
-use App\Models\AutonbrJobportal;
+use App\Models\SelfPosting;
+use App\Models\MsDivision;
+use App\Models\MsDepartment;
+use App\Models\Autonbr;
+use App\Models\Applicant;
+use App\Models\ApplicantCourse;
+use App\Models\ApplicantEducation;
+use App\Models\ApplicantFamily;
+use App\Models\ApplicantLanguage;
+use App\Models\ApplicantMarital;
+use App\Models\ApplicantSW;
+use App\Models\ApplicantSkill;
+use App\Models\ApplicantWorking;
 use Mail;
 use Vinkla\Hashids\Facades\Hashids;
+use Google\Cloud\Storage\StorageClient;
+use Illuminate\Support\Facades\Storage;
 
 class SelfRegisterApplicantController extends Controller
 {
@@ -56,17 +54,17 @@ class SelfRegisterApplicantController extends Controller
         $orderIdx = (int) $request->input('order.0.column', 1);
         $orderDir = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        $nameToDb = [
-            'docid'          => 'vc.docid',
-            'apply_date'     => 'vc.apply_date',
-            'fullname'       => 'vc.fullname',
-            'education_name' => 'vc.education_name',
-            'religion'       => 'vc.religion',
-            'height'         => 'vc.height',
-            'weight'         => 'vc.weight',
-            'company_name'   => 'vc.company_name',
-            'status'         => 'vc.status',
-        ];
+            $nameToDb = [
+                'docid'          => 'vc.docid',
+                'apply_date'     => 'vc.apply_date',
+                'fullname'       => 'vc.fullname',
+                'education_name' => 'vc.education_name',
+                'religion'       => 'vc.religion',
+                'height'         => 'vc.height',
+                'weight'         => 'vc.weight',
+                'company_name'   => 'vc.company_name',
+                'status'         => 'vc.status',
+            ];
 
         $base = DB::connection('mysql3')->table('viewselfregister as vc');
 
@@ -156,7 +154,62 @@ class SelfRegisterApplicantController extends Controller
         ]);
     }
 
+    public function showSelfRegister($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
 
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $career = SelfPosting::findOrFail($id);
+
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->first();
+        $applicant_family = ApplicantFamily::where('applicant_id', $career->applicant_id)->get();
+        $applicant_marital = ApplicantMarital::where('applicant_id', $career->applicant_id)->get();
+        $applicant_education = ApplicantEducation::where('applicant_id', $career->applicant_id)->get();
+        $applicant_working = ApplicantWorking::where('applicant_id', $career->applicant_id)->get();
+        $applicant_language = ApplicantLanguage::where('applicant_id', $career->applicant_id)->get();
+        $applicant_course = ApplicantCourse::where('applicant_id', $career->applicant_id)->get();
+        $applicant_sw = ApplicantSW::where('applicant_id', $career->applicant_id)->get();
+        $applicant_skill = ApplicantSkill::where('applicant_id', $career->applicant_id)->get();
+
+        $year = now()->year;       
+        $config = config('filesystems.disks.gcs');
+        // Pastikan StorageClient di-import dan digunakan dengan benar
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $config['key_file'],
+        ]);
+
+        $bucket = $storage->bucket($config['bucket']);
+        $expiration = \Carbon\Carbon::now()->addMinutes(30);
+
+        $photo = null;
+        $cv = null;
+        $coverletter = null;
+
+        if (!empty($applicant->upload_photo)) {
+            $object = $bucket->object($applicant->upload_photo);
+            // signedUrl expects DateTimeInterface
+            $photo = $object->signedUrl($expiration);
+        }
+
+        if (!empty($applicant->upload_cv)) {
+            $object = $bucket->object($applicant->upload_cv);
+            $cv = $object->signedUrl($expiration);
+        }
+
+    
+        return view('pages.selfregister.showapplicant', compact(
+            'hash','career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working','applicant_language','applicant_course','applicant_sw',
+            'applicant_skill','year','photo','cv','coverletter'
+        ));
+
+    }
 
     
 
