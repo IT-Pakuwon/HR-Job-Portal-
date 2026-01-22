@@ -194,7 +194,7 @@
 
     <div class="border-bottom"></div>
 
-    <!-- Estimation / Realization -->
+    {{-- <!-- Estimation / Realization -->
     <table class="estimation-table section">
         <tr>
             <td>Estimasi Pekerjaan Work Order</td>
@@ -212,7 +212,7 @@
         </tr>
     </table>
 
-    <div class="border-bottom"></div>
+    <div class="border-bottom"></div> --}}
 
     <!-- Signature Section -->
     <table style="width:100%; margin-top:50px; text-align:center; border-collapse:collapse;">
