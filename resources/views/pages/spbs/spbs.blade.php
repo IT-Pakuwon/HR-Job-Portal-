@@ -173,7 +173,6 @@
     <script>
         const dtControlColumn = {
             data: null,
-            width: '28px',
             className: 'dtr-control',
             orderable: false,
             searchable: false,
@@ -339,14 +338,14 @@
             // const dtControlColumn = {
             //     data: null,
             //     width: '28px',
-            className: 'dtr-control',
-                //     orderable: false,
-                //     searchable: false,
-                //     defaultContent: ''
-                // };
+            // className: 'dtr-control',
+            //     orderable: false,
+            //     searchable: false,
+            //     defaultContent: ''
+            // };
 
-                // guard init sekali
-                if (window.__SPB_DT_DEBUG_INIT__) return;
+            // guard init sekali
+            if (window.__SPB_DT_DEBUG_INIT__) return;
             window.__SPB_DT_DEBUG_INIT__ = true;
 
             function headNormal() {
@@ -506,7 +505,7 @@
                                 // default: view
                                 let url = `/showspbs/${row.eid}`;
                                 let cls =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-gray-500 hover:bg-gray-700';
+                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm font-semibold text-white rounded  bg-gray-600 hover:bg-gray-700 ';
 
                                 const text = data || row.id;
 

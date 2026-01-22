@@ -126,7 +126,6 @@
         const currentUser = @json(auth()->user()->username ?? '');
         const dtControlColumn = {
             data: null,
-            width: '28px',
             className: 'dtr-control',
             orderable: false,
             searchable: false,

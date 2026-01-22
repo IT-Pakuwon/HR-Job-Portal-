@@ -304,7 +304,7 @@
                                 render: function(data, type, row) {
                                     let url = `/showtasks/${row.id}`;
                                     let buttonClass =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
                                     let buttonText = row.docid;
 
                                     // **Cek apakah user yang login sama dengan created_user dan status = D**

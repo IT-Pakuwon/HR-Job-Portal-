@@ -201,7 +201,7 @@
                         render: function(data, type, row) {
                             let url = `/showitemreq/${row.eid}`;
                             let cls =
-                                'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-500 hover:bg-gray-700';
+                                'inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
 
                             const text = data || '-';
 
