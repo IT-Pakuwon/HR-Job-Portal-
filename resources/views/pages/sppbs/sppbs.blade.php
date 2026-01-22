@@ -426,7 +426,7 @@
                             let defaultCls =
                                 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 ' +
                                 'text-sm font-semibold text-white rounded transition-colors ' +
-                                'bg-gray-500 hover:bg-gray-700';
+                                ' bg-gray-600 hover:bg-gray-700 ';
 
                             const text = data || row.id;
 
