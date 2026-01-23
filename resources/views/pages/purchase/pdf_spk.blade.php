@@ -434,9 +434,9 @@
                         penyerahan Pekerjaan yang tidak sesuai dengan jangka waktu yang disepakati sebagaimana diatur
                         dalam SPK. Adapun nilai penalty sebagai berikut:
                         <ol>
-                            <li>Penalty Rp. 100.000/hari keterlambatan (Nilai SPK ≤ Rp. 50.000.000)</li>
-                            <li>Penalty Rp. 250.000/hari keterlambatan (Nilai SPK Rp. 50.000.001-149.999.999)</li>
-                            <li>Penalty Rp. 500.000/hari keterlambatan (Nilai SPK ≥ Rp.150.000.000)</li>
+                            <li>Penalty Rp. 100.000/hari keterlambatan (Nilai SPK &le; Rp. 50.000.000)</li>
+                            <li>Penalty Rp. 250.000/hari keterlambatan (Nilai SPK Rp. 50.000.001-150.000.000)</li>
+                            <li>Penalty Rp. 500.000/hari keterlambatan (Nilai SPK &ge; Rp.150.000.001)</li>
                         </ol>
                         Namun apabila pekerjaan tidak dapat diselesaikan oleh PIHAK KEDUA, maka PIHAK KEDUA memberikan
                         surat konfirmasi kepada PIHAK PERTAMA terkait
