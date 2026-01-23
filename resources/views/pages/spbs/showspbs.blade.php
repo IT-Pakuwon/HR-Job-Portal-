@@ -382,6 +382,8 @@
                                 <th class="px-4 py-2">Location</th>
                                 <th class="px-4 py-2">Budget Department</th>
                                 <th class="px-4 py-2">Issue Qty</th>
+                                <th class="px-4 py-2">SPPB Qty</th>
+                                <th class="px-4 py-2">Open Qty</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -404,7 +406,9 @@
                                         {{ optional($item->subLocation)->sub_location_name }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
                                         {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
-                                    <td class="px-4 py-2">{{ $item->issue_qty }}</td>
+                                    <td class="px-4 py-2">{{ number_format($item->qty_issued, 2, ',', '.') }}</td>
+                                    <td class="px-4 py-2">{{ number_format($item->qty_sppb, 2, ',', '.') }}</td>
+                                    <td class="px-4 py-2">{{ number_format($item->qty_sisa, 2, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

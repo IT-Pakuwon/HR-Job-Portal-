@@ -211,6 +211,9 @@
                                                     Stock</th>
                                                 <th
                                                     class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Qty</th>                                                
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
                                                     Qty (Open)</th>
                                                 <th
                                                     class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">
@@ -231,16 +234,28 @@
                                                 <tr>
                                                     <td class="px-4 py-2">{{ $d->inventoryid }}</td>
                                                     <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
-                                                    <td class="px-4 py-2 text-center">{{ $d->stock ?? '-' }}</td>
+                                                    <td class="px-4 py-2 text-center">{{ $d->stock ?? '0' }}</td>  
                                                     <td class="px-4 py-2 text-right">
-                                                        {{ number_format((float) $d->qty, 2) }}</td>
+                                                        {{ number_format((float) $d->qty_original, 2) }}
+                                                    </td>                                                  
+                                                    <td class="px-4 py-2 text-right">
+                                                        {{ number_format((float) $d->qty_sisa, 2) }}
+                                                    </td>
                                                     <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
                                                     <td class="px-4 py-2 text-right">
                                                         <input type="hidden" name="detail_id[]"
                                                             value="{{ $d->id }}">
-                                                        <input type="text" name="qty_issue[{{ $d->id }}]"
+                                                       <input
+                                                            type="text"
+                                                            name="qty_issue[{{ $d->id }}]"
                                                             class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            inputmode="decimal" autocomplete="off" placeholder="0,00" />
+                                                            inputmode="decimal"
+                                                            autocomplete="off"
+                                                            placeholder="0,00"
+                                                            data-detail-id="{{ $d->id }}"
+                                                            data-qty-original="{{ (float) $d->qty_original }}"
+                                                            data-qty-open="{{ (float) $d->qty_sisa }}"
+                                                        />
                                                     </td>
 
                                                     {{-- ===== Detail Issue Note per baris ===== --}}
@@ -406,6 +421,36 @@
             return ok;
         }
     </script>
+    <script>
+        function validateQtyOpenNotGreaterThanOriginal() {
+            let ok = true;
+
+            $('.qtyIssue').each(function() {
+                const $qty = $(this);
+
+                const qtyOriginal = parseFloat(String($qty.data('qty-original') ?? '0')) || 0;
+                const qtyOpen = parseFloat(String($qty.data('qty-open') ?? '0')) || 0;
+
+                // Validasi utama: qty_sisa tidak boleh > qty_original
+                if (qtyOpen > qtyOriginal + 1e-9) {
+                    ok = false;
+                    window.addError($qty, `Data tidak valid: Qty (Open) (${qtyOpen}) > Qty (${qtyOriginal}).`);
+                }
+
+                // (Opsional tapi sangat disarankan) qty_issue tidak boleh > qty_open
+                const rawIssue = String($qty.val() || '').replace(/,/g, '.');
+                const qtyIssue = parseFloat(rawIssue) || 0;
+
+                if (qtyIssue > 0 && qtyIssue > qtyOpen + 1e-9) {
+                    ok = false;
+                    window.addError($qty, `Qty Issue (${qtyIssue}) tidak boleh lebih besar dari Qty (Open) (${qtyOpen}).`);
+                }
+            });
+
+            return ok;
+        }
+    </script>
+
 
     {{-- ===== Submit + Validasi Qty Issue ===== --}}
     <script>
@@ -473,6 +518,15 @@
                         'Site wajib diisi untuk semua baris yang Qty Issue > 0.');
                     return;
                 }
+
+                // ✅ Validasi: qty_sisa tidak boleh lebih besar dari qty_original
+                if (!validateQtyOpenNotGreaterThanOriginal()) {
+                    const $firstInvalid = $('.qtyIssue.is-invalid').first();
+                    if ($firstInvalid.length) $firstInvalid.focus();
+                    if (window.toastr) toastr.error('Ada data Qty (Open) yang tidak valid. Mohon cek kembali.');
+                    return;
+                }
+
 
 
                 // Normalisasi semua qty ke titik

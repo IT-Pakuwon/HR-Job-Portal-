@@ -1148,13 +1148,62 @@ class SpbController extends Controller
         ])->where('spbid', $spbid)->firstOrFail();
 
         // --- Detail + relasi lokasi ---
-        $spbdetail = TrSPBdetail::with([
-            'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name',
-        ])
-        ->where('spbid', $spb->spbid)
-        ->orderby('spb_no', 'ASC')
-        ->get();
+        // $spbdetail = TrSPBdetail::with([
+        //     'location:location_id,location_name',
+        //     'subLocation:sub_location_id,sub_location_name',
+        // ])
+        // ->where('spbid', $spb->spbid)
+        // ->orderby('spb_no', 'ASC')
+        // ->get();
+        $spbdetail = TrSPBdetail::query()
+            ->with([
+                'location:location_id,location_name',
+                'subLocation:sub_location_id,sub_location_name',
+            ])
+            ->select([
+                'id',
+                'spbid',
+                'spb_no',
+                'inventoryid',
+                'inventory_descr',
+                'siteid',
+                'uom',
+                'qty',
+                'issue_qty',
+                'return_qty',
+                'sppb_qty',
+                'spb_completeqty',
+                'note',
+                'location_id',
+                'sub_location_id',
+                'budget_department_fin_id',
+                'budget_account_id',
+                'budget_activity_descr',
+                'created_by',
+                'created_at',
+                'updated_by',
+                'updated_at',
+                'status',
+            ])
+            ->selectRaw('
+                COALESCE(qty,0)           AS qty_original,
+                COALESCE(issue_qty,0)     AS qty_issued,
+                COALESCE(return_qty,0)    AS qty_returned,
+                COALESCE(sppb_qty,0)      AS qty_sppb,
+                COALESCE(spb_completeqty,0) AS qty_completed,
+                GREATEST(
+                    COALESCE(qty,0)
+                    - COALESCE(issue_qty,0)
+                    - COALESCE(spb_completeqty,0)
+                    - COALESCE(sppb_qty,0)
+                    + COALESCE(return_qty,0),
+                    0
+                ) AS qty_sisa
+            ')
+            ->where('spbid', $spb->spbid)
+            ->orderBy('spb_no', 'ASC')
+            ->get();
+
 
         // --- Approval trail ---
         $approval = T_approval::where('docid', $spb->spbid)

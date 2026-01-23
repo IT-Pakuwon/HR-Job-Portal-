@@ -233,7 +233,7 @@ class PoListController extends Controller
             // mapping status PO: H/P/O/C/X/R
             switch ($st) {
                 case 'H':
-                    $statusText  = 'Hold';
+                    $statusText  = 'UNSEND';
                     $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
                     break;
                 case 'P':

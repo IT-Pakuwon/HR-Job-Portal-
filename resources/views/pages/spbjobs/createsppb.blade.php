@@ -129,23 +129,30 @@
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB
-                                    Date</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB Date - User</label>
                                 <input type="text"
-                                    value="{{ \Carbon\Carbon::parse($spb->spbdate)->format('Y-m-d') }}" readonly
+                                    value="{{ \Carbon\Carbon::parse($spb->spbdate)->format('Y-m-d') }} - {{ $spb->created_by }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
-                                <input type="text" value="{{ $spb->cpny_id }}" readonly
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company - Department</label>
+                                <input type="text" value="{{ $spb->cpny_id }} - {{ $spb->department_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
-                                <input type="text" value="{{ $spb->department_id }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                                <select name="department_id" id="department_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    @foreach ($userdept as $p)
+                                        <option value="{{ $p->department_id }}"
+                                            {{ $p->department_id == $userdept2->department_id ? 'selected' : '' }}>
+                                            {{ $p->department_id }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -206,9 +213,9 @@
                                                 <th
                                                     class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
                                                     Description</th>
-                                                <th
-                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
-                                                    Qty (Open)</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty</th>
+                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Open)</th>
+
                                                 <th
                                                     class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">
                                                     UoM</th>
@@ -229,14 +236,27 @@
                                                     <td class="px-4 py-2">{{ $d->inventoryid }}</td>
                                                     <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
                                                     <td class="px-4 py-2 text-right">
-                                                        {{ number_format((float) $d->qty, 2) }}</td>
+                                                        {{ number_format((float) $d->qty_original, 2) }}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-right">
+                                                        {{ number_format((float) $d->qty_sisa, 2) }}
+                                                    </td>
                                                     <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
                                                     <td class="px-4 py-2 text-right">
                                                         <input type="hidden" name="detail_id[]"
                                                             value="{{ $d->id }}">
-                                                        <input type="text" name="qty_sppb[{{ $d->id }}]"
+                                                        <input
+                                                            type="text"
+                                                            name="qty_sppb[{{ $d->id }}]"
                                                             class="qtySPPB w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            inputmode="decimal" autocomplete="off" placeholder="0,00" />
+                                                            inputmode="decimal"
+                                                            autocomplete="off"
+                                                            placeholder="0,00"
+                                                            data-detail-id="{{ $d->id }}"
+                                                            data-qty-original="{{ (float) $d->qty_original }}"
+                                                            data-qty-open="{{ (float) $d->qty_sisa }}"
+                                                        />
+
                                                     </td>
 
                                                     {{-- ===== Detail SPPB Note per baris ===== --}}
@@ -413,6 +433,44 @@
                     return;
                 }
 
+                // ==========================
+                // VALIDASI DATA QTY
+                // qty_open (qty_sisa) tidak boleh > qty_original
+                // qty_sppb tidak boleh > qty_open
+                // ==========================
+                let invalid = false;
+
+                $('.qtySPPB').each(function() {
+                    const $inp = $(this);
+
+                    const qtyOriginal = parseFloat(String($inp.data('qty-original') ?? '0'));
+                    const qtyOpen = parseFloat(String($inp.data('qty-open') ?? '0'));
+
+                    // normalisasi input user
+                    const raw = (this.value || '').replace(/,/g, '.');
+                    const qtySppb = parseFloat(raw);
+
+                    // 1) validasi data open vs original (data row)
+                    if (!isNaN(qtyOpen) && !isNaN(qtyOriginal) && qtyOpen > qtyOriginal + 1e-9) {
+                        addError($inp, `Data tidak valid: Qty (Open) (${qtyOpen}) > Qty (${qtyOriginal}).`);
+                        invalid = true;
+                        return false; // break each
+                    }
+
+                    // 2) validasi input user tidak melebihi open
+                    if (!isNaN(qtySppb) && qtySppb > 0 && !isNaN(qtyOpen) && qtySppb > qtyOpen + 1e-9) {
+                        addError($inp, `Qty SPPB tidak boleh lebih besar dari Qty (Open) (${qtyOpen}).`);
+                        invalid = true;
+                        return false; // break each
+                    }
+                });
+
+                if (invalid) {
+                    if (window.toastr) toastr.error('Ada input qty yang tidak valid. Mohon cek kembali.');
+                    return;
+                }
+
+
                 // Normalisasi semua qty ke titik
                 $('.qtySPPB').each(function() {
                     this.value = (this.value || '').replace(/,/g, '.');
@@ -433,7 +491,7 @@
                     .done(function(res) {
                         if (window.toastr) toastr.success(res.message || 'SPPB created successfully!');
                         window.location.href = "{{ route('spbjobs') }}";
-                        window.location.reload();
+                        // window.location.reload();
                     })
                     .fail(function(xhr) {
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {

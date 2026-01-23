@@ -6,7 +6,7 @@
     <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
 
-            {{-- Hold --}}
+            {{-- UNSEND --}}
             <a href="#" class="scope-filter group block h-full" data-scope="hold">
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-md border border-blue-700/60 bg-blue-50/40 p-3 text-blue-700 transition-all duration-300 hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md active:scale-95">
@@ -14,7 +14,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧊</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Hold</p>
+                        <p class="break-words text-sm font-medium">UNSEND</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-extrabold">{{ $hold }}</p>
@@ -168,7 +168,7 @@
 
             const $title = $('h1.text-base.font-extrabold');
             const titleMap = {
-                hold: 'Purchase Order - Hold',
+                hold: 'Purchase Order - UNSEND',
                 purchase: 'Purchase Order - Purchase',
                 partial: 'Purchase Order - Partial Release',
                 completed: 'Purchase Order - Completed',

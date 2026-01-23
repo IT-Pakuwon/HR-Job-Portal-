@@ -37,7 +37,7 @@ class IssueController extends Controller
         
     public function storeIssue(Request $request)
     {
-        // dd($request->all());
+        dd($request->all());
         $user     = $request->user();
         $username = $user->username ?? 'system';
 

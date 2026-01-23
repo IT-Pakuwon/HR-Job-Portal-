@@ -366,8 +366,10 @@
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Inventory ID</th>
                                 <th class="px-4 py-2">Description</th>
+                                <th class="px-4 py-2 text-right">Qty SPB</th>
                                 <th class="px-4 py-2">UoM</th>
-                                <th class="px-4 py-2 text-right">Qty Issue</th>
+                                <th class="px-4 py-2 text-right">Issue Qty</th>
+                                <th class="px-4 py-2 text-right">Return Qty</th>
                                 <th class="px-4 py-2">Site</th>
                             </tr>
                         </thead>
@@ -378,8 +380,10 @@
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
+                                    <td class="px-4 py-2">{{ number_format($item->qty, 2, ',', '.') }}</td>
                                     <td class="px-4 py-2">{{ $item->uom }}</td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->issue_qty) }}</td>
+                                    <td class="px-4 py-2 text-right">{{ $nf2($item->return_qty) }}</td>
                                     <td class="px-4 py-2">{{ $item->siteid }}</td>
                                 </tr>
                             @endforeach

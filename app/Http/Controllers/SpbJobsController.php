@@ -34,6 +34,10 @@ use Illuminate\Support\Collection;
 use App\Models\TrWO;
 use App\Models\TrSPPB; 
 use App\Models\TrSPPBdetail;
+use App\Models\MsPurchSetting;
+use App\Models\MsInventory;
+use App\Models\Userdept;
+use Illuminate\Support\Facades\Schema;
 
 
 class SpbJobsController extends Controller
@@ -440,84 +444,145 @@ class SpbJobsController extends Controller
         ]);
     }
 
-    public function createIssue_xxx(Request $req) 
+    public function createIssue(Request $req)
     {
-        // dd($req->all());
-        // Ambil spbid (plain) dari query
-        $spbid = (string) $req->query('spbid', '');
-        $id = Hashids::decode($spbid);
-        abort_if($id === '', 404, 'SPB ID required');
-        
-        // --- Ambil header SPB ---
-        $spb = TrSPB::select([
-                'id','spbid','spbdate','cpny_id','department_id','keperluan'
-            ])
-            ->where('id', $id)
+        $hash = (string) $req->query('spbid', '');
+        $decoded = Hashids::decode($hash);
+
+        abort_if(empty($decoded) || empty($decoded[0]), 404, 'SPB ID required');
+        $spbId = (int) $decoded[0];
+
+        $spb = TrSPB::select(['id','spbid','spbdate','cpny_id','department_id','keperluan'])
+            ->where('id', $spbId)
             ->first();
 
         abort_if(!$spb, 404, 'SPB not found');
 
-        // =============================================
-        // Recalculate total qty di header + status
-        // =============================================
+        // Recalc header/status biar status & total selalu up-to-date
         $this->recalcSpbHeaderAndStatus($spb->spbid);
 
-
-        // =============================================
-        // Ambil detail SPB sesuai struktur baru
-        // qty_sisa = qty - issue_qty + return_qty
-        // =============================================
+        // =========================================================
+        // ✅ qty_sisa untuk ISSUE harus mengurangi sppb_qty juga
+        // =========================================================
         $details = TrSPBdetail::select([
-            'id',
-            'spbid',
-            'spb_no',
-            'inventoryid',
-            'inventory_descr',
-            'siteid',
-            DB::raw("COALESCE(uom,'') AS uom"),
-            DB::raw("COALESCE(qty,0) AS qty_original"),
-            DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
-            DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"), // ✅ add (alias opsional)
-            DB::raw("COALESCE(return_qty,0) AS qty_returned"),
-            DB::raw("
-                GREATEST(
-                    COALESCE(qty,0)
-                    - COALESCE(issue_qty,0)
-                    - COALESCE(spb_completeqty,0)
-                    + COALESCE(return_qty,0),
-                    0
-                ) AS qty_sisa
-            "),
-        ])
-        ->where('spbid', $spb->spbid)
-        ->orderBy('id')
-        ->get()
-        ->filter(fn($r) => (float)$r->qty_sisa > 0)
-        ->map(function ($r) {
-            $r->qty = (float) $r->qty_sisa; // dipakai oleh form
-            return $r;
-        })
-        ->values();
+                'id',
+                'spbid',
+                'spb_no',
+                'inventoryid',
+                'inventory_descr',
+                'siteid',
+                DB::raw("COALESCE(uom,'') AS uom"),
+
+                DB::raw("COALESCE(qty,0) AS qty_original"),
+                DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
+                DB::raw("COALESCE(sppb_qty,0) AS qty_sppb"),          // ✅ tambah
+                DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"),
+                DB::raw("COALESCE(return_qty,0) AS qty_returned"),
+
+                DB::raw("
+                    GREATEST(
+                        COALESCE(qty,0)
+                        - COALESCE(issue_qty,0)
+                        - COALESCE(sppb_qty,0)          -- ✅ kurangi sppb
+                        - COALESCE(spb_completeqty,0)
+                        + COALESCE(return_qty,0),
+                        0
+                    ) AS qty_sisa
+                "),
+            ])
+            ->where('spbid', $spb->spbid)
+            ->orderBy('id')
+            ->get()
+            ->filter(fn($r) => (float) $r->qty_sisa > 0)
+            ->map(function ($r) {
+                $r->qty_original = (float) $r->qty_original;
+                $r->qty_sisa     = (float) $r->qty_sisa;
+                return $r;
+            })
+            ->values();
+
+        // =========================================================
+        // ✅ Tambahkan stock_unit (UOM stock) dari View SQLSrv per company
+        // =========================================================
+        $cpnyid = strtoupper(trim((string) $spb->cpny_id));
+
+        $model = null;
+
+        switch ($cpnyid) {
+            case 'AW':
+                $model = \App\Models\ViewInventoryAW::class;
+                break;
+
+            case 'EP':
+                $model = \App\Models\ViewInventoryEPH::class;
+                break;
+
+            case 'O8':
+                $model = \App\Models\ViewInventoryO8::class;
+                break;
+
+            case 'PSA':
+                $model = \App\Models\ViewInventoryPSA::class;
+                break;
+
+            case 'GPS':
+                $model = \App\Models\ViewInventoryGPS::class;
+                break;
+
+            default:
+                $model = null;
+                break;
+        }
 
 
+        // default biar blade aman
+        $details = $details->map(function ($d) {
+            $d->stock_unit = null;
+            return $d;
+        });
 
-        // =============================================
-        // attachments masih kosong
-        // =============================================
+        if ($model && $details->isNotEmpty()) {
+            $invIds = $details->pluck('inventoryid')
+                ->map(fn($v) => strtoupper(trim((string)$v)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($invIds)) {
+                // ⚠️ SESUAIKAN ALIAS KOLOM DI VIEW SQL SERVER KAMU
+                // - invtid  : inventory id di SQLSrv
+                // - stock   : UOM stock (atau stock_unit kalau namanya beda)
+                $uomRows = $model::query()
+                    ->selectRaw("UPPER(LTRIM(RTRIM(invtid))) AS invtid_key, stock AS stock_unit")
+                    ->whereIn('invtid', $invIds)
+                    // kalau view kamu memang punya kolom cpnyid, boleh aktifkan:
+                    // ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+                    ->get();
+
+                $uomMap = $uomRows->mapWithKeys(function ($r) {
+                    return [(string) $r->invtid_key => ($r->stock_unit ?? null)];
+                });
+
+                $details = $details->map(function ($d) use ($uomMap) {
+                    $key = strtoupper(trim((string) $d->inventoryid));
+                    $d->stock_unit = $uomMap->get($key);
+                    return $d;
+                })->values();
+            }
+        }
+
         $attachments = [];
 
-
-        // =============================================
-        // Kirim ke view
-        // =============================================
         return view('pages.spbjobs.createissue', [
-            'spb'         => $spb->fresh(), // ambil data terbaru setelah recalc
+            'spb'         => $spb->fresh(),
             'details'     => $details,
             'attachments' => $attachments,
         ]);
     }
 
-    public function createIssue(Request $req)
+    
+    public function createIssue_xxx(Request $req)
     {
         $spbid = (string) $req->query('spbid', '');
         $id = Hashids::decode($spbid);
@@ -646,32 +711,40 @@ class SpbJobsController extends Controller
 
         $agg = TrSPBdetail::where('spbid', $spbid)
             ->selectRaw('
-                COALESCE(SUM(qty),0)         AS total_spbqty,
-                COALESCE(SUM(issue_qty),0)   AS total_issueqty,
-                COALESCE(SUM(return_qty),0)  AS total_returnqty,
-                COALESCE(SUM(sppb_qty),0)    AS total_sppbqty
+                COALESCE(SUM(qty),0)             AS total_spbqty,
+                COALESCE(SUM(issue_qty),0)       AS total_issueqty,
+                COALESCE(SUM(return_qty),0)      AS total_returnqty,
+                COALESCE(SUM(sppb_qty),0)        AS total_sppbqty,
+                COALESCE(SUM(spb_completeqty),0) AS total_completeqty
             ')
             ->first();
 
-        $spb->totalspbqty    = (float) $agg->total_spbqty;
-        $spb->totalissueqty  = (float) $agg->total_issueqty;
-        $spb->totalreturnqty = (float) $agg->total_returnqty;
-        $spb->totalsppbqty   = (float) $agg->total_sppbqty;
+        $spb->totalspbqty      = (float) ($agg->total_spbqty ?? 0);
+        $spb->totalissueqty    = (float) ($agg->total_issueqty ?? 0);
+        $spb->totalreturnqty   = (float) ($agg->total_returnqty ?? 0);
+        $spb->totalsppbqty     = (float) ($agg->total_sppbqty ?? 0);
+        $spb->totalcompleteqty = (float) ($agg->total_completeqty ?? 0);
 
-        // update status juga
         $this->updateSpbStatusFlags($spb);
     }
 
+
     protected function updateSpbStatusFlags(TrSPB $spb)
     {
-        $spbqty   = (float) ($spb->totalspbqty ?? 0);
-        $issueQty = (float) ($spb->totalissueqty ?? 0);
-        $sppbQty  = (float) ($spb->totalsppbqty ?? 0);
+        $spbqty     = (float) ($spb->totalspbqty ?? 0);
+        $issueQty   = (float) ($spb->totalissueqty ?? 0);
+        $sppbQty    = (float) ($spb->totalsppbqty ?? 0);
+        $completeQty= (float) ($spb->totalcompleteqty ?? 0);
+        $returnQty  = (float) ($spb->totalreturnqty ?? 0);
+
+        // basis qty yang masih relevan untuk diproses (mirip logika open)
+        $basis = $spbqty - $completeQty + $returnQty;
+        if ($basis < 0) $basis = 0;
 
         // --- status_issue ---
         if ($issueQty <= 0) {
             $statusIssue = 'Open';
-        } elseif ($issueQty >= $spbqty) {
+        } elseif ($issueQty >= $basis) {
             $statusIssue = 'Completed';
         } else {
             $statusIssue = 'Partial';
@@ -680,7 +753,7 @@ class SpbJobsController extends Controller
         // --- status_sppb ---
         if ($sppbQty <= 0) {
             $statusSppb = 'Open';
-        } elseif ($sppbQty >= $spbqty) {
+        } elseif ($sppbQty >= $basis) {
             $statusSppb = 'Full';
         } else {
             $statusSppb = 'Partial';
@@ -698,6 +771,17 @@ class SpbJobsController extends Controller
         $spbid = (string) $req->query('spbid', '');
         $id = Hashids::decode($spbid);
         abort_if($id === '', 404, 'SPB ID required');
+
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        $userdept = Userdept::where('username', $user->username)
+            ->get();
+        $userdept2 = Userdept::where('username', $user->username)
+            ->first();
         
         // --- Ambil header SPB ---
         $spb = TrSPB::select([
@@ -723,13 +807,15 @@ class SpbJobsController extends Controller
             DB::raw("COALESCE(uom,'') AS uom"),
             DB::raw("COALESCE(qty,0) AS qty_original"),
             DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
-            DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"), // ✅ add (alias opsional)
+            DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"),
             DB::raw("COALESCE(return_qty,0) AS qty_returned"),
+            DB::raw("COALESCE(sppb_qty,0) AS qty_sppb"),
             DB::raw("
                 GREATEST(
                     COALESCE(qty,0)
                     - COALESCE(issue_qty,0)
                     - COALESCE(spb_completeqty,0)
+                    - COALESCE(sppb_qty,0)
                     + COALESCE(return_qty,0),
                     0
                 ) AS qty_sisa
@@ -740,10 +826,12 @@ class SpbJobsController extends Controller
         ->get()
         ->filter(fn($r) => (float)$r->qty_sisa > 0)
         ->map(function ($r) {
-            $r->qty = (float) $r->qty_sisa; // dipakai oleh form
+            $r->qty_original = (float) $r->qty_original;
+            $r->qty_sisa     = (float) $r->qty_sisa;
             return $r;
         })
         ->values();
+
 
 
 
@@ -760,11 +848,14 @@ class SpbJobsController extends Controller
             'spb'         => $spb->fresh(), // ambil data terbaru setelah recalc
             'details'     => $details,
             'attachments' => $attachments,
+            'userdept'    => $userdept,
+            'userdept2'   => $userdept2,
         ]);
     }
 
     public function storeSppb(Request $request)
     {
+        // dd($request->all());
         $user     = $request->user();
         $username = $user->username ?? 'system';
 
@@ -775,27 +866,35 @@ class SpbJobsController extends Controller
         if ($spbid === '') {
             return back()->withErrors(['SPB ID tidak ditemukan.'])->withInput();
         }
-        
+
         $spb = TrSPB::where('spbid', $spbid)->first();
         if (!$spb) {
             return back()->withErrors(['SPB tidak ditemukan.'])->withInput();
         }
-        
+
         $spbDetails = TrSPBdetail::where('spbid', $spbid)->get()->keyBy('id');
 
         // ========================================
-        // 2. Ambil input dari form SPPB
-        //    - qty_sppb[detail_id]
-        //    - siteid[detail_id]
-        //    - sppbnote_detail[detail_id]
+        // Ambil master inventory untuk mapping type/subtype/category (bulk)
         // ========================================
-        $qtySppbInput       = (array) $request->input('qty_sppb', []);        // [spb_detail_id => qty_sppb]
-        $siteInput          = (array) $request->input('siteid', []);          // [spb_detail_id => siteid]
-        $sppbNoteDetailInput= (array) $request->input('sppbnote_detail', []); // [spb_detail_id => note]
+        $inventoryIds = $spbDetails->pluck('inventoryid')->filter()->unique()->values()->all();
+
+        $invMap = MsInventory::query()
+            ->select(['inventoryid','item_type','item_sub_type','item_category'])
+            ->whereIn('inventoryid', $inventoryIds)
+            ->get()
+            ->keyBy('inventoryid');
+
+        // ========================================
+        // 2. Ambil input dari form SPPB
+        // ========================================
+        $qtySppbInput        = (array) $request->input('qty_sppb', []);
+        $siteInput           = (array) $request->input('siteid', []);
+        $sppbNoteDetailInput = (array) $request->input('sppbnote_detail', []);
 
         // Minimal satu baris qty_sppb > 0
         $hasAnyQty = false;
-        foreach ($qtySppbInput as $k => $v) {
+        foreach ($qtySppbInput as $v) {
             $qty = (float) str_replace(',', '.', (string) $v);
             if ($qty > 0) { $hasAnyQty = true; break; }
         }
@@ -804,9 +903,7 @@ class SpbJobsController extends Controller
         }
 
         // ========================================
-        // 3. VALIDASI per baris:
-        //    qty_sppb <= (qty - issue_qty + return_qty)
-        //    (sisa open yang sama seperti di createSPPB)
+        // 3. Validasi open qty
         // ========================================
         foreach ($qtySppbInput as $detailId => $v) {
             $qty = (float) str_replace(',', '.', (string) $v);
@@ -822,7 +919,6 @@ class SpbJobsController extends Controller
             $issued   = (float) ($src->issue_qty ?? 0);
             $returned = (float) ($src->return_qty ?? 0);
 
-            // open = qty - issue_qty + return_qty  (sama seperti createSPPB)
             $open = $spbQty - $issued + $returned;
             if ($open < 0) $open = 0;
 
@@ -836,23 +932,31 @@ class SpbJobsController extends Controller
         // ========================================
         // 4. Setup Approval & Autonumber
         // ========================================
-        $doctype  = 'PB';            // doctype SPPB
+        $doctype  = 'PB';
         $dt       = Carbon::now();
         $year     = $dt->year;
         $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
         $cpnyid   = $spb->cpny_id;
-        $deptid   = $spb->department_id;
+        $deptid   = $request->department_id; // ✅ konsisten dari header SPB
+
+        $setting = MsPurchSetting::where('setting_id','GENSPPB')->first();
+        $requesttypeid = $setting->setting_value_string ?? null;
 
         /** @var ApprovalController $approvalCtl */
         $approvalCtl = app(ApprovalController::class);
-        // Pastikan line approval ada
         $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
+
+        // ✅ cek kolom yang ada di tr_sppb_detail sekali saja (biar gak error)
+        $detailTable = (new TrSPPBdetail())->getTable();
+        $detailConn  = (new TrSPPBdetail())->getConnectionName() ?: config('database.default');
+
+        $hasSpbIdCol = Schema::connection($detailConn)->hasColumn($detailTable, 'spbid');
+        $hasSpbNoCol = Schema::connection($detailConn)->hasColumn($detailTable, 'spb_no');
 
         DB::beginTransaction();
         try {
             // ---------- Autonumber ----------
-            /** @var Autonbr|null $autonbr */
             $autonbr = Autonbr::lockForUpdate()
                 ->where('doctype', $doctype)
                 ->where('year',    $year)
@@ -873,127 +977,119 @@ class SpbJobsController extends Controller
                 $autonbr->update(['number' => $urutan]);
             }
 
-            $tglbln = substr((string)$year, 2) . $month;           // YYMM
+            $tglbln = substr((string)$year, 2) . $month;
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
             $sppbNo = $docid;
 
             // ========================================
             // 5. HEADER TrSPPB
-            //    → copy dari TrSPB + isi sppbnote
             // ========================================
             $header = new TrSPPB();
-            $header->sppbid             = $docid;
-            $header->sppbdate           = $dt->toDateString();
-            $header->cpny_id            = $spb->cpny_id;
-            $header->department_id      = $spb->department_id;
-            $header->requesttypeid      = $spb->requesttypeid      ?? null;
-            $header->keperluan          = (string) $request->input('sppbnote', '');            
-            $header->budget_perpost     = $spb->budget_perpost     ?? null;
-            $header->woid               = $spb->woid               ?? null;
-            $header->is_urgent          = $spb->is_urgent          ?? null;
-            $header->spbid              = $spb->spbid;                 // link ke SPB
+            $header->sppbid        = $docid;
+            $header->sppbdate      = $dt->toDateString();
+            $header->cpny_id       = $spb->cpny_id;
+            $header->department_id = $deptid;
+            $header->requesttypeid = $requesttypeid;
+            $header->keperluan     = (string) $request->input('sppbnote', '');
+            $header->budget_perpost= $spb->budget_perpost ?? null;
+            $header->woid          = $spb->woid ?? null;
+            $header->is_urgent     = $spb->is_urgent ?? null;
+            $header->spbid         = $spb->spbid;
 
-            $header->totalopenordered   = 0;
-            $header->totalqty           = 0;
-            $header->totalordered       = 0;
+            $header->totalopenordered = 0;
+            $header->totalqty         = 0;
+            $header->totalordered     = 0;
             $header->totalrejectordered = 0;
             $header->totalcompleteordered = 0;
-            $header->assignby           = null;
-            $header->assigndate         = null;
-            $header->assignpurchasing   = null;
-            $header->csjobs             = null;
-            $header->cs                 = null;
-            $header->status             = 'P';
-            $header->created_by         = $username;
-            $header->created_at         = $dt;
+
+            $header->assignby         = null;
+            $header->assigndate       = null;
+            $header->assignpurchasing = null;
+            $header->csjobs           = null;
+            $header->cs               = null;
+
+            $header->status     = 'P';
+            $header->created_by = $username;
+            $header->created_at = $dt;
             $header->save();
 
             // ========================================
             // 6. DETAIL TrSPPBdetail
-            //    → di-copy dari TrSPBdetail per baris yg ada qty_sppb > 0
             // ========================================
-            $totalQty   = 0.0;
-            $lineNo     = 0;
+            $totalQty = 0.0;
+            $lineNo   = 0;
 
             foreach ($qtySppbInput as $detailId => $rawQty) {
                 $qty = (float) str_replace(',', '.', (string) $rawQty);
                 if ($qty <= 0) continue;
 
-                /** @var TrSPBdetail|null $src */
                 $src = $spbDetails->get((int) $detailId);
-                if (!$src) continue; // sudah divalidasi di atas, ini jaga-jaga
+                if (!$src) continue;
 
                 $lineNo++;
 
-                // site: pakai input, kalau kosong fallback ke SPB detail
-                $siteFromForm = isset($siteInput[$detailId])
-                    ? trim((string) $siteInput[$detailId])
-                    : null;
+                $siteFromForm = isset($siteInput[$detailId]) ? trim((string) $siteInput[$detailId]) : '';
+                $siteToUse = ($siteFromForm !== '') ? $siteFromForm : ($src->siteid ?? null);
 
-                $siteToUse = $siteFromForm !== ''
-                    ? $siteFromForm
-                    : ($src->siteid ?? null);
-
-                // note per detail SPPB
                 $detailNote = $sppbNoteDetailInput[$detailId] ?? null;
 
-                // base qty menggunakan skema yg sama dengan SPB
-                $typeMultiplier = $src->type_multiplier ?? null;           // 'M' / 'D' / null
-                $baseMultiplier = (float) ($src->base_multiplier ?? 1);    // rate
+                $typeMultiplier = $src->type_multiplier ?? null; // 'M'/'D'/null
+                $baseMultiplier = (float) ($src->base_multiplier ?? 1);
                 if ($baseMultiplier == 0) $baseMultiplier = 1;
 
                 $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $baseMultiplier;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $baseMultiplier;
-                }
+                if ($typeMultiplier === 'M') $baseQty = $qty * $baseMultiplier;
+                if ($typeMultiplier === 'D') $baseQty = $qty / $baseMultiplier;
 
                 $detail = new TrSPPBdetail();
-                $detail->sppbid                   = $docid;
-                $detail->sppb_no                  = $lineNo;
+                $detail->sppbid  = $docid;
+                $detail->sppb_no = $lineNo;
 
-                // Inventory
-                $detail->inventoryid              = $src->inventoryid;
-                $detail->inventory_descr          = $src->inventory_descr;
-                $detail->siteid                   = $siteToUse;
-                $detail->qty                      = $qty;
-                $detail->uom                      = $src->uom ?? null;
-                $detail->note                     = $detailNote;
+                $detail->inventoryid     = $src->inventoryid;
+                $detail->inventory_descr = $src->inventory_descr;
+                $detail->siteid          = $siteToUse;
+                $detail->qty             = $qty;
+                $detail->uom             = $src->uom ?? null;
+                $detail->note            = $detailNote;
 
-                // Inventory type/category dari SPBdetail (kalau ada)
-                $detail->inventory_type           = $src->inventory_type      ?? null;
-                $detail->inventory_sub_type       = $src->inventory_sub_type  ?? null;
-                $detail->inventory_category       = $src->inventory_category  ?? null;
+                // ✅ ambil dari MsInventory (fallback ke src jika ada)
+                $inv = $invMap->get($src->inventoryid);
+                $detail->inventory_type     = $inv->item_type     ?? ($src->inventory_type ?? null);
+                $detail->inventory_sub_type = $inv->item_sub_type ?? ($src->inventory_sub_type ?? null);
+                $detail->inventory_category = $inv->item_category ?? ($src->inventory_category ?? null);
 
-                // Base UoM / konversi dari SPB
-                $detail->base_uom                 = $src->base_uom        ?? $src->uom;
-                $detail->base_multiplier          = $baseMultiplier;
-                $detail->type_multiplier          = $typeMultiplier;
-                $detail->base_qty                 = $baseQty;
+                $detail->base_uom        = $src->base_uom ?? $src->uom;
+                $detail->base_multiplier = $baseMultiplier;
+                $detail->type_multiplier = $typeMultiplier;
+                $detail->base_qty        = $baseQty;
 
-                // Budget (copy dari SPB detail bila ada)
-                $detail->budget_cpny_id           = $src->budget_cpny_id           ?? $spb->cpny_id;
-                $detail->budget_business_unit_id  = $src->budget_business_unit_id  ?? null;
+                $detail->budget_cpny_id           = $src->budget_cpny_id ?? $spb->cpny_id;
+                $detail->budget_business_unit_id  = $src->budget_business_unit_id ?? null;
                 $detail->budget_department_fin_id = $src->budget_department_fin_id ?? null;
-                $detail->budget_account_id        = $src->budget_account_id        ?? null;
-                $detail->budget_activity_id       = $src->budget_activity_id       ?? null;
-                $detail->budget_activity_descr    = $src->budget_activity_descr    ?? null;
-                $detail->budget_perpost           = $spb->budget_perpost           ?? null;
+                $detail->budget_account_id        = $src->budget_account_id ?? null;
+                $detail->budget_activity_id       = $src->budget_activity_id ?? null;
+                $detail->budget_activity_descr    = $src->budget_activity_descr ?? null;
+                $detail->budget_perpost           = $spb->budget_perpost ?? null;
 
-                // Lokasi
-                $detail->location_id              = $src->location_id      ?? null;
-                $detail->sub_location_id          = $src->sub_location_id  ?? null;
+                $detail->location_id     = $src->location_id ?? null;
+                $detail->sub_location_id = $src->sub_location_id ?? null;
 
-                // Ordered fields
-                $detail->openordered              = $qty;
-                $detail->ordered                  = 0;
-                $detail->rejectordered            = 0;
-                $detail->completeordered          = 0;
+                // ✅ JANGAN SET kalau kolom tidak ada di table
+                if ($hasSpbIdCol) {
+                    $detail->spbid = $spb->spbid ?? null;
+                }
+                if ($hasSpbNoCol) {
+                    $detail->spb_no = $src->spb_no ?? null;
+                }
 
-                $detail->status                   = 'P';
-                $detail->created_by               = $username;
-                $detail->created_at               = $dt;
+                $detail->openordered     = $qty;
+                $detail->ordered         = 0;
+                $detail->rejectordered   = 0;
+                $detail->completeordered = 0;
+
+                $detail->status     = 'P';
+                $detail->created_by = $username;
+                $detail->created_at = $dt;
                 $detail->save();
 
                 $totalQty += $qty;
@@ -1003,28 +1099,28 @@ class SpbJobsController extends Controller
                 throw new \RuntimeException('Qty SPPB minimal satu baris harus > 0.');
             }
 
-            // Update total di header
             $header->totalqty         = $totalQty;
             $header->totalopenordered = $totalQty;
             $header->save();
 
-            $sppbDetails = TrSPPBdetail::where('sppbid', $header->sppbid)->get();
-            $this->applySppbPostingToSpb($header, $sppbDetails, $user, $dt);
+            $sppbDetailsNew = TrSPPBdetail::where('sppbid', $header->sppbid)->get();
+            $this->applySppbPostingToSpb($header, $sppbDetailsNew, $user, $dt);
 
             // ========================================
-            // 7. Generate Approval (TrApproval)
+            // 7. Generate Approval
             // ========================================
-            // Flag urgent/FA/komputer kalau dipakai di rule approval
             $isUrgent = (bool) ($spb->is_urgent ?? false);
 
-            $firstCategory = null;
-            $inventoryCategories = $spbDetails->pluck('inventory_category')->filter()->values()->all();
-            if (!empty($inventoryCategories)) {
-                $firstCategory = $inventoryCategories[0];
-            }
+            $inventoryCategories = $spbDetails->pluck('inventoryid')
+                ->map(fn($id) => optional($invMap->get($id))->item_category)
+                ->filter()
+                ->values()
+                ->all();
 
-            $hasFixedAssetSubtype = $spbDetails
-                ->pluck('inventory_sub_type')
+            $firstCategory = $inventoryCategories[0] ?? null;
+
+            $hasFixedAssetSubtype = $spbDetails->pluck('inventoryid')
+                ->map(fn($id) => optional($invMap->get($id))->item_sub_type)
                 ->filter(function ($sub) {
                     $s = mb_strtolower((string) $sub);
                     return $s === 'fixed asset' || $s === 'fa';
@@ -1055,7 +1151,7 @@ class SpbJobsController extends Controller
             }
 
             // ========================================
-            // 8. Attachments (opsional)
+            // 8. Attachments
             // ========================================
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
@@ -1070,16 +1166,8 @@ class SpbJobsController extends Controller
 
                 $files = (array) $request->file('attachments');
 
-                try {
-                    $uploader     = app(TrAttachmentController::class);
-                    $uploadResult = $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to create SPPB',
-                        'error'   => 'Gagal upload attachment: ' . $e->getMessage(),
-                    ], 500);
-                }
+                $uploader     = app(TrAttachmentController::class);
+                $uploadResult = $uploader->uploadInternal($meta, $files);
             }
 
             // ========================================
@@ -1090,7 +1178,7 @@ class SpbJobsController extends Controller
             $approvalCtl->notifyFirstApprover(
                 $docid,
                 $doctype,
-                $header->status,    // 'P'
+                $header->status,
                 'SPPB',
                 url('/showsppbs/' . $eid),
                 [
@@ -1121,6 +1209,8 @@ class SpbJobsController extends Controller
         }
     }
 
+
+   
     protected function applySppbPostingToSpb(TrSPPB $sppb, Collection $sppbDetails, User $user, Carbon $now): void
     {
         // Lock header SPB terkait SPPB ini
