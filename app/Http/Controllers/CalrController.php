@@ -366,23 +366,14 @@ class CalrController extends Controller
 
         $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
         if (!$calr) {
-            return response()->json(['success'=>false,'message'=>'CALR not found'],404);
+            return response()->json(['success' => false, 'message' => 'CALR not found'], 404);
         }
-
-        // 🔽 inilah kuncinya
-        $ratingScores = $this->extractRatings($request);
-
-        // (opsional) log untuk debugging
-        \Log::info('[approveCalr] payload', [
-            'all'           => $request->all(),
-            'rating_scores' => $ratingScores,
-        ]);
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
         $docUrl   = url('/showcalr/' . $eid);
         $fullname = data_get($calr, 'creator.name') ?: $calr->created_by;
 
-        return \DB::transaction(function () use ($user, $doctype, $calr, $ratingScores, $docUrl, $fullname) {
+        return \DB::transaction(function () use ($user, $doctype, $calr, $docUrl, $fullname) {
 
             $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
                 $calr->calrid,
@@ -391,35 +382,39 @@ class CalrController extends Controller
                 $user->name,
 
                 // FINAL
-                function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $ratingScores) {
-                    $this->applyCalrApprovalSideEffects($calr, $now, $ratingScores);
-
+                function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl) {
+                  
                     $calr->status       = 'C';
                     $calr->completed_by = auth()->user()->username;
                     $calr->completed_at = $now;
                     $calr->save();
 
                     app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                        $calr->calrid, 'CALR', 'C', $calr->created_by, $docUrl, [
-                            'cpnyid'   => $calr->cpny_id ?? '',
-                            'deptname' => $calr->department_id ?? '',
-                            'date'     => $calr->calrdate,
-                            'info'     => $calr->keperluan,
-                            'fullname' => $fullname,
-                            'createdby'=> $fullname,
+                        $calr->calrid,
+                        'CALR',
+                        'C',
+                        $calr->created_by,
+                        $docUrl,
+                        [
+                            'cpnyid'    => $calr->cpny_id ?? '',
+                            'deptname'  => $calr->department_id ?? '',
+                            'date'      => $calr->calrdate,
+                            'info'      => $calr->keperluan,
+                            'fullname'  => $fullname,
+                            'createdby' => $fullname,
                         ]
                     );
                 },
 
                 // NEXT APPROVER
-                function ($next, \Carbon\Carbon $now) use ($calr, $docUrl, $ratingScores) {
-                    if (isset($next['aprv_leveling']) && $next['aprv_leveling'] === "2.00") {
-                        // efek samping setelah lolos level 1
-                        $this->applyCalrApprovalSideEffects($calr, $now, $ratingScores);
-                    }
-
+                function ($next, \Carbon\Carbon $now) use ($calr, $docUrl) {    
                     app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                        $calr->calrid, 'CA', 'P', 'CALR', $docUrl, [
+                        $calr->calrid,
+                        'CA',
+                        'P',
+                        'CALR',
+                        $docUrl,
+                        [
                             'info'      => $calr->keperluan,
                             'createdby' => $calr->created_by,
                             'date'      => $now->toDateTimeString(),
@@ -434,16 +429,19 @@ class CalrController extends Controller
 
             if (!$result['ok']) {
                 \DB::rollBack();
-                return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Approve failed'
+                ], 403);
             }
 
             return response()->json([
-                'success'       => true,
-                'message'       => 'Task approved successfully',
-                'rating_vendor' => $calr->rating_vendor,
+                'success' => true,
+                'message' => 'Task approved successfully',
             ]);
         });
     }
+
 
     public function rejectCalr(Request $request, $docid)
     {
@@ -451,13 +449,13 @@ class CalrController extends Controller
         $doctype = 'CA';
 
         $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
-        if (!$calr) return response()->json(['success'=>false,'message'=>'CALR not found'],404);
+        if (!$calr) {
+            return response()->json(['success' => false, 'message' => 'CALR not found'], 404);
+        }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
         $docUrl   = url('/showcalr/' . $eid);
         $fullname = data_get($calr, 'creator.name') ?: $calr->created_by;
-        $term = TrPOterm::where('calrid', $calr->calrid)                
-            ->first();
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
             $calr->calrid,
@@ -465,20 +463,18 @@ class CalrController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl,$term) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl) {
+
+                // update status CALR
                 $calr->status       = 'R';
                 $calr->completed_by = auth()->user()->username;
                 $calr->completed_at = $now;
-                $calr->save();                
-
-                $term->calrid = '';
-                $term->updated_by = auth()->user()->username;
-                $term->updated_at = $now;
-                $term->save();
+                $calr->save();
 
                 // optional: tandai detail R
                 // \App\Models\TrCALRdetail::where('calrid', $calr->calrid)->update(['status' => 'R']);
 
+                // notify requester
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $calr->calrid,
                     'CALR',
@@ -486,29 +482,39 @@ class CalrController extends Controller
                     $calr->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $calr->cpny_id ?? $calr->cpnyid ?? '',
-                        'deptname' => $calr->department_id ?? $calr->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $calr->keperluan,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'cpnyid'    => $calr->cpny_id ?? '',
+                        'deptname'  => $calr->department_id ?? '',
+                        'date'      => $now->toDateString(),
+                        'info'      => $calr->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
 
                 // simpan komentar (jika ada)
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($calr->id, 'CA', request());
-                } catch (\Throwable $e) {}
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($calr->id, 'CA', request());
+                } catch (\Throwable $e) {
+                    // sengaja diabaikan
+                }
             }
         );
 
         if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Reject failed'
+            ], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'CALR rejected successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => 'CALR rejected successfully'
+        ]);
     }
+
 
     public function reviseCalr(Request $request, $docid)
     {

@@ -189,13 +189,13 @@
                                     'icon' => 'document-text',
                                     'label' => 'SPPB/J/K/T',
                                     'value' =>
-                                        !empty($sppbUrl) && !empty($calr->sppbjktid)
+                                        !empty($calrUrl) && !empty($calr->calrjktid)
                                             ? '<a href="' .
-                                                $sppbUrl .
+                                                $calrUrl .
                                                 '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                                e($calr->sppbjktid) .
+                                                e($calr->calrjktid) .
                                                 '</a>'
-                                            : $calr->sppbjktid ?? '-',
+                                            : $calr->calrjktid ?? '-',
                                 ],
                                 [
                                     'icon' => 'clipboard-document-list',
@@ -584,67 +584,57 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Approve button -> cek authorize -> confirm -> submit approve
         $(document).on("click", "#approveBtn", function() {
-            const calrid = "{{ $calr->calrid }}";
-            const $spinner = $("#loadingSpinnerContainer");
+            let calrid = "{{ $calr->calrid }}"; // Ambil Task ID dari modal        
+            approveCALR(calrid);
+        });
+
+        function approveCALR(calrid) {
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+
+            // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
             $.ajax({
-                    url: `/approval/${encodeURIComponent(calrid)}/check/approve?doctype=CA`,
-                    type: "GET"
-                })
-                .done(function(resp) {
-                    const authorized = !!(resp && resp.canPerformAction);
-                    if (!authorized) {
-                        toastr.error("You are not authorized to approve this Calr.");
-                        return;
+                url: `/calr/${calrid}/approve`,
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    calrid: calrid
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update status di UI
+                        $("#xstatus").text("Approved")
+                            .removeClass()
+                            .addClass(
+                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
+                            );
+
+                        // Tampilkan alert sukses
+                        toastr.success("CALR approved successfully!");
+                        window.location.href = "/calrlist";
+                    } else {
+                        toastr.error(response.message);
                     }
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
 
-                    // ✅ confirm dulu
-                    Swal.fire({
-                        title: 'Approve CALR?',
-                        text: 'Are you sure you want to approve this document?',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: 'Yes, Approve',
-                        cancelButtonText: 'Cancel',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (!result.isConfirmed) return;
-
-                        // ✅ submit approve (sesuaikan endpoint kamu)
-                        $spinner.fadeIn();
-
-                        $.ajax({
-                            url: `/calr/${encodeURIComponent(calrid)}/approve`, // <-- pastikan route ini ada
-                            type: "POST",
-                            data: {
-                                _token: "{{ csrf_token() }}",
-                                docid: calrid
-                            }
-                        }).done(function(res) {
-                            if (res && res.success) {
-                                toastr.success(res.message || "Calr approved successfully!");
-                                window.location.href = "/calrlist";
-                            } else {
-                                toastr.error(res?.message || "Failed to approve calr.");
-                            }
-                        }).fail(function(xhr) {
-                            toastr.error(xhr.responseJSON?.message || "Error approving calr.");
-                        }).always(function() {
-                            $spinner.fadeOut(150);
-                        });
-                    });
-                })
-                .fail(function() {
-                    toastr.error("Error checking approval status.");
-                })
-                .always(function() {
-                    $spinner.fadeOut(150);
-                });
-        });
+                    if (xhr.status === 403) {
+                        toastr.error("You are not authorized to approve this calr.");
+                    } else {
+                        toastr.error("Error: Unable to approve calr.");
+                    }
+                },
+                complete: function() {
+                    // Sembunyikan spinner setelah request selesai
+                    $spinner.fadeOut();
+                }
+            });
+        }
     </script>
+
 
     {{-- <script>
         // Approve button -> cek authorize -> buka modal + load ratings
