@@ -14,6 +14,9 @@ class SysMenuController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         // Untuk dropdown parent menu
         $parentMenus = SysMenu::on('pgsql2')
             ->where('status', 'A')

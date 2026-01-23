@@ -12,6 +12,9 @@ class SysScreenController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         // untuk dropdown Application
         $applications = SysApplication::on('pgsql2')
             ->where('status', 'A')

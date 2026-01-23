@@ -20,92 +20,138 @@ class PoListController extends Controller
 
         $u = $user->username ?? '';
 
+        // company list bisa "AW" atau "AW,GPS"
         $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
+        // cek role FINACCESS
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
             ->exists();
 
-        // kirim list company untuk dropdown + login user (untuk hidden creator kalau non-fin)
-        return view('pages.purchase.polist', [
-            'companies'       => $cpnyList,
-            'isFinanceAccess' => $isFinanceAccess,
-            'loginUser'       => $u,
-        ]);
-    }
+        // helper filter company
+        $filterCompany = function ($q) use ($cpnyList) {
+            if (!empty($cpnyList)) {
+                $q->whereIn('cpny_id', $cpnyList);
+            }
+        };
 
+        // helper filter created_by hanya untuk non-FINACCESS
+        $filterCreator = function ($q) use ($isFinanceAccess, $u) {
+            if (!$isFinanceAccess) {
+                $q->where('created_by', $u);
+            }
+        };
+
+        // Hitung per status (sesuai company user, created_by hanya kalau bukan FINACCESS)
+        $hold = TrPO::where('status', 'H')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        $purchase = TrPO::where('status', 'P')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        $partial = TrPO::where('status', 'O')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        $completed = TrPO::where('status', 'C')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        $cancel = TrPO::where('status', 'X')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        $reuse = TrPO::where('status', 'D')
+            ->where($filterCompany)
+            ->where($filterCreator)
+            ->count();
+
+        // "All" → semua PO di company user, tanpa filter created_by
+        $all = TrPO::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->count();
+
+        return view('pages.purchase.polist', compact(
+            'hold', 'purchase', 'partial', 'completed', 'cancel', 'reuse', 'all'
+        ));
+    }
 
     /** DataTables server-side */
     public function json(Request $req)
     {
+        $scope = strtolower((string) $req->query('scope', 'purchase')); // default: Purchase Order (P)
+
         $user = Auth::user();
         $u    = $user->username ?? '';
 
-        $tab     = strtolower((string) $req->query('tab', 'my'));      // my | all
-        $status  = strtoupper(trim((string) $req->query('status', ''))); // H/P/O/C/X/D atau kosong
-        $company = strtoupper(trim((string) $req->query('company', ''))); // optional
-        $creator = trim((string) $req->query('creator', ''));           // optional
-
-        // company list user
+        // company list
         $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
+        // FINACCESS?
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
             ->exists();
 
         $base = TrPO::query();
 
-        // ===== filter company user (selalu) =====
+        // selalu filter by company user
         if (!empty($cpnyList)) {
             $base->whereIn('cpny_id', $cpnyList);
         }
 
-        // ===== filter company dropdown (optional) =====
-        if ($company !== '') {
-            // safety: hanya boleh pilih company yang ada di cpnyList
-            if (in_array($company, $cpnyList, true)) {
-                $base->where('cpny_id', $company);
-            }
-        }
-
-        // ===== tab behavior =====
-        if ($tab === 'my') {
-            // creator filter: non-fin selalu dirinya sendiri
+        // helper creator filter
+        $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u) {
             if (!$isFinanceAccess) {
-                $base->where('created_by', $u);
-            } else {
-                // finance boleh filter creator (kalau diisi)
-                if ($creator !== '') {
-                    $base->where('created_by', $creator);
-                }
+                $q->where('created_by', $u);
             }
+        };
 
-            // status filter (My PO saja) -> default ALL status
-            if ($status !== '') {
-                $allowed = ['H','P','O','C','X','D'];
-                if (in_array($status, $allowed, true)) {
-                    $base->where('status', $status);
-                }
-            }
-        } else {
-            // all tab: tidak filter creator
-            // (status tidak wajib, tapi kalau mau tetap boleh dipakai)
-            // kalau kamu ingin status filter TIDAK berlaku di All, comment block bawah.
-            /*
-            if ($status !== '') {
-                $allowed = ['H','P','O','C','X','D'];
-                if (in_array($status, $allowed, true)) {
-                    $base->where('status', $status);
-                }
-            }
-            */
+        // Scope → filter
+        switch ($scope) {
+            case 'hold':
+                $base->where('status', 'H')->where($applyCreatorFilter);
+                break;
+
+            case 'purchase':
+                $base->where('status', 'P')->where($applyCreatorFilter);
+                break;
+
+            case 'partial':
+                $base->where('status', 'O')->where($applyCreatorFilter);
+                break;
+
+            case 'completed':
+                $base->where('status', 'C')->where($applyCreatorFilter);
+                break;
+
+            case 'cancel':
+                $base->where('status', 'X')->where($applyCreatorFilter);
+                break;
+
+            case 'reuse':
+                $base->where('status', 'D')->where($applyCreatorFilter);
+                break;
+
+            case 'all':
+                // hanya company filter, tidak filter created_by
+                break;
+
+            default:
+                // default balik ke purchase
+                $base->where('status', 'P')->where($applyCreatorFilter);
+                break;
         }
 
         return $this->buildJsonTrPO($req, $base);
     }
-
 
     /** Builder hasil JSON */
     private function buildJsonTrPO(Request $req, $base)
@@ -187,12 +233,12 @@ class PoListController extends Controller
             // mapping status PO: H/P/O/C/X/R
             switch ($st) {
                 case 'H':
-                    $statusText  = 'Unsend';
+                    $statusText  = 'UNSEND';
                     $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
                     break;
                 case 'P':
                     $statusText  = 'Purchase';
-                    $statusClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300 border-yellow-200';
+                    $statusClass = 'bg-indigo-100 text-indigo-700 border-indigo-200';
                     break;
                 case 'O':
                     $statusText  = 'Partial';

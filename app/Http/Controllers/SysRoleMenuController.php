@@ -12,6 +12,9 @@ class SysRoleMenuController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         $roles = DB::connection('pgsql2')
             ->table('sys_role')
             ->where('status', 'A')

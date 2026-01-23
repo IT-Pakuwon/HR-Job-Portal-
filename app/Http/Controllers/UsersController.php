@@ -22,6 +22,9 @@ class UsersController extends Controller
    
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         $company = MsCompany::select('cpny_id')->where('status', 'A')->get();
         $department = MsDepartment::select('department_id')->where('status', 'A')->get();
         // $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();

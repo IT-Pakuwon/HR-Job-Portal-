@@ -584,6 +584,69 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Approve button -> cek authorize -> confirm -> submit approve
+        $(document).on("click", "#approveBtn", function() {
+            const calrid = "{{ $calr->calrid }}";
+            const $spinner = $("#loadingSpinnerContainer");
+            $spinner.fadeIn();
+
+            $.ajax({
+                    url: `/approval/${encodeURIComponent(calrid)}/check/approve?doctype=CA`,
+                    type: "GET"
+                })
+                .done(function(resp) {
+                    const authorized = !!(resp && resp.canPerformAction);
+                    if (!authorized) {
+                        toastr.error("You are not authorized to approve this Calr.");
+                        return;
+                    }
+
+                    // ✅ confirm dulu
+                    Swal.fire({
+                        title: 'Approve CALR?',
+                        text: 'Are you sure you want to approve this document?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, Approve',
+                        cancelButtonText: 'Cancel',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        // ✅ submit approve (sesuaikan endpoint kamu)
+                        $spinner.fadeIn();
+
+                        $.ajax({
+                            url: `/calr/${encodeURIComponent(calrid)}/approve`, // <-- pastikan route ini ada
+                            type: "POST",
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                docid: calrid
+                            }
+                        }).done(function(res) {
+                            if (res && res.success) {
+                                toastr.success(res.message || "Calr approved successfully!");
+                                window.location.href = "/calrlist";
+                            } else {
+                                toastr.error(res?.message || "Failed to approve calr.");
+                            }
+                        }).fail(function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || "Error approving calr.");
+                        }).always(function() {
+                            $spinner.fadeOut(150);
+                        });
+                    });
+                })
+                .fail(function() {
+                    toastr.error("Error checking approval status.");
+                })
+                .always(function() {
+                    $spinner.fadeOut(150);
+                });
+        });
+    </script>
+
+    {{-- <script>
         // Approve button -> cek authorize -> buka modal + load ratings
         $(document).on("click", "#approveBtn", function() {
             const calrid = "{{ $calr->calrid }}";
@@ -621,7 +684,7 @@
                     });
                 });
         });
-    </script>
+    </script> --}}
 
 
     <script>
