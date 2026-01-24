@@ -89,7 +89,12 @@ use App\Http\Controllers\StockJobsController;
 use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\BudgetMonitorController;
 use App\Http\Controllers\LastOrderController;
+
+// INTEGRATION
 use App\Http\Controllers\Integration\IFCAIntegrationController;
+use App\Http\Controllers\Integration\IFCAAPINonStockController;
+
+
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\SelfRegisterApplicantController;
 
@@ -1274,11 +1279,21 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
 
     // === IFCA Integration MASTER ===
-    // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('ifcaintegration');
-    // Route::get('/ifcaintegration/json', [IFCAIntegrationController::class, 'json'])->name('ifcaintegration.json');
-    Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
-    Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');
-    Route::post('/ifcaintegration/nonstock/process', [IFCAIntegrationController::class, 'processNonStock'])->name('integration.ifcaintegration.nonstock.process');
+    // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
+    // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');
+    // Route::post('/ifcaintegration/nonstock/process', [IFCAIntegrationController::class, 'processNonStock'])->name('integration.ifcaintegration.nonstock.process');
+    Route::prefix('integration')->name('integration.')->group(function () {
 
+        // UI shell
+        Route::get('ifcaintegration', [IFCAIntegrationController::class, 'index'])
+            ->name('ifcaintegration');
+    
+        // module: NonStock API endpoints
+        Route::prefix('ifcaintegration/nonstock')->name('ifcaintegration.nonstock.')->group(function () {
+            Route::get('list', [IFCAAPINonStockController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPINonStockController::class, 'process'])->name('process');
+        });
+    
+    });
 
 });

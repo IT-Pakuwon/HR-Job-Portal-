@@ -1,6 +1,4 @@
 <x-app-layout>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <div class="mx-auto max-w-7xl px-4 py-6">
         <div class="rounded-xl border border-gray-200 bg-white">
             <div class="border-b border-gray-200 px-5 py-4">
@@ -34,77 +32,14 @@
                 </div>
             </div>
 
-            {{-- Content --}}
             <div class="p-5">
-                {{-- Default empty state --}}
                 <div id="emptyState" class="text-sm text-gray-500">
                     Klik tab untuk menampilkan data.
                 </div>
 
-                {{-- TAB: Non Stock --}}
+                {{-- TAB: Non Stock (partial view) --}}
                 <div id="tab-nonstock" class="hidden">
-                    {{-- Header filter --}}
-                    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                        <div class="grid w-full grid-cols-1 gap-3 md:max-w-3xl md:grid-cols-3">
-                            <div>
-                                <label class="text-sm font-medium text-gray-600">Start Date</label>
-                                <input type="date" id="ns_from"
-                                    class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            </div>
-                            <div>
-                                <label class="text-sm font-medium text-gray-600">End Date</label>
-                                <input type="date" id="ns_to"
-                                    class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="button" id="btnLoadNonStock"
-                                    class="mt-6 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
-                                    Load
-                                </button>
-                                <button type="button" id="btnProcessNonStock"
-                                    class="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                                    Process
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {{-- Info bar --}}
-                    <div id="nsInfo" class="mb-3 hidden rounded-lg border px-4 py-3 text-sm"></div>
-
-                    {{-- Table --}}
-                    <div class="overflow-hidden rounded-xl border border-gray-200">
-                        <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3">
-                            <div class="text-sm text-gray-600">
-                                Total: <span class="font-semibold" id="nsTotal">0</span>
-                            </div>
-                            <div class="text-sm text-gray-500">Limit 100 rows per load</div>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-white">
-                                    <tr class="border-b border-gray-200 text-left text-gray-600">
-                                        <th class="w-10 px-3 py-2">
-                                            <input type="checkbox" id="nsChkAll" class="rounded border-gray-300">
-                                        </th>
-                                        <th class="w-56 px-3 py-2">Inventory ID</th>
-                                        <th class="px-3 py-2">Description</th>
-                                        <th class="w-28 px-3 py-2">UOM</th>
-                                        <th class="w-20 px-3 py-2">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="nsTbody" class="divide-y divide-gray-100">
-                                    <tr>
-                                        <td colspan="4" class="px-4 py-10 text-center text-gray-500">
-                                            Belum ada data. Klik Load.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    @include('pages.integration.ifcaapinonstock')
                 </div>
 
                 {{-- Placeholder tabs --}}
@@ -117,165 +52,21 @@
     </div>
 
     <script>
-        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        function setInfo(el, type, msg) {
-            el.classList.remove('hidden', 'border-green-200', 'bg-green-50', 'text-green-800', 'border-red-200',
-                'bg-red-50', 'text-red-800', 'border-yellow-200', 'bg-yellow-50', 'text-yellow-800');
-            if (type === 'ok') el.classList.add('border-green-200', 'bg-green-50', 'text-green-800');
-            if (type === 'err') el.classList.add('border-red-200', 'bg-red-50', 'text-red-800');
-            if (type === 'warn') el.classList.add('border-yellow-200', 'bg-yellow-50', 'text-yellow-800');
-            el.textContent = msg;
-        }
-
-        function hideInfo(el) {
-            el.classList.add('hidden');
-            el.textContent = '';
-        }
-
-        // Tabs: default kosong, load hanya saat klik tab
+        // Tabs
         const emptyState = document.getElementById('emptyState');
         const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb'].map(id => document
-            .getElementById(id));
+        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb']
+            .map(id => document.getElementById(id));
 
         tabButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // active style
-                tabButtons.forEach(b => b.classList.remove('bg-white', 'border', 'border-gray-200',
-                    'shadow-sm'));
+                tabButtons.forEach(b => b.classList.remove('bg-white', 'border', 'border-gray-200', 'shadow-sm'));
                 btn.classList.add('bg-white', 'border', 'border-gray-200', 'shadow-sm');
 
-                // show tab
                 tabPanels.forEach(p => p.classList.add('hidden'));
-                const panel = document.getElementById(btn.dataset.tab);
-                panel.classList.remove('hidden');
+                document.getElementById(btn.dataset.tab).classList.remove('hidden');
                 emptyState.classList.add('hidden');
             });
-        });
-
-        // Nonstock logic
-        const nsFrom = document.getElementById('ns_from');
-        const nsTo = document.getElementById('ns_to');
-        const nsTbody = document.getElementById('nsTbody');
-        const nsTotal = document.getElementById('nsTotal');
-        const nsInfo = document.getElementById('nsInfo');
-        const nsChkAll = document.getElementById('nsChkAll');
-
-        // default tanggal (biar user tidak repot)
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        nsTo.value = `${yyyy}-${mm}-${dd}`;
-        nsFrom.value = `${yyyy}-${mm}-01`;
-
-        nsChkAll.addEventListener('change', () => {
-            nsTbody.querySelectorAll('.nsRowChk').forEach(chk => chk.checked = nsChkAll.checked);
-        });
-
-        document.getElementById('btnLoadNonStock').addEventListener('click', async () => {
-            hideInfo(nsInfo);
-
-            if (!nsFrom.value || !nsTo.value) {
-                setInfo(nsInfo, 'warn', 'Start Date & End Date wajib diisi.');
-                return;
-            }
-
-            nsTbody.innerHTML = `
-                <tr><td colspan="4" class="px-4 py-10 text-center text-gray-500">Loading...</td></tr>
-            `;
-
-            const url = new URL("{{ route('integration.ifcaintegration.nonstock.list') }}", window.location
-                .origin);
-            url.searchParams.set('from', nsFrom.value);
-            url.searchParams.set('to', nsTo.value);
-
-            try {
-                const resp = await fetch(url.toString(), {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                const json = await resp.json();
-
-                if (!resp.ok || !json.ok) {
-                    nsTbody.innerHTML =
-                        `<tr><td colspan="4" class="px-4 py-10 text-center text-gray-500">No data.</td></tr>`;
-                    setInfo(nsInfo, 'err', json.message ?? 'Gagal load data.');
-                    nsTotal.textContent = '0';
-                    return;
-                }
-
-                const rows = json.data || [];
-                nsTotal.textContent = rows.length;
-
-                if (rows.length === 0) {
-                    nsTbody.innerHTML =
-                        `<tr><td colspan="4" class="px-4 py-10 text-center text-gray-500">No data.</td></tr>`;
-                    return;
-                }
-
-                nsTbody.innerHTML = rows.map(r => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-3 py-2">
-                            <input type="checkbox" class="nsRowChk rounded border-gray-300" value="${r.id}">
-                        </td>
-                        <td class="px-3 py-2 font-medium text-gray-800">${r.inventoryid ?? ''}</td>
-                        <td class="px-3 py-2 text-gray-700">${r.inventory_descr ?? ''}</td>
-                        <td class="px-3 py-2 text-gray-700">${r.purchase_unit ?? ''}</td>
-                        <td class="px-3 py-2">
-                            <span class="px-2 py-1 rounded  text-sm  font-semibold
-                                ${r.stage_status === 'H' ? 'bg-gray-200 text-gray-800' :
-                                r.stage_status === 'P' ? 'bg-yellow-200 text-yellow-800' :
-                                'bg-green-200 text-green-800'}">
-                                ${r.stage_status}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-
-                setInfo(nsInfo, 'ok', `Loaded ${rows.length} items.`);
-            } catch (e) {
-                nsTbody.innerHTML =
-                    `<tr><td colspan="4" class="px-4 py-10 text-center text-gray-500">No data.</td></tr>`;
-                setInfo(nsInfo, 'err', e.message ?? 'Error saat load.');
-            }
-        });
-
-        document.getElementById('btnProcessNonStock').addEventListener('click', async () => {
-            hideInfo(nsInfo);
-
-            const ids = Array.from(nsTbody.querySelectorAll('.nsRowChk:checked')).map(x => parseInt(x.value,
-                10));
-            if (ids.length === 0) {
-                setInfo(nsInfo, 'warn', 'Pilih minimal 1 item untuk diproses.');
-                return;
-            }
-
-            try {
-                const resp = await fetch("{{ route('integration.ifcaintegration.nonstock.process') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrf
-                    },
-                    body: JSON.stringify({
-                        ids
-                    })
-                });
-
-                const json = await resp.json();
-                if (!resp.ok || !json.ok) {
-                    setInfo(nsInfo, 'err', json.message ?? 'Gagal process.');
-                    return;
-                }
-
-                setInfo(nsInfo, 'ok', `Process triggered. Count: ${json.count ?? ids.length}`);
-            } catch (e) {
-                setInfo(nsInfo, 'err', e.message ?? 'Error saat process.');
-            }
         });
     </script>
 </x-app-layout>
