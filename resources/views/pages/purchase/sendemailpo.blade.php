@@ -11,7 +11,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 </head>
+
+<style>
+    /* Make Tagify look like a normal input */
+    .tagify {
+        width: 100%;
+        min-height: 30px;
+        height: auto;
+        border-radius: 6px;
+    }
+
+    /* Allow wrapping to multiple lines */
+    .tagify__input {
+        min-width: 120px;
+        white-space: normal;
+    }
+
+    /* Wrap tags nicely */
+    .tagify__tag {
+        margin: 3px 4px;
+    }
+
+    /* Prevent horizontal scroll */
+    .tagify__input,
+    .tagify {
+        overflow-x: hidden;
+    }
+
+    /* Optional: Outlook-like spacing */
+    .tagify--focus {
+        border-color: #2563eb;
+    }
+</style>
 
 <body style="background:#f5f7fb;margin:0;padding:0;height:100vh;">
 
@@ -125,20 +159,20 @@
 
                 <div>
                     <label style="font-size:12px;color:#6b7280;">Send Email To :</label>
-                    <input id="toInput" type="text" value="{{ $to_email }}"
-                        placeholder="email1@domain.com, email2@domain.com"
+                    <input id="toInput" placeholder="email1@domain.com, email2@domain.com" {{-- <input id="toInput" type="text" value="{{ $to_email }}"
+                        placeholder="email1@domain.com, email2@domain.com" --}}
                         style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
                     <div style="font-size:11px;color:#9ca3af;">
-                        Press <strong>Enter</strong> or "," to add the email
+                        Press <strong>Enter</strong> or <strong>Space</strong> to add the email
                     </div>
                 </div>
             </div>
 
             <!-- ===== RECIPIENTS ===== -->
-            <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+            {{-- <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
                 <div style="font-size:12px;color:#6b7280;white-space:nowrap;">Recipients:</div>
                 <div id="toChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-            </div>
+            </div> --}}
 
             <!-- ===== CC / BCC ===== -->
             <div style="display:flex;gap:12px;">
@@ -146,13 +180,13 @@
                     <label style="font-size:12px;color:#6b7280;">Cc</label>
                     <input id="ccInput" type="text"
                         style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
-                    <div id="ccChips"></div>
+                    {{-- <div id="ccChips"></div> --}}
                 </div>
                 <div style="flex:1;">
                     <label style="font-size:12px;color:#6b7280;">Bcc</label>
                     <input id="bccInput" type="text"
                         style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
-                    <div id="bccChips"></div>
+                    {{-- <div id="bccChips"></div> --}}
                 </div>
             </div>
 
@@ -194,10 +228,213 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    {{-- 
+    <script>
+        const toTagify = new Tagify(document.querySelector('#toInput'), {
+            delimiters: ", ",
+            pattern: /^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/,
+        dropdown: {
+            enabled: 0
+        }
+    });
+
+    const payload = {
+        to: toTagify.value.map(v => v.value),
+        subject: $('#subject').val().trim(),
+        html: $('#editor').summernote('code')
+    };
+
+
+    function() {
+
+        toastr.options = {
+            positionClass: 'toast-top-right',
+            closeButton: true,
+            newestOnTop: true,
+            progressBar: true,
+            timeOut: 2500
+        };
+
+        const EMAIL_RE = /^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/i;
+            const state = {
+                to: [],
+                cc: [],
+                bcc: []
+            };
+
+            function splitEmails(raw) {
+                return (raw || '').split(/[,;]+/).map(v => v.trim()).filter(Boolean);
+            }
+
+            function chipStyle() {
+                return `
+                                                            display:inline-flex;
+                                                            align-items:center;
+                                                            gap:6px;
+                                                            background:#eef2ff;
+                                                            border:1px solid #c7d2fe;
+                                                            color:#3730a3;
+                                                            border-radius:999px;
+                                                            padding:3px 10px;
+                                                            margin:3px 6px 0 0;
+                                                            font-size:12px;
+                                                            `;
+            }
+
+            function addChip(type, raw) {
+                const list = state[type];
+                const target = type === 'to' ? '#toChips' : type === 'cc' ? '#ccChips' : '#bccChips';
+
+                splitEmails(raw).forEach(v => {
+                    if (!EMAIL_RE.test(v)) {
+                        toastr.warning(`Invalid email skipped: ${v}`);
+                        return;
+                    }
+                    if (list.includes(v)) return;
+
+                    list.push(v);
+                    $(target).append(`
+                                                                        <span style="${chipStyle()}" data-type="${type}" data-email="${v}">
+                                                                            ${v}<span style="cursor:pointer;margin-left:6px;">×</span>
+                                                                        </span>
+                                                                    `);
+                });
+            }
+
+            $(document).on('click', 'span[data-type] span', function() {
+                const $p = $(this).parent();
+                const t = $p.data('type');
+                const e = $p.data('email');
+                state[t] = state[t].filter(x => x !== e);
+                $p.remove();
+            });
+
+            ['to', 'cc', 'bcc'].forEach(type => {
+                $('#' + type + 'Input').on('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        addChip(type, e.target.value);
+                        e.target.value = '';
+                    }
+                });
+            });
+
+            $(function() {
+                const init = $('#toInput').val();
+                if (init) {
+                    addChip('to', init);
+                    $('#toInput').val('');
+                }
+            });
+
+            $('#editor').summernote({
+                placeholder: 'Tulis isi email di sini…',
+                height: '100%',
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'italic', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['codeview', 'help']]
+                ]
+            });
+
+            $('#editor').summernote('code', `{!! $initial_html !!}`);
+
+            // --- Send ---
+            $('#btnSend').on('click', async function() {
+                // sweep leftovers (user typed but didn’t press Enter)
+                if ($('#toInput').value?.trim) {
+                    const v = $('#toInput').val().trim();
+                    if (v) {
+                        addChip('to', v);
+                        $('#toInput').val('');
+                    }
+                }
+                if ($('#ccInput').value?.trim) {
+                    const v = $('#ccInput').val().trim();
+                    if (v) {
+                        addChip('cc', v);
+                        $('#ccInput').val('');
+                    }
+                }
+                if ($('#bccInput').value?.trim) {
+                    const v = $('#bccInput').val().trim();
+                    if (v) {
+                        addChip('bcc', v);
+                        $('#bccInput').val('');
+                    }
+                }
+
+                const payload = {
+                    ponbr: $('#ponbr').val(),
+                    cpny_id: $('#cpny_id').val(),
+                    from: $('#from').val(),
+                    to: state.to,
+                    cc: state.cc,
+                    bcc: state.bcc,
+                    subject: $('#subject').val().trim(),
+                    html: $('#editor').summernote('code')
+                };
+
+                if (!payload.to.length) {
+                    toastr.error('Field "To" wajib diisi');
+                    return;
+                }
+                if (!payload.subject) {
+                    toastr.error('Subject wajib diisi');
+                    return;
+                }
+
+
+                try {
+
+                    const ponbr = encodeURIComponent($('#orderNbr').val());
+                    const cpny = encodeURIComponent($('#cpny_id').val() || '');
+                    const res = await fetch(`/po/${ponbr}/email/send?cpny_id=${cpny}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json', // ask server for JSON even on errors
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const text = await res.text(); // always read as text first
+                    let json;
+                    try {
+                        json = JSON.parse(text);
+                    } // try JSON parse
+                    catch (e) {
+                        console.error('Non-JSON response:', text);
+                        toastr.error('Server mengembalikan non-JSON. Cek console.');
+                        return;
+                    }
+
+                    if (res.ok && json.success) {
+                        toastr.success('Email terkirim.');
+                        const encodedId = @json($eid);
+                        window.location.href = `/showpo/${encodedId}`;
+                    } else {
+                        toastr.error(json.message || 'Gagal mengirim email.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    toastr.error('Terjadi kesalahan jaringan.');
+                }
+            });
+
+
+        })();
+    </script> --}}
 
     <script>
         (function() {
 
+            // ===== TOASTR =====
             toastr.options = {
                 positionClass: 'toast-top-right',
                 closeButton: true,
@@ -206,152 +443,112 @@
                 timeOut: 2500
             };
 
-            const EMAIL_RE = /^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/i;
-        const state = {
-            to: [],
-            cc: [],
-            bcc: []
-        };
+            // // ===== TAGIFY EMAIL REGEX =====
+            // const EMAIL_RE = /^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/;
 
-        function splitEmails(raw) {
-            return (raw || '').split(/[,;]+/).map(v => v.trim()).filter(Boolean);
-        }
+        // ===== TAGIFY INIT =====
+        const EMAIL_RE = /^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/;
 
-        function chipStyle() {
-            return `
-                                                display:inline-flex;
-                                                align-items:center;
-                                                gap:6px;
-                                                background:#eef2ff;
-                                                border:1px solid #c7d2fe;
-                                                color:#3730a3;
-                                                border-radius:999px;
-                                                padding:3px 10px;
-                                                margin:3px 6px 0 0;
-                                                font-size:12px;
-                                                `;
-        }
+            const toTagify = new Tagify(document.querySelector('#toInput'), {
+                delimiters: ",| ",
+                pattern: EMAIL_RE,
+                addTagOnBlur: true,
+                transformTag(tag) {
+                    tag.value = tag.value.trim();
+                }
+            });
 
-        function addChip(type, raw) {
-            const list = state[type];
-            const target = type === 'to' ? '#toChips' : type === 'cc' ? '#ccChips' : '#bccChips';
+            const ccTagify = new Tagify(document.querySelector('#ccInput'), {
+                delimiters: ",| ",
+                pattern: EMAIL_RE,
+                addTagOnBlur: true,
+                transformTag(tag) {
+                    tag.value = tag.value.trim();
+                }
+            });
 
-            splitEmails(raw).forEach(v => {
-                if (!EMAIL_RE.test(v)) {
-                    toastr.warning(`Invalid email skipped: ${v}`);
+            const bccTagify = new Tagify(document.querySelector('#bccInput'), {
+                delimiters: ",| ",
+                pattern: EMAIL_RE,
+                addTagOnBlur: true,
+                transformTag(tag) {
+                    tag.value = tag.value.trim();
+                }
+            });
+
+
+            // ===== SUMMERNOTE =====
+            $('#editor').summernote({
+                placeholder: 'Tulis isi email di sini…',
+                height: '100%',
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'italic', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['codeview', 'help']]
+                ]
+            });
+
+            $('#editor').summernote('code', `{!! $initial_html !!}`);
+
+            // ===== SEND EMAIL =====
+            $('#btnSend').on('click', async function() {
+
+                const payload = {
+                    ponbr: $('#ponbr').val(),
+                    cpny_id: $('#cpny_id').val(),
+                    from: $('#from').val(),
+                    to: toTagify.value.map(v => v.value),
+                    cc: ccTagify.value.map(v => v.value),
+                    bcc: bccTagify.value.map(v => v.value),
+                    subject: $('#subject').val().trim(),
+                    html: $('#editor').summernote('code')
+                };
+
+                if (!payload.to.length) {
+                    toastr.error('Field "To" wajib diisi');
                     return;
                 }
-                if (list.includes(v)) return;
 
-                list.push(v);
-                $(target).append(`
-                                                            <span style="${chipStyle()}" data-type="${type}" data-email="${v}">
-                                                                ${v}<span style="cursor:pointer;margin-left:6px;">×</span>
-                                                            </span>
-                                                        `);
-            });
-        }
+                if (!payload.subject) {
+                    toastr.error('Subject wajib diisi');
+                    return;
+                }
 
-        $(document).on('click', 'span[data-type] span', function() {
-            const $p = $(this).parent();
-            const t = $p.data('type');
-            const e = $p.data('email');
-            state[t] = state[t].filter(x => x !== e);
-            $p.remove();
-        });
+                try {
+                    const ponbr = encodeURIComponent($('#orderNbr').val());
+                    const cpny = encodeURIComponent(payload.cpny_id || '');
 
-        ['to', 'cc', 'bcc'].forEach(type => {
-            $('#' + type + 'Input').on('keydown', e => {
-                if (e.key === 'Enter' || e.key === ',') {
-                    e.preventDefault();
-                    addChip(type, e.target.value);
-                    e.target.value = '';
+                    const res = await fetch(`/po/${ponbr}/email/send?cpny_id=${cpny}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const json = await res.json();
+
+                    if (res.ok && json.success) {
+                        toastr.success('Email terkirim.');
+                        setTimeout(() => {
+                            window.location.href = `/showpo/${@json($eid)}`;
+                        }, 800);
+                    } else {
+                        toastr.error(json.message || 'Gagal mengirim email.');
+                    }
+
+
+                } catch (err) {
+                    console.error(err);
+                    toastr.error('Terjadi kesalahan jaringan.');
                 }
             });
-        });
-
-        $(function() {
-            const init = $('#toInput').val();
-            if (init) {
-                addChip('to', init);
-                $('#toInput').val('');
-            }
-        });
-
-        $('#editor').summernote({
-            placeholder: 'Tulis isi email di sini…',
-            height: '100%',
-            toolbar: [
-                ['style', ['style']],
-                ['font', ['bold', 'underline', 'italic', 'clear']],
-                ['color', ['color']],
-                ['para', ['ul', 'ol', 'paragraph']],
-                ['table', ['table']],
-                ['insert', ['link', 'picture', 'video']],
-                ['view', ['codeview', 'help']]
-            ]
-        });
-
-        $('#editor').summernote('code', `{!! $initial_html !!}`);
-
-        // --- Send ---
-        $('#btnSend').on('click', async function(){
-            // sweep leftovers (user typed but didn’t press Enter)
-            if($('#toInput').value?.trim){ const v=$('#toInput').val().trim(); if(v){ addChip('to', v); $('#toInput').val(''); } }
-            if($('#ccInput').value?.trim){ const v=$('#ccInput').val().trim(); if(v){ addChip('cc', v); $('#ccInput').val(''); } }
-            if($('#bccInput').value?.trim){ const v=$('#bccInput').val().trim(); if(v){ addChip('bcc', v); $('#bccInput').val(''); } }
-
-            const payload = {
-            ponbr:   $('#ponbr').val(),                
-            cpny_id: $('#cpny_id').val(),
-            from:   $('#from').val(),
-            to:     state.to,
-            cc:     state.cc,
-            bcc:    state.bcc,
-            subject: $('#subject').val().trim(),
-            html:   $('#editor').summernote('code')
-            };
-
-            if (!payload.to.length) { toastr.error('Field "To" wajib diisi'); return; }
-            if (!payload.subject)   { toastr.error('Subject wajib diisi'); return; }
-
-
-            try{
-                
-            const ponbr = encodeURIComponent($('#orderNbr').val());
-            const cpny  = encodeURIComponent($('#cpny_id').val() || '');
-            const res = await fetch(`/po/${ponbr}/email/send?cpny_id=${cpny}`, {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',              // ask server for JSON even on errors
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const text = await res.text();                 // always read as text first
-            let json;
-            try { json = JSON.parse(text); }               // try JSON parse
-            catch (e) {
-                console.error('Non-JSON response:', text);
-                toastr.error('Server mengembalikan non-JSON. Cek console.');
-                return;
-            }
-
-            if(res.ok && json.success){
-                toastr.success('Email terkirim.');
-                const encodedId = @json($eid);
-                window.location.href = `/showpo/${encodedId}`;
-            }else{
-                toastr.error(json.message || 'Gagal mengirim email.');
-            }
-            }catch(err){
-            console.error(err);
-            toastr.error('Terjadi kesalahan jaringan.');
-            }
-        });
-        
 
         })();
     </script>
