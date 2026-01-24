@@ -441,17 +441,45 @@
                                     <tr>
                                         <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200"
                                             style="width: 60px;">No</th>
-                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200">
+                                        <th
+                                            class="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-200">
                                             Kriteria</th>
-                                        <th class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200"
+                                        <th class="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
                                             style="width: 100px;">Score</th>
-                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200"
+                                        <th class="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
                                             style="width: 220px;">Legend</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                     @php
                                         $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float) $v, 1, ',', '.');
+                                    @endphp
+
+
+                                    @php
+                                        // Convert 1–10 score → 1–5 stars
+                                        $starsFrom10 = function ($score) {
+                                            if (!is_numeric($score)) {
+                                                return 0;
+                                            }
+                                            return (int) ceil($score / 2);
+                                        };
+
+                                        $ratingLabel = function ($score) {
+                                            if ($score >= 5) {
+                                                return 'Excellent';
+                                            }
+                                            if ($score >= 4) {
+                                                return 'Good';
+                                            }
+                                            if ($score >= 3) {
+                                                return 'Fair';
+                                            }
+                                            if ($score >= 2) {
+                                                return 'Poor';
+                                            }
+                                            return 'Very Poor';
+                                        };
                                     @endphp
 
                                     @forelse ($bastRatingRows as $i => $row)
@@ -464,8 +492,33 @@
                                                 </div>
                                             </td>
                                             <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">
-                                                {{ $fmt1($row->rating_score) }}
+                                                @php
+                                                    $score = (float) $row->rating_score;
+                                                    $starCount = max(0, min(5, (int) $score));
+                                                @endphp
+
+                                                <div class="flex items-center justify-end gap-3 whitespace-nowrap"
+                                                    title="{{ number_format($score, 1) }} / 5 — {{ $ratingLabel($score) }}">
+
+                                                    <!-- Number -->
+                                                    <span class="w-10 text-right tabular-nums">
+                                                        {{ number_format($score, 1) }}
+                                                    </span>
+
+                                                    <!-- Stars -->
+                                                    <span class="flex w-[88px] justify-center gap-0.5">
+                                                        @for ($s = 1; $s <= 5; $s++)
+                                                            <span
+                                                                class="{{ $s <= $starCount ? 'text-yellow-400' : 'text-gray-500/40' }}">
+                                                                ★
+                                                            </span>
+                                                        @endfor
+                                                    </span>
+                                                </div>
                                             </td>
+
+
+
                                             <td class="px-3 py-2">
                                                 @if (!empty($row->rating_legend_name))
                                                     <span
@@ -768,8 +821,8 @@
 
     <script>
         /* ============================
-                       RATING STATE
-                    ============================ */
+                                                   RATING STATE
+                                                ============================ */
         let ratingRows = [];
         const $ratingTbody = $('#ratingTableBody');
         const $ratingAvg = $('#ratingAvg');
@@ -813,10 +866,10 @@
                         ${r.rating_name || '-'}
                     </div>
                     ${r.rating_descr ? `
-                                            <div class="mt-0.5 text-sm text-gray-500">
-                                                ${r.rating_descr}
-                                            </div>
-                                        ` : ''}
+                                                                        <div class="mt-0.5 text-sm text-gray-500">
+                                                                            ${r.rating_descr}
+                                                                        </div>
+                                                                    ` : ''}
                 </td>
 
                 <td class="px-4 py-3 text-center">
