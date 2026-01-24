@@ -765,7 +765,180 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        /* ============================
+                       RATING STATE
+                    ============================ */
+        let ratingRows = [];
+        const $ratingTbody = $('#ratingTableBody');
+        const $ratingAvg = $('#ratingAvg');
+
+        /* ============================
+           RENDER TABLE
+        ============================ */
+        function renderRatingTable() {
+            $ratingTbody.empty();
+
+            if (!ratingRows.length) {
+                $ratingTbody.html(`
+            <tr>
+                <td colspan="3" class="px-4 py-4 text-center text-gray-500">
+                    No rating rows found.
+                </td>
+            </tr>
+        `);
+                $ratingAvg.text('0');
+                return;
+            }
+
+            ratingRows.forEach((r, idx) => {
+                const val = Number.isFinite(+r.rating_score) ? +r.rating_score : 0;
+
+                const starsHtml = Array.from({
+                    length: 5
+                }, (_, s) => `
+            <button
+                type="button"
+                class="star ${s < val ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400 transition text-lg"
+                data-score="${s + 1}">
+                ★
+            </button>
+        `).join('');
+
+                $ratingTbody.append(`
+            <tr data-index="${idx}">
+                <td class="px-4 py-3">
+                    <div class="font-medium text-gray-800">
+                        ${r.rating_name || '-'}
+                    </div>
+                    ${r.rating_descr ? `
+                                            <div class="mt-0.5 text-sm text-gray-500">
+                                                ${r.rating_descr}
+                                            </div>
+                                        ` : ''}
+                </td>
+
+                <td class="px-4 py-3 text-center">
+                    <div class="flex justify-center gap-1 rating-stars" data-index="${idx}">
+                        ${starsHtml}
+                    </div>
+                </td>
+
+                <td class="px-4 py-3 text-center">
+                    <span data-val="${idx}" class="inline-block min-w-[28px]">
+                        ${val}
+                    </span>
+                </td>
+            </tr>
+        `);
+            });
+
+            recalcAverage();
+        }
+
+        /* ============================
+           CLICK STAR (EVENT DELEGATION)
+        ============================ */
+        $(document).on('click', '.rating-stars .star', function() {
+            const score = +$(this).data('score');
+            const idx = +$(this).closest('.rating-stars').data('index');
+
+            // update data
+            ratingRows[idx].rating_score = score;
+
+            // update number
+            $(`span[data-val="${idx}"]`).text(score);
+
+            // update star UI
+            $(this).parent().find('.star').each(function(i) {
+                $(this)
+                    .toggleClass('text-yellow-400', i < score)
+                    .toggleClass('text-gray-300', i >= score);
+            });
+
+            recalcAverage();
+        });
+
+        /* ============================
+           AVERAGE
+        ============================ */
+        function recalcAverage() {
+            if (!ratingRows.length) {
+                $ratingAvg.text('0');
+                return;
+            }
+            const sum = ratingRows.reduce((a, b) => a + (+b.rating_score || 0), 0);
+            const avg = sum / ratingRows.length;
+            $ratingAvg.text(avg.toFixed(1).replace(/\.0$/, ''));
+        }
+
+        /* ============================
+           LOAD RATINGS FROM SERVER
+        ============================ */
+        function loadRatings(bastid) {
+            $ratingTbody.html(`
+        <tr>
+            <td colspan="3" class="px-4 py-4 text-center text-gray-500">
+                Loading ratings…
+            </td>
+        </tr>
+    `);
+
+            return $.getJSON(`/bast/${encodeURIComponent(bastid)}/ratings`)
+                .done(res => {
+                    if (!res.success) throw new Error(res.message);
+
+                    ratingRows = (res.data || []).map(r => ({
+                        id: r.id ?? null,
+                        rating_id: r.rating_id ?? null,
+                        rating_no: r.rating_no ?? null,
+                        rating_name: r.rating_name ?? '',
+                        rating_descr: r.rating_descr ?? '',
+                        rating_score: Number.isFinite(+r.rating_score) ? +r.rating_score : 0
+                    }));
+
+                    renderRatingTable();
+                })
+                .fail(() => {
+                    $ratingTbody.html(`
+                <tr>
+                    <td colspan="3" class="px-4 py-4 text-center text-red-600">
+                        Failed to load ratings.
+                    </td>
+                </tr>
+            `);
+                });
+        }
+        $(document).on("click", "#approveBtn", async function() {
+            const bastid = "{{ $bast->bastid }}";
+
+            $('#ratingModal').removeClass('hidden').addClass('flex');
+            await loadRatings(bastid);
+        });
+
+        $(document).on('click', '#ratingOkBtn', function() {
+            const bastid = "{{ $bast->bastid }}";
+
+            if (ratingRows.some(r => r.rating_score < 1)) {
+                toastr.warning('Please rate all criteria.');
+                return;
+            }
+
+            const avg = ratingRows.reduce((a, b) => a + b.rating_score, 0) / ratingRows.length;
+
+            $.post(`/bast/${bastid}/approve`, {
+                _token: "{{ csrf_token() }}",
+                rating_vendor: avg.toFixed(2),
+                ratings_json: JSON.stringify(ratingRows)
+            }).done(() => {
+                toastr.success('Approved');
+                window.location.href = '/bastlist';
+            });
+        });
+    </script>
+
+    {{-- <script>
         // util modal
         function openRatingModal() {
             $('#ratingModal').removeClass('hidden').addClass('flex');
@@ -780,41 +953,51 @@
         const $ratingTbody = $('#ratingTableBody');
         const $ratingAvg = $('#ratingAvg');
 
-        // render tbody dari ratingRows
         function renderRatingTable() {
             $ratingTbody.empty();
 
             if (!ratingRows.length) {
                 $ratingTbody.append(`
-                <tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">No rating rows found.</td></tr>
-            `);
+            <tr>
+                <td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">
+                    No rating rows found.
+                </td>
+            </tr>
+        `);
                 $ratingAvg.text('0');
                 return;
             }
 
             ratingRows.forEach((r, idx) => {
                 const val = Number.isFinite(+r.rating_score) ? +r.rating_score : 0;
+
                 const row = `
-                <tr data-index="${idx}">
-                <td class="px-4 py-3">
-                    <div class="font-medium text-gray-800 dark:text-gray-100">${r.rating_name || '-'}</div>
-                    ${r.rating_descr ? `<div class="mt-0.5  text-sm  text-gray-500 dark:text-gray-400">${r.rating_descr}</div>` : ''}
-                </td>
-                <td class="px-4 py-3">
-                    <input
-                    type="range"
-                    min="1" max="5" step="1"
-                    class="w-full"
-                    value="${val}"
-                    data-index="${idx}"
-                    aria-label="Score ${r.rating_name || ''}"
-                    />
-                </td>
-                <td class="px-4 py-3 text-center">
-                    <span class="inline-block min-w-[28px]" data-val="${idx}">${val}</span>
-                </td>
-                </tr>
-            `;
+        <tr data-index="${idx}">
+            <td class="px-4 py-3">
+                <div class="font-medium text-gray-800 dark:text-gray-100">
+                    ${r.rating_name || '-'}
+                </div>
+            </td>
+
+            <td class="px-4 py-3 text-center">
+                ${Array.from({ length: 5 }, (_, s) => ` <
+                    button
+                type = "button"
+                class = "star ${s < val ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400 transition"
+                data - score = "${s + 1}" > ★
+                    <
+                    /button>
+                `).join('')}
+
+            </td>
+
+            <td class="px-4 py-3 text-center">
+                <span class="inline-block min-w-[28px]" data-val="${idx}">
+                    ${val}
+                </span>
+            </td>
+        </tr>
+        `;
                 $ratingTbody.append(row);
             });
 
@@ -831,14 +1014,37 @@
             $ratingAvg.text(avg.toFixed(1).replace(/\.0$/, ''));
         }
 
-        // handle slider change (delegation)
-        $(document).on('input change', '#ratingTableBody input[type="range"]', function() {
-            const idx = +$(this).data('index') || 0;
-            const val = +$(this).val();
-            ratingRows[idx].rating_score = val;
-            $(`#ratingTableBody span[data-val="${idx}"]`).text(val);
+        // // handle slider change (delegation)
+        // $(document).on('input change', '#ratingTableBody input[type="range"]', function() {
+        //     const idx = +$(this).data('index') || 0;
+        //     const val = +$(this).val();
+        //     ratingRows[idx].rating_score = val;
+        //     $(`#ratingTableBody span[data-val="${idx}"]`).text(val);
+        //     recalcAverage();
+        // });
+
+        // handle star click (delegation)
+        $(document).on('click', '#ratingTableBody .rating-stars .star', function() {
+            const $star = $(this);
+            const score = +$star.data('score');
+            const idx = +$star.closest('.rating-stars').data('index');
+
+            // update data model
+            ratingRows[idx].rating_score = score;
+
+            // update number
+            $(`#ratingTableBody span[data-val="${idx}"]`).text(score);
+
+            // update star UI
+            const $stars = $star.closest('.rating-stars').find('.star');
+            $stars.each(function(i) {
+                $(this).toggleClass('text-yellow-400', i < score);
+                $(this).toggleClass('text-gray-300', i >= score);
+            });
+
             recalcAverage();
         });
+
 
         // load rating rows dari server (TrBASTRating)
         function loadRatings(bastid) {
@@ -964,7 +1170,7 @@
                     closeRatingModal();
                 });
         });
-    </script>
+    </script> --}}
 
 
     {{-- <script>
@@ -1079,7 +1285,6 @@
             });
         });
     </script> --}}
-
 
 
     <script>
@@ -1245,9 +1450,6 @@
             });
         }
     </script>
-
-
-
 
     <script>
         $(function() {
