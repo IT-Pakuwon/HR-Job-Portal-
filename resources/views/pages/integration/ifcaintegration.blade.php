@@ -3,7 +3,7 @@
         <div class="rounded-xl border border-gray-200 bg-white">
             <div class="border-b border-gray-200 px-5 py-4">
                 <h1 class="text-xl font-semibold text-gray-800">IFCA Integration</h1>
-                <p class="text-sm text-gray-500">Scheduler & Integration Master Data</p>
+                <p class="text-sm text-gray-500">Scheduler & Integration Master & Transaction Data</p>
             </div>
 
             {{-- Tabs --}}
@@ -15,7 +15,7 @@
                     </button>
                     <button type="button" data-tab="tab-stock"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
-                        Stock (soon)
+                        Stock
                     </button>
                     <button type="button" data-tab="tab-supplier"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -42,8 +42,12 @@
                     @include('pages.integration.ifcaapinonstock')
                 </div>
 
+                {{-- TAB: Stock --}}
+                <div id="tab-stock" class="hidden">
+                    @include('pages.integration.ifcaapistock')
+                </div>
+
                 {{-- Placeholder tabs --}}
-                <div id="tab-stock" class="hidden text-sm text-gray-500">Stock tab (soon)</div>
                 <div id="tab-supplier" class="hidden text-sm text-gray-500">Supplier tab (soon)</div>
                 <div id="tab-po" class="hidden text-sm text-gray-500">PO tab (soon)</div>
                 <div id="tab-sttb" class="hidden text-sm text-gray-500">STTB tab (soon)</div>
