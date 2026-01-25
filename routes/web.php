@@ -94,7 +94,7 @@ use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\Integration\IFCAIntegrationController;
 use App\Http\Controllers\Integration\IFCAAPINonStockController;
 use App\Http\Controllers\Integration\IFCAAPIStockController;
-
+use App\Http\Controllers\Integration\IFCAAPISupplierController;
 
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\SelfRegisterApplicantController;
@@ -1299,6 +1299,12 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
         Route::prefix('ifcaintegration/stock')->name('ifcaintegration.stock.')->group(function () {
         Route::get('list', [IFCAAPIStockController::class, 'list'])->name('list');
         Route::post('process', [IFCAAPIStockController::class, 'process'])->name('process');
+        });
+            
+        // ✅ module: Supplier API endpoints
+        Route::prefix('ifcaintegration/supplier')->name('ifcaintegration.supplier.')->group(function () {
+            Route::get('list', [IFCAAPISupplierController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPISupplierController::class, 'process'])->name('process');
         });
     
     });

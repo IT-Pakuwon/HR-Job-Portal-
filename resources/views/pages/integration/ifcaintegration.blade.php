@@ -19,7 +19,7 @@
                     </button>
                     <button type="button" data-tab="tab-supplier"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
-                        Supplier (soon)
+                        Supplier
                     </button>
                     <button type="button" data-tab="tab-po"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -28,6 +28,22 @@
                     <button type="button" data-tab="tab-sttb"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
                         STTB (soon)
+                    </button>
+                    <button type="button" data-tab="tab-bast"
+                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
+                        BAST (soon)
+                    </button>
+                    <button type="button" data-tab="tab-sttb-return"
+                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
+                        STTB Return (soon)
+                    </button>
+                    <button type="button" data-tab="tab-issue"
+                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
+                        Issue (soon)
+                    </button>
+                    <button type="button" data-tab="tab-receipt"
+                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
+                        Receipt (soon)
                     </button>
                 </div>
             </div>
@@ -47,10 +63,21 @@
                     @include('pages.integration.ifcaapistock')
                 </div>
 
+                {{-- TAB: Supplier --}}
+                <div id="tab-supplier" class="hidden">
+                    @include('pages.integration.ifcaapisupplier')
+                </div>
+
                 {{-- Placeholder tabs --}}
                 <div id="tab-supplier" class="hidden text-sm text-gray-500">Supplier tab (soon)</div>
                 <div id="tab-po" class="hidden text-sm text-gray-500">PO tab (soon)</div>
                 <div id="tab-sttb" class="hidden text-sm text-gray-500">STTB tab (soon)</div>
+                <div id="tab-bast" class="hidden text-sm text-gray-500">BAST tab (soon)</div>
+                <div id="tab-sttb-return" class="hidden text-sm text-gray-500">STTB Return tab (soon)</div>
+                <div id="tab-issue" class="hidden text-sm text-gray-500">Issue tab (soon)</div>
+                <div id="tab-receipt" class="hidden text-sm text-gray-500">Receipt tab (soon)</div>
+
+
             </div>
         </div>
     </div>
