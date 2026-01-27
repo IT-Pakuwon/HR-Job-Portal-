@@ -306,46 +306,64 @@
 
                 </div>
             </div>
+            <!-- ================= Today’s Summary ================= -->
             <div class="rounded-xl border bg-white p-4 dark:border-gray-600 dark:bg-gray-800">
-                <div class="mb-4 flex items-center justify-between">
+
+                <!-- Header -->
+                <div class="mb-4 flex items-start justify-between">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                            Operational Summary
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            Today’s Summary
                         </h3>
-                        <p class="text-xs text-gray-500">
-                            Today overview
+                        <p class="text-sm text-gray-500">
+                            Choose up to 5 analytics cards to build your daily dashboard.
+                        </p>
+                        <p id="dashboardCardCounter" class="mt-1 text-xs text-gray-400">
+                            Selected: 0 / 5
                         </p>
                     </div>
 
-                    <a href="https://your-bi-dashboard-link.com" target="_blank"
-                        class="text-xs font-medium text-indigo-600 hover:underline">
-                        View full BI →
-                    </a>
+                    <button id="btnAddDashboardCard"
+                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                        + Add Card
+                    </button>
                 </div>
 
-                <!-- KPI Summary -->
-                <div class="mb-4 grid grid-cols-3 gap-3">
-                    <div class="rounded-lg bg-indigo-50 p-3 text-center">
-                        <p class="text-xs text-gray-500">Tasks</p>
-                        <p class="text-lg font-semibold text-indigo-600">128</p>
+                <!-- Dashboard Cards -->
+                <div id="dashboardCardContainer" class="grid min-h-[120px] grid-cols-1 gap-4 md:grid-cols-2">
+                    <div class="text-sm text-gray-400">
+                        No analytics added yet.
                     </div>
-
-                    <div class="rounded-lg bg-emerald-50 p-3 text-center">
-                        <p class="text-xs text-gray-500">Completed</p>
-                        <p class="text-lg font-semibold text-emerald-600">96</p>
-                    </div>
-
-                    <div class="rounded-lg bg-amber-50 p-3 text-center">
-                        <p class="text-xs text-gray-500">Pending</p>
-                        <p class="text-lg font-semibold text-amber-600">32</p>
-                    </div>
-                </div>
-
-                <!-- Chart -->
-                <div class="h-32">
-                    <canvas id="opsSummaryChart"></canvas>
                 </div>
             </div>
+
+            <!-- ================= Add Analytics Card Modal ================= -->
+            <div id="addDashboardCardModal" class="fixed inset-0 z-50 hidden">
+                <div class="flex min-h-screen items-center justify-center bg-black/40 p-4">
+                    <div class="w-full max-w-lg rounded-xl bg-white p-5 shadow-lg">
+
+                        <!-- Modal Header -->
+                        <div class="mb-4">
+                            <h3 class="text-lg font-semibold">Add Analytics Card</h3>
+                            <p class="text-sm text-gray-500">
+                                Select up to 5 cards to customize your dashboard.
+                            </p>
+                        </div>
+
+                        <!-- Card List -->
+                        <div id="dashboardCardList" class="space-y-3"></div>
+
+                        <!-- Footer -->
+                        <div class="mt-6 flex justify-end">
+                            <button id="closeDashboardCardModal"
+                                class="rounded-md bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
         {{-- ================= RIGHT : TODO + NOTIFICATIONS ================= --}}
         <div class="grid h-full grid-rows-2 gap-4 md:gap-6 lg:grid-rows-2 xl:grid-rows-2">
@@ -580,6 +598,9 @@
 
 
         </div>
+
+
+
     </div>
 
     <script>
@@ -769,6 +790,222 @@
                     }
                 }
             }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+
+            // ================= Card Registry =================
+            const DASHBOARD_CARDS = [{
+                    id: 'po_status',
+                    title: 'PO Status',
+                    description: 'Waiting vs Approved',
+                    chartType: 'pie'
+                },
+                {
+                    id: 'weekly_orders',
+                    title: 'Weekly Orders',
+                    description: 'Orders per day',
+                    chartType: 'bar'
+                },
+                {
+                    id: 'pending_tasks',
+                    title: 'Pending Tasks',
+                    description: 'Today pending tasks',
+                    chartType: 'bar'
+                },
+                {
+                    id: 'notification_summary',
+                    title: 'Notifications',
+                    description: 'Unread notifications',
+                    chartType: 'line'
+                }
+            ];
+
+            const MAX_DASHBOARD_CARDS = 5;
+            let selectedDashboardCards = [];
+            const dashboardCharts = {};
+
+            // ================= Counter =================
+            function updateDashboardCounter() {
+                $('#dashboardCardCounter').text(
+                    `Selected: ${selectedDashboardCards.length} / ${MAX_DASHBOARD_CARDS}`
+                );
+            }
+
+            // ================= Modal Open / Close =================
+            $('#btnAddDashboardCard').on('click', function() {
+                renderDashboardCardList();
+                $('#addDashboardCardModal').removeClass('hidden');
+            });
+
+            $('#closeDashboardCardModal').on('click', function() {
+                $('#addDashboardCardModal').addClass('hidden');
+            });
+
+            // ================= Render Modal Card List =================
+            function renderDashboardCardList() {
+                const $list = $('#dashboardCardList');
+                $list.empty();
+
+                DASHBOARD_CARDS.forEach(card => {
+                    const isAdded = selectedDashboardCards.includes(card.id);
+                    const isDisabled = !isAdded && selectedDashboardCards.length >= MAX_DASHBOARD_CARDS;
+
+                    $list.append(`
+                <div class="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                        <div class="font-medium">${card.title}</div>
+                        <div class="text-sm text-gray-500">${card.description}</div>
+                    </div>
+
+                    <button
+                        class="btnAddCard rounded-md px-3 py-1.5 text-sm
+                        ${isAdded ? 'bg-gray-300 text-gray-600' : 'bg-indigo-600 text-white hover:bg-indigo-700'}
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
+                        data-id="${card.id}"
+                        ${isAdded || isDisabled ? 'disabled' : ''}>
+                        ${isAdded ? 'Added' : 'Add'}
+                    </button>
+                </div>
+            `);
+                });
+            }
+
+            // ================= Add Card =================
+            $(document).on('click', '.btnAddCard', function() {
+                const cardId = $(this).data('id');
+
+                if (
+                    selectedDashboardCards.length >= MAX_DASHBOARD_CARDS ||
+                    selectedDashboardCards.includes(cardId)
+                ) return;
+
+                selectedDashboardCards.push(cardId);
+
+                renderDashboardCardList();
+                renderDashboardCards();
+                updateDashboardCounter();
+            });
+
+            // ================= Render Dashboard Cards =================
+            function renderDashboardCards() {
+                const $container = $('#dashboardCardContainer');
+                $container.empty();
+
+                if (!selectedDashboardCards.length) {
+                    $container.append(`<div class="text-sm text-gray-400">No analytics added yet.</div>`);
+                    return;
+                }
+
+                selectedDashboardCards.forEach(cardId => {
+                    const card = DASHBOARD_CARDS.find(c => c.id === cardId);
+                    if (!card) return;
+
+                    const canvasId = `chart_${card.id}`;
+
+                    $container.append(`
+                <div class="rounded-lg border bg-white p-4">
+                    <div class="mb-3 flex items-center justify-between">
+                        <h4 class="font-medium">${card.title}</h4>
+                        <button class="btnRemoveCard text-sm text-red-500" data-id="${card.id}">
+                            Remove
+                        </button>
+                    </div>
+                    <div class="relative h-48">
+                        <canvas id="${canvasId}"></canvas>
+                    </div>
+                </div>
+            `);
+
+                    renderChart(card, canvasId);
+                });
+            }
+
+            // ================= Remove Card =================
+            $(document).on('click', '.btnRemoveCard', function() {
+                const cardId = $(this).data('id');
+                const canvasId = `chart_${cardId}`;
+
+                if (dashboardCharts[canvasId]) {
+                    dashboardCharts[canvasId].destroy();
+                    delete dashboardCharts[canvasId];
+                }
+
+                selectedDashboardCards = selectedDashboardCards.filter(id => id !== cardId);
+
+                renderDashboardCards();
+                updateDashboardCounter();
+            });
+
+            // ================= Chart Data =================
+            function getChartData(cardId) {
+                switch (cardId) {
+                    case 'po_status':
+                        return {
+                            labels: ['Waiting', 'Approved'], data: [12, 8]
+                        };
+                    case 'weekly_orders':
+                        return {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], data: [5, 9, 7, 12, 6]
+                        };
+                    case 'pending_tasks':
+                        return {
+                            labels: ['Morning', 'Afternoon', 'Evening'], data: [3, 4, 2]
+                        };
+                    case 'notification_summary':
+                        return {
+                            labels: ['Unread', 'Read'], data: [6, 14]
+                        };
+                    default:
+                        return {
+                            labels: [], data: []
+                        };
+                }
+            }
+
+            function renderChart(card, canvasId) {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+
+                if (dashboardCharts[canvasId]) {
+                    dashboardCharts[canvasId].destroy();
+                }
+
+                const chartData = getChartData(card.id);
+
+                dashboardCharts[canvasId] = new Chart(ctx, {
+                    type: card.chartType,
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                            data: chartData.data,
+                            backgroundColor: ['#6366F1', '#22C55E', '#F59E0B', '#EF4444', '#3B82F6']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: card.chartType !== 'bar'
+                            }
+                        },
+                        scales: card.chartType === 'bar' ?
+                            {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            } :
+                            {}
+                    }
+                });
+            }
+
+            // ================= INIT =================
+            updateDashboardCounter();
+
         });
     </script>
 
