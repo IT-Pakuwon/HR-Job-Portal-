@@ -226,11 +226,20 @@ class JobapplicantController extends Controller
             ];
         });
 
+        $steps = (clone $base)
+            ->whereNotNull('vc.prev_apply_step')
+            ->distinct()
+            ->orderBy('vc.prev_apply_step')
+            ->pluck('vc.prev_apply_step')
+            ->values();
+
+                
         return response()->json([
             'draw'            => intval($request->input('draw')),
             'recordsTotal'    => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data'            => $data,
+            'steps'           => $steps,
         ]);
     }
 
@@ -329,6 +338,21 @@ class JobapplicantController extends Controller
        
         return view('pages.jobpostings.showjobpostings', compact('jobposting','jobres','jobqua','approval','attachment'));
     }
+
+    public function jobApplicantsJson(Request $request)
+    {
+        $steps = DB::table('job_applicants')
+            ->select('prev_apply_step')
+            ->whereNotNull('prev_apply_step')
+            ->distinct()
+            ->pluck('prev_apply_step');
+
+        return response()->json([
+            'data' => $data, // DataTables main data
+            'steps' => $steps
+        ]);
+    }
+
 
     
 

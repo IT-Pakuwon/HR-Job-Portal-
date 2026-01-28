@@ -294,7 +294,8 @@
                                             class="flex-shrink-0 text-base text-indigo-500 dark:text-indigo-400">💼</span>
                                         {{-- Larger icon --}}
                                         <span class="font-semibold text-gray-800 dark:text-gray-100">Minimum
-                                            <span class="font-bold">{{ $personnel->experience_start }}
+                                            <span class="font-bold">{{ $personnel->experience_start }} -
+                                                {{ $personnel->experience_end }}
                                                 Year of experience as
                                                 {{ $personnel->experience_position }}.</span></span>
                                         {{-- Bolder value --}}

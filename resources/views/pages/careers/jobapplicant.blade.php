@@ -332,6 +332,8 @@
                 'JOIN': 'Join'
             };
 
+
+
             // const $thead = $('#applicantsTable thead');
             // const $filterRow = $('<tr class="filters"></tr>');
 
@@ -413,11 +415,13 @@
 
                 if (col.type === 'select') {
                     $el = $(`
-            <select class="w-full rounded-md border border-gray-200 px-3 py-2  text-sm 
-                   focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                <option value="">All ${col.placeholder}</option>
-            </select>
-        `);
+        <select id="filterStep"
+            class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm 
+                   focus:border-blue-500 focus:ring-1 focus:ring-blue-500 truncate text-ellipsis">
+            <option value="">All Step</option >
+        </select>
+    `);
+
 
                     if (col.options) {
                         Object.entries(col.options).forEach(([val, label]) => {
@@ -630,6 +634,25 @@
                     });
                 }
             });
+
+            applicantTable.on('xhr.dt', function(e, settings, json) {
+
+                console.log('XHR:', json); // 🔥 debug
+
+                if (!json.steps || !json.steps.length) return;
+
+                const $stepFilter = $('#filterStep');
+
+                if ($stepFilter.children('option').length > 1) return;
+
+                json.steps.forEach(step => {
+                    const label = stepLabelMap[step] || step;
+                    $stepFilter.append(
+                        `<option value="${step}">${label}</option>`
+                    );
+                });
+            });
+
 
             // kecilkan tiga header kolom numerik
             $('#applicantsTable thead tr:eq(0) th').eq(5).addClass('small-col');
