@@ -62,6 +62,7 @@ class PoController extends Controller
 
         // -------- Ambil lampiran dari tr_attachment & buat Signed URL --------
         $rows = TrAttachment::where('refnbr', $po->ponbr)
+            ->where('cpny_id', $po->cpny_id)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();

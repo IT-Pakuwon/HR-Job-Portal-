@@ -1771,8 +1771,15 @@
     <script>
         $(function() {
             const isHold = @json($po->status === 'H');
-            const listUrl = @json(route('attachments.list', ['doctype' => 'PO', 'refnbr' => $hash]));
-            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $hash]));
+            // const listUrl = @json(route('attachments.list', ['doctype' => 'PO', 'refnbr' => $hash]));
+            // const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $hash]));
+            const refnbr = @json($po->ponbr);
+            const listUrl   = @json(route('attachments.list',   ['doctype' => 'PO', 'refnbr' => '__REF__']))
+                .replace('__REF__', encodeURIComponent(refnbr));
+
+            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => '__REF__']))
+                .replace('__REF__', encodeURIComponent(refnbr));
+
             // const delRoute = @json(route('attachments.delete', ':id'));
             const removeUrlTpl = @json(url('/remove-attachment/:id'));
 
@@ -1821,13 +1828,16 @@
             }
 
             function refreshAttachments() {
-                $.get(listUrl)
-                    .done(res => {
-                        if (res.success) renderAttachmentRows(res.attachments || []);
-                        else toastr.error(res.message || 'Failed to load attachments.');
-                    })
-                    .fail(() => toastr.error('Failed to load attachments.'));
+            const cpnyId = @json($po->cpny_id);
+
+            $.get(listUrl, { cpny_id: cpnyId })
+                .done(res => {
+                if (res.success) renderAttachmentRows(res.attachments || []);
+                else toastr.error(res.message || 'Failed to load attachments.');
+                })
+                .fail(() => toastr.error('Failed to load attachments.'));
             }
+
 
             // initial load dari API (agar signed URL fresh)
             refreshAttachments();

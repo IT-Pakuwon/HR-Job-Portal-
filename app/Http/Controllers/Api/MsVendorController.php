@@ -26,7 +26,8 @@ class MsVendorController extends Controller
             $q->where(function ($x) use ($search) {
                 $x->where('vendor_id', 'ilike', "%{$search}%")
                   ->orWhere('vendor_name', 'ilike', "%{$search}%")
-                  ->orWhere('email', 'ilike', "%{$search}%");
+                  ->orWhere('email', 'ilike', "%{$search}%")
+                  ->orWhere('contact_person', 'ilike', "%{$search}%");
             });
         }
 
@@ -42,14 +43,23 @@ class MsVendorController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'vendor_id'      => ['required', 'string', 'max:50', 'unique:pgsql.ms_vendor,vendor_id'],
-            'vendor_name'    => ['required', 'string', 'max:255'],
-            'vendor_addr1'   => ['nullable', 'string'],
-            'vendor_addr2'   => ['nullable', 'string'],
-            'email'          => ['nullable', 'email'],
-            'contact_person' => ['nullable', 'string'],
-            'phone_number'   => ['nullable', 'string'],
-            'status'         => ['required', Rule::in(['A','I'])],
+            'vendor_id'       => ['required', 'string', 'max:50', 'unique:pgsql.ms_vendor,vendor_id'],
+            'vendor_name'     => ['required', 'string', 'max:255'],
+            'vendor_addr1'    => ['nullable', 'string'],
+            'vendor_addr2'    => ['nullable', 'string'],
+            'email'           => ['nullable', 'email'],
+            'contact_person'  => ['nullable', 'string'],
+            'phone_number'    => ['nullable', 'string'],
+
+            // tambahan dari model
+            'npwp'            => ['nullable', 'string', 'max:50'],
+            'contact_email'   => ['nullable', 'email'],
+            'contact_number1' => ['nullable', 'string', 'max:30'],
+            'contact_number2' => ['nullable', 'string', 'max:30'],
+            'fax_no'          => ['nullable', 'string', 'max:30'],
+            'post_cd'         => ['nullable', 'string', 'max:20'],
+
+            'status'          => ['required', Rule::in(['A','I'])],
         ]);
 
         $data['created_by'] = Auth::user()->username ?? 'SYSTEM';
@@ -80,13 +90,22 @@ class MsVendorController extends Controller
         $vendor = MsVendor::findOrFail($vendor_id);
 
         $data = $request->validate([
-            'vendor_name'    => ['required', 'string', 'max:255'],
-            'vendor_addr1'   => ['nullable', 'string'],
-            'vendor_addr2'   => ['nullable', 'string'],
-            'email'          => ['nullable', 'email'],
-            'contact_person' => ['nullable', 'string'],
-            'phone_number'   => ['nullable', 'string'],
-            'status'         => ['required', Rule::in(['A','I'])],
+            'vendor_name'     => ['required', 'string', 'max:255'],
+            'vendor_addr1'    => ['nullable', 'string'],
+            'vendor_addr2'    => ['nullable', 'string'],
+            'email'           => ['nullable', 'email'],
+            'contact_person'  => ['nullable', 'string'],
+            'phone_number'    => ['nullable', 'string'],
+
+            // tambahan dari model
+            'npwp'            => ['nullable', 'string', 'max:50'],
+            'contact_email'   => ['nullable', 'email'],
+            'contact_number1' => ['nullable', 'string', 'max:30'],
+            'contact_number2' => ['nullable', 'string', 'max:30'],
+            'fax_no'          => ['nullable', 'string', 'max:30'],
+            'post_cd'         => ['nullable', 'string', 'max:20'],
+
+            'status'          => ['required', Rule::in(['A','I'])],
         ]);
 
         $data['updated_by'] = Auth::user()->username ?? 'SYSTEM';

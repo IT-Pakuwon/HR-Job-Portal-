@@ -7,18 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Autonbr extends Model
 {
-    // protected $connection = 'mysql2';
     protected $connection = 'pgsql2';
     protected $table = "ms_autonbr_test";
     protected $primaryKey = 'id';
+    public $timestamps = false;   // <--- ini penting kalau kolom ts tidak ada
+
     protected $fillable = [
-        'doctype',
-        'doctype_descr',
-        'year',
-        'month',
-        'number',
-        'status',
-        'created_by', 
-        'updated_by', 
+        'doctype','doctype_descr','year','month','number','status','created_by','updated_by',
     ];
 }

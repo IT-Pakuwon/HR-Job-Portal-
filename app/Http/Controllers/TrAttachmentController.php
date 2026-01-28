@@ -73,8 +73,8 @@ class TrAttachmentController extends Controller
                     'refnbr'          => $meta['refnbr'],
                     'doctype'         => $meta['doctype'],
                     'attachment_date' => Carbon::now(),
-                    'cpny_id'          => $meta['cpnyid']        ?? null,
-                    'department_id'   => $meta['departementid'] ?? null,
+                    'cpny_id'          => $meta['cpny_id']        ?? null,
+                    'department_id'   => $meta['department_id'] ?? null,
                     'attachment_name' => pathinfo($originalName, PATHINFO_FILENAME),
                     'folder'          => $yearFolder,    // hanya sampai tahun
                     'filename'        => $filename,      // randomprefix-nama.ext
@@ -105,6 +105,9 @@ class TrAttachmentController extends Controller
         $user = Auth::user();
         $username = $user ? $user->username : 'system';
 
+        $cpnyId = $request->input('cpny_id') ?? $request->input('cpnyid');
+        $deptId = $request->input('department_id') ?? $request->input('departementid');
+
         if (!$request->hasFile('attachments')) {
             return response()->json(['success' => false, 'message' => 'No files received.'], 422);
         }
@@ -112,8 +115,8 @@ class TrAttachmentController extends Controller
         $meta = [
             'refnbr'        => (string) $refnbr,
             'doctype'       => strtoupper($doctype),
-            'cpny_id'        => $request->input('cpnyid'),
-            'department_id' => $request->input('departementid'),
+            'cpny_id'        => $cpnyId,
+            'department_id' => $deptId,
             // opsional (bisa di-derive otomatis di uploadInternal)
             'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
             'created_by'    => $user->username ?? 'system',
@@ -131,13 +134,19 @@ class TrAttachmentController extends Controller
     }
 
     // === API: List ===
-    public function listAttachments(string $doctype, string $refnbr)
+    public function listAttachments(Request $request, string $doctype, string $refnbr)
     {
-        $rows = TrAttachment::where('refnbr', $refnbr)
+        // dd($request->all());
+        $cpnyId = $request->input('cpny_id') ?? $request->input('cpnyid');
+        $query = TrAttachment::where('refnbr', $refnbr)
             ->where('doctype', strtoupper($doctype))
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->where('status', 'A');
+
+        if (!empty($cpnyId)) {
+            $query->where('cpny_id', $cpnyId);
+        }
+
+        $rows = $query->orderBy('created_at', 'desc')->get();
 
         // Signed URL
         $config = config('filesystems.disks.gcs');

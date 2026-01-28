@@ -59,6 +59,7 @@ use App\Models\MsTop;
 use App\Models\TrPOReuse;
 use App\Models\TrPoLastPrice;
 use App\Models\Bq;
+use App\Models\TrKontrak;
 
 
 class CanvassController extends Controller
@@ -3326,13 +3327,20 @@ class CanvassController extends Controller
                 TrCSdetail::where('csid', $cs->csid)->update(['status' => 'C']);
 
                 try {
-                    $this->generatePOFromCS($cs, auth()->user(), $potype);
+                    if (strtoupper((string)($cs->bqtype ?? '')) === 'KONTRAK') {
+                        // dd('kontrak from cs');
+                        $this->generateKontrakFromCS($cs, auth()->user());
+                    } else {
+                        // dd('po from cs');
+                        $this->generatePOFromCS($cs, auth()->user(), $potype);
+                    }
                 } catch (\Throwable $e) {
-                    \Log::error('generatePOFromCS failed', [
-                        'csid' => $cs->csid,
+                    \Log::error('generate from CS failed', [
+                        'csid'  => $cs->csid,
                         'error' => $e->getMessage(),
                     ]);
                 }
+
 
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $cs->csid, 'CS', 'C', $cs->created_by, $docUrl, [
@@ -3373,129 +3381,7 @@ class CanvassController extends Controller
     }
 
 
-    public function approveCS_xxx(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'CS';
-
-        // Ambil header + relasi creator
-        $cs = TrCS::with('creator')->where('csid', $docid)->first();
-        if (!$cs) {
-            return response()->json(['success' => false, 'message' => 'CS not found'], 404);
-        }
-
-        // Tentukan sumber header asal & tipe dokumen yang akan di-generate (PO/SPK)
-        $prefix  = strtoupper(substr((string)$cs->sppbjktid, 0, 2));
-        $srcHeader = null;
-        $potype   = null;
-
-        if ($prefix === 'PB') {
-            $srcHeader = TrSPPB::with(['requestType','creator','purchaser'])
-                ->where('sppbid', $cs->sppbjktid)->first();
-            $potype = 'PO';
-        } elseif ($prefix === 'PJ') {
-            $srcHeader = TrSPPJ::with(['requestType','creator','purchaser'])
-                ->where('sppjid', $cs->sppbjktid)->first();
-            $potype = 'SPK';
-        } elseif ($prefix === 'PK') {
-            $srcHeader = TrSPPK::with(['requestType','creator','purchaser'])
-                ->where('sppkid', $cs->sppbjktid)->first();
-            $potype = 'SPK';
-        } elseif ($prefix === 'PT') {
-            $srcHeader = TrSPPT::with(['requestType','creator','purchaser'])
-                ->where('spptid', $cs->sppbjktid)->first();
-            $potype = 'SPK';
-        } else {
-            return response()->json(['success' => false, 'message' => 'Invalid doc type'], 422);
-        }
-
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($cs->id);
-        $docUrl   = url('/showcs/' . $eid);
-        $fullname = data_get($cs, 'creator.name') ?: $cs->created_by;
-
-        // Gunakan engine approval terpusat
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
-            $cs->csid,            // refnbr
-            $doctype,             // doctype 'CS'
-            $user->username,      // current approver username
-            $user->name,          // current approver name
-
-            // === COMPLETE CALLBACK ===
-            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $potype) {
-
-                // Finalize header
-                $cs->status       = 'C';
-                $cs->completed_by = $cs->completed_by ?: auth()->user()->username;
-                $cs->completed_at = $now;
-                $cs->save();
-
-                // Finalize detail
-                TrCSdetail::where('csid', $cs->csid)->update(['status' => 'C']);
-
-                // Generate PO/SPK dari CS (sesuai prefix)
-                try {
-                    // $potype: 'PO' atau 'SPK'
-                    $this->generatePOFromCS($cs, auth()->user(), $potype);
-                } catch (\Throwable $e) {
-                    \Log::error('generatePOFromCS failed', [
-                        'csid' => $cs->csid,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-
-                // Notifikasi ke requester (creator) - status Complete
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $cs->csid,
-                    'CS',    // docname untuk email
-                    'C',     // status Complete
-                    $cs->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'    => $cs->cpny_id ?? $cs->cpnyid ?? '',
-                        'deptname'  => $cs->department_id ?? $cs->departementid ?? '',
-                        'date'      => $cs->csdate,
-                        // Info: ambil dari sumber header bila ada, fallback ke CS
-                        'info'      => optional($srcHeader)->keperluan ?? $cs->keperluan,
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                    ]
-                );
-            },
-
-            // === NEXT APPROVER CALLBACK ===
-            function ($next, \Carbon\Carbon $now) use ($cs, $docUrl) {
-
-                // Notifikasi ke approver berikutnya (status Pending)
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                    $cs->csid, // refnbr
-                    'CS',      // doctype code
-                    'P',       // status Waiting Approval
-                    'CS',      // docname untuk email
-                    $docUrl,
-                    [
-                        'info'      => $cs->keperluan,
-                        'createdby' => $cs->created_by,
-                        'date'      => $now->toDateTimeString(),
-                    ]
-                );
-
-                // Jejak "terakhir diproses" (optional)
-                $cs->completed_by = auth()->user()->username;
-                $cs->completed_at = $now;
-                $cs->save();
-            }
-        );
-
-        if (!($result['ok'] ?? false)) {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'] ?? 'Approve failed'
-            ], 403);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
-    }
+ 
 
     public function rejectCS(Request $request, $docid)
     {
@@ -5120,6 +5006,212 @@ class CanvassController extends Controller
 
         return true;
     }
+
+    private function monthToRoman(int $m): string
+    {
+        $map = [
+            1=>'I', 2=>'II', 3=>'III', 4=>'IV', 5=>'V', 6=>'VI',
+            7=>'VII', 8=>'VIII', 9=>'IX', 10=>'X', 11=>'XI', 12=>'XII'
+        ];
+        return $map[$m] ?? '';
+    }
+
+    private function doctypeDescr(string $doctype): ?string
+    {
+        $map = [
+            'KO' => 'KONTRAK',
+            'SK' => 'No SK',
+        ];
+
+        $key = strtoupper(trim($doctype));
+        return $map[$key] ?? null;
+    }
+
+
+    /**
+     * Ambil nomor berikutnya dari ms_autonbr_test (pgsql2) dengan lockForUpdate.
+     * - KO: reset per YEAR+MONTH (pad 4 digit)
+     * - SK: reset per YEAR (pad 3 digit)
+     */
+    private function nextAutoNumber(string $doctype, int $year, int $month, int $pad): int
+    {
+        $doctype = strtoupper(trim($doctype));
+        $descr   = $this->doctypeDescr($doctype);
+        $user    = auth()->user()->username ?? 'system';
+        $month   = (int) $month; // 1..12
+
+        return DB::connection('pgsql2')->transaction(function () use ($doctype, $descr, $year, $month, $user) {
+
+            $row = Autonbr::on('pgsql2')
+                ->where('doctype', $doctype)
+                ->where('year', $year)
+                ->where('month', $month)
+                ->lockForUpdate()
+                ->first();
+
+            $next = ((int)($row->number ?? 0)) + 1;
+
+            if (!$row) {
+                Autonbr::on('pgsql2')->create([
+                    'doctype'       => $doctype,
+                    'doctype_descr' => $descr,
+                    'year'          => $year,
+                    'month'         => $month,
+                    'number'        => $next,
+                    'status'        => 'A',
+                    'created_by'    => 'system',
+                    'updated_by'    => 'system',
+                ]);
+            } else {
+                $row->update([
+                    'number'        => $next,
+                    'updated_by'    => 'system',
+                    'doctype_descr' => $row->doctype_descr ?: $descr,
+                ]);
+            }
+
+            return $next;
+        });
+    }
+
+
+
+
+
+    private function makeKontrakId(Carbon $now): string
+    {
+        $yy = $now->format('y');
+        $mm = $now->format('m');
+
+        $seq = $this->nextAutoNumber('KO', (int)$now->format('Y'), (int)$now->format('n'), 4);
+        return 'KO' . $yy . $mm . str_pad((string)$seq, 4, '0', STR_PAD_LEFT);
+    }
+
+
+    private function makeNoSk(string $cpnyId, Carbon $now): string
+    {
+        // contoh format (aku rapikan dikit): 024/SK/AW/II/2025
+        $roman = $this->monthToRoman((int)$now->format('n'));
+        $year  = $now->format('Y');
+
+        // ✅ running 3 digit per BULAN
+        $seq = $this->nextAutoNumber('SK', (int)$now->format('Y'), (int)$now->format('n'), 3);
+
+        return str_pad((string)$seq, 3, '0', STR_PAD_LEFT)
+            . '/SK'
+            . '/' . strtoupper(trim($cpnyId))
+            . '/' . $roman
+            . '/' . $year;
+    }
+
+
+    private function generateKontrakFromCS(TrCS $cs, $user): void
+    {
+        // Idempotent: kalau sudah ada kontrak untuk CS ini, jangan bikin lagi
+        $already = TrKontrak::where('csid', $cs->csid)->exists();
+        if ($already) return;
+
+        $details = TrCSdetail::where('csid', $cs->csid)->get();
+        if ($details->isEmpty()) return;
+
+        // Kelompokkan baris per vendor terpilih (vendor1..vendor6)
+        $pickedByVendorIdx = collect([1,2,3,4,5,6])->mapWithKeys(fn($i) => [$i => collect()]);
+        foreach ($details as $row) {
+            for ($i = 1; $i <= 6; $i++) {
+                $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
+                $vid = $row->{"vendorid{$i}"} ?? null;
+                if ($sel && $vid) {
+                    $pickedByVendorIdx[$i] = $pickedByVendorIdx[$i]->push($row);
+                    break; // 1 baris hanya 1 vendor terpilih
+                }
+            }
+        }
+
+        $nonEmptyGroups = $pickedByVendorIdx->filter(fn($g) => $g->isNotEmpty());
+        if ($nonEmptyGroups->isEmpty()) return;
+
+        // $now   = Carbon::now();
+        $now = Carbon::create(2026, 2, 5, 10, 0, 0);
+        // dd($now);
+        $cpny  = strtoupper((string)($cs->cpny_id ?? $cs->cpnyid ?? ''));
+
+        DB::connection('pgsql')->beginTransaction();
+        DB::connection('pgsql2')->beginTransaction(); // autonbr ada di pgsql2
+        try {
+            foreach ($nonEmptyGroups as $i => $rows) {
+                // info vendor dari header CS (mengikuti pola generatePOFromCS)
+                $vendorId   = $cs->{"vendorid{$i}"}     ?? null;
+                $vendorName = $cs->{"vendorname{$i}"}   ?? null;
+
+                if (!$vendorId) continue;
+
+                // Generate nomor
+                $kontrakId = $this->makeKontrakId($now);     // KO26010001
+                $noSk      = $this->makeNoSk($cpny, $now);   // SK/024/AW/X/2025
+
+                // ===== KONTRAK HEADER =====
+                $k = new TrKontrak();
+                $k->setConnection('pgsql');
+
+                $k->kontrakid       = $kontrakId;
+                $k->kontrakdate     = $now->toDateString();
+                $k->cpny_id         = $cpny;
+
+                $k->csid            = $cs->csid;
+                $k->sppbjktid       = $cs->sppbjktid ?? null;
+
+                $k->department_id   = $cs->department_id ?? $cs->departementid ?? null;
+                $k->user_peminta    = $cs->user_peminta ?? null;
+                $k->user_approval   = null;
+                $k->purchaser       = $cs->created_by ?? null;
+
+                $k->keperluan       = $cs->keperluan ?? null;
+
+                $k->vendorid        = $vendorId;
+                $k->vendorname      = $vendorName;
+
+                // Sesuaikan kalau ada field spesifik kontrak di CS
+                $k->kontraktype     = null;
+                $k->kontrakcategory = $cs->bqcategory ?? $cs->kontrakcategory ?? null;
+
+                $k->nosk            = $noSk;
+                $k->nopklegal       = $cs->nopklegal ?? null;
+
+                $k->startdate       = $cs->startdate ?? null;
+                $k->enddate         = $cs->enddate ?? null;
+
+                $k->kontaknote      = null;
+
+                $k->submitdate      = null;
+                $k->status          = 'H';
+
+                $k->created_by      = $cs->created_by ?? ($user->username ?? 'system');
+                $k->save();
+
+                /**
+                 * OPTIONAL:
+                 * kalau kamu punya field di TrCSdetail untuk simpan kontrakid (misal: kontrakid),
+                 * kamu bisa update disini per baris $rows.
+                 *
+                 * Contoh:
+                 * foreach ($rows as $row) { $row->kontrakid = $kontrakId; $row->save(); }
+                 */
+            }
+
+            DB::connection('pgsql2')->commit();
+            DB::connection('pgsql')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql2')->rollBack();
+            DB::connection('pgsql')->rollBack();
+
+            Log::error('Generate Kontrak from CS failed', [
+                'csid' => $cs->csid,
+                'error'=> $e->getMessage(),
+            ]);
+        }
+    }
+
+
 
 
 }

@@ -89,6 +89,8 @@ use App\Http\Controllers\StockJobsController;
 use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\BudgetMonitorController;
 use App\Http\Controllers\LastOrderController;
+use App\Http\Controllers\SelfRegisterApplicantController;
+use App\Http\Controllers\KontrakController;
 
 // INTEGRATION
 use App\Http\Controllers\Integration\IFCAIntegrationController;
@@ -97,7 +99,7 @@ use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
 
 use App\Http\Controllers\GoogleCalendarController;
-use App\Http\Controllers\SelfRegisterApplicantController;
+
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -1039,13 +1041,11 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
         Route::put('/nonstockjobs/{eid}/rollback', [NonstockJobsController::class, 'rollbackInventory'])->name('nonstockjobs.rollback');
     });
     
-
-    
-
-    
-    
-    
-
+    Route::get('/kontrak',       [KontrakController::class, 'index'])->name('kontrak');
+    Route::get('/kontrak/json',  [KontrakController::class, 'json'])->name('kontrak.json');
+    Route::get('/showkontrak/{hash}', [KontrakController::class, 'showKontrak'])->name('kontrak.show');
+    Route::get('/createkontrak/{hash}', [KontrakController::class, 'createKontrak'])->name('kontrak.create');
+    Route::post('/kontrak/{kontrakid}/submit', [KontrakController::class, 'submitKontrak'])->name('kontrak.submit');
 
 
 
