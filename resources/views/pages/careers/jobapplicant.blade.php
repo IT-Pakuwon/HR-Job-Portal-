@@ -93,13 +93,25 @@
             </div>
             {{-- Padding applied here instead of outer container --}}
 
-            <div id="applicantsFilters" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-5 lg:grid-cols-11">
-                <!-- filters will be injected here -->
-                <button id="btnResetFilters"
-                    class="rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
-                    Reset
-                </button>
+            <div id="applicantsFilters" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-6 lg:grid-cols-12">
+
+                <!-- ROW 1 : Job Title - Job Level -->
+                <div class="col-span-1 sm:col-span-6 lg:col-span-12">
+                    <select id="filterJobTL"
+                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    </select>
+                </div>
+
+                <!-- ROW 2 : Reset -->
+                <div class="col-span-1 sm:col-span-2 lg:col-span-2">
+                    <button id="btnResetFilters"
+                        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
+                        Reset
+                    </button>
+                </div>
+
             </div>
+
 
             <div class="rounded-base relative overflow-x-auto">
                 <table id="applicantsTable" class="text-body w-full text-left text-sm rtl:text-right">
