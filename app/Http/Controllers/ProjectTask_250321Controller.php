@@ -11,8 +11,8 @@ use App\Models\Attachment;
 use App\Models\M_approval;
 use App\Models\M_approval_other;
 use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\JobLevel;
 use App\Models\JobResponsiblities;
 use App\Models\JobQualification;
@@ -45,7 +45,7 @@ class ProjectTaskController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
         $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $userlist = User::where('status','A')
             ->get();
        

@@ -8,6 +8,7 @@ use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrReceipt;
 use App\Models\TrReceiptdetail;
+use App\Models\TrKontrak;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -260,13 +261,75 @@ class AcumVmsStagingController extends Controller
             }
 
             // =========================
+            // 6B) STAGING KONTRAK (TrKontrak -> staging_kontrak)
+            // =========================
+            TrKontrak::query()
+                ->where(function ($q) use ($from, $to) {
+                    $q->whereBetween('submitdate', [$from, $to])
+                    ->orWhereBetween('updated_at', [$from, $to]);
+                })
+                ->select([
+                    'kontrakid','kontrakdate','cpny_id','csid','sppbjktid','department_id',
+                    'vendorid','vendorname','purchaser','user_approval',
+                    'kontraktype','kontrakcategory','nosk','nopklegal',
+                    'startdate','enddate','kontaknote',
+                    'status','created_by','created_at'
+                ])
+                ->orderBy('kontrakid')
+                ->chunk(500, function ($rows) use (&$result) {
+
+                    $payload = [];
+
+                    foreach ($rows as $k) {
+                        $payload[] = [
+                            // unique key
+                            'kontrakid'       => $k->kontrakid,
+                            'cpny_id'         => $k->cpny_id,
+
+                            // data sesuai staging_kontrak
+                            'kontrakdate'     => $k->kontrakdate,
+                            'csid'            => $k->csid,
+                            'sppbjktid'       => $k->sppbjktid,
+                            'department_id'   => $k->department_id,
+                            'vendor_id'       => $k->vendorid,      // mapping vendor_id <- vendorid
+                            'vendorname'      => $k->vendorname,
+                            'purchaser'       => $k->purchaser,
+                            'user_approval'   => $k->user_approval,
+                            'kontraktype'     => $k->kontraktype,
+                            'kontrakcategory' => $k->kontrakcategory,
+                            'nosk'            => $k->nosk,
+                            'nopklegal'       => $k->nopklegal,
+                            'startdate'       => $k->startdate,
+                            'enddate'         => $k->enddate,
+                            'kontaknote'      => $k->kontaknote,
+                            'status'          => $k->status,
+                            'created_by'      => $k->created_by,
+                            'created_at'      => $k->created_at,
+                        ];
+                    }
+
+                    // UNIQUE KEY disarankan: (kontrakid, cpny_id)
+                    $this->upsertMysql7(
+                        'staging_kontrak',
+                        $payload,
+                        ['kontrakid','cpny_id'],
+                        [
+                            'kontrakdate','csid','sppbjktid','department_id',
+                            'vendor_id','vendorname','purchaser','user_approval',
+                            'kontraktype','kontrakcategory','nosk','nopklegal',
+                            'startdate','enddate','kontaknote',
+                            'status','created_by','created_at'
+                        ]
+                    );
+
+                    $result['kontrak'] += count($payload);
+                });
+
+
+            // =========================
             // 7) UPDATE STAGING SETTING
             // =========================
-            // $setting->last_update = $to;
-            // $setting->next_update = Carbon::parse($to)->addHours((int) $setting->interval);
-            // $setting->lastupdate_user = 'SYSTEM';
-            // $setting->lastupdate_datetime = now();
-            // $setting->save();
+        
             $setting->last_update = Carbon::parse($setting->last_update)->addDay();
             $setting->next_update = Carbon::parse($setting->next_update)->addDay();
             $setting->lastupdate_user = 'SYSTEM';

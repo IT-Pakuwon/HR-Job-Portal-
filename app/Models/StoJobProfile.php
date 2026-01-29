@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class StoJobProfile extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_ms_sto_job_profile";    
     protected $fillable = [     
         'departement_id',

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StoGrading extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_ms_sto_grading";
     
     protected $fillable = [

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GroupAccspecific extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "ms_group_acc_specific";
     
     protected $fillable = [

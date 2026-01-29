@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SignPayroll extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "ms_approval_payroll";
     // protected $primaryKey = 'id';
     protected $fillable = [

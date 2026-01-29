@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ChangeSto extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_ms_request_change_sto";   
     protected $fillable = [
         'changerequest_id',

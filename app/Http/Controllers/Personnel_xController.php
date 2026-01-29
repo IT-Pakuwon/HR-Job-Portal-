@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Auth; // baru
 use App\Models\Tr;
 use App\Models\M_approval;
 use App\Models\T_approval;
-use App\Models\Dept;
+use App\Models\MsDepartment;
 use App\Models\Location;
 use App\Models\Autonbr;
 use App\Models\Attachment;
-use App\Models\Company;
+use App\Models\MsCompany;
 use App\Models\T_Message;
 use App\Models\User;
 use App\Models\Usercpny;

@@ -7,13 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Personnel;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\JobLevel;
 use App\Models\JobResponsiblities;
 use App\Models\JobQualification;
@@ -44,6 +39,8 @@ use App\Models\TrAttachment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Mail;
+use App\Models\DepartmentHR;
+
 
 
 class PersonnelController extends Controller
@@ -104,11 +101,11 @@ class PersonnelController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
-        $joblevel = JobLevel::select('title_level')->get();
+        $companies = MsCompany::select('cpny_id')->get();       
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
-        $division = Division::select('division_id','division_name')->get();
+        $division = Division::select('division_id','division_name')
+            ->where('status', 'A')
+            ->get();
 
         $subgradings = StoSubGrading::select('subgrade_id','subgrade_name','group_grade')
             ->where('status', 'A')
@@ -116,7 +113,7 @@ class PersonnelController extends Controller
             ->get();
 
        
-        return view('pages.personnels.createpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings'));
+        return view('pages.personnels.createpersonnels', compact('companies','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings'));
     }
 
     public function createPersonnelx()
@@ -130,8 +127,8 @@ class PersonnelController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $companies = MsCompany::select('cpny_id')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
        
@@ -475,8 +472,8 @@ class PersonnelController extends Controller
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $companies = MsCompany::select('cpny_id')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
         $division  = Division::select('division_id','division_name')->get();
@@ -2130,6 +2127,23 @@ class PersonnelController extends Controller
         return redirect()->away($url);
     }
 
+    public function byDivision(Request $request)
+    {
+        $divisionId = $request->query('division_id');
+
+        if (!$divisionId) {
+            return response()->json([], 200);
+        }
+
+        $departments = DepartmentHR::query()
+            ->select('department_id', 'department_name', 'division_id')
+            ->where('division_id', $divisionId)
+            ->where('status', 'A')
+            ->orderBy('department_name')
+            ->get();
+
+        return response()->json($departments, 200);
+    }
 
 
 

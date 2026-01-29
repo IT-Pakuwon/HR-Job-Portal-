@@ -7,13 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\ViewCareer;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\JobLevel;
 use App\Models\JobResponsiblities;
 use App\Models\JobQualification;
@@ -756,10 +751,7 @@ class CareerController extends Controller
             return response()->json(['success' => false, 'message' => "You can't rollback!"], 403);
         }
         
-        /** ✅ HAPUS TRANSAKSI APPROVAL PENDING DI T_approval */
-        // T_approval::where('docid', $docid)
-        //     ->where('status', 'P')
-        //     ->delete(); // <-- ADDED
+                
         TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
             ->where('status', 'P')
             ->delete();
@@ -1358,7 +1350,7 @@ class CareerController extends Controller
         // dd($request->all());
         // $employee = \DB::table('employees')->where('id', $request->employee_id)->first();
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = Company::where('cpnyid', $request->cpnyid)->first();
+        $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
 
         $templatePath = storage_path('app/templates/PayrollConfirmation.docx');
         $tempDocPath = storage_path('app/temp_filled.docx');
@@ -1398,7 +1390,7 @@ class CareerController extends Controller
         // dd($request->all());
         // $employee = \DB::table('employees')->where('id', $request->employee_id)->first();
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = Company::where('cpnyid', $request->cpnyid)->first();
+        $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
 
         $templatePath = storage_path('app/templates/PayrollConfirmation.docx');
         $tempDocPath = storage_path('app/temp_filled.docx');
@@ -1437,9 +1429,9 @@ class CareerController extends Controller
     {
         // dd($request->all());
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = Company::select(['cpnyid', 'cpnyname'])->where('cpnyid', $request->cpnyid)->first();
+        $company = MsCompany::select(['cpny_id', 'cpnyname'])->where('cpny_id', $request->cpnyid)->first();
         $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
-        $dept = Dept::where('deptname', $request->departementid)->first();
+        $dept = MsDepartment::where('deptname', $request->departementid)->first();
         $t_approval = SignPayroll::where('docid', $request->jobapply_id)
             ->orderby('aprvid','ASC')
             ->get();
@@ -1488,7 +1480,7 @@ class CareerController extends Controller
         // dd($request->all());
        
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = Company::where('cpnyid', $request->cpnyid)->first();
+        $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');   
         $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();    
          
@@ -1565,7 +1557,7 @@ class CareerController extends Controller
         // dd($request->all());
        
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = Company::where('cpnyid', $request->cpnyid)->first();
+        $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $data = [
@@ -1586,7 +1578,7 @@ class CareerController extends Controller
         // dd($request->all());
        
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
-        $company = Company::where('cpnyid', $request->cpnyid)->first();
+        $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $data = [
@@ -2001,7 +1993,7 @@ class CareerController extends Controller
         if (!$applicant) {
             return response()->json(['message' => 'Data pelamar tidak ditemukan'], 422);
         }
-        $company = Company::where('cpnyid', $request->cpnyid)->first();
+        $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
         if (!$company) {
             return response()->json(['message' => 'Data perusahaan tidak ditemukan'], 422);
         }
@@ -2055,80 +2047,7 @@ class CareerController extends Controller
 
         return $pdf->stream('applicant-profile.pdf');
     }
-
-    public function insert_trx_approval_xxx($career, $user)
-    {
-        $datestamp = Carbon::now()->toDateTimeString();
-        DB::beginTransaction();
-        try {
-
-            $jobposting = Jobposting::where('docid', $career->jobid)->first();
-       
-            // Cek apakah user termasuk dalam daftar approval
-            $approvals = T_approval::where('docid', $jobposting->refid)
-                ->where('aprvid','>',1)    
-                ->where('status','A') 
-                ->orderBy('aprvid', 'ASC')            
-                ->first();
-        //    dd($approvals);
-        
-            T_approval::create([
-                'docid' => $career->docid,
-                'aprvid' => 1,
-                'aprvdoctype' => 'JAP',
-                'aprvcpnyid' => $approvals->aprvcpnyid,
-                'aprvdeptid' => $approvals->aprvdeptid,
-                'aprvusername' => $approvals->aprvusername,
-                'name' => $approvals->name,
-                'aprvdatebefore' => $approvals->aprvid == 2 ? $datestamp : null,
-                'aprvtotalday' => 1,
-                'status' => 'P',
-                'created_user' => $user->username
-            ]);
-
-             // Kirim email ke approver pertama
-            $firstApproval = T_approval::where('docid', $career->docid)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
-
-            $eid = Hashids::encode($career->id);
-
-            if ($firstApproval) {
-                $data = [
-                    'docid' => $firstApproval->docid,
-                    'cpnyid' => $firstApproval->aprvcpnyid,
-                    'deptname' => $firstApproval->aprvdeptid,
-                    'date' => $firstApproval->aprvdatebefore,
-                    'name' => $user->username,
-                    'info' => 'Apply Candidate',
-                    'url' => url('/showcareers/' . $eid)
-                ];
-
-                $approvers = explode(',', $firstApproval->aprvusername);
-                $emails = User::whereIn('username', $approvers)
-                    ->where('status', 'A')
-                    ->pluck('notification_email');
-
-                foreach ($emails as $email) {
-                    Mail::send('emails.mailapprove', $data, function ($message) use ($email, $data) {
-                        $message->to($email)
-                            ->subject($data['docid'] . ' - Waiting Approval Apply Candidate')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
-                }
-            }
-            
-
-            DB::commit();
-            return true;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e; // lempar balik supaya controller bisa tangani
-        }
-            
-
-    }
+   
 
     public function insert_trx_approval($career, $user)
     {

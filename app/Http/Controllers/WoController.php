@@ -6,13 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -986,99 +981,7 @@ class WoController extends Controller
         ));
     }
 
- 
-
-    public function showWo_xxx($hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $user = Auth::user();
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        $wo = TrWO::with([
-            'worktype',       // MsWorktype
-            'subworktype',    // MsSubworktype
-            'location',       // MsLocation
-            'sublocation',    // MsSubLocation
-            'creator:username,name',
-        ])->findOrFail($id);
-
-        $approval = T_approval::where('docid', $wo->woid)
-            ->where('status', '<>', 'X')
-            ->orderBy('created_at')
-            ->orderBy('aprvid')
-            ->get();
-
-        // $attachment = Attachment::where('docid', $wo->woid)
-        //     ->where('status', 'A')
-        //     ->get();
-        // ---------- ambil lampiran dari tr_attachment ----------
-        $rows = TrAttachment::where('refnbr', $wo->woid)
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // siapkan Signed URL dari GCS
-        $config = config('filesystems.disks.gcs');
-        $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-            $keyFilePath = base_path($keyFilePath);
-        }
-
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
-
-        // map jadi data siap pakai di view
-        $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
-            $object     = $bucket->object($objectPath);
-
-            // Signed URL 10 menit
-            $signedUrl = null;
-            try {
-                $signedUrl = $object->signedUrl(
-                    new \DateTimeImmutable('+10 minutes'),
-                    ['version' => 'v4']
-                );
-            } catch (\Throwable $e) {
-                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-            }
-
-            return (object) [                
-                'display_name' => $r->attachment_name,         // nama yang enak dibaca
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,                  // bisa null jika gagal
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
-            ];
-        });
-
-        
-        $cek_dept = MsWorktypeDept::where('worktypeid', $wo->worktypeid)           
-            ->first();
-
-        $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $wo->created_by === $loginUsername;
-
-        $userdept = Userdept::where('username', '=', $user->username)
-            ->get();
-        $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();
-            
-
-        return view('pages.wos.showwos', compact('wo', 'approval', 'attachments', 'hash','cek_dept','canUpload','userdept','userdept2'));
-    }
-
+    
 
     public function approveWo(Request $request, $docid)
     {
@@ -1809,15 +1712,16 @@ class WoController extends Controller
             'creator:username,name',
         ])->findOrFail($id);
 
-        $approval = T_approval::where('docid', $wo->woid)
-            ->where('status', '<>', 'X')
-            ->orderBy('aprvid')
-            ->orderBy('created_at')
+        $approval = TrApproval::query()
+            ->where('refnbr', $wo->woid)          // dulu: docid
+            ->where('status', '<>', 'X')           
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
             ->get();
 
         $approve_count = $approval->count();
 
-        $company = Company::where('cpnyid', $wo->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $wo->cpny_id)->first();
 
         // mapping status
         $status_map = [
@@ -1840,7 +1744,7 @@ class WoController extends Controller
             'doc_type'            => 'WO',
             'docid'               => $wo->woid,
             'department_id'       => $wo->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'cpnyid'              => $wo->cpny_id,           
             'created_by_username' => $wo->created_by,
             'created_by_name'     => ucwords(strtolower(optional($wo->creator)->name)),

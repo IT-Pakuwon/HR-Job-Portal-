@@ -6,13 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -1204,14 +1199,7 @@ class SpbController extends Controller
             ->orderBy('spb_no', 'ASC')
             ->get();
 
-
-        // --- Approval trail ---
-        $approval = T_approval::where('docid', $spb->spbid)
-            ->where('status', '<>', 'X')
-            ->orderBy('created_at')
-            ->orderBy('aprvid')
-            ->get();
-
+       
         // --- Attachments (GCS signed URL) ---
         $rows = TrAttachment::where('refnbr', $spb->spbid)
             ->where('status', 'A')
@@ -1260,7 +1248,7 @@ class SpbController extends Controller
         $canUpload     = $spb->created_by === $loginUsername;
 
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'approval', 'attachments', 'spbdetail', 'hash','canUpload'));
+        return view('pages.spbs.showspbs', compact('spb', 'attachments', 'spbdetail', 'hash','canUpload'));
     }
 
 
@@ -2056,7 +2044,7 @@ class SpbController extends Controller
             'doc_type'            => 'SPB',
             'docid'               => $spb->spbid,
             'department_id'       => $spb->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal

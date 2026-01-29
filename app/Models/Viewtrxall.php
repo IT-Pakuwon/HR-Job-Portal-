@@ -8,8 +8,8 @@ use DB;
 
 class Viewtrxall extends Model
 {
-    protected $table = "viewtrxallnew";
+    protected $connection = 'pgsql3';
+    // protected $table = "viewtrxallnew";
+    protected $table = "view_trx_career";
     
-
-
 }

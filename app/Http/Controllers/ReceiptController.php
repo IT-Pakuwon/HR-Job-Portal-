@@ -10,11 +10,6 @@ use App\Models\Autonbr;
 use App\Models\User;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Attachment;
-use App\Models\T_Message;
 use App\Models\MsVendor;
 use App\Models\MsCompany;
 use App\Models\TrReceipt;
@@ -27,7 +22,6 @@ use App\Models\TrCS;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
 use Barryvdh\DomPDF\Facade\Pdf; 
-use App\Models\Company;
 use App\Http\Controllers\TrAttachmentController;
 use App\Models\TrAttachment;
 use Illuminate\Support\Str;
@@ -349,20 +343,8 @@ class ReceiptController extends Controller
         // ===== Detail Receipt
         $rcpdetail = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
             ->orderBy('receipt_no')
-            ->get();
-
-        // --- Approval trail ---
-        $approval = T_approval::where('docid', $rcp->receiptnbr)
-            ->where('status', '<>', 'X')
-            ->orderBy('created_at')
-            ->orderBy('aprvid')
-            ->get();
-
-        // ===== Attachment by receiptnbr
-        $attachment = Attachment::where('docid', $rcp->receiptnbr)
-            ->where('status', 'A')
-            ->get();
-
+            ->get();      
+       
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($rcp->ponbr)) {
@@ -423,14 +405,12 @@ class ReceiptController extends Controller
 
         return view('pages.receipt.showreceipt', [
             'rcp'            => $rcp,
-            'rcpdetail'      => $rcpdetail,
-            'attachment'     => $attachment,
+            'rcpdetail'      => $rcpdetail,            
             'hash'           => $hash,
             'eid_receiptnbr' => $eid_receiptnbr,
             'poUrl'          => $poUrl,
             'sppbUrl'        => $sppbUrl,
-            'csUrl'          => $csUrl,
-            'approval'      => $approval,
+            'csUrl'          => $csUrl,            
             'canUpload'      => $canUpload,
         ]);
     }
@@ -1262,7 +1242,7 @@ class ReceiptController extends Controller
         }
     }
    
-    public function listAttachment($ponbr)
+    public function listAttachment_xxx($ponbr)
     {
         $rows = Attachment::where('docid', $ponbr)
             ->where('status', 'A')
@@ -1308,7 +1288,7 @@ class ReceiptController extends Controller
         $po  = TrPO::where('ponbr', $rcp->ponbr)->first();
         $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
             ->orderBy('receipt_no')->get();
-        $company = Company::where('cpnyid', $rcp->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();
 
         $data = compact('rcp','po','rcpdetails','company');
         $copy = strtoupper((string) $request->query('copy', 'ASLI'));

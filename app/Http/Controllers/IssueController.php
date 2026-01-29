@@ -8,11 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\Autonbr;
 use App\Models\User;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Attachment;
-use App\Models\T_Message;
 use App\Models\MsVendor;
 use App\Models\MsCompany;
 use App\Models\TrIssue;
@@ -22,7 +17,6 @@ use App\Models\TrSPBdetail;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
 use Barryvdh\DomPDF\Facade\Pdf; 
-use App\Models\Company;
 use App\Http\Controllers\TrAttachmentController;
 use App\Models\TrAttachment;
 use Illuminate\Support\Str;
@@ -346,20 +340,9 @@ class IssueController extends Controller
         // ===== Detail Issue (berdasarkan issueid)
         $issdetail = TrIssuedetail::where('issueid', $iss->issueid)
             ->orderBy('issue_no')
-            ->get();
+            ->get();               
 
-        // --- Approval trail ---
-        $approval = T_approval::where('docid', $iss->issueid)
-            ->where('status', '<>', 'X')
-            ->orderBy('created_at')
-            ->orderBy('aprvid')
-            ->get();
-
-        // ===== Attachment by issueid (doctype IS)
-        $attachment = Attachment::where('docid', $iss->issueid)
-            ->where('status', 'A')
-            ->get();
-
+             
         // ===== Link ke SPB (opsional) -> /showissue/{hash}
         $spbUrl = null;
         if (!empty($iss->spbid)) {
@@ -378,12 +361,10 @@ class IssueController extends Controller
 
         return view('pages.issue.showissue', [
             'iss'         => $iss,
-            'issdetail'   => $issdetail,
-            'attachment'  => $attachment,
+            'issdetail'   => $issdetail,           
             'hash'        => $hash,
             'eid_issueid' => $eid_issueid,
-            'spbUrl'      => $spbUrl,
-            'approval'      => $approval,
+            'spbUrl'      => $spbUrl,            
             'canUpload'      => $canUpload,
         ]);
     }
@@ -851,7 +832,7 @@ class IssueController extends Controller
             ->get();
 
         // Company (untuk header)
-        $company = Company::where('cpnyid', $iss->cpny_id)->first();
+        $company = MsCompany::where('cpnyid', $iss->cpny_id)->first();
 
         // Label type
         $issuetypeLabel = $iss->issuetype === 'IS'

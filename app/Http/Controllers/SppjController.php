@@ -6,13 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -22,7 +17,6 @@ use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use Mail;
 use Illuminate\Support\Facades\Log;
-use App\Models\MsCompany;
 use App\Models\Bq;
 use App\Models\BqDetail;
 use App\Models\BqDetailTemp;
@@ -1201,13 +1195,8 @@ class SppjController extends Controller
         ])
         ->where('sppjid', $sppj->sppjid)
         ->orderby('sppj_no', 'ASC')
-        ->get();
-        
-        $approval = T_approval::where('docid', $sppj->sppjid)
-            ->where('status','<>','X')      
-            ->orderBy('created_at')
-            ->orderBy('aprvid')      
-            ->get();
+        ->get();       
+       
        
         // $attachment = Attachment::where('docid', $sppj->sppjid)    
         //     ->where('status','A')        
@@ -1271,7 +1260,7 @@ class SppjController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $sppj->created_by === $loginUsername;
        
-        return view('pages.sppjs.showsppjs', compact('sppj','approval','attachments','sppjdetail','bq','hash','canUpload'));
+        return view('pages.sppjs.showsppjs', compact('sppj','attachments','sppjdetail','bq','hash','canUpload'));
     }
 
       

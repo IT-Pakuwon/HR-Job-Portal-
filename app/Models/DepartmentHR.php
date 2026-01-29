@@ -5,19 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Division extends Model
+class DepartmentHR extends Model
 {
-    use HasFactory;
-
     protected $connection = 'mysql3';
-    protected $table = 'hr_ms_division';   
-    protected $fillable = [     
+    protected $table = "hr_ms_department";
+
+    protected $fillable = [
+        'department_id',
         'division_id',
-        'division_name',
-        'status',
+        'department_name',
         'status',
         'created_user',
-        'updated_user'
+        'updated_user',
+        'completed_user',
+        'completed_at',
     ];
-   
 }
