@@ -18,7 +18,7 @@
                         class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Document Type</option>
                         @foreach ($doctypes as $dt)
-                            <option value="{{ $dt->doctype }}">{{ $dt->doctype }}</option>
+                            <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -31,7 +31,7 @@
                         class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Company</option>
                         @foreach ($companies as $c)
-                            <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
+                            <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -100,7 +100,7 @@
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                 <option value="">-- choose --</option>
                                 @foreach ($doctypes as $dt)
-                                    <option value="{{ $dt->doctype }}">{{ $dt->doctype }}</option>
+                                    <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -125,12 +125,16 @@
                             <select id="aprv_departementid" name="aprv_departementid"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                 <option value="">-- choose --</option>
+                            </select>
+                            {{-- <select id="aprv_departementid" name="aprv_departementid"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                <option value="">-- choose --</option>
                                 @foreach ($departments as $d)
                                     <option value="{{ $d->department_id }}">
                                         {{ $d->department_name }}
                                     </option>
                                 @endforeach
-                            </select>
+                            </select> --}}
                         </div>
                     </div>
 
@@ -181,6 +185,10 @@
     {{-- Select2 CDN --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        const TYPE_OPTIONS = @json($type->pluck('category_name')->values());
+        const COND_OPTIONS = @json($condition->pluck('category_name')->values());
+    </script>
 
     <script>
         $(document).ready(function() {
@@ -348,92 +356,83 @@
             });
 
             // ===== Helper baris approval line =====
-            function lineRowTemplate(idx, data) {
-                const level = data && data.aprv_leveling ? data.aprv_leveling : '';
-                const typeVal = data && data.aprv_type ? data.aprv_type : '';
-                const condVal = data && data.aprv_condition ? data.aprv_condition : '';
-                const startNom = data && data.aprv_start_nominal ? data.aprv_start_nominal : '';
-                const endNom = data && data.aprv_end_nominal ? data.aprv_end_nominal : '';
+            function buildOptions(arr, selected) {
+                let html = `<option value=""></option>`;
+                arr.forEach(v => {
+                    const sel = (selected && String(selected) === String(v)) ? 'selected' : '';
+                    html += `<option value="${escapeHtml(v)}" ${sel}>${escapeHtml(v)}</option>`;
+                });
+                return html;
+                }
+
+                function escapeHtml(str) {
+                return String(str ?? '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+                }
+
+                function lineRowTemplate(idx, data) {
+                const level    = data?.aprv_leveling ?? '';
+                const typeVal  = data?.aprv_type ?? '';
+                const condVal  = data?.aprv_condition ?? '';
+                const startNom = data?.aprv_start_nominal ?? '';
+                const endNom   = data?.aprv_end_nominal ?? '';
 
                 return `
-                            <div class="grid grid-cols-1 items-start gap-2 md:grid-cols-6 line-row" data-row="${idx}">
-                                <div>
-                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Level</label>
-                                    <input type="text"
-                                        name="aprv_leveling[]"
-                                        class="level-input w-full rounded-lg border px-2 py-1  text-sm  dark:bg-gray-700"
-                                        value="${level}"
-                                        placeholder="0.00"
-                                        inputmode="decimal"
-                                        autocomplete="off"
-                                        required>
-                                </div>
+                    <div class="grid grid-cols-1 items-start gap-2 md:grid-cols-6 line-row" data-row="${idx}">
+                    <div>
+                        <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Level</label>
+                        <input type="text" name="aprv_leveling[]"
+                        class="level-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                        value="${level}" placeholder="0.00" inputmode="decimal" autocomplete="off" required>
+                    </div>
 
-                                <div>
-                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Name</label>
-                                    <select name="aprv_username[${idx}][]"
-                                            class="w-full rounded-lg border px-2 py-1  text-sm  sel-username dark:bg-gray-700"
-                                            multiple
-                                            required>
-                                    </select>
-                                </div>
+                    <div>
+                        <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Name</label>
+                        <select name="aprv_username[${idx}][]"
+                        class="w-full rounded-lg border px-2 py-1 text-sm sel-username dark:bg-gray-700"
+                        multiple required></select>
+                    </div>
 
-                                <div>
-                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Type</label>
-                                    <select name="aprv_type[]"
-                                            class="w-full rounded-lg border px-2 py-1  text-sm  sel-type dark:bg-gray-700">
-                                        <option value=""></option>
-                                        @foreach ($type as $t)
-                                            <option value="{{ $t->category_name }}"
-                                                \${typeVal === '{{ $t->category_name }}' ? 'selected' : ''}>
-                                                {{ $t->category_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                    <div>
+                        <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Type</label>
+                        <select name="aprv_type[]"
+                        class="w-full rounded-lg border px-2 py-1 text-sm sel-type dark:bg-gray-700">
+                        ${buildOptions(TYPE_OPTIONS, typeVal)}
+                        </select>
+                    </div>
 
-                                <div>
-                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Condition</label>
-                                    <select name="aprv_condition[]"
-                                            class="w-full rounded-lg border px-2 py-1  text-sm  sel-condition dark:bg-gray-700">
-                                        <option value=""></option>
-                                        @foreach ($condition as $c)
-                                            <option value="{{ $c->category_name }}"
-                                                \${condVal === '{{ $c->category_name }}' ? 'selected' : ''}>
-                                                {{ $c->category_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                    <div>
+                        <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Condition</label>
+                        <select name="aprv_condition[]"
+                        class="w-full rounded-lg border px-2 py-1 text-sm sel-condition dark:bg-gray-700">
+                        ${buildOptions(COND_OPTIONS, condVal)}
+                        </select>
+                    </div>
 
-                                <div>
-                                    <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">Start Nominal</label>
-                                    <input type="text"
-                                        name="aprv_start_nominal[]"
-                                        class="nominal-input w-full rounded-lg border px-2 py-1  text-sm  dark:bg-gray-700"
-                                        value="${startNom}"
-                                        inputmode="decimal"
-                                        autocomplete="off">
-                                </div>
+                    <div>
+                        <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Start Nominal</label>
+                        <input type="text" name="aprv_start_nominal[]"
+                        class="nominal-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                        value="${startNom}" inputmode="decimal" autocomplete="off">
+                    </div>
 
-                                <div class="flex gap-2">
-                                    <div class="flex-1">
-                                        <label class="md:hidden  text-sm  text-gray-500 dark:text-gray-300">End Nominal</label>
-                                        <input type="text"
-                                            name="aprv_end_nominal[]"
-                                            class="nominal-input w-full rounded-lg border px-2 py-1  text-sm  dark:bg-gray-700"
-                                            value="${endNom}"
-                                            inputmode="decimal"
-                                            autocomplete="off">
-                                    </div>
-                                    <button type="button"
-                                            class="removeLineBtn self-center rounded bg-red-500 px-2 py-1  text-sm  font-semibold text-white">
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                        `;
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                        <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">End Nominal</label>
+                        <input type="text" name="aprv_end_nominal[]"
+                            class="nominal-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                            value="${endNom}" inputmode="decimal" autocomplete="off">
+                        </div>
+                        <button type="button" class="removeLineBtn self-center rounded bg-red-500 px-2 py-1 text-sm font-semibold text-white">✕</button>
+                    </div>
+                    </div>
+                `;
             }
+
 
 
             let lineIdxCounter = 0;
@@ -477,6 +476,75 @@
                 $(this).closest('.line-row').remove();
             });
 
+            function loadDepartmentsByDoctype(doctype, selectedValue = null) {
+                const url = "{{ route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype || '');
+                const $dep = $('#aprv_departementid');
+
+                // Clear select2 selection
+                $dep.empty().append('<option value="">Loading...</option>').val('').trigger('change');
+
+                $.get(url, function(items) {
+                    $dep.empty().append('<option value="">-- choose --</option>');
+
+                    items.forEach(function(it) {
+                        const v = String(it.value ?? '').trim();
+                        if (!v) return;
+                        $dep.append(`<option value="${v}">${it.text}</option>`);
+                    });
+
+                    if (selectedValue) {
+                        $dep.val(String(selectedValue)).trigger('change');
+                    } else {
+                        $dep.val('').trigger('change');
+                    }
+                });
+            }
+
+
+            // Reload department saat doctype berubah
+            $('#aprv_doctype').on('change', function () {
+                const dt = $(this).val() || '';
+                // reset pilihan department dulu
+                loadDepartmentsByDoctype(dt, null);
+            });
+
+            function loadFilterDepartmentsByDoctype(doctype) {
+                const url = "{{ route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype || '');
+                const $fDept = $('#filterDept');
+
+                // simpan value yang sedang dipilih (kalau masih ada)
+                const prev = $fDept.val();
+
+                // reset + loading
+                $fDept.empty().append('<option value="">Loading...</option>').val('').trigger('change');
+
+                $.get(url, function(items) {
+                    $fDept.empty().append('<option value="">All Department</option>');
+
+                    items.forEach(function(it) {
+                        const v = String(it.value ?? '').trim();
+                        if (!v) return;
+                        $fDept.append(`<option value="${v}">${it.text}</option>`);
+                    });
+
+                    // restore kalau masih valid
+                    if (prev && $fDept.find(`option[value="${prev}"]`).length) {
+                        $fDept.val(prev).trigger('change');
+                    } else {
+                        $fDept.val('').trigger('change');
+                    }
+                });
+            }
+
+            $('#filterDoctype').on('change', function() {
+                const dt = $(this).val() || '';
+                loadFilterDepartmentsByDoctype(dt);
+
+                // optional: reset filter department di DataTable saat doctype berubah
+                // biar nggak nyangkut ke department lama yang tidak ada di list baru
+                $('#filterDept').val('').trigger('change');
+            });
+
             // ADD Approval
             $('#addApprovalBtn').click(function() {
                 $('#approvalModalTitle').text("Add Approval");
@@ -485,14 +553,17 @@
                 $('#addLineBtn').removeClass('hidden');
                 $('#linesContainer').empty();
 
-                $('#aprv_doctype').val('').trigger('change');
-                $('#aprv_departementid').val('').trigger('change');
                 $('#aprv_cpnyid_select').val('').trigger('change');
+
+                // set doctype kosong & load dept default
+                $('#aprv_doctype').val('').trigger('change'); // ini akan memanggil handler change -> loadDepartmentsByDoctype('')
+                // jadi tidak perlu panggil loadDepartmentsByDoctype lagi di sini
 
                 lineIdxCounter = 0;
                 addLineRow();
                 $('#approvalModal').removeClass('hidden');
             });
+
 
             // EDIT Approval
             $(document).on('click', '.editApprovalBtn', function() {
@@ -511,8 +582,11 @@
                 $.get(`/approvals/${id}/edit`, function(data) {
                     $('#approvalModalTitle').text("Edit Approval");
 
+                    // $('#aprv_doctype').val(data.aprv_doctype).trigger('change');
+                    // $('#aprv_departementid').val(data.aprv_departementid).trigger('change');
                     $('#aprv_doctype').val(data.aprv_doctype).trigger('change');
-                    $('#aprv_departementid').val(data.aprv_departementid).trigger('change');
+                    loadDepartmentsByDoctype(data.aprv_doctype, data.aprv_departementid);
+
                     $('#aprv_cpnyid_select').val(data.aprv_cpnyid).trigger('change');
 
                     addLineRow({
@@ -552,9 +626,10 @@
 
                 const dt = $('#aprv_doctype').val();
                 const cp = $('#aprv_cpnyid_select').val();
-                const dep = $('#aprv_departementid').val();
+                const dep = $('#aprv_departementid').val();               
 
-                if (!dt || !cp || !dep) {
+
+                if (!dt || !cp || !dep ) {
                     alert('Doctype, Company, dan Department wajib diisi.');
                     return;
                 }
@@ -586,6 +661,12 @@
                     alert(errorMsg);
                     return;
                 }
+
+                console.log('dept select val:', $('#aprv_departementid').val());
+                console.log('dept select selected text:', $('#aprv_departementid option:selected').text());
+                console.log('dept select name:', $('#aprv_departementid').attr('name'));
+                console.log('dept select disabled:', $('#aprv_departementid').prop('disabled'));
+
 
                 let id = $('#id').val();
                 let url = id ? `/approvals/${id}` : "{{ route('approvals.store') }}";
@@ -664,5 +745,7 @@
             $(this).val(v);
         });
     </script>
+
+    
 
 </x-app-layout>

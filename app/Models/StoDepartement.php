@@ -9,6 +9,7 @@ use App\Models\StoSubGrading;
 
 class StoDepartement extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_ms_sto_departement";
     
     protected $fillable = [

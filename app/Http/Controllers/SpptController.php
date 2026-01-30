@@ -6,13 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -22,7 +17,6 @@ use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use Mail;
 use Illuminate\Support\Facades\Log;
-use App\Models\MsCompany;
 use App\Models\Bq;
 use App\Models\BqDetail;
 use App\Models\BqDetailTemp;
@@ -2064,13 +2058,9 @@ class SpptController extends Controller
             ->exists();
         // dd( $canEdit);   
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
-            ->get();      
-              
-        $attachment = Attachment::where('docid', $bq->bqid)    
-            ->where('status','A')        
-            ->get();    
-       
-        return view('pages.sppts.showbqsppts', compact('bq','attachment','bqdetail','canEdit','hash'));
+            ->get();                   
+   
+        return view('pages.sppts.showbqsppts', compact('bq','bqdetail','canEdit','hash'));
     }
 
     public function editBQ($id)
@@ -2142,7 +2132,7 @@ class SpptController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $sppt->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $sppt->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($sppt->status) {
@@ -2168,7 +2158,7 @@ class SpptController extends Controller
             'doc_type'            => 'SPPT',
             'docid'               => $sppt->spptid,
             'department_id'       => $sppt->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal

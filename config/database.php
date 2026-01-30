@@ -178,34 +178,7 @@ return [
             'sslmode' => 'prefer',
         ],
 
-        // 'sqlsrv' => [
-        //     'driver' => 'sqlsrv',
-        //     'url' => env('DATABASE_URL'),
-        //     'host' => env('DB_HOST_1', '127.0.0.1'),
-        //     'port' => env('DB_PORT_1', '1433'),
-        //     'database' => env('DB_DATABASE_1', 'forge'),
-        //     'username' => env('DB_USERNAME_1', 'forge'),
-        //     'password' => env('DB_PASSWORD_1', ''),
-        //     'charset' => 'utf8',
-        //     'prefix' => '',
-        //     'prefix_indexes' => true,
-        //     // 'encrypt' => env('DB_ENCRYPT', 'yes'),
-        //     // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
-        // ],
-
-        // 'sqlsrv2' => [
-        //     'driver' => 'sqlsrv',
-        //     'url' => env('DATABASE_URL'),
-        //     'host' => env('DB_HOST_2', '127.0.0.1'),
-        //     'port' => env('DB_PORT_2', '1433'),
-        //     'database' => env('DB_DATABASE_2', 'forge'),
-        //     'username' => env('DB_USERNAME_2', 'forge'),
-        //     'password' => env('DB_PASSWORD_2', ''),
-        //     'charset' => 'utf8',
-        //     'prefix' => '',
-        //     'prefix_indexes' => true,
-        // ],        
-
+      
         // config/database.php
 
         'sqlsrv5' => [

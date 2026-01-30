@@ -9,6 +9,7 @@ class CompanyAddress extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql3';
     protected $table = 'hr_company_address'; 
     
     protected $fillable = [     

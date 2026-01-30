@@ -34,17 +34,17 @@ class DashboardController extends Controller
 
         $datenow = now()->format('Y-m-d');
 
-        $agendas = Agenda::whereDate('startdate', $datenow)
-            ->where(function ($q) use ($user) {
-                $q->where('created_user', $user->username)
-                  ->orWhereRaw('FIND_IN_SET(?, participant)', [$user->username]);
-            })
-            ->orderBy('startdate', 'asc')
-            ->get();
+        // $agendas = Agenda::whereDate('startdate', $datenow)
+        //     ->where(function ($q) use ($user) {
+        //         $q->where('created_user', $user->username)
+        //           ->orWhereRaw('FIND_IN_SET(?, participant)', [$user->username]);
+        //     })
+        //     ->orderBy('startdate', 'asc')
+        //     ->get();
 
-        $news = News::where('status', 'C')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // $news = News::where('status', 'C')
+        //     ->orderBy('created_at', 'desc')
+        //     ->get();
 
         // $doctypes = Autonbr::query()
         //     ->select('doctype')
@@ -63,8 +63,8 @@ class DashboardController extends Controller
         return view('pages/dashboard/dashboard', [
             'dataFeed'   => $dataFeed,
             'tr_approval'=> collect(), // data via AJAX
-            'agendas'    => $agendas,
-            'news'       => $news,
+            // 'agendas'    => $agendas,
+            // 'news'       => $news,
             'doctypes'   => $doctypes,
         ]);
     }
@@ -91,7 +91,7 @@ class DashboardController extends Controller
         $doctype = ($doctype === 'ALL') ? '' : $doctype;
 
         // === MODELS ===
-        $trxM   = new ViewTrxAll();
+        $trxM   = new Viewtrxall();
         $appM   = new ViewJobApply();
         $aprM   = new TrApproval();
         $purchM = new ViewtrPurch();

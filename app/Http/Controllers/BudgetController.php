@@ -8,39 +8,17 @@ use Illuminate\Support\Carbon;
 use App\Models\Budget;
 use App\Models\BudgetDetail;
 use App\Models\Autonbr;
-// use App\Models\T_Message;
-// use App\Models\Attachment;
-// use App\Models\M_approval;
-// use App\Models\M_approval_other;
-// use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
-// use App\Models\JobLevel;
-// use App\Models\JobResponsiblities;
-// use App\Models\JobQualification;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
-// use App\Models\Jobposting;
-// use App\Models\JobpostingResponsiblities;
-// use App\Models\JobpostingQualification;
-// use App\Models\AutonbrJobportal;
-// use App\Models\MJobtag;
-// use App\Models\TrJobtag;
-// use App\Models\Jobpostingtag;
 use App\Models\Site;
-// use App\Models\StoEmployee;
-// use App\Models\StoDepartement;
-// use App\Models\StoJobProfile;
-// use App\Models\StoJobSpec;
-// use App\Models\Division;
 use Mail;
 use App\Imports\MsBudgetTempImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 use App\Models\MsBudgetTemp;
-use App\Models\MsCompany;
-use App\Models\MsDepartment;
 use App\Models\BusinessUnit;
 use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
@@ -679,7 +657,7 @@ class BudgetController extends Controller
                         ->select('business_unit_id','business_unit_name')
                         ->get();
 
-        $departements  = Dept::select('deptname')->get();
+        $departements  = MsDepartment::select('deptname')->get();
         
         $budget_detail = BudgetDetail::where('budget_id', $budget->budget_id) 
             ->get();
@@ -1631,7 +1609,7 @@ class BudgetController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $budget->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $budget->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($budget->status) {
@@ -1657,7 +1635,7 @@ class BudgetController extends Controller
             'doc_type'            => 'BDGET',
             'docid'               => $budget->budget_id,
             'department_id'       => $budget->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal

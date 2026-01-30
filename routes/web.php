@@ -273,6 +273,7 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
     Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
     Route::get('/attachments/view/{id}', [PersonnelController::class, 'viewAttachment'])->name('attachments.view');
+    Route::get('/hr/departments', [PersonnelController::class, 'byDivision'])->name('hr.departments');
 
 
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
@@ -1199,6 +1200,8 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     Route::get('/approvals/{id}/edit', [MsApprovalController::class, 'edit']);
     Route::put('/approvals/{id}', [MsApprovalController::class, 'update']);
     Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
+    Route::get('/approvals/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals.departments');
+
 
   
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies');

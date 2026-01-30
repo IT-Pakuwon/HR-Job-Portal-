@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Personnel extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_trx_prf";
     // protected $primaryKey = 'id';
     protected $fillable = [

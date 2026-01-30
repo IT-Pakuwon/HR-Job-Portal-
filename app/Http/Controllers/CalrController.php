@@ -21,14 +21,12 @@ use App\Models\TrSPPJ;
 use App\Models\TrSPPK;
 use App\Models\TrSPPT;
 use App\Models\TrCS;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
-use App\Models\MsCompany;
-
 
 
 class CalrController extends Controller

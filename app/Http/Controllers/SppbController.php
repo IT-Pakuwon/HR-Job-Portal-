@@ -6,13 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -2035,7 +2030,7 @@ class SppbController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $sppb->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $sppb->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($sppb->status) {
@@ -2061,7 +2056,7 @@ class SppbController extends Controller
             'doc_type'            => 'SPPB',
             'docid'               => $sppb->sppbid,
             'department_id'       => $sppb->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal

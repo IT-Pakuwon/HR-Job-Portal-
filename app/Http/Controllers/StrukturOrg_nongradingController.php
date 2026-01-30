@@ -12,8 +12,8 @@ use App\Models\Attachment;
 use App\Models\M_approval;
 use App\Models\M_approval_other;
 use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\JobLevel;
 use App\Models\JobResponsiblities;
 use App\Models\JobQualification;
@@ -79,7 +79,7 @@ class StrukturOrgController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();        
         $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get(); 
         $users = User::select('name')
             ->where('status','A')
@@ -258,7 +258,7 @@ class StrukturOrgController extends Controller
             ->first();
         $sto = TrSto::findOrFail($id);
         $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get();      
         $attachment = Attachment::where('docid', $sto->sto_id)  
             ->where('status','A')         
@@ -1101,7 +1101,7 @@ class StrukturOrgController extends Controller
         $user = request()->user();
        
         $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();   
+        $departements = MsDepartment::select('department_id')->get();   
         $joblevel = JobLevel::select('title_level')->get();     
         $users = User::select('name')
             ->where('status','A')

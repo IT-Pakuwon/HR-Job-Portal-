@@ -126,7 +126,7 @@ class TrAttachmentController extends Controller
             $uploader = app(self::class);
             $uploader->uploadInternal($meta, (array) $request->file('attachments'));
             // setelah sukses, kirim daftar terbaru
-            return $this->listAttachments($doctype, $refnbr);
+            return $this->listAttachments($request,$doctype, $refnbr);
         } catch (\Throwable $e) {
             \Log::error('uploadAttachments error', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Upload failed: '.$e->getMessage()], 500);

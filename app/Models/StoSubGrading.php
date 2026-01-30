@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StoSubGrading extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_ms_sto_subgrading";
     
     protected $fillable = [

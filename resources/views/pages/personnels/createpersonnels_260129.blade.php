@@ -47,7 +47,7 @@
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="division" id="division_id" required>
+                                    name="division" required>
                                     <option value="" disabled selected>Select Division</option>
                                     @foreach ($division as $p)
                                         <option value="{{ $p->division_id }}">{{ $p->division_name }}</option>
@@ -59,10 +59,17 @@
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="departementid" id="departementid" required>
-                                    <option value="" disabled selected>Select Department</option>
+                                    name="departementid" required>
+                                    {{-- @foreach ($userdept as $p)
+                                        <option value="{{ $p->deptname }}"
+                                            {{ $p->deptname == $userdept2->deptname ? 'selected' : '' }}>
+                                            {{ $p->deptname }}</option>
+                                    @endforeach --}}
+                                    @foreach ($departements as $p)
+                                        <option value="{{ $p->deptname }}">
+                                            {{ $p->deptname }}</option>
+                                    @endforeach
                                 </select>
-
                             </div>
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement
@@ -838,9 +845,9 @@
             }
 
             // Jalankan saat departementid atau job_type berubah
-            // $('select[name="departementid"], #job_type').on('change', function() {
-            //     loadJobTitles();
-            // });
+            $('select[name="departementid"], #job_type').on('change', function() {
+                loadJobTitles();
+            });
 
 
             $('#job_title').on('change', function() {
@@ -972,70 +979,6 @@
 
             // trigger saat pilihan berubah
             subgradeSelect.addEventListener("change", updateGroupGrade);
-        });
-    </script>
-
-    <script>
-        $(function () {
-            const $division = $('#division_id');
-            const $dept = $('#departementid');
-
-            // select2 init
-            $division.select2({ placeholder: 'Select Division', width: '100%', allowClear: true });
-            $dept.select2({ placeholder: 'Select Department', width: '100%', allowClear: true });
-
-            function resetDept(message = 'Select Department') {
-                $dept.empty().append(`<option value="" disabled selected>${message}</option>`);
-                $dept.val(null).trigger('change'); // reset select2 value
-            }
-
-            function loadDepartments(divisionId) {
-                resetDept('Loading...');
-
-                $.ajax({
-                    url: `/hr/departments`,
-                    type: 'GET',
-                    dataType: 'json',
-                    data: { division_id: divisionId },
-                    success: function (rows) {
-                        resetDept('Select Department');
-
-                        if (rows && rows.length) {
-                            rows.forEach(r => {
-                                // NOTE: value bisa kamu pilih mau department_id atau department_name
-                                // rekomendasi: pakai department_id (lebih aman buat relasi)
-                                $dept.append(`<option value="${r.department_id}">${r.department_name}</option>`);
-                            });
-                        } else {
-                            resetDept('No department found');
-                        }
-                    },
-                    error: function () {
-                        resetDept('Error loading department');
-                    }
-                });
-            }
-
-            // on division change
-            $division.on('change', function () {
-                const divisionId = $(this).val();
-                if (!divisionId) {
-                    resetDept();
-                    return;
-                }
-
-                loadDepartments(divisionId);
-
-                // OPTIONAL: kalau department berubah, job title kamu load berdasarkan dept -> tetap jalan
-                // karena event departementid sudah ada di script kamu: $('select[name="departementid"], #job_type').on('change', ...)
-            });
-
-            // optional: kalau ada default division terpilih (edit mode), auto load dept
-            if ($division.val()) {
-                loadDepartments($division.val());
-            } else {
-                resetDept();
-            }
         });
     </script>
 

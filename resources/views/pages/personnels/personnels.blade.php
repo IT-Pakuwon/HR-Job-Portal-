@@ -180,7 +180,8 @@
                 ],
 
 
-                order: [1, 'asc'],
+                // order: [1, 'asc'],
+                ordering: false,
 
                 rowGroup: {
                     dataSrc: 'cpnyid', // Kelompokkan berdasarkan kolom 'cpnyid'

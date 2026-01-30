@@ -22,8 +22,8 @@ use App\Models\TrSPPJ;
 use App\Models\TrSPPK;
 use App\Models\TrSPPT;
 use App\Models\TrCS;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\MsBASTRating;
 use App\Models\TrBASTRating;
 use App\Models\MsPenalty;
@@ -757,7 +757,7 @@ class BastController extends Controller
         $approve_count = $approval->count();
 
         // Company
-        $company = Company::where('cpnyid', $bast->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $bast->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($bast->status) {
@@ -783,7 +783,7 @@ class BastController extends Controller
             'doc_type'            => 'BAST',
             'docid'               => $bast->bastid,
             'department_id'       => $bast->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
 
@@ -867,7 +867,7 @@ class BastController extends Controller
         $approve_count = $approval->count();
 
         // Company
-        $company = Company::where('cpnyid', $bast->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $bast->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($bast->status) {
@@ -893,7 +893,7 @@ class BastController extends Controller
             'doc_type'            => 'BAST',
             'docid'               => $bast->bastid,
             'department_id'       => $bast->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
 

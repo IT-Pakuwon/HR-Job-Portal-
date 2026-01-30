@@ -7,8 +7,8 @@ use App\Models\UserDas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\T_Message;
 use App\Models\Attachment;
 use App\Models\M_approval;
@@ -267,7 +267,7 @@ class AgendaController extends Controller
 
     public function getDepartement()
     {
-        $departement = Dept::select('deptname')->get();       
+        $departement = MsDepartment::select('department_id')->get();       
         return response()->json($departement);
     }
 

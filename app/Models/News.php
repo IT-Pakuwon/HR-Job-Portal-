@@ -9,6 +9,7 @@ class News extends Model
 {
     use HasFactory;
 
+    protected $connection = 'pgsql3';
     protected $table = 'trx_news';    
     protected $fillable = [     
         'docid',

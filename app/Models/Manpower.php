@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Manpower extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_ms_mpp";   
     protected $fillable = [
         'docid',        

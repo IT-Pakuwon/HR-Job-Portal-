@@ -6,8 +6,8 @@ use App\Models\TrSto;
 use Illuminate\Support\Facades\DB;
 use App\Models\StoEmployee;
 use App\Models\StoDepartement;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\JobLevel;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth; 
@@ -24,8 +24,8 @@ class OrgChartController extends Controller
 {
     public function index(Request $request)
     {
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $companies = MsCompany::select('cpny_id')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get();
         // $sto_id = $this->insert_sto_autonbr($request);
         // $sto = TrSto::where('sto_id', $sto_id)->first();
@@ -177,12 +177,12 @@ class OrgChartController extends Controller
             }
 
             // ✅ Cek ke tabel master Dept (bukan StoDepartement)
-            $existingDept = Dept::whereRaw('LOWER(deptname) = ?', [strtolower($request->departement_name)])
+            $existingDept = MsDepartment::whereRaw('LOWER(department_id) = ?', [strtolower($request->departement_name)])
                 ->first();
 
             if (!$existingDept) {
                 // ✅ Jika tidak ditemukan, insert ke Dept
-                $newDept = new Dept();
+                $newDept = new MsDepartment();
                 $newDept->deptname = $request->departement_name;
                 $newDept->status = 'A'; // jika ada field status
                 $newDept->save();

@@ -7,13 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Personnel;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\JobLevel;
 use App\Models\JobResponsiblities;
 use App\Models\JobQualification;
@@ -44,43 +39,157 @@ use App\Models\TrAttachment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Mail;
+use App\Models\SysUserRole;
+use App\Models\DepartmentHR;
+
 
 
 class PersonnelController extends Controller
 {
+    private function splitCsv(?string $value): array
+    {
+        if (!$value) return [];
+        return collect(explode(',', $value))
+            ->map(fn($x) => trim((string)$x))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function userCpnyIds($user): array
+    {
+        return $this->splitCsv($user->cpny_id);
+    }
+
+    private function userDeptIds($user): array
+    {
+        return $this->splitCsv($user->department_id);
+    }
+
+    private function hasRoleAllDept($user): bool
+    {
+        return SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', 'RECACCALLDEPT')
+            ->where(function ($q) {
+                // kalau sys_user_role tidak pakai status, boleh hapus blok ini
+                $q->whereNull('status')->orWhere('status', 'A');
+            })
+            ->exists();
+    }
+
+    private function userDivisionIds($user): array
+    {
+        $deptIds = $this->userDeptIds($user);
+        if (empty($deptIds)) return [];
+
+        // 1) Utama: mapping dari ms_department (pgsql2) -> department_hr_id kamu isi division_id
+        $divisions = MsDepartment::query()
+            ->whereIn('department_id', $deptIds)
+            ->whereNotNull('department_hr_id')
+            ->pluck('department_hr_id')
+            ->map(fn($x) => trim((string)$x))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!empty($divisions)) return $divisions;
+
+        // 2) Fallback: dari hr_ms_department (mysql3)
+        $divisions2 = DepartmentHR::query()
+            ->whereIn('department_id', $deptIds)
+            ->whereNotNull('division_id')
+            ->pluck('division_id')
+            ->map(fn($x) => trim((string)$x))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return $divisions2;
+    }
+
+    private function personnelScopeForUser($user)
+    {
+        $cpnyIds = $this->userCpnyIds($user);
+
+        $q = Personnel::query();
+
+        // wajib punya cpny
+        if (empty($cpnyIds)) return $q->whereRaw('1=0');
+
+        // filter cpnyid user (AW,EP,PSA,GPS)
+        $q->whereIn('cpnyid', $cpnyIds);
+
+        // role all dept -> bisa lihat semua division
+        if ($this->hasRoleAllDept($user)) {
+            return $q;
+        }
+
+        // selain itu: filter division_id
+        $divisionIds = $this->userDivisionIds($user);
+        if (empty($divisionIds)) return $q->whereRaw('1=0');
+
+        return $q->whereIn('division_id', $divisionIds);
+    }
+
     public function index()
     {
-        $all = Personnel::count();
-        $onProgress = Personnel::where('status', 'P')->count();
-        $reject = Personnel::where('status', 'R')->count();
-        $revise = Personnel::where('status', 'D')->count();
-        $completed = Personnel::where('status', 'C')->count();
+        $user = Auth::user();
        
-        return view('pages.personnels.personnels', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $base = $this->personnelScopeForUser($user);
+
+        $counts = (clone $base)->selectRaw("
+            COUNT(*) AS all,
+            SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) AS on_progress,
+            SUM(CASE WHEN status = 'R' THEN 1 ELSE 0 END) AS reject,
+            SUM(CASE WHEN status = 'D' THEN 1 ELSE 0 END) AS revise,
+            SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) AS completed
+        ")->first();
+
+        return view('pages.personnels.personnels', [
+            'all'        => (int) ($counts->all ?? 0),
+            'onProgress' => (int) ($counts->on_progress ?? 0),
+            'reject'     => (int) ($counts->reject ?? 0),
+            'revise'     => (int) ($counts->revise ?? 0),
+            'completed'  => (int) ($counts->completed ?? 0),
+        ]);
     }
-    
+
     public function json(Request $request)
     {
-        // $status = $request->query('status', 'P');
+        $user = Auth::user();
+
         $status = $request->has('status') ? $request->query('status') : 'P';
+        $status = is_string($status) ? trim($status) : $status;
 
-        $query = Personnel::query();
+        $query = $this->personnelScopeForUser($user);
 
-        if (!empty($status)) {
+        if ($status !== null && $status !== '' && strtolower((string)$status) !== 'all') {
             $query->where('status', $status);
         }
 
-        // $personnel = $query->orderBy('id', 'desc')->get();
-        $rows = $query->orderBy('id', 'desc')->get();
+        // $rows = $query->orderByDesc('id')->get();
+        $rows = $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('docid')
+            ->get();
 
-        // Map ke bentuk aman: gunakan hid, sembunyikan id
+
         $personnel = $rows->map(function ($row) {
             return [
-                'eid'            => $row->eid ?? Hashids::encode($row->id), // kalau pakai accessor, ini otomatis
+                'eid'            => Hashids::encode($row->id),
                 'docid'          => $row->docid,
-                'date'           => optional($row->date)->format('Y-m-d') ?? $row->date,
+                'date'           => $row->date ? \Carbon\Carbon::parse($row->date)->format('Y-m-d') : null,
                 'cpnyid'         => $row->cpnyid,
                 'departementid'  => $row->departementid,
+                'division_id'    => $row->division_id,
                 'job_title'      => $row->job_title,
                 'job_level'      => $row->job_level,
                 'created_user'   => $row->created_user,
@@ -90,6 +199,49 @@ class PersonnelController extends Controller
 
         return response()->json(['data' => $personnel]);
     }
+
+    // public function index()
+    // {
+    //     $all = Personnel::count();
+    //     $onProgress = Personnel::where('status', 'P')->count();
+    //     $reject = Personnel::where('status', 'R')->count();
+    //     $revise = Personnel::where('status', 'D')->count();
+    //     $completed = Personnel::where('status', 'C')->count();
+       
+    //     return view('pages.personnels.personnels', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+    // }
+    
+    // public function json(Request $request)
+    // {
+    //     // $status = $request->query('status', 'P');
+    //     $status = $request->has('status') ? $request->query('status') : 'P';
+
+    //     $query = Personnel::query();
+
+    //     if (!empty($status)) {
+    //         $query->where('status', $status);
+    //     }
+
+    //     // $personnel = $query->orderBy('id', 'desc')->get();
+    //     $rows = $query->orderBy('id', 'desc')->get();
+
+    //     // Map ke bentuk aman: gunakan hid, sembunyikan id
+    //     $personnel = $rows->map(function ($row) {
+    //         return [
+    //             'eid'            => $row->eid ?? Hashids::encode($row->id), // kalau pakai accessor, ini otomatis
+    //             'docid'          => $row->docid,
+    //             'date'           => optional($row->date)->format('Y-m-d') ?? $row->date,
+    //             'cpnyid'         => $row->cpnyid,
+    //             'departementid'  => $row->departementid,
+    //             'job_title'      => $row->job_title,
+    //             'job_level'      => $row->job_level,
+    //             'created_user'   => $row->created_user,
+    //             'status'         => $row->status,
+    //         ];
+    //     });
+
+    //     return response()->json(['data' => $personnel]);
+    // }
 
 
 
@@ -104,11 +256,11 @@ class PersonnelController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
-        $joblevel = JobLevel::select('title_level')->get();
+        $companies = MsCompany::select('cpny_id')->get();       
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
-        $division = Division::select('division_id','division_name')->get();
+        $division = Division::select('division_id','division_name')
+            ->where('status', 'A')
+            ->get();
 
         $subgradings = StoSubGrading::select('subgrade_id','subgrade_name','group_grade')
             ->where('status', 'A')
@@ -116,7 +268,7 @@ class PersonnelController extends Controller
             ->get();
 
        
-        return view('pages.personnels.createpersonnels', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings'));
+        return view('pages.personnels.createpersonnels', compact('companies','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings'));
     }
 
     public function createPersonnelx()
@@ -130,8 +282,8 @@ class PersonnelController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $companies = MsCompany::select('cpny_id')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
        
@@ -475,8 +627,8 @@ class PersonnelController extends Controller
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
-        $companies = Company::select('cpnyid')->get();
-        $departements = Dept::select('deptname')->get();
+        $companies = MsCompany::select('cpny_id')->get();
+        $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
         $division  = Division::select('division_id','division_name')->get();
@@ -2130,6 +2282,23 @@ class PersonnelController extends Controller
         return redirect()->away($url);
     }
 
+    public function byDivision(Request $request)
+    {
+        $divisionId = $request->query('division_id');
+
+        if (!$divisionId) {
+            return response()->json([], 200);
+        }
+
+        $departments = DepartmentHR::query()
+            ->select('department_id', 'department_name', 'division_id')
+            ->where('division_id', $divisionId)
+            ->where('status', 'A')
+            ->orderBy('department_name')
+            ->get();
+
+        return response()->json($departments, 200);
+    }
 
 
 

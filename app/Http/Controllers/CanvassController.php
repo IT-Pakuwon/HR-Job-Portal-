@@ -6,13 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
-use App\Models\T_Message;
-use App\Models\Attachment;
-use App\Models\M_approval;
-use App\Models\M_approval_other;
-use App\Models\T_approval;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -2948,13 +2943,7 @@ class CanvassController extends Controller
             return $d;
         });
 
-
-        $approval = T_approval::where('docid', $cs->csid)
-            ->where('status','<>','X')
-            ->orderBy('created_at')
-            ->orderBy('aprvid')
-            ->get();        
-
+        
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $cs->csid)
             ->where('status', 'A')
@@ -3134,8 +3123,7 @@ class CanvassController extends Controller
         $canUpload     = $cs->created_by === $loginUsername;        
 
         return view('pages.canvass.showcs', [
-            'cs'         => $cs,
-            'approval'   => $approval,
+            'cs'         => $cs,           
             'attachmentCS' => $attachmentCS,
             'attachmentBJKT' => $attachmentBJKT,
             'csdetail'   => $csdetail,
@@ -3698,10 +3686,7 @@ class CanvassController extends Controller
             'subLocation:sub_location_id,sub_location_name',
         ])->where('csid', $cs->csid)->orderBy('cs_no')->get();
 
-        // Approval
-        // $approval = T_approval::where('docid', $cs->csid)
-        //     ->where('status', '<>', 'X')
-        //     ->orderBy('aprvid')->orderBy('created_at')->get();
+        // Approval       
          $approval = TrApproval::query()
             ->where('refnbr', $cs->csid)          // dulu: docid
             ->where('status', '<>', 'X')           
@@ -3711,7 +3696,7 @@ class CanvassController extends Controller
         $approve_count = $approval->count();
 
         // Company
-        $company = Company::where('cpnyid', $cs->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $cs->cpny_id)->first();
 
         // Map status
         switch ($cs->status) {
@@ -3761,7 +3746,7 @@ class CanvassController extends Controller
             'doc_type'            => 'CS',
             'docid'               => $cs->csid,
             'department_id'       => $cs->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             'created_by_username' => $cs->created_by,

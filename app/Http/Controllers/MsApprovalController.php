@@ -11,12 +11,13 @@ use App\Models\MsCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\DepartmentHR;
 
 class MsApprovalController extends Controller
 {
     public function index()
     {
-        $doctypes = Autonbr::select('doctype')
+        $doctypes = Autonbr::select('doctype','doctype_descr')
             ->distinct()
             ->orderBy('doctype')
             ->get();
@@ -92,6 +93,7 @@ class MsApprovalController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'aprv_doctype'       => 'required|string|max:50',
             'aprv_cpnyid'        => 'required|string|max:50',
@@ -317,5 +319,29 @@ class MsApprovalController extends Controller
             'success' => true,
             'status'  => $newStatus,
         ]);
+    }
+
+    public function departmentHR(Request $request)
+    {
+        $doctype = strtoupper(trim((string) $request->query('doctype', '')));
+
+        if ($doctype === 'PRF') {
+            $items = DepartmentHR::query()
+                ->selectRaw("department_id as value, department_name as text")
+                ->whereNotNull('department_id')
+                ->where('department_id', '<>', '')
+                ->orderBy('department_id')
+                ->get();
+        } else {
+            $items = MsDepartment::query()
+                ->selectRaw("department_id as value, department_name as text")
+                ->where('status', 'A')
+                ->whereNotNull('department_id')
+                ->where('department_id', '<>', '')
+                ->orderBy('department_id')
+                ->get();
+        }
+
+        return response()->json($items);
     }
 }

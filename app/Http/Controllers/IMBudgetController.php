@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
 use App\Models\Attachment;
-use App\Models\Company;
-use App\Models\Dept;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -1326,7 +1326,7 @@ class IMBudgetController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = Company::where('cpnyid', $imbudget->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $imbudget->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($imbudget->status) {
@@ -1352,7 +1352,7 @@ class IMBudgetController extends Controller
             'doc_type'            => 'IMBudget',
             'docid'               => $imbudget->imbudgetid,
             'department_id'       => $imbudget->department_id,
-            'cpnyname'            => optional($company)->cpnyname,
+            'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
             // identitas & tanggal

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrJobtag extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_trx_prf_job_tags"; 
     protected $fillable = [
         'docid',

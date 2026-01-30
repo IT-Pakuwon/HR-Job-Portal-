@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StoEmployee extends Model
 {
+    protected $connection = 'pgsql3';
     protected $table = "hr_ms_sto_employee";    
     protected $fillable = [     
         'departement_id',
