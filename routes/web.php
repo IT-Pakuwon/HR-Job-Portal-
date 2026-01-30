@@ -1200,6 +1200,8 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     Route::get('/approvals/{id}/edit', [MsApprovalController::class, 'edit']);
     Route::put('/approvals/{id}', [MsApprovalController::class, 'update']);
     Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
+    Route::get('/approvals/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals.departments');
+
 
   
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies');

@@ -25,10 +25,10 @@ class UsersController extends Controller
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
         
-        $company = MsCompany::select('cpny_id')->where('status', 'A')->get();
-        $department = MsDepartment::select('department_id')->where('status', 'A')->get();
+        $company = MsCompany::select(['cpny_id', 'cpny_name'])->where('status', 'A')->get();
+        $department = MsDepartment::select(['department_id', 'department_name'])->where('status', 'A')->get();
         // $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
-        $businessUnits = BusinessUnit::select('business_unit_id')
+        $businessUnits = BusinessUnit::select(['business_unit_id', 'business_unit_name'])
             ->where('status', 'A')
             ->distinct()
             ->get();

@@ -10,10 +10,7 @@ class MsCompany extends Model
     protected $connection = 'pgsql2';
     protected $table = "ms_company";
 
-    protected $fillable = [
-        // 'cpny_id',
-        // 'cpny_name',     
-        // 'status'
+    protected $fillable = [       
         'cpny_id', 'cpny_name', 'address_line1', 'address_line2', 'city', 
         'province', 'postalcode', 'phone', 'fax', 'tax_registration', 
         'tax_address_line', 'warehouse_note', 'status', 'created_by', 

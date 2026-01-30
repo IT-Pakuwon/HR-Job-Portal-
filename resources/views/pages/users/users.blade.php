@@ -21,7 +21,7 @@
                         class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Company</option>
                         @foreach ($company as $c)
-                            <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
+                            <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -47,8 +47,20 @@
                         class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Business Unit</option>
                         @foreach ($businessUnits as $bu)
-                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }}</option>
+                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} - {{ $bu->business_unit_name }}</option>
                         @endforeach
+                    </select>
+                </div>
+
+                <div class="min-w-[200px] flex-1">
+                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        Filter Jabatan
+                    </label>
+                    <select id="filterJabatan"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        <option value="">All Jabatan</option>
+                        <option value="staff">staff</option>
+                        <option value="manager">manager</option>
                     </select>
                 </div>
 
@@ -74,6 +86,7 @@
                             <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Departement</th>
                             <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
+                            <th class="px-4 py-3 text-left font-medium">Jabatan</th>
                             <th class="w-32 px-4 py-3 text-center font-medium">Status</th>
                         </tr>
                     </thead>
@@ -294,6 +307,10 @@
                     {
                         data: 'business_unit_id',
                         className: 'no-pointer'
+                    },                  
+                    {
+                        data: 'jabatan',
+                        className: 'no-pointer'
                     },
                     {
                         data: 'status',
@@ -312,7 +329,7 @@
                 const val = $(this).val();
 
                 table
-                    .column(3) // cpny_id
+                    .column(5) // cpny_id
                     .search(val || '', false, false)
                     .draw();
             });
@@ -322,7 +339,7 @@
                 const val = $(this).val();
 
                 table
-                    .column(4) // department_id
+                    .column(6) // department_id
                     .search(val || '', false, false)
                     .draw();
             });
@@ -335,18 +352,38 @@
                     .draw();
             });
 
+            // ===== Filter Jabatan (kolom 8) =====
+            $('#filterJabatan').on('change', function() {
+                const val = $(this).val();
+                table
+                    .column(8) // jabatan
+                    .search(val || '', false, false)
+                    .draw();
+            });
+
+
 
             // ===== Clear Filter =====
             $('#clearUserFilters').on('click', function() {
-                $('#filterCompany').val('');
-                $('#filterDepartment').val('');
-                $('#filterBusinessUnit').val('');
 
-                table.column(3).search('');
-                table.column(4).search('');
-                table.column(7).search('');
+                // reset select2 UI + value
+                $('#filterCompany').val(null).trigger('change');
+                $('#filterDepartment').val(null).trigger('change');
+                $('#filterBusinessUnit').val(null).trigger('change');
+                $('#filterJabatan').val(null).trigger('change');
+
+                // reset datatable filter untuk kolom yg benar
+                table.column(5).search(''); // company
+                table.column(6).search(''); // department
+                table.column(7).search(''); // business unit
+                table.column(8).search(''); // jabatan
+
+                // reset global search juga kalau ada
+                table.search('');
+
                 table.draw();
             });
+
 
 
             $('#addAppBtn').click(function() {
@@ -549,4 +586,38 @@
             });
         });
     </script>
+    <script>
+        $(document).ready(function () {
+
+            // 🔍 Filter Company
+            $('#filterCompany').select2({
+                placeholder: 'All Company',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // 🔍 Filter Department (SEARCHABLE)
+            $('#filterDepartment').select2({
+                placeholder: 'All Department',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // 🔍 Filter Business Unit (SEARCHABLE)
+            $('#filterBusinessUnit').select2({
+                placeholder: 'All Business Unit',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#filterJabatan').select2({
+                placeholder: 'All Jabatan',
+                allowClear: true,
+                width: '100%'
+            });
+
+        });
+    </script>
+
+
 </x-app-layout>
