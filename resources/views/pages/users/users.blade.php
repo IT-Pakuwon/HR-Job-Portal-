@@ -139,7 +139,7 @@
                             <select name="business_unit_id[]" class="select2 w-full rounded-lg border px-3 py-2"
                                 multiple required>
                                 @foreach ($businessUnits as $p)
-                                    <option value="{{ $p->business_unit_id }}">{{ $p->business_unit_id }}</option>
+                                    <option value="{{ $p->business_unit_id }}">{{ $p->business_unit_id }} - {{ $p->business_unit_name }}</option>
                                 @endforeach
                             </select>
 

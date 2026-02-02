@@ -264,7 +264,7 @@ class PersonnelController extends Controller
 
         $subgradings = StoSubGrading::select('subgrade_id','subgrade_name','group_grade')
             ->where('status', 'A')
-            ->orderBy('subgrade_id')
+            ->orderBy('grade_id', 'ASC')
             ->get();
 
        

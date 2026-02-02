@@ -37,13 +37,13 @@
 
 
                         {{-- ===== Header fields ===== --}}
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
 
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid"
+                                <select name="cpnyid" id="cpnyid"
                                     class="w-full rounded-lg border border-gray-300 bg-gray-100/50 p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
@@ -52,6 +52,34 @@
                                             {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Business Unit --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Business Unit
+                                </label>
+
+                                @php
+                                    $selectedBuId = old('business_unit_id', $sppj->business_unit_id ?? '');
+                                    $selectedBuName = old('business_unit_name', $sppj->business_unit_name ?? '');
+                                @endphp
+
+                                <input type="hidden" name="business_unit_name" id="business_unit_name" value="{{ $selectedBuName }}">
+
+                                <select name="business_unit_id" id="business_unit_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    @if($selectedBuId)
+                                        {{-- placeholder saat edit (biar tidak kosong sebelum AJAX load) --}}
+                                        <option value="{{ $selectedBuId }}" selected>
+                                            {{ $selectedBuId }}{{ $selectedBuName ? ' — '.$selectedBuName : '' }}
+                                        </option>
+                                    @else
+                                        <option value="" selected disabled>Select Business Unit</option>
+                                    @endif
                                 </select>
                             </div>
 
@@ -72,15 +100,6 @@
                             </div>
 
                             {{-- Request Type --}}
-                            {{-- <div class="flex flex-col gap-2">
-                                <label class="req block  text-sm  font-medium text-gray-700 dark:text-gray-300">Request
-                                    Type</label>
-                                <select id="requesttypeid" name="requesttypeid"
-                                    class="w-full rounded-lg border border-gray-300 bg-gray-100/50 p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled>Loading...</option>
-                                </select>
-                            </div> --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
                                     Type</label>
@@ -2127,6 +2146,7 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
+                business_unit_id: null,
             };
 
             function openCoaModal(forRow) {
@@ -2136,6 +2156,7 @@
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
+                const bu = $('#business_unit_id').val();
 
                 if (!cpny) {
                     if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
@@ -2149,6 +2170,7 @@
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
                 coaState.perpost = perpost;
+                coaState.business_unit_id = bu;
                 coaState.page = 1;
                 coaState.search = '';
 
@@ -2208,6 +2230,7 @@
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
                         perpost: coaState.perpost,
+                        business_unit_id: coaState.business_unit_id, // ✅
                         search: coaState.search,
                         page: coaState.page,
                         per_page: coaState.per_page
@@ -2299,11 +2322,12 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
+            $('select[name="cpnyid"], select[name="departementid"], #perpost','#business_unit_id').on('change', function() {
                 if ($coaModal.is(':visible')) {
                     coaState.cpnyid = $('select[name="cpnyid"]').val();
                     coaState.deptid = $('select[name="departementid"]').val();
                     coaState.perpost = $('#perpost').val();
+                    coaState.business_unit_id = $('#business_unit_id').val();
                     $coaCpny.text(coaState.cpnyid || '-');
                     $coaDept.text(coaState.deptid || '-');
                     $coaPerpost.text(coaState.perpost || '-');
@@ -2952,8 +2976,268 @@
             });
         });
     </script>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(function () {
+        const $cpny = $('#cpnyid');
+        const $bu   = $('#business_unit_id');
+
+        let prevCpny = $cpny.val();
+        let prevBu   = $bu.val();
+        let isReverting = false;
+
+        // ===== helper: cek ada detail terisi =====
+        function hasAnyDetailFilled() {
+            return $('#sppjTable tr.sppj-row').toArray().some(tr => {
+            const $tr = $(tr);
+            return [
+                $tr.find('.inventoryIdField').val(),
+                $tr.find('.qtyField').val(),
+                $tr.find('.coaIdField').val(),
+                $tr.find('.locationIdField').val(),
+                $tr.find('.subLocationIdField').val(),
+                $tr.find('.stock_unitField').val(),
+                $tr.find('.siteidField').val(),
+            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
+            });
+        }
+
+        // ===== reset semua field detail =====
+        function resetAllDetailRows() {
+            $('#sppjTable tr.sppj-row').each(function () {
+            const $tr = $(this);
+
+            // inventory
+            $tr.find('.inventoryIdField').val('');
+            $tr.find('.productNameField').val('');
+            $tr.find('.prodItemTypeField').val('');
+            $tr.find('.prodItemSubTypeField').val('');
+            $tr.find('.prodItemCategoryField').val('');
+            $tr.find('.purchaseUnitField').val('');
+
+            // qty
+            $tr.find('.qtyField').val('');
+
+            // uom
+            $tr.find('.stock_unitField').val('-');
+            $tr.find('.uomFromField').val('');
+            $tr.find('.uomToField').val('');
+            $tr.find('.uomMultDivField').val('');
+            $tr.find('.uomRateField').val('');
+
+            // site
+            $tr.find('.siteidField').val('');
+            // trigger supaya kolom site hidden lagi kalau item_type kosong
+            $tr.find('.prodItemTypeField').trigger('change');
+
+            // lokasi
+            $tr.find('.locationIdField').val('');
+            $tr.find('.subLocationIdField').val('');
+            $tr.find('.locationDisplayField').val('');
+
+            // coa/budget mapping
+            $tr.find('.coaIdField').val('');
+            $tr.find('.coaNameField').val('');
+            $tr.find('.activityIdField').val('');
+            $tr.find('.businessUnitIdField').val('');
+            $tr.find('.departmentFinIdField').val('');
+            $tr.find('.actDescrField').val('');
+
+            // note
+            $tr.find('input[name="note[]"]').val('');
+
+            // clear validation UI
+            $tr.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+            $tr.find('.error-feedback').remove();
+            });
+
+            // reset WO
+            $('#woid').val('');
+        }
+
+        // ===== reset locked item type global (punya script inventory modal kamu) =====
+        function resetLockedItemTypeIfExists() {
+            try {
+            // lockedItemType ada di script inventory, tapi scope-nya closure.
+            // Jadi cara aman: simpan di window (kita buatkan window.lockedItemType di bawah)
+            if (typeof window.lockedItemType !== 'undefined') window.lockedItemType = '';
+            } catch (e) {}
+        }
+
+        async function confirmReset(type) {
+            const res = await Swal.fire({
+            icon: 'warning',
+            title: `Ubah ${type}?`,
+            html: `
+                <div style="text-align:left">
+                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, reset',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            focusCancel: true
+            });
+            return res.isConfirmed;
+        }
+
+        // ===== revert helper (cpny/bu balik) =====
+        function revertSelects() {
+            isReverting = true;
+
+            // revert cpny
+            $cpny.val(prevCpny);
+
+            // reload BU sesuai cpny lama, lalu set BU lama
+            // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
+            // jadi kita buat loader kecil di sini juga:
+            $bu.html('<option value="" disabled selected>Loading...</option>');
+            $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: prevCpny })
+            .done(function(res){
+                const list = res.data || [];
+                let html = '<option value="" disabled>Select Business Unit</option>';
+                list.forEach(it => {
+                const id   = it.business_unit_id ?? it.businessunit_id ?? '';
+                const name = it.business_unit_name ?? it.businessunit_name ?? id;
+                const sel  = (String(prevBu) === String(id)) ? 'selected' : '';
+                html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
+                });
+                $bu.html(html);
+                $bu.val(prevBu);
+            })
+            .always(function(){
+                isReverting = false;
+            });
+        }
+
+        // ===== handler change company =====
+        $cpny.on('change', async function () {
+            if (isReverting) return;
+
+            // jika detail kosong → update prev dan biarkan lanjut normal (BU akan reload oleh script kamu)
+            if (!hasAnyDetailFilled()) {
+            prevCpny = $cpny.val();
+            // prevBu nanti akan ke-update setelah BU ke-load (lihat handler BU)
+            return;
+            }
+
+            const ok = await confirmReset('Company');
+            if (!ok) {
+            revertSelects();
+            return;
+            }
+
+            // user confirm → reset detail
+            resetAllDetailRows();
+            resetLockedItemTypeIfExists();
+
+            prevCpny = $cpny.val();
+            // prevBu akan ikut update setelah BU ke-load
+            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
+        });
+
+        // ===== handler change BU =====
+        $bu.on('change', async function () {
+            if (isReverting) return;
+
+            if (!hasAnyDetailFilled()) {
+            prevBu = $bu.val();
+            return;
+            }
+
+            const ok = await confirmReset('Business Unit');
+            if (!ok) {
+            isReverting = true;
+            $bu.val(prevBu);
+            isReverting = false;
+            return;
+            }
+
+            resetAllDetailRows();
+            resetLockedItemTypeIfExists();
+
+            prevBu = $bu.val();
+            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
+        });
+
+        // ===== optional: pastikan prevBu ter-update setelah BU selesai load pertama kali =====
+        // delay kecil karena BU awalnya "Loading..."
+        setTimeout(() => {
+            prevCpny = $cpny.val();
+            prevBu   = $bu.val();
+        }, 300);
+        });
+    </script>
+
+    
+    <script>
+        $(function () {
+            const $cpny = $('#cpnyid');
+            const $bu = $('#business_unit_id');
+            const $buName = $('#business_unit_name');
+
+            // selected dari server (edit mode)
+            const initialBuId = @json(old('business_unit_id', $sppj->business_unit_id ?? ''));
+            const initialBuName = @json(old('business_unit_name', $sppj->business_unit_name ?? ''));
+
+            function renderBuOptions(list, selectedId) {
+                let html = '<option value="" disabled>Select Business Unit</option>';
+                (list || []).forEach(it => {
+                    const id = it.business_unit_id ?? '';
+                    const name = it.business_unit_name ?? '';
+                    const sel = String(id) === String(selectedId) ? 'selected' : '';
+                    const label = name ? `${id} — ${name}` : id;
+                    html += `<option value="${id}" data-name="${$('<div>').text(name).html()}" ${sel}>${label}</option>`;
+                });
+                return html;
+            }
+
+            function loadBusinessUnits(cpnyId, selectedId = '') {
+                if (!cpnyId) {
+                    $bu.html('<option value="" selected disabled>Select Business Unit</option>');
+                    $buName.val('');
+                    return;
+                }
+
+                $bu.html('<option value="" disabled selected>Loading...</option>');
+
+                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: cpnyId })
+                    .done(function (res) {
+                        const data = res?.data || [];
+                        $bu.html(renderBuOptions(data, selectedId));
+
+                        // set hidden business_unit_name sesuai option yang selected
+                        const $opt = $bu.find('option:selected');
+                        $buName.val($opt.data('name') || '');
+
+                        if (!data.length) {
+                            $bu.html('<option value="" selected disabled>No Business Unit</option>');
+                            $buName.val('');
+                        }
+                    })
+                    .fail(function () {
+                        $bu.html('<option value="" selected disabled>Failed to load</option>');
+                        $buName.val('');
+                    });
+            }
+
+            // initial load on edit
+            loadBusinessUnits($cpny.val(), initialBuId);
+
+            // on company change => reload BU + reset selection
+            $cpny.on('change', function () {
+                loadBusinessUnits(this.value, '');
+            });
+
+            // on BU change => set hidden name
+            $bu.on('change', function () {
+                const $opt = $(this).find('option:selected');
+                $buName.val($opt.data('name') || '');
+            });
+        });
+    </script>
 
 
     <!-- Toastr CSS -->

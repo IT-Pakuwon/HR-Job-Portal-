@@ -46,13 +46,13 @@
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPB</h2>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select
                                     class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="cpnyid" id="cpnyid" required>
+                                    name="cpnyid" required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
                                             {{ $p->cpny_id == $usercpny2->cpny_id ? 'selected' : '' }}>
@@ -60,16 +60,6 @@
                                     @endforeach
                                 </select>
                             </div>
-                             <!-- Business Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
-                            </div>
-
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
@@ -390,7 +380,69 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup Lokasi & Sub Lokasi ===== -->
+
+                    <!-- Modal: Location + Sub Location -->
+                    {{-- <div id="modalLokasi"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
+                        <div class="w-full max-w-2xl rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                            <!-- Header -->
+                            <div
+                                class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+                                <div class="flex items-center gap-3">
+                                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Pilih Location & Sub
+                                        Location</h3>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    </div>
+                                </div>
+                                <button type="button" id="closeLokasi"
+                                    class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="px-5 py-5">
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <!-- Location -->
+                                    <div>
+                                        <label
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                        <select id="modal_location_id"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">-- choose --</option>
+                                        </select>
+                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
+                                            memilih Location.</small>
+                                    </div>
+
+                                    <!-- Sub Location -->
+                                    <div>
+                                        <label
+                                            class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                            Location</label>
+                                        <select id="modal_sub_location_id"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">-- choose --</option>
+                                        </select>
+                                        <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
+                                            memilih sub location.</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer -->
+                            <div
+                                class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+                                <button type="button" id="cancelLokasi"
+                                    class="rounded-lg border px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                                    Cancel
+                                </button>
+                                <button type="button" id="saveLokasi"
+                                    class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div> --}}
+
                     <div id="modalLokasi"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
@@ -1399,7 +1451,6 @@
                 deptid: null,
                 perpost: null,
                 woid: null, // <= indikator apakah by WO atau by Dept
-                business_unit_id: null,
             };
 
             // ===================================================
@@ -1412,8 +1463,6 @@
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
-                const bu = $('#business_unit_id').val();
-
 
                 if (woid) {
                     // ==== Mode pakai WO ====
@@ -1421,7 +1470,6 @@
                     coaState.cpnyid = cpny;
                     coaState.deptid = dept;
                     coaState.perpost = null;
-                    coaState.business_unit_id = null;
                 } else {
                     // ==== Mode pakai cpnyid + deptid biasa ====
                     if (!cpny) {
@@ -1437,7 +1485,6 @@
                     coaState.cpnyid = cpny;
                     coaState.deptid = dept;
                     coaState.perpost = perpost;
-                    coaState.business_unit_id = bu;
                 }
 
                 coaState.search = '';
@@ -1465,79 +1512,78 @@
             // LOAD COA (BY WO atau BY DEPT)
             // ===================================================
             function loadCoa() {
-                    $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
-                    const esc = v => $('<div>').text(v ?? '').html();
+                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
 
-                    const url = coaState.woid
-                        ? "{{ route('coa.byWo') }}"
-                        : "{{ route('coa.byDept') }}";
+                const url = coaState.woid ?
+                    "{{ route('coa.byWo') }}" // <-- kalau punya WO, by WO
+                    :
+                    "{{ route('coa.byDept') }}"; // <-- default by Dept
 
-                    const params = coaState.woid ? {
-                        woid: coaState.woid,
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page
-                    } : {
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                        perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page
-                    };
+                const params = coaState.woid ? {
+                    woid: coaState.woid,
+                    cpnyid: coaState.cpnyid,
+                    deptid: coaState.deptid,
+                    search: coaState.search,
+                    page: coaState.page,
+                    per_page: coaState.per_page
+                } : {
+                    cpnyid: coaState.cpnyid,
+                    deptid: coaState.deptid,
+                    perpost: coaState.perpost,
+                    search: coaState.search,
+                    page: coaState.page,
+                    per_page: coaState.per_page
+                };
 
-                    $.getJSON(url, params)
-                        .done(function(res) {
+                $.getJSON(url, params)
+                    .done(function(res) {
 
-                            // update badge kalau backend kirim meta
-                            if (res.meta) {
-                                $coaCpny.text(res.meta.cpnyid ?? coaState.cpnyid ?? '-');
-                                $coaDept.text(res.meta.deptid ?? coaState.deptid ?? '-');
-                                $coaPerpost.text(res.meta.perpost ?? coaState.perpost ?? '-');
-                            }
+                        // kalau by WO, backend kirim meta → update badge
+                        if (res.meta) {
+                            $coaCpny.text(res.meta.cpnyid ?? '-');
+                            $coaDept.text(res.meta.deptid ?? '-');
+                            $coaPerpost.text(res.meta.perpost ?? '-');
+                        }
 
-                            const data = res.data || [];
-                            coaState.total = Number(res.total || 0);
+                        const data = res.data || [];
+                        coaState.total = res.total || 0;
 
-                            const rows = data.map(item => `
-                                <tr>
-                                    <td class="border p-2">${esc(item.account_id)}</td>
-                                    <td class="border p-2">${esc(item.account_descr)}</td>
-                                    <td class="border p-2">${esc(item.act_descr)}</td>
-                                    <td class="border p-2">${esc(item.activity_descr)}</td>
-                                    <td class="border p-2">${formatNumber(item.totalbudget)}</td>
-                                    <td class="border p-2 text-center">
-                                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                                            data-id="${esc(item.account_id)}"
-                                            data-activity_id="${esc(item.activity_id)}"
-                                            data-business_unit_id="${esc(item.business_unit_id)}"
-                                            data-department_fin_id="${esc(item.department_fin_id)}"
-                                            data-activity_descr="${esc(item.activity_descr)}"
-                                            data-label="${esc(item.account_id)}">
-                                            Choose
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('');
+                        const rows = data.map(item => `
+                            <tr>
+                                <td class="border p-2">${item.account_id ?? ''}</td>
+                                <td class="border p-2">${item.account_descr ?? ''}</td>
+                                <td class="border p-2">${item.act_descr ?? ''}</td>
+                                <td class="border p-2">${item.activity_descr ?? ''}</td>                                
+                                <td class="border p-2">${formatNumber(item.totalbudget)}</td> 
+                                <td class="border p-2 text-center">
+                                    <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                        data-id="${item.account_id}"
+                                        data-activity_id="${item.activity_id}"
+                                        data-business_unit_id="${item.business_unit_id}"
+                                        data-department_fin_id="${item.department_fin_id}"
+                                        data-activity_descr="${item.activity_descr}"
+                                        data-label="${item.account_id}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
 
-                            $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
-                            $coaCount.text(`Showing ${data.length} of ${coaState.total} items`);
+                        $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        $coaCount.text(`Showing ${data.length} of ${coaState.total} items`);
 
-                            const maxPage = Math.max(1, Math.ceil(coaState.total / coaState.per_page));
-                            $('#coaPrev').prop('disabled', coaState.page <= 1);
-                            $('#coaNext').prop('disabled', coaState.page >= maxPage);
-                        })
-                        .fail(function() {
-                            $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                            $coaCount.text('');
-                            $('#coaPrev, #coaNext').prop('disabled', true);
-                        });
+                        const maxPage = Math.ceil(coaState.total / coaState.per_page);
+                        $('#coaPrev').prop('disabled', coaState.page <= 1);
+                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $coaTbody.html(
+                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $coaCount.text('');
+                    });
             }
-
 
             // Pagination
             $('#coaPrev').on('click', function() {
@@ -1587,20 +1633,6 @@
                     .next('.error-feedback').remove();
 
                 $coaModal.addClass('hidden').removeClass('flex');
-            });
-
-             $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
-                if ($coaModal.is(':visible')) {
-                    coaState.cpnyid = $('select[name="cpnyid"]').val();
-                    coaState.deptid = $('select[name="departementid"]').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
-                    coaState.perpost = $('#perpost').val();
-                    $coaCpny.text(coaState.cpnyid || '-');
-                    $coaDept.text(coaState.deptid || '-');
-                    $coaPerpost.text(coaState.perpost || '-');
-                    coaState.page = 1;
-                    loadCoa();
-                }
             });
 
         });
@@ -1989,7 +2021,115 @@
                 }
             });
         });
-    </script>    
+    </script>
+    {{-- <script>
+        $(function() {
+            const $lokasiModal = $('#modalLokasi');
+            const $selLoc = $('#modal_location_id');
+            const $selSub = $('#modal_sub_location_id');
+            let currentLocRow = null;
+
+            function openLokasiModal(forRow) {
+                currentLocRow = forRow;
+
+                const cpny = $('select[name="cpnyid"]').val();
+                if (!cpny) {
+                    toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+
+                // reset dropdown
+                $selLoc.empty().append('<option value="">-- choose --</option>');
+                $selSub.empty().append('<option value="">-- choose --</option>');
+
+                // load locations
+                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                    .done(function(list) {
+                        list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
+
+                        // preselect jika row sudah punya value
+                        const curLoc = currentLocRow.find('.locationIdField').val();
+                        if (curLoc) {
+                            $selLoc.val(curLoc).trigger('change');
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat lokasi.');
+                    });
+
+                $lokasiModal.removeClass('hidden').addClass('flex');
+            }
+
+            function closeLokasiModal() {
+                $lokasiModal.addClass('hidden').removeClass('flex');
+            }
+
+            // Open modal dari tombol di row
+            $(document).on('click', '.openLokasiPicker', function() {
+                openLokasiModal($(this).closest('tr'));
+            });
+
+            // Close modal
+            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+            // Ketika location dipilih → load sublocations
+            $selLoc.on('change', function() {
+                const cpny = $('select[name="cpnyid"]').val();
+                const loc = $(this).val();
+                $selSub.empty().append('<option value="">-- choose --</option>');
+
+                if (!loc) return;
+
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                    .done(function(list) {
+                        list.forEach(it => $selSub.append(new Option(it.text, it.value)));
+
+                        // preselect jika row sudah punya sub_location_id
+                        if (currentLocRow) {
+                            const curSub = currentLocRow.find('.subLocationIdField').val();
+                            if (curSub) $selSub.val(curSub);
+                        }
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat sub location.');
+                    });
+            });
+
+            // Save ke row aktif
+            $('#saveLokasi').on('click', function() {
+                const locId = $selLoc.val();
+                const locText = $('#modal_location_id option:selected').text();
+                const subId = $selSub.val();
+                const subText = $('#modal_sub_location_id option:selected').text();
+
+                if (!locId || !subId) {
+                    toastr.error('Pilih Location dan Sub Location.');
+                    return;
+                }
+
+                // Tulis ke hidden + tampilan
+                currentLocRow.find('.locationIdField').val(locId);
+                currentLocRow.find('.subLocationIdField').val(subId);
+                currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+
+                // bersihkan error UI jika ada
+                currentLocRow.find('.locationDisplayField').removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+
+                closeLokasiModal();
+            });
+
+            // Jika company berubah dan modal terbuka → reload lokasi
+            $('select[name="cpnyid"]').on('change', function() {
+                if ($lokasiModal.is(':visible')) {
+                    // reset dan panggil open ulang dengan row yang sama
+                    $selLoc.empty().append('<option value="">-- choose --</option>');
+                    $selSub.empty().append('<option value="">-- choose --</option>');
+                    if (currentLocRow) openLokasiModal(currentLocRow);
+                }
+            });
+        });
+    </script> --}}
 
     <script>
         $(function () {
@@ -2295,223 +2435,12 @@
         });
     </script>
 
-    <script>
-        $(function () {
-            const $cpny = $('#cpnyid');
-            const $bu   = $('#business_unit_id');
-
-            function renderBuOptions(list, selected) {
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                (list || []).forEach(it => {
-                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                    const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
-                    html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
-                });
-                return html;
-            }
-
-            function loadBusinessUnitsByCpny(cpnyid, selected = null) {
-                if (!cpnyid) {
-                    $bu.html('<option value="" disabled selected>Select Company first</option>');
-                    return;
-                }
-
-                $bu.html('<option value="" disabled selected>Loading...</option>');
-
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
-                    .done(function(res){
-                        const list = res.data || [];
-                        if (!list.length) {
-                            $bu.html('<option value="" disabled selected>No Business Unit</option>');
-                        } else {
-                            // kalau selected kosong, auto pilih option pertama
-                            $bu.html(renderBuOptions(list, selected));
-                            if (!selected) {
-                                const first = list[0].business_unit_id;
-                                $bu.val(first);
-                            }
-                        }
-                    })
-                    .fail(function(){
-                        $bu.html('<option value="" disabled selected>Failed to load</option>');
-                    });
-            }
-
-            // initial load (default cpny terpilih)
-            loadBusinessUnitsByCpny($cpny.val());
-
-            // kalau company berubah → reload BU
-            $cpny.on('change', function(){
-                loadBusinessUnitsByCpny($(this).val());
-            });
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $(function () {
-        const $cpny = $('select[name="cpnyid"]');
-        const $bu   = $('#business_unit_id');
-
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
-
-        let isReverting = false; // penting: cegah loop saat revert
-
-        function hasAnyDetailFilled() {
-            return $('#spbTable tr.spb-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.siteid-hidden').val(),
-                $tr.find('.stock_unitField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
-
-        function resetWo() {
-            $('#woid').val('');
-        }
-
-        function resetDetailAllRows() {
-            $('#spbTable tr.spb-row').each(function () {
-            const $tr = $(this);
-
-            // Inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
-
-            // item meta
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
-
-            // Qty
-            $tr.find('.qtyField').val('');
-
-            // UoM
-            $tr.find('.stock_unitField').val('-'); // atau '' kalau mau kosong
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
-
-            // SiteID
-            $tr.find('.siteid-hidden').val('');
-            $tr.find('.siteid-display').val('-');
-
-            // Location & Sub
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val(''); // ini yang ada di view kamu
-
-            // COA + Budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
-
-            // Note (optional)
-            $tr.find('input[name="note[]"]').val('');
-
-            // bersihkan error UI
-            $tr.find('.is-invalid').removeClass('is-invalid');
-            $tr.find('.error-feedback').remove();
-
-            // trigger update site visibility (optional)
-            $tr.find('.prodItemTypeField').trigger('change');
-            });
-        }
-
-        async function confirmContextChange(type) {
-            if (!hasAnyDetailFilled()) return true;
-
-            const result = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b>:
-                <ul style="text-align:left; margin:10px 0 0 0;">
-                <li>Inventory, Qty, UoM</li>
-                <li>SiteID</li>
-                <li>Location & Sub Location</li>
-                <li>COA + Budget mapping</li>
-                <li>WO</li>
-                </ul>
-                <div style="margin-top:10px;">Lanjut?</div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, lanjut',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true,
-            confirmButtonColor: '#2563eb',
-            cancelButtonColor: '#6b7280'
-            });
-
-            return result.isConfirmed;
-        }
-
-        function revertContext() {
-            isReverting = true;
-            $cpny.val(prevCpny);
-            $bu.val(prevBu);
-            // kalau kamu punya loader BU via AJAX yang listen change cpny,
-            // jangan trigger('change') di sini supaya gak reload lagi.
-            // Kalau perlu refresh UI select2, baru trigger khusus select2.
-            isReverting = false;
-        }
-
-        async function onContextChange(type) {
-            if (isReverting) return;
-
-            const ok = await confirmContextChange(type);
-            if (!ok) {
-            revertContext();
-            return;
-            }
-
-            resetDetailAllRows();
-            resetWo();
-
-            // update prev setelah sukses
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
-
-            Swal.fire({
-            icon: 'info',
-            title: 'Detail direset',
-            text: `${type} berubah. Semua detail sudah direset.`,
-            timer: 1200,
-            showConfirmButton: false
-            });
-        }
-
-        $cpny.on('change', function () {
-            onContextChange('Company');
-        });
-
-        $bu.on('change', function () {
-            onContextChange('Business Unit');
-        });
-        });
-    </script>
-
-
-
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
-
 
 
 </x-app-layout>

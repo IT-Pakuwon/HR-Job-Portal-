@@ -47,6 +47,7 @@ class AcumVmsStagingController extends Controller
                 'po_detail'      => 0,
                 'receipt'        => 0,
                 'receipt_detail' => 0,
+                'kontrak'        => 0,
                 'window'         => [
                     'from' => $from->toDateTimeString(),
                     'to'   => $to->toDateTimeString(),
@@ -85,6 +86,18 @@ class AcumVmsStagingController extends Controller
                     $payload = [];
 
                     foreach ($rows as $po) {
+
+                        $potype = strtoupper(trim((string) $po->potype));
+
+                        if ($potype === 'PO') {
+                            $materialService = 'Purchase Material';
+                        } elseif ($potype === 'SPK') {
+                            $materialService = 'Purchase Service';
+                        } else {
+                            $materialService = $po->potype; // fallback
+                        }
+
+
                         $payload[] = [
                             'ponbr'            => $po->ponbr,
                             'cpny_id'          => $po->cpny_id,
@@ -92,7 +105,7 @@ class AcumVmsStagingController extends Controller
                             'vendor_id'        => $po->vendorid,
                             'vendorname'       => $po->vendorname,
                             'purchaser'        => $po->user_peminta,
-                            'material_service' => $po->potype,
+                            'material_service' => $materialService,
                             'totalamt'         => $po->totalamt,
                             'taxcodeid'        => $po->taxcodeid,
                             'taxamt'           => $po->taxamt,
@@ -110,6 +123,7 @@ class AcumVmsStagingController extends Controller
 
                     $result['po'] += count($payload);
                 });
+
 
             // =========================
             // 4) STAGING PO DETAIL

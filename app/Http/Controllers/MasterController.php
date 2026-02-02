@@ -49,7 +49,8 @@ use App\Models\TrSPPKdetail;
 use App\Models\TrSPPTdetail;
 use App\Models\TrSPBdetail;
 use App\Models\MsDepartment;
-
+use App\Models\Userbusinessunit;
+use App\Models\BusinessUnit;
 
 
 class MasterController extends Controller
@@ -782,11 +783,13 @@ class MasterController extends Controller
     {
         $user = Auth::user();
 
-        $businessUnitIds = collect(explode(',', (string) ($user->business_unit_id ?? '')))
-            ->map(fn($x) => trim($x))
-            ->filter()
-            ->values()
-            ->all();
+        // $businessUnitIds = collect(explode(',', (string) ($user->business_unit_id ?? '')))
+        //     ->map(fn($x) => trim($x))
+        //     ->filter()
+        //     ->values()
+        //     ->all();
+        $businessUnitId = trim((string) $request->get('business_unit_id', '')); // single
+
 
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
@@ -795,11 +798,12 @@ class MasterController extends Controller
         $page    = max((int) $request->get('page', 1), 1);
         $perPage = max((int) $request->get('per_page', 10), 1);
 
-        if (!$cpnyid || !$deptid) {
+        if (!$cpnyid || !$deptid || !$businessUnitId) {
             return response()->json([
                 'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
             ]);
         }
+
 
         $msdepartment = MsDepartment::query()
             ->where('department_id', $deptid)
@@ -813,14 +817,32 @@ class MasterController extends Controller
             ]);
         }
 
+        $hasAccessBu = Userbusinessunit::query()
+            ->where('username', $user->username)
+            ->where('cpny_id', $cpnyid)
+            ->where('business_unit_id', $businessUnitId)
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$hasAccessBu) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+                'message' => "Anda tidak memiliki akses Business Unit {$businessUnitId} untuk Company {$cpnyid}."
+            ], 403);
+        }
+
         // ✅ cek budget header pakai exists() (lebih cepat)
         $budgetExists = Budget::query()
             ->where('status', 'C')
             ->where('cpny_id', $cpnyid)
             ->where('department_fin_id', $msdepartment->department_fin_id)
-            ->when(!empty($businessUnitIds), fn ($q) =>
-                $q->whereIn('business_unit_id', $businessUnitIds) // ✅ tanpa alias b
-            )
+            ->where('business_unit_id', $businessUnitId)
+            // ->when(!empty($businessUnitIds), fn ($q) =>
+            //     $q->whereIn('business_unit_id', $businessUnitIds) // ✅ tanpa alias b
+            // )
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
             ->exists();
 
@@ -847,9 +869,10 @@ class MasterController extends Controller
             })
             ->where('b.cpny_id', $cpnyid)
             ->where('b.department_fin_id', $msdepartment->department_fin_id)
-            ->when(!empty($businessUnitIds), fn ($qq) =>
-                $qq->whereIn('b.business_unit_id', $businessUnitIds)
-            )
+            ->where('b.business_unit_id', $businessUnitId)
+            // ->when(!empty($businessUnitIds), fn ($qq) =>
+            //     $qq->whereIn('b.business_unit_id', $businessUnitIds)
+            // )
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
 
         if ($search !== '') {
@@ -1099,178 +1122,6 @@ class MasterController extends Controller
                 'b.activity_id',
                 'b.activity_descr as activity_descr',
                 'a.activity_descr as act_descr',
-                'b.business_unit_id',
-                'b.department_fin_id',
-            ]);
-
-        return response()->json([
-            'data' => $rows,
-            'total' => $total,
-            'page' => $page,
-            'per_page' => $perPage,
-        ]);
-    }
-
-
-    public function editCoaBudget_xxx(Request $request)
-    {
-        $cpnyid  = $request->get('cpnyid');
-        // dari view kamu kirim budget_department_fin_id, jadi ini sebenarnya dept FIN
-        $deptFinId = $request->get('deptid'); 
-        $perpost = $request->get('perpost');
-        $search  = trim($request->get('search', ''));
-        $page    = max((int) $request->get('page', 1), 1);
-        $perPage = max((int) $request->get('per_page', 10), 1);
-
-        if (!$cpnyid || !$deptFinId) {
-            return response()->json([
-                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
-            ]);
-        }
-
-        // Header budget harus ada (status Completed/Closed)
-        $budget = Budget::where('status', 'C')
-            ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $deptFinId)
-            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-            ->first();
-
-        if (!$budget) {
-            return response()->json([
-                'data' => [],
-                'total' => 0,
-                'page' => $page,
-                'per_page' => $perPage,
-                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, DeptFin {$deptFinId}, Perpost {$perpost}."
-            ]);
-        }
-
-        $q = BudgetDetail::query()
-            ->from('ms_budget as b')
-            ->join('ms_coa as c', function ($j) {
-                $j->on('c.account_id', '=', 'b.account_id')
-                ->on('c.cpny_id', '=', 'b.cpny_id');
-            })
-            ->leftJoin('ms_activity as a', function ($j) {
-                $j->on('a.activity_id', '=', 'b.activity_id')
-                ->on('a.cpny_id', '=', 'b.cpny_id');
-            })
-            ->where('b.budget_id', $budget->budget_id)
-            ->where('b.cpny_id', $cpnyid)
-            ->where('b.department_fin_id', $deptFinId)
-            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
-
-        if ($search !== '') {
-            $q->where(function ($w) use ($search) {
-                $w->where('b.account_id', 'ilike', "%{$search}%")
-                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
-                ->orWhere('b.activity_id', 'ilike', "%{$search}%")
-                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
-                ->orWhere('a.activity_descr', 'ilike', "%{$search}%");
-            });
-        }
-
-        $total = (clone $q)->count();
-
-        $rows = $q->orderBy('b.account_id')
-            ->orderBy('b.activity_descr')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get([
-                'b.account_id',
-                'c.account_descr',
-                'b.activity_id',
-                'b.activity_descr as activity_descr',
-                'a.activity_descr as act_descr',
-                'b.business_unit_id',
-                'b.department_fin_id',
-            ]);
-
-        return response()->json([
-            'data' => $rows,
-            'total' => $total,
-            'page' => $page,
-            'per_page' => $perPage,
-        ]);
-    }
-
-
-    public function CoaBudget_xxx(Request $request)
-    {
-        // dd($request->all());
-        $cpnyid  = $request->get('cpnyid');
-        $deptid  = $request->get('deptid');
-        $perpost = $request->get('perpost'); // tahun / perpost
-        $search  = trim($request->get('search', ''));
-        $page    = max((int) $request->get('page', 1), 1);
-        $perPage = max((int) $request->get('per_page', 10), 1);
-
-        if (!$cpnyid || !$deptid) {
-            return response()->json([
-                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
-            ]);
-        }
-
-        $msdepartment = MsDepartment::query()
-            ->where('department_id', $deptid)  
-            ->where('status', 'A')          
-            ->first(['department_fin_id']);
-        
-        // Header budget harus ada (status Completed/Closed)
-        $budget = Budget::where('status', 'C')
-            ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $msdepartment->department_fin_id)
-            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-            ->first();
-        // dd($budget);
-        // ✅ Opsi A: kalau budget null -> stop dan kirim message
-        if (!$budget) {
-            return response()->json([
-                'data' => [],
-                'total' => 0,
-                'page' => $page,
-                'per_page' => $perPage,
-                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, Dept {$deptid}, Perpost {$perpost}."
-            ]);
-        }
-
-        // Query detail + join COA + join Activity
-        $q = BudgetDetail::query()
-            ->from('ms_budget as b') // penting biar alias konsisten
-            ->join('ms_coa as c', function ($j) {
-                $j->on('c.account_id', '=', 'b.account_id')
-                ->on('c.cpny_id', '=', 'b.cpny_id');
-            })
-            ->leftJoin('ms_activity as a', function ($j) {
-                $j->on('a.activity_id', '=', 'b.activity_id')
-                ->on('a.cpny_id', '=', 'b.cpny_id');
-            })
-            ->where('b.budget_id', $budget->budget_id)
-            ->where('b.cpny_id', $cpnyid)
-            ->where('b.department_fin_id', $msdepartment->department_fin_id)
-            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
-
-        if ($search !== '') {
-            $q->where(function ($w) use ($search) {
-                $w->where('b.account_id', 'ilike', "%{$search}%")
-                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
-                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
-                ->orWhere('b.totalbudget::text', 'ilike', "%{$search}%");
-            });
-        }
-
-        $total = (clone $q)->count();
-
-        $rows = $q->orderBy('a.activity_descr')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get([
-                'b.account_id',
-                'c.account_descr',              // ✅ dari ms_coa
-                'b.activity_id',
-                'b.activity_descr as activity_descr', // ✅ dari ms_budget_detail
-                'a.activity_descr as act_descr', // ✅ dari ms_activity
-                'b.totalbudget',
                 'b.business_unit_id',
                 'b.department_fin_id',
             ]);
@@ -2401,6 +2252,42 @@ class MasterController extends Controller
             'per_page' => $perPage,
             'meta'     => ['type' => $type, 'cpnyid' => $cpnyid, 'departementid' => $deptId],
         ]);
+    }
+
+                
+    public function businessUnitsByCpny(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) return response()->json(['data' => []], 401);
+
+        $cpnyid = $request->get('cpnyid');
+        if (!$cpnyid) return response()->json(['data' => []]);
+
+        $rows = Userbusinessunit::query()
+            ->from('ms_user_business_unit_test as u')
+            ->join('ms_business_unit as bu', function ($j) use ($cpnyid) {
+                $j->on('bu.business_unit_id', '=', 'u.business_unit_id')
+                ->on('bu.cpny_id', '=', 'u.cpny_id');
+                // optional: kalau mau pastikan BU status A juga
+                // ->where('bu.status', 'A');
+            })
+            ->where('u.username', $user->username)
+            ->where('u.cpny_id', $cpnyid)
+            ->where('u.status', 'A')
+            ->where('bu.status', 'A')
+            ->select([
+                'u.business_unit_id',
+                'bu.business_unit_name',
+            ])
+            ->distinct()
+            ->orderBy('u.business_unit_id')
+            ->get()
+            ->map(fn ($r) => [
+                'business_unit_id'   => $r->business_unit_id,
+                'business_unit_name' => $r->business_unit_name,
+            ]);
+
+        return response()->json(['data' => $rows]);
     }
 
 
