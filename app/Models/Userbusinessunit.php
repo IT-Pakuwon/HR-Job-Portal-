@@ -12,6 +12,7 @@ class Userbusinessunit extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'username',
+        'cpny_id',
         'business_unit_id',       
         'status',
         'created_by',

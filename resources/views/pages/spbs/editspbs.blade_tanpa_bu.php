@@ -35,13 +35,13 @@
                         </div>
 
                         {{-- ===== Header fields ===== --}}
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid" id="cpnyid"
+                                <select name="cpnyid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
@@ -50,34 +50,6 @@
                                             {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
-                                </select>
-                            </div>
-
-                            {{-- Business Unit --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Business Unit
-                                </label>
-
-                                @php
-                                    $selectedBuId = old('business_unit_id', $spb->business_unit_id ?? '');
-                                    $selectedBuName = old('business_unit_name', $spb->business_unit_name ?? '');
-                                @endphp
-
-                                <input type="hidden" name="business_unit_name" id="business_unit_name" value="{{ $selectedBuName }}">
-
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
-                                        focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    @if($selectedBuId)
-                                        {{-- placeholder saat edit (biar tidak kosong sebelum AJAX load) --}}
-                                        <option value="{{ $selectedBuId }}" selected>
-                                            {{ $selectedBuId }}{{ $selectedBuName ? ' — '.$selectedBuName : '' }}
-                                        </option>
-                                    @else
-                                        <option value="" selected disabled>Select Business Unit</option>
-                                    @endif
                                 </select>
                             </div>
 
@@ -292,10 +264,29 @@
                                                         </td>
 
                                                         {{-- SiteID --}}
-                                              
+                                                        {{-- <td class="border p-3 siteid-column hidden">
+                                                            <div class="siteid-wrapper hidden">
+                                                                <select 
+                                                                    name="siteid[]" 
+                                                                    class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                                    data-cpny-id="{{ $usercpny2->cpnyid ?? '' }}"
+                                                                    data-current-site="{{ $d->siteid ?? '' }}" 
+                                                                    data-loaded="0"
+                                                                >
+                                                                    @if (!empty($d->siteid))
+                                                                        <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
+                                                                    @else
+                                                                        <option value="" selected disabled>Select site…</option>
+                                                                    @endif
+                                                                </select>
+                                                            </div>
+                                                            
+                                                            <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                                                        </td> --}}
                                                         <td class="siteid-column border p-3">
                                                             <div class="siteid-wrapper">
-                                                                <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                                                                <input type="hidden" name="siteid[]"
+                                                                    class="siteid-hidden" value="">
                                                                 <input type="text"
                                                                     class="siteid-display w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                     placeholder="-" readonly
@@ -311,7 +302,36 @@
                                                         </td>
 
                                                         {{-- Location --}}
-                                                       
+                                                        {{-- <td class="border p-3">
+                                                            <div class="flex items-center gap-2">
+                                                                <input type="hidden" name="location_id[]"
+                                                                    class="locationIdField"
+                                                                    value="{{ $d->location_id }}">
+                                                                <input type="text" name="location[]"
+                                                                    class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                    placeholder="Select location..." readonly
+                                                                    value="{{ $d->location_name ?? ($d->locationid ?? ($d->location_id ?? '')) }}">
+                                                                <button type="button"
+                                                                    class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    title="Lookup">🔎</button>
+                                                            </div>
+                                                        </td> --}}
+
+                                                        {{-- Sub Location --}}
+                                                        {{-- <td class="border p-3">
+                                                            <div class="flex items-center gap-2">
+                                                                <input type="hidden" name="sub_location_id[]"
+                                                                    class="subLocationIdField"
+                                                                    value="{{ $d->sub_location_id }}">
+                                                                <input type="text" name="sub_location[]"
+                                                                    class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                    placeholder="Select sub location..." readonly
+                                                                    value="{{ $d->sub_location_name ?? ($d->sublocationid ?? ($d->sub_location_id ?? '')) }}">
+                                                                <button type="button"
+                                                                    class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                    title="Lookup">🔎</button>
+                                                            </div>
+                                                        </td> --}}
 
                                                         @php
                                                             // Ambil data lokasi & sublokasi dari relasi (fallback ke field mentah jika ada)
@@ -1179,10 +1199,10 @@
                     const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
 
                     const $locHidden = $tr.find('.locationIdField');
-                    // const $locVis = $tr.find('.locationNameField');
+                    const $locVis = $tr.find('.locationNameField');
 
                     const $subHidden = $tr.find('.subLocationIdField');
-                    // const $subVis = $tr.find('.subLocationNameField');
+                    const $subVis = $tr.find('.subLocationNameField');
 
                     const $coaHidden = $tr.find('.coaIdField');
                     const $coaVis = $tr.find('.coaNameField');
@@ -2032,51 +2052,34 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
-                business_unit_id: null,
             };
 
             function openCoaModal(forRow) {
                 currentCoaRow = forRow;
 
-                const woid = ($('#woid').val() || '').trim();
+                // baca cpny & dept dari header
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
-                const bu = $('#business_unit_id').val();
 
-
-                if (woid) {
-                    // ==== Mode pakai WO ====
-                    coaState.woid = woid;
-                    coaState.cpnyid = cpny;
-                    coaState.deptid = dept;
-                    coaState.perpost = null;
-                    coaState.business_unit_id = null;
-                } else {
-                    // ==== Mode pakai cpnyid + deptid biasa ====
-                    if (!cpny) {
-                        toastr.warning('Pilih Company terlebih dahulu.');
-                        return;
-                    }
-                    if (!dept) {
-                        toastr.warning('Pilih Department terlebih dahulu.');
-                        return;
-                    }
-
-                    coaState.woid = null;
-                    coaState.cpnyid = cpny;
-                    coaState.deptid = dept;
-                    coaState.perpost = perpost;
-                    coaState.business_unit_id = bu;
+                if (!cpny) {
+                    if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+                if (!dept) {
+                    if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.');
+                    return;
                 }
 
-                coaState.search = '';
+                coaState.cpnyid = cpny;
+                coaState.deptid = dept;
+                coaState.perpost = perpost;
                 coaState.page = 1;
+                coaState.search = '';
 
-                // set label badge awal (nanti byWO akan override dari response.meta)
-                $coaCpny.text(coaState.cpnyid || '-');
-                $coaDept.text(coaState.deptid || '-');
-                $coaPerpost.text(coaState.perpost || '-');
+                $coaCpny.text(coaState.cpnyid);
+                $coaDept.text(coaState.deptid);
+                $coaPerpost.text(coaState.perpost);
                 $('#coaSearch').val('');
 
                 $coaModal.removeClass('hidden').addClass('flex');
@@ -2125,99 +2128,78 @@
 
             // Load COA from API
             function loadCoa() {
-                    $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
-
-                    const url = coaState.woid
-                        ? "{{ route('coa.byWo') }}"
-                        : "{{ route('coa.byDept') }}";
-
-                    const params = coaState.woid ? {
-                        woid: coaState.woid,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page,
-                        // optional: kalau backend butuh context
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                    } : {
+                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $.getJSON("{{ route('coa.byDept') }}", {
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
                         perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id, // kalau backend butuh
                         search: coaState.search,
                         page: coaState.page,
                         per_page: coaState.per_page
-                    };
-
-                    $.getJSON(url, params)
-                        .done(function(res) {
-
-                            // badge update kalau backend kirim meta
-                            if (res.meta) {
-                                $coaCpny.text(res.meta.cpnyid ?? coaState.cpnyid ?? '-');
-                                $coaDept.text(res.meta.deptid ?? coaState.deptid ?? '-');
-                                $coaPerpost.text(res.meta.perpost ?? coaState.perpost ?? '-');
+                    })
+                    .done(function(res) {
+                        if (res.message) {
+                            if (window.toastr) {
+                                toastr.warning(res.message);
+                            } else {
+                                alert(res.message);
                             }
+                        }
+                        const rows = (res.data || []).map(item => {
+                            const id = item.account_id ?? '';
+                            const actId = item.activity_id ?? '';
+                            const buId = item.business_unit_id ?? '';
+                            const deptFinId = item.department_fin_id ?? '';
+                            const actDetail = item.activity_descr ?? '';
+                            const available = formatNumber(item.availablebudget) ?? '';
+                            const used = formatNumber(item.usedbudget) ?? '';
+                            const remaining = formatNumber(item.remaining) ?? '';
+                            const label = id; // atau `${id} - ${actDetail}`
+                            const accDescr = item.account_descr ?? '';
+                            const act_Descr = item.act_descr ?? '';
 
-                            if (res.message) toastr.warning(res.message);
+                            return `
+                    <tr>
+                    <td class="border p-2">${id}</td>
+                    <td class="border p-2">${accDescr}</td>
+                    <td class="border p-2">${act_Descr}</td>
+                    <td class="border p-2">${actDetail}</td>
+                    <td class="border p-2">
+                        <div class="font-semibold">${remaining}</div>
+                        <div class=" text-sm  opacity-70">Available : ${available}</div>
+                        <div class=" text-sm  opacity-70">Used: ${used}</div>
+                    </td>
+                    <td class="border p-2 text-center">
+                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                        data-id="${id}"
+                        data-activity_id="${actId}"
+                        data-business_unit_id="${buId}"
+                        data-department_fin_id="${deptFinId}"
+                        data-label="${$('<div>').text(label).html()}">
+                        Choose
+                        </button>
+                    </td>
+                    </tr>
+                `;
+                        }).join('');
 
-                            const esc = v => $('<div>').text(v ?? '').html();
 
-                            const rows = (res.data || []).map(item => {
-                                const id = item.account_id ?? '';
-                                const accDescr = item.account_descr ?? '';
-                                const act_Descr = item.act_descr ?? '';
-                                const actDetail = item.activity_descr ?? '';
+                        $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        coaState.total = res.total || 0;
+                        $coaCount.text(`Showing ${rows ? (res.data.length) : 0} of ${coaState.total} items`);
 
-                                const actId = item.activity_id ?? '';
-                                const buId = item.business_unit_id ?? '';
-                                const deptFinId = item.department_fin_id ?? '';
-
-                                const available = formatNumber(item.availablebudget) ?? '';
-                                const used = formatNumber(item.usedbudget) ?? '';
-                                const remaining = formatNumber(item.remaining) ?? '';
-
-                                return `
-                                    <tr>
-                                        <td class="border p-2">${esc(id)}</td>
-                                        <td class="border p-2">${esc(accDescr)}</td>
-                                        <td class="border p-2">${esc(act_Descr)}</td>
-                                        <td class="border p-2">${esc(actDetail)}</td>
-                                        <td class="border p-2">
-                                            <div class="font-semibold">${remaining}</div>
-                                            <div class="text-sm opacity-70">Available: ${available}</div>
-                                            <div class="text-sm opacity-70">Used: ${used}</div>
-                                        </td>
-                                        <td class="border p-2 text-center">
-                                            <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                                                data-id="${esc(id)}"
-                                                data-activity_id="${esc(actId)}"
-                                                data-business_unit_id="${esc(buId)}"
-                                                data-department_fin_id="${esc(deptFinId)}"
-                                                data-label="${esc(id)}">
-                                                Choose
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('');
-
-                            $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
-
-                            coaState.total = Number(res.total || 0);
-                            $coaCount.text(`Showing ${(res.data || []).length} of ${coaState.total} items`);
-
-                            const maxPage = Math.max(1, Math.ceil(coaState.total / coaState.per_page));
-                            $('#coaPrev').prop('disabled', coaState.page <= 1);
-                            $('#coaNext').prop('disabled', coaState.page >= maxPage);
-                        })
-                        .fail(function() {
-                            $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                            $coaCount.text('');
-                            $('#coaPrev, #coaNext').prop('disabled', true);
-                        });
-                }
-
+                        const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
+                        $('#coaPrev').prop('disabled', coaState.page <= 1);
+                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $coaTbody.html(
+                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $coaCount.text('');
+                        $('#coaPrev, #coaNext').prop('disabled', true);
+                    });
+            }
 
             // Choose -> isi row
             $(document).on('click', '.chooseCoa', function() {
@@ -2239,12 +2221,11 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost,#business_unit_id').on('change', function() {
+            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
                 if ($coaModal.is(':visible')) {
                     coaState.cpnyid = $('select[name="cpnyid"]').val();
                     coaState.deptid = $('select[name="departementid"]').val();
                     coaState.perpost = $('#perpost').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
                     $coaCpny.text(coaState.cpnyid || '-');
                     $coaDept.text(coaState.deptid || '-');
                     $coaPerpost.text(coaState.perpost || '-');
@@ -3006,226 +2987,6 @@
         }
     </script>
 
-    <script>
-        $(function () {
-            const $cpny = $('#cpnyid');
-            const $bu = $('#business_unit_id');
-            const $buName = $('#business_unit_name');
-
-            // selected dari server (edit mode)
-            const initialBuId = @json(old('business_unit_id', $spb->business_unit_id ?? ''));
-            const initialBuName = @json(old('business_unit_name', $spb->business_unit_name ?? ''));
-
-            function renderBuOptions(list, selectedId) {
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                (list || []).forEach(it => {
-                    const id = it.business_unit_id ?? '';
-                    const name = it.business_unit_name ?? '';
-                    const sel = String(id) === String(selectedId) ? 'selected' : '';
-                    const label = name ? `${id} — ${name}` : id;
-                    html += `<option value="${id}" data-name="${$('<div>').text(name).html()}" ${sel}>${label}</option>`;
-                });
-                return html;
-            }
-
-            function loadBusinessUnits(cpnyId, selectedId = '') {
-                if (!cpnyId) {
-                    $bu.html('<option value="" selected disabled>Select Business Unit</option>');
-                    $buName.val('');
-                    return;
-                }
-
-                $bu.html('<option value="" disabled selected>Loading...</option>');
-
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: cpnyId })
-                    .done(function (res) {
-                        const data = res?.data || [];
-                        $bu.html(renderBuOptions(data, selectedId));
-
-                        // set hidden business_unit_name sesuai option yang selected
-                        const $opt = $bu.find('option:selected');
-                        $buName.val($opt.data('name') || '');
-
-                        if (!data.length) {
-                            $bu.html('<option value="" selected disabled>No Business Unit</option>');
-                            $buName.val('');
-                        }
-                    })
-                    .fail(function () {
-                        $bu.html('<option value="" selected disabled>Failed to load</option>');
-                        $buName.val('');
-                    });
-            }
-
-            // initial load on edit
-            loadBusinessUnits($cpny.val(), initialBuId);
-
-            // on company change => reload BU + reset selection
-            $cpny.on('change', function () {
-                loadBusinessUnits(this.value, '');
-            });
-
-            // on BU change => set hidden name
-            $bu.on('change', function () {
-                const $opt = $(this).find('option:selected');
-                $buName.val($opt.data('name') || '');
-            });
-        });
-    </script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $(function () {
-        const $cpny = $('select[name="cpnyid"]');
-        const $bu   = $('#business_unit_id');
-
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
-
-        let isReverting = false; // penting: cegah loop saat revert
-
-        function hasAnyDetailFilled() {
-            return $('#spbTable tr.spb-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.siteid-hidden').val(),
-                $tr.find('.stock_unitField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
-
-        function resetWo() {
-            $('#woid').val('');
-        }
-
-        function resetDetailAllRows() {
-            $('#spbTable tr.spb-row').each(function () {
-            const $tr = $(this);
-
-            // Inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
-
-            // item meta
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
-
-            // Qty
-            $tr.find('.qtyField').val('');
-
-            // UoM
-            $tr.find('.stock_unitField').val('-'); // atau '' kalau mau kosong
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
-
-            // SiteID
-            $tr.find('.siteid-hidden').val('');
-            $tr.find('.siteid-display').val('-');
-
-            // Location & Sub
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val(''); // ini yang ada di view kamu
-
-            // COA + Budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
-
-            // Note (optional)
-            $tr.find('input[name="note[]"]').val('');
-
-            // bersihkan error UI
-            $tr.find('.is-invalid').removeClass('is-invalid');
-            $tr.find('.error-feedback').remove();
-
-            // trigger update site visibility (optional)
-            $tr.find('.prodItemTypeField').trigger('change');
-            });
-        }
-
-        async function confirmContextChange(type) {
-            if (!hasAnyDetailFilled()) return true;
-
-            const result = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b>:
-                <ul style="text-align:left; margin:10px 0 0 0;">
-                <li>Inventory, Qty, UoM</li>
-                <li>SiteID</li>
-                <li>Location & Sub Location</li>
-                <li>COA + Budget mapping</li>
-                <li>WO</li>
-                </ul>
-                <div style="margin-top:10px;">Lanjut?</div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, lanjut',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true,
-            confirmButtonColor: '#2563eb',
-            cancelButtonColor: '#6b7280'
-            });
-
-            return result.isConfirmed;
-        }
-
-        function revertContext() {
-            isReverting = true;
-            $cpny.val(prevCpny);
-            $bu.val(prevBu);
-            // kalau kamu punya loader BU via AJAX yang listen change cpny,
-            // jangan trigger('change') di sini supaya gak reload lagi.
-            // Kalau perlu refresh UI select2, baru trigger khusus select2.
-            isReverting = false;
-        }
-
-        async function onContextChange(type) {
-            if (isReverting) return;
-
-            const ok = await confirmContextChange(type);
-            if (!ok) {
-            revertContext();
-            return;
-            }
-
-            resetDetailAllRows();
-            resetWo();
-
-            // update prev setelah sukses
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
-
-            Swal.fire({
-            icon: 'info',
-            title: 'Detail direset',
-            text: `${type} berubah. Semua detail sudah direset.`,
-            timer: 1200,
-            showConfirmButton: false
-            });
-        }
-
-        $cpny.on('change', function () {
-            onContextChange('Company');
-        });
-
-        $bu.on('change', function () {
-            onContextChange('Business Unit');
-        });
-        });
-    </script>
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

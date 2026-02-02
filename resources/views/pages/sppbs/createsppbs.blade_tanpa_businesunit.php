@@ -1,7 +1,10 @@
 <x-app-layout>
-    <!-- Select2 CSS & JS -->
-    {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script> --}}
+    <style>
+        .hidden {
+            display: none !important;
+        }
+    </style>
+
     <style>
         .is-invalid {
             border-color: #ef4444 !important;
@@ -20,61 +23,6 @@
             color: #dc2626;
             font-weight: 700;
         }
-    </style>
-
-    <style>
-        /* Samakan tinggi Select2 tenant & pic ≈ input p-2.5 (~40px) */
-        .select2-container--default .select2-selection--single {
-            height: 35px !important;
-            border: 1px solid #bbbbbb;
-            /* = border-gray-300 */
-            border-radius: 0.375rem;
-            /* = rounded-md */
-            background-color: white;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 40px !important;
-            padding-left: 10px;
-            /* biar sejajar dengan p-2.5 */
-            padding-right: 28px;
-            color: #111827;
-            /* text-gray-900 */
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px !important;
-            right: 6px;
-        }
-
-        /* Optional: Dark mode */
-        .dark .select2-container--default .select2-selection--single {
-            background-color: #1f2937;
-            /* gray-800 */
-            border-color: #4b5563;
-            /* gray-600 */
-        }
-
-        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #e5e7eb;
-            /* gray-200 */
-        }
-
-        .dark .select2-dropdown {
-            background-color: #111827;
-            /* gray-900 */
-            color: #e5e7eb;
-            border-color: #374151;
-            /* gray-700 */
-        }
-
-        .dark .select2-results__option--highlighted {
-            background-color: #2563eb;
-            /* blue-600 */
-            color: #fff;
-        }
-
-        */
     </style>
 
     <style>
@@ -136,26 +84,28 @@
 
 
 
+
     <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="spptForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="sppbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
 
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPB</h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <!-- Row 1 -->
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid" id="cpnyid"
-                                    class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="req headerCpnySelect w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
@@ -166,21 +116,11 @@
                                 </select>
                             </div>
 
-                            <!-- Business Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
-                            </div>
-
                             <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select name="departementid"
+                                <select name="departementid" id="departementid"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($userdept as $p)
@@ -191,7 +131,6 @@
                                     @endforeach
                                 </select>
                             </div>
-                     
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
@@ -218,6 +157,7 @@
                                 </div>
                             </div>
 
+
                             <!-- Perpost -->
                             <div class="flex flex-col gap-2">
                                 <label
@@ -229,32 +169,34 @@
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
-                            </div>             
-                            
-
+                            </div>
 
                         </div>
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <!-- Row 2 -->
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
-                            <!-- Nama Tenant (Modal Picker) -->
+                            <!-- Emergency -->
+                            <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">SPPB
+                                    Emergency</label>
+
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">Tandai
+                                        sebagai emergency</label>
+                                </div>
+                            </div>
+
+                            <!-- WO ID -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Nama Tenant
-                                </label>
-
-                                {{-- hidden value yang dikirim ke backend --}}
-                                <input type="hidden" name="nama_tenant" id="nama_tenant">
-                                <input type="hidden" name="tenant_id" id="tenant_id">
-                                <input type="hidden" name="unit_id" id="unit_id">
-
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
                                 <div class="flex w-full">
-                                    {{-- display readonly --}}
-                                    <input type="text" id="tenant_name_display" readonly
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Select tenant...">
+                                    <input type="text" name="woid" id="woid" readonly
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
 
-                                    <button type="button" id="btnSearchTenant"
+                                    <button type="button" id="btnSearchWo"
                                         class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -266,106 +208,16 @@
                                 </div>
                             </div>
 
-                            <!-- Unit Display -->
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lantai -
-                                    Unit</label>
-                                <input type="text" id="no_unit_tenant" name="no_unit_tenant"
-                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="Otomatis dari Tenant" readonly>
-                            </div>
-
-                            <!-- PIC (select2 user) -->
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
-                                {{-- <input type="hidden" name="pic_pengawas" id="pic_pengawas"> --}}
-                                {{-- <select id="pic_select" name="pic_select"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required
-                                    data-placeholder="Search">
-                                </select> --}}
-                                <input type="text" name="pic_pengawas"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="PIC" required />
-                            </div>
-
-                            <!-- Status Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Status
-                                    Unit</label>
-                                <select id="condition_unit" name="condition_unit"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>-- pilih status --</option>
-                                    <option value="Buka">Buka</option>
-                                    <option value="Tutup">Tutup</option>
-                                </select>
-                            </div>
-
-                            <!-- Beban Biaya -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Beban
-                                    Biaya</label>
-                                <select id="beban" name="beban"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>-- pilih beban biaya --</option>
-                                    <option value="Tenant">Tenant</option>
-                                    <option value="Pakuwon">Pakuwon</option>
-                                </select>
-                            </div>
-
-                            
-
-                        </div>
-
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-
-                            <!-- Emergency -->
-                            <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    SPPT Emergency
-                                </label>
-
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
-                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                    <label for="is_urgent" class="text-sm text-gray-700 dark:text-gray-300">
-                                        Tandai sebagai emergency
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- WO -->
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO
-                                    ID</label>
-
-                                <div class="flex">
-                                    <input type="text" id="woid" name="woid"
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        readonly>
-
-                                    <button type="button" id="btnSearchWo"
-                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd" d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100
-                                                8 4 4 0 000-8z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col gap-2 lg:col-span-3">
+                            <!-- Description -->
+                            <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label for="keperluan"
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Description
-                                </label>
-                                <textarea id="keperluan" name="keperluan" rows="3" required
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea name="keperluan" id="keperluan" rows="3" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
                             </div>
+
                         </div>
+
                     </div>
 
 
@@ -375,9 +227,8 @@
                             <details class="group" open>
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>SPPT Detail</span>
-                                    <span
-                                        class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    <span>SPPB Detail</span>
+                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
                                     <span
                                         class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
@@ -392,6 +243,8 @@
                                                     <th class="req w-[25%] border p-3">Product Name</th>
                                                     <th class="req w-28 w-[6%] border p-3 text-center">Qty</th>
                                                     <th class="req w-28 w-[8%] border p-3">UoM</th>
+                                                    <th class="req siteid-header hidden w-28 w-[8%] border p-3">SiteID
+                                                    </th>
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
@@ -399,8 +252,8 @@
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="spptTable">
-                                                <tr class="sppt-row">
+                                            <tbody id="sppbTable">
+                                                <tr class="sppb-row">
                                                     <td class="border p-3 text-center">1</td>
 
                                                     <!-- Product Name (text + zoom button + hidden id) -->
@@ -432,15 +285,6 @@
                                                             placeholder="0,00">
                                                     </td>
 
-                                                    <!-- UoM auto-filled -->
-                                                    {{-- <td class="border p-3">
-                                    <input type="text" name="stock_unit[]" readonly
-                                            class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none"
-                                            placeholder="-">
-                                             <button type="button"
-                                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                title="Lookup">🔎</button>
-                                    </td> --}}
                                                     {{-- UoM --}}
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
@@ -461,13 +305,21 @@
                                                                 title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
+                                         
+                                                    <td class="siteid-column hidden border p-3">
+                                                        <input type="text" name="siteid[]"
+                                                            class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                            placeholder="-" readonly>
+                                                    </td>
+
+
+
 
                                                     <!-- Note -->
                                                     <td class="border p-3">
                                                         <input type="text" name="note[]" placeholder="Note"
                                                             class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                                                     </td>
-
 
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
@@ -484,7 +336,6 @@
                                                                 title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
-
 
                                                     <!-- Coa (lookup modal) -->
                                                     <td class="border p-3">
@@ -509,14 +360,14 @@
 
                                                     <td class="border p-3 text-center">
                                                         <button type="button"
-                                                            class="removeSppt hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
+                                                            class="removeSppb hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
 
-                                    <button type="button" id="addSppt"
+                                    <button type="button" id="addSppb"
                                         class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -539,28 +390,35 @@
                                 <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Inventory</h3>
                                 <button type="button" id="closeInventoryModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
+                            </div>                         
 
-                            <!-- Tabs -->
-                            {{-- <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
-                                <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-indigo-600" data-type="stock">Stock</button>
+                            <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
+
+                                {{-- NON-STOCK → DEFAULT AKTIF --}}
                                 <button type="button"
-                                    class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
-                                    data-type="se">Jasa</button>
+                                    class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
+                                    data-type="ns">
+                                    Non-Stock
+                                </button>
+
+                                {{-- STOCK hanya tampil jika punya akses --}}
+                                @if ($akses_stock)
+                                    <button type="button"
+                                        class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
+                                        data-type="gi">
+                                        Stock
+                                    </button>
+                                @endif
+
                                 <div class="ml-auto flex items-center gap-2">
                                     <input id="invSearch" type="text" placeholder="Search..."
-                                        class="rounded border border-gray-300 bg-white px-3 py-1  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                     <button id="invRefresh" type="button"
                                         class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                                 </div>
-                            </div> --}}
-
-                            <div class="mb-4 ml-auto flex items-center justify-between gap-2">
-                                <input id="invSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="invRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                             </div>
+
+
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
@@ -569,7 +427,8 @@
                                             <th class="border p-2">Inventory ID</th>
                                             <th class="border p-2">Description</th>
                                             <th class="border p-2">UoM</th>
-                                            <th class="border p-2">Category</th>
+                                            <th class="inv-site-col border p-2">SiteID</th>
+                                            <th class="inv-cat-col border p-2">Category</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -607,7 +466,7 @@
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
 
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>DocType: <b id="rtDocBadge">SPPT</b></span>
+                                    <span>DocType: <b id="rtDocBadge">SPPB</b></span>
                                 </div>
                             </div>
 
@@ -635,55 +494,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- ===== Modal Lookup Tenant ===== -->
-                    <div id="tenantModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Tenant</h3>
-                                <button type="button" id="closeTenantModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="tenantSearch" type="text" placeholder="Search tenant..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="tenantRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-
-                                <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>Company: <b id="tenantCpnyBadge">-</b></span>
-                                </div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Tenant</th>
-                                            <th class="border p-2">Lantai - Unit</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tenantTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="tenantCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="tenantPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="tenantNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-
+                  
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
@@ -888,8 +699,11 @@
                         </div>
                     </div>
 
+
+
+
                     {{-- ===== Attachment ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -912,7 +726,7 @@
                                 </div>
                             </div>
                             <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -924,27 +738,28 @@
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
-                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
-
+                                class="flex items-center justify-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 19l-7-7 7-7" />
                                 </svg>
-
                                 <span>Back</span>
                             </button>
 
-                            <div class="flex justify-start md:justify-end">
+                            <!-- Cancel + Submit -->
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center">                       
+
                                 <button type="submit" id="submitBtn"
-                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
                                         </circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                        </path>
                                     </svg>
                                 </button>
                             </div>
@@ -954,7 +769,7 @@
             </div>
 
             <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
-                Sppt Created Successfully!
+                Sppb Created Successfully!
             </div>
         </div>
     </div>
@@ -991,7 +806,7 @@
     <script>
         $(function() {
             // helper: bersihkan error
-            function clearAllErrors(scope = '#spptForm') {
+            function clearAllErrors(scope = '#sppbForm') {
                 $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
                 $(scope).find('.error-feedback').remove();
             }
@@ -1004,7 +819,7 @@
                 }
             }
             // hapus error saat user memperbaiki input
-            $(document).on('input change', '#spptForm input, #spptForm textarea, #spptForm select', function() {
+            $(document).on('input change', '#sppbForm input, #sppbForm textarea, #sppbForm select', function() {
                 $(this).removeClass('is-invalid').removeAttr('aria-invalid');
                 $(this).next('.error-feedback').remove();
             });
@@ -1015,7 +830,7 @@
 
                 let validRows = 0;
 
-                $('#spptTable tr.sppt-row').each(function() {
+                $('#sppbTable tr.sppb-row').each(function() {
                     const $row = $(this);
 
                     const invId = ($row.find('.inventoryIdField').val() || '').trim();
@@ -1033,6 +848,8 @@
                     const subId = ($row.find('.subLocationIdField').val() || '').trim();
                     const $subN = $row.find('.subLocationNameField');
                     const $locDisplay = $row.find('.locationDisplayField');
+
+                    const $locCombo = $row.find('.locationDisplayField');
 
                     const coaId = ($row.find('.coaIdField').val() || '').trim();
                     const $coaN = $row.find('.coaNameField');
@@ -1084,19 +901,19 @@
                 }
 
                 // scroll ke error pertama jika ada
-                const $first = $('#spptForm .is-invalid').first();
+                const $first = $('#sppbForm .is-invalid').first();
                 if ($first.length) {
                     $('html,body').animate({
                         scrollTop: $first.offset().top - 120
                     }, 300);
                     $first.trigger('focus');
-                    toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPT.');
+                    toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPB.');
                     return false;
                 }
                 return true;
             }
 
-            $('#spptForm').on('submit', function(e) {
+            $('#sppbForm').on('submit', function(e) {
                 e.preventDefault();
 
                 const $rtHidden = $('#requesttypeid'); // hidden input
@@ -1107,18 +924,6 @@
                     toastr.error('Request Type wajib dipilih.');
                     $('html,body').animate({
                         scrollTop: $rtDisplay.offset().top - 120
-                    }, 300);
-                    return;
-                }
-
-                const $tenantHidden = $('#tenant_id');
-                const $tenantDisplay = $('#tenant_name_display');
-
-                if (!$tenantHidden.val() || !$tenantHidden.val().trim()) {
-                    addError($tenantDisplay, 'Nama Tenant wajib dipilih.');
-                    toastr.error('Nama Tenant wajib dipilih.');
-                    $('html,body').animate({
-                        scrollTop: $tenantDisplay.offset().top - 120
                     }, 300);
                     return;
                 }
@@ -1138,18 +943,18 @@
                 // $('#loadingSpinner').removeClass('hidden');
                 showOverlay('Submitting');
 
-                const formData = new FormData(document.getElementById('spptForm'));
+                const formData = new FormData(document.getElementById('sppbForm'));
 
                 $.ajax({
-                        url: "{{ route('sppts.store') }}",
+                        url: "{{ route('sppbs.store') }}",
                         type: "POST",
                         data: formData,
                         processData: false,
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Sppt Requisition Submit Successfully!");
-                        window.location.href = "/sppts";
+                        toastr.success(res.message || "Sppb Requisition Submit Successfully!");
+                        window.location.href = "/sppbs";
                     })
                     .fail(function(xhr) {
                         // tampilkan pesan validasi 422 (Laravel)
@@ -1180,29 +985,36 @@
 
 
     <script>
-        // ===== SPPT Detail =====
+        // ===== SPPB Detail =====
         $(function() {
-            let spptcount = 1;
+            let sppbcount = 1;
             let currentRow = null; // row yang sedang aktif untuk receive pilihan inventory
+            let lockedItemType = ''; // '' | 'GI' | 'NON_GI'
+
+            function normLockType(itemTypeNormalized) {
+                // item_type_normalized sudah uppercase & trim
+                return (itemTypeNormalized === 'GI') ? 'GI' : 'NON_GI';
+            }
+
 
             function updateRowNumbers() {
-                spptcount = 0;
-                $('#spptTable tr').each(function() {
-                    spptcount++;
-                    $(this).find('td:first').text(spptcount);
+                sppbcount = 0;
+                $('#sppbTable tr').each(function() {
+                    sppbcount++;
+                    $(this).find('td:first').text(sppbcount);
                 });
             }
 
             function updateRemoveButtons() {
-                if ($('.sppt-row').length > 1) $('.removeSppt').removeClass('hidden');
-                else $('.removeSppt').addClass('hidden');
+                if ($('.sppb-row').length > 1) $('.removeSppb').removeClass('hidden');
+                else $('.removeSppb').addClass('hidden');
             }
 
-            $('#addSppt').on('click', function() {
-                spptcount++;
+            $('#addSppb').on('click', function() {
+                sppbcount++;
                 const row = `
-            <tr class="sppt-row">
-                <td class="p-3 border text-center">${spptcount}</td>
+            <tr class="sppb-row">
+                <td class="p-3 border text-center">${sppbcount}</td>
 
                 <td class="p-3 border">
                 <div class="flex items-center gap-2">
@@ -1237,6 +1049,13 @@
                     </div>
                 </td>
 
+                <td class="border p-3 siteid-column hidden">
+                    <input type="text" name="siteid[]"
+                        class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                        placeholder="-" readonly>
+                </td>
+
+
                 <td class="p-3 border">
                 <input type="text" name="note[]" placeholder="Note"
                         class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
@@ -1259,8 +1078,8 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">     
-                        <input type="hidden" name="activity_descr[]"  class="actDescrField">                 
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField"> 
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">                     
                         <input type="hidden" name="coa_id[]" class="coaIdField">
                         <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
@@ -1269,17 +1088,46 @@
 
 
                 <td class="p-3 border text-center">
-                <button type="button" class="removeSppt bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
+                <button type="button" class="removeSppb bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
                 </td>
             </tr>`;
-                $('#spptTable').append(row);
+                $('#sppbTable').append(row);
+                // Ambil row baru
+                const $newRow = $('#sppbTable .sppb-row').last();
+
+                // Set cpny_id dari header
+                const cpnyIdHeader = $('.headerCpnySelect').val() || '';
+                $newRow.find('.siteSelect').data('cpny-id', cpnyIdHeader);
+                $newRow.find('.siteSelect').attr('data-cpny-id', cpnyIdHeader);
+                $newRow.find('.siteSelect').data('loaded', 0);
+
+                // Pastikan visibility awal sesuai item_type (biasanya kosong → hidden)
+                updateSiteVisibility($newRow);
                 updateRemoveButtons();
             });
 
-            $(document).on('click', '.removeSppt', function() {
-                $(this).closest('.sppt-row').remove();
+            function recalcLockedItemType() {
+                // cari item_type dari row yang sudah ada inventoryid
+                let found = '';
+                $('.sppb-row').each(function() {
+                    const $row = $(this);
+                    const invId = ($row.find('.inventoryIdField').val() || '').trim();
+                    if (!invId) return;
+
+                    const t = ($row.find('.prodItemTypeField').val() || '').toUpperCase().trim();
+                    found = normLockType(t);
+                    return false; // break
+                });
+
+                lockedItemType = found; // kalau tidak ada inv sama sekali → ''
+            }
+
+
+            $(document).on('click', '.removeSppb', function() {
+                $(this).closest('.sppb-row').remove();
                 updateRowNumbers();
                 updateRemoveButtons();
+                refreshSiteHeaderVisibility();
             });
 
             updateRemoveButtons();
@@ -1290,16 +1138,32 @@
             const $invCount = $('#invCount');
 
             let invState = {
-                type: 'se', //  'jasa'
+                type: 'ns', // 'stock' | 'nonstock'
                 search: '',
                 page: 1,
                 per_page: 10,
                 total: 0
             };
 
+            function isStockMode() {
+                // STOCK = GI, NON-STOCK = NS
+                return String(invState.type).toLowerCase() === 'gi';
+            }
+
+            function toggleInvModalColumns() {
+                const stock = isStockMode();
+
+                // Stock: SiteID tampil, Category hidden
+                // Non-Stock: Category tampil, SiteID hidden
+                $('.inv-site-col').toggleClass('hidden', !stock);
+                $('.inv-cat-col').toggleClass('hidden', stock);
+            }
+
+
             function openModal(forRow) {
                 currentRow = forRow;
                 $modal.removeClass('hidden').addClass('flex');
+                toggleInvModalColumns();
                 loadInventory();
             }
 
@@ -1319,8 +1183,9 @@
             $('.invTab').on('click', function() {
                 $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
                 $(this).addClass('border-indigo-600').removeClass('border-transparent');
-                invState.type = $(this).data('type'); // 'stock' atau 'jasa'
+                invState.type = $(this).data('type'); // 'stock' atau 'nonstock'
                 invState.page = 1;
+                toggleInvModalColumns();
                 loadInventory();
             });
 
@@ -1355,45 +1220,64 @@
             // Load Inventory from API
             function loadInventory() {
                 $tbody.html(`<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>`);
-                $.getJSON("{{ route('inventory.list') }}", {
-                        type: invState.type, // 'stock' | 'jasa'
+
+                const deptId = $('#departementid').val() || '';
+                const cpnyid = ($('#cpnyid').val() || '').trim();
+
+                $.getJSON("{{ route('inventory.listjoin') }}", {
+                        type: invState.type, // 'stock' | 'nonstock'
+                        departementid: deptId,
+                        cpnyid: cpnyid,
                         search: invState.search,
                         page: invState.page,
                         per_page: invState.per_page
                     })
                     .done(function(res) {
-                        // Expected format:
-                        // { data: [{inventoryid, inventory_descr, stock_unit}], total: 123, page:1, per_page:10 }
-                        const rows = (res.data || []).map(item => `
-                <tr>
-                    <td class="border p-2">${item.inventoryid}</td>
-                    <td class="border p-2">${item.inventory_descr}</td>
-                    <td class="border p-2">${item.stock_unit || ''}</td>
-                    <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${item.inventoryid}"
-                        data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"
-                        data-account_id="${item.account_id || ''}"
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"  
-                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"        
-                        data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
-                        data-item_category="${$('<div>').text(item.item_category || '').html()}">
-                        Choose
-                    </button>
-                    </td>
-                </tr>
-                `).join('');
+                        toggleInvModalColumns(); // ✅ jaga-jaga kalau state berubah
 
-                        $tbody.html(rows || `<tr><td colspan="4" class="p-3 text-center">No data</td></tr>`);
+                        const stock = isStockMode();
+
+                        const rows = (res.data || []).map(item => `
+                            <tr>
+                            <td class="border p-2">${item.inventoryid}</td>
+                            <td class="border p-2">${item.inventory_descr}</td>
+                            <td class="border p-2">${item.stock_unit || ''}</td>
+
+                            <!-- SiteID: tampil hanya saat Stock -->
+                            <td class="border p-2 inv-site-col ${stock ? '' : 'hidden'}">
+                                ${item.siteid || ''}
+                            </td>
+
+                            <!-- Category: tampil hanya saat Non-Stock -->
+                            <td class="border p-2 inv-cat-col ${stock ? 'hidden' : ''}">
+                                ${item.item_sub_type || ''} - ${item.item_category || ''}
+                            </td>
+
+                            <td class="border p-2 text-center">
+                                <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
+                                data-id="${item.inventoryid}"
+                                data-name="${$('<div>').text(item.inventory_descr).html()}"
+                                data-stock_unit="${item.stock_unit || ''}"
+                                data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                                data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"
+                                data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
+                                data-item_category="${$('<div>').text(item.item_category || '').html()}"
+                                data-siteid="${item.siteid || ''}">
+                                Choose
+                                </button>
+                            </td>
+                            </tr>
+                        `).join('');
+
+                        $tbody.html(rows || `<tr><td colspan="6" class="p-3 text-center">No data</td></tr>`);
                         invState.total = res.total || 0;
-                        $invCount.text(`Showing ${rows ? (res.data.length) : 0} of ${invState.total} items`);
-                        // toggle prev/next disabled
+                        $invCount.text(`Showing ${(res.data || []).length} of ${invState.total} items`);
+
                         const maxPage = Math.ceil((invState.total || 0) / invState.per_page) || 1;
                         $('#invPrev').prop('disabled', invState.page <= 1);
                         $('#invNext').prop('disabled', invState.page >= maxPage);
                     })
+
                     .fail(function() {
                         $tbody.html(
                             `<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load inventory</td></tr>`
@@ -1403,52 +1287,106 @@
                     });
             }
 
-            // Choose Inventory -> fill current row
+
+
             $(document).on('click', '.chooseInventory', function() {
                 if (!currentRow) return;
 
-                const id = $(this).data('id');
-                const name = $(this).data('name');
-                const stock_unit = $(this).data('stock_unit');
-                const account_id = ($(this).data('account_id') || '').toString().trim();
+                const $btn = $(this);
 
-                // NEW: item meta dari inventory
-                const item_type = $(this).data('item_type') || '';
-                const item_sub_type = $(this).data('item_sub_type') || '';
-                const item_category = $(this).data('item_category') || '';
-                const purchase_unit = $(this).data('purchase_unit') || '';
+                const id = $btn.data('id');
+                const name = $btn.data('name');
+                const stock_unit = $btn.data('stock_unit');
 
+                // item meta dari inventory (ambil dari data-* di tombol)
+                const item_type_attr = $btn.attr('data-item_type') || '';
+                const item_type_data = $btn.data('item_type') || ''; // jQuery baca data-item_type
+                const item_type_normalized = String(item_type_data || item_type_attr || '')
+                    .toUpperCase()
+                    .trim();
+
+                const item_sub_type = $btn.data('item_sub_type') || '';
+                const item_category = $btn.data('item_category') || '';
+                const purchase_unit = $btn.data('purchase_unit') || '';
+                const siteid = $btn.attr('data-siteid') || '';
+                const thisLockType = normLockType(item_type_normalized);
+
+                // kalau sudah ada tipe yang terkunci, dan user pilih tipe berbeda → tolak
+                if (lockedItemType && lockedItemType !== thisLockType) {
+                    toastr.error(
+                        lockedItemType === 'GI' ?
+                        'Baris pertama sudah Stock. Semua baris harus Stock.' :
+                        'Baris pertama sudah Non-Stock. Semua baris harus Non-Stock.'
+                    );
+                    return; // stop, jangan isi row
+                }
+
+                // kalau belum terkunci → set dari pilihan pertama yang benar-benar memilih inventory
+                if (!lockedItemType) {
+                    lockedItemType = thisLockType;
+
+                    // Optional: paksa tab inventory modal sesuai lock (biar user gak salah pilih)
+                    // GI => tab stock, NON_GI => tab non-stock
+                    const wantTab = (lockedItemType === 'GI') ? 'gi' : 'ns';
+                    $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
+                    $(`.invTab[data-type="${wantTab}"]`).addClass('border-indigo-600').removeClass(
+                        'border-transparent');
+                    invState.type = wantTab;
+                }
+
+                // DEBUG: lihat apa yang sebenarnya kebaca dari tombol
+                console.log('chooseInventory CLICKED →', {
+                    id,
+                    name,
+                    stock_unit,
+                    item_type_attr,
+                    item_type_data,
+                    item_type_normalized,
+                    item_sub_type,
+                    item_category,
+                    purchase_unit
+                });
+
+                // isi field-field di row
                 currentRow.find('.inventoryIdField').val(id);
                 currentRow.find('.productNameField').val(name);
                 currentRow.find('.stock_unitField').val(stock_unit || '-');
                 currentRow.find('.purchaseUnitField').val(purchase_unit);
 
                 // simpan hidden baru
-                currentRow.find('.prodItemTypeField').val(item_type);
+                currentRow.find('.prodItemTypeField').val(item_type_normalized);
                 currentRow.find('.prodItemSubTypeField').val(item_sub_type);
                 currentRow.find('.prodItemCategoryField').val(item_category);
 
+                // BERSIHKAN COA
                 currentRow.find('.coaIdField').val('');
                 currentRow.find('.coaNameField').val('');
 
-                // setelah set product & stock_unit
-                currentRow.find('.productNameField').removeClass('is-invalid').next('.error-feedback')
-                    .remove();
-                currentRow.find('.stock_unitField').removeClass('is-invalid').next('.error-feedback')
-                    .remove();
+                // bersihkan error
+                currentRow.find('.productNameField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+                currentRow.find('.stock_unitField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+
+                // isi SiteID hanya kalau GI (Stock)
+                if (item_type_normalized === 'GI') {
+                    currentRow.find('.siteidField').val(siteid || '-');
+                } else {
+                    currentRow.find('.siteidField').val('');
+                }
 
 
-                // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
-                // if (account_id) {
-                //     currentRow.find('.coaIdField').val(account_id);
-                //     currentRow.find('.coaNameField').val(account_id);
-                // } else {
-                //     currentRow.find('.coaIdField').val('');
-                //     currentRow.find('.coaNameField').val('');
-                // }
+                // 🔴 PENTING: trigger change supaya updateSiteVisibility jalan
+                currentRow.find('.prodItemTypeField').trigger('change');
+
+                // opsional: langsung panggil juga sebagai jaga-jaga
+                // updateSiteVisibility(currentRow);
 
                 closeModal();
             });
+
 
         });
     </script>
@@ -1489,7 +1427,7 @@
         // ===== Request Type =====
         $(function() {
             const $requestType = $('#requesttypeid');
-            const DOCTYPE = 'SPPT';
+            const DOCTYPE = 'SPPB';
 
             function buildRequestTypeOptions(list, selected) {
                 let opts = '<option value="" disabled>Select Request Type</option>';
@@ -1529,7 +1467,6 @@
             // $('select[name="cpnyid"]').on('change', ...) — DIHAPUS
         });
     </script>
-
 
 
     <script>
@@ -1783,10 +1720,8 @@
                     .done(function(res) {
                         // Expected: { data: [{sub_location_id / sub_location_id, sub_location_name / sub_location_name}], total,... }
                         const rows = (res.data || []).map(item => {
-                            const id = item.sub_location_id ?? item.sublocation_id ?? item.sub_loc_id ??
-                                '';
-                            const name = item.sub_location_name ?? item.sublocation_name ?? item
-                                .sub_loc_name ?? '';
+                            const id = item.sub_location_id ?? item.sub_location_id ?? '';
+                            const name = item.sub_location_name ?? item.sub_location_name ?? '';
                             return `
                 <tr>
                     <td class="border p-2">${id}</td>
@@ -1904,7 +1839,6 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
-                business_unit_id: null,
             };
 
             function openCoaModal(forRow) {
@@ -1914,7 +1848,6 @@
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
-                const bu = $('#business_unit_id').val();
 
                 if (!cpny) {
                     if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
@@ -1928,7 +1861,6 @@
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
                 coaState.perpost = perpost;
-                coaState.business_unit_id = bu;
                 coaState.page = 1;
                 coaState.search = '';
 
@@ -1983,12 +1915,12 @@
 
             // Load COA from API
             function loadCoa() {
-                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                // $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
                 $.getJSON("{{ route('coa.byDept') }}", {
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
                         perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id,
                         search: coaState.search,
                         page: coaState.page,
                         per_page: coaState.per_page
@@ -2001,6 +1933,8 @@
                                 alert(res.message);
                             }
                         }
+
+
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';
                             const actId = item.activity_id ?? '';
@@ -2010,7 +1944,7 @@
                             const available = formatNumber(item.availablebudget) ?? '';
                             const used = formatNumber(item.usedbudget) ?? '';
                             const remaining = formatNumber(item.remaining) ?? '';
-                            const label = id; // atau `${id} - ${actDetail}`
+                            const label = id;
                             const accDescr = item.account_descr ?? '';
                             const act_Descr = item.act_descr ?? '';
 
@@ -2075,7 +2009,6 @@
                 currentCoaRow.find('.departmentFinIdField').val(deptFinId);
                 currentCoaRow.find('.actDescrField').val(actDescr);
 
-
                 currentCoaRow.find('.coaNameField').removeClass('is-invalid').next('.error-feedback')
                     .remove();
 
@@ -2084,12 +2017,11 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
+            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
                 if ($coaModal.is(':visible')) {
                     coaState.cpnyid = $('select[name="cpnyid"]').val();
                     coaState.deptid = $('select[name="departementid"]').val();
                     coaState.perpost = $('#perpost').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
                     $coaCpny.text(coaState.cpnyid || '-');
                     $coaDept.text(coaState.deptid || '-');
                     $coaPerpost.text(coaState.perpost || '-');
@@ -2258,7 +2190,6 @@
         });
     </script>
 
-
     <script>
         $(function() {
             const $lokasiModal = $('#modalLokasi');
@@ -2413,115 +2344,6 @@
             });
         });
     </script>
-
-    {{-- <script>
-        $(function() {
-            const $lokasiModal = $('#modalLokasi');
-            const $selLoc = $('#modal_location_id');
-            const $selSub = $('#modal_sub_location_id');
-            let currentLocRow = null;
-
-            function openLokasiModal(forRow) {
-                currentLocRow = forRow;
-
-                const cpny = $('select[name="cpnyid"]').val();
-                if (!cpny) {
-                    toastr.warning('Pilih Company terlebih dahulu.');
-                    return;
-                }
-
-                // reset dropdown
-                $selLoc.empty().append('<option value="">-- choose --</option>');
-                $selSub.empty().append('<option value="">-- choose --</option>');
-
-                // load locations
-                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-                    .done(function(list) {
-                        list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
-
-                        // preselect jika row sudah punya value
-                        const curLoc = currentLocRow.find('.locationIdField').val();
-                        if (curLoc) {
-                            $selLoc.val(curLoc).trigger('change');
-                        }
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat lokasi.');
-                    });
-
-                $lokasiModal.removeClass('hidden').addClass('flex');
-            }
-
-            function closeLokasiModal() {
-                $lokasiModal.addClass('hidden').removeClass('flex');
-            }
-
-            // Open modal dari tombol di row
-            $(document).on('click', '.openLokasiPicker', function() {
-                openLokasiModal($(this).closest('tr'));
-            });
-
-            // Close modal
-            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
-
-            // Ketika location dipilih → load sublocations
-            $selLoc.on('change', function() {
-                const cpny = $('select[name="cpnyid"]').val();
-                const loc = $(this).val();
-                $selSub.empty().append('<option value="">-- choose --</option>');
-
-                if (!loc) return;
-
-                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-                    .done(function(list) {
-                        list.forEach(it => $selSub.append(new Option(it.text, it.value)));
-
-                        // preselect jika row sudah punya sub_location_id
-                        if (currentLocRow) {
-                            const curSub = currentLocRow.find('.subLocationIdField').val();
-                            if (curSub) $selSub.val(curSub);
-                        }
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat sub location.');
-                    });
-            });
-
-            // Save ke row aktif
-            $('#saveLokasi').on('click', function() {
-                const locId = $selLoc.val();
-                const locText = $('#modal_location_id option:selected').text();
-                const subId = $selSub.val();
-                const subText = $('#modal_sub_location_id option:selected').text();
-
-                if (!locId || !subId) {
-                    toastr.error('Pilih Location dan Sub Location.');
-                    return;
-                }
-
-                // Tulis ke hidden + tampilan
-                currentLocRow.find('.locationIdField').val(locId);
-                currentLocRow.find('.subLocationIdField').val(subId);
-                currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
-
-                // bersihkan error UI jika ada
-                currentLocRow.find('.locationDisplayField').removeClass('is-invalid')
-                    .next('.error-feedback').remove();
-
-                closeLokasiModal();
-            });
-
-            // Jika company berubah dan modal terbuka → reload lokasi
-            $('select[name="cpnyid"]').on('change', function() {
-                if ($lokasiModal.is(':visible')) {
-                    // reset dan panggil open ulang dengan row yang sama
-                    $selLoc.empty().append('<option value="">-- choose --</option>');
-                    $selSub.empty().append('<option value="">-- choose --</option>');
-                    if (currentLocRow) openLokasiModal(currentLocRow);
-                }
-            });
-        });
-    </script> --}}
 
     <script>
         $(function() {
@@ -2697,7 +2519,209 @@
 
     <script>
         $(function() {
-            const DOCTYPE = 'SPPT';
+            // Cache hasil fetch per cpny_id agar efisien (sekali fetch)
+            const siteCacheByCpny = {};
+
+            async function fetchSites(cpnyId) {
+                if (siteCacheByCpny[cpnyId]) return siteCacheByCpny[cpnyId];
+
+                try {
+                    const url = @json(route('sites.index'));
+                    const res = await $.ajax({
+                        url: url,
+                        method: 'GET',
+                        data: {
+                            cpny_id: cpnyId
+                        },
+                        dataType: 'json'
+                    });
+
+                    if (!res.ok) throw new Error(res.message || 'Failed to load sites.');
+                    siteCacheByCpny[cpnyId] = res.data || [];
+                    return siteCacheByCpny[cpnyId];
+                } catch (err) {
+                    if (window.toastr) toastr.error(err.message || 'Gagal mengambil data site.');
+                    return [];
+                }
+            }
+
+            // Populate select options untuk elemen select tertentu
+            function populateSelectOptions($sel, sites, currentValue) {
+                const hasCurrent = currentValue && sites.some(s => s.siteid === currentValue);
+                const options = [];
+
+                if (!hasCurrent) {
+                    options.push(new Option('Select site…', '', true, true));
+                }
+
+                sites.forEach(s => {
+                    const opt = new Option(s.siteid, s.siteid, false, s.siteid === currentValue);
+                    options.push(opt);
+                });
+
+                $sel.empty();
+                options.forEach(opt => $sel.append(opt));
+            }
+
+            // Event: saat select di-FOCUS atau di-KLIK → load data jika belum loaded
+            $(document).on('focus click', '.siteSelect', async function() {
+                const $sel = $(this);
+                if ($sel.data('loaded') === 1) return;
+
+                const cpnyId = $sel.data('cpny-id');
+                const current = $sel.data('current-site') || $sel.val() || '';
+
+                // Optional UX: tampilkan placeholder loading
+                const prevHtml = $sel.html();
+                $sel.html('<option disabled selected>Loading…</option>');
+
+                const sites = await fetchSites(cpnyId);
+                populateSelectOptions($sel, sites, current);
+
+                $sel.data('loaded', 1);
+            });
+        });
+    </script>
+
+    <script>
+        function refreshSiteHeaderVisibility() {
+            // Kalau ada minimal 1 row dengan item_type = GI → header SiteID tampil
+            const anyGI = $('.sppb-row').toArray().some(function(tr) {
+                return $(tr).find('.prodItemTypeField').val() === 'GI';
+            });
+
+            const $header = $('.siteid-header');
+            if (anyGI) {
+                $header.removeClass('hidden');
+            } else {
+                $header.addClass('hidden');
+            }
+        }
+
+        // Fungsi show/hide SiteID berdasarkan item_type
+        function updateSiteVisibility_xxx($row) {
+            const raw = $row.find('.prodItemTypeField').val() || '';
+            const itemType = raw.toUpperCase().trim();
+
+            console.log('updateSiteVisibility → item_type raw =', raw, ', normalized =', itemType, ', row index =', $row
+                .index());
+
+            const $col = $row.find('.siteid-column');
+            const $wrapper = $row.find('.siteid-wrapper');
+            const $select = $wrapper.find('.siteSelect');
+            const $hidden = $row.find('.siteid-hidden');
+
+            if (itemType === 'GI') {
+                console.log('→ SHOW SiteID for row', $row.index());
+                $col.removeClass('hidden');
+                $wrapper.removeClass('hidden');
+                $select.prop('disabled', false);
+                $hidden.prop('disabled', true);
+            } else {
+                console.log('→ HIDE SiteID for row', $row.index());
+                $col.addClass('hidden');
+                $wrapper.addClass('hidden');
+                $select.prop('disabled', true);
+                $select.val('');
+                $hidden.prop('disabled', false);
+            }
+
+            refreshSiteHeaderVisibility();
+        }
+
+        function updateSiteVisibility($row) {
+            const raw = $row.find('.prodItemTypeField').val() || '';
+            const itemType = raw.toUpperCase().trim();
+
+            const $col = $row.find('.siteid-column');
+            const $siteInput = $row.find('.siteidField');
+
+            if (itemType === 'GI') {
+                $col.removeClass('hidden');
+                $siteInput.prop('disabled', false);
+            } else {
+                $col.addClass('hidden');
+                $siteInput.prop('disabled', true);
+                $siteInput.val(''); // kosongkan kalau bukan GI
+            }
+
+            refreshSiteHeaderVisibility();
+        }
+
+
+
+        // Saat product dipilih dari modal → update item_type → cek visibility
+        $(document).on('change', '.prodItemTypeField', function() {
+            const $row = $(this).closest('.sppb-row');
+            const itemType = $(this).val();
+
+            console.log('Item Type Changed:', itemType, 'Row:', $row.index());
+
+            updateSiteVisibility($row);
+        });
+
+
+        // Saat halaman pertama load (edit mode)
+        $(function() {
+            $('.sppb-row').each(function() {
+                updateSiteVisibility($(this));
+            });
+        });
+    </script>
+
+
+    <script>
+        // Ketika company header berubah → update cpny_id semua siteSelect
+        $(document).on('change', '.headerCpnySelect', function() {
+            const cpnyId = $(this).val() || '';
+
+            $('.siteSelect').each(function() {
+                $(this).data('cpny-id', cpnyId);
+                $(this).attr('data-cpny-id', cpnyId); // jaga2
+
+                // reset loaded supaya fetch ulang sesuai company baru
+                $(this).data('loaded', 0);
+
+                // reset isi dropdown
+                $(this).html('<option value="" selected disabled>Select site…</option>');
+            });
+        });
+    </script>
+
+    <script>
+        // =====================
+        // LOCK DEPARTMENT
+        // =====================
+        let prevDept = $('#departementid').val(); // simpan default saat load
+
+        $('#departementid').on('change', function() {
+
+            // cek apakah sudah ada inventory dipilih
+            let hasInventory = false;
+
+            $('.inventoryIdField').each(function() {
+                if ($(this).val() && $(this).val().trim() !== '') {
+                    hasInventory = true;
+                }
+            });
+
+            if (hasInventory) {
+                alert("Department tidak bisa diubah karena sudah ada inventory di SPPB Detail.");
+
+                // balikkan ke value sebelumnya
+                $('#departementid').val(prevDept);
+
+                return;
+            }
+
+            // jika aman → update prevDept
+            prevDept = $(this).val();
+        });
+    </script>
+
+    <script>
+        $(function() {
+            const DOCTYPE = 'SPPB';
 
             const $rtModal = $('#requestTypeModal');
             const $rtTbody = $('#rtTableBody');
@@ -2835,419 +2859,11 @@
         });
     </script>
 
-    <script>
-        $(function() {
-            const $tenantModal = $('#tenantModal');
-            const $tenantTbody = $('#tenantTableBody');
-            const $tenantCount = $('#tenantCount');
-            const $tenantCpny = $('#tenantCpnyBadge');
 
-            let tenantState = {
-                search: '',
-                page: 1,
-                per_page: 10,
-                total: 0,
-                cpnyid: null
-            };
 
-            function openTenantModal() {
-                tenantState.cpnyid = $('select[name="cpnyid"]').val() || '';
-                tenantState.search = '';
-                tenantState.page = 1;
 
-                $tenantCpny.text(tenantState.cpnyid || '-');
-                $('#tenantSearch').val('');
 
-                // tampilkan modal dulu, kasih placeholder loading supaya terasa cepat
-                $tenantModal.removeClass('hidden').addClass('flex');
-                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
-                $tenantCount.text('');
 
-                // biar render dulu baru ajax
-                setTimeout(() => {
-                    loadTenants();
-                    $('#tenantSearch').trigger('focus');
-                }, 0);
-            }
-
-            function closeTenantModal() {
-                $tenantModal.addClass('hidden').removeClass('flex');
-            }
-
-            $('#btnSearchTenant').on('click', openTenantModal);
-            $('#closeTenantModal').on('click', closeTenantModal);
-
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $tenantModal.is(':visible')) closeTenantModal();
-            });
-
-            $('#tenantSearch').on('input', function() {
-                tenantState.search = $(this).val().trim();
-                tenantState.page = 1;
-                loadTenants();
-            });
-
-            $('#tenantRefresh').on('click', function() {
-                $('#tenantSearch').val('');
-                tenantState.search = '';
-                tenantState.page = 1;
-                loadTenants();
-            });
-
-            $('#tenantPrev').on('click', function() {
-                if (tenantState.page > 1) {
-                    tenantState.page--;
-                    loadTenants();
-                }
-            });
-
-            $('#tenantNext').on('click', function() {
-                const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
-                if (tenantState.page < maxPage) {
-                    tenantState.page++;
-                    loadTenants();
-                }
-            });
-
-            function loadTenants() {
-                if (!tenantState.cpnyid) {
-                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Select Company first</td></tr>');
-                    $tenantCount.text('');
-                    $('#tenantPrev, #tenantNext').prop('disabled', true);
-                    return;
-                }
-
-                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
-
-                $.getJSON("{{ route('tenants.search') }}", {
-                        q: tenantState.search,
-                        page: tenantState.page,
-                        per_page: tenantState.per_page,
-                        cpnyid: tenantState.cpnyid
-                    })
-                    .done(function(res) {
-                        const list = (res.data || []);
-                        tenantState.total = res.total || 0;
-
-                        const rows = list.map(it => {
-                            const id = it.id ?? '';
-                            const name = it.text ?? it.store_name ?? it.name ?? '';
-                            const unitLabel = it.unit_label ?? it.unit ?? it.unit_name ?? '';
-                            const unitId = it.unit_id ?? it.unit ?? '';
-
-                            return `
-                            <tr>
-                                <td class="border p-2">${$('<div>').text(name).html()}</td>
-                                <td class="border p-2">${$('<div>').text(unitLabel).html()}</td>
-                                <td class="border p-2 text-center">
-                                    <button type="button"
-                                        class="chooseTenant rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                        data-id="${id}"
-                                        data-name="${$('<div>').text(name).html()}"
-                                        data-unit_label="${$('<div>').text(unitLabel).html()}"
-                                        data-unit_id="${unitId}">
-                                        Choose
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                        }).join('');
-
-                        $tenantTbody.html(rows ||
-                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
-
-                        const showing = list.length;
-                        $tenantCount.text(`Showing ${showing} of ${tenantState.total} items`);
-
-                        const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
-                        $('#tenantPrev').prop('disabled', tenantState.page <= 1);
-                        $('#tenantNext').prop('disabled', tenantState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $tenantTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load tenant</td></tr>'
-                        );
-                        $tenantCount.text('');
-                        $('#tenantPrev, #tenantNext').prop('disabled', true);
-                    });
-            }
-
-            // Choose → isi field seperti select2 dulu
-            $(document).on('click', '.chooseTenant', function() {
-                const id = $(this).data('id');
-                const name = $(this).data('name');
-                const unitLabel = $(this).data('unit_label');
-                const unitId = $(this).data('unit_id');
-
-                $('#tenant_id').val(id);
-                $('#nama_tenant').val(name);
-                $('#unit_id').val(unitId || '');
-                $('#tenant_name_display').val(name);
-                $('#no_unit_tenant').val(unitLabel || '');
-
-                // bersihin invalid (kalau kamu nanti addError di display)
-                $('#tenant_name_display').removeClass('is-invalid').next('.error-feedback').remove();
-
-                closeTenantModal();
-            });
-
-            // Kalau company berubah → kosongkan tenant yang sudah dipilih (biar konsisten)
-            $('select[name="cpnyid"]').on('change', function() {
-                $('#tenant_id').val('');
-                $('#nama_tenant').val('');
-                $('#unit_id').val('');
-                $('#tenant_name_display').val('');
-                $('#no_unit_tenant').val('');
-            });
-        });
-    </script>
-
-    <script>
-        $(function () {
-            const $cpny = $('#cpnyid');
-            const $bu   = $('#business_unit_id');
-
-            function renderBuOptions(list, selected) {
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                (list || []).forEach(it => {
-                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                    const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
-                    html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
-                });
-                return html;
-            }
-
-            function loadBusinessUnitsByCpny(cpnyid, selected = null) {
-                if (!cpnyid) {
-                    $bu.html('<option value="" disabled selected>Select Company first</option>');
-                    return;
-                }
-
-                $bu.html('<option value="" disabled selected>Loading...</option>');
-
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
-                    .done(function(res){
-                        const list = res.data || [];
-                        if (!list.length) {
-                            $bu.html('<option value="" disabled selected>No Business Unit</option>');
-                        } else {
-                            // kalau selected kosong, auto pilih option pertama
-                            $bu.html(renderBuOptions(list, selected));
-                            if (!selected) {
-                                const first = list[0].business_unit_id;
-                                $bu.val(first);
-                            }
-                        }
-                    })
-                    .fail(function(){
-                        $bu.html('<option value="" disabled selected>Failed to load</option>');
-                    });
-            }
-
-            // initial load (default cpny terpilih)
-            loadBusinessUnitsByCpny($cpny.val());
-
-            // kalau company berubah → reload BU
-            $cpny.on('change', function(){
-                loadBusinessUnitsByCpny($(this).val());
-            });
-        });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $(function () {
-        const $cpny = $('#cpnyid');
-        const $bu   = $('#business_unit_id');
-
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
-        let isReverting = false;
-
-        // ===== helper: cek ada detail terisi =====
-        function hasAnyDetailFilled() {
-            return $('#spptTable tr.sppt-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.stock_unitField').val(),
-                $tr.find('.siteidField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
-
-        // ===== reset semua field detail =====
-        function resetAllDetailRows() {
-            $('#spptTable tr.sppt-row').each(function () {
-            const $tr = $(this);
-
-            // inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
-            $tr.find('.purchaseUnitField').val('');
-
-            // qty
-            $tr.find('.qtyField').val('');
-
-            // uom
-            $tr.find('.stock_unitField').val('-');
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
-
-            // site
-            $tr.find('.siteidField').val('');
-            // trigger supaya kolom site hidden lagi kalau item_type kosong
-            $tr.find('.prodItemTypeField').trigger('change');
-
-            // lokasi
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val('');
-
-            // coa/budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
-            $tr.find('.actDescrField').val('');
-
-            // note
-            $tr.find('input[name="note[]"]').val('');
-
-            // clear validation UI
-            $tr.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-            $tr.find('.error-feedback').remove();
-            });
-
-            // reset WO
-            $('#woid').val('');
-        }
-
-        // ===== reset locked item type global (punya script inventory modal kamu) =====
-        function resetLockedItemTypeIfExists() {
-            try {
-            // lockedItemType ada di script inventory, tapi scope-nya closure.
-            // Jadi cara aman: simpan di window (kita buatkan window.lockedItemType di bawah)
-            if (typeof window.lockedItemType !== 'undefined') window.lockedItemType = '';
-            } catch (e) {}
-        }
-
-        async function confirmReset(type) {
-            const res = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
-                <div style="text-align:left">
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, reset',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true
-            });
-            return res.isConfirmed;
-        }
-
-        // ===== revert helper (cpny/bu balik) =====
-        function revertSelects() {
-            isReverting = true;
-
-            // revert cpny
-            $cpny.val(prevCpny);
-
-            // reload BU sesuai cpny lama, lalu set BU lama
-            // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
-            // jadi kita buat loader kecil di sini juga:
-            $bu.html('<option value="" disabled selected>Loading...</option>');
-            $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: prevCpny })
-            .done(function(res){
-                const list = res.data || [];
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                list.forEach(it => {
-                const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                const sel  = (String(prevBu) === String(id)) ? 'selected' : '';
-                html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
-                });
-                $bu.html(html);
-                $bu.val(prevBu);
-            })
-            .always(function(){
-                isReverting = false;
-            });
-        }
-
-        // ===== handler change company =====
-        $cpny.on('change', async function () {
-            if (isReverting) return;
-
-            // jika detail kosong → update prev dan biarkan lanjut normal (BU akan reload oleh script kamu)
-            if (!hasAnyDetailFilled()) {
-            prevCpny = $cpny.val();
-            // prevBu nanti akan ke-update setelah BU ke-load (lihat handler BU)
-            return;
-            }
-
-            const ok = await confirmReset('Company');
-            if (!ok) {
-            revertSelects();
-            return;
-            }
-
-            // user confirm → reset detail
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
-
-            prevCpny = $cpny.val();
-            // prevBu akan ikut update setelah BU ke-load
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
-
-        // ===== handler change BU =====
-        $bu.on('change', async function () {
-            if (isReverting) return;
-
-            if (!hasAnyDetailFilled()) {
-            prevBu = $bu.val();
-            return;
-            }
-
-            const ok = await confirmReset('Business Unit');
-            if (!ok) {
-            isReverting = true;
-            $bu.val(prevBu);
-            isReverting = false;
-            return;
-            }
-
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
-
-            prevBu = $bu.val();
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
-
-        // ===== optional: pastikan prevBu ter-update setelah BU selesai load pertama kali =====
-        // delay kecil karena BU awalnya "Loading..."
-        setTimeout(() => {
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
-        }, 300);
-        });
-    </script>
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -3255,5 +2871,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
 
 </x-app-layout>

@@ -98,8 +98,7 @@
                         </div>
 
                         <!-- Row 1 -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label
@@ -113,6 +112,16 @@
                                             {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Business Unit -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" id="business_unit_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="" disabled selected>Loading...</option>
                                 </select>
                             </div>
 
@@ -131,17 +140,6 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <!-- Request Type -->
-                            {{-- <div class="flex flex-col gap-2">
-                                <label class="req block  text-sm  font-medium text-gray-700 dark:text-gray-300">Request
-                                    Type</label>
-                                <select id="requesttypeid" name="requesttypeid"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
-                            </div> --}}
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
@@ -316,27 +314,7 @@
                                                                 title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
-
-                                                    {{-- SiteID --}}
-                                                    {{-- <td class="siteid-column hidden border p-3">
-                                                        <div class="siteid-wrapper hidden">
-                                                            <select name="siteid[]"
-                                                                class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                                data-cpny-id="{{ $usercpny2->cpny_id ?? '' }}"
-                                                                data-current-site="{{ $d->siteid ?? '' }}"
-                                                                data-loaded="0">
-                                                                @if (!empty($d->siteid))
-                                                                    <option value="{{ $d->siteid }}" selected>
-                                                                        {{ $d->siteid }}</option>
-                                                                @else
-                                                                    <option value="" selected disabled>Select
-                                                                        site…</option>
-                                                                @endif
-                                                            </select>
-                                                        </div>                                                       
-                                                        <input type="hidden" name="siteid[]" class="siteid-hidden"
-                                                            value="">
-                                                    </td> --}}
+                                         
                                                     <td class="siteid-column hidden border p-3">
                                                         <input type="text" name="siteid[]"
                                                             class="siteidField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
@@ -421,47 +399,7 @@
                                 <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Inventory</h3>
                                 <button type="button" id="closeInventoryModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <!-- Tabs -->
-                            {{-- <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
-                                <button type="button"
-                                    class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
-                                    data-type="gi">Stock</button>
-                                <button type="button"
-                                    class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
-                                    data-type="ns">Non-Stock</button>
-                                <div class="ml-auto flex items-center gap-2">
-                                    <input id="invSearch" type="text" placeholder="Search..."
-                                        class="rounded border border-gray-300 bg-white px-3 py-1  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                    <button id="invRefresh" type="button"
-                                        class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                </div>
-                            </div> --}}
-
-                            {{-- <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">                               
-                                <button type="button"
-                                    class="invTab @if (!$akses_stock) border-b-2 border-indigo-600 @else border-b-2 border-transparent @endif
-                                    px-4 py-2 font-semibold"
-                                    data-type="ns">
-                                    Non-Stock
-                                </button>
-
-                                @if ($akses_stock)
-                                    <button type="button"
-                                        class="invTab border-b-2 border-indigo-600 px-4 py-2 font-semibold"
-                                        data-type="gi">
-                                        Stock
-                                    </button>
-                                @endif                                
-
-                                <div class="ml-auto flex items-center gap-2">
-                                    <input id="invSearch" type="text" placeholder="Search..."
-                                        class="rounded border border-gray-300 bg-white px-3 py-1  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                    <button id="invRefresh" type="button"
-                                        class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                </div>
-                            </div> --}}
+                            </div>                         
 
                             <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
 
@@ -565,97 +503,7 @@
                             </div>
                         </div>
                     </div>
-                    <!-- ===== Modal Lookup UoM ===== -->
-
-                    <!-- ===== Modal Lookup Location ===== -->
-                    {{-- <div id="locationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Location</h3>
-                                <button type="button" id="closeLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2">
-                                <input id="locSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="locRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto  text-sm  opacity-80">Company: <span id="locCpnyBadge"
-                                        class="font-semibold"></span></div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50  text-sm  dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Location ID</th>
-                                            <th class="border p-2">Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="locTableBody" class=" text-sm "></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between  text-sm ">
-                                <span id="locCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="locPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="locNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-
-                    <!-- ===== Modal Lookup Sub Location ===== -->
-                    {{-- <div id="subLocationModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-3xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Sub Location</h3>
-                                <button type="button" id="closeSubLocationModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2  text-sm ">
-                                <input id="subLocSearch" type="text" placeholder="Search..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="subLocRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto flex items-center gap-3">
-                                    <span>Company: <b id="subLocCpnyBadge"></b></span>
-                                    <span>Location: <b id="subLocParentBadge"></b></span>
-                                </div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-gray-50  text-sm  dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">Sub Location ID</th>
-                                            <th class="border p-2">Sub Location Name</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="subLocTableBody" class=" text-sm "></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between  text-sm ">
-                                <span id="subLocCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="subLocPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="subLocNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
+                  
                     <!-- Modal: Location + Sub Location -->
                     <div id="modalLokasi"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/50 p-4">
@@ -909,19 +757,7 @@
                             </button>
 
                             <!-- Cancel + Submit -->
-                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                {{-- <button id="cancelBtn"
-                                        class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <span id="cancelText">Cancel</span>
-                                        <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4">
-                                            </circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                            </path>
-                                        </svg>
-                                    </button> --}}
+                            <div class="flex flex-col gap-3 md:flex-row md:items-center">                       
 
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -2001,7 +1837,7 @@
             const $coaCount = $('#coaCount');
             const $coaCpny = $('#coaCpnyBadge');
             const $coaDept = $('#coaDeptBadge');
-            const $coaPerpost = $('#coaPerpostBadge');
+            const $coaPerpost = $('#coaPerpostBadge');          
 
             let currentCoaRow = null; // row penerima data
             let coaState = {
@@ -2012,6 +1848,7 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
+                business_unit_id: null,
             };
 
             function openCoaModal(forRow) {
@@ -2021,6 +1858,7 @@
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
+                const bu = $('#business_unit_id').val();
 
                 if (!cpny) {
                     if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
@@ -2033,6 +1871,7 @@
 
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
+                coaState.business_unit_id = bu;
                 coaState.perpost = perpost;
                 coaState.page = 1;
                 coaState.search = '';
@@ -2094,6 +1933,7 @@
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
                         perpost: coaState.perpost,
+                        business_unit_id: coaState.business_unit_id,
                         search: coaState.search,
                         page: coaState.page,
                         per_page: coaState.per_page
@@ -2190,10 +2030,11 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
+            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
                 if ($coaModal.is(':visible')) {
                     coaState.cpnyid = $('select[name="cpnyid"]').val();
                     coaState.deptid = $('select[name="departementid"]').val();
+                    coaState.business_unit_id = $('#business_unit_id').val();
                     coaState.perpost = $('#perpost').val();
                     $coaCpny.text(coaState.cpnyid || '-');
                     $coaDept.text(coaState.deptid || '-');
@@ -2517,117 +2358,6 @@
             });
         });
     </script>
-
-
-    {{-- <script>
-        $(function() {
-            const $lokasiModal = $('#modalLokasi');
-            const $selLoc = $('#modal_location_id');
-            const $selSub = $('#modal_sub_location_id');
-            let currentLocRow = null;
-
-            function openLokasiModal(forRow) {
-                currentLocRow = forRow;
-                const cpny = $('select[name="cpnyid"]').val();
-                if (!cpny) {
-                    toastr.warning('Pilih Company terlebih dahulu.');
-                    return;
-                }
-
-                $selLoc.empty().append('<option value="">-- choose --</option>');
-                $selSub.empty().append('<option value="">-- choose --</option>');
-
-                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-                    .done(function(list) {
-                        list.forEach(it => $selLoc.append(new Option(it.text, it.value)));
-
-                        // preselect jika sudah ada
-                        const curLoc = currentLocRow.find('.locationIdField').val();
-                        if (curLoc) {
-                            $selLoc.val(curLoc).trigger('change');
-                        }
-
-                        // ✅ fokuskan ke Location
-                        setTimeout(() => $selLoc.trigger('focus'), 0);
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat lokasi.');
-                    });
-
-                $lokasiModal.removeClass('hidden').addClass('flex');
-            }
-
-
-            function closeLokasiModal() {
-                $lokasiModal.addClass('hidden').removeClass('flex');
-            }
-
-            // Open modal dari tombol di row
-            $(document).on('click', '.openLokasiPicker', function() {
-                openLokasiModal($(this).closest('tr'));
-            });
-
-            // Close modal
-            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
-
-            // Ketika location dipilih → load sublocations
-            $selLoc.on('change', function() {
-                const cpny = $('select[name="cpnyid"]').val();
-                const loc = $(this).val();
-                $selSub.empty().append('<option value="">-- choose --</option>');
-
-                if (!loc) return;
-
-                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-                    .done(function(list) {
-                        list.forEach(it => $selSub.append(new Option(it.text, it.value)));
-
-                        // preselect jika row sudah punya sub_location_id
-                        if (currentLocRow) {
-                            const curSub = currentLocRow.find('.subLocationIdField').val();
-                            if (curSub) $selSub.val(curSub);
-                        }
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat sub location.');
-                    });
-            });
-
-            // Save ke row aktif
-            $('#saveLokasi').on('click', function() {
-                const locId = $selLoc.val();
-                const locText = $('#modal_location_id option:selected').text();
-                const subId = $selSub.val();
-                const subText = $('#modal_sub_location_id option:selected').text();
-
-                if (!locId || !subId) {
-                    toastr.error('Pilih Location dan Sub Location.');
-                    return;
-                }
-
-                // Tulis ke hidden + tampilan
-                currentLocRow.find('.locationIdField').val(locId);
-                currentLocRow.find('.subLocationIdField').val(subId);
-                currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
-
-                // bersihkan error UI jika ada
-                currentLocRow.find('.locationDisplayField').removeClass('is-invalid')
-                    .next('.error-feedback').remove();
-
-                closeLokasiModal();
-            });
-
-            // Jika company berubah dan modal terbuka → reload lokasi
-            $('select[name="cpnyid"]').on('change', function() {
-                if ($lokasiModal.is(':visible')) {
-                    // reset dan panggil open ulang dengan row yang sama
-                    $selLoc.empty().append('<option value="">-- choose --</option>');
-                    $selSub.empty().append('<option value="">-- choose --</option>');
-                    if (currentLocRow) openLokasiModal(currentLocRow);
-                }
-            });
-        });
-    </script> --}}
 
     <script>
         $(function() {
@@ -3143,11 +2873,251 @@
         });
     </script>
 
+    <script>
+        $(function () {
+            const $cpny = $('#cpnyid');
+            const $bu   = $('#business_unit_id');
 
+            function renderBuOptions(list, selected) {
+                let html = '<option value="" disabled>Select Business Unit</option>';
+                (list || []).forEach(it => {
+                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
+                    const name = it.business_unit_name ?? it.businessunit_name ?? id;
+                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
+                    html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
+                });
+                return html;
+            }
 
+            function loadBusinessUnitsByCpny(cpnyid, selected = null) {
+                if (!cpnyid) {
+                    $bu.html('<option value="" disabled selected>Select Company first</option>');
+                    return;
+                }
 
+                $bu.html('<option value="" disabled selected>Loading...</option>');
 
+                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
+                    .done(function(res){
+                        const list = res.data || [];
+                        if (!list.length) {
+                            $bu.html('<option value="" disabled selected>No Business Unit</option>');
+                        } else {
+                            // kalau selected kosong, auto pilih option pertama
+                            $bu.html(renderBuOptions(list, selected));
+                            if (!selected) {
+                                const first = list[0].business_unit_id;
+                                $bu.val(first);
+                            }
+                        }
+                    })
+                    .fail(function(){
+                        $bu.html('<option value="" disabled selected>Failed to load</option>');
+                    });
+            }
 
+            // initial load (default cpny terpilih)
+            loadBusinessUnitsByCpny($cpny.val());
+
+            // kalau company berubah → reload BU
+            $cpny.on('change', function(){
+                loadBusinessUnitsByCpny($(this).val());
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(function () {
+        const $cpny = $('#cpnyid');
+        const $bu   = $('#business_unit_id');
+
+        let prevCpny = $cpny.val();
+        let prevBu   = $bu.val();
+        let isReverting = false;
+
+        // ===== helper: cek ada detail terisi =====
+        function hasAnyDetailFilled() {
+            return $('#sppbTable tr.sppb-row').toArray().some(tr => {
+            const $tr = $(tr);
+            return [
+                $tr.find('.inventoryIdField').val(),
+                $tr.find('.qtyField').val(),
+                $tr.find('.coaIdField').val(),
+                $tr.find('.locationIdField').val(),
+                $tr.find('.subLocationIdField').val(),
+                $tr.find('.stock_unitField').val(),
+                $tr.find('.siteidField').val(),
+            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
+            });
+        }
+
+        // ===== reset semua field detail =====
+        function resetAllDetailRows() {
+            $('#sppbTable tr.sppb-row').each(function () {
+            const $tr = $(this);
+
+            // inventory
+            $tr.find('.inventoryIdField').val('');
+            $tr.find('.productNameField').val('');
+            $tr.find('.prodItemTypeField').val('');
+            $tr.find('.prodItemSubTypeField').val('');
+            $tr.find('.prodItemCategoryField').val('');
+            $tr.find('.purchaseUnitField').val('');
+
+            // qty
+            $tr.find('.qtyField').val('');
+
+            // uom
+            $tr.find('.stock_unitField').val('-');
+            $tr.find('.uomFromField').val('');
+            $tr.find('.uomToField').val('');
+            $tr.find('.uomMultDivField').val('');
+            $tr.find('.uomRateField').val('');
+
+            // site
+            $tr.find('.siteidField').val('');
+            // trigger supaya kolom site hidden lagi kalau item_type kosong
+            $tr.find('.prodItemTypeField').trigger('change');
+
+            // lokasi
+            $tr.find('.locationIdField').val('');
+            $tr.find('.subLocationIdField').val('');
+            $tr.find('.locationDisplayField').val('');
+
+            // coa/budget mapping
+            $tr.find('.coaIdField').val('');
+            $tr.find('.coaNameField').val('');
+            $tr.find('.activityIdField').val('');
+            $tr.find('.businessUnitIdField').val('');
+            $tr.find('.departmentFinIdField').val('');
+            $tr.find('.actDescrField').val('');
+
+            // note
+            $tr.find('input[name="note[]"]').val('');
+
+            // clear validation UI
+            $tr.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+            $tr.find('.error-feedback').remove();
+            });
+
+            // reset WO
+            $('#woid').val('');
+        }
+
+        // ===== reset locked item type global (punya script inventory modal kamu) =====
+        function resetLockedItemTypeIfExists() {
+            try {
+            // lockedItemType ada di script inventory, tapi scope-nya closure.
+            // Jadi cara aman: simpan di window (kita buatkan window.lockedItemType di bawah)
+            if (typeof window.lockedItemType !== 'undefined') window.lockedItemType = '';
+            } catch (e) {}
+        }
+
+        async function confirmReset(type) {
+            const res = await Swal.fire({
+            icon: 'warning',
+            title: `Ubah ${type}?`,
+            html: `
+                <div style="text-align:left">
+                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, reset',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            focusCancel: true
+            });
+            return res.isConfirmed;
+        }
+
+        // ===== revert helper (cpny/bu balik) =====
+        function revertSelects() {
+            isReverting = true;
+
+            // revert cpny
+            $cpny.val(prevCpny);
+
+            // reload BU sesuai cpny lama, lalu set BU lama
+            // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
+            // jadi kita buat loader kecil di sini juga:
+            $bu.html('<option value="" disabled selected>Loading...</option>');
+            $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: prevCpny })
+            .done(function(res){
+                const list = res.data || [];
+                let html = '<option value="" disabled>Select Business Unit</option>';
+                list.forEach(it => {
+                const id   = it.business_unit_id ?? it.businessunit_id ?? '';
+                const name = it.business_unit_name ?? it.businessunit_name ?? id;
+                const sel  = (String(prevBu) === String(id)) ? 'selected' : '';
+                html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
+                });
+                $bu.html(html);
+                $bu.val(prevBu);
+            })
+            .always(function(){
+                isReverting = false;
+            });
+        }
+
+        // ===== handler change company =====
+        $cpny.on('change', async function () {
+            if (isReverting) return;
+
+            // jika detail kosong → update prev dan biarkan lanjut normal (BU akan reload oleh script kamu)
+            if (!hasAnyDetailFilled()) {
+            prevCpny = $cpny.val();
+            // prevBu nanti akan ke-update setelah BU ke-load (lihat handler BU)
+            return;
+            }
+
+            const ok = await confirmReset('Company');
+            if (!ok) {
+            revertSelects();
+            return;
+            }
+
+            // user confirm → reset detail
+            resetAllDetailRows();
+            resetLockedItemTypeIfExists();
+
+            prevCpny = $cpny.val();
+            // prevBu akan ikut update setelah BU ke-load
+            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
+        });
+
+        // ===== handler change BU =====
+        $bu.on('change', async function () {
+            if (isReverting) return;
+
+            if (!hasAnyDetailFilled()) {
+            prevBu = $bu.val();
+            return;
+            }
+
+            const ok = await confirmReset('Business Unit');
+            if (!ok) {
+            isReverting = true;
+            $bu.val(prevBu);
+            isReverting = false;
+            return;
+            }
+
+            resetAllDetailRows();
+            resetLockedItemTypeIfExists();
+
+            prevBu = $bu.val();
+            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
+        });
+
+        // ===== optional: pastikan prevBu ter-update setelah BU selesai load pertama kali =====
+        // delay kecil karena BU awalnya "Loading..."
+        setTimeout(() => {
+            prevCpny = $cpny.val();
+            prevBu   = $bu.val();
+        }, 300);
+        });
+    </script>   
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

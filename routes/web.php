@@ -1077,6 +1077,9 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     Route::get('/wos/ajax/completed-wo', [MasterController::class, 'completedWoSppb'])->name('wos.ajax.completed-wo');    
     Route::post('/coa', [MasterController::class, 'updateCoa'])->name('coa.update');
 
+    Route::get('/users/businessunits/by-cpny', [MasterController::class, 'businessUnitsByCpny'])->name('businessunits.byCpny');
+
+
     
     
     Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');

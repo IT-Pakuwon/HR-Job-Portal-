@@ -57,9 +57,16 @@
                         {{-- CATEGORY ID --}}
                         <div>
                             <label class="mb-1 block text-gray-700 dark:text-white">Category ID</label>
-                            <input type="text" id="categoryid" name="categoryid"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                            <select id="categoryid" name="categoryid"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700 dark:text-white" required>
+                                <option value="">-- Select Category --</option>
+                                <option value="condition">Condition</option>
+                                <option value="type">Type</option>
+                                <option value="wotype">WO Type</option>
+                                <option value="worequest">WO Request</option>
+                            </select>
                         </div>
+
                     </div>
 
                     {{-- ROW 2 : Category Name + Groups (SEBELAHAN) --}}

@@ -154,7 +154,7 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid" id="cpnyid"
+                                <select name="cpnyid"
                                     class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
@@ -163,16 +163,6 @@
                                             {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
-                                </select>
-                            </div>
-
-                            <!-- Business Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
                                 </select>
                             </div>
 
@@ -191,7 +181,17 @@
                                     @endforeach
                                 </select>
                             </div>
-                     
+
+                            <!-- Request Type -->
+                            {{-- <div class="flex flex-col gap-2">
+                                <label class="req block  text-sm  font-medium text-gray-700 dark:text-gray-300">Request
+                                    Type</label>
+                                <select id="requesttypeid" name="requesttypeid"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div> --}}
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
@@ -229,14 +229,22 @@
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
-                            </div>             
-                            
+                            </div>
 
+                            <!-- Tenant Select2 -->
+                            {{-- <div class="flex flex-col gap-2">
+                                <label class="req block  text-sm  font-medium text-gray-700 dark:text-gray-300">Nama
+                                    Tenant</label>
 
-                        </div>
+                                <input type="hidden" name="nama_tenant" id="nama_tenant">
+                                <input type="hidden" name="tenant_id" id="tenant_id">
+                                <input type="hidden" name="unit_id" id="unit_id">
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-
+                                <select id="tenant_select" name="tenant_select"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required
+                                    data-placeholder="Search">
+                                </select>
+                            </div> --}}
                             <!-- Nama Tenant (Modal Picker) -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -265,6 +273,11 @@
                                     </button>
                                 </div>
                             </div>
+
+
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
 
                             <!-- Unit Display -->
                             <div class="flex flex-col gap-2">
@@ -315,7 +328,26 @@
                                 </select>
                             </div>
 
-                            
+                            <!-- WO -->
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO
+                                    ID</label>
+
+                                <div class="flex">
+                                    <input type="text" id="woid" name="woid"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        readonly>
+
+                                    <button type="button" id="btnSearchWo"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100
+                            8 4 4 0 000-8z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
 
                         </div>
 
@@ -336,28 +368,7 @@
                                 </div>
                             </div>
 
-                            <!-- WO -->
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO
-                                    ID</label>
-
-                                <div class="flex">
-                                    <input type="text" id="woid" name="woid"
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        readonly>
-
-                                    <button type="button" id="btnSearchWo"
-                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd" d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100
-                                                8 4 4 0 000-8z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col gap-2 lg:col-span-3">
+                            <div class="flex flex-col gap-2 lg:col-span-4">
                                 <label for="keperluan"
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
@@ -1904,7 +1915,6 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
-                business_unit_id: null,
             };
 
             function openCoaModal(forRow) {
@@ -1914,7 +1924,6 @@
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
-                const bu = $('#business_unit_id').val();
 
                 if (!cpny) {
                     if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
@@ -1928,7 +1937,6 @@
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
                 coaState.perpost = perpost;
-                coaState.business_unit_id = bu;
                 coaState.page = 1;
                 coaState.search = '';
 
@@ -1988,7 +1996,6 @@
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
                         perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id,
                         search: coaState.search,
                         page: coaState.page,
                         per_page: coaState.per_page
@@ -2084,12 +2091,11 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
+            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
                 if ($coaModal.is(':visible')) {
                     coaState.cpnyid = $('select[name="cpnyid"]').val();
                     coaState.deptid = $('select[name="departementid"]').val();
                     coaState.perpost = $('#perpost').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
                     $coaCpny.text(coaState.cpnyid || '-');
                     $coaDept.text(coaState.deptid || '-');
                     $coaPerpost.text(coaState.perpost || '-');
@@ -3002,252 +3008,6 @@
         });
     </script>
 
-    <script>
-        $(function () {
-            const $cpny = $('#cpnyid');
-            const $bu   = $('#business_unit_id');
-
-            function renderBuOptions(list, selected) {
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                (list || []).forEach(it => {
-                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                    const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
-                    html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
-                });
-                return html;
-            }
-
-            function loadBusinessUnitsByCpny(cpnyid, selected = null) {
-                if (!cpnyid) {
-                    $bu.html('<option value="" disabled selected>Select Company first</option>');
-                    return;
-                }
-
-                $bu.html('<option value="" disabled selected>Loading...</option>');
-
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
-                    .done(function(res){
-                        const list = res.data || [];
-                        if (!list.length) {
-                            $bu.html('<option value="" disabled selected>No Business Unit</option>');
-                        } else {
-                            // kalau selected kosong, auto pilih option pertama
-                            $bu.html(renderBuOptions(list, selected));
-                            if (!selected) {
-                                const first = list[0].business_unit_id;
-                                $bu.val(first);
-                            }
-                        }
-                    })
-                    .fail(function(){
-                        $bu.html('<option value="" disabled selected>Failed to load</option>');
-                    });
-            }
-
-            // initial load (default cpny terpilih)
-            loadBusinessUnitsByCpny($cpny.val());
-
-            // kalau company berubah → reload BU
-            $cpny.on('change', function(){
-                loadBusinessUnitsByCpny($(this).val());
-            });
-        });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $(function () {
-        const $cpny = $('#cpnyid');
-        const $bu   = $('#business_unit_id');
-
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
-        let isReverting = false;
-
-        // ===== helper: cek ada detail terisi =====
-        function hasAnyDetailFilled() {
-            return $('#spptTable tr.sppt-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.stock_unitField').val(),
-                $tr.find('.siteidField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
-
-        // ===== reset semua field detail =====
-        function resetAllDetailRows() {
-            $('#spptTable tr.sppt-row').each(function () {
-            const $tr = $(this);
-
-            // inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
-            $tr.find('.purchaseUnitField').val('');
-
-            // qty
-            $tr.find('.qtyField').val('');
-
-            // uom
-            $tr.find('.stock_unitField').val('-');
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
-
-            // site
-            $tr.find('.siteidField').val('');
-            // trigger supaya kolom site hidden lagi kalau item_type kosong
-            $tr.find('.prodItemTypeField').trigger('change');
-
-            // lokasi
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val('');
-
-            // coa/budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
-            $tr.find('.actDescrField').val('');
-
-            // note
-            $tr.find('input[name="note[]"]').val('');
-
-            // clear validation UI
-            $tr.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-            $tr.find('.error-feedback').remove();
-            });
-
-            // reset WO
-            $('#woid').val('');
-        }
-
-        // ===== reset locked item type global (punya script inventory modal kamu) =====
-        function resetLockedItemTypeIfExists() {
-            try {
-            // lockedItemType ada di script inventory, tapi scope-nya closure.
-            // Jadi cara aman: simpan di window (kita buatkan window.lockedItemType di bawah)
-            if (typeof window.lockedItemType !== 'undefined') window.lockedItemType = '';
-            } catch (e) {}
-        }
-
-        async function confirmReset(type) {
-            const res = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
-                <div style="text-align:left">
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, reset',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true
-            });
-            return res.isConfirmed;
-        }
-
-        // ===== revert helper (cpny/bu balik) =====
-        function revertSelects() {
-            isReverting = true;
-
-            // revert cpny
-            $cpny.val(prevCpny);
-
-            // reload BU sesuai cpny lama, lalu set BU lama
-            // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
-            // jadi kita buat loader kecil di sini juga:
-            $bu.html('<option value="" disabled selected>Loading...</option>');
-            $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: prevCpny })
-            .done(function(res){
-                const list = res.data || [];
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                list.forEach(it => {
-                const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                const sel  = (String(prevBu) === String(id)) ? 'selected' : '';
-                html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
-                });
-                $bu.html(html);
-                $bu.val(prevBu);
-            })
-            .always(function(){
-                isReverting = false;
-            });
-        }
-
-        // ===== handler change company =====
-        $cpny.on('change', async function () {
-            if (isReverting) return;
-
-            // jika detail kosong → update prev dan biarkan lanjut normal (BU akan reload oleh script kamu)
-            if (!hasAnyDetailFilled()) {
-            prevCpny = $cpny.val();
-            // prevBu nanti akan ke-update setelah BU ke-load (lihat handler BU)
-            return;
-            }
-
-            const ok = await confirmReset('Company');
-            if (!ok) {
-            revertSelects();
-            return;
-            }
-
-            // user confirm → reset detail
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
-
-            prevCpny = $cpny.val();
-            // prevBu akan ikut update setelah BU ke-load
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
-
-        // ===== handler change BU =====
-        $bu.on('change', async function () {
-            if (isReverting) return;
-
-            if (!hasAnyDetailFilled()) {
-            prevBu = $bu.val();
-            return;
-            }
-
-            const ok = await confirmReset('Business Unit');
-            if (!ok) {
-            isReverting = true;
-            $bu.val(prevBu);
-            isReverting = false;
-            return;
-            }
-
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
-
-            prevBu = $bu.val();
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
-
-        // ===== optional: pastikan prevBu ter-update setelah BU selesai load pertama kali =====
-        // delay kecil karena BU awalnya "Loading..."
-        setTimeout(() => {
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
-        }, 300);
-        });
-    </script>
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

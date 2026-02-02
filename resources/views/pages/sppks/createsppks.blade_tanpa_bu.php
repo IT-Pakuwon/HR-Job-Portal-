@@ -1,7 +1,5 @@
 <x-app-layout>
-    <!-- Select2 CSS & JS -->
-    {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script> --}}
+
     <style>
         .is-invalid {
             border-color: #ef4444 !important;
@@ -21,60 +19,55 @@
             font-weight: 700;
         }
     </style>
-
     <style>
-        /* Samakan tinggi Select2 tenant & pic ≈ input p-2.5 (~40px) */
-        .select2-container--default .select2-selection--single {
-            height: 35px !important;
-            border: 1px solid #bbbbbb;
-            /* = border-gray-300 */
+        /* Samakan tinggi Select2 dengan input Tailwind (h-10 / p-2.5) */
+        .select2-container .select2-selection--single {
+            height: 40px !important;
+            border: 1px solid #d1d5db;
+            /* border-gray-300 */
             border-radius: 0.375rem;
-            /* = rounded-md */
-            background-color: white;
+            /* rounded-md */
+            display: flex;
+            align-items: center;
         }
 
+        /* Geser tombol clear (X) ke sebelah kanan */
+        .select2-container--default .select2-selection--single .select2-selection__clear {
+            position: absolute;
+            right: 28px;
+            /* beri jarak dari panah dropdown */
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            /* gray-500 */
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0;
+            z-index: 2;
+        }
+
+        /* Biar teks tidak nempel ke X */
         .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 40px !important;
-            padding-left: 10px;
-            /* biar sejajar dengan p-2.5 */
-            padding-right: 28px;
-            color: #111827;
-            /* text-gray-900 */
+            padding-right: 40px !important;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px !important;
+            height: 40px !important;
             right: 6px;
         }
 
-        /* Optional: Dark mode */
+        /* Dark mode support */
         .dark .select2-container--default .select2-selection--single {
             background-color: #1f2937;
             /* gray-800 */
-            border-color: #4b5563;
-            /* gray-600 */
+            border-color: #374151;
+            /* gray-700 */
         }
 
         .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: #e5e7eb;
             /* gray-200 */
         }
-
-        .dark .select2-dropdown {
-            background-color: #111827;
-            /* gray-900 */
-            color: #e5e7eb;
-            border-color: #374151;
-            /* gray-700 */
-        }
-
-        .dark .select2-results__option--highlighted {
-            background-color: #2563eb;
-            /* blue-600 */
-            color: #fff;
-        }
-
-        */
     </style>
 
     <style>
@@ -135,26 +128,26 @@
     </style>
 
 
-
     <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="spptForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="sppkForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
 
                         <!-- Header -->
                         <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPK</h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <!-- Row 1 : Header Fields -->
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid" id="cpnyid"
+                                <select name="cpnyid"
                                     class="req w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
                                     @foreach ($usercpny as $p)
@@ -163,16 +156,6 @@
                                             {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
-                                </select>
-                            </div>
-
-                            <!-- Business Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
                                 </select>
                             </div>
 
@@ -191,7 +174,18 @@
                                     @endforeach
                                 </select>
                             </div>
-                     
+
+                            <!-- Request Type -->
+                            {{-- <div class="flex flex-col gap-2">
+                                <label class="req block  text-sm  font-medium text-gray-700 dark:text-gray-300">Request
+                                    Type</label>
+                                <select id="requesttypeid" name="requesttypeid"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div> --}}
+
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
@@ -229,32 +223,32 @@
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
-                            </div>             
-                            
-
+                            </div>
 
                         </div>
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <!-- Row 2 : Vehicle Section -->
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
-                            <!-- Nama Tenant (Modal Picker) -->
+                            <!-- Nopol -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Nama Tenant
-                                </label>
-
-                                {{-- hidden value yang dikirim ke backend --}}
-                                <input type="hidden" name="nama_tenant" id="nama_tenant">
-                                <input type="hidden" name="tenant_id" id="tenant_id">
-                                <input type="hidden" name="unit_id" id="unit_id">
-
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">No.
+                                    Polisi</label>
+                                {{-- <select id="nopol" name="no_polisi"
+                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    required>
+                                    <option value="" selected disabled>Pilih nopol...</option>
+                                </select> --}}
                                 <div class="flex w-full">
-                                    {{-- display readonly --}}
-                                    <input type="text" id="tenant_name_display" readonly
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Select tenant...">
+                                    {{-- hidden value yang dikirim ke backend --}}
+                                    <input type="hidden" name="no_polisi" id="nopol" value="">
 
-                                    <button type="button" id="btnSearchTenant"
+                                    {{-- display readonly --}}
+                                    <input type="text" id="nopol_display" readonly
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Select No. Polisi...">
+
+                                    <button type="button" id="btnSearchNopol"
                                         class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -264,69 +258,45 @@
                                         </svg>
                                     </button>
                                 </div>
+
                             </div>
 
-                            <!-- Unit Display -->
+                            <!-- Vehicle Owner -->
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lantai -
-                                    Unit</label>
-                                <input type="text" id="no_unit_tenant" name="no_unit_tenant"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vehicle
+                                    Owner</label>
+                                <input type="text" id="pemilikkendaraan" name="pemilikkendaraan" readonly
                                     class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="Otomatis dari Tenant" readonly>
+                                    placeholder="-">
                             </div>
 
-                            <!-- PIC (select2 user) -->
+                            <!-- Vehicle Name -->
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">PIC</label>
-                                {{-- <input type="hidden" name="pic_pengawas" id="pic_pengawas"> --}}
-                                {{-- <select id="pic_select" name="pic_select"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300" required
-                                    data-placeholder="Search">
-                                </select> --}}
-                                <input type="text" name="pic_pengawas"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="PIC" required />
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Vehicle
+                                    Name</label>
+                                <input type="text" id="namakendaraan" name="namakendaraan" readonly
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="-">
                             </div>
 
-                            <!-- Status Unit -->
+                            <!-- KM -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Status
-                                    Unit</label>
-                                <select id="condition_unit" name="condition_unit"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>-- pilih status --</option>
-                                    <option value="Buka">Buka</option>
-                                    <option value="Tutup">Tutup</option>
-                                </select>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">KM</label>
+                                <input type="text" id="km_input" name="km_kendaraan" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="0">
                             </div>
-
-                            <!-- Beban Biaya -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Beban
-                                    Biaya</label>
-                                <select id="beban" name="beban"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    required>
-                                    <option value="" disabled selected>-- pilih beban biaya --</option>
-                                    <option value="Tenant">Tenant</option>
-                                    <option value="Pakuwon">Pakuwon</option>
-                                </select>
-                            </div>
-
-                            
 
                         </div>
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <!-- Row 3 : Emergency + Description -->
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                             <!-- Emergency -->
                             <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    SPPT Emergency
+                                    SPPK Emergency
                                 </label>
-
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" id="is_urgent" name="is_urgent" value="1"
                                         class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
@@ -336,36 +306,16 @@
                                 </div>
                             </div>
 
-                            <!-- WO -->
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO
-                                    ID</label>
-
-                                <div class="flex">
-                                    <input type="text" id="woid" name="woid"
-                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        readonly>
-
-                                    <button type="button" id="btnSearchWo"
-                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd" d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100
-                                                8 4 4 0 000-8z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-
+                            <!-- Description -->
                             <div class="flex flex-col gap-2 lg:col-span-3">
                                 <label for="keperluan"
-                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Description
-                                </label>
-                                <textarea id="keperluan" name="keperluan" rows="3" required
+                                    class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                                <textarea name="keperluan" id="keperluan" rows="3" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
                             </div>
+
                         </div>
+
                     </div>
 
 
@@ -375,7 +325,7 @@
                             <details class="group" open>
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>SPPT Detail</span>
+                                    <span>SPPK Detail</span>
                                     <span
                                         class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                         details &rarr;</span>
@@ -399,8 +349,8 @@
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="spptTable">
-                                                <tr class="sppt-row">
+                                            <tbody id="sppkTable">
+                                                <tr class="sppk-row">
                                                     <td class="border p-3 text-center">1</td>
 
                                                     <!-- Product Name (text + zoom button + hidden id) -->
@@ -432,15 +382,6 @@
                                                             placeholder="0,00">
                                                     </td>
 
-                                                    <!-- UoM auto-filled -->
-                                                    {{-- <td class="border p-3">
-                                    <input type="text" name="stock_unit[]" readonly
-                                            class="stock_unitField w-full cursor-not-allowed border-none bg-gray-50 p-2 text-gray-600 focus:outline-none"
-                                            placeholder="-">
-                                             <button type="button"
-                                                class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                title="Lookup">🔎</button>
-                                    </td> --}}
                                                     {{-- UoM --}}
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
@@ -468,6 +409,32 @@
                                                             class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                                                     </td>
 
+                                                    <!-- Location & Sub Location -->
+                                                    {{-- <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="location_id[]"
+                                                                class="locationIdField">
+                                                            <input type="text" name="location[]"
+                                                                class="locationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                placeholder="Select location..." readonly>
+                                                            <button type="button"
+                                                                class="openLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td>
+
+                                                    <td class="border p-3">
+                                                        <div class="flex items-center gap-2">
+                                                            <input type="hidden" name="sub_location_id[]"
+                                                                class="subLocationIdField">
+                                                            <input type="text" name="sub_location[]"
+                                                                class="subLocationNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
+                                                                placeholder="Select sub location..." readonly>
+                                                            <button type="button"
+                                                                class="openSubLocationModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                title="Lookup">🔎</button>
+                                                        </div>
+                                                    </td> --}}
 
                                                     <td class="border p-3">
                                                         <div class="flex items-center gap-2">
@@ -484,7 +451,6 @@
                                                                 title="Lookup">🔎</button>
                                                         </div>
                                                     </td>
-
 
                                                     <!-- Coa (lookup modal) -->
                                                     <td class="border p-3">
@@ -509,14 +475,14 @@
 
                                                     <td class="border p-3 text-center">
                                                         <button type="button"
-                                                            class="removeSppt hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
+                                                            class="removeSppk hidden rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30">🗑️</button>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
 
-                                    <button type="button" id="addSppt"
+                                    <button type="button" id="addSppk"
                                         class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -543,7 +509,6 @@
 
                             <!-- Tabs -->
                             {{-- <div class="mb-3 flex border-b border-gray-200 dark:border-gray-700">
-                                <button type="button" class="invTab px-4 py-2 font-semibold border-b-2 border-indigo-600" data-type="stock">Stock</button>
                                 <button type="button"
                                     class="invTab border-b-2 border-transparent px-4 py-2 font-semibold"
                                     data-type="se">Jasa</button>
@@ -555,12 +520,14 @@
                                 </div>
                             </div> --}}
 
+
                             <div class="mb-4 ml-auto flex items-center justify-between gap-2">
                                 <input id="invSearch" type="text" placeholder="Search..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                 <button id="invRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
                             </div>
+
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left">
@@ -607,7 +574,7 @@
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
 
                                 <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>DocType: <b id="rtDocBadge">SPPT</b></span>
+                                    <span>DocType: <b id="rtDocBadge">SPPK</b></span>
                                 </div>
                             </div>
 
@@ -636,52 +603,50 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup Tenant ===== -->
-                    <div id="tenantModal"
+                    <!-- ===== Modal Lookup No. Polisi ===== -->
+                    <div id="nopolModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-5xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Tenant</h3>
-                                <button type="button" id="closeTenantModal"
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Vehicle (No. Polisi)
+                                </h3>
+                                <button type="button" id="closeNopolModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
 
                             <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="tenantSearch" type="text" placeholder="Search tenant..."
+                                <input id="nopolSearch" type="text"
+                                    placeholder="Search nopol / vehicle name / owner..."
                                     class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="tenantRefresh" type="button"
+                                <button id="nopolRefresh" type="button"
                                     class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-
-                                <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>Company: <b id="tenantCpnyBadge">-</b></span>
-                                </div>
                             </div>
 
                             <div class="max-h-[60vh] overflow-auto">
                                 <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Tenant</th>
-                                            <th class="border p-2">Lantai - Unit</th>
+                                            <th class="border p-2">No. Polisi</th>
+                                            <th class="border p-2">Vehicle Name</th>
+                                            <th class="border p-2">Vehicle Owner</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="tenantTableBody" class="text-sm"></tbody>
+                                    <tbody id="nopolTableBody" class="text-sm"></tbody>
                                 </table>
                             </div>
 
                             <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="tenantCount" class="opacity-80"></span>
+                                <span id="nopolCount" class="opacity-80"></span>
                                 <div class="space-x-2">
-                                    <button id="tenantPrev" type="button"
+                                    <button id="nopolPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="tenantNext" type="button"
+                                    <button id="nopolNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-
 
 
                     <!-- Modal: Location + Sub Location -->
@@ -697,7 +662,6 @@
                                 <button type="button" id="closeLokasi"
                                     class="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
                             </div>
-
                             <!-- Body -->
                             <div class="px-5 py-5">
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -840,56 +804,8 @@
                         </div>
                     </div>
 
-                    {{-- MODAL PILIH WO --}}
-                    <div id="woModal"
-                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
-                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                            <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Work Order</h3>
-                                <button type="button" id="closeWoModal"
-                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
-                            </div>
-
-                            <div class="mb-3 flex items-center gap-2 text-sm">
-                                <input id="woSearch" type="text" placeholder="Search WO ID / Created By..."
-                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <button id="woRefresh" type="button"
-                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
-                                <div class="ml-auto flex flex-wrap items-center gap-3">
-                                    <span>Company: <b id="woCpnyBadge"></b></span>
-                                    <span>Dept: <b id="woDeptBadge"></b></span>
-                                    <span>Perpost: <b id="woPerpostBadge"></b></span>
-                                </div>
-                            </div>
-
-                            <div class="max-h-[60vh] overflow-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
-                                        <tr>
-                                            <th class="border p-2">WO ID</th>
-                                            <th class="border p-2">WO Date</th>
-                                            <th class="border p-2">Created By</th>
-                                            <th class="w-24 border p-2 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="woTableBody" class="text-sm"></tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span id="woCount" class="opacity-80"></span>
-                                <div class="space-x-2">
-                                    <button id="woPrev" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
-                                    <button id="woNext" type="button"
-                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- ===== Attachment ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -921,6 +837,7 @@
                                 </svg> Add Attachment
                             </button>
                         </details>
+
                         <div
                             class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
@@ -954,7 +871,7 @@
             </div>
 
             <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
-                Sppt Created Successfully!
+                Sppk Created Successfully!
             </div>
         </div>
     </div>
@@ -991,7 +908,7 @@
     <script>
         $(function() {
             // helper: bersihkan error
-            function clearAllErrors(scope = '#spptForm') {
+            function clearAllErrors(scope = '#sppkForm') {
                 $(scope).find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
                 $(scope).find('.error-feedback').remove();
             }
@@ -1004,7 +921,7 @@
                 }
             }
             // hapus error saat user memperbaiki input
-            $(document).on('input change', '#spptForm input, #spptForm textarea, #spptForm select', function() {
+            $(document).on('input change', '#sppkForm input, #sppkForm textarea, #sppkForm select', function() {
                 $(this).removeClass('is-invalid').removeAttr('aria-invalid');
                 $(this).next('.error-feedback').remove();
             });
@@ -1015,7 +932,7 @@
 
                 let validRows = 0;
 
-                $('#spptTable tr.sppt-row').each(function() {
+                $('#sppkTable tr.sppk-row').each(function() {
                     const $row = $(this);
 
                     const invId = ($row.find('.inventoryIdField').val() || '').trim();
@@ -1084,19 +1001,19 @@
                 }
 
                 // scroll ke error pertama jika ada
-                const $first = $('#spptForm .is-invalid').first();
+                const $first = $('#sppkForm .is-invalid').first();
                 if ($first.length) {
                     $('html,body').animate({
                         scrollTop: $first.offset().top - 120
                     }, 300);
                     $first.trigger('focus');
-                    toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPT.');
+                    toastr.error('Mohon perbaiki field yang ditandai merah pada detail SPPK.');
                     return false;
                 }
                 return true;
             }
 
-            $('#spptForm').on('submit', function(e) {
+            $('#sppkForm').on('submit', function(e) {
                 e.preventDefault();
 
                 const $rtHidden = $('#requesttypeid'); // hidden input
@@ -1111,14 +1028,14 @@
                     return;
                 }
 
-                const $tenantHidden = $('#tenant_id');
-                const $tenantDisplay = $('#tenant_name_display');
+                const $nopolHidden = $('#nopol'); // hidden value
+                const $nopolDisplay = $('#nopol_display'); // input display
 
-                if (!$tenantHidden.val() || !$tenantHidden.val().trim()) {
-                    addError($tenantDisplay, 'Nama Tenant wajib dipilih.');
-                    toastr.error('Nama Tenant wajib dipilih.');
+                if (!$nopolHidden.val() || !$nopolHidden.val().trim()) {
+                    addError($nopolDisplay, 'No. Polisi wajib dipilih.');
+                    toastr.error('No. Polisi wajib dipilih.');
                     $('html,body').animate({
-                        scrollTop: $tenantDisplay.offset().top - 120
+                        scrollTop: $nopolDisplay.offset().top - 120
                     }, 300);
                     return;
                 }
@@ -1138,18 +1055,18 @@
                 // $('#loadingSpinner').removeClass('hidden');
                 showOverlay('Submitting');
 
-                const formData = new FormData(document.getElementById('spptForm'));
+                const formData = new FormData(document.getElementById('sppkForm'));
 
                 $.ajax({
-                        url: "{{ route('sppts.store') }}",
+                        url: "{{ route('sppks.store') }}",
                         type: "POST",
                         data: formData,
                         processData: false,
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Sppt Requisition Submit Successfully!");
-                        window.location.href = "/sppts";
+                        toastr.success(res.message || "Sppk Requisition Submit Successfully!");
+                        window.location.href = "/sppks";
                     })
                     .fail(function(xhr) {
                         // tampilkan pesan validasi 422 (Laravel)
@@ -1180,29 +1097,29 @@
 
 
     <script>
-        // ===== SPPT Detail =====
+        // ===== SPPK Detail =====
         $(function() {
-            let spptcount = 1;
+            let sppkcount = 1;
             let currentRow = null; // row yang sedang aktif untuk receive pilihan inventory
 
             function updateRowNumbers() {
-                spptcount = 0;
-                $('#spptTable tr').each(function() {
-                    spptcount++;
-                    $(this).find('td:first').text(spptcount);
+                sppkcount = 0;
+                $('#sppkTable tr').each(function() {
+                    sppkcount++;
+                    $(this).find('td:first').text(sppkcount);
                 });
             }
 
             function updateRemoveButtons() {
-                if ($('.sppt-row').length > 1) $('.removeSppt').removeClass('hidden');
-                else $('.removeSppt').addClass('hidden');
+                if ($('.sppk-row').length > 1) $('.removeSppk').removeClass('hidden');
+                else $('.removeSppk').addClass('hidden');
             }
 
-            $('#addSppt').on('click', function() {
-                spptcount++;
+            $('#addSppk').on('click', function() {
+                sppkcount++;
                 const row = `
-            <tr class="sppt-row">
-                <td class="p-3 border text-center">${spptcount}</td>
+            <tr class="sppk-row">
+                <td class="p-3 border text-center">${sppkcount}</td>
 
                 <td class="p-3 border">
                 <div class="flex items-center gap-2">
@@ -1259,8 +1176,8 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">     
-                        <input type="hidden" name="activity_descr[]"  class="actDescrField">                 
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">           
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">           
                         <input type="hidden" name="coa_id[]" class="coaIdField">
                         <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
@@ -1269,15 +1186,15 @@
 
 
                 <td class="p-3 border text-center">
-                <button type="button" class="removeSppt bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
+                <button type="button" class="removeSppk bg-red-200/10 hover:border-red-700 hover:bg-red-400/30 border-red-700 border text-white px-3 py-3 rounded hidden">🗑️</button>
                 </td>
             </tr>`;
-                $('#spptTable').append(row);
+                $('#sppkTable').append(row);
                 updateRemoveButtons();
             });
 
-            $(document).on('click', '.removeSppt', function() {
-                $(this).closest('.sppt-row').remove();
+            $(document).on('click', '.removeSppk', function() {
+                $(this).closest('.sppk-row').remove();
                 updateRowNumbers();
                 updateRemoveButtons();
             });
@@ -1290,7 +1207,7 @@
             const $invCount = $('#invCount');
 
             let invState = {
-                type: 'se', //  'jasa'
+                type: 'se', // 'jasa'
                 search: '',
                 page: 1,
                 per_page: 10,
@@ -1374,10 +1291,9 @@
                     <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"
-                        data-account_id="${item.account_id || ''}"
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"  
-                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"        
+                        data-stock_unit="${item.stock_unit || ''}"                        
+                        data-item_type="${$('<div>').text(item.item_type || '').html()}"        
+                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"  
                         data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
                         Choose
@@ -1410,7 +1326,7 @@
                 const id = $(this).data('id');
                 const name = $(this).data('name');
                 const stock_unit = $(this).data('stock_unit');
-                const account_id = ($(this).data('account_id') || '').toString().trim();
+                // const account_id   = ($(this).data('account_id') || '').toString().trim();
 
                 // NEW: item meta dari inventory
                 const item_type = $(this).data('item_type') || '';
@@ -1489,7 +1405,7 @@
         // ===== Request Type =====
         $(function() {
             const $requestType = $('#requesttypeid');
-            const DOCTYPE = 'SPPT';
+            const DOCTYPE = 'SPPK';
 
             function buildRequestTypeOptions(list, selected) {
                 let opts = '<option value="" disabled>Select Request Type</option>';
@@ -1529,7 +1445,6 @@
             // $('select[name="cpnyid"]').on('change', ...) — DIHAPUS
         });
     </script>
-
 
 
     <script>
@@ -1783,10 +1698,8 @@
                     .done(function(res) {
                         // Expected: { data: [{sub_location_id / sub_location_id, sub_location_name / sub_location_name}], total,... }
                         const rows = (res.data || []).map(item => {
-                            const id = item.sub_location_id ?? item.sublocation_id ?? item.sub_loc_id ??
-                                '';
-                            const name = item.sub_location_name ?? item.sublocation_name ?? item
-                                .sub_loc_name ?? '';
+                            const id = item.sub_location_id ?? item.sub_location_id ?? '';
+                            const name = item.sub_location_name ?? item.sub_location_name ?? '';
                             return `
                 <tr>
                     <td class="border p-2">${id}</td>
@@ -1904,7 +1817,6 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
-                business_unit_id: null,
             };
 
             function openCoaModal(forRow) {
@@ -1914,7 +1826,6 @@
                 const cpny = $('select[name="cpnyid"]').val();
                 const dept = $('select[name="departementid"]').val();
                 const perpost = $('#perpost').val();
-                const bu = $('#business_unit_id').val();
 
                 if (!cpny) {
                     if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
@@ -1928,7 +1839,6 @@
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
                 coaState.perpost = perpost;
-                coaState.business_unit_id = bu;
                 coaState.page = 1;
                 coaState.search = '';
 
@@ -1988,7 +1898,6 @@
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
                         perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id,
                         search: coaState.search,
                         page: coaState.page,
                         per_page: coaState.per_page
@@ -2075,7 +1984,6 @@
                 currentCoaRow.find('.departmentFinIdField').val(deptFinId);
                 currentCoaRow.find('.actDescrField').val(actDescr);
 
-
                 currentCoaRow.find('.coaNameField').removeClass('is-invalid').next('.error-feedback')
                     .remove();
 
@@ -2084,12 +1992,11 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
+            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
                 if ($coaModal.is(':visible')) {
                     coaState.cpnyid = $('select[name="cpnyid"]').val();
                     coaState.deptid = $('select[name="departementid"]').val();
                     coaState.perpost = $('#perpost').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
                     $coaCpny.text(coaState.cpnyid || '-');
                     $coaDept.text(coaState.deptid || '-');
                     $coaPerpost.text(coaState.perpost || '-');
@@ -2258,7 +2165,6 @@
         });
     </script>
 
-
     <script>
         $(function() {
             const $lokasiModal = $('#modalLokasi');
@@ -2414,6 +2320,7 @@
         });
     </script>
 
+
     {{-- <script>
         $(function() {
             const $lokasiModal = $('#modalLokasi');
@@ -2525,179 +2432,7 @@
 
     <script>
         $(function() {
-            // ===== WO modal state =====
-            const $woModal = $('#woModal');
-            const $woTbody = $('#woTableBody');
-            const $woCount = $('#woCount');
-            const $woCpny = $('#woCpnyBadge');
-            const $woDept = $('#woDeptBadge');
-            const $woPerpost = $('#woPerpostBadge');
-
-            let woState = {
-                search: '',
-                page: 1,
-                per_page: 10,
-                total: 0,
-                cpnyid: null,
-                deptid: null,
-                perpost: null,
-            };
-
-            function openWoModal() {
-                // baca cpny, dept, perpost dari header form
-                const cpny = $('select[name="cpnyid"]').val();
-                const dept = $('select[name="departementid"]').val();
-                const perpost = $('#perpost').val();
-
-                if (!cpny) {
-                    if (window.toastr) toastr.warning('Pilih Company terlebih dahulu.');
-                    return;
-                }
-                if (!dept) {
-                    if (window.toastr) toastr.warning('Pilih Department terlebih dahulu.');
-                    return;
-                }
-
-                woState.cpnyid = cpny;
-                woState.deptid = dept;
-                woState.perpost = perpost;
-                woState.page = 1;
-                woState.search = '';
-
-                $woCpny.text(woState.cpnyid);
-                $woDept.text(woState.deptid);
-                $woPerpost.text(woState.perpost || '-');
-                $('#woSearch').val('');
-
-                $woModal.removeClass('hidden').addClass('flex');
-                loadWo();
-            }
-
-            function closeWoModal() {
-                $woModal.addClass('hidden').removeClass('flex');
-            }
-
-            // Buka modal dari tombol kaca pembesar
-            $('#btnSearchWo').on('click', function() {
-                openWoModal();
-            });
-
-            $('#closeWoModal').on('click', closeWoModal);
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $woModal.is(':visible')) closeWoModal();
-            });
-
-            // Search auto saat diketik
-            $('#woSearch').on('input', function() {
-                woState.search = $(this).val().trim();
-                woState.page = 1;
-                loadWo();
-            });
-
-            // Refresh (reset search)
-            $('#woRefresh').on('click', function() {
-                $('#woSearch').val('');
-                woState.search = '';
-                woState.page = 1;
-                loadWo();
-            });
-
-            // Pagination
-            $('#woPrev').on('click', function() {
-                if (woState.page > 1) {
-                    woState.page--;
-                    loadWo();
-                }
-            });
-
-            $('#woNext').on('click', function() {
-                const maxPage = Math.ceil(woState.total / woState.per_page) || 1;
-                if (woState.page < maxPage) {
-                    woState.page++;
-                    loadWo();
-                }
-            });
-
-            // Load WO dari API
-            function loadWo() {
-                $woTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
-                $.getJSON("{{ route('wos.ajax.completed-wo') }}", {
-                        cpnyid: woState.cpnyid,
-                        deptid: woState.deptid,
-                        perpost: woState.perpost,
-                        search: woState.search,
-                        page: woState.page,
-                        per_page: woState.per_page
-                    })
-                    .done(function(res) {
-                        const rowsArr = (res.data || []).map(item => {
-                            const woid = item.woid ?? '';
-                            const wodate = item.wodate ?? '';
-                            const created_by = item.created_by ?? '';
-
-                            return `
-                                <tr>
-                                    <td class="border p-2">${woid}</td>
-                                    <td class="border p-2">${wodate}</td>
-                                    <td class="border p-2">${created_by}</td>
-                                    <td class="border p-2 text-center">
-                                        <button type="button"
-                                                class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                data-woid="${woid}">
-                                            Choose
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-
-                        const rowsHtml = rowsArr.join('');
-                        $woTbody.html(rowsHtml ||
-                            '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
-
-                        woState.total = res.total || 0;
-                        const showing = rowsArr.length;
-                        $woCount.text(`Showing ${showing} of ${woState.total} items`);
-
-                        const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
-                        $('#woPrev').prop('disabled', woState.page <= 1);
-                        $('#woNext').prop('disabled', woState.page >= maxPage);
-                    })
-                    .fail(function() {
-                        $woTbody.html(
-                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                        );
-                        $woCount.text('');
-                        $('#woPrev, #woNext').prop('disabled', true);
-                    });
-            }
-
-            // Choose -> isi input woid di form utama
-            $(document).on('click', '.chooseWo', function() {
-                const woid = $(this).data('woid');
-                $('#woid').val(woid);
-                closeWoModal();
-            });
-
-            // Jika company/department/perpost berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost').on('change', function() {
-                if ($woModal.is(':visible')) {
-                    woState.cpnyid = $('select[name="cpnyid"]').val();
-                    woState.deptid = $('select[name="departementid"]').val();
-                    woState.perpost = $('#perpost').val();
-                    $woCpny.text(woState.cpnyid || '-');
-                    $woDept.text(woState.deptid || '-');
-                    $woPerpost.text(woState.perpost || '-');
-                    woState.page = 1;
-                    loadWo();
-                }
-            });
-        });
-    </script>
-
-    <script>
-        $(function() {
-            const DOCTYPE = 'SPPT';
+            const DOCTYPE = 'SPPK';
 
             const $rtModal = $('#requestTypeModal');
             const $rtTbody = $('#rtTableBody');
@@ -2712,16 +2447,36 @@
                 doctype: DOCTYPE,
             };
 
+            // function openRtModal() {
+            //     $rtDoc.text(rtState.doctype || '-');
+            //     $('#rtSearch').val('');
+            //     rtState.search = '';
+            //     rtState.page = 1;
+
+            //     $rtModal.removeClass('hidden').addClass('flex');
+            //     loadRequestTypes();
+            //     setTimeout(() => $('#rtSearch').trigger('focus'), 0);
+            // }
             function openRtModal() {
                 $rtDoc.text(rtState.doctype || '-');
                 $('#rtSearch').val('');
                 rtState.search = '';
                 rtState.page = 1;
 
+                // tampilkan modal dulu
                 $rtModal.removeClass('hidden').addClass('flex');
-                loadRequestTypes();
-                setTimeout(() => $('#rtSearch').trigger('focus'), 0);
+
+                // isi loading placeholder langsung
+                $rtTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
+                $rtCount.text('');
+
+                // kasih kesempatan browser render modal dulu
+                setTimeout(() => {
+                    loadRequestTypes();
+                    $('#rtSearch').trigger('focus');
+                }, 0);
             }
+
 
             function closeRtModal() {
                 $rtModal.addClass('hidden').removeClass('flex');
@@ -2837,115 +2592,94 @@
 
     <script>
         $(function() {
-            const $tenantModal = $('#tenantModal');
-            const $tenantTbody = $('#tenantTableBody');
-            const $tenantCount = $('#tenantCount');
-            const $tenantCpny = $('#tenantCpnyBadge');
+            const $modal = $('#nopolModal');
+            const $tbody = $('#nopolTableBody');
+            const $count = $('#nopolCount');
 
-            let tenantState = {
+            let state = {
                 search: '',
                 page: 1,
                 per_page: 10,
-                total: 0,
-                cpnyid: null
+                total: 0
             };
 
-            function openTenantModal() {
-                tenantState.cpnyid = $('select[name="cpnyid"]').val() || '';
-                tenantState.search = '';
-                tenantState.page = 1;
+            function openModal() {
+                $('#nopolSearch').val('');
+                state.search = '';
+                state.page = 1;
 
-                $tenantCpny.text(tenantState.cpnyid || '-');
-                $('#tenantSearch').val('');
-
-                // tampilkan modal dulu, kasih placeholder loading supaya terasa cepat
-                $tenantModal.removeClass('hidden').addClass('flex');
-                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
-                $tenantCount.text('');
-
-                // biar render dulu baru ajax
-                setTimeout(() => {
-                    loadTenants();
-                    $('#tenantSearch').trigger('focus');
-                }, 0);
+                $modal.removeClass('hidden').addClass('flex');
+                loadVehicles();
+                setTimeout(() => $('#nopolSearch').trigger('focus'), 0);
             }
 
-            function closeTenantModal() {
-                $tenantModal.addClass('hidden').removeClass('flex');
+            function closeModal() {
+                $modal.addClass('hidden').removeClass('flex');
             }
 
-            $('#btnSearchTenant').on('click', openTenantModal);
-            $('#closeTenantModal').on('click', closeTenantModal);
+            $('#btnSearchNopol').on('click', openModal);
+            $('#closeNopolModal').on('click', closeModal);
 
             $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $tenantModal.is(':visible')) closeTenantModal();
+                if (e.key === 'Escape' && $modal.is(':visible')) closeModal();
             });
 
-            $('#tenantSearch').on('input', function() {
-                tenantState.search = $(this).val().trim();
-                tenantState.page = 1;
-                loadTenants();
+            $('#nopolSearch').on('input', function() {
+                state.search = $(this).val().trim();
+                state.page = 1;
+                loadVehicles();
             });
 
-            $('#tenantRefresh').on('click', function() {
-                $('#tenantSearch').val('');
-                tenantState.search = '';
-                tenantState.page = 1;
-                loadTenants();
+            $('#nopolRefresh').on('click', function() {
+                $('#nopolSearch').val('');
+                state.search = '';
+                state.page = 1;
+                loadVehicles();
             });
 
-            $('#tenantPrev').on('click', function() {
-                if (tenantState.page > 1) {
-                    tenantState.page--;
-                    loadTenants();
+            $('#nopolPrev').on('click', function() {
+                if (state.page > 1) {
+                    state.page--;
+                    loadVehicles();
                 }
             });
 
-            $('#tenantNext').on('click', function() {
-                const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
-                if (tenantState.page < maxPage) {
-                    tenantState.page++;
-                    loadTenants();
+            $('#nopolNext').on('click', function() {
+                const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
+                if (state.page < maxPage) {
+                    state.page++;
+                    loadVehicles();
                 }
             });
 
-            function loadTenants() {
-                if (!tenantState.cpnyid) {
-                    $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Select Company first</td></tr>');
-                    $tenantCount.text('');
-                    $('#tenantPrev, #tenantNext').prop('disabled', true);
-                    return;
-                }
+            function loadVehicles() {
+                $tbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
 
-                $tenantTbody.html('<tr><td colspan="3" class="p-3 text-center">Loading...</td></tr>');
-
-                $.getJSON("{{ route('tenants.search') }}", {
-                        q: tenantState.search,
-                        page: tenantState.page,
-                        per_page: tenantState.per_page,
-                        cpnyid: tenantState.cpnyid
+                $.getJSON("{{ route('kendaraan.all') }}", {
+                        search: state.search,
+                        page: state.page,
+                        per_page: state.per_page
                     })
                     .done(function(res) {
-                        const list = (res.data || []);
-                        tenantState.total = res.total || 0;
+                        const list = Array.isArray(res?.data) ? res.data : [];
+                        state.total = res.total || 0;
 
-                        const rows = list.map(it => {
-                            const id = it.id ?? '';
-                            const name = it.text ?? it.store_name ?? it.name ?? '';
-                            const unitLabel = it.unit_label ?? it.unit ?? it.unit_name ?? '';
-                            const unitId = it.unit_id ?? it.unit ?? '';
+                        const rows = list.map(item => {
+                            const nopol = (item.no_polisi || '').toString();
+                            const nama = (item.namakendaraan || '').toString();
+                            const own = (item.pemilikkendaraan || '').toString();
 
                             return `
                             <tr>
-                                <td class="border p-2">${$('<div>').text(name).html()}</td>
-                                <td class="border p-2">${$('<div>').text(unitLabel).html()}</td>
+                                <td class="border p-2">${nopol}</td>
+                                <td class="border p-2">${$('<div>').text(nama).html()}</td>
+                                <td class="border p-2">${$('<div>').text(own).html()}</td>
                                 <td class="border p-2 text-center">
                                     <button type="button"
-                                        class="chooseTenant rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                        data-id="${id}"
-                                        data-name="${$('<div>').text(name).html()}"
-                                        data-unit_label="${$('<div>').text(unitLabel).html()}"
-                                        data-unit_id="${unitId}">
+                                        class="chooseNopol rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-nopol="${$('<div>').text(nopol).html()}"
+                                        data-nama="${$('<div>').text(nama).html()}"
+                                        data-own="${$('<div>').text(own).html()}">
                                         Choose
                                     </button>
                                 </td>
@@ -2953,301 +2687,59 @@
                         `;
                         }).join('');
 
-                        $tenantTbody.html(rows ||
-                            '<tr><td colspan="3" class="p-3 text-center">No data</td></tr>');
+                        $tbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
 
-                        const showing = list.length;
-                        $tenantCount.text(`Showing ${showing} of ${tenantState.total} items`);
+                        $count.text(`Showing ${list.length} of ${state.total} items`);
 
-                        const maxPage = Math.ceil((tenantState.total || 0) / tenantState.per_page) || 1;
-                        $('#tenantPrev').prop('disabled', tenantState.page <= 1);
-                        $('#tenantNext').prop('disabled', tenantState.page >= maxPage);
+                        const maxPage = Math.ceil((state.total || 0) / state.per_page) || 1;
+                        $('#nopolPrev').prop('disabled', state.page <= 1);
+                        $('#nopolNext').prop('disabled', state.page >= maxPage);
                     })
                     .fail(function() {
-                        $tenantTbody.html(
-                            '<tr><td colspan="3" class="p-3 text-center text-red-600">Failed to load tenant</td></tr>'
+                        $tbody.html(
+                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
                         );
-                        $tenantCount.text('');
-                        $('#tenantPrev, #tenantNext').prop('disabled', true);
+                        $count.text('');
+                        $('#nopolPrev, #nopolNext').prop('disabled', true);
                     });
             }
 
-            // Choose → isi field seperti select2 dulu
-            $(document).on('click', '.chooseTenant', function() {
-                const id = $(this).data('id');
-                const name = $(this).data('name');
-                const unitLabel = $(this).data('unit_label');
-                const unitId = $(this).data('unit_id');
+            // Choose -> set ke form header
+            $(document).on('click', '.chooseNopol', function() {
+                const nopol = $(this).data('nopol') || '';
+                const nama = $(this).data('nama') || '';
+                const own = $(this).data('own') || '';
 
-                $('#tenant_id').val(id);
-                $('#nama_tenant').val(name);
-                $('#unit_id').val(unitId || '');
-                $('#tenant_name_display').val(name);
-                $('#no_unit_tenant').val(unitLabel || '');
+                // hidden untuk backend
+                $('#nopol').val(nopol);
 
-                // bersihin invalid (kalau kamu nanti addError di display)
-                $('#tenant_name_display').removeClass('is-invalid').next('.error-feedback').remove();
+                // display
+                $('#nopol_display').val(nopol ? `${nopol}` : '');
 
-                closeTenantModal();
+                // autofill
+                $('#pemilikkendaraan').val(own);
+                $('#namakendaraan').val(nama);
+
+                // bersihkan invalid jika ada
+                $('#nopol_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeModal();
             });
 
-            // Kalau company berubah → kosongkan tenant yang sudah dipilih (biar konsisten)
-            $('select[name="cpnyid"]').on('change', function() {
-                $('#tenant_id').val('');
-                $('#nama_tenant').val('');
-                $('#unit_id').val('');
-                $('#tenant_name_display').val('');
-                $('#no_unit_tenant').val('');
-            });
+            // optional: kalau user clear manual (kamu bisa tambahkan tombol clear jika mau)
+            // function clearVehicle() {
+            //     $('#nopol').val('');
+            //     $('#nopol_display').val('');
+            //     $('#pemilikkendaraan').val('');
+            //     $('#namakendaraan').val('');
+            // }
         });
     </script>
 
-    <script>
-        $(function () {
-            const $cpny = $('#cpnyid');
-            const $bu   = $('#business_unit_id');
 
-            function renderBuOptions(list, selected) {
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                (list || []).forEach(it => {
-                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                    const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
-                    html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
-                });
-                return html;
-            }
 
-            function loadBusinessUnitsByCpny(cpnyid, selected = null) {
-                if (!cpnyid) {
-                    $bu.html('<option value="" disabled selected>Select Company first</option>');
-                    return;
-                }
 
-                $bu.html('<option value="" disabled selected>Loading...</option>');
 
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
-                    .done(function(res){
-                        const list = res.data || [];
-                        if (!list.length) {
-                            $bu.html('<option value="" disabled selected>No Business Unit</option>');
-                        } else {
-                            // kalau selected kosong, auto pilih option pertama
-                            $bu.html(renderBuOptions(list, selected));
-                            if (!selected) {
-                                const first = list[0].business_unit_id;
-                                $bu.val(first);
-                            }
-                        }
-                    })
-                    .fail(function(){
-                        $bu.html('<option value="" disabled selected>Failed to load</option>');
-                    });
-            }
-
-            // initial load (default cpny terpilih)
-            loadBusinessUnitsByCpny($cpny.val());
-
-            // kalau company berubah → reload BU
-            $cpny.on('change', function(){
-                loadBusinessUnitsByCpny($(this).val());
-            });
-        });
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        $(function () {
-        const $cpny = $('#cpnyid');
-        const $bu   = $('#business_unit_id');
-
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
-        let isReverting = false;
-
-        // ===== helper: cek ada detail terisi =====
-        function hasAnyDetailFilled() {
-            return $('#spptTable tr.sppt-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.stock_unitField').val(),
-                $tr.find('.siteidField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
-
-        // ===== reset semua field detail =====
-        function resetAllDetailRows() {
-            $('#spptTable tr.sppt-row').each(function () {
-            const $tr = $(this);
-
-            // inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
-            $tr.find('.purchaseUnitField').val('');
-
-            // qty
-            $tr.find('.qtyField').val('');
-
-            // uom
-            $tr.find('.stock_unitField').val('-');
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
-
-            // site
-            $tr.find('.siteidField').val('');
-            // trigger supaya kolom site hidden lagi kalau item_type kosong
-            $tr.find('.prodItemTypeField').trigger('change');
-
-            // lokasi
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val('');
-
-            // coa/budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
-            $tr.find('.actDescrField').val('');
-
-            // note
-            $tr.find('input[name="note[]"]').val('');
-
-            // clear validation UI
-            $tr.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-            $tr.find('.error-feedback').remove();
-            });
-
-            // reset WO
-            $('#woid').val('');
-        }
-
-        // ===== reset locked item type global (punya script inventory modal kamu) =====
-        function resetLockedItemTypeIfExists() {
-            try {
-            // lockedItemType ada di script inventory, tapi scope-nya closure.
-            // Jadi cara aman: simpan di window (kita buatkan window.lockedItemType di bawah)
-            if (typeof window.lockedItemType !== 'undefined') window.lockedItemType = '';
-            } catch (e) {}
-        }
-
-        async function confirmReset(type) {
-            const res = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
-                <div style="text-align:left">
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, reset',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true
-            });
-            return res.isConfirmed;
-        }
-
-        // ===== revert helper (cpny/bu balik) =====
-        function revertSelects() {
-            isReverting = true;
-
-            // revert cpny
-            $cpny.val(prevCpny);
-
-            // reload BU sesuai cpny lama, lalu set BU lama
-            // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
-            // jadi kita buat loader kecil di sini juga:
-            $bu.html('<option value="" disabled selected>Loading...</option>');
-            $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: prevCpny })
-            .done(function(res){
-                const list = res.data || [];
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                list.forEach(it => {
-                const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                const sel  = (String(prevBu) === String(id)) ? 'selected' : '';
-                html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
-                });
-                $bu.html(html);
-                $bu.val(prevBu);
-            })
-            .always(function(){
-                isReverting = false;
-            });
-        }
-
-        // ===== handler change company =====
-        $cpny.on('change', async function () {
-            if (isReverting) return;
-
-            // jika detail kosong → update prev dan biarkan lanjut normal (BU akan reload oleh script kamu)
-            if (!hasAnyDetailFilled()) {
-            prevCpny = $cpny.val();
-            // prevBu nanti akan ke-update setelah BU ke-load (lihat handler BU)
-            return;
-            }
-
-            const ok = await confirmReset('Company');
-            if (!ok) {
-            revertSelects();
-            return;
-            }
-
-            // user confirm → reset detail
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
-
-            prevCpny = $cpny.val();
-            // prevBu akan ikut update setelah BU ke-load
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
-
-        // ===== handler change BU =====
-        $bu.on('change', async function () {
-            if (isReverting) return;
-
-            if (!hasAnyDetailFilled()) {
-            prevBu = $bu.val();
-            return;
-            }
-
-            const ok = await confirmReset('Business Unit');
-            if (!ok) {
-            isReverting = true;
-            $bu.val(prevBu);
-            isReverting = false;
-            return;
-            }
-
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
-
-            prevBu = $bu.val();
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
-
-        // ===== optional: pastikan prevBu ter-update setelah BU selesai load pertama kali =====
-        // delay kecil karena BU awalnya "Loading..."
-        setTimeout(() => {
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
-        }, 300);
-        });
-    </script>
 
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

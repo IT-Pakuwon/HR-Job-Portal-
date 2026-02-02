@@ -112,15 +112,27 @@ class UsersController extends Controller
                 ]);
             }
 
-            // USERBUSINESSUNIT
-            foreach ($request->business_unit_id as $bu) {
+            // USERBUSINESSUNIT (dengan cpny_id)
+            $buIds = $request->business_unit_id;
+
+            // ambil mapping cpny_id per business_unit_id (1 query)
+            $buCpnyMap = BusinessUnit::query()
+                ->whereIn('business_unit_id', $buIds)
+                ->pluck('cpny_id', 'business_unit_id'); // [business_unit_id => cpny_id]
+
+            // insert rows
+            foreach ($buIds as $bu) {
+                $cpnyIdForBu = $buCpnyMap[$bu] ?? null; // kalau tidak ketemu, null
+
                 Userbusinessunit::create([
-                    'username'      => $username,
+                    'username'         => $username,
+                    'cpny_id'          => $cpnyIdForBu,
                     'business_unit_id' => $bu,
-                    'status'        => 'A',
-                    'created_by'    => $loginUser->username,
+                    'status'           => 'A',
+                    'created_by'       => $loginUser->username,
                 ]);
             }
+
 
             // ✅ SYS_USER_ROLE – simpan roles RBAC
             if ($request->filled('role_ids')) {
@@ -227,14 +239,27 @@ class UsersController extends Controller
                 ]);
             }
 
-            foreach ($request->business_unit_id as $bu) {
+            // USERBUSINESSUNIT (dengan cpny_id)
+            $buIds = $request->business_unit_id;
+
+            // ambil mapping cpny_id per business_unit_id (1 query)
+            $buCpnyMap = BusinessUnit::query()
+                ->whereIn('business_unit_id', $buIds)
+                ->pluck('cpny_id', 'business_unit_id');
+
+            // insert rows
+            foreach ($buIds as $bu) {
+                $cpnyIdForBu = $buCpnyMap[$bu] ?? null;
+
                 Userbusinessunit::create([
-                    'username'      => $user->username,
+                    'username'         => $user->username,
+                    'cpny_id'          => $cpnyIdForBu,
                     'business_unit_id' => $bu,
-                    'status'        => 'A',
-                    'created_by'    => $loginUser->username,
+                    'status'           => 'A',
+                    'created_by'       => $loginUser->username,
                 ]);
             }
+
 
             // ✅ RESET + INSERT ULANG SYS_USER_ROLE
             SysUserRole::where('username', $user->username)->delete();
