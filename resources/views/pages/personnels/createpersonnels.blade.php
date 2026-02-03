@@ -49,7 +49,7 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="division" id="division_id" required>
                                     <option value="" disabled selected>Select Division</option>
-                                    @foreach ($division as $p)
+                                    @foreach ($userdivison as $p)
                                         <option value="{{ $p->division_id }}">{{ $p->division_name }}</option>
                                     @endforeach
                                 </select>

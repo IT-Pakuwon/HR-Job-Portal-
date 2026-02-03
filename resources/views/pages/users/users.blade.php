@@ -135,6 +135,17 @@
 
                         </div>
                         <div>
+                            <label class="block text-gray-700 dark:text-white">Division</label>
+                            <select name="division_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple required>
+                                @foreach ($divisions as $d)
+                                    <option value="{{ $d->division_id }}">
+                                        {{ $d->division_id }} - {{ $d->division_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
                             <label class="block text-gray-700 dark:text-white">Business Unit</label>
                             <select name="business_unit_id[]" class="select2 w-full rounded-lg border px-3 py-2"
                                 multiple required>
@@ -408,6 +419,7 @@
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
                     $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
+                    $('select[name="division_id[]"]').val(app.division_id).trigger('change');
                     $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(
                         'change');
                     $('select[name="role"]').val(app.role).trigger('change');
