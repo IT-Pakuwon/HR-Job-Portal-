@@ -29,6 +29,11 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\MsSite;
+use App\Models\TrCS;
+use App\Models\TrCSdetail;
+use App\Models\TrPO;
+use App\Models\TrPOdetail;
+use App\Models\TrBast;
 
 class SppkController extends Controller
 {
@@ -1893,7 +1898,418 @@ class SppkController extends Controller
     //     return response()->json(['canPerformAction' => $canPerformAction]);
     // }
 
-    public function tracking($hash)
+    public function trackingDetail($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $sppk   = TrSPPK::findOrFail($id);
+        $sppkNo = $sppk->sppkid;
+
+        $fmt = fn($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
+
+        // ✅ sesuai request: approved jika status = 'C'
+        $approved = fn($h) => $h ? (strtoupper((string)$h->status) === 'C') : false;
+
+        // ===== SPPK DETAIL =====
+        $sppkDetails = TrSPPKdetail::query()
+            ->where('sppkid', $sppkNo)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->get();
+
+        // ===== LIST CS (ALL) =====
+        $csList = TrCS::query()
+            ->where('sppbjktid', $sppkNo) // relasi ke SPPK
+            ->whereNull('deleted_at')
+            ->orderBy('csdate', 'desc')
+            ->get(['csid','csdate','status','completed_by','completed_at']);
+
+        $selCsNo = optional($csList->first())->csid;
+
+        // ===== LIST PO (ALL) =====
+        $poList = TrPO::query()
+            ->where('sppbjktid', $sppkNo) // relasi ke SPPK
+            ->whereNull('deleted_at')
+            ->orderBy('podate', 'desc')
+            ->get(['ponbr','podate','status','csid','completed_by','completed_at']);
+
+        $selPoNo = optional($poList->first())->ponbr;
+
+        // ===== LIST BAST (ALL) =====
+        $bastList = TrBast::query()
+            ->where('sppbjktid', $sppkNo) // relasi ke SPPK
+            ->whereNull('deleted_at')
+            ->orderBy('bastdate', 'desc')
+            ->get(['bastid','bastdate','status','ponbr','csid','completed_by','completed_at']);
+
+        // default selected bast: kalau ada PO terpilih, pilih bast terbaru by ponbr tsb
+        $selBastNo = optional(
+            $bastList->firstWhere('ponbr', $selPoNo) ?? $bastList->first()
+        )->bastid;
+
+        // ===== DETAIL DEFAULT SELECTED (CS/PO/BAST) =====
+
+        // ---- CS header & selected-vendor-only detail ----
+        $csHeader = $selCsNo
+            ? TrCS::where('csid', $selCsNo)->whereNull('deleted_at')->first()
+            : null;
+
+        $csDetails = collect();
+        if ($selCsNo && $csHeader) {
+            $isTrue = function ($v) {
+                if (is_bool($v)) return $v;
+                $v = strtolower((string)$v);
+                return in_array($v, ['1','true','t','yes','y'], true);
+            };
+
+            $csDetails = TrCSdetail::query()
+                ->where('csid', $selCsNo)
+                ->whereNull('deleted_at')
+                ->orderBy('id')
+                ->get()
+                // ✅ hanya vendor selected = true
+                ->filter(function($d) use ($isTrue){
+                    return $isTrue($d->vendor1selected)
+                        || $isTrue($d->vendor2selected)
+                        || $isTrue($d->vendor3selected)
+                        || $isTrue($d->vendor4selected)
+                        || $isTrue($d->vendor5selected)
+                        || $isTrue($d->vendor6selected);
+                })
+                // ✅ map ke array supaya field tambahan pasti ikut ke JSON
+                ->map(function($d) use ($csHeader, $isTrue){
+                    $vendorName  = null;
+                    $vendorPrice = null;
+
+                    if ($isTrue($d->vendor1selected)) { $vendorName = $csHeader->vendorname1; $vendorPrice = $d->vendorprice1; }
+                    elseif ($isTrue($d->vendor2selected)) { $vendorName = $csHeader->vendorname2; $vendorPrice = $d->vendorprice2; }
+                    elseif ($isTrue($d->vendor3selected)) { $vendorName = $csHeader->vendorname3; $vendorPrice = $d->vendorprice3; }
+                    elseif ($isTrue($d->vendor4selected)) { $vendorName = $csHeader->vendorname4; $vendorPrice = $d->vendorprice4; }
+                    elseif ($isTrue($d->vendor5selected)) { $vendorName = $csHeader->vendorname5; $vendorPrice = $d->vendorprice5; }
+                    elseif ($isTrue($d->vendor6selected)) { $vendorName = $csHeader->vendorname6; $vendorPrice = $d->vendorprice6; }
+
+                    return [
+                        'id' => $d->id,
+                        'inventoryid' => $d->inventoryid,
+                        'inventory_descr' => $d->inventory_descr,
+                        'qty' => $d->qty,
+                        'uom' => $d->uom,
+                        'vendorname_selected' => $vendorName,
+                        'vendorprice_selected' => $vendorPrice,
+                        'status' => $d->status,
+                    ];
+                })
+                ->values();
+        }
+
+        // ---- PO ----
+        $poHeader = $selPoNo
+            ? TrPO::where('ponbr', $selPoNo)->whereNull('deleted_at')->first()
+            : null;
+
+        $poDetails = $selPoNo
+            ? TrPOdetail::where('ponbr', $selPoNo)->whereNull('deleted_at')->orderBy('id')->get()
+            : collect();
+
+        // ---- BAST header only ----
+        $bastHeader = $selBastNo
+            ? TrBast::where('bastid', $selBastNo)->whereNull('deleted_at')->first()
+            : null;
+
+        return response()->json([
+            'doc' => $sppkNo,
+
+            'lists' => [
+                'cs' => $csList->map(fn($x)=>[
+                    'doc' => $x->csid,
+                    'date' => $fmt($x->csdate),
+                    'status' => $x->status,
+                    'is_approved' => (strtoupper((string)$x->status) === 'C'),
+                ])->values(),
+
+                'po' => $poList->map(fn($x)=>[
+                    'doc' => $x->ponbr,
+                    'date' => $fmt($x->podate),
+                    'status' => $x->status,
+                    'csid' => $x->csid,
+                    'is_approved' => (strtoupper((string)$x->status) === 'C'),
+                ])->values(),
+
+                'bast' => $bastList->map(fn($x)=>[
+                    'doc' => $x->bastid,
+                    'date' => $fmt($x->bastdate),
+                    'status' => $x->status,
+                    'ponbr' => $x->ponbr,
+                    'csid' => $x->csid,
+                    'is_approved' => (strtoupper((string)$x->status) === 'C'),
+                ])->values(),
+            ],
+
+            'selected' => [
+                'cs_no' => $selCsNo,
+                'po_no' => $selPoNo,
+                'bast_no' => $selBastNo,
+            ],
+
+            'sppk' => [
+                'header' => [
+                    'doc' => $sppk->sppkid,
+                    'date' => $fmt($sppk->sppkdate),
+                    'cpny_id' => $sppk->cpny_id,
+                    'department_id' => $sppk->department_id,
+                    'keperluan' => $sppk->keperluan,
+
+                    // ✅ field khas SPPK
+                    'no_polisi' => $sppk->no_polisi,
+                    'namakendaraan' => $sppk->namakendaraan,
+                    'pemilikkendaraan' => $sppk->pemilikkendaraan,
+                    'km_kendaraan' => $sppk->km_kendaraan,
+
+                    'status' => $sppk->status,
+                    'created_by' => $sppk->created_by,
+                    'created_at' => $fmt($sppk->created_at),
+                    'completed_by' => $sppk->completed_by,
+                    'completed_at' => $fmt($sppk->completed_at),
+                    'is_approved' => $approved($sppk),
+                ],
+                'details' => $sppkDetails,
+            ],
+
+            'cs' => [
+                'header' => $csHeader ? [
+                    'doc' => $csHeader->csid,
+                    'date' => $fmt($csHeader->csdate),
+                    'cpny_id' => $csHeader->cpny_id,
+                    'department_id' => $csHeader->department_id,
+                    'keperluan' => $csHeader->keperluan,
+                    'status' => $csHeader->status,
+                    'completed_by' => $csHeader->completed_by,
+                    'completed_at' => $fmt($csHeader->completed_at),
+                    'is_approved' => $approved($csHeader),
+                ] : null,
+                'details' => $csDetails,
+            ],
+
+            'po' => [
+                'header' => $poHeader ? [
+                    'doc' => $poHeader->ponbr,
+                    'date' => $fmt($poHeader->podate),
+                    'cpny_id' => $poHeader->cpny_id,
+                    'department_id' => $poHeader->department_id,
+                    'vendorname' => $poHeader->vendorname,
+                    'status' => $poHeader->status,
+                    'completed_by' => $poHeader->completed_by,
+                    'completed_at' => $fmt($poHeader->completed_at),
+                    'is_approved' => $approved($poHeader),
+                ] : null,
+                'details' => $poDetails,
+            ],
+
+            'bast' => [
+                'header' => $bastHeader ? [
+                    'doc' => $bastHeader->bastid,
+                    'date' => $fmt($bastHeader->bastdate),
+                    'cpny_id' => $bastHeader->cpny_id,
+                    'department_id' => $bastHeader->department_id,
+                    'vendorname' => $bastHeader->vendorname,
+                    'status' => $bastHeader->status,
+                    'completed_by' => $bastHeader->completed_by,
+                    'completed_at' => $fmt($bastHeader->completed_at),
+                    'is_approved' => $approved($bastHeader),
+                ] : null,
+
+                // ✅ extra info untuk "No detail BAST"
+                'extra' => $bastHeader ? [
+                    'ponbr'          => $bastHeader->ponbr,
+                    'csid'           => $bastHeader->csid,
+                    'keperluan'      => $bastHeader->keperluan,
+                    'user_peminta'   => $bastHeader->user_peminta,
+                    'handoverdate'   => $fmt($bastHeader->handoverdate),
+                    'startdate'      => $fmt($bastHeader->startdate),
+                    'enddate'        => $fmt($bastHeader->enddate),
+
+                    'order_term'     => $bastHeader->order_term,
+                    'terms_id'       => $bastHeader->terms_id,
+                    'topid'          => $bastHeader->topid,
+                    'payment_pct'    => $bastHeader->payment_pct,
+                    'progress_pct'   => $bastHeader->progress_pct,
+
+                    'bast_amount'    => $bastHeader->bast_amount,
+                    'penalty'        => $bastHeader->penalty,
+                    'total_penalty'  => $bastHeader->total_penalty,
+                    'realize_amount' => $bastHeader->realize_amount,
+
+                    'location_id'    => $bastHeader->location_id,
+                    'sub_location_id'=> $bastHeader->sub_location_id,
+                    'spkpic'         => $bastHeader->spkpic,
+                    'spkwarranty'    => $bastHeader->spkwarranty,
+                    'days_penalty'   => $bastHeader->days_penalty,
+                    'rating_vendor'  => $bastHeader->rating_vendor,
+                ] : null,
+
+                'details' => [],
+            ],
+        ]);
+    }
+
+    public function trackingDetailItem($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $sppk = TrSPPK::findOrFail($id);
+        $sppkNo = $sppk->sppkid;
+
+        $type = request('type'); // cs|po|bast
+        $doc  = request('doc');  // csid / ponbr / bastid
+        abort_if(!in_array($type, ['cs','po','bast'], true), 400);
+        abort_if(!$doc, 400);
+
+        $fmt = fn($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
+        $approved = fn($h) => $h ? (strtoupper((string)$h->status) === 'C') : false;
+
+        if ($type === 'cs') {
+            $h = TrCS::where('csid', $doc)
+                ->where('sppbjktid', $sppkNo)
+                ->whereNull('deleted_at')
+                ->first();
+
+            $details = collect();
+            if ($h) {
+                $isTrue = function ($v) {
+                    if (is_bool($v)) return $v;
+                    $v = strtolower((string)$v);
+                    return in_array($v, ['1','true','t','yes','y'], true);
+                };
+
+                $details = TrCSdetail::query()
+                    ->where('csid', $doc)
+                    ->whereNull('deleted_at')
+                    ->orderBy('id')
+                    ->get()
+                    ->filter(function($d) use ($isTrue){
+                        return $isTrue($d->vendor1selected)
+                            || $isTrue($d->vendor2selected)
+                            || $isTrue($d->vendor3selected)
+                            || $isTrue($d->vendor4selected)
+                            || $isTrue($d->vendor5selected)
+                            || $isTrue($d->vendor6selected);
+                    })
+                    ->map(function($d) use ($h, $isTrue){
+                        $vendorName  = null;
+                        $vendorPrice = null;
+
+                        if ($isTrue($d->vendor1selected)) { $vendorName = $h->vendorname1; $vendorPrice = $d->vendorprice1; }
+                        elseif ($isTrue($d->vendor2selected)) { $vendorName = $h->vendorname2; $vendorPrice = $d->vendorprice2; }
+                        elseif ($isTrue($d->vendor3selected)) { $vendorName = $h->vendorname3; $vendorPrice = $d->vendorprice3; }
+                        elseif ($isTrue($d->vendor4selected)) { $vendorName = $h->vendorname4; $vendorPrice = $d->vendorprice4; }
+                        elseif ($isTrue($d->vendor5selected)) { $vendorName = $h->vendorname5; $vendorPrice = $d->vendorprice5; }
+                        elseif ($isTrue($d->vendor6selected)) { $vendorName = $h->vendorname6; $vendorPrice = $d->vendorprice6; }
+
+                        return [
+                            'id' => $d->id,
+                            'inventoryid' => $d->inventoryid,
+                            'inventory_descr' => $d->inventory_descr,
+                            'qty' => $d->qty,
+                            'uom' => $d->uom,
+                            'vendorname_selected' => $vendorName,
+                            'vendorprice_selected' => $vendorPrice,
+                            'status' => $d->status,
+                        ];
+                    })
+                    ->values();
+            }
+
+            return response()->json([
+                'header' => $h ? [
+                    'doc' => $h->csid,
+                    'date' => $fmt($h->csdate),
+                    'cpny_id' => $h->cpny_id,
+                    'department_id' => $h->department_id,
+                    'keperluan' => $h->keperluan,
+                    'status' => $h->status,
+                    'completed_by' => $h->completed_by,
+                    'completed_at' => $fmt($h->completed_at),
+                    'is_approved' => $approved($h),
+                ] : null,
+                'details' => $details,
+            ]);
+        }
+
+        if ($type === 'po') {
+            $h = TrPO::where('ponbr', $doc)
+                ->where('sppbjktid', $sppkNo)
+                ->whereNull('deleted_at')
+                ->first();
+
+            $d = $h
+                ? TrPOdetail::where('ponbr', $doc)->whereNull('deleted_at')->orderBy('id')->get()
+                : collect();
+
+            return response()->json([
+                'header' => $h ? [
+                    'doc' => $h->ponbr,
+                    'date' => $fmt($h->podate),
+                    'cpny_id' => $h->cpny_id,
+                    'department_id' => $h->department_id,
+                    'vendorname' => $h->vendorname,
+                    'status' => $h->status,
+                    'completed_by' => $h->completed_by,
+                    'completed_at' => $fmt($h->completed_at),
+                    'is_approved' => $approved($h),
+                ] : null,
+                'details' => $d,
+            ]);
+        }
+
+        // bast
+        $h = TrBast::where('bastid', $doc)
+            ->where('sppbjktid', $sppkNo)
+            ->whereNull('deleted_at')
+            ->first();
+
+        return response()->json([
+            'header' => $h ? [
+                'doc' => $h->bastid,
+                'date' => $fmt($h->bastdate),
+                'cpny_id' => $h->cpny_id,
+                'department_id' => $h->department_id,
+                'vendorname' => $h->vendorname,
+                'status' => $h->status,
+                'completed_by' => $h->completed_by,
+                'completed_at' => $fmt($h->completed_at),
+                'is_approved' => $approved($h),
+            ] : null,
+            'extra'  => $h ? [
+                'ponbr' => $h->ponbr,
+                'csid' => $h->csid,
+                'keperluan' => $h->keperluan,
+                'user_peminta' => $h->user_peminta,
+                'handoverdate' => $fmt($h->handoverdate),
+                'startdate' => $fmt($h->startdate),
+                'enddate' => $fmt($h->enddate),
+                'bast_amount' => $h->bast_amount,
+                'penalty' => $h->penalty,
+                'total_penalty' => $h->total_penalty,
+                'realize_amount' => $h->realize_amount,
+                'topid' => $h->topid,
+                'payment_pct' => $h->payment_pct,
+                'progress_pct' => $h->progress_pct,
+                'location_id' => $h->location_id,
+                'sub_location_id' => $h->sub_location_id,
+                'spkpic' => $h->spkpic,
+                'spkwarranty' => $h->spkwarranty,
+                'days_penalty' => $h->days_penalty,
+                'rating_vendor' => $h->rating_vendor,
+            ] : null,
+            'details' => [],
+        ]);
+    }
+
+
+
+    public function tracking_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);

@@ -11,31 +11,7 @@ class TrSPPK extends Model
     protected $table = "tr_sppk";
 
     protected $fillable = [
-        // 'sppkid',
-        // 'sppkdate',
-        // 'cpny_id',
-        // 'department_id',
-        // 'requesttypeid',
-        // 'no_polisi',
-        // 'namakendaraan',
-        // 'pemilikkendaraan',
-        // 'km_kendaraan',
-        // 'keperluan',
-        // 'budget_perpost',      
-        // 'totalopenordered',
-        // 'totalqty',
-        // 'totalordered',
-        // 'totalrejectordered',
-        // 'totalcompleteordered',
-        // 'assignby',
-        // 'assigndate',
-        // 'assignpurchasing',
-        // 'csjobs',
-        // 'cs',
-        // 'status',
-        // 'created_by',
-        // 'updated_by',
-        // 'completed_by'
+      
         'sppkid' , 'sppkdate' , 'cpny_id' , 'department_id' , 'requesttypeid' , 'no_polisi' , 
         'namakendaraan' , 'pemilikkendaraan' , 'km_kendaraan' , 'keperluan' , 'budget_perpost' , 'is_urgent',
         'totalqty' , 'totalopenordered' , 'totalordered' , 'totalrejectordered' , 'totalcompleteordered' , 
