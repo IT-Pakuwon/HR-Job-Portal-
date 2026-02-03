@@ -539,7 +539,10 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
         Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');
 
         Route::get('/showsppbs/{hash}', [SppbController::class, 'showSppb']);
-        Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
+        // Route::get('/sppbs/{id}/tracking', [SppbController::class, 'tracking'])->name('sppbs.tracking');
+        Route::get('/sppbs/{id}/tracking-detail', [SppbController::class, 'trackingDetail']);      
+        Route::get('/sppbs/{id}/tracking-detail/item', [SppbController::class, 'trackingDetailItem']); 
+
         Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);
     });
 
@@ -565,7 +568,9 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
         Route::get('/sppjs', [SppjController::class, 'index'])->name('sppjs');
         Route::get('/sppjs/json', [SppjController::class, 'json'])->name('sppjs.json');
         Route::get('/showsppjs/{hash}', [SppjController::class, 'showSppj']);
-        Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
+        // Route::get('/sppjs/{id}/tracking', [SppjController::class, 'tracking'])->name('sppjs.tracking');
+        Route::get('/sppjs/{hash}/tracking-detail', [SppjController::class, 'trackingDetail']);
+        Route::get('/sppjs/{hash}/tracking-detail/item', [SppjController::class, 'trackingDetailItem']);
         Route::get('/pdf_sppjs/{hash}', [SppjController::class, 'printSppj']);        
         // BQ (Bill of Quantity) VIEW
         Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
@@ -603,7 +608,9 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
         Route::get('/sppks', [SppkController::class, 'index'])->name('sppks');
         Route::get('/sppks/json', [SppkController::class, 'json'])->name('sppks.json');
         Route::get('/showsppks/{hash}', [SppkController::class, 'showSppk']);
-        Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
+        // Route::get('/sppks/{id}/tracking', [SppkController::class, 'tracking'])->name('sppks.tracking');
+        Route::get('/sppks/{hash}/tracking-detail', [SppkController::class, 'trackingDetail'])->name('sppks.trackingDetail');
+        Route::get('/sppks/{hash}/tracking-detail/item', [SppkController::class, 'trackingDetailItem'])->name('sppks.trackingDetailItem');
         Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);       
     });
 
@@ -626,7 +633,9 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
         Route::get('/sppts', [SpptController::class, 'index'])->name('sppts');
         Route::get('/sppts/json', [SpptController::class, 'json'])->name('sppts.json');
         Route::get('/showsppts/{hash}', [SpptController::class, 'showSppt']);
-        Route::get('/sppts/{id}/tracking', [SpptController::class, 'tracking'])->name('sppts.tracking');
+        // Route::get('/sppts/{id}/tracking', [SpptController::class, 'tracking'])->name('sppts.tracking');
+        Route::get('/sppts/{hash}/tracking-detail', [SpptController::class, 'trackingDetail'])->name('sppts.trackingDetail');
+        Route::get('/sppts/{hash}/tracking-detail/item', [SpptController::class, 'trackingDetailItem'])->name('sppts.trackingDetailItem');
         Route::get('/pdf_sppts/{hash}', [SpptController::class, 'printSppt']);
         // BQ VIEW
         Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);    

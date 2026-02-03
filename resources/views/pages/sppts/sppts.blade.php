@@ -141,50 +141,81 @@
 
         <!-- ================== TRACKING MODAL ================== -->
         <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+        <div class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
-                <!-- Header -->
-                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
-                        SPPT Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
-                    </h3>
-                    <button id="closeTracking"
-                        class="text-lg leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
-                        &times;
-                    </button>
+            <div class="flex items-start justify-between gap-4">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
+                SPPT Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
+            </h3>
+            <button id="closeTracking"
+                class="text-lg leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
+                &times;
+            </button>
+            </div>
+
+            <!-- Tabs -->
+            <div id="trackTabs" class="mt-4 flex flex-wrap gap-2">
+            <button type="button" class="track-tab active rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
+                data-tab="tab-sppt">SPPT</button>
+            <button type="button" class="track-tab rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
+                data-tab="tab-cs">CS</button>
+            <button type="button" class="track-tab rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
+                data-tab="tab-po">PO</button>
+            <button type="button" class="track-tab rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
+                data-tab="tab-bast">BAST</button>
+            </div>
+
+            <!-- Loading -->
+            <div id="tlLoading" class="mt-4 hidden items-center justify-center">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-200">
+                Loading...
+            </div>
+            </div>
+
+            <!-- Panes -->
+            <div class="mt-4 space-y-4">
+            <!-- SPPT -->
+            <div id="tab-sppt" class="track-pane">
+                <div id="spptHeaderBox"></div>
+                <div class="mt-3" id="spptDetailBox"></div>
+            </div>
+
+            <!-- CS -->
+            <div id="tab-cs" class="track-pane hidden">
+                <div class="mb-2 flex items-center gap-2">
+                <label class="text-sm text-gray-500">CS:</label>
+                <select id="selCs" class="rounded-lg border px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"></select>
                 </div>
+                <div id="csHeaderBox"></div>
+                <div class="mt-3" id="csDetailBox"></div>
+            </div>
 
-                <!-- Controls (opsional) -->
-                <div class="mb-3 flex items-center justify-end gap-2">
-                    <button type="button" id="tlPrev"
-                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                        ‹ Prev
-                    </button>
-                    <button type="button" id="tlNext"
-                        class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                        Next ›
-                    </button>
+            <!-- PO -->
+            <div id="tab-po" class="track-pane hidden">
+                <div class="mb-2 flex items-center gap-2">
+                <label class="text-sm text-gray-500">PO:</label>
+                <select id="selPo" class="rounded-lg border px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"></select>
                 </div>
+                <div id="poHeaderBox"></div>
+                <div class="mt-3" id="poDetailBox"></div>
+            </div>
 
-                <!-- Timeline -->
-                <ul id="tlList"
-                    class="-mx-4 flex snap-x snap-mandatory overflow-x-auto whitespace-nowrap px-4 py-6 pr-6">
-                    <!-- items di-inject via JS -->
-                </ul>
-
-                <!-- Hide scrollbar -->
-                <style>
-                    #tlList::-webkit-scrollbar {
-                        display: none;
-                    }
-
-                    #tlList {
-                        scrollbar-width: none;
-                    }
-                </style>
+            <!-- BAST -->
+            <div id="tab-bast" class="track-pane hidden">
+                <div class="mb-2 flex items-center gap-2">
+                <label class="text-sm text-gray-500">BAST:</label>
+                <select id="selBast" class="rounded-lg border px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"></select>
+                </div>
+                <div id="bastHeaderBox"></div>
+                <div class="mt-3" id="bastInfoBox"></div>
+            </div>
             </div>
         </div>
+        </div>
+
+        <style>
+        .track-tab.active { background: rgba(99,102,241,.12); border-color: rgb(99,102,241); }
+        </style>
     </div>
     <script>
         // function renderTimeline(steps = []) {
@@ -321,80 +352,390 @@
         }
     </script>
     <script>
-        // Scroll controls
-        (function() {
-            const scroller = document.getElementById('tlList');
-            document.getElementById('tlPrev')?.addEventListener('click', () =>
-                scroller.scrollBy({
-                    left: -300,
-                    behavior: 'smooth'
-                })
-            );
-            document.getElementById('tlNext')?.addEventListener('click', () =>
-                scroller.scrollBy({
-                    left: 300,
-                    behavior: 'smooth'
-                })
-            );
+        /* =========================
+        MODAL open/close + tabs
+        ========================= */
+        function openTrackingModal(docText) {
+        document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+        const modal = document.getElementById('trackingModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+        }
+        function closeTrackingModal() {
+        const modal = document.getElementById('trackingModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+        }
+        document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
+        document.getElementById('trackingModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'trackingModal') closeTrackingModal();
+        });
+
+        (function(){
+        const tabs = document.getElementById('trackTabs');
+        if (!tabs) return;
+        tabs.addEventListener('click', (e) => {
+            const btn = e.target.closest('.track-tab');
+            if (!btn) return;
+
+            document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+
+            const target = btn.dataset.tab;
+            document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+            document.getElementById(target)?.classList.remove('hidden');
+        });
         })();
 
-        // Open/Close modal
-        function openTrackingModal(docText) {
-            document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-            const modal = document.getElementById('trackingModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        /* =========================
+        helpers
+        ========================= */
+        function esc(s){
+        return String(s ?? '')
+            .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+            .replaceAll('"','&quot;').replaceAll("'","&#039;");
+        }
+        function fmt2(v){
+        if (v === null || v === undefined || v === '') return '';
+        const n = Number(String(v).replace(',', '.'));
+        if (!Number.isFinite(n)) return esc(v);
+        return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function setLoading(on){
+        const el = document.getElementById('tlLoading');
+        if (!el) return;
+        el.classList.toggle('hidden', !on);
+        el.classList.toggle('flex', on);
+        }
+        function resetBoxes(){
+        [
+            'spptHeaderBox','csHeaderBox','poHeaderBox','bastHeaderBox',
+            'spptDetailBox','csDetailBox','poDetailBox','bastInfoBox'
+        ].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
         }
 
-        function closeTrackingModal() {
-            const modal = document.getElementById('trackingModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        /* =========================
+        status badge (P/C/R/D)
+        ========================= */
+        function statusBadge(st){
+        st = String(st || '').toUpperCase();
+        if (st === 'C') return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Completed</span>`;
+        if (st === 'P') return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">On Progress</span>`;
+        if (st === 'R') return `<span class="inline-block rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Rejected</span>`;
+        if (st === 'D') return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Revise</span>`;
+        return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">${esc(st || '-')}</span>`;
         }
-        document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
-        document.getElementById('trackingModal').addEventListener('click', (e) => {
-            if (e.target.id === 'trackingModal') closeTrackingModal();
+
+        /* =========================
+        render header box
+        ========================= */
+        function renderHeader(boxId, header, title){
+        const box = document.getElementById(boxId);
+        if (!box) return;
+
+        if (!header){
+            box.innerHTML = `
+            <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
+                ${esc(title)} not created yet.
+            </div>`;
+            return;
+        }
+
+        // tambahan field SPPT (kendaraan)
+        const vehicleInfo = (header.no_polisi !== undefined)
+            ? `
+            <div class="sm:col-span-2">
+                <span class="text-gray-500">Kendaraan:</span>
+                <span class="font-semibold text-gray-800 dark:text-white">
+                ${esc(header.no_polisi || '-')} | ${esc(header.namakendaraan || '-')} | ${esc(header.pemilikkendaraan || '-')} | KM ${esc(header.km_kendaraan || '-')}
+                </span>
+            </div>
+            ` : '';
+
+        box.innerHTML = `
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                <div class="text-sm font-semibold text-gray-800 dark:text-white">${esc(title)} : ${esc(header.doc)}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-300">${esc(header.date || '')}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                ${statusBadge(header.status)}
+                </div>
+            </div>
+
+            <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                <div><span class="text-gray-500">Company:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span></div>
+                <div><span class="text-gray-500">Department:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span></div>
+
+                ${header.vendorname !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>` : ''}
+                ${header.keperluan !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>` : ''}
+
+                ${vehicleInfo}
+            </div>
+            </div>`;
+        }
+
+        /* =========================
+        render detail tables
+        ========================= */
+        function renderDetailSppk(rows){
+        if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+        const trs = rows.map(r => `
+            <tr class="border-b dark:border-gray-700">
+            <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+            <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+            <td class="px-3 py-2">${esc(r.uom)}</td>
+            <td class="px-3 py-2">${esc(r.siteid)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.openordered)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.ordered)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.completeordered)}</td>
+            </tr>
+        `).join('');
+        return `
+            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-700/30">
+                <tr>
+                    <th class="px-3 py-2 text-left">Inventory</th>
+                    <th class="px-3 py-2 text-left">Description</th>
+                    <th class="px-3 py-2 text-right">Qty</th>
+                    <th class="px-3 py-2 text-left">UOM</th>
+                    <th class="px-3 py-2 text-left">Site</th>
+                    <th class="px-3 py-2 text-right">Open</th>
+                    <th class="px-3 py-2 text-right">Ordered</th>
+                    <th class="px-3 py-2 text-right">Completed</th>
+                </tr>
+                </thead>
+                <tbody>${trs}</tbody>
+            </table>
+            </div>`;
+        }
+
+        function renderDetailCs(rows){
+        if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+        const trs = rows.map(r => `
+            <tr class="border-b dark:border-gray-700">
+            <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+            <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+            <td class="px-3 py-2">${esc(r.uom)}</td>
+            <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.vendorprice_selected)}</td>
+            </tr>
+        `).join('');
+        return `
+            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-700/30">
+                <tr>
+                    <th class="px-3 py-2 text-left">Inventory</th>
+                    <th class="px-3 py-2 text-left">Description</th>
+                    <th class="px-3 py-2 text-right">Qty</th>
+                    <th class="px-3 py-2 text-left">UOM</th>
+                    <th class="px-3 py-2 text-left">Selected Vendor</th>
+                    <th class="px-3 py-2 text-right">Selected Price</th>
+                </tr>
+                </thead>
+                <tbody>${trs}</tbody>
+            </table>
+            </div>`;
+        }
+
+        function renderDetailPo(rows){
+        if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+        const trs = rows.map(r => `
+            <tr class="border-b dark:border-gray-700">
+            <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+            <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+            <td class="px-3 py-2">${esc(r.uom)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.unitcost)}</td>
+            <td class="px-3 py-2 text-right">${fmt2(r.totalcost)}</td>
+            </tr>
+        `).join('');
+        return `
+            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-700/30">
+                <tr>
+                    <th class="px-3 py-2 text-left">Inventory</th>
+                    <th class="px-3 py-2 text-left">Description</th>
+                    <th class="px-3 py-2 text-right">Qty</th>
+                    <th class="px-3 py-2 text-left">UOM</th>
+                    <th class="px-3 py-2 text-right">Unit Cost</th>
+                    <th class="px-3 py-2 text-right">Total</th>
+                </tr>
+                </thead>
+                <tbody>${trs}</tbody>
+            </table>
+            </div>`;
+        }
+
+        function renderBastExtra(extra){
+        if (!extra) return `<div class="text-sm text-gray-500">No detail.</div>`;
+
+        const row = (label, val) => `
+            <div class="flex justify-between gap-3 border-b py-2 dark:border-gray-700">
+            <div class="text-gray-500">${esc(label)}</div>
+            <div class="font-semibold text-gray-800 dark:text-white text-right">${esc(val ?? '-')}</div>
+            </div>
+        `;
+
+        return `
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <div class="grid grid-cols-1 gap-0 text-sm sm:grid-cols-2 sm:gap-x-6">
+                <div>
+                ${row('PO Nbr', extra.ponbr)}
+                ${row('CS ID', extra.csid)}
+                ${row('User Peminta', extra.user_peminta)}
+                ${row('Keperluan', extra.keperluan)}
+                ${row('Handover Date', extra.handoverdate)}
+                ${row('Start Date', extra.startdate)}
+                ${row('End Date', extra.enddate)}
+                </div>
+                <div>
+                ${row('TOP', extra.topid)}
+                ${row('Payment %', extra.payment_pct)}
+                ${row('Progress %', extra.progress_pct)}
+                ${row('BAST Amount', extra.bast_amount)}
+                ${row('Penalty', extra.penalty)}
+                ${row('Total Penalty', extra.total_penalty)}
+                ${row('Realize Amount', extra.realize_amount)}
+                ${row('Rating Vendor', extra.rating_vendor)}
+                </div>
+                <div class="sm:col-span-2">
+                ${row('Location', extra.location_id)}
+                ${row('Sub Location', extra.sub_location_id)}
+                ${row('SPK PIC', extra.spkpic)}
+                ${row('Warranty', extra.spkwarranty)}
+                ${row('Days Penalty', extra.days_penalty)}
+                </div>
+            </div>
+            </div>`;
+        }
+
+        /* =========================
+        dropdown fill + ajax item fetch
+        ========================= */
+        function fillSelect(selectId, items, selectedDoc){
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+
+        sel.innerHTML = '';
+        if (!items || items.length === 0){
+            sel.innerHTML = `<option value="">-- none --</option>`;
+            return;
+        }
+
+        items.forEach(it => {
+            const opt = document.createElement('option');
+            opt.value = it.doc;
+            opt.textContent = `${it.doc} ${it.date ? ' | ' + it.date : ''} ${it.status ? ' | ' + it.status : ''}`;
+            if (String(it.doc) === String(selectedDoc)) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        }
+
+        function fetchItem(eid, type, doc){
+        return $.ajax({
+            url: `/sppts/${eid}/tracking-detail/item`,
+            method: 'GET',
+            dataType: 'json',
+            data: { type, doc }
+        });
+        }
+
+        /* =========================
+        change handlers (delegated)
+        ========================= */
+        $(document).off('change', '#selCs').on('change', '#selCs', function(){
+        const eid = window.__trackEid;
+        const doc = this.value;
+        if (!eid || !doc) return;
+
+        fetchItem(eid,'cs',doc).done(res=>{
+            renderHeader('csHeaderBox', res.header, 'CS');
+            document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.details || []);
+        });
         });
 
+        $(document).off('change', '#selPo').on('change', '#selPo', function(){
+        const eid = window.__trackEid;
+        const doc = this.value;
+        if (!eid || !doc) return;
 
-        $(document).on('click', '.tracking-btn', function() {
-            const id = $(this).data('id');
-            const doc = $(this).data('doc') || '';
-
-            // Tampilkan modal dulu
-            openTrackingModal(doc);
-
-            $.ajax({
-                url: `/sppts/${id}/tracking`,
-                method: 'GET',
-                dataType: 'json',
-                success: function(res) {
-                    // langsung pakai struktur dari controller
-                    renderTimeline(res.steps || []);
-                },
-                error: function() {
-                    // fallback demo
-                    renderTimeline([{
-                            key: 'submitted',
-                            title: 'SPPT',
-                            status: 'C',
-                            status_label: 'Submitted',
-                            by: 'Williem Halim',
-                            at: '2025-08-10 09:00'
-                        },
-                        {
-                            key: 'approval',
-                            title: 'Approval',
-                            status: 'P',
-                            status_label: 'Waiting approval / in progress',
-                            by: null,
-                            at: null
-                        },
-                    ]);
-                }
-            });
+        fetchItem(eid,'po',doc).done(res=>{
+            renderHeader('poHeaderBox', res.header, 'PO');
+            document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.details || []);
         });
-    </script>
+        });
+
+        $(document).off('change', '#selBast').on('change', '#selBast', function(){
+        const eid = window.__trackEid;
+        const doc = this.value;
+        if (!eid || !doc) return;
+
+        fetchItem(eid,'bast',doc).done(res=>{
+            renderHeader('bastHeaderBox', res.header, 'BAST');
+            document.getElementById('bastInfoBox').innerHTML = renderBastExtra(res.extra);
+        });
+        });
+
+        /* =========================
+        click tracking button
+        ========================= */
+        $(document).off('click', '.tracking-btn').on('click', '.tracking-btn', function() {
+        const eid = $(this).data('id');
+        const doc = $(this).data('doc') || '';
+        window.__trackEid = eid;
+
+        // reset tab to SPPT
+        document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+        document.querySelector('.track-tab[data-tab="tab-sppt"]')?.classList.add('active');
+        document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+        document.getElementById('tab-sppt')?.classList.remove('hidden');
+
+        resetBoxes();
+        openTrackingModal(doc);
+        setLoading(true);
+
+        $.ajax({
+            url: `/sppts/${eid}/tracking-detail`,
+            method: 'GET',
+            dataType: 'json',
+            success: function(res){
+            setLoading(false);
+
+            renderHeader('spptHeaderBox', res.sppt?.header, 'SPPT');
+            renderHeader('csHeaderBox',   res.cs?.header,   'CS');
+            renderHeader('poHeaderBox',   res.po?.header,   'PO');
+            renderHeader('bastHeaderBox', res.bast?.header, 'BAST');
+
+            document.getElementById('spptDetailBox').innerHTML = renderDetailSppk(res.sppt?.details || []);
+            document.getElementById('csDetailBox').innerHTML   = renderDetailCs(res.cs?.details || []);
+            document.getElementById('poDetailBox').innerHTML   = renderDetailPo(res.po?.details || []);
+
+            // ✅ isi BAST pakai extra info
+            document.getElementById('bastInfoBox').innerHTML   = renderBastExtra(res.bast?.extra);
+
+            fillSelect('selCs',   res.lists?.cs   || [], res.selected?.cs_no   || '');
+            fillSelect('selPo',   res.lists?.po   || [], res.selected?.po_no   || '');
+            fillSelect('selBast', res.lists?.bast || [], res.selected?.bast_no || '');
+            },
+            error: function(xhr){
+            setLoading(false);
+            document.getElementById('spptHeaderBox').innerHTML =
+                `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                Failed to load tracking (HTTP ${xhr.status || ''})
+                </div>`;
+            }
+        });
+        });
+        </script>
     <script>
         var currentUser = "{{ auth()->user()->username }}";
         $(document).ready(function() {

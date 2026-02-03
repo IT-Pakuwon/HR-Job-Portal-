@@ -31,6 +31,14 @@ use App\Models\TrApproval;
 use App\Models\SysUserRole;
 use App\Models\MsSite;
 
+use App\Models\TrCS;
+use App\Models\TrCSdetail;
+use App\Models\TrPO;
+use App\Models\TrPOdetail;
+use App\Models\TrReceipt;
+use App\Models\TrReceiptdetail;
+use App\Models\VTrackingSppbFlow;
+
 
 class SppbController extends Controller
 {
@@ -1879,113 +1887,374 @@ class SppbController extends Controller
     // }
     
 
+    public function trackingDetail($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $sppb = TrSPPB::findOrFail($id);
+        $sppbNo = $sppb->sppbid;
+
+        $fmt = fn($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
+        $approved = fn($h) => $h ? (!empty($h->completed_by) || !empty($h->completed_at)) : false;
+
+        // ===== SPPB =====
+        $sppbDetails = TrSPPBdetail::query()
+            ->where('sppbid', $sppbNo)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->get();
+
+        // ===== LIST CS (ALL) =====
+        $csList = TrCS::query()
+            ->where('sppbjktid', $sppbNo)
+            ->whereNull('deleted_at')
+            ->orderBy('csdate', 'desc')
+            ->get(['csid','csdate','status','completed_by','completed_at']);
+
+        // default selected CS: yang terbaru
+        $selCsNo = optional($csList->first())->csid;
+
+        // ===== LIST PO (ALL) =====
+        // Jika kamu mau PO mengikuti CS terpilih, nanti kita filter dengan csid
+        $poList = TrPO::query()
+            ->where('sppbjktid', $sppbNo)
+            ->whereNull('deleted_at')
+            ->orderBy('podate', 'desc')
+            ->get(['ponbr','podate','status','csid','completed_by','completed_at']);
+
+        $selPoNo = optional($poList->first())->ponbr;
+
+        // ===== LIST RECEIPT (ALL) =====
+        // Default: receipt paling baru untuk SPPB ini
+        $receiptList = TrReceipt::query()
+            ->where('sppbjktid', $sppbNo)
+            ->whereNull('deleted_at')
+            ->orderBy('receiptdate','desc')
+            ->get(['receiptnbr','receiptdate','status','ponbr','csid','completed_by','completed_at']);
+
+        // default selected receipt: kalau ada PO terpilih, ambil receipt terbaru by ponbr itu
+        $selReceiptNo = optional(
+            $receiptList->firstWhere('ponbr', $selPoNo) ?? $receiptList->first()
+        )->receiptnbr;
+
+        // ===== DETAIL DEFAULT SELECTED (CS/PO/RECEIPT) =====
+        $csHeader = $selCsNo ? TrCS::where('csid',$selCsNo)->whereNull('deleted_at')->first() : null;
+        // $csDetails = $selCsNo ? TrCSdetail::where('csid',$selCsNo)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+        $csDetails = collect();
+        if ($selCsNo) {
+            $csHeader = TrCS::where('csid', $selCsNo)->whereNull('deleted_at')->first();
+
+            $isTrue = function ($v) {
+                // handle boolean / int / string 't'/'f'
+                if (is_bool($v)) return $v;
+                $v = strtolower((string)$v);
+                return in_array($v, ['1','true','t','yes','y'], true);
+            };
+
+            $csDetails = TrCSdetail::query()
+                ->where('csid', $selCsNo)
+                ->whereNull('deleted_at')
+                ->orderBy('id')
+                ->get()
+                // ✅ hanya tampilkan yang vendor selected = true
+                ->filter(function($d) use ($isTrue){
+                    return $isTrue($d->vendor1selected)
+                        || $isTrue($d->vendor2selected)
+                        || $isTrue($d->vendor3selected)
+                        || $isTrue($d->vendor4selected)
+                        || $isTrue($d->vendor5selected)
+                        || $isTrue($d->vendor6selected);
+                })
+                // ✅ map jadi array supaya field tambahan pasti ikut ke JSON
+                ->map(function($d) use ($csHeader, $isTrue){
+
+                    $vendorName  = null;
+                    $vendorPrice = null;
+
+                    if ($csHeader) {
+                        if ($isTrue($d->vendor1selected)) { $vendorName = $csHeader->vendorname1; $vendorPrice = $d->vendorprice1; }
+                        elseif ($isTrue($d->vendor2selected)) { $vendorName = $csHeader->vendorname2; $vendorPrice = $d->vendorprice2; }
+                        elseif ($isTrue($d->vendor3selected)) { $vendorName = $csHeader->vendorname3; $vendorPrice = $d->vendorprice3; }
+                        elseif ($isTrue($d->vendor4selected)) { $vendorName = $csHeader->vendorname4; $vendorPrice = $d->vendorprice4; }
+                        elseif ($isTrue($d->vendor5selected)) { $vendorName = $csHeader->vendorname5; $vendorPrice = $d->vendorprice5; }
+                        elseif ($isTrue($d->vendor6selected)) { $vendorName = $csHeader->vendorname6; $vendorPrice = $d->vendorprice6; }
+                    }
+
+                    return [
+                        'id' => $d->id,
+                        'inventoryid' => $d->inventoryid,
+                        'inventory_descr' => $d->inventory_descr,
+                        'qty' => $d->qty,
+                        'uom' => $d->uom,
+
+                        // ✅ ini yang kamu butuhin
+                        'vendorname_selected' => $vendorName,
+                        'vendorprice_selected' => $vendorPrice,
+
+                        'status' => $d->status,
+                    ];
+                })
+                ->values();
+        }
+
+
+        $poHeader = $selPoNo ? TrPO::where('ponbr',$selPoNo)->whereNull('deleted_at')->first() : null;
+        $poDetails = $selPoNo ? TrPOdetail::where('ponbr',$selPoNo)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+
+        $receiptHeader = $selReceiptNo ? TrReceipt::where('receiptnbr',$selReceiptNo)->whereNull('deleted_at')->first() : null;
+        $receiptDetails = $selReceiptNo ? TrReceiptdetail::where('receiptnbr',$selReceiptNo)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+
+        return response()->json([
+            'doc' => $sppbNo,
+
+            'lists' => [
+                'cs' => $csList->map(fn($x)=>[
+                    'doc'=>$x->csid,
+                    'date'=>$fmt($x->csdate),
+                    'status'=>$x->status,
+                    'is_approved'=>(!empty($x->completed_by) || !empty($x->completed_at)),
+                ])->values(),
+                'po' => $poList->map(fn($x)=>[
+                    'doc'=>$x->ponbr,
+                    'date'=>$fmt($x->podate),
+                    'status'=>$x->status,
+                    'csid'=>$x->csid,
+                    'is_approved'=>(!empty($x->completed_by) || !empty($x->completed_at)),
+                ])->values(),
+                'receipt' => $receiptList->map(fn($x)=>[
+                    'doc'=>$x->receiptnbr,
+                    'date'=>$fmt($x->receiptdate),
+                    'status'=>$x->status,
+                    'ponbr'=>$x->ponbr,
+                    'csid'=>$x->csid,
+                    'is_approved'=>(!empty($x->completed_by) || !empty($x->completed_at)),
+                ])->values(),
+            ],
+
+            'selected' => [
+                'cs_no' => $selCsNo,
+                'po_no' => $selPoNo,
+                'receipt_no' => $selReceiptNo,
+            ],
+
+            'sppb' => [
+                'header' => [
+                    'doc' => $sppb->sppbid,
+                    'date' => $fmt($sppb->sppbdate),
+                    'cpny_id' => $sppb->cpny_id,
+                    'department_id' => $sppb->department_id,
+                    'keperluan' => $sppb->keperluan,
+                    'status' => $sppb->status,
+                    'created_by' => $sppb->created_by,
+                    'created_at' => $fmt($sppb->created_at),
+                    'completed_by' => $sppb->completed_by,
+                    'completed_at' => $fmt($sppb->completed_at),
+                    'is_approved' => $approved($sppb),
+                ],
+                'details' => $sppbDetails,
+            ],
+
+            'cs' => [
+                'header' => $csHeader ? [
+                    'doc'=>$csHeader->csid,
+                    'date'=>$fmt($csHeader->csdate),
+                    'cpny_id'=>$csHeader->cpny_id,
+                    'department_id'=>$csHeader->department_id,
+                    'keperluan'=>$csHeader->keperluan,
+                    'status'=>$csHeader->status,
+                    'completed_by'=>$csHeader->completed_by,
+                    'completed_at'=>$fmt($csHeader->completed_at),
+                    'is_approved'=>$approved($csHeader),
+                ] : null,
+                'details' => $csDetails,
+            ],
+
+            'po' => [
+                'header' => $poHeader ? [
+                    'doc'=>$poHeader->ponbr,
+                    'date'=>$fmt($poHeader->podate),
+                    'cpny_id'=>$poHeader->cpny_id,
+                    'department_id'=>$poHeader->department_id,
+                    'vendorname'=>$poHeader->vendorname,
+                    'status'=>$poHeader->status,
+                    'completed_by'=>$poHeader->completed_by,
+                    'completed_at'=>$fmt($poHeader->completed_at),
+                    'is_approved'=>$approved($poHeader),
+                ] : null,
+                'details' => $poDetails,
+            ],
+
+            'receipt' => [
+                'header' => $receiptHeader ? [
+                    'doc'=>$receiptHeader->receiptnbr,
+                    'date'=>$fmt($receiptHeader->receiptdate),
+                    'cpny_id'=>$receiptHeader->cpny_id,
+                    'department_id'=>$receiptHeader->department_id,
+                    'vendorname'=>$receiptHeader->vendorname,
+                    'status'=>$receiptHeader->status,
+                    'completed_by'=>$receiptHeader->completed_by,
+                    'completed_at'=>$fmt($receiptHeader->completed_at),
+                    'is_approved'=>$approved($receiptHeader),
+                ] : null,
+                'details' => $receiptDetails,
+            ],
+        ]);
+    }
     
-    public function tracking($hash)
+    public function trackingDetailItem($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $sppb = TrSPPB::findOrFail($id);
+        $sppbNo = $sppb->sppbid;
+
+        $type = request('type');  // cs|po|receipt
+        $doc  = request('doc');   // csid / ponbr / receiptnbr
+
+        abort_if(!in_array($type, ['cs','po','receipt'], true), 400);
+        abort_if(!$doc, 400);
+
+        $fmt = fn($dt) => $dt ? \Carbon\Carbon::parse($dt)->format('Y-m-d H:i') : null;
+        $approved = fn($h) => $h ? (!empty($h->completed_by) || !empty($h->completed_at)) : false;
+
+        if ($type === 'cs') {
+            $h = TrCS::where('csid',$doc)->where('sppbjktid',$sppbNo)->whereNull('deleted_at')->first();
+            $d = $h ? TrCSdetail::where('csid',$doc)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+            return response()->json([
+                'header' => $h ? [
+                    'doc'=>$h->csid,'date'=>$fmt($h->csdate),'cpny_id'=>$h->cpny_id,'department_id'=>$h->department_id,
+                    'keperluan'=>$h->keperluan,'status'=>$h->status,'completed_by'=>$h->completed_by,'completed_at'=>$fmt($h->completed_at),
+                    'is_approved'=>$approved($h),
+                ] : null,
+                'details' => $d
+            ]);
+        }
+
+        if ($type === 'po') {
+            $h = TrPO::where('ponbr',$doc)->where('sppbjktid',$sppbNo)->whereNull('deleted_at')->first();
+            $d = $h ? TrPOdetail::where('ponbr',$doc)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+            return response()->json([
+                'header' => $h ? [
+                    'doc'=>$h->ponbr,'date'=>$fmt($h->podate),'cpny_id'=>$h->cpny_id,'department_id'=>$h->department_id,
+                    'vendorname'=>$h->vendorname,'status'=>$h->status,'completed_by'=>$h->completed_by,'completed_at'=>$fmt($h->completed_at),
+                    'is_approved'=>$approved($h),
+                ] : null,
+                'details' => $d
+            ]);
+        }
+
+        // receipt
+        $h = TrReceipt::where('receiptnbr',$doc)->where('sppbjktid',$sppbNo)->whereNull('deleted_at')->first();
+        $d = $h ? TrReceiptdetail::where('receiptnbr',$doc)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+        return response()->json([
+            'header' => $h ? [
+                'doc'=>$h->receiptnbr,'date'=>$fmt($h->receiptdate),'cpny_id'=>$h->cpny_id,'department_id'=>$h->department_id,
+                'vendorname'=>$h->vendorname,'status'=>$h->status,'completed_by'=>$h->completed_by,'completed_at'=>$fmt($h->completed_at),
+                'is_approved'=>$approved($h),
+            ] : null,
+            'details' => $d
+        ]);
+    }
+
+
+    public function tracking_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
         $sppb = TrSPPB::findOrFail($id);
 
-        $getName = function (?string $username) {
-            if (!$username) return null;
-            $u = \App\Models\User::where('username', $username)->first();
-            return $u->name ?? $username;
-        };
+        // Ambil 1 row terbaru dari view untuk sppb ini
+        // Kalau view kamu menghasilkan banyak baris, ambil yang paling "akhir"
+        $row = VTrackingSppbFlow::query()
+            ->where('sppb_no', $sppb->sppbid)
+            ->orderByRaw('cs_date DESC NULLS LAST')
+            ->orderByRaw('po_date DESC NULLS LAST')
+            ->orderByRaw('receipt_date DESC NULLS LAST')
+            ->first();
 
-        $createdByName = $getName($sppb->created_by ?? null);
-        $createdAt     = $sppb->created_at ? \Carbon\Carbon::parse($sppb->created_at)->format('Y-m-d H:i') : null;
-
-        $completedByName = $getName($sppb->completed_by ?? null);
-        $completedAt     = $sppb->completed_at ? \Carbon\Carbon::parse($sppb->completed_at)->format('Y-m-d H:i') : null;
-
-        // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($sppb->rejected_by ?? null);
-        $rejectedAt      = isset($sppb->rejected_at) ? \Carbon\Carbon::parse($sppb->rejected_at)->format('Y-m-d H:i') : null;
-
-        $revisedByName   = $getName($sppb->revised_by ?? null);
-        $revisedAt       = isset($sppb->revised_at) ? \Carbon\Carbon::parse($sppb->revised_at)->format('Y-m-d H:i') : null;
-
-        $status = (string) ($sppb->status ?? '');
-        $labelMap = [
-            'P' => 'Waiting approval',
-            'R' => 'Rejected',
-            'D' => 'Revise',
-            'C' => 'Completed',
-        ];
-        $statusLabel = $labelMap[$status] ?? $status;
-
-        // selalu mulai dari Submitted
-        $steps = [[
-            'key'          => 'submitted',
-            'title'        => 'SPPB',
-            'status'       => 'C',              // dibuat = completed
-            'status_label' => 'Submitted',
-            'by'           => $createdByName,
-            'at'           => $createdAt,
-        ]];
-
-        switch ($status) {
-            case 'P':
-                // masih menunggu/berjalan → tampilkan Approval saja
-                $steps[] = [
-                    'key'          => 'approval',
-                    'title'        => 'Approval',
-                    'status'       => 'P',
-                    'status_label' => 'Waiting approval',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
-                ];
-                break;
-
-            case 'R':
-                // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
-                $steps[] = [
-                    'key'          => 'rejected',
-                    'title'        => 'Rejected',
-                    'status'       => 'R',
-                    'status_label' => 'Rejected',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
-                ];
-                break;
-
-            case 'D':
-                // REVISE → Submitted → Revise
-                $steps[] = [
-                    'key'          => 'revise',
-                    'title'        => 'Revise',
-                    'status'       => 'D',
-                    'status_label' => 'Revise',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
-                ];
-                break;
-
-            case 'C':
-                // SELESAI → bisa langsung Submitted → Completed
-                // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
-                // tambahkan step 'approval' sebelum 'completed')
-                $steps[] = [
-                    'key'          => 'completed',
-                    'title'        => 'Completed',
-                    'status'       => 'C',
-                    'status_label' => 'Completed',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
-                ];
-                break;
-
-            default:
-                // status tidak dikenal → biarkan hanya Submitted
-                break;
+        // Kalau tidak ketemu di view (harusnya minimal ada SPPB)
+        if (!$row) {
+            return response()->json([
+                'doc' => $sppb->sppbid,
+                'steps' => [[
+                    'key' => 'sppb',
+                    'title' => 'SPPB',
+                    'doc' => $sppb->sppbid,
+                    'status' => 'C',
+                    'status_label' => 'Submitted',
+                    'by' => $sppb->created_by,
+                    'at' => optional($sppb->created_at)->format('Y-m-d H:i'),
+                ]],
+            ]);
         }
 
+        $fmt = fn($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
+
+        $stepStatus = function (?string $docNo, $isApproved) {
+            // belum dibuat
+            if (!$docNo) return ['_', 'Not created yet'];
+            // sudah dibuat tapi belum complete
+            if (!$isApproved) return ['P', 'In progress / waiting approval'];
+            // approved/complete
+            return ['C', 'Approved / completed'];
+        };
+
+        // ====== BUILD STEPS ======
+        // SPPB selalu ada
+        [$sppbSt, $sppbLbl] = $stepStatus($row->sppb_no, $row->sppb_is_approved ?? false);
+        // Tapi SPPB "Submitted" lebih jelas sebagai baseline
+        $steps = [[
+            'key' => 'sppb',
+            'title' => 'SPPB',
+            'doc' => $row->sppb_no,
+            'status' => 'C',
+            'status_label' => 'Submitted',
+            'by' => $row->sppb_created_by ?? null,
+            'at' => $fmt($row->sppb_created_at ?? null),
+        ]];
+
+        // CS
+        [$csSt, $csLbl] = $stepStatus($row->cs_no ?? null, $row->cs_is_approved ?? false);
+        $steps[] = [
+            'key' => 'cs',
+            'title' => 'CS',
+            'doc' => $row->cs_no ?? null,
+            'status' => $csSt,
+            'status_label' => $csLbl,
+            'by' => ($row->cs_is_approved ?? false) ? ($row->cs_completed_by ?? null) : null,
+            'at' => ($row->cs_is_approved ?? false) ? $fmt($row->cs_completed_at ?? null) : null,
+        ];
+
+        // PO
+        [$poSt, $poLbl] = $stepStatus($row->po_no ?? null, $row->po_is_approved ?? false);
+        $steps[] = [
+            'key' => 'po',
+            'title' => 'PO',
+            'doc' => $row->po_no ?? null,
+            'status' => $poSt,
+            'status_label' => $poLbl,
+            'by' => ($row->po_is_approved ?? false) ? ($row->po_completed_by ?? null) : null,
+            'at' => ($row->po_is_approved ?? false) ? $fmt($row->po_completed_at ?? null) : null,
+        ];
+
+        // Receipt
+        [$rcSt, $rcLbl] = $stepStatus($row->receipt_no ?? null, $row->receipt_is_approved ?? false);
+        $steps[] = [
+            'key' => 'receipt',
+            'title' => 'Receipt',
+            'doc' => $row->receipt_no ?? null,
+            'status' => $rcSt,
+            'status_label' => $rcLbl,
+            'by' => ($row->receipt_is_approved ?? false) ? ($row->receipt_completed_by ?? null) : null,
+            'at' => ($row->receipt_is_approved ?? false) ? $fmt($row->receipt_completed_at ?? null) : null,
+        ];
+
         return response()->json([
-            'doc'   => $sppb->sppbid ?? (string)$sppb->id,
+            'doc' => $row->sppb_no,
             'steps' => $steps,
-            'status'=> $status,
-            'status_label' => $statusLabel,
         ]);
     }
 
