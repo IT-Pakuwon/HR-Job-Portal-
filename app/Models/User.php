@@ -31,6 +31,7 @@ class User extends Authenticatable
         'cpny_id',
         'department_id',
         'business_unit_id',
+        'division_id',
         'user_role',
         'notification_email',
         'npk',

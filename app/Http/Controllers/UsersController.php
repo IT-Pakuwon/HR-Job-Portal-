@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\SysRole;
 use App\Models\SysUserRole;
 use App\Models\BusinessUnit;
-
+use App\Models\MsDivision;
+use App\Models\Userdivision;
 
 class UsersController extends Controller
 {
@@ -33,15 +34,20 @@ class UsersController extends Controller
             ->distinct()
             ->get();
 
+        $divisions = MsDivision::select(['division_id', 'division_name'])
+            ->where('status', 'A')
+            ->orderBy('division_name')
+            ->get();
+
         $roles = SysRole::where('status', 'A')->orderBy('role_id')->get();
 
-        return view('pages.users.users', compact('company', 'department', 'businessUnits', 'roles'));
+        return view('pages.users.users', compact('company', 'department', 'businessUnits', 'divisions', 'roles'));
     }
 
 
     public function json()
     {
-        $users = User::select(['id','name','username','email','cpny_id','department_id','business_unit_id','jabatan','npk','status'])
+        $users = User::select(['id','name','username','email','cpny_id','department_id','business_unit_id','division_id','jabatan','npk','status'])
             ->orderByDesc('id')
             ->get();
 
@@ -56,6 +62,7 @@ class UsersController extends Controller
             'email'         => 'required',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
+            'division_id'   => 'required|array',
             'business_unit_id' => 'required|array',
             'jabatan'       => 'required',            
             'role'          => 'required',          // user/admin (yang lama)
@@ -70,6 +77,7 @@ class UsersController extends Controller
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
             $businessUnitIdsString = implode(',', $request->business_unit_id);
+            $divisionIdsString = implode(',', $request->division_id);
 
             $email    = $request->email;
             $username = explode('@', $email)[0];
@@ -82,6 +90,7 @@ class UsersController extends Controller
                 'username'           => $username,
                 'cpny_id'            => $companyIdsString,
                 'department_id'      => $deptIdsString,
+                'division_id'        => $divisionIdsString,
                 'business_unit_id'   => $businessUnitIdsString,
                 'jabatan'            => $request->jabatan,
                 'password'           => $password,
@@ -111,6 +120,17 @@ class UsersController extends Controller
                     'created_by'    => $loginUser->username,
                 ]);
             }
+
+            // USERDIVISION
+            foreach ($request->division_id as $div) {
+                Userdivision::create([
+                    'username'   => $username,
+                    'division_id'=> $div,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
+            }
+
 
             // USERBUSINESSUNIT (dengan cpny_id)
             $buIds = $request->business_unit_id;
@@ -174,6 +194,7 @@ class UsersController extends Controller
             'role'          => $user->user_role, // user/admin
             'cpny_id'       => explode(',', $user->cpny_id),
             'department_id' => explode(',', $user->department_id),
+            'division_id'     => explode(',', (string) $user->division_id),
             'business_unit_id' => explode(',', $user->business_unit_id),
             'role_ids'      => $userRoles,       // ⬅️ untuk di-set di select2
         ]);
@@ -187,6 +208,7 @@ class UsersController extends Controller
             'email'         => 'required',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
+            'division_id'   => 'required|array',
             'business_unit_id' => 'required|array',
             'jabatan'       => 'required',
             'role'          => 'required',
@@ -202,6 +224,7 @@ class UsersController extends Controller
 
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
+            $divisionIdsString = implode(',', $request->division_id);
             $businessUnitIdsString = implode(',', $request->business_unit_id);
 
             $user->update([
@@ -209,6 +232,7 @@ class UsersController extends Controller
                 'email'         => $request->email,
                 'cpny_id'       => $companyIdsString,
                 'department_id' => $deptIdsString,
+                'division_id'      => $divisionIdsString,
                 'business_unit_id' => $businessUnitIdsString,
                 'user_role'     => $request->role,
                 'npk'           => $request->npk,
@@ -219,6 +243,7 @@ class UsersController extends Controller
             // DELETE OLD ACCESS (company / dept)
             Usercpny::where('username', $user->username)->delete();
             Userdept::where('username', $user->username)->delete();
+            Userdivision::where('username', $user->username)->delete();
             Userbusinessunit::where('username', $user->username)->delete();
 
             foreach ($request->cpny_id as $cpny) {
@@ -238,6 +263,16 @@ class UsersController extends Controller
                     'created_by'    => $loginUser->username,
                 ]);
             }
+
+            foreach ($request->division_id as $div) {
+                Userdivision::create([
+                    'username'   => $user->username,
+                    'division_id'=> $div,
+                    'status'     => 'A',
+                    'created_by' => $loginUser->username,
+                ]);
+            }
+
 
             // USERBUSINESSUNIT (dengan cpny_id)
             $buIds = $request->business_unit_id;

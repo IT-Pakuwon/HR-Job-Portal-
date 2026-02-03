@@ -103,6 +103,9 @@
                             <th scope="col" class="px-6 py-3 font-medium">
                                 Company
                             </th>
+                             <th scope="col" class="px-6 py-3 font-medium">
+                                Division
+                            </th>
                             <th scope="col" class="px-6 py-3 font-medium">
                                 Department
                             </th>
@@ -229,6 +232,10 @@
                     },
                     {
                         data: 'cpnyid',
+                        className: 'no-pointer'
+                    },
+                    {
+                        data: 'division_id',
                         className: 'no-pointer'
                     },
                     {

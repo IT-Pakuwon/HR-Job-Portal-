@@ -41,6 +41,7 @@ use Illuminate\Support\Str;
 use Mail;
 use App\Models\SysUserRole;
 use App\Models\DepartmentHR;
+use App\Models\Userdivision;
 
 
 
@@ -67,6 +68,11 @@ class PersonnelController extends Controller
         return $this->splitCsv($user->department_id);
     }
 
+    private function userDivisionIds($user): array
+    {
+        return $this->splitCsv($user->division_id);
+    }
+
     private function hasRoleAllDept($user): bool
     {
         return SysUserRole::query()
@@ -79,7 +85,31 @@ class PersonnelController extends Controller
             ->exists();
     }
 
-    private function userDivisionIds($user): array
+    private function personnelScopeForUser($user)
+    {
+        $cpnyIds = $this->userCpnyIds($user);
+
+        $q = Personnel::query();
+
+        // wajib punya cpny
+        if (empty($cpnyIds)) return $q->whereRaw('1=0');
+
+        // filter cpnyid user (AW,EP,PSA,GPS)
+        $q->whereIn('cpnyid', $cpnyIds);
+
+        // role all dept -> bisa lihat semua division
+        if ($this->hasRoleAllDept($user)) {
+            return $q;
+        }
+
+        // selain itu: filter division_id dari user (langsung)
+        $divisionIds = $this->userDivisionIds($user);
+        if (empty($divisionIds)) return $q->whereRaw('1=0');
+
+        return $q->whereIn('division_id', $divisionIds);
+    }
+
+    private function userDivisionIds_xxx($user): array
     {
         $deptIds = $this->userDeptIds($user);
         if (empty($deptIds)) return [];
@@ -111,7 +141,7 @@ class PersonnelController extends Controller
         return $divisions2;
     }
 
-    private function personnelScopeForUser($user)
+    private function personnelScopeForUser_xxx($user)
     {
         $cpnyIds = $this->userCpnyIds($user);
 
@@ -200,50 +230,7 @@ class PersonnelController extends Controller
         return response()->json(['data' => $personnel]);
     }
 
-    // public function index()
-    // {
-    //     $all = Personnel::count();
-    //     $onProgress = Personnel::where('status', 'P')->count();
-    //     $reject = Personnel::where('status', 'R')->count();
-    //     $revise = Personnel::where('status', 'D')->count();
-    //     $completed = Personnel::where('status', 'C')->count();
-       
-    //     return view('pages.personnels.personnels', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
-    // }
     
-    // public function json(Request $request)
-    // {
-    //     // $status = $request->query('status', 'P');
-    //     $status = $request->has('status') ? $request->query('status') : 'P';
-
-    //     $query = Personnel::query();
-
-    //     if (!empty($status)) {
-    //         $query->where('status', $status);
-    //     }
-
-    //     // $personnel = $query->orderBy('id', 'desc')->get();
-    //     $rows = $query->orderBy('id', 'desc')->get();
-
-    //     // Map ke bentuk aman: gunakan hid, sembunyikan id
-    //     $personnel = $rows->map(function ($row) {
-    //         return [
-    //             'eid'            => $row->eid ?? Hashids::encode($row->id), // kalau pakai accessor, ini otomatis
-    //             'docid'          => $row->docid,
-    //             'date'           => optional($row->date)->format('Y-m-d') ?? $row->date,
-    //             'cpnyid'         => $row->cpnyid,
-    //             'departementid'  => $row->departementid,
-    //             'job_title'      => $row->job_title,
-    //             'job_level'      => $row->job_level,
-    //             'created_user'   => $row->created_user,
-    //             'status'         => $row->status,
-    //         ];
-    //     });
-
-    //     return response()->json(['data' => $personnel]);
-    // }
-
-
 
     public function createPersonnel()
     {
@@ -267,8 +254,25 @@ class PersonnelController extends Controller
             ->orderBy('grade_id', 'ASC')
             ->get();
 
+        // 1) ambil division_id user dari PostgreSQL
+        $userDivisionIds = Userdivision::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('division_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // 2) ambil master division dari MySQL berdasarkan list id di atas
+        $userdivison = Division::query()
+            ->select('division_id', 'division_name')
+            ->where('status', 'A')
+            ->whereIn('division_id', $userDivisionIds)
+            ->orderBy('division_name')
+            ->get();
+
        
-        return view('pages.personnels.createpersonnels', compact('companies','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings'));
+        return view('pages.personnels.createpersonnels', compact('companies','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings','userdivison'));
     }
 
     public function createPersonnelx()
