@@ -33,6 +33,7 @@ class ReceiptController extends Controller
 {
     public function createReceipt(Request $req) 
     {
+        // dd($req->all());
         $ponbr_eid = (string) $req->query('ponbr', '');
         abort_if($ponbr_eid === '', 404, 'PO number required');
 
@@ -43,7 +44,10 @@ class ReceiptController extends Controller
         $po = TrPO::select([
                 'id','ponbr','podate','sppbjktid','vendorname',
                 'cpny_id','department_id','user_peminta'
-            ])->where('id', $id)->first();
+            ])
+            ->where('cpny_id', $req->query('cpny_id', ''))
+            ->where('id', $id)
+            ->first();
 
         abort_if(!$po, 404, 'PO not found');
 
@@ -68,6 +72,7 @@ class ReceiptController extends Controller
             "),
         ])
         ->where('ponbr', $po->ponbr)
+        ->where('budget_cpny_id', $po->cpny_id)
         ->orderBy('id')
         ->get()
         ->filter(fn($r) => (float)$r->qty_sisa > 0)
@@ -99,12 +104,16 @@ class ReceiptController extends Controller
         }
 
         /** @var TrPO|null $po */
-        $po = TrPO::where('ponbr', $ponbr)->first();
+        $po = TrPO::where('ponbr', $ponbr)
+            ->where('cpny_id', $request->input('cpny_id'))
+            ->first();
         if (!$po) {
             return back()->withErrors(['PO not found.'])->withInput();
         }
 
-        $poDetails = TrPOdetail::where('ponbr', $ponbr)->get()->keyBy('id');
+        $poDetails = TrPOdetail::where('ponbr', $ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
+            ->get()->keyBy('id');
         if ($poDetails->isEmpty()) {
             return back()->withErrors(['PO detail not found.'])->withInput();
         }
@@ -531,7 +540,9 @@ class ReceiptController extends Controller
         }
 
         // Ambil semua detail PO → untuk matching by (inventoryid|uom)
-        $poDetails     = \App\Models\TrPOdetail::where('ponbr', $ponbr)->get();
+        $poDetails     = \App\Models\TrPOdetail::where('ponbr', $ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
+            ->get();
         $poByKey       = $poDetails->keyBy(fn($row) => ($row->inventoryid ?? '').'|'.($row->uom ?? ''));
         $poByInventory = $poDetails->groupBy('inventoryid');
 
@@ -750,97 +761,7 @@ class ReceiptController extends Controller
     }
 
 
-    public function approveReceipt_xxx(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'GR';
-
-        $receipt = TrReceipt::with('creator')->where('receiptnbr', $docid)->first();
-        if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
-
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
-        // (opsional) samakan route show jika pakai singular:
-        $docUrl   = url('/showreceipt/' . $eid);
-        $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
-
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
-            $receipt->receiptnbr,
-            $doctype,
-            $user->username,
-            $user->name,
-
-            // ==== COMPLETE CALLBACK: dokumen finish (C) ====
-            function (string $refnbr, \Carbon\Carbon $now) use ($receipt, $fullname, $docUrl, $request) {
-                 // 3) >>>> UPDATE PO setelah receipt COMPLETE <<<<
-                try {
-                    // Panggil fungsi updatePO (id = id TrReceipt)
-                    app(static::class)->updatePO($request, $receipt->id);
-                } catch (\Throwable $e) {
-                    \Log::error('approveReceipt: updatePO failed', [
-                        'receiptnbr' => $receipt->receiptnbr,
-                        'id'         => $receipt->id,
-                        'error'      => $e->getMessage(),
-                    ]);
-                    // Tidak melempar ulang agar approval tetap sukses
-                }
-                
-                // 1) Update header & detail ke C
-                $receipt->status       = 'C';
-                $receipt->completed_by = $receipt->completed_by ?: (auth()->user()->username ?? $receipt->completed_by);
-                $receipt->completed_at = $now;
-                $receipt->save();
-
-                TrReceiptdetail::where('receiptnbr', $receipt->receiptnbr)->update(['status' => 'C']);
-
-                // 2) Notifikasi ke requester (creator)
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $receipt->receiptnbr,
-                    'Receipt',
-                    'C',
-                    $receipt->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
-                        'deptname' => $receipt->department_id ?? $receipt->departementid ?? '',
-                        'date'     => $receipt->receiptdate,
-                        'info'     => $receipt->keperluan,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
-                    ]
-                );
-
-               
-            },
-
-            // ==== NEXT APPROVER CALLBACK: lanjut ke approver berikutnya ====
-            function ($next, \Carbon\Carbon $now) use ($receipt, $docUrl) {
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                    $receipt->receiptnbr,
-                    'GR',
-                    'P',
-                    'Receipt',
-                    $docUrl,
-                    [
-                        'info'      => $receipt->keperluan,
-                        'createdby' => $receipt->created_by,
-                        'date'      => $now->toDateTimeString(),
-                    ]
-                );
-
-                // jejak terakhir diproses (opsional)
-                $receipt->completed_by = auth()->user()->username ?? $receipt->completed_by;
-                $receipt->completed_at = $now;
-                $receipt->save();
-            }
-        );
-
-        if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
-        }
-
-        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
-    }
+ 
 
     public function approveReceipt(Request $request, $docid)
     {
@@ -1384,7 +1305,9 @@ class ReceiptController extends Controller
             }
 
             // Siapkan map detail PO
-            $poDetailRows  = TrPOdetail::where('ponbr', $rcp->ponbr)->get();
+            $poDetailRows  = TrPOdetail::where('ponbr', $rcp->ponbr)
+                ->where('budget_cpny_id', $rcp->cpny_id)
+                ->get();
             $poByKey       = $poDetailRows->keyBy(fn($row) => ($row->inventoryid ?? '').'|'.($row->uom ?? ''));
             $poByInventory = $poDetailRows->groupBy('inventoryid');
 
@@ -1422,10 +1345,13 @@ class ReceiptController extends Controller
                 }
 
                 // akumulasi header PO
-                $po->totalqtyreceived = TrPOdetail::where('ponbr', $rcp->ponbr)->sum('qty_received');
+                $po->totalqtyreceived = TrPOdetail::where('ponbr', $rcp->ponbr)
+                    ->where('budget_cpny_id', $rcp->cpny_id)
+                    ->sum('qty_received');
 
                 // close PO bila semua completed
                 $openExists = TrPOdetail::where('ponbr', $rcp->ponbr)
+                    ->where('budget_cpny_id', $rcp->cpny_id)
                     ->whereRaw('(COALESCE(qty,0) > COALESCE(qty_received,0))')
                     ->exists();
 
@@ -1594,6 +1520,7 @@ class ReceiptController extends Controller
     // Simpan dokumen return
     public function storeReturn(Request $request)
     {
+        // dd($request->all());
         // $user = $request->user();
         $user = Auth::user();
         $username = $user ? $user->username : 'system';
@@ -1669,7 +1596,7 @@ class ReceiptController extends Controller
             $hdr->receiptnote       = $notes;
             $hdr->vendorid          = $src->vendorid;
             $hdr->vendorname        = $src->vendorname;
-            $hdr->totalqty_received = 0; // untuk return kita isi setelah loop sbg total qty return
+            $hdr->totalqty_return   = 0; // untuk return kita isi setelah loop sbg total qty return
             $hdr->status            = 'P'; // langsung complete, atau 'P' kalau mau ada approval
             $hdr->created_by        = $username;
             $hdr->created_at        = $now;
@@ -1704,6 +1631,10 @@ class ReceiptController extends Controller
                 $det->inventory_descr         = $srcDet->inventory_descr;
                 $det->qtyordered              = $srcDet->qtyordered;
                 $det->uom                     = $srcDet->uom;
+
+                $det->inventory_category  = $srcDet->inventory_category ?? null;
+                $det->inventory_sub_type  = $srcDet->inventory_sub_type ?? null;
+                $det->siteid              = $srcDet->siteid ?? null;
 
                 // base
                 $det->type_multiplier         = null;
@@ -1754,9 +1685,26 @@ class ReceiptController extends Controller
                 return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
             }
 
-            // simpan total return di header (pakai kolom totalqty_received sebagai penampung)
-            $hdr->totalqty_received = $totalReturn;
+            // simpan total return di header (pakai kolom totalqty_return sebagai penampung)
+            $hdr->totalqty_return = $totalReturn;
             $hdr->save();
+
+            try {
+                app('App\Http\Controllers\SendCommentController')->sendmsg($hdr->id, 'GR', request());
+            } catch (\Throwable $e) {}
+
+            // ✅ UPDATE PO di store
+            try {
+                app(static::class)->updatePO($request, $hdr->id);
+            } catch (\Throwable $e) {
+                \Log::error('storeReceipt: updatePO failed', [
+                    'receiptnbr' => $hdr->receiptnbr,
+                    'ponbr'      => $hdr->ponbr,
+                    'id'         => $hdr->id,
+                    'error'      => $e->getMessage(),
+                ]);
+                throw $e; // biar konsisten & aman
+            }
            
 
             $ctx = ['ignore_nominal' => true];
@@ -1853,7 +1801,9 @@ class ReceiptController extends Controller
         $ponbr = $rcp->ponbr;
 
         // total line PO
-        $totalLines = TrPOdetail::where('ponbr', $ponbr)->count();
+        $totalLines = TrPOdetail::where('ponbr', $ponbr)
+            ->where('budget_cpny_id', $rcp->cpny_id)
+            ->count();
 
         if ($totalLines <= 0) {
             return response()->json([
@@ -1864,6 +1814,7 @@ class ReceiptController extends Controller
 
         // line yang sudah full received (qty_received >= qty)
         $fullLines = TrPOdetail::where('ponbr', $ponbr)
+            ->where('budget_cpny_id', $rcp->cpny_id)
             ->whereRaw('COALESCE(qty_received, 0) >= COALESCE(qty, 0)')
             ->count();
 
@@ -1902,13 +1853,17 @@ class ReceiptController extends Controller
             }
 
             // Lock PO header
-            $po = \App\Models\TrPO::where('ponbr', $rcp->ponbr)->lockForUpdate()->first();
+            $po = \App\Models\TrPO::where('ponbr', $rcp->ponbr)
+                ->where('cpny_id', $rcp->cpny_id)
+                ->lockForUpdate()->first();
             if (!$po) {
                 throw new \RuntimeException('PO terkait tidak ditemukan.');
             }
 
             // Ambil PO detail & siapkan map
-            $poDetailRows  = \App\Models\TrPOdetail::where('ponbr', $rcp->ponbr)->lockForUpdate()->get();
+            $poDetailRows  = \App\Models\TrPOdetail::where('ponbr', $rcp->ponbr)
+                ->where('budget_cpny_id', $rcp->cpny_id)
+                ->lockForUpdate()->get();
             $poByKey       = $poDetailRows->keyBy(fn($row) => ($row->inventoryid ?? '').'|'.($row->uom ?? ''));
             $poByInventory = $poDetailRows->groupBy('inventoryid');
 
@@ -1948,9 +1903,12 @@ class ReceiptController extends Controller
                 }
 
                 // recompute PO header fields
-                $po->totalqtyreceived = (float) \App\Models\TrPOdetail::where('ponbr', $rcp->ponbr)->sum('qty_received');
+                $po->totalqtyreceived = (float) \App\Models\TrPOdetail::where('ponbr', $rcp->ponbr)
+                    ->where('budget_cpny_id', $rcp->cpny_id)
+                    ->sum('qty_received');
 
                 $openExists = \App\Models\TrPOdetail::where('ponbr', $rcp->ponbr)
+                    ->where('budget_cpny_id', $rcp->cpny_id)
                     ->whereRaw('(COALESCE(qty,0) > COALESCE(qty_received,0))')
                     ->exists();
 

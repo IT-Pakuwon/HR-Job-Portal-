@@ -81,6 +81,8 @@
                     {{-- hidden refs --}}
                     <input type="hidden" name="rcp" value="{{ $eid }}">
                     <input type="hidden" name="ref_receiptnbr" value="{{ $rcp->receiptnbr }}">
+                    <input type="hidden" name="return_note" id="return_note" value="">
+
 
                     {{-- ===== Header ===== --}}
                     <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
@@ -302,7 +304,7 @@
                 return ok;
             }
 
-            $('#returnForm').on('submit', function(e) {
+            $('#returnForm').on('submit', async function(e) {
                 e.preventDefault();
                 clearErrors();
 
@@ -313,6 +315,33 @@
                     if (window.toastr) toastr.error('Minimal satu baris Qty Return harus > 0.');
                     return;
                 }
+
+                // === POPUP REASON ===
+                const swalRes = await Swal.fire({
+                    title: 'Return Reason',
+                    input: 'textarea',
+                    inputLabel: 'Alasan return (wajib diisi)',
+                    inputPlaceholder: 'Contoh: Barang rusak / salah kirim / qty tidak sesuai...',
+                    inputAttributes: {
+                        'aria-label': 'Return reason'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true,
+                    focusConfirm: false,
+                    inputValidator: (value) => {
+                        const v = (value || '').trim();
+                        if (!v) return 'Reason wajib diisi.';
+                        if (v.length < 5) return 'Reason minimal 5 karakter.';
+                        return null;
+                    }
+                });
+
+                if (!swalRes.isConfirmed) return;
+
+                // set ke hidden input agar ikut terkirim
+                $('#return_note').val((swalRes.value || '').trim());
 
                 // normalisasi , -> .
                 $('.qtyReturn').each(function() {
@@ -340,8 +369,7 @@
                     .fail(xhr => {
                         if (xhr.status === 422 && xhr.responseJSON?.errors) {
                             let msg = 'Periksa input:<br>';
-                            Object.values(xhr.responseJSON.errors).forEach(arr => msg += '- ' + arr
-                                .join(', ') + '<br>');
+                            Object.values(xhr.responseJSON.errors).forEach(arr => msg += '- ' + arr.join(', ') + '<br>');
                             if (window.toastr) toastr.error(msg);
                         } else {
                             if (window.toastr) toastr.error(xhr.responseJSON?.message || 'Failed.');
@@ -353,6 +381,7 @@
                         hideOverlay();
                     });
             });
+
 
             // attachments
             $('#addAttachment').on('click', function() {
@@ -371,4 +400,6 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </x-app-layout>

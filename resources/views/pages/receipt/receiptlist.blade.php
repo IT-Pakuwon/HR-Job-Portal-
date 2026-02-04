@@ -439,11 +439,23 @@
                 });
             }
 
+            // function renderPlusCreate(row) {
+            //     const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
+            //     return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+            //         <i class="fas fa-plus"></i></a>`;
+            // }
+
             function renderPlusCreate(row) {
-                const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
-                return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
+                const base = `{{ route('receipt.create') }}`;
+                const ponbr = encodeURIComponent(row.ponbr_eid ?? '');
+                const cpny  = encodeURIComponent(row.cpny_id ?? '');
+
+                const url = `${base}?ponbr=${ponbr}&cpny_id=${cpny}`;
+
+                return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2 text-sm leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
                     <i class="fas fa-plus"></i></a>`;
             }
+
 
             function renderPlusReturn(row) {
                 const url = `{{ route('receipt.return.create') }}` +

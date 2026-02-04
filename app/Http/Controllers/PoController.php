@@ -273,7 +273,9 @@ class PoController extends Controller
             }
         
             // 1. Cek Detail PO ada sebelum Used Budget
-            $detailCount = TrPODetail::where('ponbr', $po->ponbr)->count();
+            $detailCount = TrPODetail::where('ponbr', $po->ponbr)
+                ->where('budget_cpny_id', $po->cpny_id)
+                ->count();
             if ($detailCount <= 0) {
                 throw new \Exception("PO Detail kosong. Tidak bisa proses budget untuk PO {$po->ponbr}");
             }
@@ -676,6 +678,7 @@ class PoController extends Controller
 
         // Detail pakai ponbr
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')
             ->get();
 
@@ -1500,7 +1503,9 @@ class PoController extends Controller
         $username = $user->username ?? 'system';
 
         // Ambil semua detail PO
-        $details = \App\Models\TrPOdetail::where('ponbr', $po->ponbr)->get();
+        $details = \App\Models\TrPOdetail::where('ponbr', $po->ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
+            ->get();
 
         if ($details->isEmpty()) {
             return;
@@ -1625,66 +1630,16 @@ class PoController extends Controller
     }
 
 
-    private function insertPOReuse_xxx($po)
-    {
-        $user     = Auth::user();
-        $username = $user->username ?? 'system';
-        // Ambil semua detail dari TrPOdetail
-        $details = \App\Models\TrPOdetail::where('ponbr', $po->ponbr)->get();
-
-        if ($details->isEmpty()) {
-            return;
-        }
-
-        foreach ($details as $d) {
-
-            \App\Models\TrPOReuse::create([
-                'cpny_id'                 => $po->cpny_id ?? null,
-                'ponbr'                   => $d->ponbr,
-                'po_no'                   => $d->po_no,
-                'csid'                    => $d->csid,
-                'cs_no'                   => $d->cs_no,
-                'sppbjktid'               => $d->sppbjktid,
-                'sppbjkt_no'              => $d->sppbjktid_no,
-                'inventory_type'          => $d->inventory_type,
-                'inventory_sub_type'      => $d->inventory_sub_type,
-                'inventory_category'      => $d->inventory_category,
-                'inventoryid'             => $d->inventoryid,
-                'inventory_descr'         => $d->inventory_descr,
-                'qty'                     => $d->qty,
-                'uom'                     => $d->uom,
-                'siteid'                  => $d->siteid,
-                'type_multiplier'         => $d->type_multiplier,
-                'base_multiplier'         => $d->base_multiplier,
-                'base_qty'                => $d->base_qty,
-                'base_uom'                => $d->base_uom,
-                'budget_perpost'          => $d->budget_perpost,
-                'budget_cpny_id'          => $d->budget_cpny_id,
-                'budget_business_unit_id' => $d->budget_business_unit_id,
-                'budget_department_fin_id'=> $d->budget_department_fin_id,
-                'budget_account_id'       => $d->budget_account_id,
-                'budget_activity_id'      => $d->budget_activity_id,
-                'budget_activity_descr'   => $d->budget_activity_descr,
-
-                // default openordered/ordered dkk = 0
-                'openordered'             => $d->qty,
-                'ordered'                 => 0,
-                'rejectordered'           => 0,
-                'completeordered'         => 0,
-
-                'status'                  => 'D', // reuse
-                'created_by'              => $username,
-                'created_at'              => now(),
-            ]);
-        }
-    }
+ 
 
     private function insertPoLastPrice(TrPO $po): void
     {
         $username = Auth::user()->username ?? 'system';
         $now = Carbon::now();
 
-        $details = TrPODetail::where('ponbr', $po->ponbr)->get();
+        $details = TrPODetail::where('ponbr', $po->ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
+            ->get();
 
         foreach ($details as $d) {
             // optional: ambil info inventory untuk type/subtype/category
@@ -1761,7 +1716,9 @@ class PoController extends Controller
 
         return DB::transaction(function () use ($ponbr, $data, $user, $request) {
 
-            $po = TrPO::where('ponbr', $ponbr)->lockForUpdate()->firstOrFail();
+            $po = TrPO::where('ponbr', $ponbr)
+                ->where('cpny_id', $user->cpny_id)
+                ->lockForUpdate()->firstOrFail();
 
             // guard status
             if (in_array($po->status, ['H','X','R','C'], true)) {
@@ -1773,6 +1730,7 @@ class PoController extends Controller
 
             // lock all details
             $details = TrPOdetail::where('ponbr', $ponbr)
+                ->where('budget_cpny_id', $user->cpny_id)
                 ->lockForUpdate()
                 ->orderBy('id')
                 ->get();

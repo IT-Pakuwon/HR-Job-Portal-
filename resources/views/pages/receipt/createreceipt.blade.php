@@ -115,6 +115,7 @@
                 <form id="receiptForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
+                    <input type="hidden" name="cpny_id" value="{{ $po->cpny_id }}">
 
                     {{-- ===== Header ===== --}}
                     <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
@@ -487,7 +488,7 @@
                         if (window.toastr) toastr.success(res.message ||
                             'Receipt created successfully!');
                         window.location.href = "/receiptlist";
-                        window.location.reload();
+                        // window.location.reload();
                     })
                     .fail(function(xhr) {
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
