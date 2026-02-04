@@ -172,6 +172,7 @@ Route::post('/google/calendar/event', [GoogleCalendarController::class, 'createE
 Route::get('/google/calendar/events', [GoogleCalendarController::class, 'listEvents'])
     ->middleware('auth');
 
+
 Route::get('/modules', function () {
     return view('layouts.module');
 })->name('modules');

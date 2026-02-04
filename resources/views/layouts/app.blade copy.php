@@ -8,7 +8,10 @@
 
     <title>{{ config('app.name', 'Pakuwon System') }}</title>
 
-    <!-- Favicon -->
+    <!-- ================= GLOBAL CSS / JS ================= -->
+    @include('layouts.datatable')
+    @include('layouts.status')
+
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/Logo Pakuwon.png') }}">
 
     <!-- ================= FONTS ================= -->
@@ -32,7 +35,7 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
     <!-- DataTables Extensions -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatablaes.net/buttons/2.3.6/css/buttons.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
 
@@ -69,32 +72,81 @@
     <!-- Livewire -->
     @livewireStyles
 
-    <!-- ================= DARK MODE ================= -->
+    <!-- ================= DARK MODE INIT ================= -->
     <script>
-        if (localStorage.getItem('dark-mode') === 'true') {
+        const isDark = localStorage.getItem('dark-mode') === 'true';
+        if (isDark) {
             document.documentElement.classList.add('dark');
             document.documentElement.style.colorScheme = 'dark';
         } else {
-            document.documentElement.classList.remove('dark');
             document.documentElement.style.colorScheme = 'light';
         }
     </script>
 </head>
 
-<body class="font-inter bg-gray-100/50 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400">
+<body class="font-inter bg-gray-100 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400"
+    x-data="{ sidebarOpen: false }">
 
-    <!-- CONTENT -->
-    <div class="flex h-[100dvh] overflow-hidden">
-        <div class="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-            {{ $slot }}
-        </div>
+
+    <!-- HEADER -->
+    <x-app.header_new />
+
+    <!-- ================= OFF-CANVAS SIDEBAR ================= -->
+    <div x-cloak>
+
+        <!-- BACKDROP -->
+        <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
+            class="fixed inset-0 z-40 bg-black/40"></div>
+
+        <!-- SIDEBAR -->
+        <aside x-show="sidebarOpen" x-transition:enter="transform transition ease-out duration-300"
+            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+            x-transition:leave="transform transition ease-in duration-200" x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full" @keydown.escape.window="sidebarOpen = false"
+            class="fixed left-0 top-0 z-50 h-[100dvh] w-72 overflow-y-auto bg-white shadow-xl dark:bg-gray-800">
+
+            <!-- ONLY CONTENT -->
+            <div class="p-4">
+                <x-app.sidebar_menu />
+            </div>
+
+        </aside>
     </div>
 
-    <!-- Livewire -->
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="min-h-[calc(100dvh-56px)] overflow-y-auto p-4">
+        {{ $slot }}
+    </main>
+
+    <!-- ================= LIVEWIRE ================= -->
     @livewireScriptConfig
 
-    <!-- Page specific scripts -->
+    <!-- ================= DARK MODE TOGGLE ================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('light-switch');
+            if (!toggle) return;
+
+            toggle.checked = localStorage.getItem('dark-mode') === 'true';
+
+            toggle.addEventListener('change', () => {
+                if (toggle.checked) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                    localStorage.setItem('dark-mode', 'true');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
+                    localStorage.setItem('dark-mode', 'false');
+                }
+            });
+        });
+    </script>
+
     @stack('scripts')
+
 </body>
+
 
 </html>

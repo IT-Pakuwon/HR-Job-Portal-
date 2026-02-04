@@ -101,13 +101,15 @@
             addTask() {
                 this.tasks.push({
                     id: Date.now(),
-                    title: this.newTask.title,
-                    deadline: this.newTask.deadline,
-                    type: 'task',
-                    location: '',
-                    day: this.selectedDay,
+                    title: task.title,
+                    date: task.deadline,
+                    start_time: task.start_time || '',
+                    end_time: task.end_time || '',
+                    location: task.location || '',
+                    link: task.link || '',
+                    fromGoogle: false,
                     completed: false,
-                })
+                });
 
                 this.newTask = {
                     title: '',
@@ -122,16 +124,15 @@
 
 <x-app-layout>
 
-    <!-- HEADER -->
-    <x-app.header variant="v2" />
+    {{-- <!-- HEADER -->
+    <x-app.header variant="v2" /> --}}
 
     <!-- MAIN WRAPPER (LOCKED SCREEN, NO SCROLL) -->
-    <div
-        class="grid h-screen w-full grid-cols-1 gap-6 px-4 py-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+    <div class="flex h-screen w-full gap-6 overflow-hidden bg-gray-100 dark:bg-gray-900">
 
         {{-- ================= LEFT : APPLICATION MODULES ================= --}}
 
-        <div class="grid h-full grid-rows-2 gap-4 md:gap-6 lg:grid-rows-2 xl:grid-rows-2">
+        <div class="grid h-[50%] grid-cols-2 gap-4 md:gap-6 lg:grid-cols-2 xl:grid-cols-2">
             <div class="flex flex-col gap-4 rounded-xl border bg-white p-4 dark:border-gray-600 dark:bg-gray-800">
 
 
@@ -306,67 +307,6 @@
 
                 </div>
             </div>
-            <!-- ================= Today’s Summary ================= -->
-            <div class="rounded-xl border bg-white p-4 dark:border-gray-600 dark:bg-gray-800">
-
-                <!-- Header -->
-                <div class="mb-4 flex items-start justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            Today’s Summary
-                        </h3>
-                        <p class="text-sm text-gray-500">
-                            Choose up to 5 analytics cards to build your daily dashboard.
-                        </p>
-                        <p id="dashboardCardCounter" class="mt-1 text-xs text-gray-400">
-                            Selected: 0 / 5
-                        </p>
-                    </div>
-
-                    <button id="btnAddDashboardCard"
-                        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                        + Add Card
-                    </button>
-                </div>
-
-                <!-- Dashboard Cards -->
-                <div id="dashboardCardContainer" class="grid min-h-[120px] grid-cols-1 gap-4 md:grid-cols-2">
-                    <div class="text-sm text-gray-400">
-                        No analytics added yet.
-                    </div>
-                </div>
-            </div>
-
-            <!-- ================= Add Analytics Card Modal ================= -->
-            <div id="addDashboardCardModal" class="fixed inset-0 z-50 hidden">
-                <div class="flex min-h-screen items-center justify-center bg-black/40 p-4">
-                    <div class="w-full max-w-lg rounded-xl bg-white p-5 shadow-lg">
-
-                        <!-- Modal Header -->
-                        <div class="mb-4">
-                            <h3 class="text-lg font-semibold">Add Analytics Card</h3>
-                            <p class="text-sm text-gray-500">
-                                Select up to 5 cards to customize your dashboard.
-                            </p>
-                        </div>
-
-                        <!-- Card List -->
-                        <div id="dashboardCardList" class="space-y-3"></div>
-
-                        <!-- Footer -->
-                        <div class="mt-6 flex justify-end">
-                            <button id="closeDashboardCardModal"
-                                class="rounded-md bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200">
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        {{-- ================= RIGHT : TODO + NOTIFICATIONS ================= --}}
-        <div class="grid h-full grid-rows-2 gap-4 md:gap-6 lg:grid-rows-2 xl:grid-rows-2">
 
             <div x-data="todoApp()" x-init="init()"
                 class="flex flex-col overflow-hidden rounded-xl border bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -379,8 +319,7 @@
 
                     <div class="flex items-center gap-2">
                         <template x-if="!googleConnected">
-                            <a href="/auth/google/calendar"
-                                class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            <a href="/auth/google/calendar" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
                                 Connect Google Calendar
                             </a>
                         </template>
@@ -391,8 +330,12 @@
                             </span>
                         </template>
 
-                        <button @click="showModal = true"
-                            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white">
+                        <button @click="loadGoogleEvents()" class="rounded-lg border px-3 py-2 text-sm">
+                            🔄 Refresh Google
+                        </button>
+
+
+                        <button @click="showModal = true" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white">
                             Create Task
                         </button>
                     </div>
@@ -440,13 +383,31 @@
                                     <div class="mt-1 space-y-1 text-sm text-gray-500 dark:text-gray-300">
                                         <p>Date: <span x-text="task.date"></span></p>
 
-                                        <template x-if="task.time">
-                                            <p>⏰ <span x-text="task.time"></span></p>
+                                        <template x-if="task.start_time">
+                                            <p>
+                                                ⏰
+                                                <span x-text="task.start_time"></span>
+                                                <template x-if="task.end_time">
+                                                    – <span x-text="task.end_time"></span>
+                                                </template>
+                                            </p>
                                         </template>
+
 
                                         <template x-if="task.location">
                                             <p>📍 <span x-text="task.location"></span></p>
                                         </template>
+
+                                        <template x-if="task.link">
+                                            <p>
+                                                🔗
+                                                <a :href="task.link" target="_blank"
+                                                    class="text-indigo-600 underline">
+                                                    Open link
+                                                </a>
+                                            </p>
+                                        </template>
+
                                     </div>
                                 </div>
                             </div>
@@ -462,37 +423,121 @@
 
                 <!-- CREATE TASK MODAL -->
                 <div x-show="showModal" x-cloak
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div @click.stop class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
 
-                        <h3 class="mb-6 text-sm font-semibold">
-                            Create New Task
-                        </h3>
+                    <div @click.stop class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
 
-                        <div class="space-y-4">
-                            <input type="text" x-model="newTask.title" placeholder="Task name"
-                                class="w-full rounded-xl border px-4 py-2">
-
-                            <input type="date" x-model="newTask.deadline"
-                                class="w-full rounded-xl border px-4 py-2">
+                        <!-- HEADER -->
+                        <div class="mb-6">
+                            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                Create New Task
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                Add details to schedule your task or meeting
+                            </p>
                         </div>
 
-                        <div class="mt-6 flex justify-end gap-3">
-                            <button @click="showModal = false" class="rounded-lg px-4 py-2 text-gray-600">
+                        <!-- FORM -->
+                        <div class="space-y-5">
+                            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                                <!-- TITLE -->
+                                <div>
+                                    <label class="mb-1 block text-xs font-medium text-gray-500">
+                                        Title
+                                    </label>
+                                    <input type="text" x-model="newTask.title"
+                                        placeholder="e.g. HR Weekly Meeting"
+                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
+                                </div>
+
+                                <!-- DATE -->
+                                <div>
+                                    <label class="mb-1 block text-xs font-medium text-gray-500">
+                                        Date
+                                    </label>
+                                    <input type="date" x-model="newTask.deadline"
+                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
+                                </div>
+                            </div>
+
+                            <!-- TIME SECTION -->
+                            <div class="rounded-sm bg-gray-50 p-4 dark:bg-gray-700">
+                                <p class="mb-3 text-xs font-medium text-gray-500">
+                                    Time (optional)
+                                </p>
+
+                                <!-- START / END -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="time" x-model="newTask.start_time"
+                                        @change="autoCalculateEndTime()"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+
+                                    <input type="time" x-model="newTask.end_time" @change="newTask.duration = ''"
+                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                </div>
+
+                                <!-- DURATION -->
+                                <select x-model="newTask.duration" @change="autoCalculateEndTime()"
+                                    class="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                    <option value="">Or choose duration</option>
+                                    <option value="30">30 minutes</option>
+                                    <option value="60">1 hour</option>
+                                    <option value="90">1.5 hours</option>
+                                    <option value="120">2 hours</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                <!-- LOCATION -->
+                                <div>
+                                    <label class="mb-1 block text-xs font-medium text-gray-500">
+                                        Location
+                                    </label>
+                                    <input type="text" x-model="newTask.location" placeholder="Meeting Room B"
+                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm">
+                                </div>
+
+                                <!-- LINK -->
+                                <div>
+                                    <label class="mb-1 block text-xs font-medium text-gray-500">
+                                        Meeting Link
+                                    </label>
+                                    <input type="url" x-model="newTask.link"
+                                        placeholder="https://meet.google.com/..."
+                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- FOOTER -->
+                        <div class="mt-8 flex justify-between gap-3">
+                            <button @click="showModal = false"
+                                class="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100">
                                 Cancel
                             </button>
 
-                            <button @click="addTask()" class="rounded-lg bg-indigo-600 px-4 py-2 text-white">
-                                Create
+                            <button @click="addTask()"
+                                class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                                Create Task
                             </button>
                         </div>
                     </div>
                 </div>
+
             </div>
 
 
-            <!-- Notifications -->
-            <div x-data="{
+
+        </div>
+        {{-- ================= RIGHT : TODO + NOTIFICATIONS ================= --}}
+        {{-- <div class="grid h-full grid-rows-2 gap-4 md:gap-6 lg:grid-rows-2 xl:grid-rows-1"> --}}
+
+
+
+        <!-- Notifications -->
+        {{-- <div x-data="{
                 notifications: [{
                         id: 1,
                         title: 'PO #2304',
@@ -592,16 +637,78 @@
 
                     </ul>
                 </div>
+            </div> --}}
+
+
+
+        {{-- 
+        </div> --}}
+
+        <!-- ================= Today’s Summary ================= -->
+        <div
+            class="grid h-[50%] w-full grid-cols-1 gap-6 rounded-xl border bg-white px-4 py-4 dark:border-gray-600 dark:bg-gray-800">
+
+            <!-- Header -->
+            <div class="mb-4 flex items-start justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        Today’s Summary
+                    </h3>
+                    <p class="text-sm text-gray-500">
+                        Choose up to 5 analytics cards to build your daily dashboard.
+                    </p>
+                    <p id="dashboardCardCounter" class="mt-1 text-xs text-gray-400">
+                        Selected: 0 / 5
+                    </p>
+                </div>
+
+                <button id="btnAddDashboardCard"
+                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                    + Add Card
+                </button>
             </div>
 
+            <!-- Dashboard Cards -->
+            <div id="dashboardCardContainer" class="grid min-h-[120px] grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="text-sm text-gray-400">
+                    No analytics added yet.
+                </div>
+            </div>
+        </div>
 
+        <!-- ================= Add Analytics Card Modal ================= -->
+        <div id="addDashboardCardModal" class="fixed inset-0 z-50 hidden">
+            <div class="flex min-h-screen items-center justify-center bg-black/40 p-4">
+                <div class="w-full max-w-lg rounded-xl bg-white p-5 shadow-lg">
 
+                    <!-- Modal Header -->
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold">Add Analytics Card</h3>
+                        <p class="text-sm text-gray-500">
+                            Select up to 5 cards to customize your dashboard.
+                        </p>
+                    </div>
 
+                    <!-- Card List -->
+                    <div id="dashboardCardList" class="space-y-3"></div>
+
+                    <!-- Footer -->
+                    <div class="mt-6 flex justify-end">
+                        <button id="closeDashboardCardModal"
+                            class="rounded-md bg-gray-100 px-4 py-2 text-sm hover:bg-gray-200">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
 
-
     </div>
+
+
+
+
 
     <script>
         function todoApp() {
@@ -609,9 +716,7 @@
                 /* ================= STATE ================= */
                 showModal: false,
                 selectedDay: null,
-
-                googleConnected: new URLSearchParams(window.location.search)
-                    .get('google') === 'connected',
+                googleConnected: false,
 
                 days: [],
                 tasks: [],
@@ -619,20 +724,44 @@
                 newTask: {
                     title: '',
                     deadline: '',
+                    start_time: '',
+                    end_time: '',
+                    duration: '', // 30, 60, 90, 120 (minutes)
+                    location: '',
+                    link: '',
                 },
+
 
                 /* ================= INIT ================= */
                 init() {
+                    console.log('todoApp init'); // debug
                     this.generateWeek(new Date(), true);
+                    this.checkGoogle();
 
-                    if (this.googleConnected) {
-                        this.loadGoogleEvents();
+                    setInterval(() => {
+                        if (this.googleConnected) {
+                            this.loadGoogleEvents();
+                        }
+                    }, 5 * 60 * 1000);
+                },
+
+                /* ================= GOOGLE STATUS ================= */
+                async checkGoogle() {
+                    try {
+                        const res = await fetch('/google/calendar/events');
+                        this.googleConnected = res.ok;
+
+                        if (this.googleConnected) {
+                            this.loadGoogleEvents();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.googleConnected = false;
                     }
                 },
 
-                /* ================= WEEK (SAFE) ================= */
+                /* ================= WEEK ================= */
                 generateWeek(baseDate = new Date(), force = false) {
-                    // Find Monday
                     const monday = new Date(baseDate);
                     const day = monday.getDay();
                     const diff = day === 0 ? -6 : 1 - day;
@@ -643,7 +772,6 @@
                     }).map((_, i) => {
                         const d = new Date(monday);
                         d.setDate(monday.getDate() + i);
-
                         return {
                             label: d.toLocaleDateString('en-US', {
                                 weekday: 'short'
@@ -653,7 +781,6 @@
                         };
                     });
 
-                    // ✅ Only set selectedDay ONCE
                     if (!this.selectedDay || force) {
                         this.selectedDay = this.days[0].date;
                     }
@@ -673,42 +800,53 @@
                     return this.tasks.filter(t => t.date === this.selectedDay);
                 },
 
-                /* ================= GOOGLE → WEB ================= */
+                /* ================= GOOGLE → APP ================= */
                 async loadGoogleEvents() {
                     try {
                         const res = await fetch('/google/calendar/events');
+
+                        if (res.status === 403) {
+                            this.googleConnected = false;
+                            this.tasks = this.tasks.filter(t => !t.fromGoogle);
+                            return;
+                        }
+
                         if (!res.ok) return;
 
                         const events = await res.json();
 
-                        events.forEach(ev => {
-                            const date = ev.start.substring(0, 10);
+                        const googleTasks = events.map(ev => {
+                            const start = ev.start;
+                            const date = start.includes('T') ?
+                                start.substring(0, 10) :
+                                start;
 
-                            // ❗ Prevent duplicates
-                            if (this.tasks.find(t => t.id === ev.id)) return;
-
-                            this.tasks.push({
+                            return {
                                 id: ev.id,
                                 title: ev.title || '(No title)',
-                                date,
-                                time: this.formatTime(ev.start),
+                                date: date,
+                                time: this.formatTime(start),
                                 location: ev.location || '',
+                                link: ev.link || '',
                                 fromGoogle: true,
                                 completed: false,
-                            });
+                            };
                         });
+
+                        const localTasks = this.tasks.filter(t => !t.fromGoogle);
+                        this.tasks = [...localTasks, ...googleTasks];
+
                     } catch (e) {
                         console.error('Failed to load Google events', e);
                     }
                 },
 
-                /* ================= WEB → GOOGLE ================= */
+                /* ================= APP → GOOGLE ================= */
                 async addTask() {
                     if (!this.newTask.title || !this.newTask.deadline) return;
 
                     const task = {
-                        title: this.newTask.title,
-                        deadline: this.newTask.deadline,
+                        ...this.newTask
                     };
 
                     if (this.googleConnected) {
@@ -719,17 +857,42 @@
                         id: Date.now(),
                         title: task.title,
                         date: task.deadline,
+                        time: task.time || '',
+                        location: task.location || '',
+                        link: task.link || '',
                         fromGoogle: false,
                         completed: false,
                     });
 
                     this.newTask = {
                         title: '',
-                        deadline: ''
+                        deadline: '',
+                        time: '',
+                        location: '',
+                        link: '',
                     };
+
                     this.showModal = false;
                 },
+                /* ================= TIME
+                 ================= */
+                autoCalculateEndTime() {
+                    if (!this.newTask.start_time || !this.newTask.duration) return;
 
+                    const [h, m] = this.newTask.start_time.split(':').map(Number);
+                    const start = new Date();
+                    start.setHours(h, m, 0, 0);
+
+                    const end = new Date(start.getTime() + (this.newTask.duration * 60000));
+
+                    const hh = String(end.getHours()).padStart(2, '0');
+                    const mm = String(end.getMinutes()).padStart(2, '0');
+
+                    this.newTask.end_time = `${hh}:${mm}`;
+                },
+
+
+                /* ================= SYNC ================= */
                 async syncToGoogle(task) {
                     try {
                         const res = await fetch('/google/calendar/event', {
@@ -751,47 +914,9 @@
                 }
             }
         }
-
-        const ctx = document.getElementById('opsSummaryChart');
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-                datasets: [{
-                    label: 'Completed Tasks',
-                    data: [18, 22, 20, 17, 19],
-                    backgroundColor: '#6366f1',
-                    borderRadius: 6,
-                    barThickness: 16
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => `${ctx.raw} tasks`
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        display: false
-                    }
-                }
-            }
-        });
     </script>
+
+
 
     <script>
         $(document).ready(function() {
@@ -895,33 +1020,44 @@
                 $container.empty();
 
                 if (!selectedDashboardCards.length) {
-                    $container.append(`<div class="text-sm text-gray-400">No analytics added yet.</div>`);
+                    $container.append(`
+      <div class="col-span-12 text-sm text-gray-400">
+        No analytics added yet.
+      </div>
+    `);
                     return;
                 }
 
-                selectedDashboardCards.forEach(cardId => {
+                selectedDashboardCards.forEach((cardId, index) => {
                     const card = DASHBOARD_CARDS.find(c => c.id === cardId);
                     if (!card) return;
 
                     const canvasId = `chart_${card.id}`;
 
+                    // 🔥 layout rule
+                    const colSpan =
+                        index < 2 ?
+                        'col-span-12 md:col-span-6' :
+                        'col-span-12';
+
                     $container.append(`
-                <div class="rounded-lg border bg-white p-4">
-                    <div class="mb-3 flex items-center justify-between">
-                        <h4 class="font-medium">${card.title}</h4>
-                        <button class="btnRemoveCard text-sm text-red-500" data-id="${card.id}">
-                            Remove
-                        </button>
-                    </div>
-                    <div class="relative h-48">
-                        <canvas id="${canvasId}"></canvas>
-                    </div>
-                </div>
-            `);
+      <div class="${colSpan} rounded-lg border bg-white p-4 dark:bg-gray-800">
+        <div class="mb-3 flex items-center justify-between">
+          <h4 class="font-medium">${card.title}</h4>
+          <button class="btnRemoveCard text-sm text-red-500" data-id="${card.id}">
+            Remove
+          </button>
+        </div>
+        <div class="relative h-48">
+          <canvas id="${canvasId}"></canvas>
+        </div>
+      </div>
+    `);
 
                     renderChart(card, canvasId);
                 });
             }
+
 
             // ================= Remove Card =================
             $(document).on('click', '.btnRemoveCard', function() {
@@ -992,13 +1128,11 @@
                                 display: card.chartType !== 'bar'
                             }
                         },
-                        scales: card.chartType === 'bar' ?
-                            {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            } :
-                            {}
+                        scales: card.chartType === 'bar' ? {
+                            y: {
+                                beginAtZero: true
+                            }
+                        } : {}
                     }
                 });
             }
