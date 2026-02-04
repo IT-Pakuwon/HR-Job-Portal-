@@ -2264,7 +2264,7 @@ class MasterController extends Controller
         if (!$cpnyid) return response()->json(['data' => []]);
 
         $rows = Userbusinessunit::query()
-            ->from('ms_user_business_unit_test as u')
+            ->from('ms_user_business_unit as u')
             ->join('ms_business_unit as bu', function ($j) use ($cpnyid) {
                 $j->on('bu.business_unit_id', '=', 'u.business_unit_id')
                 ->on('bu.cpny_id', '=', 'u.cpny_id');

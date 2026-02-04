@@ -31,7 +31,7 @@ class IssueController extends Controller
         
     public function storeIssue(Request $request)
     {
-        dd($request->all());
+        // dd($request->all());
         $user     = $request->user();
         $username = $user->username ?? 'system';
 
@@ -230,7 +230,8 @@ class IssueController extends Controller
                 $det->budget_business_unit_id     = $src->budget_business_unit_id ?? null;
                 $det->budget_department_fin_id    = $src->budget_department_fin_id ?? null;
                 $det->budget_account_id           = $src->budget_account_id ?? null;
-                $det->budget_activity_id          = $src->budget_activity_id ?? null;
+                $det->budget_activity_id          = $src->budget_activity_id ?? null;                   
+                $det->budget_activity_descr       = $src->budget_activity_descr ?? null;
 
                 // Issue / return fields
                 $det->reason_code     = null;

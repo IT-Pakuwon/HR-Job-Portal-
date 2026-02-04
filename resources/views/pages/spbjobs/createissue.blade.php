@@ -234,7 +234,7 @@
                                                 <tr>
                                                     <td class="px-4 py-2">{{ $d->inventoryid }}</td>
                                                     <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
-                                                    <td class="px-4 py-2 text-center">{{ $d->stock ?? '0' }}</td>  
+                                                    <td class="px-4 py-2 text-center">{{ $d->stock_unit ?? '0' }}</td>  
                                                     <td class="px-4 py-2 text-right">
                                                         {{ number_format((float) $d->qty_original, 2) }}
                                                     </td>                                                  
@@ -549,7 +549,7 @@
                     .done(function(res) {
                         if (window.toastr) toastr.success(res.message || 'Issue created successfully!');
                         window.location.href = "{{ route('spbjobs') }}";
-                        window.location.reload();
+                        // window.location.reload();
                     })
                     .fail(function(xhr) {
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
