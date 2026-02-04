@@ -52,6 +52,7 @@ class CalrController extends Controller
         // Detail dari TrPOdetail, relasi lewat PONBR
         // (sesuaikan nama kolom jika berbeda)
         $details = TrPOdetail::where('ponbr', $rfca->ponbr)
+            ->where('budget_cpny_id', $rfca->cpny_id)
             ->select(['inventory_descr', 'qty', 'uom', 'totalcost'])
             ->get();
 
@@ -270,7 +271,9 @@ class CalrController extends Controller
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($calr->ponbr)) {
-            $poId = TrPO::where('ponbr', $calr->ponbr)->value('id');
+            $poId = TrPO::where('ponbr', $calr->ponbr)
+                ->where('cpny_id', $calr->cpny_id)
+                ->value('id');
             if ($poId) {
                 $poHash = Hashids::encode($poId);
                 $poUrl  = url("/showpo/{$poHash}");
@@ -332,6 +335,7 @@ class CalrController extends Controller
         $details = collect();
         if (!empty($calr->ponbr)) {
             $details = TrPOdetail::where('ponbr', $calr->ponbr)
+                ->where('budget_cpny_id', $calr->cpny_id)
                 ->orderBy('po_no')
                 ->get();
         }
@@ -594,6 +598,7 @@ class CalrController extends Controller
         $details = collect();
         if (!empty($calr->ponbr)) {
             $details = TrPOdetail::where('ponbr', $calr->ponbr)
+                ->where('budget_cpny_id', $calr->cpny_id)
                 ->orderBy('po_no')
                 ->get();
         }
@@ -709,7 +714,9 @@ class CalrController extends Controller
         $calr = TrCalr::findOrFail($id);
 
         // Detail PO tetap dari TrPOdetail
-        $details = TrPOdetail::where('ponbr', $calr->ponbr)->get();
+        $details = TrPOdetail::where('ponbr', $calr->ponbr)
+            ->where('budget_cpny_id', $calr->cpny_id)
+            ->get();
 
         // hash untuk passing balik ke view (dipakai di route update)
         $calr_eid = Hashids::encode((string) $calr->id);

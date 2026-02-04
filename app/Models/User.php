@@ -18,7 +18,7 @@ class User extends Authenticatable
     // protected $connection = 'mysql2';
     // protected $table = "users";   
     protected $connection = 'pgsql2';
-    protected $table = "ms_user_test";   
+    protected $table = "ms_user";   
     public $incrementing = true;
   
     protected $keyType = 'int';    

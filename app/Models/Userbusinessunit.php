@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Userbusinessunit extends Model
 {
     protected $connection = 'pgsql2';
-    protected $table = "ms_user_business_unit_test";
+    protected $table = "ms_user_business_unit";
     protected $primaryKey = 'id';
     protected $fillable = [
         'username',

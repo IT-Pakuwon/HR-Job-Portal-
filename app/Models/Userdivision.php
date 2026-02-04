@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Userdivision extends Model
 {
     protected $connection = 'pgsql2';
-    protected $table = "ms_user_division_test";
+    protected $table = "ms_user_division";
     protected $primaryKey = 'id';
     protected $fillable = [
         'username',
