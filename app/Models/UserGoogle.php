@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserGoogle extends Model
 {
-    protected $connection = 'pgsql2';
+m
     protected $table = 'ms_user_google';
 
     protected $primaryKey = 'id';
