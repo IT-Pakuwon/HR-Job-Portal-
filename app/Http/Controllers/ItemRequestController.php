@@ -28,9 +28,12 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\SysUserRole;
+use App\Http\Controllers\Traits\HasAutonbr;
+
 
 class ItemRequestController extends Controller
 {
+    use HasAutonbr;
     public function index()
     {
         $user = Auth::user();
@@ -220,28 +223,40 @@ class ItemRequestController extends Controller
             * Generate IRID (Autonumber)
             * ========================= */           
 
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $seq = 1;
-            } else {
-                $seq = $autonbr->number + 1;
-                $autonbr->update(['number' => $seq]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $seq = 1;
+            // } else {
+            //     $seq = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $seq]);
+            // }
 
-            $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $seq);
+            // $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $seq);
 
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'Item Request'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+           
             /* =========================
             * Insert HEADER
             * ========================= */

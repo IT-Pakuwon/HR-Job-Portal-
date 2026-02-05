@@ -38,10 +38,12 @@ use App\Models\TrPOdetail;
 use App\Models\TrReceipt;
 use App\Models\TrReceiptdetail;
 use App\Models\VTrackingSppbFlow;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class SppbController extends Controller
 {
+    use HasAutonbr;
     public function index()
     {
         $user = Auth::user();       
@@ -257,8 +259,10 @@ class SppbController extends Controller
 
         $dt        = Carbon::now();
         $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();
+        // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        // $datestamp = $dt->toDateTimeString();
+        $year  = (int) $dt->year;
+        $month = str_pad((string)$dt->month, 2, '0', STR_PAD_LEFT);
 
 
         // helper untuk normalisasi angka lokal (ID format)     
@@ -319,29 +323,42 @@ class SppbController extends Controller
         DB::beginTransaction();
         try {
             // === generate autonbr & docid (lock) ===
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month;               // YYMM
+            // $tglbln = substr($year, 2) . $month;               // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'SPPB'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
+            $sppbNo = $docid;
+
 
             // === 1) header dulu (totalqty sementara 0) ===
             $header = new TrSPPB();

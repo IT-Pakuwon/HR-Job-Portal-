@@ -395,9 +395,10 @@
                     })
                     .done(res => {
                         if (window.toastr) toastr.success(res.message || 'Return created.');
-                        // aman: balik ke halaman sebelumnya / list issue
-                        window.location.href = "{{ url()->previous() }}";
+                        const backUrl = @json(url()->previous());
+                        window.location.href = backUrl;
                     })
+
                     .fail(xhr => {
                         if (xhr.status === 422 && xhr.responseJSON?.errors) {
                             let msg = 'Periksa input:<br>';

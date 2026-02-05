@@ -38,9 +38,12 @@ use App\Models\TrCSdetail;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrBast;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 class SppjController extends Controller
 {
+    use HasAutonbr;
+
     public function index()
     {
         $user = Auth::user();       
@@ -309,29 +312,42 @@ class SppjController extends Controller
         DB::beginTransaction();
         try {
             // === generate autonbr & docid (lock) ===
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month;               // YYMM
+            // $tglbln = substr($year, 2) . $month;               // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $sppjNo = $docid;                                   // atau 'SPPJ-'.$docid
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'SPPJ'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            $sppjNo = $docid;                                   // atau 'SPPJ-'.$docid
+            $sppjNo = $docid;
 
             // === 1) header dulu (totalqty sementara 0) ===
             $header = new TrSPPJ();
@@ -2849,14 +2865,24 @@ class SppjController extends Controller
         }
         $tempHead  = $tempData->first();
 
-        $dt       = Carbon::now();
-        $datenow  = $dt->format('Y-m-d');
-        $year     = $dt->year;
-        $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $username = Auth::user()->username ?? 'system';
+        // $dt       = Carbon::now();
+        // $datenow  = $dt->format('Y-m-d');
+        // $year     = $dt->year;
+        // $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        // $username = Auth::user()->username ?? 'system';
 
-        // Kebutuhan header
+        // // Kebutuhan header
+        // $doctype  = 'BQ';
         $doctype  = 'BQ';
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
+
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
+
         $sppjtid  = $tempHead->sppjtid ?? $request->input('sppjtid'); // string SPPJID (mis. SPPJ-xxxxx)
         $bq_type  = $request->input('bq_type', 'SPPJ'); // default
 
@@ -2877,30 +2903,42 @@ class SppjController extends Controller
         DB::beginTransaction(); // kalau semua di PG, bisa pakai DB::connection('pgsql')->beginTransaction();
         try {
             // ===== Autonumber untuk BQID =====
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->where('status', 'A')
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->where('status', 'A')
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->number = $urutan;
-                $autonbr->save();
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->number = $urutan;
+            //     $autonbr->save();
+            // }
 
-            $tglbln = substr($year, 2) . $month;
-            $bqid   = $doctype . $tglbln . sprintf('%04d', $urutan);
+            // $tglbln = substr($year, 2) . $month;
+            // $bqid   = $doctype . $tglbln . sprintf('%04d', $urutan);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'BQ'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $bqid  = $doctype . $tglbln . sprintf("%04d", $urutan);    
 
             $sppj->bqid = $bqid;
             $sppj->save();

@@ -36,10 +36,12 @@ use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
 use App\Models\TrApproval;  
 use Vinkla\Hashids\Facades\Hashids;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class AgendaController extends Controller
 {
+    use HasAutonbr;
     protected $zoomApi;    
 
     public function __construct(ZoomApi $zoomApi)
@@ -142,32 +144,46 @@ class AgendaController extends Controller
             $doctype = 'AGD';
             $datestamp = Carbon::now()->toDateTimeString();
             $user = request()->user();
+            $username = $user->username ?? 'system';
 
             // Generate agenda ID
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->where('status', 'A')
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->where('status', 'A')
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year' => $year,
-                    'month' => $month,
-                    'status' => 'A',
-                    'number' => 1
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->number = $urutan;
-                $autonbr->save();
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year' => $year,
+            //         'month' => $month,
+            //         'status' => 'A',
+            //         'number' => 1
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->number = $urutan;
+            //     $autonbr->save();
+            // }
 
-            $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+            // $tglbln = substr($year, 2) . $month;
+            // $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'Agenda'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+          
            
             // $userlist = User::where('status','A')
             //     ->get(); 

@@ -29,11 +29,13 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\TrIssue;
-
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class SpbController extends Controller
 {
+    use HasAutonbr;
+
     public function index()
     {
         $user = Auth::user();       
@@ -408,8 +410,8 @@ class SpbController extends Controller
         $user     = $request->user();
         $username = $user->username ?? 'system';
         $dt       = Carbon::now();
-        $year     = (int) $dt->format('Y');
-        $month    = $dt->format('m');
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
         // === Ambil array dari form ===
         $inventoryIds   = (array) $request->input('inventoryid',  $request->input('inventory_id', []));
@@ -476,28 +478,41 @@ class SpbController extends Controller
         DB::beginTransaction();
         try {
             // === Nomor otomatis (YYMM + running) ===
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr((string)$year, 2) . $month; // YYMM
+            // $tglbln = substr((string)$year, 2) . $month; // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'SPB'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            
 
             // === Guard minimal 1 detail valid & validasi lokasi per baris ===
             $rowCount = max(count($inventoryIds), count($qtys));

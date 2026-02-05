@@ -37,9 +37,11 @@ use App\Models\TrSPPB;
 use App\Models\TrSPPJ;
 use App\Models\TrSPPK;
 use App\Models\TrSPPT;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 class IMBudgetController extends Controller
 {
+    use HasAutonbr;
     public function index()
     {
         $user = Auth::user();
@@ -290,29 +292,41 @@ class IMBudgetController extends Controller
         DB::beginTransaction();
         try {
             // === autonbr & docid ===
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month;   // YYMM
+            // $tglbln = substr($year, 2) . $month;   // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'IMBudget'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-
+           
             // === 1) HEADER IMBudget ===
             $header = new TrIMBudget();
             $header->imbudgetid               = $docid;

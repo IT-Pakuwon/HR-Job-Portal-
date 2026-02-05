@@ -1425,29 +1425,41 @@ class PoController extends Controller
         foreach ($dpTerms as $term) {
 
             // === Generate nomor RFCA (rfcaid) pakai tabel autonbr, lockForUpdate ===
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = (int) $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = (int) $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr((string) $year, 2) . $month;      // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            $rfcaid = $docid;
+            // $tglbln = substr((string) $year, 2) . $month;      // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $rfcaid = $docid;
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'RFCA'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $rfcaid  = $doctype . $tglbln . sprintf("%04d", $urutan);    
 
             // Nominal: pakai data dari term PO
             $poAmount    = $term->poamount ?? ($po->grandtotalamt ?? 0);

@@ -28,9 +28,12 @@ use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 class ReceiptController extends Controller
 {
+    use HasAutonbr;
+
     public function createReceipt(Request $req)
     {
         $ponbr_eid = (string) $req->query('ponbr', '');
@@ -103,8 +106,18 @@ class ReceiptController extends Controller
     public function storeReceipt(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
+        // $user     = $request->user();
+        // $username = $user->username ?? 'system';
+
+        $doctype  = 'GR';
         $user     = $request->user();
         $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
+
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
 
         $ponbr = trim((string)$request->input('ponbr', ''));
         if ($ponbr === '') {
@@ -144,7 +157,7 @@ class ReceiptController extends Controller
 
         $siteInput = (array) $request->input('siteid', []);
 
-        $doctype = 'GR';
+        // $doctype = 'GR';
         $cpnyid  = $po->cpny_id       ?? ($request->input('cpnyid')       ?? null);
         // $deptid  = $po->department_id ?? ($request->input('departmentid') ?? null);
         $deptid  = 'WAREHOUSE';
@@ -157,28 +170,40 @@ class ReceiptController extends Controller
             $doctype, $cpnyid, $deptid, $approvalCtl, $detailNoteInput   
         ) {
             $now   = \Carbon\Carbon::now();
-            $year  = (int) $now->year;
-            $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+            // $year  = (int) $now->year;
+            // $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
 
-            $autonbr = Autonbr::where('doctype', $doctype)
-                ->where('year', $year)->where('month', $month)
-                ->lockForUpdate()->first();
+            // $autonbr = Autonbr::where('doctype', $doctype)
+            //     ->where('year', $year)->where('month', $month)
+            //     ->lockForUpdate()->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urut = 1;
-            } else {
-                $urut = (int)($autonbr->number ?? 0) + 1;
-                $autonbr->update(['number' => $urut]);
-            }
-            $yymm       = substr((string)$year, 2) . $month;
-            $receiptnbr = $doctype . $yymm . sprintf('%04d', $urut);
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urut = 1;
+            // } else {
+            //     $urut = (int)($autonbr->number ?? 0) + 1;
+            //     $autonbr->update(['number' => $urut]);
+            // }
+            // $yymm       = substr((string)$year, 2) . $month;
+            // $receiptnbr = $doctype . $yymm . sprintf('%04d', $urut);
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'RECEIPT'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $receiptnbr  = $doctype . $tglbln . sprintf("%04d", $urutan);            
+
 
             $header = new TrReceipt();
             $header->receiptnbr        = $receiptnbr;
@@ -1576,8 +1601,8 @@ class ReceiptController extends Controller
     {
         // dd($request->all());
         // $user = $request->user();
-        $user = Auth::user();
-        $username = $user ? $user->username : 'system';
+        // $user = Auth::user();
+        // $username = $user ? $user->username : 'system';
         // $username = $user->username ?? 'system';
 
         $eid = (string)$request->input('rcp', '');
@@ -1602,10 +1627,20 @@ class ReceiptController extends Controller
         $deptid  = 'WAREHOUSE';
         $cpnyid = $src->cpny_id;
 
-        $doctype = 'GR';
+        // $doctype = 'GR';
         $now   = Carbon::now();
-        $year  = (int)$now->year;
-        $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+        // $year  = (int)$now->year;
+        // $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+
+        $doctype  = 'GR';
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
+
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
 
         $approvalCtl = app(ApprovalController::class);
         $approvalCtl->loadLines($doctype, $cpnyid, $deptid);
@@ -1614,25 +1649,36 @@ class ReceiptController extends Controller
         DB::beginTransaction();
         try {
             
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urut = 1;
-            } else {
-                $urut = ($autonbr->number ?? 0) + 1;
-                $autonbr->update(['number' => $urut]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urut = 1;
+            // } else {
+            //     $urut = ($autonbr->number ?? 0) + 1;
+            //     $autonbr->update(['number' => $urut]);
+            // }
 
-            $receiptnbr = $doctype . substr($year,2) . $month . sprintf('%04d', $urut);
+            // $receiptnbr = $doctype . substr($year,2) . $month . sprintf('%04d', $urut);
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'RECEIPT'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $receiptnbr  = $doctype . $tglbln . sprintf("%04d", $urutan);           
 
             // === Header return (copy dari sumber)
             $hdr = new TrReceipt();

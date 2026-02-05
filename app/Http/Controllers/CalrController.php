@@ -110,29 +110,41 @@ class CalrController extends Controller
         try {
             // === autonumber (lock) ===
             /** @var \App\Models\Autonbr|null $autonbr */
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = (int) $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = (int) $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr((string) $year, 2) . $month; // YYMM
-            $docid  = $doctype . $tglbln . sprintf('%04d', $urutan);
-            $calrid = $docid;
+            // $tglbln = substr((string) $year, 2) . $month; // YYMM
+            // $docid  = $doctype . $tglbln . sprintf('%04d', $urutan);
+            // $calrid = $docid;
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'CALR'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $calrid  = $doctype . $tglbln . sprintf("%04d", $urutan);    
 
             // === create header TrCalr (pakai model baru) ===
             /** @var \App\Models\TrCalr $header */

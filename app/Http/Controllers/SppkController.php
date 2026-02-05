@@ -34,9 +34,12 @@ use App\Models\TrCSdetail;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrBast;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 class SppkController extends Controller
 {
+    use HasAutonbr;
+
     public function index()
     {
         $user = Auth::user();       
@@ -302,29 +305,42 @@ class SppkController extends Controller
         DB::beginTransaction();
         try {
             // === generate autonbr & docid (lock) ===
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month;               // YYMM
+            // $tglbln = substr($year, 2) . $month;               // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $sppkNo = $docid;                                   // atau 'SPPK-'.$docid
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'SPPK'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            $sppkNo = $docid;                                   // atau 'SPPK-'.$docid
+            $sppkNo = $docid;
 
             // === 1) header dulu (totalqty sementara 0) ===
             $header = new TrSPPK();

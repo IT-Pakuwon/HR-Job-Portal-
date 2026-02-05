@@ -31,10 +31,13 @@ use App\Models\TrApproval;
 use App\Models\SysUserRole;
 use App\Models\SysAccessRight;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class BudgetController extends Controller
 {
+    use HasAutonbr;
+    
     public function index()
     {
         $user = Auth::user();       
@@ -418,7 +421,7 @@ class BudgetController extends Controller
   
     public function storeBudget(Request $request)
     {
-        $doctype = 'BD';
+        // $doctype = 'BD';
 
         // 1) Ambil data temp (header + detail)
         $tempId   = $request->input('temp_id');
@@ -429,13 +432,22 @@ class BudgetController extends Controller
             return response()->json(['message' => 'Tidak ada data budget import ditemukan!'], 422);
         }
 
-        // 2) Siapkan helper
+        // // 2) Siapkan helper
+        // $user     = $request->user();
+        // $username = $user->username ?? 'system';
+
+        // $dt    = Carbon::now();
+        // $year  = $dt->year;
+        // $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $doctype  = 'BD';
         $user     = $request->user();
         $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
 
-        $dt    = Carbon::now();
-        $year  = $dt->year;
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
 
         // 3) Pastikan approval lines tersedia (pakai cpny & dept dari temp)
         $approvalCtl = app(ApprovalController::class);
@@ -444,28 +456,40 @@ class BudgetController extends Controller
         DB::beginTransaction();
         try {
             // 4) Generate autonumber BDYYMMNNNN (lock)
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month; // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $tglbln = substr($year, 2) . $month; // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'BUDGET'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);           
 
             // 5) Buat header Budget
             $totalBudget = (float) $tempData->sum('totalbudget');

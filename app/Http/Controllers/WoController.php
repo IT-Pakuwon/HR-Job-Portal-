@@ -28,11 +28,13 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\MsWorktypeDept;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 
 class WoController extends Controller
 {
+    use HasAutonbr;
     public function index()
     {
         $user = Auth::user();       
@@ -321,28 +323,39 @@ class WoController extends Controller
         \DB::beginTransaction();
         try {
             // === generate autonbr & docid (lock) ===
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month;               // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $tglbln = substr($year, 2) . $month;               // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'SPB'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);            
 
             // === header ===
             $wo = new TrWO();

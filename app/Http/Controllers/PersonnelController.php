@@ -42,11 +42,13 @@ use Mail;
 use App\Models\SysUserRole;
 use App\Models\DepartmentHR;
 use App\Models\Userdivision;
-
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class PersonnelController extends Controller
 {
+    use HasAutonbr;
+
     private function splitCsv(?string $value): array
     {
         if (!$value) return [];
@@ -318,7 +320,14 @@ class PersonnelController extends Controller
         ]);
 
         $positionCondition = strtolower($request->job_type . ' ' . $request->group_grade);
-        $doctype = 'PRF';       
+        $doctype = 'PRF';           
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';   
+        $dt        = \Carbon\Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
 
         // cek availability approval line (Normal atau Condition yg cocok)
         $count_approval = MsApproval::where('status', 'A')
@@ -341,39 +350,45 @@ class PersonnelController extends Controller
         }
 
         DB::beginTransaction();
-        try {
-            $datenow = Carbon::now()->format('Y-m-d');
-            $dt = Carbon::now();
-            $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);            
-            $datestamp = Carbon::now()->toDateTimeString();
-            $user = request()->user();
+        try {           
 
-            // Generate task ID
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->where('status', 'A')
-                ->first();
+            // // Generate task ID
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->where('status', 'A')
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year' => $year,
-                    'month' => $month,
-                    'status' => 'A',
-                    'number' => 1
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->number = $urutan;
-                $autonbr->save();
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year' => $year,
+            //         'month' => $month,
+            //         'status' => 'A',
+            //         'number' => 1
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->number = $urutan;
+            //     $autonbr->save();
+            // }
 
-            $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);           
+            // $tglbln = substr($year, 2) . $month;
+            // $docid = $doctype . $tglbln . sprintf("%03d", $urutan);      
+            
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'PRF'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);  
           
             $title = StoDepartement::where('departement_id', $request->job_title)              
                 ->where('status', 'A')

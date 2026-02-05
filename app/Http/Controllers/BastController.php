@@ -30,22 +30,25 @@ use App\Models\MsPenalty;
 use App\Models\MsBASTRatingLegend;
 use Cmixin\BusinessDay;
 use App\Models\SysCalendar;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class BastController extends Controller
 {
+    use HasAutonbr;
+    
     public function createBast(Request $request)
     {
 
        
 
-// $date = Carbon::parse('2026-01-17');
+        // $date = Carbon::parse('2026-01-17');
 
-// if($date->isBusinessDay()) {
-//     echo "Hari kerja";
-// } else {
-//     echo "Weekend / holiday";
-// }
+        // if($date->isBusinessDay()) {
+        //     echo "Hari kerja";
+        // } else {
+        //     echo "Weekend / holiday";
+        // }
 
 
         // Expect: /bast/create?term=<hashid-of-TrPOterm.id>
@@ -117,27 +120,40 @@ class BastController extends Controller
         try {
             // === autonumber (lock) ===
             /** @var \App\Models\Autonbr|null $autonbr */
-            $autonbr = \App\Models\Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = \App\Models\Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = \App\Models\Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = (int) $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = \App\Models\Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = (int) $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr((string)$year, 2) . $month;           // YYMM
+            // $tglbln = substr((string)$year, 2) . $month;           // YYMM
+            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $bastid = $docid;
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'BAST'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
             $bastid = $docid;
 

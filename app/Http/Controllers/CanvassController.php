@@ -55,11 +55,13 @@ use App\Models\TrPOReuse;
 use App\Models\TrPoLastPrice;
 use App\Models\Bq;
 use App\Models\TrKontrak;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class CanvassController extends Controller
 {
 
+    use HasAutonbr;
 
     public function createCS(string $doc, string $hash)
     {
@@ -944,12 +946,22 @@ class CanvassController extends Controller
 
 
         // 3) Context user & waktu
+        // $user     = $request->user();
+        // $username = $user->username ?? 'system';
+
+        // $dt    = \Carbon\Carbon::now();
+        // $year  = $dt->year;
+        // $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $doctype  = 'CS';
         $user     = $request->user();
         $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
 
-        $dt    = \Carbon\Carbon::now();
-        $year  = $dt->year;
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
+
 
         $round2 = fn($n) => round((float)$n, 2);
         $safeSet = function ($model, string $table, string $column, $value) {
@@ -967,8 +979,7 @@ class CanvassController extends Controller
             // CS pertama kali
             $nextRev = 0;
         }
-
-        $doctype     = 'CS';
+       
         $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
 
         // 4) Pastikan line approval tersedia
@@ -1044,28 +1055,40 @@ class CanvassController extends Controller
             }
 
             // 6) Generate autonbr CS (lock)
-            $autonbr = \App\Models\Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year',   $year)
-                ->where('month',  $month)
-                ->first();
+            // $autonbr = \App\Models\Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year',   $year)
+            //     ->where('month',  $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = \App\Models\Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = \App\Models\Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month; // YYMM
-            $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $tglbln = substr($year, 2) . $month; // YYMM
+            // $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'CANVASSSHEET',
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $csid  = $doctype . $tglbln . sprintf("%04d", $urutan);  
 
             // 7) HEADER TrCS
             $cs = new \App\Models\TrCS();
@@ -1432,12 +1455,21 @@ class CanvassController extends Controller
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
 
+        // $user     = $request->user();
+        // $username = $user->username ?? 'system';
+
+        // $dt        = Carbon::now();
+        // $year      = $dt->year;
+        // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $doctype  = 'CS';
         $user     = $request->user();
         $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
         $year      = $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
 
         $round2 = fn($n) => round((float)$n, 2);
         $safeSet = function ($model, string $table, string $column, $value) {
@@ -1456,8 +1488,7 @@ class CanvassController extends Controller
             $nextRev = 0;
         }
 
-        // ==== 1) Approval line check (doctype CS) ====
-        $doctype = 'CS';       
+        // ==== 1) Approval line check (doctype CS) ====     
 
         DB::connection('pgsql')->beginTransaction();
         try {
@@ -1542,28 +1573,40 @@ class CanvassController extends Controller
             }
 
             // ==== 3) Generate autonbr CS (lock for update) ====
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urutan = 1;
-            } else {
-                $urutan = $autonbr->number + 1;
-                $autonbr->update(['number' => $urutan]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urutan]);
+            // }
 
-            $tglbln = substr($year, 2) . $month; // YYMM
-            $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
+            // $tglbln = substr($year, 2) . $month; // YYMM
+            // $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'CANVASSSHEET',
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $csid  = $doctype . $tglbln . sprintf("%04d", $urutan);  
 
             $prevCS = null;
             if (!empty($prev_csid)) {

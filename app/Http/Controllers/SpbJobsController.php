@@ -466,23 +466,20 @@ class SpbJobsController extends Controller
                 'inventory_descr',
                 'siteid',
                 DB::raw("COALESCE(uom,'') AS uom"),
-
                 DB::raw("COALESCE(qty,0) AS qty_original"),
                 DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
                 DB::raw("COALESCE(sppb_qty,0) AS qty_sppb"),          // ✅ tambah
                 DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"),
                 DB::raw("COALESCE(return_qty,0) AS qty_returned"),
-
                 DB::raw("
                     GREATEST(
                         COALESCE(qty,0)
-                        - COALESCE(issue_qty,0)
-                        - COALESCE(sppb_qty,0)          -- ✅ kurangi sppb
-                        - COALESCE(spb_completeqty,0)
-                        + COALESCE(return_qty,0),
+                        - (COALESCE(issue_qty,0) + COALESCE(spb_completeqty,0))
+                        - COALESCE(sppb_qty,0),
                         0
                     ) AS qty_sisa
                 "),
+
             ])
             ->where('spbid', $spb->spbid)
             ->orderBy('id')
@@ -758,88 +755,89 @@ class SpbJobsController extends Controller
         $spb->save();
     }
 
-    public function createSPPB(Request $req) 
+    public function createSPPB(Request $req)
     {
-        // dd($req->all());
-        // Ambil spbid (plain) dari query
-        $spbid = (string) $req->query('spbid', '');
-        $id = Hashids::decode($spbid);
-        abort_if($id === '', 404, 'SPB ID required');
+        // Ambil hash dari query
+        $spbidHash = (string) $req->query('spbid', '');
+        abort_if($spbidHash === '', 404, 'SPB ID required');
 
-        $user = Auth::user();       
+        // Decode Hashids -> id numeric
+        $decoded = Hashids::decode($spbidHash);
+        $spbId   = $decoded[0] ?? null;
+        abort_if(!$spbId, 404, 'Invalid SPB ID');
 
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        
-        $userdept = Userdept::where('username', $user->username)
-            ->get();
-        $userdept2 = Userdept::where('username', $user->username)
-            ->first();
-        
-        // --- Ambil header SPB ---
-        $spb = TrSPB::select([
-                'id','spbid','spbdate','cpny_id','department_id','keperluan'
-            ])
-            ->where('id', $id)
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        // userdept
+        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept2 = $userdept->first(); // tidak query 2x
+
+        // Header SPB (pakai id numeric)
+        $spb = TrSPB::select(['id','spbid','spbdate','cpny_id','department_id','keperluan'])
+            ->where('id', (int)$spbId)
             ->first();
 
         abort_if(!$spb, 404, 'SPB not found');
 
-        // =============================================
-        // Recalculate total qty di header + status
-        // =============================================
+        // Recalc total header/status biar latest (opsional tapi bagus)
         $this->recalcSpbHeaderAndStatus($spb->spbid);
-    
+
+        /**
+         * qty_sisa SPPB (purchasing):
+         * - issue_qty sudah NET (issue - return) dari applyIssuePostingToSpb versi kamu
+         * - spb_completeqty = manual close oleh gudang
+         * - sppb_qty = sudah dibuat SPPB sebelumnya
+         *
+         * Sisa = qty - issue_net - manual_close - already_sppb
+         */
         $details = TrSPBdetail::select([
-            'id',
-            'spbid',
-            'spb_no',
-            'inventoryid',
-            'inventory_descr',
-            'siteid',
-            DB::raw("COALESCE(uom,'') AS uom"),
-            DB::raw("COALESCE(qty,0) AS qty_original"),
-            DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
-            DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"),
-            DB::raw("COALESCE(return_qty,0) AS qty_returned"),
-            DB::raw("COALESCE(sppb_qty,0) AS qty_sppb"),
-            DB::raw("
-                GREATEST(
-                    COALESCE(qty,0)
-                    - COALESCE(issue_qty,0)
-                    - COALESCE(spb_completeqty,0)
-                    - COALESCE(sppb_qty,0)
-                    + COALESCE(return_qty,0),
-                    0
-                ) AS qty_sisa
-            "),
-        ])
-        ->where('spbid', $spb->spbid)
-        ->orderBy('id')
-        ->get()
-        ->filter(fn($r) => (float)$r->qty_sisa > 0)
-        ->map(function ($r) {
-            $r->qty_original = (float) $r->qty_original;
-            $r->qty_sisa     = (float) $r->qty_sisa;
-            return $r;
-        })
-        ->values();
+                'id',
+                'spbid',
+                'spb_no',
+                'inventoryid',
+                'inventory_descr',
+                'siteid',
+                DB::raw("COALESCE(uom,'') AS uom"),
 
+                DB::raw("COALESCE(qty,0) AS qty_original"),
+                DB::raw("COALESCE(issue_qty,0) AS qty_issue_net"),
+                DB::raw("COALESCE(spb_completeqty,0) AS qty_manual_close"),
+                DB::raw("COALESCE(sppb_qty,0) AS qty_sppb"),
 
+                DB::raw("
+                    GREATEST(
+                        COALESCE(qty,0)
+                        - COALESCE(issue_qty,0)
+                        - COALESCE(spb_completeqty,0)
+                        - COALESCE(sppb_qty,0),
+                        0
+                    ) AS qty_sisa
+                "),
+            ])
+            ->where('spbid', $spb->spbid) // spbid string (RBxxxx)
+            ->orderBy('spb_no')
+            ->get()
+            ->filter(fn ($r) => (float) $r->qty_sisa > 0)
+            ->map(function ($r) {
+                $r->qty_original = (float) $r->qty_original;
+                $r->qty_sisa     = (float) $r->qty_sisa;
 
+                // optional: biar view gampang, pakai qty_sisa sebagai qty default yang boleh diinput
+                $r->qty = (float) $r->qty_sisa;
 
-        // =============================================
-        // attachments masih kosong
-        // =============================================
+                return $r;
+            })
+            ->values();
+
+        if ($details->isEmpty()) {
+            return redirect()->back()->with('warning', 'Tidak ada item yang tersisa untuk dibuat SPPB (semua sudah terpenuhi / di-close / sudah dibuat SPPB).');
+        }
+
         $attachments = [];
 
-
-        // =============================================
-        // Kirim ke view
-        // =============================================
         return view('pages.spbjobs.createsppb', [
-            'spb'         => $spb->fresh(), // ambil data terbaru setelah recalc
+            'spb'         => $spb->fresh(),
             'details'     => $details,
             'attachments' => $attachments,
             'userdept'    => $userdept,

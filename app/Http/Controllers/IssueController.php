@@ -24,16 +24,28 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use Illuminate\Support\Collection;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class IssueController extends Controller
 {
+    use HasAutonbr;
         
     public function storeIssue(Request $request)
     {
         // dd($request->all());
+        // $user     = $request->user();
+        // $username = $user->username ?? 'system';
+        $doctype  = 'IS';
         $user     = $request->user();
         $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
+
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
+        $now     = \Carbon\Carbon::now();
 
         $spbid = trim((string)$request->input('spbid', ''));
         if ($spbid === '') {
@@ -94,10 +106,10 @@ class IssueController extends Controller
         }
 
         // ===== Siapkan info untuk autonumber & header =====
-        $doctype = 'IS'; // untuk autonumber & approval workflow
-        $now     = \Carbon\Carbon::now();
-        $year    = (int) $now->year;
-        $month   = (int) $now->month;
+        // $doctype = 'IS'; // untuk autonumber & approval workflow
+        
+        // $year    = (int) $now->year;
+        // $month   = (int) $now->month;
 
         $cpnyid  = $spb->cpny_id       ?? ($request->input('cpnyid')       ?? null);
         $deptid  = 'WAREHOUSE'; // menyesuaikan logic sebelumnya
@@ -127,28 +139,39 @@ class IssueController extends Controller
         ) {
             // ===== Autonumber (YYMM####) untuk IS =====
             /** @var Autonbr|null $autonbr */
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year',    $year)
-                ->where('month',   $month)
-                ->first();
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year',    $year)
+            //     ->where('month',   $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urut = 1;
-            } else {
-                $urut = (int) $autonbr->number + 1;
-                $autonbr->update(['number' => $urut]);
-            }
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urut = 1;
+            // } else {
+            //     $urut = (int) $autonbr->number + 1;
+            //     $autonbr->update(['number' => $urut]);
+            // }
 
-            $yymm    = substr((string)$year, 2) . str_pad((string)$month, 2, '0', STR_PAD_LEFT);
-            $issueid = $doctype . $yymm . sprintf('%04d', $urut); // IS2511xxxx
+            // $yymm    = substr((string)$year, 2) . str_pad((string)$month, 2, '0', STR_PAD_LEFT);
+            // $issueid = $doctype . $yymm . sprintf('%04d', $urut); // IS2511xxxx
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'ISSUE'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $issueid  = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             // ===== Header TrIssue (MODEL BARU) =====
             $header = new TrIssue();
@@ -1114,203 +1137,81 @@ class IssueController extends Controller
 
     protected function applyIssuePostingToSpb(TrIssue $issue, Collection $issueDetails, User $user, Carbon $now): void
     {
-        // Lock header SPB
-        $spb = TrSPB::where('spbid', $issue->spbid)->lockForUpdate()->first();
-        if (!$spb) {
-            throw new \RuntimeException('SPB terkait tidak ditemukan.');
-        }
+        // pastikan jalan di koneksi yang sama (pgsql)
+        DB::connection('pgsql')->transaction(function () use ($issue, $issueDetails, $user, $now) {
 
-        // Lock detail SPB
-        $spbDetailRows = TrSPBdetail::where('spbid', $issue->spbid)->lockForUpdate()->get();
-
-        // index helper
-        $spbBySpbNo     = $spbDetailRows->keyBy('spb_no');
-        $spbByKey       = $spbDetailRows->keyBy(fn($r) => (($r->inventoryid ?? '') . '|' . ($r->uom ?? '')));
-        $spbByInventory = $spbDetailRows->groupBy('inventoryid');
-
-        $isIssue  = strtoupper($issue->issuetype) === 'IS'; // Issue (keluar barang)
-        $isReturn = strtoupper($issue->issuetype) === 'RI'; // Return Issue
-
-        foreach ($issueDetails as $rd) {
-            // sumber qty:
-            $qty      = 0.0;
-            $baseQty  = 0.0;
-
-            if ($isIssue) {
-                $qty     = (float) ($rd->issue_qty      ?? $rd->qty        ?? 0);
-                $baseQty = (float) ($rd->base_issue_qty ?? $rd->base_qty   ?? $qty);
-            } elseif ($isReturn) {
-                $qty     = (float) ($rd->qty_return      ?? $rd->return_qty     ?? 0);
-                $baseQty = (float) ($rd->base_qty_return ?? $rd->base_issue_qty ?? $qty);
-            }
-
-            if ($qty <= 0) {
-                continue;
-            }
-
-            // cari pasangan baris SPB
-            $spbDet = null;
-
-            // 1) by spb_no kalau ada
-            if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) {
-                $spbDet = $spbBySpbNo->get($rd->spb_no);
-            }
-
-            // 2) by inventory + uom
-            if (!$spbDet) {
-                $key    = ($rd->inventoryid ?? '') . '|' . ($rd->uom ?? '');
-                $spbDet = $spbByKey->get($key);
-            }
-
-            // 3) fallback by inventory only
-            if (!$spbDet) {
-                $bucket = $spbByInventory->get($rd->inventoryid);
-                $spbDet = $bucket ? $bucket->first() : null;
-            }
-
-            if (!$spbDet) {
-                // tidak ketemu pasangannya, skip
-                continue;
-            }
-
-            // ===== UPDATE DETAIL SPB =====
-            if ($isIssue) {
-                // net issue bertambah
-                $spbDet->issue_qty      = (float) ($spbDet->issue_qty      ?? 0) + $qty;
-                $spbDet->base_issue_qty = (float) ($spbDet->base_issue_qty ?? 0) + $baseQty;
-            } elseif ($isReturn) {
-                // return: tambah return_qty, dan kurangi issue_qty (net issue turun)
-                $spbDet->return_qty      = (float) ($spbDet->return_qty      ?? 0) + $qty;
-                $spbDet->base_return_qty = (float) ($spbDet->base_return_qty ?? 0) + $baseQty;
-
-                $currentIssued           = (float) ($spbDet->issue_qty ?? 0);
-                $spbDet->issue_qty       = max(0, $currentIssued - $qty);
-
-                $currentBaseIssued       = (float) ($spbDet->base_issue_qty ?? 0);
-                $spbDet->base_issue_qty  = max(0, $currentBaseIssued - $baseQty);
-            }
-
-            // Hitung status per-baris (issue side)
-            $lineQty      = (float) ($spbDet->qty ?? 0);
-            $lineIssued   = (float) ($spbDet->issue_qty ?? 0);
-            if ($lineQty > 0 && $lineIssued >= $lineQty) {
-                $spbDet->status               = 'C'; // completed di level baris
-                $spbDet->spb_completeqty      = $lineQty;
-                $spbDet->base_spb_completeqty = $spbDet->base_qty ?? $lineQty;
-            } else {
-                $spbDet->status               = 'P'; // masih ada open
-                $spbDet->spb_completeqty      = min($lineIssued, $lineQty);
-                $spbDet->base_spb_completeqty = min(
-                    (float) ($spbDet->base_issue_qty ?? 0),
-                    (float) ($spbDet->base_qty       ?? 0)
-                );
-            }
-
-            $spbDet->updated_by = $user->username ?? 'system';
-            $spbDet->updated_at = $now;
-            $spbDet->save();
-        }
-
-        // === Refresh total header SPB (pakai schema baru) ===
-        $agg = TrSPBdetail::where('spbid', $issue->spbid)
-            ->selectRaw('COALESCE(SUM(qty),0)                 AS total_spbqty')
-            ->selectRaw('COALESCE(SUM(issue_qty),0)           AS total_issueqty')
-            ->selectRaw('COALESCE(SUM(return_qty),0)          AS total_returnqty')
-            ->selectRaw('COALESCE(SUM(sppb_qty),0)            AS total_sppbqty')
-            ->selectRaw('COALESCE(SUM(LEAST(issue_qty, qty)),0) AS total_completeqty')
-            ->first();
-
-        $totalSpbQty      = (float) $agg->total_spbqty;
-        $totalIssueQty    = (float) $agg->total_issueqty;
-        $totalReturnQty   = (float) $agg->total_returnqty;
-        $totalSppbQty     = (float) $agg->total_sppbqty;
-        $totalCompleteQty = (float) $agg->total_completeqty;
-
-        $spb->totalspbqty      = $totalSpbQty;
-        $spb->totalissueqty    = $totalIssueQty;
-        $spb->totalreturnqty   = $totalReturnQty;
-        $spb->totalsppbqty     = $totalSppbQty;
-        $spb->totalcompleteqty = $totalCompleteQty;
-
-        // ===== status_issue (Open / Partial / Completed) =====
-        if ($totalIssueQty <= 0) {
-            $spb->status_issue = 'Open';
-        } elseif ($totalSpbQty > 0 && $totalIssueQty >= $totalSpbQty) {
-            $spb->status_issue = 'Completed';
-        } else {
-            $spb->status_issue = 'Partial';
-        }
-
-        // ===== status_sppb (Open / Partial / Full) =====
-        // if ($totalSppbQty <= 0) {
-        //     $spb->status_sppb = 'Open';
-        // } elseif ($totalSpbQty > 0 && $totalSppbQty >= $totalSpbQty) {
-        //     $spb->status_sppb = 'Full';
-        // } else {
-        //     $spb->status_sppb = 'Partial';
-        // }
-
-        // NOTE: status utama SPB (field `status`) tidak disentuh di sini,
-        // supaya tetap mewakili lifecycle SPB sendiri (approve/reject, dll).
-
-        $spb->updated_by = $user->username ?? 'system';
-        $spb->updated_at = $now;
-        $spb->save();
-    }
-
-    protected function rollbackIssuePostingToSpb(TrIssue $issue, User $user, Carbon $now): void
-    {
-        // Ambil detail issue yang akan di-rollback
-        /** @var Collection|TrIssuedetail[] $issueDetails */
-        $issueDetails = TrIssuedetail::where('issueid', $issue->issueid)->get();
-        if ($issueDetails->isEmpty()) {
-            return; // tidak ada detail → tidak ada yang di-rollback
-        }
-
-        DB::transaction(function () use ($issue, $issueDetails, $user, $now) {
             // Lock header SPB
             $spb = TrSPB::where('spbid', $issue->spbid)->lockForUpdate()->first();
             if (!$spb) {
-                throw new \RuntimeException('SPB terkait tidak ditemukan saat rollback Issue.');
+                throw new \RuntimeException('SPB terkait tidak ditemukan.');
             }
 
             // Lock detail SPB
             $spbDetailRows = TrSPBdetail::where('spbid', $issue->spbid)->lockForUpdate()->get();
+            if ($spbDetailRows->isEmpty()) {
+                return;
+            }
 
             // index helper
             $spbBySpbNo     = $spbDetailRows->keyBy('spb_no');
             $spbByKey       = $spbDetailRows->keyBy(fn($r) => (($r->inventoryid ?? '') . '|' . ($r->uom ?? '')));
             $spbByInventory = $spbDetailRows->groupBy('inventoryid');
 
-            $isIssue  = strtoupper($issue->issuetype) === 'IS'; // Issue (keluar barang)
-            $isReturn = strtoupper($issue->issuetype) === 'RI'; // Return Issue
+            $type = strtoupper((string) $issue->issuetype);
+            $isIssue  = $type === 'IS';
+            $isReturn = $type === 'RI';
 
             foreach ($issueDetails as $rd) {
-                // sumber qty (pakai pola sama dengan applyIssuePostingToSpb)
-                $qty     = 0.0;
+
+                // ==========================================================
+                // Ambil qty & baseQty (robust)
+                // ==========================================================
+                $qty = 0.0;
                 $baseQty = 0.0;
 
+                $bm = (int) (is_numeric($rd->base_multiplier) ? $rd->base_multiplier : 1);
+                if ($bm <= 0) $bm = 1;
+
                 if ($isIssue) {
-                    $qty     = (float) ($rd->issue_qty      ?? $rd->qty        ?? 0);
-                    $baseQty = (float) ($rd->base_issue_qty ?? $rd->base_qty   ?? $qty);
+                    // issue qty
+                    $qty = (float) ($rd->issue_qty ?? 0);
+                    if ($qty <= 0) $qty = (float) ($rd->qty ?? 0);
+
+                    // base issue qty
+                    $baseQty = (float) ($rd->base_issue_qty ?? 0);
+                    if ($baseQty <= 0) $baseQty = (float) ($rd->base_qty ?? 0);
+                    if ($baseQty <= 0) $baseQty = $qty * $bm;
+
                 } elseif ($isReturn) {
-                    $qty     = (float) ($rd->qty_return      ?? $rd->return_qty     ?? 0);
-                    $baseQty = (float) ($rd->base_qty_return ?? $rd->base_issue_qty ?? $qty);
+                    // return qty
+                    $qty = (float) ($rd->qty_return ?? 0);
+                    if ($qty <= 0) $qty = (float) ($rd->qty ?? 0);
+
+                    // base return qty
+                    $baseQty = (float) ($rd->base_qty_return ?? 0);
+                    if ($baseQty <= 0) $baseQty = (float) ($rd->base_qty ?? 0);
+                    if ($baseQty <= 0) $baseQty = $qty * $bm;
+
+                } else {
+                    // issuetype lain tidak diproses di sini
+                    continue;
                 }
 
                 if ($qty <= 0) continue;
 
-                // cari pasangan baris SPB
+                // ==========================================================
+                // Cari pasangan SPB detail
+                // ==========================================================
                 $spbDet = null;
 
-                // 1) by spb_no kalau ada
+                // 1) by spb_no
                 if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) {
                     $spbDet = $spbBySpbNo->get($rd->spb_no);
                 }
 
                 // 2) by inventory + uom
                 if (!$spbDet) {
-                    $key    = ($rd->inventoryid ?? '') . '|' . ($rd->uom ?? '');
+                    $key = ($rd->inventoryid ?? '') . '|' . ($rd->uom ?? '');
                     $spbDet = $spbByKey->get($key);
                 }
 
@@ -1320,105 +1221,83 @@ class IssueController extends Controller
                     $spbDet = $bucket ? $bucket->first() : null;
                 }
 
-                if (!$spbDet) {
-                    // tidak ketemu pasangannya, skip
-                    continue;
-                }
+                if (!$spbDet) continue;
 
-                // ===== ROLLBACK DETAIL SPB =====
+                // ==========================================================
+                // Update issue/return qty di SPB detail
+                // - issue_qty di SPB adalah NET issue (sudah dikurangi return)
+                // ==========================================================
                 if ($isIssue) {
-                    // Sebelumnya apply: issue_qty += qty
-                    // Rollback: issue_qty -= qty (min 0)
-                    $currentIssue      = (float) ($spbDet->issue_qty      ?? 0);
-                    $currentBaseIssue  = (float) ($spbDet->base_issue_qty ?? 0);
+                    $spbDet->issue_qty      = (float) ($spbDet->issue_qty ?? 0) + $qty;
+                    $spbDet->base_issue_qty = (float) ($spbDet->base_issue_qty ?? 0) + $baseQty;
 
-                    $spbDet->issue_qty      = max(0, $currentIssue     - $qty);
-                    $spbDet->base_issue_qty = max(0, $currentBaseIssue - $baseQty);
-                } elseif ($isReturn) {
-                    // Sebelumnya apply:
-                    //   return_qty      += qty
-                    //   base_return_qty += baseQty
-                    //   issue_qty       -= qty
-                    //   base_issue_qty  -= baseQty
-                    //
-                    // Rollback:
-                    //   return_qty      -= qty
-                    //   base_return_qty -= baseQty
-                    //   issue_qty       += qty
-                    //   base_issue_qty  += baseQty
-                    $curRet       = (float) ($spbDet->return_qty      ?? 0);
-                    $curBaseRet   = (float) ($spbDet->base_return_qty ?? 0);
-                    $curIssue     = (float) ($spbDet->issue_qty       ?? 0);
-                    $curBaseIssue = (float) ($spbDet->base_issue_qty  ?? 0);
+                } else { // RI
+                    $spbDet->return_qty      = (float) ($spbDet->return_qty ?? 0) + $qty;
+                    $spbDet->base_return_qty = (float) ($spbDet->base_return_qty ?? 0) + $baseQty;
 
-                    $spbDet->return_qty      = max(0, $curRet     - $qty);
-                    $spbDet->base_return_qty = max(0, $curBaseRet - $baseQty);
-
-                    $spbDet->issue_qty       = $curIssue     + $qty;
-                    $spbDet->base_issue_qty  = $curBaseIssue + $baseQty;
+                    // NET issue turun
+                    $spbDet->issue_qty      = max(0, (float) ($spbDet->issue_qty ?? 0) - $qty);
+                    $spbDet->base_issue_qty = max(0, (float) ($spbDet->base_issue_qty ?? 0) - $baseQty);
                 }
 
-                // Hitung status per-baris (pakai rule yang sama)
-                $lineQty    = (float) ($spbDet->qty ?? 0);
-                $lineIssued = (float) ($spbDet->issue_qty ?? 0);
+                // ==========================================================
+                // MANUAL COMPLETE RULE
+                // fulfilled = issue_net + sppb + manual_close(spb_completeqty)
+                // applyIssuePostingToSpb hanya:
+                // - update issue/return
+                // - set status berdasarkan fulfilled
+                // - TIDAK menurunkan spb_completeqty
+                // - tidak memaksa spb_completeqty naik juga (itu hanya lewat fitur manual close)
+                // ==========================================================
+                $reqQty   = (float) ($spbDet->qty ?? 0);
 
-                if ($lineQty > 0 && $lineIssued >= $lineQty) {
-                    // Completed di level baris
-                    $spbDet->status               = 'C';
-                    $spbDet->spb_completeqty      = $lineQty;
-                    $spbDet->base_spb_completeqty = $spbDet->base_qty ?? $lineQty;
-                } else {
-                    // Masih open (partial atau open)
-                    $spbDet->status               = 'P';
-                    $spbDet->spb_completeqty      = min($lineIssued, $lineQty);
-                    $spbDet->base_spb_completeqty = min(
-                        (float) ($spbDet->base_issue_qty ?? 0),
-                        (float) ($spbDet->base_qty       ?? 0)
-                    );
-                }
+                $issuedNet = (float) ($spbDet->issue_qty ?? 0);
+                $sppbQty   = (float) ($spbDet->sppb_qty ?? 0);
+                $closed    = (float) ($spbDet->spb_completeqty ?? 0);
+
+                $fulfilled = $issuedNet + $sppbQty + $closed;
+
+                $spbDet->status = ($reqQty > 0 && $fulfilled >= $reqQty) ? 'C' : 'P';
 
                 $spbDet->updated_by = $user->username ?? 'system';
                 $spbDet->updated_at = $now;
                 $spbDet->save();
             }
 
-            // === Refresh total header SPB (schema baru) ===
+            // ==========================================================
+            // Refresh header totals
+            // totalcompleteqty = SUM( LEAST(qty, issue_net + sppb + manual_close) )
+            // ==========================================================
             $agg = TrSPBdetail::where('spbid', $issue->spbid)
-                ->selectRaw('COALESCE(SUM(qty),0)                 AS total_spbqty')
-                ->selectRaw('COALESCE(SUM(issue_qty),0)           AS total_issueqty')
-                ->selectRaw('COALESCE(SUM(return_qty),0)          AS total_returnqty')
-                ->selectRaw('COALESCE(SUM(sppb_qty),0)            AS total_sppbqty')
-                ->selectRaw('COALESCE(SUM(LEAST(issue_qty, qty)),0) AS total_completeqty')
+                ->selectRaw('COALESCE(SUM(qty),0) AS total_spbqty')
+                ->selectRaw('COALESCE(SUM(issue_qty),0) AS total_issueqty')      // NET issue
+                ->selectRaw('COALESCE(SUM(return_qty),0) AS total_returnqty')
+                ->selectRaw('COALESCE(SUM(sppb_qty),0) AS total_sppbqty')
+                ->selectRaw('
+                    COALESCE(
+                        SUM(
+                            LEAST(
+                                qty,
+                                COALESCE(issue_qty,0) + COALESCE(sppb_qty,0) + COALESCE(spb_completeqty,0)
+                            )
+                        ),
+                    0) AS total_completeqty
+                ')
                 ->first();
 
-            $totalSpbQty      = (float) $agg->total_spbqty;
-            $totalIssueQty    = (float) $agg->total_issueqty;
-            $totalReturnQty   = (float) $agg->total_returnqty;
-            $totalSppbQty     = (float) $agg->total_sppbqty;
-            $totalCompleteQty = (float) $agg->total_completeqty;
+            $spb->totalspbqty      = (float) $agg->total_spbqty;
+            $spb->totalissueqty    = (float) $agg->total_issueqty;
+            $spb->totalreturnqty   = (float) $agg->total_returnqty;
+            $spb->totalsppbqty     = (float) $agg->total_sppbqty;
+            $spb->totalcompleteqty = (float) $agg->total_completeqty;
 
-            $spb->totalspbqty      = $totalSpbQty;
-            $spb->totalissueqty    = $totalIssueQty;
-            $spb->totalreturnqty   = $totalReturnQty;
-            $spb->totalsppbqty     = $totalSppbQty;
-            $spb->totalcompleteqty = $totalCompleteQty;
-
-            // ===== status_issue (Open / Partial / Completed) =====
-            if ($totalIssueQty <= 0) {
+            // status_issue berdasarkan fulfilled (totalcompleteqty)
+            if ($spb->totalcompleteqty <= 0) {
                 $spb->status_issue = 'Open';
-            } elseif ($totalSpbQty > 0 && $totalIssueQty >= $totalSpbQty) {
+            } elseif ($spb->totalspbqty > 0 && $spb->totalcompleteqty >= $spb->totalspbqty) {
                 $spb->status_issue = 'Completed';
             } else {
                 $spb->status_issue = 'Partial';
-            }
-
-            // ===== status_sppb (Open / Partial / Full) =====
-            if ($totalSppbQty <= 0) {
-                $spb->status_sppb = 'Open';
-            } elseif ($totalSpbQty > 0 && $totalSppbQty >= $totalSpbQty) {
-                $spb->status_sppb = 'Full';
-            } else {
-                $spb->status_sppb = 'Partial';
             }
 
             $spb->updated_by = $user->username ?? 'system';
@@ -1426,6 +1305,140 @@ class IssueController extends Controller
             $spb->save();
         });
     }
+
+
+    protected function rollbackIssuePostingToSpb(TrIssue $issue, User $user, Carbon $now): void
+    {
+        $issueDetails = TrIssuedetail::where('issueid', $issue->issueid)->get();
+        if ($issueDetails->isEmpty()) return;
+
+        DB::connection('pgsql')->transaction(function () use ($issue, $issueDetails, $user, $now) {
+
+            $spb = TrSPB::where('spbid', $issue->spbid)->lockForUpdate()->first();
+            if (!$spb) throw new \RuntimeException('SPB terkait tidak ditemukan saat rollback Issue.');
+
+            $spbDetailRows = TrSPBdetail::where('spbid', $issue->spbid)->lockForUpdate()->get();
+            if ($spbDetailRows->isEmpty()) return;
+
+            $spbBySpbNo     = $spbDetailRows->keyBy('spb_no');
+            $spbByKey       = $spbDetailRows->keyBy(fn($r) => (($r->inventoryid ?? '') . '|' . ($r->uom ?? '')));
+            $spbByInventory = $spbDetailRows->groupBy('inventoryid');
+
+            $type = strtoupper((string) $issue->issuetype);
+            $isIssue  = $type === 'IS';
+            $isReturn = $type === 'RI';
+
+            foreach ($issueDetails as $rd) {
+
+                $qty = 0.0;
+                $baseQty = 0.0;
+
+                $bm = (int) (is_numeric($rd->base_multiplier) ? $rd->base_multiplier : 1);
+                if ($bm <= 0) $bm = 1;
+
+                if ($isIssue) {
+                    $qty = (float) ($rd->issue_qty ?? 0);
+                    if ($qty <= 0) $qty = (float) ($rd->qty ?? 0);
+
+                    $baseQty = (float) ($rd->base_issue_qty ?? 0);
+                    if ($baseQty <= 0) $baseQty = (float) ($rd->base_qty ?? 0);
+                    if ($baseQty <= 0) $baseQty = $qty * $bm;
+
+                } elseif ($isReturn) {
+                    $qty = (float) ($rd->qty_return ?? 0);
+                    if ($qty <= 0) $qty = (float) ($rd->qty ?? 0);
+
+                    $baseQty = (float) ($rd->base_qty_return ?? 0);
+                    if ($baseQty <= 0) $baseQty = (float) ($rd->base_qty ?? 0);
+                    if ($baseQty <= 0) $baseQty = $qty * $bm;
+                } else {
+                    continue;
+                }
+
+                if ($qty <= 0) continue;
+
+                $spbDet = null;
+
+                if (!empty($rd->spb_no) && $spbBySpbNo->has($rd->spb_no)) {
+                    $spbDet = $spbBySpbNo->get($rd->spb_no);
+                }
+                if (!$spbDet) {
+                    $key = ($rd->inventoryid ?? '') . '|' . ($rd->uom ?? '');
+                    $spbDet = $spbByKey->get($key);
+                }
+                if (!$spbDet) {
+                    $bucket = $spbByInventory->get($rd->inventoryid);
+                    $spbDet = $bucket ? $bucket->first() : null;
+                }
+
+                if (!$spbDet) continue;
+
+                // ===== rollback numeric fields (TIDAK sentuh spb_completeqty) =====
+                if ($isIssue) {
+                    $spbDet->issue_qty      = max(0, (float)($spbDet->issue_qty ?? 0) - $qty);
+                    $spbDet->base_issue_qty = max(0, (float)($spbDet->base_issue_qty ?? 0) - $baseQty);
+                } else { // RI
+                    $spbDet->return_qty      = max(0, (float)($spbDet->return_qty ?? 0) - $qty);
+                    $spbDet->base_return_qty = max(0, (float)($spbDet->base_return_qty ?? 0) - $baseQty);
+
+                    $spbDet->issue_qty      = (float)($spbDet->issue_qty ?? 0) + $qty;
+                    $spbDet->base_issue_qty = (float)($spbDet->base_issue_qty ?? 0) + $baseQty;
+                }
+
+                // ===== status per baris pakai fulfilled =====
+                $reqQty    = (float) ($spbDet->qty ?? 0);
+                $issuedNet = (float) ($spbDet->issue_qty ?? 0);
+                $sppbQty   = (float) ($spbDet->sppb_qty ?? 0);
+                $closed    = (float) ($spbDet->spb_completeqty ?? 0);
+
+                $fulfilled = $issuedNet + $sppbQty + $closed;
+
+                $spbDet->status = ($reqQty > 0 && $fulfilled >= $reqQty) ? 'C' : 'P';
+
+                $spbDet->updated_by = $user->username ?? 'system';
+                $spbDet->updated_at = $now;
+                $spbDet->save();
+            }
+
+            // ===== header totals =====
+            $agg = TrSPBdetail::where('spbid', $issue->spbid)
+                ->selectRaw('COALESCE(SUM(qty),0) AS total_spbqty')
+                ->selectRaw('COALESCE(SUM(issue_qty),0) AS total_issueqty')
+                ->selectRaw('COALESCE(SUM(return_qty),0) AS total_returnqty')
+                ->selectRaw('COALESCE(SUM(sppb_qty),0) AS total_sppbqty')
+                ->selectRaw('
+                    COALESCE(
+                        SUM(
+                            LEAST(
+                                qty,
+                                COALESCE(issue_qty,0) + COALESCE(sppb_qty,0) + COALESCE(spb_completeqty,0)
+                            )
+                        ),
+                    0) AS total_completeqty
+                ')
+                ->first();
+
+            $spb->totalspbqty      = (float) $agg->total_spbqty;
+            $spb->totalissueqty    = (float) $agg->total_issueqty;
+            $spb->totalreturnqty   = (float) $agg->total_returnqty;
+            $spb->totalsppbqty     = (float) $agg->total_sppbqty;
+            $spb->totalcompleteqty = (float) $agg->total_completeqty;
+
+            if ($spb->totalcompleteqty <= 0) {
+                $spb->status_issue = 'Open';
+            } elseif ($spb->totalspbqty > 0 && $spb->totalcompleteqty >= $spb->totalspbqty) {
+                $spb->status_issue = 'Completed';
+            } else {
+                $spb->status_issue = 'Partial';
+            }
+
+            $spb->updated_by = $user->username ?? 'system';
+            $spb->updated_at = $now;
+            $spb->save();
+        });
+    }
+
+
 
       
 
@@ -1641,16 +1654,17 @@ class IssueController extends Controller
     // Simpan dokumen return
     public function storeReturn(Request $request)
     {
-        $user = Auth::user();
-        $username = $user ? $user->username : 'system';
+        // $user = Auth::user();
+        // $username = $user ? $user->username : 'system';
 
         $eid = (string) $request->input('iss', '');
         $id  = Hashids::decode($eid)[0] ?? null;
         abort_if(!$id, 404);
 
-        $src = TrIssue::findOrFail($id);
-        $qtyInput = (array) $request->input('qty_return', []);
-        $notes    = (string) $request->input('return_note', '');
+        $src = TrIssue::where('id', $id)->firstOrFail();
+
+        $qtyInput = (array) $request->input('qty_return', []); // [detail_id => qty]
+        $notes    = trim((string) $request->input('return_note', ''));
 
         // minimal satu qty > 0
         $hasAny = false;
@@ -1662,10 +1676,19 @@ class IssueController extends Controller
             return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
         }
 
-        $doctype = 'IS';
+        
         $now   = Carbon::now();
-        $year  = (int) $now->year;
-        $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
+        // $year  = (int) $now->year;
+        // $month = str_pad((string)$now->month, 2, '0', STR_PAD_LEFT);
+        $doctype  = 'IS';
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
+
+        $dt        = Carbon::now();
+        $year      = $dt->year;
+        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
 
         $cpnyid = $src->cpny_id ?? null;
         $deptid = 'WAREHOUSE';
@@ -1675,94 +1698,195 @@ class IssueController extends Controller
 
         DB::beginTransaction();
         try {
-            // autonumber
-            $autonbr = Autonbr::lockForUpdate()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->first();
+            // =======================
+            // AUTONUMBER
+            // =======================
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
 
-            if (!$autonbr) {
-                $autonbr = Autonbr::create([
-                    'doctype' => $doctype,
-                    'year'    => $year,
-                    'month'   => $month,
-                    'status'  => 'A',
-                    'number'  => 1,
-                ]);
-                $urut = 1;
-            } else {
-                $urut = ($autonbr->number ?? 0) + 1;
-                $autonbr->update(['number' => $urut]);
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $urut = 1;
+            // } else {
+            //     $urut = ((int)($autonbr->number ?? 0)) + 1;
+            //     $autonbr->update(['number' => $urut]);
+            // }
+
+            // $issueid = $doctype . substr((string)$year, 2) . $month . sprintf('%04d', $urut);
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'ISSUE'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $issueid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            // =======================
+            // LOAD SOURCE DETAILS (LOCK)
+            // =======================
+            $srcDetails = TrIssuedetail::where('issueid', $src->issueid)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            if ($srcDetails->isEmpty()) {
+                DB::rollBack();
+                return back()->withErrors(['Source Issue tidak memiliki detail.'])->withInput();
             }
 
-            $issueid = $doctype . substr($year, 2) . $month . sprintf('%04d', $urut);
+            // =======================
+            // HITUNG TOTAL RETURN SUDAH ADA (untuk validasi sisa)
+            // =======================
+            $returnedAgg = TrIssuedetail::query()
+                ->select([
+                    'ref_issueid',
+                    'inventoryid',
+                    'uom',
+                    'siteid',
+                    'location_id',
+                    'sub_location_id',
+                    DB::raw('SUM(COALESCE(qty_return,0)) AS sum_returned'),
+                ])
+                ->where('ref_issueid', $src->issueid)
+                ->where('issuetype', 'RI')
+                ->groupBy('ref_issueid','inventoryid','uom','siteid','location_id','sub_location_id')
+                ->get()
+                ->keyBy(function($r){
+                    return ($r->inventoryid ?? '').'|'.($r->uom ?? '').'|'.($r->siteid ?? '').'|'.($r->location_id ?? '').'|'.($r->sub_location_id ?? '');
+                });
 
-            // ===== HEADER RETURN
+            // =======================
+            // HEADER RETURN (COPY SOURCE + OVERRIDE)
+            // =======================
             $hdr = new TrIssue();
-            $hdr->issueid        = $issueid;
-            $hdr->issuedate      = $now;
-            $hdr->issuetype      = 'RI';
-            $hdr->spbid          = $src->spbid;
 
-            // ✅ sesuai model kamu
-            $hdr->ref_issueid   = $src->issueid;
+            // wajib
+            $hdr->issueid   = $issueid;
+            $hdr->issuedate = $now;
+            $hdr->issuetype = 'RI';
+            $hdr->ref_issueid = $src->issueid;
 
-            $hdr->cpny_id        = $src->cpny_id;
-            $hdr->department_id  = $src->department_id;
-            $hdr->user_peminta   = $src->user_peminta;
-            $hdr->issuenote      = $notes;
+            // copy header penting dari source (biar tidak kosong)
+            $hdr->spbid         = $src->spbid;
+            $hdr->woid          = $src->woid ?? null;
+            $hdr->cpny_id       = $src->cpny_id;
+            $hdr->department_id = $src->department_id;
+            $hdr->user_peminta  = $src->user_peminta;
 
+            // budget/nominal header (kalau ada)
+            $hdr->budget_perpost   = $src->budget_perpost ?? null;
+            $hdr->grandtotalcost   = 0;              // return biasanya 0 (atau kalau mau hitung, bisa isi nanti)
+            $hdr->totalissueqty    = 0;              // return header: issue qty 0
             $hdr->totalreturnissueqty = 0;
-            $hdr->status        = 'P';
-            $hdr->created_by    = $username;
+
+            // note return
+            $hdr->issuenote   = $notes !== '' ? $notes : ($src->issuenote ?? null);
+
+            $hdr->status      = 'P';
+            $hdr->created_by  = $username;
+            $hdr->created_at  = $now;
             $hdr->save();
 
-            // ===== DETAIL RETURN
-            $srcDetails = TrIssuedetail::where('issueid', $src->issueid)->get()->keyBy('id');
-
+            // =======================
+            // DETAIL RETURN (COPY SOURCE ROW)
+            // =======================
             $line = 0;
             $totalReturn = 0.0;
-
             $createdDetails = collect();
 
             foreach ($qtyInput as $detailId => $raw) {
                 $qty = (float) str_replace(',', '.', (string) $raw);
                 if ($qty <= 0) continue;
 
-                $srcDet = $srcDetails[$detailId] ?? null;
+                $srcDet = $srcDetails->get((int)$detailId);
                 if (!$srcDet) continue;
+
+                // ==== VALIDASI: qty return <= sisa (issue_qty - returned sebelumnya)
+                $key = ($srcDet->inventoryid ?? '').'|'.($srcDet->uom ?? '').'|'.($srcDet->siteid ?? '').'|'.($srcDet->location_id ?? '').'|'.($srcDet->sub_location_id ?? '');
+                $sudahReturn = (float) optional($returnedAgg->get($key))->sum_returned ?? 0.0;
+
+                $issued = (float) ($srcDet->issue_qty ?? $srcDet->qty ?? 0); // prefer issue_qty
+                $sisa   = max($issued - $sudahReturn, 0);
+
+                if ($qty - $sisa > 1e-9) {
+                    DB::rollBack();
+                    return back()->withErrors([
+                        "Qty Return untuk {$srcDet->inventoryid} melebihi sisa return. Sisa: ".number_format($sisa,2,'.',',')
+                    ])->withInput();
+                }
 
                 $line++;
 
                 $det = new TrIssuedetail();
-                $det->issueid         = $issueid;
-                $det->issue_no        = $line;
 
-                $det->spbid           = $src->spbid;
-                $det->spb_no          = $srcDet->spb_no;
+                // relasi & nomor
+                $det->issueid  = $issueid;
+                $det->issue_no = $line;
 
-                $det->inventoryid     = $srcDet->inventoryid;
-                $det->inventory_descr = $srcDet->inventory_descr;
-                $det->uom             = $srcDet->uom;
+                // copy identitas dokumen asal
+                $det->spbid  = $srcDet->spbid;
+                $det->spb_no = $srcDet->spb_no;
 
-                // qty utama (existing field)
-                $det->qty             = $qty;
+                // copy item + lokasi
+                $det->inventoryid       = $srcDet->inventoryid;
+                $det->inventory_descr   = $srcDet->inventory_descr;
+                $det->uom               = $srcDet->uom;
 
-                // issue qty 0 (karena ini return)
+                $det->siteid            = $srcDet->siteid;
+                $det->location_id       = $srcDet->location_id;
+                $det->sub_location_id   = $srcDet->sub_location_id;
+
+                // copy multiplier/base
+                $det->type_multiplier   = $srcDet->type_multiplier;
+                $det->base_multiplier   = $srcDet->base_multiplier ?: 1;
+                $det->base_uom          = $srcDet->base_uom ?: $srcDet->uom;
+
+                // copy costing (kalau dibutuhkan)
+                $det->unitcost          = $srcDet->unitcost;
+                $det->totalcost         = 0; // return biasanya 0 (atau $qty * unitcost kalau mau)
+                $det->issuenote_detail  = $srcDet->issuenote_detail;
+
+                // copy budget detail
+                $det->budget_perpost           = $srcDet->budget_perpost;
+                $det->budget_cpny_id           = $srcDet->budget_cpny_id;
+                $det->budget_business_unit_id  = $srcDet->budget_business_unit_id;
+                $det->budget_department_fin_id = $srcDet->budget_department_fin_id;
+                $det->budget_account_id        = $srcDet->budget_account_id;
+                $det->budget_activity_id       = $srcDet->budget_activity_id;
+                $det->budget_activity_descr    = $srcDet->budget_activity_descr;
+
+                // reason code (kalau ada field)
+                $det->reason_code       = $srcDet->reason_code;
+
+                // ===== angka return
+                $det->issuetype       = 'RI';
+                $det->qty             = $qty;     // supaya “qty” tidak kosong (di data kamu RI qty=3 itu OK)
+                $det->base_qty        = $qty;
+
                 $det->issue_qty       = 0;
                 $det->base_issue_qty  = 0;
 
-                // return qty
                 $det->qty_return      = $qty;
                 $det->base_qty_return = $qty;
 
-                // ✅ sesuai model kamu
-                $det->ref_issueid    = $src->issueid;
+                $det->ref_issueid     = $src->issueid;
 
-                $det->issuetype       = $hdr->issuetype;
                 $det->status          = 'C';
                 $det->created_by      = $username;
+                $det->created_at      = $now;
                 $det->save();
 
                 $createdDetails->push($det);
@@ -1774,23 +1898,20 @@ class IssueController extends Controller
                 return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
             }
 
-            // update total return di header
+            // update total return header
             $hdr->totalreturnissueqty = $totalReturn;
+            $hdr->updated_by = $username;
+            $hdr->updated_at = $now;
             $hdr->save();
 
-            // ✅ kalau memang butuh posting ke SPB, panggil dengan variabel yang benar
-            // NOTE: aku tidak tahu signature aslinya, jadi aku passing hdr + issueid (adjust kalau perlu)
-            $this->applyIssuePostingToSpb(
-                $hdr,
-                $createdDetails,
-                $user,
-                $now
-            );
+            // posting ke SPB / stock (kalau memang diperlukan)
+            // pastikan function ini aman untuk RI
+            if (method_exists($this, 'applyIssuePostingToSpb')) {
+                $this->applyIssuePostingToSpb($hdr, $createdDetails, $user, $now);
+            }
 
-
-            // === Generate Approval Issue
+            // approval
             $ctx = ['ignore_nominal' => true];
-
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $issueid,
                 $doctype,
@@ -1801,13 +1922,6 @@ class IssueController extends Controller
                 $now
             );
 
-            // ⚠️ optional: jangan pakai completed_by untuk first approver (tapi kalau kamu memang mau, tetap bisa)
-            // if (!empty($firstApprovalUsernames)) {
-            //     $hdr->completed_by = is_array($firstApprovalUsernames) ? implode(',', $firstApprovalUsernames) : $firstApprovalUsernames;
-            //     $hdr->completed_at = $now;
-            //     $hdr->save();
-            // }
-
             // attachment
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -1815,13 +1929,12 @@ class IssueController extends Controller
                     'doctype'       => $doctype,
                     'cpnyid'        => $hdr->cpny_id,
                     'departementid' => $hdr->department_id,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'base_folder'   => 'att-purchasing-app/' . strtolower($doctype),
                     'created_by'    => $username,
                 ];
 
                 $files = (array) $request->file('attachments');
-                $uploader = app(TrAttachmentController::class);
-                $uploader->uploadInternal($meta, $files);
+                app(TrAttachmentController::class)->uploadInternal($meta, $files);
             }
 
             DB::commit();
@@ -1832,7 +1945,6 @@ class IssueController extends Controller
             DB::rollBack();
             \Log::error('storeReturn failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
                 'issue_src' => $src->issueid ?? null,
                 'user' => $username ?? null,
             ]);
@@ -1842,6 +1954,7 @@ class IssueController extends Controller
                 ->withInput();
         }
     }
+
 
 
 
