@@ -304,25 +304,25 @@ Route::post('/logout', function () {
     Route::put('/manpowers/remove-attachment/{id}', [ManpowerController::class, 'removeAttachment']);    
     Route::get('/manpower/{id}/check-approval/{action}', [ManpowerController::class, 'checkApproval']);
 
-    // Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas');
-    // Route::get('/agendas/json', [AgendaController::class, 'json'])->name('agendas.json');
-    // Route::get('/createagendas', [AgendaController::class, 'createAgenda']);
-    // Route::post('/agendas', [AgendaController::class, 'storeAgenda'])->name('agendas.store');
-    // Route::get('/showagendas/{id}', [AgendaController::class, 'showAgenda']);
-    // Route::get('/agenda/{id}/comments', [AgendaController::class, 'fetchComments']);
-    // Route::post('/agenda/{id}/comments', [AgendaController::class, 'storeComment']);
-    // Route::post('/agenda/{id}/approve', [AgendaController::class, 'approveAgenda']);
-    // Route::post('/agenda/{id}/reject', [AgendaController::class, 'rejectAgenda']);
-    // Route::post('/agenda/{id}/revise', [AgendaController::class, 'reviseAgenda']);
-    // Route::get('/editagendas/{id}', [AgendaController::class, 'editAgenda']);
-    // Route::put('/agendas/{id}', [AgendaController::class, 'updateAgenda'])->name('agendas.update');
-    // Route::put('/agendas/remove-attachment/{id}', [AgendaController::class, 'removeAttachment']);    
-    // Route::get('/agenda/{id}/check-approval/{action}', [AgendaController::class, 'checkApproval']);
-    // Route::post('/agendas/cancel', [AgendaController::class, 'cancelAgenda'])->name('agendas.cancel');
-    // Route::post('/agendas/checkRoomAvailability', [AgendaController::class, 'checkRoomAvailability'])->name('agendas.checkRoomAvailability');
-    // Route::get('/company-address/{site}', [AgendaController::class, 'getBySite']);
+    Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas');
+    Route::get('/agendas/json', [AgendaController::class, 'json'])->name('agendas.json');
+    Route::get('/createagendas', [AgendaController::class, 'createAgenda']);
+    Route::post('/agendas', [AgendaController::class, 'storeAgenda'])->name('agendas.store');
+    Route::get('/showagendas/{id}', [AgendaController::class, 'showAgenda']);
+    Route::get('/agenda/{id}/comments', [AgendaController::class, 'fetchComments']);
+    Route::post('/agenda/{id}/comments', [AgendaController::class, 'storeComment']);
+    Route::post('/agenda/{id}/approve', [AgendaController::class, 'approveAgenda']);
+    Route::post('/agenda/{id}/reject', [AgendaController::class, 'rejectAgenda']);
+    Route::post('/agenda/{id}/revise', [AgendaController::class, 'reviseAgenda']);
+    Route::get('/editagendas/{id}', [AgendaController::class, 'editAgenda']);
+    Route::put('/agendas/{id}', [AgendaController::class, 'updateAgenda'])->name('agendas.update');
+    Route::put('/agendas/remove-attachment/{id}', [AgendaController::class, 'removeAttachment']);    
+    Route::get('/agenda/{id}/check-approval/{action}', [AgendaController::class, 'checkApproval']);
+    Route::post('/agendas/cancel', [AgendaController::class, 'cancelAgenda'])->name('agendas.cancel');
+    Route::post('/agendas/checkRoomAvailability', [AgendaController::class, 'checkRoomAvailability'])->name('agendas.checkRoomAvailability');
+    Route::get('/company-address/{site}', [AgendaController::class, 'getBySite']);
 
-    // Route::get('/send_email_all', [AgendaController::class, 'send_email_all'])->name('send_email_all');
+    Route::get('/send_email_all', [AgendaController::class, 'send_email_all'])->name('send_email_all');
 
 
     Route::get('/careers', [CareerController::class, 'index'])->name('careers');
