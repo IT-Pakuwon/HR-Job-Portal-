@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Models\UserGoogle;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DataFeedController;
@@ -92,6 +93,7 @@ use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\SelfRegisterApplicantController;
 use App\Http\Controllers\KontrakController;
 
+
 // INTEGRATION
 use App\Http\Controllers\Integration\IFCAIntegrationController;
 use App\Http\Controllers\Integration\IFCAAPINonStockController;
@@ -99,7 +101,7 @@ use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
 
 use App\Http\Controllers\GoogleCalendarController;
-
+use App\Http\Controllers\GoogleCalendarApiController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -160,18 +162,6 @@ Route::post('/login', function (Request $request) {
 })->name('login');
 
 
-Route::get('/auth/google/calendar', [GoogleCalendarController::class, 'redirect'])
-    ->middleware('auth');
-
-Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, 'callback'])
-    ->middleware('auth');
-
-Route::post('/google/calendar/event', [GoogleCalendarController::class, 'createEvent'])
-    ->middleware('auth');
-
-Route::get('/google/calendar/events', [GoogleCalendarController::class, 'listEvents'])
-    ->middleware('auth');
-
 
 Route::get('/modules', function () {
     return view('layouts.module');
@@ -192,10 +182,6 @@ Route::post('/logout', function () {
     Route::get('/approvejson', [DashboardController::class, 'Approvejson'])->name('dashboard.approvejson');
 
     
-
-Route::get('/auth/google/calendar', [GoogleCalendarController::class, 'redirect']);
-Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, 'callback']);
-
 
     // Ambil semua screens dan buat route otomatis
     // $screens = MsScreen::all();
@@ -231,10 +217,10 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     // Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas');    
     // Route::get('/agendas/json', [AgendaController::class, 'json'])->name('agendas.json'); 
     // Route::post('/agendas', [AgendaController::class, 'store'])->name('agendas.store'); 
-    Route::get('/api/agendas/today', [AgendaController::class, 'getAgendas'])->name('agendas.today');
-    Route::get('/api/agendas/{id}', [AgendaController::class, 'show'])->name('agendas.show');
-    Route::put('/api/agendas/{id}', [AgendaController::class, 'update'])->name('agendas.update');
-    Route::get('/api/agendas/month', [AgendaController::class, 'getMonthlyAgendas']);
+    // Route::get('/api/agendas/today', [AgendaController::class, 'getAgendas'])->name('agendas.today');
+    // Route::get('/api/agendas/{id}', [AgendaController::class, 'show'])->name('agendas.show');
+    // Route::put('/api/agendas/{id}', [AgendaController::class, 'update'])->name('agendas.update');
+    // Route::get('/api/agendas/month', [AgendaController::class, 'getMonthlyAgendas']);
     
 
     Route::get('/news', [NewsController::class, 'index'])->name('news');
@@ -318,25 +304,25 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     Route::put('/manpowers/remove-attachment/{id}', [ManpowerController::class, 'removeAttachment']);    
     Route::get('/manpower/{id}/check-approval/{action}', [ManpowerController::class, 'checkApproval']);
 
-    Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas');
-    Route::get('/agendas/json', [AgendaController::class, 'json'])->name('agendas.json');
-    Route::get('/createagendas', [AgendaController::class, 'createAgenda']);
-    Route::post('/agendas', [AgendaController::class, 'storeAgenda'])->name('agendas.store');
-    Route::get('/showagendas/{id}', [AgendaController::class, 'showAgenda']);
-    Route::get('/agenda/{id}/comments', [AgendaController::class, 'fetchComments']);
-    Route::post('/agenda/{id}/comments', [AgendaController::class, 'storeComment']);
-    Route::post('/agenda/{id}/approve', [AgendaController::class, 'approveAgenda']);
-    Route::post('/agenda/{id}/reject', [AgendaController::class, 'rejectAgenda']);
-    Route::post('/agenda/{id}/revise', [AgendaController::class, 'reviseAgenda']);
-    Route::get('/editagendas/{id}', [AgendaController::class, 'editAgenda']);
-    Route::put('/agendas/{id}', [AgendaController::class, 'updateAgenda'])->name('agendas.update');
-    Route::put('/agendas/remove-attachment/{id}', [AgendaController::class, 'removeAttachment']);    
-    Route::get('/agenda/{id}/check-approval/{action}', [AgendaController::class, 'checkApproval']);
-    Route::post('/agendas/cancel', [AgendaController::class, 'cancelAgenda'])->name('agendas.cancel');
-    Route::post('/agendas/checkRoomAvailability', [AgendaController::class, 'checkRoomAvailability'])->name('agendas.checkRoomAvailability');
-    Route::get('/company-address/{site}', [AgendaController::class, 'getBySite']);
+    // Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas');
+    // Route::get('/agendas/json', [AgendaController::class, 'json'])->name('agendas.json');
+    // Route::get('/createagendas', [AgendaController::class, 'createAgenda']);
+    // Route::post('/agendas', [AgendaController::class, 'storeAgenda'])->name('agendas.store');
+    // Route::get('/showagendas/{id}', [AgendaController::class, 'showAgenda']);
+    // Route::get('/agenda/{id}/comments', [AgendaController::class, 'fetchComments']);
+    // Route::post('/agenda/{id}/comments', [AgendaController::class, 'storeComment']);
+    // Route::post('/agenda/{id}/approve', [AgendaController::class, 'approveAgenda']);
+    // Route::post('/agenda/{id}/reject', [AgendaController::class, 'rejectAgenda']);
+    // Route::post('/agenda/{id}/revise', [AgendaController::class, 'reviseAgenda']);
+    // Route::get('/editagendas/{id}', [AgendaController::class, 'editAgenda']);
+    // Route::put('/agendas/{id}', [AgendaController::class, 'updateAgenda'])->name('agendas.update');
+    // Route::put('/agendas/remove-attachment/{id}', [AgendaController::class, 'removeAttachment']);    
+    // Route::get('/agenda/{id}/check-approval/{action}', [AgendaController::class, 'checkApproval']);
+    // Route::post('/agendas/cancel', [AgendaController::class, 'cancelAgenda'])->name('agendas.cancel');
+    // Route::post('/agendas/checkRoomAvailability', [AgendaController::class, 'checkRoomAvailability'])->name('agendas.checkRoomAvailability');
+    // Route::get('/company-address/{site}', [AgendaController::class, 'getBySite']);
 
-    Route::get('/send_email_all', [AgendaController::class, 'send_email_all'])->name('send_email_all');
+    // Route::get('/send_email_all', [AgendaController::class, 'send_email_all'])->name('send_email_all');
 
 
     Route::get('/careers', [CareerController::class, 'index'])->name('careers');
@@ -1294,6 +1280,30 @@ Route::get('/auth/google/calendar/callback', [GoogleCalendarController::class, '
     Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
     Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
     Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
+
+
+    // User must be logged in to START OAuth
+    Route::get('/google/calendar/connect', [GoogleCalendarController::class, 'redirect'])
+        ->middleware('auth');
+
+    // CALLBACK MUST BE PUBLIC (no auth middleware)
+    Route::get('/google/calendar/callback', [GoogleCalendarController::class, 'callback']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | AJAX APIs (require auth)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('auth')->group(function () {
+
+        Route::get('/google/calendar/status', [GoogleCalendarApiController::class, 'status']);
+        Route::get('/google/calendar/events', [GoogleCalendarApiController::class, 'events']);
+        Route::post('/google/calendar/event', [GoogleCalendarApiController::class, 'createEvent']);
+
+        Route::post('/agenda', [AgendaController::class, 'store']);
+    });
+
+
 
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');

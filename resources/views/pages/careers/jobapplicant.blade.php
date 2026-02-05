@@ -83,7 +83,7 @@
         </div>
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div
-                class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 sm:flex-row sm:items-center dark:border-gray-700">
+                class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center dark:border-gray-700">
                 {{-- Changed text-lg to text-base --}}
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
                 {{-- <a"

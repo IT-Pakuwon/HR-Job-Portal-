@@ -52,76 +52,72 @@
             <div>
                 <ul class="mt-3">
                     <!-- Dashboard -->
-                    <li
-                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['dashboard'])) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
+                    <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['dashboard'])) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif rounded-lg py-2 transition"
+                        :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
                         <a class="@if (!in_array(Request::segment(1), ['dashboard'])) hover:text-gray-900 dark:hover:text-white @endif block truncate text-gray-800 transition dark:text-gray-100"
                             href="{{ route('dashboard') }}">
-                            <div class="flex items-center">
+                            <div class="flex w-full items-center transition-all duration-200"
+                                :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
 
-                                <!-- NEW DASHBOARD ICON -->
-                                <svg class="@if (in_array(Request::segment(1), ['dashboard'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
+                                <!-- Icon -->
+                                <svg class="@if (in_array(Request::segment(1), ['dashboard'])) text-violet-500
+                                @else text-gray-400 dark:text-gray-500 @endif shrink-0"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" width="16" height="16">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M3 3v18h18M7 13v6m4-10v10m4-14v14" />
                                 </svg>
 
-                                <span
-                                    class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">
+                                <!-- Label -->
+                                <span x-show="sidebarExpanded"
+                                    class="ml-4 whitespace-nowrap text-sm font-medium leading-tight">
                                     Dashboard
                                 </span>
                             </div>
                         </a>
                     </li>
 
-                    <!-- Structure Organization -->
-
                     {{-- LABEL GROUP HUMAN RESOURCES --}}
 
                     @php
                         // cari menu parent "Human Resources"
-                        // 🔥 GANTI 'HR' sesuai menu_id parent kamu di table ms_menu
                         $hrMenu = $rootMenus->firstWhere('menu_id', 'HR');
-
-                        // siapkan helper array allowed IDs
                         $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
                     @endphp
 
-                    {{-- <li class="py-2 pl-4 pr-3 text-smm font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
-                        :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
-                        Human Resources
-                    </li> --}}
+                    {{-- ================= LABEL: HUMAN RESOURCES ================= --}}
                     @if ($hrMenu)
-                        <li class="text-smm py-2 pl-4 pr-3 font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
-                            :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
+                        <li class="text-smm py-2 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
+                            :class="sidebarExpanded ? 'pl-4 pr-3 block' : 'hidden'">
                             {{ $hrMenu->menu_name }}
                         </li>
                     @endif
 
                     @if ($hrMenu)
                         @php
-                            // FILTER anak-anak langsung dari HR
                             $parentChildren = $allowedIds
                                 ? $hrMenu->children->whereIn('menu_id', $allowedIds)
                                 : $hrMenu->children;
                         @endphp
 
-                        {{-- Loop children dari Human Resources --}}
                         @foreach ($parentChildren as $menu)
                             @php
-                                // FILTER anak level 2 (submenu)
                                 $children = $allowedIds
                                     ? $menu->children->whereIn('menu_id', $allowedIds)
                                     : $menu->children;
                             @endphp
 
+                            {{-- ================= MENU TANPA SUB ================= --}}
                             @if ($children->isEmpty())
-                                {{-- MENU TANPA SUB --}}
-                                <li
-                                    class="bg-linear-to-r {{ Route::is($menu->menu_route . '*') ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="{{ !Route::is($menu->menu_route . '*') ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ $menu->menu_route ? route($menu->menu_route) : '#' }}">
-                                        <div class="flex items-center">
+                                <li class="bg-linear-to-r {{ Route::is($menu->menu_route . '*')
+                                    ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
+                                    : '' }} rounded-lg py-2 transition"
+                                    :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                    <a href="{{ $menu->menu_route ? route($menu->menu_route) : '#' }}"
+                                        class="{{ !Route::is($menu->menu_route . '*') ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100">
+                                        <div class="flex w-full items-center transition-all duration-200"
+                                            :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+
                                             <svg class="{{ Route::is($menu->menu_route . '*') ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" width="16" height="16">
@@ -129,29 +125,29 @@
                                                     d="{{ $menu->menu_icon }}" />
                                             </svg>
 
-                                            <span
-                                                class="lg:sidebar-expanded:opacity-100 text-smm ml-4 whitespace-normal break-words font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
+                                            <span x-show="sidebarExpanded"
+                                                class="ml-4 whitespace-nowrap text-sm font-medium leading-tight">
                                                 {{ $menu->menu_name }}
                                             </span>
                                         </div>
                                     </a>
                                 </li>
+
+                                {{-- ================= MENU DENGAN SUB ================= --}}
                             @else
-                                {{-- MENU DENGAN SUBMENU --}}
                                 @php
-                                    $isGroupActive = $children->contains(function ($child) {
-                                        return Route::is($child->menu_route . '*');
-                                    });
+                                    $isGroupActive = $children->contains(
+                                        fn($child) => Route::is($child->menu_route . '*'),
+                                    );
                                 @endphp
 
-                                <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                    x-data="{ open: {{ $isGroupActive ? 'true' : 'false' }} }">
-
-                                    <a class="{{ !$isGroupActive ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-
+                                <li class="bg-linear-to-r @if {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} @endif rounded-lg py-2 transition"
+                                    :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'" x-data="{ open: {{ $isGroupActive ? 'true' : 'false' }} }">
+                                    <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                        class="{{ !$isGroupActive ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100">
                                         <div class="flex items-center justify-between">
-                                            <div class="flex items-center">
+                                            <div class="flex w-full items-center transition-all duration-200"
+                                                :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
                                                 <svg class="{{ $isGroupActive ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -160,14 +156,15 @@
                                                         d="{{ $menu->menu_icon }}" />
                                                 </svg>
 
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-smm ml-4 whitespace-normal break-words font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
+                                                <span x-show="sidebarExpanded"
+                                                    class="ml-4 whitespace-nowrap text-sm font-medium leading-tight">
                                                     {{ $menu->menu_name }}
                                                 </span>
                                             </div>
 
-                                            <div
-                                                class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
+                                            {{-- Arrow --}}
+                                            <div class="ml-2 flex shrink-0 duration-200"
+                                                :class="sidebarExpanded ? 'opacity-100' : 'opacity-0'">
                                                 <svg class="ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
                                                     :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                                     <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
@@ -176,14 +173,14 @@
                                         </div>
                                     </a>
 
-                                    <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                        <ul class="mt-1 pl-8" :class="open ? 'block!' : 'hidden'">
+                                    {{-- ================= SUBMENU ================= --}}
+                                    <div x-show="sidebarExpanded && open">
+                                        <ul class="mt-1 pl-8">
                                             @foreach ($children as $child)
                                                 <li class="mb-1 last:mb-0">
-                                                    <a class="{{ Route::is($child->menu_route . '*') ? 'text-violet-500!' : '' }} block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                        href="{{ $child->menu_route ? route($child->menu_route) : '#' }}">
-                                                        <span
-                                                            class="lg:sidebar-expanded:opacity-100 text-smm font-medium duration-200 lg:opacity-0 2xl:opacity-100">
+                                                    <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
+                                                        class="{{ Route::is($child->menu_route . '*') ? 'text-violet-500!' : '' }} block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                        <span class="text-smm font-medium leading-tight">
                                                             {{ $child->menu_name }}
                                                         </span>
                                                     </a>
@@ -196,813 +193,291 @@
                         @endforeach
                     @endif
 
+                    {{-- LABEL GROUP PURCHASING --}}
 
-                    {{-- <li class="py-2 pl-4 pr-3 text-smm font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
-                        :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
-                        Human Resources
-                    </li>                
-                    <li class="bg-linear-to-r @if (in_array(Request::segment(1), ['personnels', 'createPersonnel', 'editPersonnel', 'showpersonnels', 'jobapplicant', 'changestos', 'showApplicant', 'showcareers', 'changestos', 'editChangesto', 'showChangesto', 'createChangesto'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                        x-data="{ open: {{ in_array(Request::segment(1), [
-                            'personnels',
-                            'createPersonnel',
-                            'editPersonnel',
-                            'showpersonnels',
-                            'jobapplicant',
-                            'changestos',
-                            'showApplicant',
-                            'showcareers',
-                            'changestos',
-                            'editChangesto',
-                            'showChangesto',
-                            'createChangesto',
-                        ])
-                            ? 1
-                            : 0 }} }">
-                        <a class="@if (!in_array(Request::segment(1), ['personnels', 'createPersonnel', 'editPersonnel', 'showpersonnels', 'jobapplicant', 'showApplicant', 'showcareers', 'changestos', 'editChangesto', 'showChangesto', 'createChangesto'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                            href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <svg class="@if (in_array(Request::segment(1), ['personnels', 'createPersonnel', 'editPersonnel', 'jobapplicant', 'changestos', 'editChangesto', 'showChangesto', 'createChangesto', 'showApplicant', 'showcareers'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M18 18v-1a3 3 0 00-3-3h-.75m-4.5 0H9a3 3 0 00-3 3v1m12-10.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-7.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm0 10.5v-1a2.999 2.999 0 00-2.25-2.902m6.75 3.902v-1a2.999 2.999 0 00-2.25-2.902" />
-                                    </svg>
+                    @php
+                        $purchasingMenu = $rootMenus->firstWhere('menu_id', 'PURCH');
+                        $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
+                    @endphp
+                    {{-- ================= LABEL: PURCHASING ================= --}}
+                    @if ($purchasingMenu)
+                        <li class="text-smm py-2 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
+                            :class="sidebarExpanded ? 'pl-4 pr-3 block' : 'hidden'">
+                            {{ $purchasingMenu->menu_name }}
+                        </li>
+                    @endif
 
-                                    <span
-                                        class="lg:sidebar-expanded:opacity-100 ml-4 text-smm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Recruitment</span>
-                                </div>
-                                <div
-                                    class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                    <svg class="@if (in_array(Request::segment(1), ['personnels', 'jobpostings', 'changestos'])) {{ 'rotate-180' }} @endif ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
-                                        :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </a>
-                        <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                            <ul class="@if (!in_array(Request::segment(1), [
-        'personnels',
-        'createPersonnel',
-        'editPersonnel',
-        // 'showpersonnels/{hash}',
-        'jobapplicant',
-        'showcareers',
-        'changestos',
-        'editChangesto',
-        'showChangesto',
-        'createChangesto',
-        'showApplicant',
-    ])) {{ 'hidden' }} @endif mt-1 pl-8"
-                                :class="open ? 'block!' : 'hidden'">
-                                <li class="mb-1 last:mb-0">
-                                    <a class="@if (Route::is('personnels', 'createPersonnel', 'editPersonnel', 'showpersonnels/{hash}')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        href="{{ route('personnels') }}">
-                                        <span
-                                            class="lg:sidebar-expanded:opacity-100 text-smm font-medium duration-200 lg:opacity-0 2xl:opacity-100">PRF</span>
-                                    </a>
-                                </li>
-                                <li class="mb-1 last:mb-0">
-                                    <a class="@if (Route::is('jobapplicant')) {{ 'text-violet-500!' }} @endif block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        href="{{ route('jobapplicant') }}">
-                                        <span
-                                            class="lg:sidebar-expanded:opacity-100 text-smm font-medium duration-200 lg:opacity-0 2xl:opacity-100">Applicant
-                                            Portal</span>
-                                    </a>
-                                </li>                              
-                            </ul>
-                        </div>
-                    </li> --}}
-                    @auth
-                        {{-- @if (auth()->user()->username === 'rikiparahat' || auth()->user()->username === 'bedriamaail' || auth()->user()->username === 'sugiartoongkowijoyo' || auth()->user()->username === 'ariwibowo' || auth()->user()->username === 'junpianto' || auth()->user()->username === 'ariewibisono' || auth()->user()->username === 'adefahmi' || auth()->user()->username === 'williemhalim') --}}
-                        {{-- LABEL GROUP PURCHASING --}}
-
-                        {{-- <li class="py-2 pl-4 pr-3 text-smm font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
-                            :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
-                            Purchasing
-                        </li> --}}
-
+                    @if ($purchasingMenu)
                         @php
-                            // cari menu parent "Purchasing"
-                            $purchasingMenu = $rootMenus->firstWhere('menu_id', 'PURCH');
-
-                            // siapkan helper array allowed IDs
-                            $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
+                            $parentChildren = $allowedIds
+                                ? $purchasingMenu->children->whereIn('menu_id', $allowedIds)
+                                : $purchasingMenu->children;
                         @endphp
 
-                        @if ($purchasingMenu)
-                            <li class="text-smm py-2 pl-4 pr-3 font-semibold uppercase tracking-wider text-gray-500 last:mb-0"
-                                :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
-                                {{ $purchasingMenu->menu_name }}
-                            </li>
-                        @endif
-
-                        @if ($purchasingMenu)
+                        {{-- ================= LOOP PURCHASING CHILDREN ================= --}}
+                        @foreach ($parentChildren as $menu)
                             @php
-                                // 🔹 FILTER anak-anak langsung dari PURCH (Budget, Request Form, CS, Purchase, dst)
-                                $parentChildren = $allowedIds
-                                    ? $purchasingMenu->children->whereIn('menu_id', $allowedIds)
-                                    : $purchasingMenu->children;
+                                $children = $allowedIds
+                                    ? $menu->children->whereIn('menu_id', $allowedIds)
+                                    : $menu->children;
                             @endphp
 
-                            {{-- Loop children dari Purchasing: Budget, Request Form, Canvass Sheets, dll --}}
-                            @foreach ($parentChildren as $menu)
+                            {{-- ================= MENU TANPA SUB ================= --}}
+                            @if ($children->isEmpty())
+                                <li class="bg-linear-to-r {{ Route::is($menu->menu_route . '*')
+                                    ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
+                                    : '' }} rounded-lg py-2 transition"
+                                    :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                    <a href="{{ $menu->menu_route ? route($menu->menu_route) : '#' }}"
+                                        class="{{ !Route::is($menu->menu_route . '*') ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100">
+                                        <div class="flex w-full items-center transition-all duration-200"
+                                            :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+
+                                            <svg class="{{ Route::is($menu->menu_route . '*') ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" width="16"
+                                                height="16">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="{{ $menu->menu_icon }}" />
+                                            </svg>
+
+                                            <span x-show="sidebarExpanded"
+                                                class="ml-4 whitespace-nowrap text-sm font-medium leading-tight">
+                                                {{ $menu->menu_name }}
+                                            </span>
+                                        </div>
+                                    </a>
+                                </li>
+
+                                {{-- ================= MENU DENGAN SUB ================= --}}
+                            @else
                                 @php
-                                    // 🔹 FILTER anak level 2 (submenu) berdasarkan allowedMenuIds
-                                    $children = $allowedIds
-                                        ? $menu->children->whereIn('menu_id', $allowedIds)
-                                        : $menu->children;
+                                    $isGroupActive = $children->contains(
+                                        fn($child) => Route::is($child->menu_route . '*'),
+                                    );
                                 @endphp
 
-                                @if ($children->isEmpty())
-                                    {{-- MENU TANPA SUB --}}
-                                    <li
-                                        class="bg-linear-to-r {{ Route::is($menu->menu_route . '*') ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                        <a class="{{ !Route::is($menu->menu_route . '*') ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100"
-                                            href="{{ $menu->menu_route ? route($menu->menu_route) : '#' }}">
-                                            <div class="flex items-center">
-                                                <svg class="{{ Route::is($menu->menu_route . '*') ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="1.5" stroke="currentColor" width="16"
-                                                    height="16">
+                                <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-2 transition"
+                                    :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'" x-data="{ open: {{ $isGroupActive ? 'true' : 'false' }} }">
+                                    <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                        class="{{ !$isGroupActive ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex w-full items-center transition-all duration-200"
+                                                :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+                                                <svg class="{{ $isGroupActive ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                    width="16" height="16">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         d="{{ $menu->menu_icon }}" />
                                                 </svg>
-                                                <span
-                                                    class="lg:sidebar-expanded:opacity-100 text-smm ml-4 whitespace-normal break-words font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
+
+                                                <span x-show="sidebarExpanded"
+                                                    class="ml-4 whitespace-nowrap text-sm font-medium leading-tight">
                                                     {{ $menu->menu_name }}
                                                 </span>
                                             </div>
-                                        </a>
-                                    </li>
-                                @else
-                                    {{-- MENU DENGAN SUBMENU --}}
-                                    @php
-                                        $isGroupActive = $children->contains(function ($child) {
-                                            return Route::is($child->menu_route . '*');
-                                        });
-                                    @endphp
 
-                                    <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0"
-                                        x-data="{ open: {{ $isGroupActive ? 'true' : 'false' }} }">
-                                        <a class="{{ !$isGroupActive ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100"
-                                            href="#0" @click.prevent="open = !open; sidebarExpanded = true">
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex items-center">
-                                                    <svg class="{{ $isGroupActive ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
-                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                                        width="16" height="16">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="{{ $menu->menu_icon }}" />
-                                                    </svg>
-                                                    <span
-                                                        class="lg:sidebar-expanded:opacity-100 text-smm ml-4 whitespace-normal break-words font-medium leading-tight duration-200 lg:opacity-0 2xl:opacity-100">
-                                                        {{ $menu->menu_name }}
-                                                    </span>
-                                                </div>
-                                                <div
-                                                    class="lg:sidebar-expanded:opacity-100 ml-2 flex shrink-0 duration-200 lg:opacity-0 2xl:opacity-100">
-                                                    <svg class="ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
-                                                        :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                                    </svg>
-                                                </div>
+                                            {{-- Arrow --}}
+                                            <div class="ml-2 flex shrink-0 duration-200"
+                                                :class="sidebarExpanded ? 'opacity-100' : 'opacity-0'">
+                                                <svg class="ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
+                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                                </svg>
                                             </div>
-                                        </a>
-                                        <div class="lg:sidebar-expanded:block lg:hidden 2xl:block">
-                                            <ul class="mt-1 pl-8" :class="open ? 'block!' : 'hidden'">
-                                                @foreach ($children as $child)
-                                                    <li class="mb-1 last:mb-0">
-                                                        <a class="{{ Route::is($child->menu_route . '*') ? 'text-violet-500!' : '' }} block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                                            href="{{ $child->menu_route ? route($child->menu_route) : '#' }}">
-                                                            <span
-                                                                class="lg:sidebar-expanded:opacity-100 text-smm font-medium duration-200 lg:opacity-0 2xl:opacity-100">
-                                                                {{ $child->menu_name }}
-                                                            </span>
-                                                        </a>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
                                         </div>
-                                    </li>
-                                @endif
-                            @endforeach
-                            {{-- @endif --}}
+                                    </a>
 
-                            {{-- LABEL GROUP SETTINGS --}}
-                            @if (auth()->user()->user_role === 'admin')
-                                @php
-                                    $settingsSegments = [
-                                        'users',
-                                        'roles',
-                                        'access_rights',
-                                        'role_menus',
-                                        'applications',
-                                        'screens',
-                                        'menus',
-                                        'companies',
-                                        'department',
-                                        'tenants',
-                                        'locations',
-                                        'categories',
-                                        'vendors',
-                                        'inventories',
-                                        'autonbrs',
-                                        'tops',
-                                        'approvals',
-                                    ];
-                                @endphp
+                                    {{-- ================= SUBMENU ================= --}}
+                                    <div x-show="sidebarExpanded && open">
+                                        <ul class="mt-1 pl-8">
+                                            @foreach ($children as $child)
+                                                <li class="mb-1 last:mb-0">
+                                                    <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
+                                                        class="{{ Route::is($child->menu_route . '*') ? 'text-violet-500!' : '' }} block truncate text-gray-500/90 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                                        <span class="text-smm font-medium leading-tight">
+                                                            {{ $child->menu_name }}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </li>
+                            @endif
+                        @endforeach
+                    @endif
 
-                                <li class="mb-2" x-data="{ open: {{ in_array(Request::segment(1), $settingsSegments) ? 1 : 0 }} }"
-                                    :class="{ 'lg:block': sidebarExpanded, 'lg:hidden': !sidebarExpanded }">
+                    {{-- LABEL GROUP SETTINGS --}}
+                    @if (auth()->user()->user_role === 'admin')
+                        @php
+                            $settingsSegments = [
+                                'users',
+                                'roles',
+                                'access_rights',
+                                'role_menus',
+                                'applications',
+                                'screens',
+                                'menus',
+                                'companies',
+                                'department',
+                                'tenants',
+                                'locations',
+                                'categories',
+                                'vendors',
+                                'inventories',
+                                'autonbrs',
+                                'tops',
+                                'approvals',
+                                'budgetmonitor',
+                                'ifcaintegration',
+                            ];
+                        @endphp
 
-                                    {{-- SETTINGS HEADER --}}
+                        <li x-data="{ open: {{ in_array(Request::segment(1), $settingsSegments) ? 'true' : 'false' }} }" :class="sidebarExpanded ? 'block' : 'hidden'" class="mb-2">
+                            {{-- SETTINGS HEADER --}}
+                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                                <span>Settings</span>
+                                <svg class="h-3 w-3 fill-current transition-transform"
+                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                </svg>
+                            </a>
+
+                            <ul x-show="open" class="mt-1 space-y-2">
+
+                                {{-- ================= USER & ACCESS ================= --}}
+                                @php $userAccessSegments = ['users','roles','access_rights','role_menus']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $userAccessSegments) ? 'true' : 'false' }} }" class="ml-2">
+
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-
-                                        <span>Settings</span>
-
+                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>User & Access</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                             <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                                         </svg>
                                     </a>
 
-                                    {{-- EVERYTHING BELOW IS YOUR EXISTING CODE --}}
-                                    <ul class="mt-1 space-y-2" :class="open ? 'block' : 'hidden'">
-
-
-                                        <!-- User & Access -->
-                                        @php
-                                            $userAccessSegments = ['users', 'roles', 'access_rights', 'role_menus'];
-                                        @endphp
-                                        <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $userAccessSegments) ? 1 : 0 }} }">
-
-                                            <!-- Header -->
-                                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-
-                                                <span>User & Access</span>
-
-                                                <svg class="h-3 w-3 fill-current text-gray-400 transition-transform"
-                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                                </svg>
-                                            </a>
-
-                                            <!-- Children -->
-                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
-
-                                                {{-- USERS --}}
-                                                <li
-                                                    class="bg-linear-to-r @if (Request::segment(1) === 'users') from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3">
-                                                    <a href="{{ route('users') }}"
-                                                        class="block truncate text-gray-800 transition dark:text-gray-100">
-                                                        <div class="flex items-center">
-                                                            <svg class="{{ Request::segment(1) === 'users' ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M18 18.72a9.094 9.094 0 00-6-2.22 9.094 9.094 0 00-6 2.22M15 7.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            </svg>
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Users</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                {{-- ROLE --}}
-                                                <li
-                                                    class="bg-linear-to-r @if (Request::segment(1) === 'roles') from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3">
-                                                    <a href="{{ route('roles') }}"
-                                                        class="block truncate text-gray-800 dark:text-gray-100">
-                                                        <div class="flex items-center">
-                                                            <svg class="{{ Request::segment(1) === 'roles' ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }}"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z" />
-                                                            </svg>
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Role</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                {{-- ACCESS RIGHT --}}
-                                                <li
-                                                    class="bg-linear-to-r @if (Request::segment(1) === 'access_rights') from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3">
-                                                    <a href="{{ route('access_rights') }}"
-                                                        class="block truncate text-gray-800 dark:text-gray-100">
-                                                        <div class="flex items-center">
-                                                            <svg class="{{ Request::segment(1) === 'access_rights' ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }}"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM2.25 21h4.5l1.5-4.5h4.5" />
-                                                            </svg>
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Access
-                                                                Right</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                {{-- ROLE MENU --}}
-                                                <li
-                                                    class="bg-linear-to-r @if (Request::segment(1) === 'role_menus') from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3">
-                                                    <a href="{{ route('role_menus') }}"
-                                                        class="block truncate text-gray-800 dark:text-gray-100">
-                                                        <div class="flex items-center">
-                                                            <svg class="{{ Request::segment(1) === 'role_menus' ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }}"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.008M3.75 12h.008M3.75 17.25h.008" />
-                                                            </svg>
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Role
-                                                                Menu</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                            </ul>
-                                        </li>
-
-                                        <!-- Application -->
-                                        @php
-                                            $ApplicationSegments = ['applications', 'screens', 'menus'];
-                                        @endphp
-                                        <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $ApplicationSegments) ? 1 : 0 }} }">
-
-                                            <!-- Header -->
-                                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-
-                                                <span>Application</span>
-
-                                                <svg class="h-3 w-3 fill-current text-gray-400 transition-transform"
-                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                                </svg>
-                                            </a>
-
-                                            <!-- Children -->
-                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['applications'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['applications'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('applications') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['applications'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M9 12h6m-6 4h6M7.5 3.75h9A2.25 2.25 0 0118.75 6v12A2.25 2.25 0 0116.5 20.25h-9A2.25 2.25 0 015.25 18V6A2.25 2.25 0 017.5 3.75z" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Application</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['screens'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['screens'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('screens') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['screens'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
-                                                            </svg>
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Screen</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('menus') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M3.75 4.5h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 13.5h16.5v6H3.75v-6z" />
-                                                            </svg>
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Menu</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </li>
-
-                                        <!-- Organization -->
-                                        @php
-                                            $organizationSegments = ['companies', 'department', 'tenants', 'locations'];
-                                        @endphp
-                                        <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $organizationSegments) ? 1 : 0 }} }">
-
-                                            <!-- Header -->
-                                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-
-                                                <span>Organization</span>
-
-                                                <svg class="h-3 w-3 fill-current text-gray-400 transition-transform"
-                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                                </svg>
-                                            </a>
-
-                                            <!-- Children -->
-                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['companies'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['companies'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('companies') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['companies'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M3.75 21V3.75h16.5V21M9 9h.01M15 9h.01M9 15h.01M15 15h.01" />
-                                                            </svg>
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Company</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['department'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['department'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('department') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['department'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 14.25h6v6h-6v-6zm10.5 0h6v6h-6v-6z" />
-                                                            </svg>
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Department</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['tenants'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['tenants'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('tenants') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['tenants'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M3 10.5l9-7.5 9 7.5V21H3v-10.5zm6 10.5v-6h6v6" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Tenant</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['locations'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['locations'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('locations') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['locations'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M12 21s6-5.25 6-10a6 6 0 10-12 0c0 4.75 6 10 6 10z" />
-                                                            </svg>
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Location</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </li>
-
-                                        <!-- Master Data -->
-                                        @php
-                                            $organizationSegments = [
-                                                'categories',
-                                                'vendors',
-                                                'inventories',
-                                                'autonbrs',
-                                                'tops',
-                                            ];
-                                        @endphp
-                                        <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $organizationSegments) ? 1 : 0 }} }">
-
-                                            <!-- Header -->
-                                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-
-                                                <span>Master Data</span>
-
-                                                <svg class="h-3 w-3 fill-current text-gray-400 transition-transform"
-                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                                </svg>
-                                            </a>
-
-                                            <!-- Children -->
-                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['categories'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['categories'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('categories') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['categories'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Category</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['vendors'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['vendors'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('vendors') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['vendors'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M3 7.5h11.25v9H3v-9zm11.25 3.75H18l3 3v3.75h-6.75M6.75 18a.75.75 0 100-1.5.75.75 0 000 1.5zm9 0a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Vendor</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['inventories'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['inventories'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('inventories') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['inventories'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M3.75 6.75h16.5v10.5H3.75V6.75zm6 3h4.5" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Inventory</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['autonbrs'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['autonbrs'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('autonbrs') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['autonbrs'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M10.5 3.75L9 20.25M15 3.75l-1.5 16.5M4.5 9.75h15M3.75 14.25h15" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Autonbr</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['tops'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['tops'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('tops') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['tops'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M11.48 3.5l2.16 4.38 4.83.7-3.5 3.41.83 4.82-4.32-2.27-4.32 2.27.83-4.82-3.5-3.41 4.83-.7L11.48 3.5z" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">TOP</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </li>
-
-                                        <!-- Workflow -->
-                                        @php
-                                            $workflowSegments = ['approvals'];
-                                        @endphp
-                                        <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 1 : 0 }} }">
-
-                                            <!-- Header -->
-                                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-
-                                                <span>Workflow</span>
-
-                                                <svg class="h-3 w-3 fill-current text-gray-400 transition-transform"
-                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                                </svg>
-                                            </a>
-
-                                            <!-- Children -->
-                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['approvals'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['approvals'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('approvals') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['approvals'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
-                                                            </svg>
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Approval</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['budgetmonitor'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['budgetmonitor'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('budgetmonitor') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['budgetmonitor'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
-                                                            </svg>
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">TEST
-                                                                Monitor</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </li>
-
-                                        <!-- Integration -->
-                                        @php
-                                            $IntegrationSegments = ['ifcaintegration'];
-                                        @endphp
-                                        <li class="mb-2 ml-2" x-data="{ open: {{ in_array(Request::segment(1), $IntegrationSegments) ? 1 : 0 }} }">
-
-                                            <!-- Header -->
-                                            <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-
-                                                <span>Integration</span>
-
-                                                <svg class="h-3 w-3 fill-current text-gray-400 transition-transform"
-                                                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                    <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                                </svg>
-                                            </a>
-
-                                            <!-- Children -->
-                                            <ul class="mt-1" :class="open ? 'block' : 'hidden'">
-
-                                                <li
-                                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['integration.ifcaintegration'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                    <a class="@if (!in_array(Request::segment(1), ['integration.ifcaintegration'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                        href="{{ route('integration.ifcaintegration') }}">
-                                                        <div class="flex items-center">
-                                                            <svg class="@if (in_array(Request::segment(1), ['ifcaintegration'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor" width="16" height="16">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M9 12h6m-6 4h6M7.5 3.75h9A2.25 2.25 0 0118.75 6v12A2.25 2.25 0 0116.5 20.25h-9A2.25 2.25 0 015.25 18V6A2.25 2.25 0 017.5 3.75z" />
-                                                            </svg>
-
-
-                                                            <span
-                                                                class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">IFCA
-                                                                Integration</span>
-                                                        </div>
-                                                    </a>
-                                                </li>
-
-                                                <!-- <li
-                                                                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['screens'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                                        <a class="@if (!in_array(Request::segment(1), ['screens'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                                            href="{{ route('screens') }}">
-                                                                            <div class="flex items-center">
-                                                                                <svg class="@if (in_array(Request::segment(1), ['screens'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                                    viewBox="0 0 24 24" stroke-width="1.5"
-                                                                                    stroke="currentColor" width="16" height="16">
-                                                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                                                        d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
-                                                                                </svg>
-                                                                                <span
-                                                                                   class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Screen</span>
-                                                                            </div>
-                                                                        </a>
-                                                                    </li>
-
-                                                                    <li
-                                                                        class="bg-linear-to-r @if (in_array(Request::segment(1), ['menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                                                        <a class="@if (!in_array(Request::segment(1), ['menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                                                            href="{{ route('menus') }}">
-                                                                            <div class="flex items-center">
-                                                                                <svg class="@if (in_array(Request::segment(1), ['menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                                                    xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                                    viewBox="0 0 24 24" stroke-width="1.5"
-                                                                                    stroke="currentColor" width="16" height="16">
-
-                                                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                                                        d="M3.75 4.5h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 13.5h16.5v6H3.75v-6z" />
-                                                                                </svg>
-
-                                                                                <span
-                                                                                   class="lg:sidebar-expanded:ml-4 lg:sidebar-expanded:opacity-100 text-sm font-medium leading-tight transition-all duration-200 lg:opacity-0">Menu</span>
-                                                                            </div>
-                                                                        </a>
-                                                                    </li> -->
-                                            </ul>
-                                        </li>
+                                    <ul x-show="open" class="mt-1">
+
+                                        {{-- USERS --}}
+                                        @foreach ([['users', 'Users', 'M18 18.72a9.094 9.094 0 00-6-2.22 9.094 9.094 0 00-6 2.22M15 7.5a3 3 0 11-6 0 3 3 0 016 0z'], ['roles', 'Role', 'M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z'], ['access_rights', 'Access Right', 'M15 7a4 4 0 11-8 0 4 4 0 018 0zM2.25 21h4.5l1.5-4.5h4.5'], ['role_menus', 'Role Menu', 'M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.008M3.75 12h.008M3.75 17.25h.008']] as [$seg, $label, $path])
+                                            <li class="bg-linear-to-r {{ Request::segment(1) === $seg ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-2 transition"
+                                                :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                                <a href="{{ route($seg) }}"
+                                                    class="block truncate text-gray-800 transition dark:text-gray-100">
+                                                    <div class="flex items-center transition-all duration-200"
+                                                        :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+                                                        <svg class="{{ Request::segment(1) === $seg ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24" stroke-width="1.5"
+                                                            stroke="currentColor" width="16" height="16">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="{{ $path }}" />
+                                                        </svg>
+                                                        <span x-show="sidebarExpanded"
+                                                            class="text-smm ml-4 whitespace-nowrap font-medium leading-tight">
+                                                            {{ $label }}
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            </li>
+                                        @endforeach
 
                                     </ul>
                                 </li>
 
+                                {{-- ================= APPLICATION ================= --}}
+                                @php $appSegments = ['applications','screens','menus']; @endphp
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $appSegments) ? 'true' : 'false' }} }" class="ml-2">
 
-                                {{-- @php
-                                    $settingsSegments = [
-                                        'users',
-                                        'roles',
-                                        'access-rights',
-                                        'role-menus',
-                                        'applications',
-                                        'screens',
-                                        'menus',
-                                        'companies',
-                                        'departments',
-                                        'tenants',
-                                        'locations',
+                                    <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>Application</span>
+                                        <svg class="h-3 w-3 fill-current transition-transform"
+                                            :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
+                                    </a>
+
+                                    <ul x-show="open" class="mt-1">
+                                        @foreach ([['applications', 'Application', 'M9 12h6m-6 4h6M7.5 3.75h9A2.25 2.25 0 0118.75 6v12A2.25 2.25 0 0116.5 20.25h-9A2.25 2.25 0 015.25 18V6A2.25 2.25 0 017.5 3.75z'], ['screens', 'Screen', 'M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6'], ['menus', 'Menu', 'M3.75 4.5h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 13.5h16.5v6H3.75v-6z']] as [$seg, $label, $path])
+                                            <li class="bg-linear-to-r {{ Request::segment(1) === $seg ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-2 transition"
+                                                :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                                <a href="{{ route($seg) }}"
+                                                    class="block truncate text-gray-800 transition dark:text-gray-100">
+                                                    <div class="flex items-center transition-all duration-200"
+                                                        :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+                                                        <svg class="{{ Request::segment(1) === $seg ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24" stroke-width="1.5"
+                                                            stroke="currentColor" width="16" height="16">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="{{ $path }}" />
+                                                        </svg>
+                                                        <span x-show="sidebarExpanded"
+                                                            class="text-smm ml-4 whitespace-nowrap font-medium leading-tight">
+                                                            {{ $label }}
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </li>
+
+                                {{-- ================= ORGANIZATION ================= --}}
+                                @php
+                                    $orgSegments = ['companies', 'department', 'tenants', 'locations'];
+                                @endphp
+
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $orgSegments) ? 'true' : 'false' }} }" class="ml-2">
+                                    {{-- Header --}}
+                                    <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>Organization</span>
+                                        <svg class="h-3 w-3 fill-current transition-transform"
+                                            :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
+                                    </a>
+
+                                    {{-- Children --}}
+                                    <ul x-show="open" class="mt-1">
+                                        @foreach ([['companies', 'Company', 'M3.75 21V3.75h16.5V21M9 9h.01M15 9h.01M9 15h.01M15 15h.01'], ['department', 'Department', 'M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 14.25h6v6h-6v-6zm10.5 0h6v6h-6v-6z'], ['tenants', 'Tenant', 'M3 10.5l9-7.5 9 7.5V21H3v-10.5zm6 10.5v-6h6v6'], ['locations', 'Location', 'M12 21s6-5.25 6-10a6 6 0 10-12 0c0 4.75 6 10 6 10z']] as [$seg, $label, $path])
+                                            <li class="bg-linear-to-r {{ Request::segment(1) === $seg
+                                                ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
+                                                : '' }} rounded-lg py-2 transition"
+                                                :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                                <a href="{{ route($seg) }}"
+                                                    class="block truncate text-gray-800 transition dark:text-gray-100">
+                                                    <div class="flex items-center transition-all duration-200"
+                                                        :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+                                                        <svg class="{{ Request::segment(1) === $seg ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24" stroke-width="1.5"
+                                                            stroke="currentColor" width="16" height="16">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="{{ $path }}" />
+                                                        </svg>
+
+                                                        <span x-show="sidebarExpanded"
+                                                            class="text-smm ml-4 whitespace-nowrap font-medium leading-tight">
+                                                            {{ $label }}
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </li>
+
+                                {{-- ================= MASTER DATA ================= --}}
+                                @php
+                                    $masterDataSegments = [
                                         'categories',
                                         'vendors',
                                         'inventories',
@@ -1012,416 +487,159 @@
                                     ];
                                 @endphp
 
-                                <li class="bg-linear-to-r @if (in_array(Request::segment(1), $settingsSegments)) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif mb-0.5 rounded-lg py-2 pl-4 pr-3"
-                                    x-data="{ open: {{ in_array(Request::segment(1), $settingsSegments) ? 1 : 0 }} }">
-                                    <!-- Parent -->
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $masterDataSegments) ? 'true' : 'false' }} }" class="ml-2">
+                                    {{-- Header --}}
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="block truncate text-gray-800 transition dark:text-gray-100">
-
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center">
-
-                                                <!-- Icon -->
-                                                <svg class="{{ in_array(Request::segment(1), $settingsSegments) ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="1.5" stroke="currentColor" width="16"
-                                                    height="16">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M10.5 6h3m-3 6h3m-6 6h12A2.25 2.25 0 0021.75 15V6A2.25 2.25 0 0019.5 3h-15A2.25 2.25 0 002.25 6v9A2.25 2.25 0 004.5 18z" />
-                                                </svg>
-
-                                                <span
-                                                   class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">
-                                                    Settings
-                                                </span>
-                                            </div>
-
-                                            <!-- Arrow -->
-                                            <svg class="ml-1 h-3 w-3 shrink-0 fill-current text-gray-400 dark:text-gray-500"
-                                                :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
-                                                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                                            </svg>
-                                        </div>
+                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>Master Data</span>
+                                        <svg class="h-3 w-3 fill-current transition-transform"
+                                            :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
                                     </a>
 
-                                    <!-- Children -->
+                                    {{-- Children --}}
+                                    <ul x-show="open" class="mt-1">
+                                        @foreach ([['categories', 'Category', 'M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z'], ['vendors', 'Vendor', 'M3 7.5h11.25v9H3v-9zm11.25 3.75H18l3 3v3.75h-6.75'], ['inventories', 'Inventory', 'M3.75 6.75h16.5v10.5H3.75V6.75zm6 3h4.5'], ['autonbrs', 'Autonbr', 'M10.5 3.75L9 20.25M15 3.75l-1.5 16.5M4.5 9.75h15M3.75 14.25h15'], ['tops', 'TOP', 'M11.48 3.5l2.16 4.38 4.83.7-3.5 3.41.83 4.82-4.32-2.27-4.32 2.27.83-4.82-3.5-3.41 4.83-.7L11.48 3.5z'], ['approvals', 'Approval', 'M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75']] as [$seg, $label, $path])
+                                            <li class="bg-linear-to-r {{ Request::segment(1) === $seg
+                                                ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
+                                                : '' }} rounded-lg py-2 transition"
+                                                :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                                <a href="{{ route($seg) }}"
+                                                    class="block truncate text-gray-800 transition dark:text-gray-100">
+                                                    <div class="flex items-center transition-all duration-200"
+                                                        :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+                                                        <svg class="{{ Request::segment(1) === $seg ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24" stroke-width="1.5"
+                                                            stroke="currentColor" width="16" height="16">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="{{ $path }}" />
+                                                        </svg>
 
-                                </li> --}}
+                                                        <span x-show="sidebarExpanded"
+                                                            class="text-smm ml-4 whitespace-nowrap font-medium leading-tight">
+                                                            {{ $label }}
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </li>
+                                {{-- ================= WORKFLOW ================= --}}
+                                @php
+                                    $workflowSegments = ['approvals', 'budgetmonitor'];
+                                @endphp
 
-
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['users'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['users'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('users') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['users'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M18 18.72a9.094 9.094 0 00-6-2.22 9.094 9.094 0 00-6 2.22M15 7.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Users</span>
-                                        </div>
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }" class="mb-2 ml-2">
+                                    {{-- Header --}}
+                                    <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>Workflow</span>
+                                        <svg class="h-3 w-3 fill-current transition-transform"
+                                            :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
                                     </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['access_rights'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['access_rights'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('access_rights') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['access_rights'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM2.25 21h4.5l1.5-4.5h4.5" />
-                                            </svg>
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Access
-                                                Right</span>
-                                        </div>
+
+                                    {{-- Children --}}
+                                    <ul x-show="open" class="mt-1">
+                                        @foreach ([['approvals', 'Approval', 'M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75'], ['budgetmonitor', 'TEST Monitor', 'M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75']] as [$seg, $label, $path])
+                                            <li class="bg-linear-to-r {{ Request::segment(1) === $seg
+                                                ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
+                                                : '' }} rounded-lg py-2 transition"
+                                                :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                                <a href="{{ route($seg) }}"
+                                                    class="{{ Request::segment(1) !== $seg ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100">
+                                                    <div class="flex items-center transition-all duration-200"
+                                                        :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+                                                        <svg class="{{ Request::segment(1) === $seg ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                            viewBox="0 0 24 24" stroke-width="1.5"
+                                                            stroke="currentColor" width="16" height="16">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="{{ $path }}" />
+                                                        </svg>
+
+                                                        <span x-show="sidebarExpanded"
+                                                            class="text-smm ml-4 whitespace-nowrap font-medium leading-tight">
+                                                            {{ $label }}
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </li>
+
+                                {{-- ================= INTEGRATION ================= --}}
+                                @php
+                                    $integrationSegments = ['ifcaintegration'];
+                                @endphp
+
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $integrationSegments) ? 'true' : 'false' }} }" class="mb-2 ml-2">
+                                    {{-- Header --}}
+                                    <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>Integration</span>
+                                        <svg class="h-3 w-3 fill-current transition-transform"
+                                            :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
                                     </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['roles'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['roles'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('roles') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['roles'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z" />
-                                            </svg>
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Role</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['role_menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['role_menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('role_menus') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['role_menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
 
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.008M3.75 12h.008M3.75 17.25h.008" />
-                                            </svg>
+                                    {{-- Children --}}
+                                    <ul x-show="open" class="mt-1">
+                                        <li class="bg-linear-to-r {{ Request::segment(1) === 'ifcaintegration'
+                                            ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
+                                            : '' }} rounded-lg py-2 transition"
+                                            :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+                                            <a href="{{ route('integration.ifcaintegration') }}"
+                                                class="{{ Request::segment(1) !== 'ifcaintegration' ? 'hover:text-gray-900 dark:hover:text-white' : '' }} block truncate text-gray-800 transition dark:text-gray-100">
+                                                <div class="flex items-center transition-all duration-200"
+                                                    :class="sidebarExpanded ? 'gap-3 justify-start' : 'justify-center'">
+                                                    <svg class="{{ Request::segment(1) === 'ifcaintegration' ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500' }} shrink-0"
+                                                        xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                        width="16" height="16">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M9 12h6m-6 4h6M7.5 3.75h9A2.25 2.25 0 0118.75 6v12A2.25 2.25 0 0116.5 20.25h-9A2.25 2.25 0 015.25 18V6A2.25 2.25 0 017.5 3.75z" />
+                                                    </svg>
+
+                                                    <span x-show="sidebarExpanded"
+                                                        class="text-smm ml-4 whitespace-nowrap font-medium leading-tight">
+                                                        IFCA Integration
+                                                    </span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
 
 
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Role
-                                                Menu</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['applications'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['applications'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('applications') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['applications'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M9 12h6m-6 4h6M7.5 3.75h9A2.25 2.25 0 0118.75 6v12A2.25 2.25 0 0116.5 20.25h-9A2.25 2.25 0 015.25 18V6A2.25 2.25 0 017.5 3.75z" />
-                                            </svg>
 
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Application</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['screens'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['screens'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('screens') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['screens'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.75 6.75h16.5v9H3.75v-9zM9 18.75h6" />
-                                            </svg>
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Screen</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['menus'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['menus'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('menus') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['menus'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.75 4.5h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 13.5h16.5v6H3.75v-6z" />
-                                            </svg>
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Menu</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['approvals'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['approvals'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('approvals') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['approvals'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M2.25 12.75v-.75a2.25 2.25 0 012.25-2.25h15a2.25 2.25 0 012.25 2.25v.75m-19.5 0v3a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25v-3m-19.5 0h19.5M6 9.75v-.75a3 3 0 013-3h6a3 3 0 013 3v.75" />
-                                            </svg>
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Approval</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['companies'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['companies'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('companies') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['companies'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.75 21V3.75h16.5V21M9 9h.01M15 9h.01M9 15h.01M15 15h.01" />
-                                            </svg>
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Company</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['department'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['department'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('department') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['department'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.75 3.75h6v6h-6v-6zm10.5 0h6v6h-6v-6zM3.75 14.25h6v6h-6v-6zm10.5 0h6v6h-6v-6z" />
-                                            </svg>
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Department</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['categories'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['categories'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('categories') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['categories'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="
-                                                                                                                                                                                                    M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z" />
-                                            </svg>
-
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Category</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['autonbrs'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['autonbrs'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('autonbrs') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['autonbrs'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M10.5 3.75L9 20.25M15 3.75l-1.5 16.5M4.5 9.75h15M3.75 14.25h15" />
-                                            </svg>
-
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Autonbr</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['vendors'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['vendors'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('vendors') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['vendors'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3 7.5h11.25v9H3v-9zm11.25 3.75H18l3 3v3.75h-6.75M6.75 18a.75.75 0 100-1.5.75.75 0 000 1.5zm9 0a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-                                            </svg>
-
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Vendor</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['inventories'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['inventories'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('inventories') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['inventories'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3.75 6.75h16.5v10.5H3.75V6.75zm6 3h4.5" />
-                                            </svg>
-
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Inventory</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['tenants'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['tenants'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('tenants') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['tenants'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M3 10.5l9-7.5 9 7.5V21H3v-10.5zm6 10.5v-6h6v6" />
-                                            </svg>
-
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Tenant</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['locations'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['locations'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('locations') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['locations'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M12 21s6-5.25 6-10a6 6 0 10-12 0c0 4.75 6 10 6 10z" />
-                                            </svg>
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">Location</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                                {{-- <li
-                                    class="bg-linear-to-r @if (in_array(Request::segment(1), ['tops'])) {{ 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' }} @endif mb-0.5 rounded-lg py-2 pl-4 pr-3 last:mb-0">
-                                    <a class="@if (!in_array(Request::segment(1), ['tops'])) {{ 'hover:text-gray-900 dark:hover:text-white' }} @endif block truncate text-gray-800 transition dark:text-gray-100"
-                                        href="{{ route('tops') }}">
-                                        <div class="flex items-center">
-                                            <svg class="@if (in_array(Request::segment(1), ['tops'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif shrink-0"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" width="16" height="16">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M11.48 3.5l2.16 4.38 4.83.7-3.5 3.41.83 4.82-4.32-2.27-4.32 2.27.83-4.82-3.5-3.41 4.83-.7L11.48 3.5z" />
-                                            </svg>
-
-
-                                            <span
-                                               class="text-sm font-medium leading-tight transition-all duration-200
-           lg:sidebar-expanded:ml-4
-           lg:sidebar-expanded:opacity-100
-           lg:opacity-0">TOP</span>
-                                        </div>
-                                    </a>
-                                </li> --}}
-                            @endif
-                        @endif
-                    @endauth
+                            </ul>
+                        </li>
+                    @endif
                 </ul>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Expand / collapse button -->
-        <div class="mt-auto hidden justify-end pt-3 lg:inline-flex 2xl:hidden">
-            <div class="w-12 py-2 pl-4 pr-3">
-                <button
-                    class="text-gray-400 transition-colors hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
-                    @click="sidebarExpanded = !sidebarExpanded; localStorage.setItem('sidebarExpanded', sidebarExpanded)">
-                    <span class="sr-only">Expand / collapse sidebar</span>
-                    <svg class="shrink-0 fill-current text-gray-400 transition-transform duration-200 dark:text-gray-500"
-                        :class="sidebarExpanded ? 'rotate-180' : 'rotate-0'" xmlns="http://www.w3.org/2000/svg"
-                        width="16" height="16" viewBox="0 0 16 16">
-                        <path
-                            d="M15 16a1 1 0 0 1-1-1V1a1 1 0 1 1 2 0v14a1 1 0 0 1-1 1ZM8.586 7H1a1 1 0 1 0 0 2h7.586l-2.793 2.793a1 1 0 1 0 1.414 1.414l4.5-4.5A.997.997 0 0 0 12 8.01M11.924 7.617a.997.997 0 0 0-.217-.324l-4.5-4.5a1 1 0 0 0-1.414 1.414L8.586 7M12 7.99a.996.996 0 0 0-.076-.373Z" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+<!-- Expand / collapse button -->
+<div class="mt-auto hidden justify-end pt-3 lg:inline-flex 2xl:hidden">
+    <div class=":class= w-12 py-2"sidebarExpanded ? 'pl-4 pr-3' : 'px-2'"">
+        <button class="text-gray-400 transition-colors hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+            @click="sidebarExpanded = !sidebarExpanded; localStorage.setItem('sidebarExpanded', sidebarExpanded)">
+            <span class="sr-only">Expand / collapse sidebar</span>
+            <svg class="shrink-0 fill-current text-gray-400 transition-transform duration-200 dark:text-gray-500"
+                :class="sidebarExpanded ? 'rotate-180' : 'rotate-0'" xmlns="http://www.w3.org/2000/svg"
+                width="16" height="16" viewBox="0 0 16 16">
+                <path
+                    d="M15 16a1 1 0 0 1-1-1V1a1 1 0 1 1 2 0v14a1 1 0 0 1-1 1ZM8.586 7H1a1 1 0 1 0 0 2h7.586l-2.793 2.793a1 1 0 1 0 1.414 1.414l4.5-4.5A.997.997 0 0 0 12 8.01M11.924 7.617a.997.997 0 0 0-.217-.324l-4.5-4.5a1 1 0 0 0-1.414 1.414L8.586 7M12 7.99a.996.996 0 0 0-.076-.373Z" />
+            </svg>
+        </button>
     </div>
 </div>

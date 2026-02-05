@@ -1,134 +1,12 @@
 @php $noBack = true; @endphp
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-{{-- ================= ALPINE LOGIC ================= --}}
-<script>
-    function todoApp() {
-        return {
-            showModal: false,
-            selectedDay: 'thu',
-
-            days: [{
-                    key: 'mon',
-                    label: 'Mon',
-                    date: 15
-                },
-                {
-                    key: 'tue',
-                    label: 'Tue',
-                    date: 16
-                },
-                {
-                    key: 'wed',
-                    label: 'Wed',
-                    date: 17
-                },
-                {
-                    key: 'thu',
-                    label: 'Thu',
-                    date: 18
-                },
-                {
-                    key: 'fri',
-                    label: 'Fri',
-                    date: 19
-                },
-                {
-                    key: 'sat',
-                    label: 'Sat',
-                    date: 20
-                },
-                {
-                    key: 'sun',
-                    label: 'Sun',
-                    date: 21
-                },
-            ],
-
-            // MOCK TASKS
-            tasks: [{
-                    id: 1,
-                    title: 'Review PRF submissions',
-                    deadline: '2025-12-16', // OVERDUE
-                    type: 'task',
-                    location: '',
-                    day: 'tue',
-                    completed: false,
-                },
-                {
-                    id: 2,
-                    title: 'HR Weekly Meeting',
-                    deadline: '2025-12-18', // TODAY
-                    type: 'meeting',
-                    location: 'Meeting Room B',
-                    day: 'thu',
-                    completed: false,
-                },
-                {
-                    id: 3,
-                    title: 'Warehouse stock check',
-                    deadline: '2025-12-19',
-                    type: 'task',
-                    location: '',
-                    day: 'fri',
-                    completed: true,
-                },
-            ],
-
-            newTask: {
-                title: '',
-                deadline: '',
-            },
-
-            today() {
-                return new Date().toISOString().split('T')[0]
-            },
-
-            isToday(task) {
-                return task.deadline === this.today()
-            },
-
-            isOverdue(task) {
-                return !task.completed && task.deadline < this.today()
-            },
-
-            filteredTasks() {
-                return this.tasks.filter(task => {
-                    if (this.isOverdue(task)) return true
-                    return task.day === this.selectedDay
-                })
-            },
-
-            addTask() {
-                this.tasks.push({
-                    id: Date.now(),
-                    title: task.title,
-                    date: task.deadline,
-                    start_time: task.start_time || '',
-                    end_time: task.end_time || '',
-                    location: task.location || '',
-                    link: task.link || '',
-                    fromGoogle: false,
-                    completed: false,
-                });
-
-                this.newTask = {
-                    title: '',
-                    deadline: ''
-                }
-                this.showModal = false
-            }
-        }
-    }
-</script>
-
-
 <x-app-layout>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- <!-- HEADER -->
     <x-app.header variant="v2" /> --}}
 
     <!-- MAIN WRAPPER (LOCKED SCREEN, NO SCROLL) -->
-    <div class="flex h-screen w-full gap-6 overflow-hidden bg-gray-100 dark:bg-gray-900">
+    <div class="flex h-screen w-full flex-col gap-6 overflow-hidden bg-gray-100 dark:bg-gray-900">
 
         {{-- ================= LEFT : APPLICATION MODULES ================= --}}
 
@@ -308,8 +186,10 @@
                 </div>
             </div>
 
+
+
             <div x-data="todoApp()" x-init="init()"
-                class="flex flex-col overflow-hidden rounded-xl border bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                class="mx-auto flex w-full flex-col overflow-hidden rounded-xl border bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                 <!-- HEADER -->
                 <div class="mb-6 flex items-center justify-between">
@@ -318,25 +198,32 @@
                     </h2>
 
                     <div class="flex items-center gap-2">
+
+                        <!-- NOT CONNECTED -->
                         <template x-if="!googleConnected">
-                            <a href="/auth/google/calendar" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            <a href="{{ url('/google/calendar/connect') }}"
+                                class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">
                                 Connect Google Calendar
                             </a>
+
                         </template>
 
+                        <!-- CONNECTED -->
                         <template x-if="googleConnected">
                             <span class="rounded-lg bg-green-100 px-3 py-2 text-sm text-green-700">
                                 ✓ Google Connected
                             </span>
                         </template>
 
-                        <button @click="loadGoogleEvents()" class="rounded-lg border px-3 py-2 text-sm">
+                        <!-- REFRESH -->
+                        <button x-show="googleConnected" @click="loadGoogleEvents()"
+                            class="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">
                             🔄 Refresh Google
                         </button>
 
-
-                        <button @click="showModal = true" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white">
-                            Create Task
+                        <button @click="showModal = true"
+                            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700">
+                            + Create Task
                         </button>
                     </div>
                 </div>
@@ -365,34 +252,28 @@
                                     class="mt-1">
 
                                 <div class="flex-1">
-                                    <!-- TITLE + BADGE -->
                                     <div class="flex items-center gap-2">
                                         <p class="font-medium"
-                                            :class="task.completed ?
-                                                'line-through text-gray-400' :
+                                            :class="task.completed ? 'line-through text-gray-400' :
                                                 'text-gray-900 dark:text-gray-100'"
                                             x-text="task.title"></p>
 
                                         <span x-show="task.fromGoogle"
-                                            class="rounded-full bg-blue-100 px-2 py-0.5 text-sm text-blue-700">
+                                            class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
                                             Google
                                         </span>
                                     </div>
 
-                                    <!-- META -->
                                     <div class="mt-1 space-y-1 text-sm text-gray-500 dark:text-gray-300">
                                         <p>Date: <span x-text="task.date"></span></p>
 
                                         <template x-if="task.start_time">
-                                            <p>
-                                                ⏰
-                                                <span x-text="task.start_time"></span>
+                                            <p>⏰ <span x-text="task.start_time"></span>
                                                 <template x-if="task.end_time">
                                                     – <span x-text="task.end_time"></span>
                                                 </template>
                                             </p>
                                         </template>
-
 
                                         <template x-if="task.location">
                                             <p>📍 <span x-text="task.location"></span></p>
@@ -400,16 +281,15 @@
 
                                         <template x-if="task.link">
                                             <p>
-                                                🔗
-                                                <a :href="task.link" target="_blank"
+                                                🔗 <a :href="task.link" target="_blank"
                                                     class="text-indigo-600 underline">
                                                     Open link
                                                 </a>
                                             </p>
                                         </template>
-
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </template>
@@ -427,102 +307,42 @@
 
                     <div @click.stop class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
 
-                        <!-- HEADER -->
-                        <div class="mb-6">
-                            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                Create New Task
-                            </h3>
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Add details to schedule your task or meeting
-                            </p>
-                        </div>
+                        <h3 class="mb-6 text-base font-semibold">Create New Task</h3>
 
-                        <!-- FORM -->
                         <div class="space-y-5">
-                            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
-                                <!-- TITLE -->
-                                <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-500">
-                                        Title
-                                    </label>
-                                    <input type="text" x-model="newTask.title"
-                                        placeholder="e.g. HR Weekly Meeting"
-                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
-                                </div>
+                            <div class="grid grid-cols-2 gap-5">
+                                <input x-model="newTask.title" placeholder="Task title"
+                                    class="rounded border px-4 py-2 text-sm">
 
-                                <!-- DATE -->
-                                <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-500">
-                                        Date
-                                    </label>
-                                    <input type="date" x-model="newTask.deadline"
-                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
-                                </div>
+                                <input type="date" x-model="newTask.deadline"
+                                    class="rounded border px-4 py-2 text-sm">
                             </div>
 
-                            <!-- TIME SECTION -->
-                            <div class="rounded-sm bg-gray-50 p-4 dark:bg-gray-700">
-                                <p class="mb-3 text-xs font-medium text-gray-500">
-                                    Time (optional)
-                                </p>
-
-                                <!-- START / END -->
-                                <div class="grid grid-cols-2 gap-3">
-                                    <input type="time" x-model="newTask.start_time"
-                                        @change="autoCalculateEndTime()"
-                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-
-                                    <input type="time" x-model="newTask.end_time" @change="newTask.duration = ''"
-                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                </div>
-
-                                <!-- DURATION -->
-                                <select x-model="newTask.duration" @change="autoCalculateEndTime()"
-                                    class="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                    <option value="">Or choose duration</option>
-                                    <option value="30">30 minutes</option>
-                                    <option value="60">1 hour</option>
-                                    <option value="90">1.5 hours</option>
-                                    <option value="120">2 hours</option>
-                                </select>
+                            <div class="grid grid-cols-2 gap-5">
+                                <input type="time" x-model="newTask.start_time"
+                                    class="rounded border px-4 py-2 text-sm">
+                                <input type="time" x-model="newTask.end_time"
+                                    class="rounded border px-4 py-2 text-sm">
                             </div>
 
-                            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                <!-- LOCATION -->
-                                <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-500">
-                                        Location
-                                    </label>
-                                    <input type="text" x-model="newTask.location" placeholder="Meeting Room B"
-                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm">
-                                </div>
-
-                                <!-- LINK -->
-                                <div>
-                                    <label class="mb-1 block text-xs font-medium text-gray-500">
-                                        Meeting Link
-                                    </label>
-                                    <input type="url" x-model="newTask.link"
-                                        placeholder="https://meet.google.com/..."
-                                        class="w-full rounded-sm border border-gray-300 px-4 py-2.5 text-sm">
-                                </div>
+                            <div class="grid grid-cols-2 gap-5">
+                                <input x-model="newTask.location" placeholder="Location"
+                                    class="rounded border px-4 py-2 text-sm">
+                                <input x-model="newTask.link" placeholder="Meeting link"
+                                    class="rounded border px-4 py-2 text-sm">
                             </div>
-
                         </div>
 
-                        <!-- FOOTER -->
-                        <div class="mt-8 flex justify-between gap-3">
-                            <button @click="showModal = false"
-                                class="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100">
+                        <div class="mt-8 flex justify-end gap-3">
+                            <button @click="showModal = false" class="px-4 py-2 text-sm">
                                 Cancel
                             </button>
-
-                            <button @click="addTask()"
-                                class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                                Create Task
+                            <button @click="addTask()" class="rounded bg-indigo-600 px-5 py-2 text-sm text-white">
+                                Create
                             </button>
                         </div>
+
                     </div>
                 </div>
 
@@ -531,118 +351,6 @@
 
 
         </div>
-        {{-- ================= RIGHT : TODO + NOTIFICATIONS ================= --}}
-        {{-- <div class="grid h-full grid-rows-2 gap-4 md:gap-6 lg:grid-rows-2 xl:grid-rows-1"> --}}
-
-
-
-        <!-- Notifications -->
-        {{-- <div x-data="{
-                notifications: [{
-                        id: 1,
-                        title: 'PO #2304',
-                        status: 'waiting',
-                        icon: '🛒',
-                        createdAt: '2025-12-18',
-                        url: '#'
-                    },
-                    {
-                        id: 2,
-                        title: 'PO #2298',
-                        status: 'revised',
-                        icon: '🛒',
-                        createdAt: '2025-12-15',
-                        url: '#'
-                    },
-                    {
-                        id: 3,
-                        title: 'SPP Barang #118',
-                        status: 'waiting',
-                        icon: '📝',
-                        createdAt: '2025-12-17',
-                        url: '#'
-                    }
-                ],
-            
-                openNotification(id) {
-                    this.notifications = this.notifications.filter(n => n.id !== id)
-                },
-            
-                formatDate(date) {
-                    return new Date(date).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: '2-digit'
-                    })
-                }
-            }"
-                class="flex flex-col overflow-hidden rounded-xl border bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-
-                <h2 class="mb-4 text-sm font-semibold text-gray-800 dark:text-gray-100">
-                    Notifications
-                </h2>
-
-                <!-- EMPTY STATE -->
-                <template x-if="notifications.length === 0">
-                    <div class="flex flex-1 items-center justify-center text-sm text-gray-400">
-                        No pending notifications
-                    </div>
-                </template>
-
-                <div class="flex-1 overflow-y-auto pr-2">
-                    <ul class="space-y-3 text-sm">
-
-                        <template x-for="item in notifications" :key="item.id">
-                            <li>
-                                <a href="#" @click.prevent="openNotification(item.id)"
-                                    class="flex items-start gap-3 rounded-xl bg-gray-50 p-3 transition hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600">
-
-                                    <!-- ICON -->
-                                    <div class="text-sm">
-                                        <span x-text="item.icon"></span>
-                                    </div>
-
-                                    <!-- CONTENT -->
-                                    <div class="flex-1">
-                                        <p class="font-medium text-gray-800 dark:text-gray-100" x-text="item.title">
-                                        </p>
-
-                                        <p class="text-sm text-gray-500 dark:text-gray-300"
-                                            x-text="item.status === 'waiting'
-                                   ? 'Waiting approval'
-                                   : 'Revision needed'">
-                                        </p>
-                                    </div>
-
-                                    <!-- RIGHT -->
-                                    <div class="flex flex-col items-end gap-1 text-right">
-
-                                        <!-- STATUS BADGE -->
-                                        <span class="rounded-full px-2 py-0.5 text-sm font-medium"
-                                            :class="item.status === 'waiting' ?
-                                                'bg-yellow-100 text-yellow-700' :
-                                                'bg-red-100 text-red-700'"
-                                            x-text="item.status">
-                                        </span>
-
-                                        <!-- UNREAD SINCE -->
-                                        <span class="text-[10px] text-gray-400"
-                                            x-text="'Unread since ' + formatDate(item.createdAt)">
-                                        </span>
-                                    </div>
-
-                                </a>
-                            </li>
-                        </template>
-
-                    </ul>
-                </div>
-            </div> --}}
-
-
-
-        {{-- 
-        </div> --}}
 
         <!-- ================= Today’s Summary ================= -->
         <div
@@ -713,11 +421,9 @@
     <script>
         function todoApp() {
             return {
-                /* ================= STATE ================= */
                 showModal: false,
-                selectedDay: null,
                 googleConnected: false,
-
+                selectedDay: null,
                 days: [],
                 tasks: [],
 
@@ -726,50 +432,30 @@
                     deadline: '',
                     start_time: '',
                     end_time: '',
-                    duration: '', // 30, 60, 90, 120 (minutes)
                     location: '',
                     link: '',
                 },
 
-
-                /* ================= INIT ================= */
                 init() {
-                    console.log('todoApp init'); // debug
-                    this.generateWeek(new Date(), true);
+                    this.generateWeek(new Date());
                     this.checkGoogle();
-
-                    setInterval(() => {
-                        if (this.googleConnected) {
-                            this.loadGoogleEvents();
-                        }
-                    }, 5 * 60 * 1000);
                 },
 
-                /* ================= GOOGLE STATUS ================= */
                 async checkGoogle() {
-                    try {
-                        const res = await fetch('/google/calendar/events');
-                        this.googleConnected = res.ok;
-
-                        if (this.googleConnected) {
-                            this.loadGoogleEvents();
-                        }
-                    } catch (e) {
-                        console.error(e);
-                        this.googleConnected = false;
-                    }
+                    const res = await fetch('/google/calendar/status', {
+                        credentials: 'same-origin'
+                    });
+                    const data = await res.json();
+                    this.googleConnected = data.connected;
+                    if (this.googleConnected) this.loadGoogleEvents();
                 },
 
-                /* ================= WEEK ================= */
-                generateWeek(baseDate = new Date(), force = false) {
-                    const monday = new Date(baseDate);
-                    const day = monday.getDay();
-                    const diff = day === 0 ? -6 : 1 - day;
+                generateWeek(base) {
+                    const monday = new Date(base);
+                    const diff = monday.getDay() === 0 ? -6 : 1 - monday.getDay();
                     monday.setDate(monday.getDate() + diff);
 
-                    this.days = Array.from({
-                        length: 7
-                    }).map((_, i) => {
+                    this.days = [...Array(7)].map((_, i) => {
                         const d = new Date(monday);
                         d.setDate(monday.getDate() + i);
                         return {
@@ -781,85 +467,75 @@
                         };
                     });
 
-                    if (!this.selectedDay || force) {
-                        this.selectedDay = this.days[0].date;
-                    }
-                },
-
-                /* ================= HELPERS ================= */
-                formatTime(dateStr) {
-                    if (!dateStr || dateStr.length === 10) return '';
-                    const d = new Date(dateStr);
-                    return d.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
+                    this.selectedDay = this.days[0].date;
                 },
 
                 filteredTasks() {
                     return this.tasks.filter(t => t.date === this.selectedDay);
                 },
 
-                /* ================= GOOGLE → APP ================= */
                 async loadGoogleEvents() {
-                    try {
-                        const res = await fetch('/google/calendar/events');
+                    const res = await fetch('/google/calendar/events', {
+                        credentials: 'same-origin'
+                    });
+                    if (!res.ok) return;
 
-                        if (res.status === 403) {
-                            this.googleConnected = false;
-                            this.tasks = this.tasks.filter(t => !t.fromGoogle);
-                            return;
-                        }
+                    const events = await res.json();
 
-                        if (!res.ok) return;
+                    const googleTasks = events.map(ev => ({
+                        id: ev.id,
+                        title: ev.title,
+                        date: ev.start.substring(0, 10),
+                        start_time: ev.start.includes('T') ? ev.start.substring(11, 16) : '',
+                        end_time: ev.end?.includes('T') ? ev.end.substring(11, 16) : '',
+                        location: ev.location,
+                        link: ev.link,
+                        fromGoogle: true,
+                        completed: false,
+                    }));
 
-                        const events = await res.json();
-
-                        const googleTasks = events.map(ev => {
-                            const start = ev.start;
-                            const date = start.includes('T') ?
-                                start.substring(0, 10) :
-                                start;
-
-                            return {
-                                id: ev.id,
-                                title: ev.title || '(No title)',
-                                date: date,
-                                time: this.formatTime(start),
-                                location: ev.location || '',
-                                link: ev.link || '',
-                                fromGoogle: true,
-                                completed: false,
-                            };
-                        });
-
-                        const localTasks = this.tasks.filter(t => !t.fromGoogle);
-                        this.tasks = [...localTasks, ...googleTasks];
-
-                    } catch (e) {
-                        console.error('Failed to load Google events', e);
-                    }
+                    this.tasks = [
+                        ...this.tasks.filter(t => !t.fromGoogle),
+                        ...googleTasks
+                    ];
                 },
 
-                /* ================= APP → GOOGLE ================= */
                 async addTask() {
-                    if (!this.newTask.title || !this.newTask.deadline) return;
+                    if (!this.newTask.title || !this.newTask.deadline) {
+                        alert('Title & date required');
+                        return;
+                    }
 
-                    const task = {
-                        ...this.newTask
-                    };
+                    await fetch('/agenda', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(this.newTask)
+                    });
 
                     if (this.googleConnected) {
-                        await this.syncToGoogle(task);
+                        await fetch('/google/calendar/event', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify(this.newTask)
+                        });
                     }
 
                     this.tasks.push({
                         id: Date.now(),
-                        title: task.title,
-                        date: task.deadline,
-                        time: task.time || '',
-                        location: task.location || '',
-                        link: task.link || '',
+                        title: this.newTask.title,
+                        date: this.newTask.deadline,
+                        start_time: this.newTask.start_time,
+                        end_time: this.newTask.end_time,
+                        location: this.newTask.location,
+                        link: this.newTask.link,
                         fromGoogle: false,
                         completed: false,
                     });
@@ -867,54 +543,18 @@
                     this.newTask = {
                         title: '',
                         deadline: '',
-                        time: '',
+                        start_time: '',
+                        end_time: '',
                         location: '',
                         link: '',
                     };
 
                     this.showModal = false;
-                },
-                /* ================= TIME
-                 ================= */
-                autoCalculateEndTime() {
-                    if (!this.newTask.start_time || !this.newTask.duration) return;
-
-                    const [h, m] = this.newTask.start_time.split(':').map(Number);
-                    const start = new Date();
-                    start.setHours(h, m, 0, 0);
-
-                    const end = new Date(start.getTime() + (this.newTask.duration * 60000));
-
-                    const hh = String(end.getHours()).padStart(2, '0');
-                    const mm = String(end.getMinutes()).padStart(2, '0');
-
-                    this.newTask.end_time = `${hh}:${mm}`;
-                },
-
-
-                /* ================= SYNC ================= */
-                async syncToGoogle(task) {
-                    try {
-                        const res = await fetch('/google/calendar/event', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                            body: JSON.stringify(task)
-                        });
-
-                        if (!res.ok) {
-                            const err = await res.json();
-                            alert(err.error ?? 'Google Calendar sync failed');
-                        }
-                    } catch (e) {
-                        console.error('Google sync failed', e);
-                    }
                 }
             }
         }
     </script>
+
 
 
 

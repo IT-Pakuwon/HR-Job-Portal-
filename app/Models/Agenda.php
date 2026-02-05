@@ -10,8 +10,10 @@ class Agenda extends Model
     use HasFactory;
 
     protected $connection = 'pgsql3';
-    protected $table = 'trx_agenda'; // Sesuai dengan standar penamaan tabel Laravel
-    // protected $primaryKey = 'agenda_id'; // Ubah primary key ke screen_id
+    protected $table = 'trx_agenda';
+
+    public $timestamps = false;
+
     protected $fillable = [     
         'docid',
         'agendadate',
@@ -35,5 +37,10 @@ class Agenda extends Model
         'created_user',
         'updated_user'
     ];
-   
+
+    protected $casts = [
+        'startdate' => 'datetime',
+        'enddate' => 'datetime',
+        'agendadate' => 'date',
+    ];
 }

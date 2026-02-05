@@ -185,3 +185,15 @@ Route::middleware('bearer.sanctum')->group(function () {
 
 });
 
+Route::middleware('auth')->group(function () {
+
+    Route::post('/google/calendar/event',
+        [GoogleCalendarController::class, 'createEvent']
+    );
+
+    Route::get('/google/calendar/events',
+        [GoogleCalendarController::class, 'listEvents']
+    );
+
+});
+
