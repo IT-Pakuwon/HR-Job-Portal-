@@ -518,7 +518,7 @@
 
 <!-- Expand / collapse button -->
 <div class="mt-auto hidden justify-end pt-3 lg:inline-flex 2xl:hidden">
-    <div class=":class= w-12 py-2"sidebarExpanded ? 'pl-4 pr-3' : 'px-2'"">
+    <div class="w-12 py-2" :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
         <button class="text-gray-400 transition-colors hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
             @click="sidebarExpanded = !sidebarExpanded; localStorage.setItem('sidebarExpanded', sidebarExpanded)">
             <span class="sr-only">Expand / collapse sidebar</span>
