@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\UserGoogle;
+use App\Models\Task;
 use App\Services\GoogleCalendarService;
 use Carbon\Carbon;
 use Google_Service_Calendar_Event;
+
 
 class GoogleCalendarApiController extends Controller
 {
@@ -54,19 +56,68 @@ class GoogleCalendarApiController extends Controller
         foreach ($events->getItems() as $event) {
             $startTime = $event->start->dateTime ?? $event->start->date;
             $endTime   = $event->end->dateTime ?? $event->end->date;
+            $task = Task::updateOrCreate(
+                ['google_event_id' => $event->id],
+                [
+                    'taskdate'       => Carbon::parse($startTime)->toDateString(),
+                    'task_title'     => $event->summary ?? '(No title)',
+                    'start_date'     => $event->start->dateTime ? Carbon::parse($startTime) : null,
+                    'end_date'       => $event->end->dateTime ? Carbon::parse($endTime) : null,
+                    'task_location'  => $event->location,
+                    'sync_to_google' => true,
+
+                    // ✅ FIX HERE
+                    'status'         => Task::STATUS_MAP['PENDING'],
+                    'updated_by'     => auth()->id(),
+                ]
+            );
+
+
+            if ($task->wasRecentlyCreated) {
+                $task->created_by = auth()->id();
+                $task->save();
+            }
+
 
             $result[] = [
-                'id' => $event->id,
-                'title' => $event->summary,
-                'start' => $startTime,
-                'end' => $endTime,
-                'location' => $event->location,
-                'link' => $event->htmlLink,
+                'id'    => $task->id,
+                'title' => $task->task_title,
+
+                'start' => $task->start_date
+                    ? $task->start_date->toIso8601String()
+                    : Carbon::parse($task->taskdate)->toIso8601String(),
+
+                'end'   => $task->end_date
+                    ? $task->end_date->toIso8601String()
+                    : null,
+
+                // ✅ THIS IS THE LINE YOU ASKED ABOUT
+                'allDay' => $task->start_date === null,
+
+                'description' => $task->task_description,
+                'location'    => $task->task_location,
+                'fromGoogle'  => true,
             ];
+
+
         }
 
-        return response()->json($result);
+        return response()->json(collect($events)->map(function ($event) {
+            return [
+                'id' => $event->id,
+                'title' => $event->summary ?? '(No title)',
+
+                // ✅ THIS IS THE KEY FIX
+                'start' => $event->start->dateTime ?? $event->start->date,
+                'end'   => $event->end->dateTime ?? $event->end->date,
+
+                'allDay' => isset($event->start->date),
+                'fromGoogle' => true,
+            ];
+        }));
+
     }
+
 
     /**
      * Create Google event from Alpine modal
@@ -88,10 +139,11 @@ class GoogleCalendarApiController extends Controller
             ? Carbon::parse($request->deadline . ' ' . $request->end_time)
             : $start->copy()->addHour();
 
+
         $event = new Google_Service_Calendar_Event([
             'summary' => $request->title,
             'location' => $request->location,
-            'description' => $request->link,
+            'description' => $request->description,
             'start' => [
                 'dateTime' => $start->toIso8601String(),
                 'timeZone' => config('app.timezone'),
@@ -104,8 +156,28 @@ class GoogleCalendarApiController extends Controller
 
         $created = $service->events->insert('primary', $event);
 
+        $task = Task::create([
+            'taskid'           => uniqid('TASK'),
+            'taskdate'         => $start->toDateString(),
+            'task_title'       => $request->title,
+            'task_description' => $request->description,
+            'start_date'       => $start,
+            'end_date'         => $end,
+            'task_location'    => $request->location,
+            'sync_to_google'   => true,
+            'google_event_id'  => $created->id,
+
+            // ✅ FIX HERE
+            'status'           => Task::STATUS_MAP['PENDING'],
+            'created_by'       => auth()->id(),
+            'updated_by'       => auth()->id(),
+        ]);
+
+
         return response()->json([
-            'id' => $created->id
+            'task_id' => $task->id,
+            'google_event_id' => $created->id,
         ]);
     }
+
 }

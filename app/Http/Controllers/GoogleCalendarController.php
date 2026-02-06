@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\UserGoogle;
+use App\Models\Task;
 use Carbon\Carbon;
 
 class GoogleCalendarController extends Controller
@@ -18,6 +19,7 @@ class GoogleCalendarController extends Controller
             ])
             ->redirect();
     }
+
 
     public function callback()
     {
@@ -49,5 +51,30 @@ class GoogleCalendarController extends Controller
         return redirect()->route('modules'); // ✅ YOUR PAGE
     }
 
+    public function disconnect()
+    {
+            $username = auth()->user()->username;
+
+            // 1️⃣ Soft-delete Google connection (disconnect account)
+            UserGoogle::where('username', $username)
+                ->whereNull('deleted_at')
+                ->update([
+                    'deleted_at' => now(),
+                    'deleted_by' => $username,
+                ]);
+
+            // 2️⃣ STOP syncing future updates (DO NOT DELETE TASKS)
+            Task::where('created_by', $username)
+                ->where('sync_to_google', true)
+                ->update([
+                    'sync_to_google' => true,
+                    'updated_by' => $username,
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Google Calendar disconnected',
+            ]);
+    }
 
 }

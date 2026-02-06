@@ -1,17 +1,14 @@
 <?php
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\MsGroupController;
-use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\MsApplicationController;
-use App\Http\Controllers\ProjectTaskController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MsVendorController;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
-use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\GoogleCalendarApiController;
+use App\Http\Controllers\TaskController;
 
 Route::get('/auth-header-debug', function (Request $request) {
     return response()->json([
@@ -21,8 +18,6 @@ Route::get('/auth-header-debug', function (Request $request) {
     ]);
 });
 
-Route::post('/google/calendar/event', [GoogleCalendarController::class, 'createEvent'])
-    ->middleware('auth');
 
 // Route::get('/__authdebug', function (Request $r) {
 //     $bearer = $r->bearerToken();
@@ -154,46 +149,20 @@ Route::get('/__authdebug3', function (Request $request) {
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-// Route::get('/agendas/month', [AgendaController::class, 'getMonthlyAgendas']);
-
-
-
-
-
-
-Route::post('/login', [AuthController::class, 'login']);
-
-Route::middleware('bearer.sanctum')->group(function () {
-
-
-    Route::get('/me', function (Request $request) {
-        return response()->json(['ok' => true, 'user' => $request->user()]);
-    });
-
-
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    // Vendor API (PROTECTED)
-    Route::get('/vendors', [MsVendorController::class, 'index']);
-    Route::post('/vendors', [MsVendorController::class, 'store']);
-    Route::get('/vendors/{id}', [MsVendorController::class, 'show']);
-    Route::put('/vendors/{id}', [MsVendorController::class, 'update']);
-    Route::delete('/vendors/{id}', [MsVendorController::class, 'destroy']);
-
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
 });
 
-Route::middleware('auth')->group(function () {
 
-    Route::post('/google/calendar/event',
-        [GoogleCalendarController::class, 'createEvent']
-    );
 
-    Route::get('/google/calendar/events',
-        [GoogleCalendarController::class, 'listEvents']
-    );
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/google/calendar/status', [GoogleCalendarApiController::class, 'status']);
+    Route::get('/google/calendar/events', [GoogleCalendarApiController::class, 'events']);
+    Route::post('/google/calendar/event', [GoogleCalendarApiController::class, 'createEvent']);
+
+    Route::post('/tasks', [TaskController::class, 'store']);
+    Route::post('/tasks/{id}/move', [TaskController::class, 'move']);
+    Route::post('/tasks/{id}/resize', [TaskController::class, 'move']);
 
 });
-
