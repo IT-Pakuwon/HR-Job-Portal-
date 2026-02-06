@@ -1407,6 +1407,7 @@ class PoController extends Controller
     {
         // Ambil semua term DP pada PO ini
         $dpTerms = TrPOterm::where('ponbr', $po->ponbr)
+            ->where('cpny_id', $po->cpny_id)
             ->where('terms_type', 'DP')
             ->orderBy('order_term')
             ->get();

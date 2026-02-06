@@ -17,6 +17,9 @@ class MsApprovalController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         $doctypes = Autonbr::select('doctype','doctype_descr')
             ->distinct()
             ->orderBy('doctype')

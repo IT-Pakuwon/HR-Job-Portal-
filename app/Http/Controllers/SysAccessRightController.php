@@ -12,6 +12,8 @@ class SysAccessRightController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
         // dropdown role
         $roles = DB::connection('pgsql2')
             ->table('sys_role')

@@ -65,6 +65,9 @@ class CanvassController extends Controller
 
     public function createCS(string $doc, string $hash)
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
         $src = \Hashids::decode($hash)[0] ?? null;
         abort_if(!$src, 404);
         
@@ -166,6 +169,7 @@ class CanvassController extends Controller
 
                 // 4. Detail tetap REUSE dari TrPOReuse (berdasarkan PO)
                 $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
+                    ->where('cpny_id', $poHeader->cpny_id)
                     ->where(function($q){
                         $q->whereNull('openordered')
                         ->orWhere('openordered', '>', 0);
@@ -419,7 +423,7 @@ class CanvassController extends Controller
         $username = $user->username ?? 'system';
 
         $dt      = \Carbon\Carbon::now();
-        $year    = $dt->year;
+        $year    = (int) $dt->year;
         $month   = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
         $round2 = fn($n) => round((float)$n, 2);
@@ -950,7 +954,7 @@ class CanvassController extends Controller
         // $username = $user->username ?? 'system';
 
         // $dt    = \Carbon\Carbon::now();
-        // $year  = $dt->year;
+        // $year  = (int) $dt->year;
         // $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $doctype  = 'CS';
         $user     = $request->user();
@@ -958,7 +962,7 @@ class CanvassController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
@@ -1459,7 +1463,7 @@ class CanvassController extends Controller
         // $username = $user->username ?? 'system';
 
         // $dt        = Carbon::now();
-        // $year      = $dt->year;
+        // $year      = (int) $dt->year;
         // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $doctype  = 'CS';
         $user     = $request->user();
@@ -1467,7 +1471,7 @@ class CanvassController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
@@ -1855,6 +1859,9 @@ class CanvassController extends Controller
 
     public function editCS(string $eid)
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         $ids = Hashids::decode($eid);
         abort_if(empty($ids), 404);
         $id = $ids[0];

@@ -203,7 +203,7 @@ class ItemRequestController extends Controller
         $user = $request->user();
         $username = $user->username ?? 'system';
         $dt    = now();
-        $year  = $dt->year;
+        $year  = (int) $dt->year;
         $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $doctype = 'SR'; // Item Request
 

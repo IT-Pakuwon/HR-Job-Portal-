@@ -111,6 +111,8 @@ class KontrakController extends Controller
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
 
+        $loginUser = Auth::user()->username ?? '';
+
         $t = (new TrKontrak)->getTable(); // "tr_kontrak"
 
         // urutan kolom sesuai tabel di view
@@ -166,14 +168,13 @@ class KontrakController extends Controller
         ->skip($start)->take($length)
         ->get();
 
-        $rows->transform(function ($r) {
+        $rows->transform(function ($r) use ($loginUser) {
             $r->eid = Hashids::encode($r->id);
 
             $st = strtoupper((string)($r->status ?? ''));
             $statusText  = $st !== '' ? $st : 'Unknown';
             $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
 
-            // NOTE: silakan sesuaikan mapping status kontrak kamu
             switch ($st) {
                 case 'H':
                     $statusText  = 'Unsend';
@@ -182,19 +183,23 @@ class KontrakController extends Controller
                 case 'P':
                     $statusText  = 'On Progress';
                     $statusClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300 border-yellow-200';
-                    break;               
+                    break;
                 case 'C':
                     $statusText  = 'Completed';
                     $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
-                    break;               
+                    break;
             }
 
             $r->status_label = $statusText;
             $r->status_class = $statusClass;
 
+            // ===== tambah flag owner =====
+            $r->is_owner = strtolower((string)($r->created_by ?? '')) === strtolower((string)$loginUser);
+
             unset($r->id);
             return $r;
         });
+
 
         return response()->json([
             'draw'            => $draw,

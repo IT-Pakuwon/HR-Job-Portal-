@@ -2071,7 +2071,202 @@ class MasterController extends Controller
 
     public function InventoryListJoin(Request $request)
     {
-        // dd($request->all());
+        $type    = strtoupper($request->get('type', 'GI'));
+        $cpnyid  = strtoupper(trim($request->get('cpnyid', '')));
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        $deptId = $request->get('departementid'); // boleh null
+
+        // ✅ tambah: ambil BU dari request
+        $businessUnitId = trim((string) $request->get('business_unit_id', ''));
+
+        // ✅ tambah: cari BU aktif dan tentukan site filter dari ifca_entity_cd / solomon_cpny_id
+        $siteFilter = null;
+        if ($businessUnitId !== '') {
+            $bu = BusinessUnit::query()
+                ->where('status', 'A')
+                ->where('business_unit_id', $businessUnitId)
+                // optional: kalau mau pastikan BU ini milik company yang sama
+                ->when($cpnyid !== '', function ($q) use ($cpnyid) {
+                    $q->where('cpny_id', $cpnyid);
+                })
+                ->first();
+
+            if ($bu) {
+                $siteFilter = trim((string) ($bu->ifca_entity_cd ?: $bu->solomon_cpny_id));
+                if ($siteFilter === '') $siteFilter = null;
+            }
+        }
+
+        // Base query MsInventory (PG)
+        $query = MsInventory::query()
+            ->select([
+                'inventoryid',
+                'inventory_descr',
+                'stock_unit',
+                'item_type',
+                'item_category',
+                'purchase_unit',
+                'item_sub_type',
+                'item_class',
+            ]);
+
+        // Filter item_type
+        if ($type === 'GI') {
+            $query->where('item_type', 'GI');
+        } elseif ($type === 'SE') {
+            $query->where('item_type', 'SE');
+        } elseif ($type === 'NS') {
+            $query->where('item_type', 'NS');
+        } else {
+            $query->whereNotIn('item_type', ['GI', 'SE']);
+        }
+
+        // FILTER item_class berdasarkan MsWorktypeWhs (hanya GI + deptId)
+        if ($type === 'GI' && !empty($deptId)) {
+            $allowedItemClasses = MsWorktypeWhs::where('department_id', $deptId)
+                ->where('status', 'A')
+                ->pluck('item_class')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($allowedItemClasses)) {
+                $query->whereIn('item_class', $allowedItemClasses);
+            }
+        }
+
+        // Search
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('inventoryid', 'ilike', "%{$search}%")
+                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                ->orWhere('stock_unit', 'ilike', "%{$search}%")
+                ->orWhere('purchase_unit', 'ilike', "%{$search}%")
+                ->orWhere('item_class', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query->distinct()
+            ->groupBy([
+                'inventoryid', 'inventory_descr', 'stock_unit',
+                'item_type', 'item_category', 'purchase_unit',
+                'item_sub_type', 'item_class'
+            ])
+            ->orderBy('inventory_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return response()->json([
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'meta'     => [
+                    'type' => $type,
+                    'cpnyid' => $cpnyid,
+                    'departementid' => $deptId,
+                    'business_unit_id' => $businessUnitId,
+                    'site_filter' => $siteFilter,
+                ],
+            ]);
+        }
+
+        // Model SQL Server sesuai cpnyid
+        $model = null;
+        switch ($cpnyid) {
+            case 'AW':  $model = \App\Models\ViewInventoryAW::class; break;
+            case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
+            case 'O8':  $model = \App\Models\ViewInventoryO8::class; break;
+            case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
+            case 'GPS': $model = \App\Models\ViewInventoryGPS::class; break;
+            default:    $model = null; break;
+        }
+
+        $expanded = collect();
+
+        if ($model) {
+            $invIds = $rows->pluck('inventoryid')->map(fn($v) => (string) $v)->unique()->values();
+
+            $ssRows = $model::query()
+                ->selectRaw("
+                    invtid,
+                    cpnyid,
+                    siteid,
+                    CAST(stock AS float) AS stock,
+                    CAST(cost  AS float) AS cost
+                ")
+                ->whereIn('invtid', $invIds)
+                ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+                // ✅ tambah: kalau siteFilter ada, filter siteid
+                ->when($siteFilter, fn($q) => $q->where('siteid', $siteFilter))
+                ->get();
+
+            $ssGroups = $ssRows->groupBy(function ($r) {
+                return strtoupper(trim((string) $r->invtid));
+            });
+
+            foreach ($rows as $r) {
+                $key   = strtoupper(trim((string) $r->inventoryid));
+                $group = $ssGroups->get($key);
+
+                if (!$group || $group->isEmpty()) {
+                    $clone = clone $r;
+                    $clone->stock  = null;
+                    $clone->cost   = null;
+
+                    // ✅ selain GI, isi siteid dari BusinessUnit kalau ada
+                    $clone->siteid = (strtoupper(trim((string)$r->item_type)) !== 'GI') ? $siteFilter : null;
+
+                    $expanded->push($clone);
+                    continue;
+                }
+
+
+                foreach ($group as $ss) {
+                    $clone = clone $r;
+                    $clone->stock  = $ss->stock;
+                    $clone->cost   = $ss->cost;
+                    $clone->siteid = $ss->siteid;
+                    $expanded->push($clone);
+                }
+            }
+        } else {
+            foreach ($rows as $r) {
+                $clone = clone $r;
+                $clone->stock  = null;
+                $clone->cost   = null;
+                $clone->siteid = null;
+                $expanded->push($clone);
+            }
+        }
+
+        return response()->json([
+            'data'     => $expanded,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+            'meta'     => [
+                'type' => $type,
+                'cpnyid' => $cpnyid,
+                'departementid' => $deptId,
+                'business_unit_id' => $businessUnitId,
+                'site_filter' => $siteFilter,
+            ],
+        ]);
+    }
+
+
+    public function InventoryListJoin_xxx(Request $request)
+    {
+       
         $type    = strtoupper($request->get('type', 'GI')); // GI | SE | NS | dll
         $cpnyid  = strtoupper(trim($request->get('cpnyid', ''))); // ✅ tambah
         $search  = trim($request->get('search', ''));
