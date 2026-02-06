@@ -160,6 +160,8 @@ class BudgetController extends Controller
    
     public function createBudget()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
         $user = request()->user();
      
         $companies = MsCompany::select('cpny_id','cpny_name')->where('status','A')->get();
@@ -437,7 +439,7 @@ class BudgetController extends Controller
         // $username = $user->username ?? 'system';
 
         // $dt    = Carbon::now();
-        // $year  = $dt->year;
+        // $year  = (int) $dt->year;
         // $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $doctype  = 'BD';
         $user     = $request->user();
@@ -445,7 +447,7 @@ class BudgetController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
@@ -954,43 +956,7 @@ class BudgetController extends Controller
         return view('pages.budgets.showbudgets', compact('budget','budgetdetail','hash','canUpload'));
     }
 
-    
-    // public function fetchComments($id)
-    // {
-    
-    //     // dd($id);
-    //     $comments = T_Message::where('docid', $id)
-    //         ->orderBy('created_at', 'desc')
-    //         ->get();
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'comments' => $comments
-    //     ]);
-    // }
-    // public function storeComment(Request $request, $id)
-    // {
-    //     $request->validate([
-    //         'comment' => 'required|string|max:500',
-    //     ]);
-    //     // dd($id);
-    //     $user = request()->user();
-    //     $comment = new T_Message();
-    //     $comment->docid = $id;
-    //     $comment->doctype = 'BD';
-    //     $comment->username = $user->username; 
-    //     $comment->name = $user->name; 
-    //     $comment->message = $request->comment;
-    //     $comment->status = 'A';
-    //     $comment->created_at = now();
-    //     $comment->save();
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'Comment added successfully!',
-    //         'comment' => $comment
-    //     ]);
-    // }
+       
 
     public function approveBudget(Request $request, $docid)
     {

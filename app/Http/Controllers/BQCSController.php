@@ -23,6 +23,8 @@ class BQCSController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
 
         $cs = TrCS::on('pgsql')->where('id', $id)->firstOrFail();
 

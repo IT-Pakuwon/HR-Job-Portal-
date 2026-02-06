@@ -33,6 +33,8 @@ class AssignListController extends Controller
 
     public function AssignList()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
         return view('pages.canvass.assignlist');
     }
 

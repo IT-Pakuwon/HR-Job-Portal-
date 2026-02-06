@@ -11,6 +11,9 @@ class BudgetMonitorController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         // Tahun list (ambil dari ms_budget.perpost dan/atau tr_budget.perpost_year)
         $yearsFromBudget = BudgetDetail::query()
             ->selectRaw("DISTINCT LEFT(perpost::text, 4) AS year")

@@ -325,7 +325,7 @@ class PersonnelController extends Controller
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';   
         $dt        = \Carbon\Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
@@ -702,7 +702,7 @@ class PersonnelController extends Controller
         try {
             $datenow   = Carbon::now()->format('Y-m-d');
             $dt        = Carbon::now();
-            $year      = $dt->year;
+            $year      = (int) $dt->year;
             $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $doctype   = 'PRF';
             $datestamp = Carbon::now()->toDateTimeString();
@@ -976,7 +976,7 @@ class PersonnelController extends Controller
         try {
             $datenow = Carbon::now()->format('Y-m-d');
             $dt = Carbon::now();
-            $year = $dt->year;
+            $year = (int) $dt->year;
             $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $doctype = 'PRF';
             $datestamp = Carbon::now()->toDateTimeString();
@@ -1823,7 +1823,7 @@ class PersonnelController extends Controller
             $doctype = 'JOB';
             $datenow = Carbon::now()->format('Y-m-d');
             $dt = Carbon::now();
-            $year = $dt->year;
+            $year = (int) $dt->year;
             $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);            
             $datestamp = Carbon::now()->toDateTimeString();
             $user = request()->user();

@@ -251,7 +251,7 @@ class IMBudgetController extends Controller
         $username = $user->username ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
         // helper angka lokal

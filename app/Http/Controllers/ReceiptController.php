@@ -114,10 +114,7 @@ class ReceiptController extends Controller
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
 
-        $dt        = Carbon::now();
-        $year      = $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();
+       
 
         $ponbr = trim((string)$request->input('ponbr', ''));
         if ($ponbr === '') {
@@ -170,7 +167,11 @@ class ReceiptController extends Controller
             $doctype, $cpnyid, $deptid, $approvalCtl, $detailNoteInput   
         ) {
             $now   = \Carbon\Carbon::now();
-            // $year  = (int) $now->year;
+            $dt        = Carbon::now();
+            // $year      = $dt->year;
+            $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+            $datestamp = $dt->toDateTimeString();
+            $year  = (int) $now->year;
             // $month = str_pad($now->month, 2, '0', STR_PAD_LEFT);
 
             // $autonbr = Autonbr::where('doctype', $doctype)
@@ -390,7 +391,9 @@ class ReceiptController extends Controller
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($rcp->ponbr)) {
-            $poId = TrPO::where('ponbr', $rcp->ponbr)->value('id');
+            $poId = TrPO::where('ponbr', $rcp->ponbr)
+                ->where('cpny_id', $rcp->cpny_id)
+                ->value('id');
             if ($poId) {
                 $poHash = Hashids::encode($poId);
                 $poUrl  = url("/showpo/{$poHash}");
@@ -567,7 +570,9 @@ class ReceiptController extends Controller
 
         // Pastikan nama model konsisten
         /** @var \App\Models\TrPO|null $po */
-        $po = \App\Models\TrPO::where('ponbr', $ponbr)->first();
+        $po = \App\Models\TrPO::where('ponbr', $ponbr)
+            ->where('cpny_id', $rcp->cpny_id)
+            ->first();
         if (!$po) {
             return response()->json(['message' => 'PO header not found'], 422);
         }
@@ -1239,7 +1244,9 @@ class ReceiptController extends Controller
         if (!$user) return redirect()->route('login');
 
         $rcp = TrReceipt::with(['creator:username,name'])->findOrFail($id);
-        $po  = TrPO::where('ponbr', $rcp->ponbr)->first();
+        $po  = TrPO::where('ponbr', $rcp->ponbr)
+            ->where('cpny_id', $rcp->cpny_id)
+            ->first();
         $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
             ->orderBy('receipt_no')->get();
         $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();
@@ -1638,7 +1645,7 @@ class ReceiptController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 

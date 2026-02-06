@@ -13,6 +13,9 @@ class MsCategoryController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         // Doctype diambil dari Autonbr
         $doctypes = Autonbr::select('doctype')
             ->distinct()

@@ -21,7 +21,10 @@ class DashboardController extends Controller
 {
     public function showProfile()
     {
+        
         $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
         $talenta = Users_talenta::where('employee_id', $user->npk)->first();
         return view('profile.show', compact('talenta'));
     }

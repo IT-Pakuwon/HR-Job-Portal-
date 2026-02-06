@@ -13,6 +13,9 @@ class LocationController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         return view('pages.location.index');
     }
 

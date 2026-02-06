@@ -939,7 +939,10 @@
                                     <td class="px-4 py-2">
                                         {{ $r->receiptdate ?? '-' }}
                                     </td>
-                                    <td class="px-4 py-2">{{ $r->receipttype ?? '-' }}</td>
+                                    <td class="px-4 py-2">
+                                        {{ $r->receipttype === 'PR' ? 'Purchase Receipt' : 'Return Receipt' }}
+                                    </td>
+
                                     <td class="whitespace-normal break-words px-4 py-2">
                                         {{ $r->receiptnote ?? '-' }}
                                     </td>

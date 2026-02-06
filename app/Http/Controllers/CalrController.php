@@ -33,6 +33,9 @@ class CalrController extends Controller
 {
     public function createCalr(Request $request)
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
         // Expect: /calr/create?rfca=<hashid-of-TrRfca.id>
         $rfcaHash = (string) $request->query('rfca', '');
         if (!$rfcaHash) {
@@ -719,6 +722,9 @@ class CalrController extends Controller
 
     public function editCalr($hash)
     {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 

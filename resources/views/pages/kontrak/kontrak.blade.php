@@ -130,16 +130,27 @@
 
             function renderKontrakId(_v, row) {
                 const st = (row.status || '').toString().toUpperCase();
-                const isHold = st === 'H';
+                const isHold  = st === 'H';
+                const isOwner = !!row.is_owner;
 
-                // kalau HOLD => create/edit draft, selain HOLD => show
-                const url = isHold
+                // ===============================
+                // RULE AKHIR
+                // ===============================
+                // - TAB my  : HOLD atau owner => edit
+                // - TAB all : SELALU show (termasuk HOLD)
+                let canEdit = false;
+
+                if (activeTab === 'my') {
+                    canEdit = isHold || isOwner;
+                }
+
+                const url = canEdit
                     ? `/createkontrak/${encodeURIComponent(row.eid)}`
                     : `/showkontrak/${encodeURIComponent(row.eid)}`;
 
                 const text = row.kontrakid || row.eid;
 
-                const cls = isHold
+                const cls = canEdit
                     ? 'bg-amber-600 hover:bg-amber-700'
                     : 'bg-gray-600 hover:bg-gray-700';
 
@@ -151,6 +162,7 @@
                     </a>
                 `;
             }
+
 
 
             function renderStatusBadge(row) {

@@ -39,6 +39,8 @@ use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrBast;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\BusinessUnit;
+
 
 class SppjController extends Controller
 {
@@ -249,7 +251,7 @@ class SppjController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
@@ -383,24 +385,26 @@ class SppjController extends Controller
 
             // ===== default site fallback (ambil sekali per header cpny) =====
             $defaultSiteId = null;
-            try {
-                $defaultSiteId = MsSite::query()
-                    ->where('cpny_id', $request->cpnyid)
-                    ->where(function($q){
-                        $q->where('site_default', true)
-                        ->orWhere('site_default', 'true')
-                        ->orWhere('site_default', 1)
-                        ->orWhere('site_default', '1');
-                    })
-                    ->value('siteid'); // langsung ambil siteid saja
-            } catch (\Throwable $e) {
-                // optional: log saja, jangan hentikan proses
-                \Log::warning('Failed to get default site', [
-                    'cpnyid' => $request->cpnyid,
-                    'err' => $e->getMessage(),
-                ]);
-            }
+            // try {
+            //     $defaultSiteId = MsSite::query()
+            //         ->where('cpny_id', $request->cpnyid)
+            //         ->where(function($q){
+            //             $q->where('site_default', true)
+            //             ->orWhere('site_default', 'true')
+            //             ->orWhere('site_default', 1)
+            //             ->orWhere('site_default', '1');
+            //         })
+            //         ->value('siteid'); // langsung ambil siteid saja
+            // } catch (\Throwable $e) {
+            //     // optional: log saja, jangan hentikan proses
+            //     \Log::warning('Failed to get default site', [
+            //         'cpnyid' => $request->cpnyid,
+            //         'err' => $e->getMessage(),
+            //     ]);
+            // }
            
+            $buSiteCache = [];
+
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId = $inventoryIds[$i] ?? null;
                 $productName = $productNames[$i] ?? null;
@@ -428,12 +432,45 @@ class SppjController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
-                $siteFromForm = trim((string)($siteids[$i] ?? ''));
-                $finalSiteId  = $siteFromForm !== '' ? $siteFromForm : $defaultSiteId;
+                // $siteFromForm = trim((string)($siteids[$i] ?? ''));
+                // $finalSiteId  = $siteFromForm !== '' ? $siteFromForm : $defaultSiteId;
 
-                // optional: kalau wajib
+                // ============================
+                // SiteID dari Business Unit
+                // ============================
+                $buIdRow = trim((string)($busUnitIds[$i] ?? ''));
+
+                $siteFromBu = null;
+                if ($buIdRow !== '') {
+                    if (array_key_exists($buIdRow, $buSiteCache)) {
+                        $siteFromBu = $buSiteCache[$buIdRow];
+                    } else {
+                        // query BU
+                        $bu = \App\Models\BusinessUnit::query()
+                            ->select('ifca_entity_cd', 'solomon_cpny_id')
+                            ->where('cpny_id', $request->cpnyid)
+                            ->where('business_unit_id', $buIdRow)
+                            ->where('status', 'A')
+                            ->first();
+
+                        $siteFromBu = null;
+                        if ($bu) {
+                            $ifca = trim((string)($bu->ifca_entity_cd ?? ''));
+                            $solo = trim((string)($bu->solomon_cpny_id ?? ''));
+                            $siteFromBu = $ifca !== '' ? $ifca : ($solo !== '' ? $solo : null);
+                        }
+
+                        // simpan ke cache (boleh null)
+                        $buSiteCache[$buIdRow] = $siteFromBu;
+                    }
+                }
+
+                // final siteid: dari BU kalau ada, kalau tidak fallback ke default site company
+                $finalSiteId = $siteFromBu ?: $defaultSiteId;
+
+                // kalau kamu wajib punya siteid:
                 if (empty($finalSiteId)) {
-                    throw new \Exception("SiteID kosong dan default site tidak ditemukan untuk Company {$request->cpnyid}.");
+                    throw new \Exception("SiteID kosong. BU={$buIdRow} tidak punya ifca_entity_cd/solomon_cpny_id dan default site company tidak ditemukan (cpny={$request->cpnyid}).");
                 }
 
                 $detail = new TrSPPJdetail();
@@ -797,7 +834,7 @@ class SppjController extends Controller
 
         $user      = $request->user();   
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();   
         $doctype   = 'PJ';
@@ -885,6 +922,7 @@ class SppjController extends Controller
 
             $rowCount = max(count($inventoryIds), count($qtys));
             $savedDetails = [];
+            $buSiteCache = [];
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId = $inventoryIds[$i] ?? null;
@@ -905,11 +943,50 @@ class SppjController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
+                // ============================
+                // SiteID dari Business Unit
+                // ============================
+                $buIdRow = trim((string)($buIds[$i] ?? ''));
+
+                $siteFromBu = null;
+                if ($buIdRow !== '') {
+                    if (array_key_exists($buIdRow, $buSiteCache)) {
+                        $siteFromBu = $buSiteCache[$buIdRow];
+                    } else {
+                        // query BU
+                        $bu = \App\Models\BusinessUnit::query()
+                            ->select('ifca_entity_cd', 'solomon_cpny_id')
+                            ->where('cpny_id', $request->cpnyid)
+                            ->where('business_unit_id', $buIdRow)
+                            ->where('status', 'A')
+                            ->first();
+
+                        $siteFromBu = null;
+                        if ($bu) {
+                            $ifca = trim((string)($bu->ifca_entity_cd ?? ''));
+                            $solo = trim((string)($bu->solomon_cpny_id ?? ''));
+                            $siteFromBu = $ifca !== '' ? $ifca : ($solo !== '' ? $solo : null);
+                        }
+
+                        // simpan ke cache (boleh null)
+                        $buSiteCache[$buIdRow] = $siteFromBu;
+                    }
+                }
+
+                // final siteid: dari BU kalau ada, kalau tidak fallback ke default site company
+                $finalSiteId = $siteFromBu ?: $defaultSiteId;
+
+                // kalau kamu wajib punya siteid:
+                if (empty($finalSiteId)) {
+                    throw new \Exception("SiteID kosong. BU={$buIdRow} tidak punya ifca_entity_cd/solomon_cpny_id dan default site company tidak ditemukan (cpny={$request->cpnyid}).");
+                }
+
                 $data = [
                     'inventoryid'              => $invId,
                     'inventory_descr'          => $productNames[$i] ?? null,
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
+                    'siteid'                   => $finalSiteId,
                     'note'                     => $notes[$i] ?? null,
                     'inventory_type'                => $itemTypes[$i] ?? null,
                     'inventory_sub_type'            => $inventorySubTypes[$i] ?? null,
@@ -2014,11 +2091,15 @@ class SppjController extends Controller
 
         // ---- PO ----
         $poHeader = $selPoNo
-            ? TrPO::where('ponbr', $selPoNo)->whereNull('deleted_at')->first()
+            ? TrPO::where('ponbr', $selPoNo)
+            ->where('cpny_id', $sppj->cpny_id)
+            ->whereNull('deleted_at')->first()
             : null;
 
         $poDetails = $selPoNo
-            ? TrPOdetail::where('ponbr', $selPoNo)->whereNull('deleted_at')->orderBy('id')->get()
+            ? TrPOdetail::where('ponbr', $selPoNo)
+            ->where('budget_cpny_id', $sppj->cpny_id)
+            ->whereNull('deleted_at')->orderBy('id')->get()
             : collect();
 
         // ---- BAST (header only, no detail) ----
@@ -2251,7 +2332,9 @@ class SppjController extends Controller
                 ->first();
 
             $d = $h
-                ? TrPOdetail::where('ponbr', $doc)->whereNull('deleted_at')->orderBy('id')->get()
+                ? TrPOdetail::where('ponbr', $doc)
+                    ->where('budget_cpny_id', $h->cpny_id)
+                    ->whereNull('deleted_at')->orderBy('id')->get()
                 : collect();
 
             return response()->json([
@@ -2867,7 +2950,7 @@ class SppjController extends Controller
 
         // $dt       = Carbon::now();
         // $datenow  = $dt->format('Y-m-d');
-        // $year     = $dt->year;
+        // $year     = (int) $dt->year;
         // $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         // $username = Auth::user()->username ?? 'system';
 
@@ -2879,7 +2962,7 @@ class SppjController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 

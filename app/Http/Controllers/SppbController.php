@@ -257,11 +257,10 @@ class SppbController extends Controller
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
 
-        $dt        = Carbon::now();
-        $year      = $dt->year;
+        $dt        = Carbon::now();        
         // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         // $datestamp = $dt->toDateTimeString();
-        $year  = (int) $dt->year;
+        $year  = (int) (int) $dt->year;
         $month = str_pad((string)$dt->month, 2, '0', STR_PAD_LEFT);
 
 
@@ -814,7 +813,7 @@ class SppbController extends Controller
 
         $user      = $request->user();   
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();   
         $doctype   = 'PB';
@@ -1936,6 +1935,7 @@ class SppbController extends Controller
         // Jika kamu mau PO mengikuti CS terpilih, nanti kita filter dengan csid
         $poList = TrPO::query()
             ->where('sppbjktid', $sppbNo)
+            ->where('cpny_id', $sppb->cpny_id)
             ->whereNull('deleted_at')
             ->orderBy('podate', 'desc')
             ->get(['ponbr','podate','status','csid','completed_by','completed_at']);
@@ -2016,8 +2016,13 @@ class SppbController extends Controller
         }
 
 
-        $poHeader = $selPoNo ? TrPO::where('ponbr',$selPoNo)->whereNull('deleted_at')->first() : null;
-        $poDetails = $selPoNo ? TrPOdetail::where('ponbr',$selPoNo)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+        $poHeader = $selPoNo ? TrPO::where('ponbr',$selPoNo)
+            ->where('cpny_id', $sppb->cpny_id)
+            ->whereNull('deleted_at')
+            ->first() : null;
+        $poDetails = $selPoNo ? TrPOdetail::where('ponbr',$selPoNo)
+            ->where('budget_cpny_id', $sppb->cpny_id)
+            ->whereNull('deleted_at')->orderBy('id')->get() : collect();
 
         $receiptHeader = $selReceiptNo ? TrReceipt::where('receiptnbr',$selReceiptNo)->whereNull('deleted_at')->first() : null;
         $receiptDetails = $selReceiptNo ? TrReceiptdetail::where('receiptnbr',$selReceiptNo)->whereNull('deleted_at')->orderBy('id')->get() : collect();
@@ -2151,7 +2156,9 @@ class SppbController extends Controller
 
         if ($type === 'po') {
             $h = TrPO::where('ponbr',$doc)->where('sppbjktid',$sppbNo)->whereNull('deleted_at')->first();
-            $d = $h ? TrPOdetail::where('ponbr',$doc)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+            $d = $h ? TrPOdetail::where('ponbr',$doc)
+            ->where('budget_cpny_id', $h->cpny_id)
+            ->whereNull('deleted_at')->orderBy('id')->get() : collect();
             return response()->json([
                 'header' => $h ? [
                     'doc'=>$h->ponbr,'date'=>$fmt($h->podate),'cpny_id'=>$h->cpny_id,'department_id'=>$h->department_id,

@@ -30,6 +30,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Models\TrIssue;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\SysUserRole;
 
 
 class SpbController extends Controller
@@ -410,7 +411,7 @@ class SpbController extends Controller
         $user     = $request->user();
         $username = $user->username ?? 'system';
         $dt       = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
         // === Ambil array dari form ===
@@ -904,7 +905,7 @@ class SpbController extends Controller
         $coaIds         = array_values($request->input('coa_id', []));
         $itemTypes      = array_values($request->input('item_type', []));
         $itemCats       = array_values($request->input('item_category', []));
-
+        $siteids       = array_values($request->input('siteid', []));       
         // UoM konversi
         $purchaseUnits  = array_values($request->input('purchase_unit', []));
         $uomMultDivs    = array_values($request->input('uom_unitmultdiv', []));
@@ -966,6 +967,7 @@ class SpbController extends Controller
                     'inventory_descr'          => $productNames[$i] ?? null,
                     'qty'                      => $qty,
                     'uom'                      => $displayUom,
+                    'siteid'                   => $siteids[$i] ?? null,
                     'type_multiplier'          => $typeMultiplier ?: null,
                     'base_multiplier'          => $rate,
                     'base_qty'                 => $baseQty,
@@ -1262,8 +1264,12 @@ class SpbController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $spb->created_by === $loginUsername;
 
+        $akses_cc = SysUserRole::where('username', $user->username)
+            ->where('role_id','COSTCTRLACCESS')
+            ->first();
+
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'attachments', 'spbdetail', 'hash','canUpload'));
+        return view('pages.spbs.showspbs', compact('spb', 'attachments', 'spbdetail', 'hash','canUpload','akses_cc'));
     }
 
 

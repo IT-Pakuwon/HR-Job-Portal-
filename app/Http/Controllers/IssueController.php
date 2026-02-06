@@ -42,7 +42,7 @@ class IssueController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
         $now     = \Carbon\Carbon::now();
@@ -472,7 +472,7 @@ class IssueController extends Controller
         ]);
     }
 
-   public function updateIssue(Request $request, $hash) 
+    public function updateIssue(Request $request, $hash) 
     {
         // dd($request->all());
         $now      = Carbon::now();
@@ -1546,6 +1546,9 @@ class IssueController extends Controller
         $id      = $decoded[0] ?? null;
         abort_if(!$id, 404);
 
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
         // simpan encoded id untuk view (kalau view perlu)
         $eid = $request->id;
 
@@ -1686,7 +1689,7 @@ class IssueController extends Controller
         $fullname = $user->name ?? 'system';
 
         $dt        = Carbon::now();
-        $year      = $dt->year;
+        $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 

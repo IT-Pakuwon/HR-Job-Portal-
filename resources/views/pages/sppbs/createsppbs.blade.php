@@ -1232,11 +1232,13 @@
 
                 const deptId = $('#departementid').val() || '';
                 const cpnyid = ($('#cpnyid').val() || '').trim();
+                const buId   = $('#business_unit_id').val() || '';
 
                 $.getJSON("{{ route('inventory.listjoin') }}", {
                         type: invState.type, // 'stock' | 'nonstock'
                         departementid: deptId,
                         cpnyid: cpnyid,
+                        business_unit_id: buId,
                         search: invState.search,
                         page: invState.page,
                         per_page: invState.per_page
@@ -1353,6 +1355,7 @@
                     item_type_normalized,
                     item_sub_type,
                     item_category,
+                    siteid,
                     purchase_unit
                 });
 
@@ -1383,7 +1386,8 @@
                 if (item_type_normalized === 'GI') {
                     currentRow.find('.siteidField').val(siteid || '-');
                 } else {
-                    currentRow.find('.siteidField').val('');
+                    // currentRow.find('.siteidField').val('');
+                    currentRow.find('.siteidField').val(siteid || '');
                 }
 
 
@@ -2612,55 +2616,30 @@
             }
         }
 
-        // Fungsi show/hide SiteID berdasarkan item_type
-        function updateSiteVisibility_xxx($row) {
-            const raw = $row.find('.prodItemTypeField').val() || '';
-            const itemType = raw.toUpperCase().trim();
-
-            console.log('updateSiteVisibility → item_type raw =', raw, ', normalized =', itemType, ', row index =', $row
-                .index());
-
-            const $col = $row.find('.siteid-column');
-            const $wrapper = $row.find('.siteid-wrapper');
-            const $select = $wrapper.find('.siteSelect');
-            const $hidden = $row.find('.siteid-hidden');
-
-            if (itemType === 'GI') {
-                console.log('→ SHOW SiteID for row', $row.index());
-                $col.removeClass('hidden');
-                $wrapper.removeClass('hidden');
-                $select.prop('disabled', false);
-                $hidden.prop('disabled', true);
-            } else {
-                console.log('→ HIDE SiteID for row', $row.index());
-                $col.addClass('hidden');
-                $wrapper.addClass('hidden');
-                $select.prop('disabled', true);
-                $select.val('');
-                $hidden.prop('disabled', false);
-            }
-
-            refreshSiteHeaderVisibility();
-        }
-
+        // Fungsi show/hide SiteID berdasarkan item_type   
         function updateSiteVisibility($row) {
-            const raw = $row.find('.prodItemTypeField').val() || '';
-            const itemType = raw.toUpperCase().trim();
+            const itemType = (($row.find('.prodItemTypeField').val() || '') + '').toUpperCase().trim();
 
             const $col = $row.find('.siteid-column');
             const $siteInput = $row.find('.siteidField');
 
+            // PENTING: jangan disabled supaya tetap ikut terkirim
+            $siteInput.prop('disabled', false);
+
             if (itemType === 'GI') {
-                $col.removeClass('hidden');
-                $siteInput.prop('disabled', false);
+                $col.removeClass('hidden'); // tampil di UI
             } else {
-                $col.addClass('hidden');
-                $siteInput.prop('disabled', true);
-                $siteInput.val(''); // kosongkan kalau bukan GI
+                $col.addClass('hidden');    // sembunyikan di UI tapi tetap ikut submit
+                // jangan kosongkan kalau memang mau backend/BU isi value
+                // $siteInput.val('');
             }
 
             refreshSiteHeaderVisibility();
         }
+
+
+
+        
 
 
 

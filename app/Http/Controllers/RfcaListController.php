@@ -296,7 +296,9 @@ class RfcaListController extends Controller
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($rfca->ponbr)) {
-            $poId = TrPO::where('ponbr', $rfca->ponbr)->value('id');
+            $poId = TrPO::where('ponbr', $rfca->ponbr)
+                ->where('cpny_id', $rfca->cpny_id)
+                ->value('id');
             if ($poId) {
                 $poHash = Hashids::encode($poId);
                 $poUrl  = url("/showpo/{$poHash}");
