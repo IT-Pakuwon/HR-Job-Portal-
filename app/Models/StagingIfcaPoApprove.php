@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class StagingIfcaPoApprove  extends Model
+{
+
+    protected $connection = 'pgsql3';
+    protected $table = "staging_ifca_po_approve";
+    protected $primaryKey = 'id';
+    protected $fillable = [
+        'cpny_id', 'entity_cd', 'order_no', 'order_type', 'order_date', 'supplier_cd',
+        'remark', 'ref_no_spbjkt', 'ref_no_cs', 'credit_terms', 'currency_cd',
+        'currency_rate', 'total_record', 'order_line', 'item_cd', 'item_remark',
+        'uom', 'order_qty', 'item_cost', 'schedule_dt', 'acct_type', 'location_cd',
+        'acct_cd', 'div_cd', 'dept_cd', 'process_flag', 'create_date', 'process_dt',
+        'process_note', 'integration_type', 'solomon_allocation_cd', 'solomon_subaccount_dept',
+        'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'reviewed_by',
+         'reviewed_at',
+        ];
+}

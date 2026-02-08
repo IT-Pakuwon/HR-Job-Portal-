@@ -99,6 +99,8 @@ use App\Http\Controllers\Integration\IFCAIntegrationController;
 use App\Http\Controllers\Integration\IFCAAPINonStockController;
 use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
+use App\Http\Controllers\Integration\IFCAAPIPOController;
+
 
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\GoogleCalendarApiController;
@@ -1331,6 +1333,12 @@ Route::post('/logout', function () {
         Route::prefix('ifcaintegration/supplier')->name('ifcaintegration.supplier.')->group(function () {
             Route::get('list', [IFCAAPISupplierController::class, 'list'])->name('list');
             Route::post('process', [IFCAAPISupplierController::class, 'process'])->name('process');
+        });
+
+        // ✅ module: PO API endpoints
+        Route::prefix('ifcaintegration/po')->name('ifcaintegration.po.')->group(function () {
+            Route::get('list', [IFCAAPIPOController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIPOController::class, 'process'])->name('process');
         });
     
     });

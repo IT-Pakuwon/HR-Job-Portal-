@@ -23,7 +23,7 @@
                     </button>
                     <button type="button" data-tab="tab-po"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
-                        PO (soon)
+                        PO
                     </button>
                     <button type="button" data-tab="tab-sttb"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -68,9 +68,12 @@
                     @include('pages.integration.ifcaapisupplier')
                 </div>
 
+                {{-- TAB: PO --}}
+                <div id="tab-po" class="hidden">
+                    @include('pages.integration.ifcaapipo')
+                </div>
+
                 {{-- Placeholder tabs --}}
-                <div id="tab-supplier" class="hidden text-sm text-gray-500">Supplier tab (soon)</div>
-                <div id="tab-po" class="hidden text-sm text-gray-500">PO tab (soon)</div>
                 <div id="tab-sttb" class="hidden text-sm text-gray-500">STTB tab (soon)</div>
                 <div id="tab-bast" class="hidden text-sm text-gray-500">BAST tab (soon)</div>
                 <div id="tab-sttb-return" class="hidden text-sm text-gray-500">STTB Return tab (soon)</div>

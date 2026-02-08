@@ -467,7 +467,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $orgSegments) ? 'true' : 'false' }} }" class="ml-2">
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
                                         class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                        <span>Organization</span>
+                                        <span>Organizationxxx</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                             <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />

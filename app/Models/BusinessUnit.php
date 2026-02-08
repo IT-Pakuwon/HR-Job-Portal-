@@ -11,7 +11,7 @@ class BusinessUnit extends Model
     protected $table = "ms_business_unit";
 
     protected $fillable = [        
-        'business_unit_id' , 'cpny_id' , 'business_unit_name' , 'ifca_entity_cd','solomon_cpny_id','status' , 
+        'business_unit_id' , 'cpny_id' , 'business_unit_name' , 'ifca_entity_cd','solomon_cpny_id', 'solomon_allocation_cd','status' , 
         'created_by' , 'created_at' , 'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at'
     ];
 }
