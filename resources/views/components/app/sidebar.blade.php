@@ -50,7 +50,7 @@
         <div class="space-y-3">
             <!-- Pages group -->
             <div>
-                <ul class="mt-3">
+                <ul class="mt-2">
                     <!-- Dashboard -->
                     <li class="bg-linear-to-r {{ in_array(Request::segment(1), ['dashboard'])
                         ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'

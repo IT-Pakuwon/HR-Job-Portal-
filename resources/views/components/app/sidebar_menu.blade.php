@@ -1,112 +1,3 @@
-<style>
-    /* ================= SIDEBAR LINKS ================= */
-    .sidebar-link {
-        display: block;
-        padding: 6px 12px;
-        font-size: 14px;
-        color: rgb(75 85 99);
-        /* gray-600 */
-    }
-
-    .sidebar-link:hover {
-        color: rgb(17 24 39);
-        /* gray-900 */
-    }
-
-    /* Dark mode */
-    .dark .sidebar-link {
-        color: rgb(156 163 175);
-        /* gray-400 */
-    }
-
-    .dark .sidebar-link:hover {
-        color: rgb(243 244 246);
-        /* gray-100 */
-    }
-
-    /* ================= SETTINGS SUBHEADERS ================= */
-    .settings-subheader {
-        display: flex;
-        width: 100%;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        text-align: left;
-        color: rgb(107 114 128);
-        /* gray-500 */
-    }
-
-    .settings-subheader:hover {
-        color: rgb(55 65 81);
-        /* gray-700 */
-    }
-
-    /* Dark mode */
-    .dark .settings-subheader {
-        color: rgb(156 163 175);
-        /* gray-400 */
-    }
-
-    .dark .settings-subheader:hover {
-        color: rgb(243 244 246);
-        /* gray-100 */
-    }
-
-    /* ================= SUBMENU ================= */
-    .submenu {
-        padding-left: 1rem;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    /* ================= CHEVRON (VISIBLE FIX) ================= */
-    .chevron {
-        width: 14px;
-        height: 14px;
-        flex-shrink: 0;
-        color: rgb(107 114 128);
-        /* gray-500 */
-    }
-
-    /* Dark mode chevron */
-    .dark .chevron {
-        color: rgb(209 213 219);
-        /* gray-300 */
-    }
-
-    /* Hover feedback */
-    .settings-subheader:hover .chevron {
-        color: rgb(55 65 81);
-        /* gray-700 */
-    }
-
-    .dark .settings-subheader:hover .chevron {
-        color: rgb(243 244 246);
-        /* gray-100 */
-    }
-
-    /* ===== GLOBAL SIDEBAR CHEVRON VISIBILITY FIX ===== */
-    aside svg[viewBox="0 0 12 12"],
-    aside svg.chevron {
-        color: rgb(156 163 175);
-        /* gray-400 */
-    }
-
-    /* Dark mode */
-    .dark aside svg[viewBox="0 0 12 12"],
-    .dark aside svg.chevron {
-        color: rgb(229 231 235);
-        /* gray-200 */
-    }
-</style>
-
-
-
 <!-- ================= OFF CANVAS SIDEBAR ================= -->
 <div x-cloak>
 
@@ -134,8 +25,6 @@
             </div>
         </div>
 
-
-
         <!-- CONTENT -->
         <div class="space-y-6 p-4">
             <ul class="space-y-1">
@@ -161,7 +50,8 @@
                 @endphp
 
                 @if ($hrMenu)
-                    <li class="mt-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <li
+                        class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
                         {{ $hrMenu->menu_name }}
                     </li>
 
@@ -202,12 +92,15 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
-                                        {{ $menu->menu_name }}
+                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                            {{ $menu->menu_name }}
+                                        </span>
                                     </div>
 
-                                    <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 12 12">
-                                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                    <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M6 9l6 6 6-6" />
                                     </svg>
                                 </button>
 
@@ -236,7 +129,8 @@
                 @endphp
 
                 @if ($purchasingMenu)
-                    <li class="mt-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <li
+                        class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
                         {{ $purchasingMenu->menu_name }}
                     </li>
 
@@ -277,12 +171,15 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
-                                        {{ $menu->menu_name }}
+                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                            {{ $menu->menu_name }}
+                                        </span>
                                     </div>
 
-                                    <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 12 12">
-                                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                    <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M6 9l6 6 6-6" />
                                     </svg>
                                 </button>
 
@@ -334,14 +231,8 @@
                             SETTINGS
                         </li>
 
-                        <li x-data="{ open: {{ in_array(Request::segment(1), $settingsSegments) ? 'true' : 'false' }} }" class="mt-6">
-
-
-                            {{-- <li class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                            SETTINGS
-                        </li> --}}
-                            <!-- ================= SETTINGS CONTENT ================= -->
-                            <ul x-show="open" x-collapse class="mt-2 space-y-3 pl-2">
+                        <li class="mt-2">
+                            <ul class="mt-1 space-y-1 pl-2">
 
                                 <!-- ================================================= -->
                                 <!-- USER & ACCESS -->
@@ -352,26 +243,28 @@
                                     <button @click="open = !open"
                                         class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
 
-                                        <span>User & Access</span>
+                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">User &
+                                            Access</span>
 
-                                        <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                            viewBox="0 0 12 12">
-                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
                                         </svg>
                                     </button>
 
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('users') }}"
-                                                class="{{ Request::segment(1) === 'users' ? 'text-violet-600' : '' }} sidebar-link">Users</a>
+                                                class="{{ Request::segment(1) === 'users' ? 'text-violet-600' : '' }} sidebar-link text-sm">Users</a>
                                         </li>
                                         <li><a href="{{ route('roles') }}"
-                                                class="{{ Request::segment(1) === 'roles' ? 'text-violet-600' : '' }} sidebar-link">Roles</a>
+                                                class="{{ Request::segment(1) === 'roles' ? 'text-violet-600' : '' }} sidebar-link text-sm">Roles</a>
                                         </li>
                                         <li><a href="{{ route('access_rights') }}"
-                                                class="{{ Request::segment(1) === 'access_rights' ? 'text-violet-600' : '' }} sidebar-link">Access
+                                                class="{{ Request::segment(1) === 'access_rights' ? 'text-violet-600' : '' }} sidebar-link text-sm">Access
                                                 Rights</a></li>
                                         <li><a href="{{ route('role_menus') }}"
-                                                class="{{ Request::segment(1) === 'role_menus' ? 'text-violet-600' : '' }} sidebar-link">Role
+                                                class="{{ Request::segment(1) === 'role_menus' ? 'text-violet-600' : '' }} sidebar-link text-sm">Role
                                                 Menus</a></li>
                                     </ul>
                                 </li>
@@ -383,20 +276,27 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $app) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="settings-subheader flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                        <span>Application</span>
-                                        <svg class="chevron" :class="open ? 'rotate-180' : ''"></svg>
+                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+
+                                        <span
+                                            class="flex-1 whitespace-normal break-words text-left leading-snug">Application</span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="submenu">
+                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('applications') }}"
-                                                class="{{ Request::segment(1) === 'applications' ? 'text-violet-600' : '' }} sidebar-link">Applications</a>
+                                                class="{{ Request::segment(1) === 'applications' ? 'text-violet-600' : '' }} sidebar-link text-sm">Applications</a>
                                         </li>
                                         <li><a href="{{ route('screens') }}"
-                                                class="{{ Request::segment(1) === 'screens' ? 'text-violet-600' : '' }} sidebar-link">Screens</a>
+                                                class="{{ Request::segment(1) === 'screens' ? 'text-violet-600' : '' }} sidebar-link text-sm">Screens</a>
                                         </li>
                                         <li><a href="{{ route('menus') }}"
-                                                class="{{ Request::segment(1) === 'menus' ? 'text-violet-600' : '' }} sidebar-link">Menus</a>
+                                                class="{{ Request::segment(1) === 'menus' ? 'text-violet-600' : '' }} sidebar-link text-sm">Menus</a>
                                         </li>
                                     </ul>
                                 </li>
@@ -407,82 +307,105 @@
                                 @php $org = ['companies','department','tenants','locations']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $org) ? 'true' : 'false' }} }">
 
-                                    <button @click="open = !open" class="settings-subheader">
-                                        <span>Organization</span>
-                                        <svg class="chevron" :class="open ? 'rotate-180' : ''"></svg>
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+
+                                        <span
+                                            class="flex-1 whitespace-normal break-words text-left leading-snug">Organization</span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="submenu">
+                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('companies') }}"
-                                                class="{{ Request::segment(1) === 'companies' ? 'text-violet-600' : '' }} sidebar-link">Company</a>
+                                                class="{{ Request::segment(1) === 'companies' ? 'text-violet-600' : '' }} sidebar-link text-sm">Companies</a>
                                         </li>
                                         <li><a href="{{ route('department') }}"
-                                                class="{{ Request::segment(1) === 'department' ? 'text-violet-600' : '' }} sidebar-link">Department</a>
+                                                class="{{ Request::segment(1) === 'department' ? 'text-violet-600' : '' }} sidebar-link text-sm">Department</a>
                                         </li>
                                         <li><a href="{{ route('tenants') }}"
-                                                class="{{ Request::segment(1) === 'tenants' ? 'text-violet-600' : '' }} sidebar-link">Tenant</a>
+                                                class="{{ Request::segment(1) === 'tenants' ? 'text-violet-600' : '' }} sidebar-link text-sm">Tenants</a>
                                         </li>
                                         <li><a href="{{ route('locations') }}"
-                                                class="{{ Request::segment(1) === 'locations' ? 'text-violet-600' : '' }} sidebar-link">Location</a>
+                                                class="{{ Request::segment(1) === 'locations' ? 'text-violet-600' : '' }} sidebar-link text-sm">Locations</a>
                                         </li>
+
+
                                     </ul>
                                 </li>
-
                                 <!-- ================================================= -->
                                 <!-- MASTER DATA -->
                                 <!-- ================================================= -->
                                 @php $md = ['categories','vendors','inventories','autonbrs','tops']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $md) ? 'true' : 'false' }} }">
 
-                                    <button @click="open = !open" class="settings-subheader">
-                                        <span>Master Data</span>
-                                        <svg class="chevron" :class="open ? 'rotate-180' : ''"></svg>
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+
+                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">Master
+                                            Data</span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="submenu">
+                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('categories') }}"
-                                                class="{{ Request::segment(1) === 'categories' ? 'text-violet-600' : '' }} sidebar-link">Category</a>
+                                                class="{{ Request::segment(1) === 'categories' ? 'text-violet-600' : '' }} sidebar-link text-sm">Categories</a>
                                         </li>
                                         <li><a href="{{ route('vendors') }}"
-                                                class="{{ Request::segment(1) === 'vendors' ? 'text-violet-600' : '' }} sidebar-link">Vendor</a>
+                                                class="{{ Request::segment(1) === 'vendors' ? 'text-violet-600' : '' }} sidebar-link text-sm">Vendors</a>
                                         </li>
                                         <li><a href="{{ route('inventories') }}"
-                                                class="{{ Request::segment(1) === 'inventories' ? 'text-violet-600' : '' }} sidebar-link">Inventory</a>
+                                                class="{{ Request::segment(1) === 'inventories' ? 'text-violet-600' : '' }} sidebar-link text-sm">Inventories</a>
                                         </li>
                                         <li><a href="{{ route('autonbrs') }}"
-                                                class="{{ Request::segment(1) === 'autonbrs' ? 'text-violet-600' : '' }} sidebar-link">Autonbr</a>
+                                                class="{{ Request::segment(1) === 'autonbrs' ? 'text-violet-600' : '' }} sidebar-link text-sm">Autonbrs</a>
                                         </li>
                                         <li><a href="{{ route('tops') }}"
-                                                class="{{ Request::segment(1) === 'tops' ? 'text-violet-600' : '' }} sidebar-link">TOP</a>
+                                                class="{{ Request::segment(1) === 'tops' ? 'text-violet-600' : '' }} sidebar-link text-sm">TOPS</a>
                                         </li>
                                     </ul>
                                 </li>
-
                                 <!-- ================================================= -->
                                 <!-- WORKFLOW -->
                                 <!-- ================================================= -->
-
                                 @php $workflowSegments = ['approvals','ifcaintegration']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }">
 
-                                    <button @click="open = !open" class="settings-subheader">
-                                        <span>Workflow</span>
-                                        <svg class="chevron" :class="open ? 'rotate-180' : ''"></svg>
+                                    <button @click="open = !open"
+                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+
+                                        <span
+                                            class="flex-1 whitespace-normal break-words text-left leading-snug">Workflow</span>
+
+                                        <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M6 9l6 6 6-6" />
+                                        </svg>
                                     </button>
 
-                                    <ul x-show="open" x-collapse class="submenu">
+                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('approvals') }}"
-                                                class="{{ Request::segment(1) === 'approvals' ? 'text-violet-600' : '' }} sidebar-link">Approvals</a>
+                                                class="{{ Request::segment(1) === 'approvals' ? 'text-violet-600' : '' }} sidebar-link text-sm">Approvals</a>
                                         </li>
-                                        {{-- <li><a href="{{ route('ifcaintegration') }}"
-                                                class="{{ Request::segment(1) === 'ifcaintegration' ? 'text-violet-600' : '' }} sidebar-link">IFCA
-                                                Integration</a>
-                                        </li> --}}
+                                        <li>
+                                            <a href="{{ route('integration.ifcaintegration') }}"
+                                                class="{{ Request::segment(1) === 'ifcaintegration' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                IFCA Integration
+                                            </a>
+                                        </li>
+
                                     </ul>
                                 </li>
-
-                            </ul>
-                        </li>
                     @endif
                 @endauth
 
