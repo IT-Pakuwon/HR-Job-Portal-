@@ -47,14 +47,14 @@
                 </span>
             </div>
         </div>
-        <div class="space-y-8">
+        <div class="space-y-3">
             <!-- Pages group -->
             <div>
                 <ul class="mt-3">
                     <!-- Dashboard -->
                     <li class="bg-linear-to-r {{ in_array(Request::segment(1), ['dashboard'])
                         ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
-                        : '' }} rounded-lg py-2 transition"
+                        : '' }} rounded-lg py-1.5 transition"
                         :class="{
                             'pl-4 pr-3': sidebarExpanded,
                             'px-2': !sidebarExpanded
@@ -91,7 +91,7 @@
 
                     {{-- ================= LABEL: HUMAN RESOURCES ================= --}}
                     @if ($hrMenu)
-                        <li class="text-smm py-2 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
+                        <li class="text-smm py-1.5 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
                             :class="sidebarExpanded ? 'pl-4 pr-3 block' : 'hidden'">
                             {{ $hrMenu->menu_name }}
                         </li>
@@ -115,7 +115,7 @@
                             @if ($children->isEmpty())
                                 <li class="bg-linear-to-r {{ Route::is($menu->menu_route . '*')
                                     ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
-                                    : '' }} rounded-lg py-2 transition"
+                                    : '' }} rounded-lg py-1.5 transition"
                                     :class="{
                                         'pl-4 pr-3': sidebarExpanded,
                                         'px-2': !sidebarExpanded
@@ -153,7 +153,7 @@
                                     );
                                 @endphp
 
-                                <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-2 transition"
+                                <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-1.5 transition"
                                     :class="{
                                         'pl-4 pr-3': sidebarExpanded,
                                         'px-2': !sidebarExpanded
@@ -226,7 +226,7 @@
 
                     {{-- ================= LABEL: PURCHASING ================= --}}
                     @if ($purchasingMenu)
-                        <li class="text-smm py-2 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
+                        <li class="text-smm py-1.5 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
                             :class="sidebarExpanded ? 'pl-4 pr-3 block' : 'hidden'">
                             {{ $purchasingMenu->menu_name }}
                         </li>
@@ -251,7 +251,7 @@
                             @if ($children->isEmpty())
                                 <li class="bg-linear-to-r {{ Route::is($menu->menu_route . '*')
                                     ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]'
-                                    : '' }} rounded-lg py-2 transition"
+                                    : '' }} rounded-lg py-1.5 transition"
                                     :class="{
                                         'pl-4 pr-3': sidebarExpanded,
                                         'px-2': !sidebarExpanded
@@ -289,7 +289,7 @@
                                     );
                                 @endphp
 
-                                <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-2 transition"
+                                <li class="bg-linear-to-r {{ $isGroupActive ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-1.5 transition"
                                     :class="{
                                         'pl-4 pr-3': sidebarExpanded,
                                         'px-2': !sidebarExpanded
@@ -383,7 +383,7 @@
 
                             {{-- SETTINGS HEADER --}}
                             <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                                 <span>Settings</span>
                                 <svg class="h-3 w-3 fill-current transition-transform"
                                     :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -400,7 +400,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $userAccessSegments) ? 'true' : 'false' }} }" class="ml-2">
 
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                         <span>User & Access</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -410,7 +410,7 @@
 
                                     <ul x-show="open" class="mt-1">
                                         @foreach ([['users', 'Users', 'M18 18.72a9.094 9.094 0 00-6-2.22 9.094 9.094 0 00-6 2.22M15 7.5a3 3 0 11-6 0 3 3 0 016 0z'], ['roles', 'Role', 'M12 3l7.5 4.5v6c0 4.5-3.15 7.8-7.5 9-4.35-1.2-7.5-4.5-7.5-9v-6L12 3z'], ['access_rights', 'Access Right', 'M15 7a4 4 0 11-8 0 4 4 0 018 0zM2.25 21h4.5l1.5-4.5h4.5'], ['role_menus', 'Role Menu', 'M8.25 6.75h12M8.25 12h12M8.25 17.25h12M3.75 6.75h.008M3.75 12h.008M3.75 17.25h.008']] as [$seg, $label, $path])
-                                            <li class="bg-linear-to-r {{ Request::segment(1) === $seg ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-2 transition"
+                                            <li class="bg-linear-to-r {{ Request::segment(1) === $seg ? 'from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]' : '' }} rounded-lg py-1.5 transition"
                                                 :class="{ 'pl-4 pr-3': sidebarExpanded, 'px-2': !sidebarExpanded }">
 
                                                 <a href="{{ route($seg) }}"
@@ -443,7 +443,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $appSegments) ? 'true' : 'false' }} }" class="ml-2">
 
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                         <span>Application</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -466,8 +466,8 @@
                                 @php $orgSegments = ['companies','department','tenants','locations']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $orgSegments) ? 'true' : 'false' }} }" class="ml-2">
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                        <span>Organizationxxx</span>
+                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>Organization</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                             <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
@@ -489,7 +489,7 @@
                                 @php $masterDataSegments = ['categories','vendors','inventories','autonbrs','tops','approvals']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $masterDataSegments) ? 'true' : 'false' }} }" class="ml-2">
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-2 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                                         <span>Master Data</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -502,6 +502,35 @@
                                             @include(
                                                 'partials.sidebar-item',
                                                 compact('seg', 'label', 'path'))
+                                        @endforeach
+                                    </ul>
+                                </li>
+                                {{-- =====================================================
+            INTEGRATION
+        ===================================================== --}}
+                                {{-- INTEGRATION --}}
+                                @php $integrationSegments = ['ifcaintegration']; @endphp
+
+                                <li x-data="{ open: {{ in_array(Request::segment(1), $integrationSegments) ? 'true' : 'false' }} }" class="ml-2">
+
+                                    {{-- HEADER (toggle only, no href) --}}
+                                    <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
+                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        <span>Integration</span>
+                                        <svg class="h-3 w-3 fill-current transition-transform"
+                                            :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                                            <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                                        </svg>
+                                    </a>
+
+                                    {{-- CHILD --}}
+                                    <ul x-show="open" class="mt-0.5">
+                                        @foreach ([['integration.ifcaintegration', 'IFCA Integration', 'M7.5 7.5h.01M3 6.75V3h3.75l12 12-3.75 3.75-12-12z']] as [$route, $label, $path])
+                                            @include('partials.sidebar-item', [
+                                                'seg' => $route,
+                                                'label' => $label,
+                                                'path' => $path,
+                                            ])
                                         @endforeach
                                     </ul>
                                 </li>
@@ -518,7 +547,7 @@
 
 <!-- Expand / collapse button -->
 <div class="mt-auto hidden justify-end pt-3 lg:inline-flex 2xl:hidden">
-    <div class="w-12 py-2" :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
+    <div class="w-12 py-1.5" :class="sidebarExpanded ? 'pl-4 pr-3' : 'px-2'">
         <button class="text-gray-400 transition-colors hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
             @click="sidebarExpanded = !sidebarExpanded; localStorage.setItem('sidebarExpanded', sidebarExpanded)">
             <span class="sr-only">Expand / collapse sidebar</span>
