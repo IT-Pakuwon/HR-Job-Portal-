@@ -17,6 +17,17 @@ use App\Models\MsCompany;
 
 class BQCSController extends Controller
 {
+    private function cleanVendorId($val): ?string
+    {
+        if ($val === null) return null;
+
+        // cast string + trim spasi (termasuk tab/newline)
+        $s = trim((string) $val);
+
+        return $s === '' ? null : $s;
+    }
+
+
     /** Tampilkan form Create BQ, sumbernya dari CS yang sudah ada */
     public function createFromCS($hash)
     {
@@ -100,7 +111,7 @@ class BQCSController extends Controller
             // (hitung di loop detail; di sini isi vendoridX)
             for ($i=0; $i<min(count($vendors),6); $i++) {
                 $idx = $i+1;
-                $hdr->{"vendorid{$idx}"} = $vendors[$i]['id'] ?? null;
+                $hdr->{"vendorid{$idx}"} = $this->cleanVendorId($vendors[$i]['id'] ?? null);
             }
             $hdr->save();
 
@@ -141,7 +152,8 @@ class BQCSController extends Controller
                     $prodPrice = (float)($row['vendor'][$i]['product_price'] ?? 0);
                     $jasaPrice = (float)($row['vendor'][$i]['jasa_price']    ?? 0);
 
-                    $det->{"vendorid{$vIdx}"}                 = $vendors[$i]['id'] ?? null;
+                    // $det->{"vendorid{$vIdx}"}                 = $vendors[$i]['id'] ?? null;
+                    $det->{"vendorid{$vIdx}"}                 = $this->cleanVendorId($vendors[$i]['id'] ?? null);
                     $det->{"vendorproductprice{$vIdx}"}       = round($prodPrice, 2);
                     $det->{"vendortotalproductprice{$vIdx}"}  = round($qty * $prodPrice, 2);
                     $det->{"vendorjasaprice{$vIdx}"}          = round($jasaPrice, 2);
@@ -290,8 +302,9 @@ class BQCSController extends Controller
             // 1) Update header vendorid1..6 + reset grand total
             // =========================
             for ($i = 1; $i <= 6; $i++) {
-                $vid = $vendors[$i - 1]['id'] ?? null;
-                $hdr->{"vendorid{$i}"} = $vid ?: null;
+                $vid = $this->cleanVendorId($vendors[$i - 1]['id'] ?? null);
+                $hdr->{"vendorid{$i}"} = $vid;
+
 
                 $hdr->{"grandtotalmaterialvendor{$i}"} = null;
                 $hdr->{"grandtotaljasavendor{$i}"}     = null;
@@ -418,7 +431,7 @@ class BQCSController extends Controller
 
                 // set ulang vendorid1..6 agar konsisten dg header + update price/totals
                 for ($i = 1; $i <= 6; $i++) {
-                    $det->{"vendorid{$i}"} = $vendors[$i - 1]['id'] ?? null;
+                    $det->{"vendorid{$i}"} = $this->cleanVendorId($vendors[$i - 1]['id'] ?? null);
 
                     $prodPrice = 0.0;
                     $jasaPrice = 0.0;
@@ -639,7 +652,7 @@ class BQCSController extends Controller
 
             // 3a) Update header BQ: vendorid1..6 mengikuti CS (nama/alamat/cp/telp/top memang tidak ada di tabel BQ header)
             for ($i = 1; $i <= 6; $i++) {
-                $bq->{"vendorid{$i}"} = $csVendors[$i]['id']; // bisa null kalau tak diisi
+                $bq->{"vendorid{$i}"} = $this->cleanVendorId($csVendors[$i]['id'] ?? null);
             }
             $bq->updated_by = $u;
             $bq->updated_at = $now;
@@ -649,14 +662,14 @@ class BQCSController extends Controller
             TrBQCSDetail::on('pgsql')
                 ->where('bqid', $bq->bqid)
                 ->update([
-                    'vendorid1' => $csVendors[1]['id'],
-                    'vendorid2' => $csVendors[2]['id'],
-                    'vendorid3' => $csVendors[3]['id'],
-                    'vendorid4' => $csVendors[4]['id'],
-                    'vendorid5' => $csVendors[5]['id'],
-                    'vendorid6' => $csVendors[6]['id'],
-                    // kolom harga/totals tidak diubah
+                    'vendorid1' => $this->cleanVendorId($csVendors[1]['id'] ?? null),
+                    'vendorid2' => $this->cleanVendorId($csVendors[2]['id'] ?? null),
+                    'vendorid3' => $this->cleanVendorId($csVendors[3]['id'] ?? null),
+                    'vendorid4' => $this->cleanVendorId($csVendors[4]['id'] ?? null),
+                    'vendorid5' => $this->cleanVendorId($csVendors[5]['id'] ?? null),
+                    'vendorid6' => $this->cleanVendorId($csVendors[6]['id'] ?? null),
                 ]);
+
         });
 
         // 4) Ambil ulang detail setelah sinkron (kalau perlu)

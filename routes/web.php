@@ -565,7 +565,7 @@ Route::post('/logout', function () {
         Route::get('/pdf_sppjs/{hash}', [SppjController::class, 'printSppj']);        
         // BQ (Bill of Quantity) VIEW
         Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
-        Route::get('/pdf_bq/{hash}', [SppjController::class, 'printBQ']);
+        Route::get('/pdf_bq_pj/{hash}', [SppjController::class, 'printBQ']);
     });
 
     Route::middleware('access:SPPJ,CREATE')->group(function () {
@@ -630,7 +630,7 @@ Route::post('/logout', function () {
         Route::get('/pdf_sppts/{hash}', [SpptController::class, 'printSppt']);
         // BQ VIEW
         Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);    
-        Route::get('/pdf_bq/{hash}', [SpptController::class, 'printBQ']);   
+        Route::get('/pdf_bq_pt/{hash}', [SpptController::class, 'printBQ']);   
     });
 
     Route::middleware('access:SPPT,CREATE')->group(function () {
@@ -1047,8 +1047,7 @@ Route::post('/logout', function () {
     Route::get('/showkontrak/{hash}', [KontrakController::class, 'showKontrak'])->name('kontrak.show');
     Route::get('/createkontrak/{hash}', [KontrakController::class, 'createKontrak'])->name('kontrak.create');
     Route::post('/kontrak/{kontrakid}/submit', [KontrakController::class, 'submitKontrak'])->name('kontrak.submit');
-
-
+    Route::get('/kontrak/edit/{eid}', [KontrakController::class, 'editKontrak'])->name('kontrak.edit');
 
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
     Route::get('/lookup/tenants',  [MasterController::class, 'tenants'])->name('tenants.search');

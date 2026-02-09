@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Vinkla\Hashids\Facades\Hashids;
+
 use App\Models\TrPoLastPrice;
 use App\Models\TrPO;
 use App\Models\TrCS;
-use Vinkla\Hashids\Facades\Hashids;
+use App\Models\ViewLastorderBq;
+use App\Models\TrBQCS;
 
 class LastOrderController extends Controller
 {
@@ -14,21 +18,26 @@ class LastOrderController extends Controller
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
-        
+
         return view('pages.canvass.lastorder');
     }
 
     public function inventoryJson(Request $request)
     {
-        return $this->datatableJson($request, 'inventory');
+        return $this->datatableJsonInventory($request);
     }
 
     public function bqJson(Request $request)
     {
-        return $this->datatableJson($request, 'bq');
+        return $this->datatableJsonBQ($request);
     }
 
-    private function datatableJson(Request $request, string $tab)
+    /**
+     * =========================
+     * INVENTORY (NON BQ)
+     * =========================
+     */
+    private function datatableJsonInventory(Request $request)
     {
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
@@ -50,17 +59,11 @@ class LastOrderController extends Controller
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'podate';
 
-        $base = TrPoLastPrice::query();
-
-        // filter tab
-        if ($tab === 'bq') {
-            $base->where('inventory_type', 'BQ');
-        } else {
-            $base->where(function ($q) {
+        $base = TrPoLastPrice::query()
+            ->where(function ($q) {
                 $q->whereNull('inventory_type')
                   ->orWhere('inventory_type', '<>', 'BQ');
             });
-        }
 
         $recordsTotal = (clone $base)->count();
 
@@ -95,31 +98,111 @@ class LastOrderController extends Controller
             ->take($length)
             ->get();
 
-        // =========================
-        // ✅ Ambil ID PO dari TrPO (ponbr -> id)
-        // ✅ Ambil ID CS dari TrCS (csid -> id)
-        // =========================
-        $ponbrs = $rows->pluck('ponbr')->filter()->unique()->values();
-        $csids  = $rows->pluck('csid')->filter()->unique()->values();
+        // mapping PO & CS -> hashid
+        $ponbrs = $rows->pluck('ponbr')->filter()->unique();
+        $csids  = $rows->pluck('csid')->filter()->unique();
 
-        // mapping: ponbr => id
-        $poMap = TrPO::query()
-            ->whereIn('ponbr', $ponbrs)
-            ->pluck('id', 'ponbr'); // [ponbr => id]
+        $poMap = TrPO::on('pgsql')->whereIn('ponbr', $ponbrs)->pluck('id', 'ponbr');
+        $csMap = TrCS::on('pgsql')->whereIn('csid', $csids)->pluck('id', 'csid');
 
-        // mapping: csid => id
-        $csMap = TrCS::query()
-            ->whereIn('csid', $csids)
-            ->pluck('id', 'csid'); // [csid => id]
-
-        // encode link id berdasarkan master table
         $rows->transform(function ($r) use ($poMap, $csMap) {
-            $poId = $poMap[$r->ponbr] ?? null;
-            $csId = $csMap[$r->csid] ?? null;
+            $r->po_eid = isset($poMap[$r->ponbr]) ? Hashids::encode((int)$poMap[$r->ponbr]) : null;
+            $r->cs_eid = isset($csMap[$r->csid])  ? Hashids::encode((int)$csMap[$r->csid])  : null;
+            return $r;
+        });
 
-            $r->po_eid = $poId ? Hashids::encode((int) $poId) : null;
-            $r->cs_eid = $csId ? Hashids::encode((int) $csId) : null;
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $rows,
+        ]);
+    }
 
+    /**
+     * =========================
+     * BQ (PAKAI VIEW v_lastorder_bq di PGSQL)
+     * =========================
+     */
+    private function datatableJsonBQ(Request $request)
+    {
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+
+        // Sesuaikan index dengan kolom DataTables TAB BQ kamu
+        $columns = [
+            0 => 'bqid',
+            1 => 'csid',
+            2 => 'vendor_name',
+            3 => 'bq_descr',
+            4 => 'product_price',
+            5 => 'jasa_price',
+            6 => 'total_price',
+        ];
+
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'bqid';
+
+        $base = ViewLastorderBq::query(); // ✅ otomatis pakai connection pgsql
+
+        $recordsTotal = (clone $base)->count();
+
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->whereRaw("CAST(bqid AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("CAST(csid AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhere('vendor_name', 'ilike', "%{$search}%")
+                  ->orWhere('bq_descr', 'ilike', "%{$search}%")
+                  ->orWhereRaw("CAST(product_price AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("CAST(jasa_price AS TEXT) ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $recordsFiltered = (clone $base)->count();
+
+        $rows = $base->select([
+                'bqid',
+                'csid',
+                'vendor_id',
+                'vendor_name',
+                'bq_descr',
+                'product_price',
+                'jasa_price',
+                'total_price',
+            ])
+            ->orderBy($orderCol, $orderDir)
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        // encode CS link kalau mau klik ke CS
+        $csids = $rows->pluck('csid')->filter()->unique();
+        $csMap = TrCS::on('pgsql')->whereIn('csid', $csids)->pluck('id', 'csid');
+
+        $rows->transform(function ($r) use ($csMap) {
+            $r->cs_eid = isset($csMap[$r->csid])
+                ? Hashids::encode((int)$csMap[$r->csid])
+                : null;
+            return $r;
+        });
+
+        // =========================
+        // ✅ Mapping BQ ID (bqid -> tr_bq_cs.id)
+        // =========================
+        $bqids = $rows->pluck('bqid')->filter()->unique()->values();
+
+        $bqMap = TrBQCS::on('pgsql')
+            ->whereIn('bqid', $bqids)
+            ->pluck('id', 'bqid'); // [bqid => id]
+
+        // encode bq_eid
+        $rows->transform(function ($r) use ($bqMap) {
+            $bqId = $bqMap[$r->bqid] ?? null;
+            $r->bq_eid = $bqId ? Hashids::encode((int) $bqId) : null;
             return $r;
         });
 

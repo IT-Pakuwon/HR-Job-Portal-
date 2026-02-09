@@ -8,6 +8,10 @@ use Carbon\Carbon;
 use App\Models\TrCS;
 use App\Models\SysUserRole;
 use Vinkla\Hashids\Facades\Hashids;
+use Carbon\CarbonPeriod;
+use App\Models\SysCalendar;
+use App\Models\MsSPPBJKTCounting;
+use Cmixin\BusinessDay;
 
 class CsListController extends Controller
 {
@@ -194,12 +198,70 @@ class CsListController extends Controller
                 ->skip($start)->take($length)
                 ->get();
 
-        $rows->transform(function($r){
+                // =========================
+        // PREFETCH: counting limit per doctype (PB/PJ/PK/PT)
+        // =========================
+        $countingMap = MsSPPBJKTCounting::query()
+            ->where('status', 'A')
+            ->pluck('doctype_counting', 'doctype')
+            ->toArray(); // ['PB'=>4,'PJ'=>10,...]
+
+        // =========================
+        // PREFETCH: holiday/exception dates (sys_calendar_exception)
+        // ambil range tanggal dari semua rows biar query 1x saja
+        // =========================
+        $minFrom = null;
+        $maxTo   = null;
+
+        foreach ($rows as $r) {
+            if ($r->assigndate && $r->submitdate) {
+                $a = Carbon::parse($r->assigndate)->startOfDay()->addDay(); // H+1
+                $s = Carbon::parse($r->submitdate)->startOfDay();
+
+                if (!$minFrom || $a->lt($minFrom)) $minFrom = $a->copy();
+                if (!$maxTo   || $s->gt($maxTo))   $maxTo   = $s->copy();
+            }
+        }
+
+        $holidaySet = [];
+        if ($minFrom && $maxTo && $maxTo->gte($minFrom)) {
+            $holidaySet = SysCalendar::query()
+                ->where('status', 'A')
+                ->whereBetween('date_calendar', [$minFrom->toDateString(), $maxTo->toDateString()])
+                ->pluck('date_calendar')
+                ->map(fn($d) => Carbon::parse($d)->toDateString())
+                ->flip()
+                ->toArray(); // associative set: ['2026-02-16'=>true,...]
+        }
+
+        // helper hitung business days
+        $countBusinessDays = function (Carbon $assignDate, Carbon $submitDate) use ($holidaySet): int {
+            $start = $assignDate->copy()->startOfDay()->addDay(); // mulai H+1
+            $end   = $submitDate->copy()->startOfDay();           // inclusive
+
+            if ($end->lt($start)) return 0;
+
+            $days = 0;
+            foreach (CarbonPeriod::create($start, $end) as $d) {
+                // weekend skip
+                if ($d->isSaturday() || $d->isSunday()) continue;
+
+                // holiday/exception skip
+                if (isset($holidaySet[$d->toDateString()])) continue;
+
+                $days++;
+            }
+            return $days;
+        };
+
+        $rows->transform(function($r) use ($countBusinessDays, $countingMap){
             $assign = $r->assigndate ? Carbon::parse($r->assigndate)->startOfDay() : null;
             $submit = $r->submitdate ? Carbon::parse($r->submitdate)->startOfDay() : null;
-            $r->days = ($assign && $submit) ? $assign->diffInDays($submit) : null;
 
-            // ✅ status label + class (switch biar aman)
+            // ✅ business days (exclude weekend + sys_calendar_exception)
+            $r->days = ($assign && $submit) ? $countBusinessDays($assign, $submit) : null;
+
+            // ✅ status label + class (punya kamu, tetap)
             $st = strtoupper((string)($r->status ?? ''));
             $statusText  = $st !== '' ? $st : 'Unknown';
             $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
@@ -238,10 +300,26 @@ class CsListController extends Controller
             $r->status_label = $statusText;
             $r->status_class = $statusClass;
 
+            // =========================
+            // ✅ ROW RED IF OVERDUE
+            // compare days vs doctype_counting
+            // doctype prefix: PB/PJ/PK/PT (sudah kamu select jadi sppbjkt_prefix)
+            // =========================
+            $doctype = strtoupper((string) ($r->sppbjkt_prefix ?? ''));
+            $limit   = $countingMap[$doctype] ?? null;
+
+            $r->doctype_limit = $limit; // optional buat ditampilkan
+            $r->is_overdue    = ($r->days !== null && $limit !== null && $r->days > (int)$limit);
+
+            // class buat row (dipakai di DataTables rowCallback/createdRow)
+            $r->row_class = $r->is_overdue ? 'bg-red-50' : '';
+
             $r->eid          = Hashids::encode($r->id);
             $r->sppbjkid_eid = Hashids::encode($r->sppbjkt_src_id);
+
             return $r;
         });
+
 
 
         return response()->json([

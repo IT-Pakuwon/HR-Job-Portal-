@@ -2537,11 +2537,9 @@ class SppjController extends Controller
 
         $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();      
             
-        $attachment = Attachment::where('docid', $bq->bqid)    
-            ->where('status','A')        
-            ->get();    
+     
     
-        return view('pages.sppjs.showbqsppjs', compact('bq','attachment','bqdetail','canEdit','hash'));
+        return view('pages.sppjs.showbqsppjs', compact('bq','bqdetail','canEdit','hash'));
     }
 
     public function editBQ($id)

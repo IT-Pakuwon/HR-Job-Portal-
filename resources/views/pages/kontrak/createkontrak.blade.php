@@ -1,4 +1,56 @@
 <x-app-layout>
+    <style>
+        /* === SAMAKAN TINGGI DENGAN INPUT DATE === */
+        .select2-container--default .select2-selection--single {
+            height: 38px !important;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.375rem;  /* rounded-md */
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;      /* text-sm */
+        }
+
+        /* === TEXT USER (NAME) === */
+        .select2-container--default .select2-selection__rendered {
+            font-size: 0.875rem;      /* text-sm */
+            line-height: 1.25rem;
+            padding-left: 0.5rem;
+            padding-right: 1.5rem !important; /* kasih ruang utk ❌ + arrow */
+            color: #111827;           /* gray-900 */
+        }
+
+        /* === TOMBOL CLEAR (❌) DI KANAN === */
+        .select2-container--default .select2-selection__clear {
+            position: absolute;
+            right: 5rem;              /* sebelum arrow */
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #9ca3af;           /* gray-400 */
+        }
+
+        .select2-container--default .select2-selection__clear:hover {
+            color: #ef4444;           /* red-500 */
+        }
+
+        /* === ARROW DROPDOWN === */
+        .select2-container--default .select2-selection__arrow {
+            height: 38px;
+            right: 0.5rem;
+        }
+
+        /* === DARK MODE === */
+        .dark .select2-container--default .select2-selection--single {
+            background-color: #374151; /* gray-700 */
+            border-color: #4b5563;     /* gray-600 */
+        }
+
+        .dark .select2-container--default .select2-selection__rendered {
+            color: #f9fafb;            /* gray-50 */
+        }
+    </style>
+
+
     @php
         $loginUser = auth()->user();
         $createdBy = $kontrak->created_by ?? null;
@@ -15,7 +67,7 @@
 
         $statusText = match ($kontrak->status) {
             'H' => 'Hold',
-            'P' => 'Submitted',
+            'P' => 'On Progress',
             'C' => 'Completed',
             'X' => 'Canceled',
             'D' => 'Reuse',
@@ -157,42 +209,46 @@
                             @csrf
                             <input type="hidden" name="kontrakid" value="{{ $kontrak->kontrakid }}">
 
-                            {{-- Kontrak Type --}}
-                            <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak Type</label>
-                                @if($isHold)
-                                    <select id="kontraktype" name="kontraktype"
-                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                        <option value="">Select</option>
-                                        <option value="New" {{ ($kontrak->kontraktype ?? '') === 'New' ? 'selected' : '' }}>New</option>
-                                        <option value="Adjustment" {{ ($kontrak->kontraktype ?? '') === 'Adjustment' ? 'selected' : '' }}>Adjustment</option>
-                                    </select>
-                                @else
-                                    <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                        {{ $kontrak->kontraktype ?? '-' }}
-                                    </div>
-                                @endif
+                            {{-- ROW 1: Kontrak Type + Kontrak Category --}}
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                {{-- Kontrak Type --}}
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak Type</label>
+                                    @if($isHold)
+                                        <select id="kontraktype" name="kontraktype"
+                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            <option value="">Select</option>
+                                            <option value="New" {{ ($kontrak->kontraktype ?? '') === 'New' ? 'selected' : '' }}>New</option>
+                                            <option value="Adjustment" {{ ($kontrak->kontraktype ?? '') === 'Adjustment' ? 'selected' : '' }}>Adjustment</option>
+                                        </select>
+                                    @else
+                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            {{ $kontrak->kontraktype ?? '-' }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                {{-- Kontrak Category --}}
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak Category</label>
+                                    @if($isHold)
+                                        <select id="kontrakcategory" name="kontrakcategory"
+                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            <option value="">Select</option>
+                                            <option value="Maintenance" {{ ($kontrak->kontrakcategory ?? '') === 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                            <option value="Pengadaan" {{ ($kontrak->kontrakcategory ?? '') === 'Pengadaan' ? 'selected' : '' }}>Pengadaan</option>
+                                        </select>
+                                    @else
+                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            {{ $kontrak->kontrakcategory ?? '-' }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
 
-                            {{-- Kontrak Category --}}
-                            <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak Category</label>
-                                @if($isHold)
-                                    <select id="kontrakcategory" name="kontrakcategory"
-                                        class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                        <option value="">Select</option>
-                                        <option value="Maintenance" {{ ($kontrak->kontrakcategory ?? '') === 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                        <option value="Pengadaan" {{ ($kontrak->kontrakcategory ?? '') === 'Pengadaan' ? 'selected' : '' }}>Pengadaan</option>
-                                    </select>
-                                @else
-                                    <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                        {{ $kontrak->kontrakcategory ?? '-' }}
-                                    </div>
-                                @endif
-                            </div>
-
-                            {{-- Dates --}}
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            {{-- ROW 2: Kontrak Date + User Approval --}}
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                {{-- Kontrak Date --}}
                                 <div>
                                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak Date</label>
                                     @if($isHold)
@@ -206,6 +262,38 @@
                                     @endif
                                 </div>
 
+                                {{-- User Approval --}}
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">User Approval</label>
+
+                                    @if($isHold)
+                                        <select id="user_approval" name="user_approval"
+                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm
+                                                dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            <option value="">Select User</option>
+
+                                            @foreach(($users ?? []) as $u)
+                                                @php
+                                                    $uname = is_array($u) ? ($u['username'] ?? '') : ($u->username ?? '');
+                                                    $name  = is_array($u) ? ($u['name'] ?? '') : ($u->name ?? $uname);
+                                                    $selected = (string)($kontrak->user_approval ?? '') === (string)$uname ? 'selected' : '';
+                                                @endphp
+                                                <option value="{{ $uname }}" {{ $selected }}>
+                                                    {{ $name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+
+                                    @else
+                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            {{ $kontrak->user_approval ?? '-' }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- ROW 3: Start Date + End Date --}}
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
                                     @if($isHold)
@@ -232,6 +320,7 @@
                                     @endif
                                 </div>
                             </div>
+
 
                             {{-- Note --}}
                             <div>
@@ -365,10 +454,25 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 
     <script>
         dayjs.extend(dayjs_plugin_relativeTime);
     </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#user_approval').select2({
+                placeholder: 'Select User',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#kontrakForm'), // penting kalau di card / modal
+            });
+        });
+    </script>
+
 
     <script>
         // ===== SUBMIT KONTRAK =====
@@ -439,8 +543,11 @@
                     }
                 });
             });
+
+            
         });
     </script>
+    
 
     <script>
         // ===== COMMENTS (doctype KO) =====

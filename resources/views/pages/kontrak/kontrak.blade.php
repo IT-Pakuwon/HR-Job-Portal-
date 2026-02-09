@@ -130,38 +130,40 @@
 
             function renderKontrakId(_v, row) {
                 const st = (row.status || '').toString().toUpperCase();
-                const isHold  = st === 'H';
-                const isOwner = !!row.is_owner;
+                const isHold = st === 'H';
+
+                let url = '';
+                let cls = '';
 
                 // ===============================
-                // RULE AKHIR
+                // RULE FINAL
                 // ===============================
-                // - TAB my  : HOLD atau owner => edit
-                // - TAB all : SELALU show (termasuk HOLD)
-                let canEdit = false;
-
                 if (activeTab === 'my') {
-                    canEdit = isHold || isOwner;
+                    // MY TAB
+                    if (isHold) {
+                        url = `/createkontrak/${encodeURIComponent(row.eid)}`;
+                        cls = 'bg-amber-600 hover:bg-amber-700';
+                    } else {
+                        url = `/showkontrak/${encodeURIComponent(row.eid)}`;
+                        cls = 'bg-gray-600 hover:bg-gray-700';
+                    }
+                } else {
+                    // ALL TAB (tidak diubah)
+                    url = `/showkontrak/${encodeURIComponent(row.eid)}`;
+                    cls = 'bg-gray-600 hover:bg-gray-700';
                 }
 
-                const url = canEdit
-                    ? `/createkontrak/${encodeURIComponent(row.eid)}`
-                    : `/showkontrak/${encodeURIComponent(row.eid)}`;
-
                 const text = row.kontrakid || row.eid;
-
-                const cls = canEdit
-                    ? 'bg-amber-600 hover:bg-amber-700'
-                    : 'bg-gray-600 hover:bg-gray-700';
 
                 return `
                     <a href="${url}"
                     class="inline-flex min-w-[110px] justify-center rounded px-2 py-1 text-sm font-semibold text-white ${cls}"
                     rel="noopener">
-                    ${text}
+                        ${text}
                     </a>
                 `;
             }
+
 
 
 

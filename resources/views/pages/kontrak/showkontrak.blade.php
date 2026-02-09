@@ -9,8 +9,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
                 Back
-            </button>
-
+            </button>   
             @php
                 // mapping status Kontrak (samakan style PO)
                 $st = strtoupper((string)($kontrak->status ?? ''));
@@ -58,6 +57,39 @@
                 $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                 $value = 'break-words font-medium text-gray-900 dark:text-gray-100 sm:flex-1';
             @endphp
+            @php
+                $loginUser = auth()->user();
+
+                $createdBy = $kontrak->created_by ?? null;
+
+                $isOwner = false;
+                if ($loginUser) {
+                    $isOwner =
+                        (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->username ?? '')) ||
+                        (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->name ?? '')) ||
+                        (is_string($createdBy) && strtolower($createdBy) === strtolower($loginUser->email ?? ''));
+                }
+
+                // encode id untuk URL createkontrak
+                $eid = \Vinkla\Hashids\Facades\Hashids::encode($kontrak->id);
+            @endphp
+
+            <div class="flex items-center gap-3">
+                @if($isOwner)
+                    <a href="{{ route('kontrak.edit', $eid) }}"
+                        class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="h-4 w-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19.5 7.125 16.875 4.5" />
+                        </svg>
+                        Edit
+                    </a>
+                @endif                
+            </div>
+
         </div>
 
         <div class="flex w-full flex-col gap-6">
@@ -82,11 +114,19 @@
 
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         @php
+                            $userMap = collect($users ?? [])->mapWithKeys(function($u){
+                                $username = is_array($u) ? ($u['username'] ?? '') : ($u->username ?? '');
+                                $name     = is_array($u) ? ($u['name'] ?? '') : ($u->name ?? '');
+                                return [$username => ($name ?: $username)];
+                            });
+                        @endphp
+
+                        @php
                             $fields = [
                                 ['icon'=>'calendar-days','label'=>'Kontrak Date','value'=> optional($kontrak->kontrakdate)->format('d M Y') ?? ( $kontrak->kontrakdate ? \Carbon\Carbon::parse($kontrak->kontrakdate)->format('d M Y') : '-' ), 'is_raw'=>false],
                                 ['icon'=>'building-office','label'=>'Company','value'=>$kontrak->cpny_id,'is_raw'=>false],
                                 ['icon'=>'squares-2x2','label'=>'Department','value'=>$kontrak->department_id,'is_raw'=>false],
-                                ['icon'=>'user-circle','label'=>'Requester','value'=> ucwords(strtolower($kontrak->user_peminta ?? '-')),'is_raw'=>false],
+                                ['icon'=>'user-circle','label'=>'Requester','value'=> ucwords(strtolower($kontrak->user_peminta ?? '-')),'is_raw'=>false],                                
                                 ['icon'=>'document-text','label'=>'SPPB/J/K/T ID','value'=> $sppbDisplay,'is_raw'=>true],
                                 ['icon'=>'document-duplicate','label'=>'CS ID','value'=> $csDisplay,'is_raw'=>true],
                                 ['icon'=>'identification','label'=>'Vendor ID','value'=> $kontrak->vendorid,'is_raw'=>false],
@@ -97,8 +137,10 @@
                                 ['icon'=>'document-check','label'=>'No PK Legal','value'=> $kontrak->nopklegal,'is_raw'=>false],
                                 ['icon'=>'calendar','label'=>'Start Date','value'=> $kontrak->startdate ? \Carbon\Carbon::parse($kontrak->startdate)->format('d M Y') : '-', 'is_raw'=>false],
                                 ['icon'=>'calendar','label'=>'End Date','value'=> $kontrak->enddate ? \Carbon\Carbon::parse($kontrak->enddate)->format('d M Y') : '-', 'is_raw'=>false],
+                                ['icon'=>'user','label'=>'User Approval','value'=> $userMap[$kontrak->user_approval] ?? ($kontrak->user_approval ?? '-'), 'is_raw'=>false],
                             ];
                         @endphp
+
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
                             @foreach ($fields as $f)

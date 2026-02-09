@@ -268,10 +268,11 @@
                         render: (v) => fmtDate(v)
                     },
                     {
-                        data: 'days',
-                        className: 'text-center',
-                        render: (v) => renderDays(v)
+                    data: 'days',
+                    className: 'text-center',
+                    render: (v, t, row) => renderDays(v, row)
                     },
+
                     {
                         data: 'status',
                         className: 'text-center',
@@ -279,6 +280,16 @@
                     },
 
                 ],
+
+                createdRow: function(row, data) {
+                    if (data && data.is_overdue) {
+                        row.style.backgroundColor = '#ffe4e6'; // merah muda
+                        row.style.color = '#b91c1c';           // teks merah
+                        row.style.fontWeight = '700';
+                    }
+                },
+
+
                 searchDelay: 400,
                 stateSave: true,
                 responsive: true
@@ -322,9 +333,19 @@
                 return `<a href="${url}"  class="inline-flex justify-center items-center w-[120px] px-3 py-1.5  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-indigo-500 hover:bg-indigo-700">${docNo}</a>`;
             }
 
-            function renderDays(v) {
-                return (v == null) ? '' : String(v);
+            // function renderDays(v) {
+            //     return (v == null) ? '' : String(v);
+            // }
+            function renderDays(v, row) {
+                if (v == null) return '';
+                const limit = row?.doctype_limit ?? null;
+
+                if (row?.is_overdue) {
+                    return `<span class="font-extrabold text-red-700">${v}${limit ? ` / ${limit}` : ''}</span>`;
+                }
+                return `${v}${limit ? ` / ${limit}` : ''}`;
             }
+
 
             function renderStatusBadge(row) {
                 const label = row.status_label ?? row.status ?? '-';

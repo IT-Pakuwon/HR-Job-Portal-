@@ -305,12 +305,18 @@ class KontrakController extends Controller
             }
         }
 
+        $users = \App\Models\User::select('username','name')
+            ->where('status', 'A') // kalau ada
+            ->orderBy('username')
+            ->get();
+
         return view('pages.kontrak.createkontrak', [
             'kontrak'    => $kontrak,
             'attachment' => $attachment,
             'hash'       => $hash,
             'sppbUrl'    => $sppbUrl,
             'csUrl'      => $csUrl,
+            'users'      => $users,
         ]);
     }
 
@@ -410,12 +416,18 @@ class KontrakController extends Controller
             }
         }
 
+        $users = \App\Models\User::select('username','name')
+            ->where('status', 'A') // kalau ada
+            ->orderBy('username')
+            ->get();
+
         return view('pages.kontrak.showkontrak', [
             'kontrak'    => $kontrak,
             'attachment' => $attachment,
             'hash'       => $hash,
             'sppbUrl'    => $sppbUrl,
             'csUrl'      => $csUrl,
+            'users'      => $users,
         ]);
     }
 
@@ -448,9 +460,11 @@ class KontrakController extends Controller
             'kontrakdate'     => 'required|date',
             'startdate'       => 'required|date',
             'enddate'         => 'required|date|after_or_equal:startdate',
+            'user_approval'   => 'required|string|max:100', // ⬅️ tambah ini
             'kontraknote'     => 'nullable|string|max:5000',
         ], [
             'enddate.after_or_equal' => 'End Date harus >= Start Date.',
+            'user_approval.required' => 'User Approval wajib dipilih.',
         ]);
 
         if ($v->fails()) {
@@ -468,6 +482,7 @@ class KontrakController extends Controller
         $kontrak->kontrakdate     = $request->kontrakdate;
         $kontrak->startdate       = $request->startdate;
         $kontrak->enddate         = $request->enddate;
+        $kontrak->user_approval   = $request->user_approval; // ⬅️ simpan ini
         $kontrak->kontaknote      = $request->kontraknote;
 
         $kontrak->submitdate      = $now;
@@ -481,4 +496,36 @@ class KontrakController extends Controller
             'message' => 'Submit berhasil.',
         ]);
     }
+
+    public function editKontrak(string $eid)
+    {
+        $user = auth()->user();
+        abort_if(!$user, 401);
+
+        $id = \Vinkla\Hashids\Facades\Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $kontrak = TrKontrak::findOrFail($id);
+
+        // dd($kontrak);
+
+        // hanya owner boleh edit
+        $createdBy = strtolower((string)($kontrak->created_by ?? ''));
+        $username  = strtolower((string)($user->username ?? ''));
+
+        abort_if($createdBy !== $username, 403, 'Forbidden');
+
+        // 👉 SET STATUS KE HOLD
+        if ($kontrak->status !== 'H') {
+            $kontrak->status     = 'H';
+            $kontrak->updated_by = $user->username;
+            $kontrak->updated_at = now();
+            $kontrak->save();
+        }
+
+        // redirect ke halaman create/edit
+        return redirect()->to('/createkontrak/' . $eid);
+    }
+
+
 }
