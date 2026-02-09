@@ -23,6 +23,7 @@ class Task extends Model
         'C' => 'Cancelled',
     ];
 
+
     protected $connection = 'pgsql2'; // same as UserGoogle
     protected $table = 'tr_task';
 

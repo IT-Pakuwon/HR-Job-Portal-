@@ -154,7 +154,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/google/calendar/status', [GoogleCalendarApiController::class, 'status']);
@@ -162,7 +161,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/google/calendar/event', [GoogleCalendarApiController::class, 'createEvent']);
 
     Route::post('/tasks', [TaskController::class, 'store']);
+    Route::put('/tasks/{id}', [TaskController::class, 'update']); 
     Route::post('/tasks/{id}/move', [TaskController::class, 'move']);
-    Route::post('/tasks/{id}/resize', [TaskController::class, 'move']);
+
+    Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
 
 });

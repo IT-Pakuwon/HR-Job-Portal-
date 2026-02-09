@@ -212,6 +212,19 @@
     .fc-daygrid-event .fc-event-title {
         font-weight: 500;
     }
+
+    .fc-list-event:hover td {
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .fc-list-day-cushion {
+        background: transparent;
+        font-weight: 600;
+    }
+
+    .fc-list-event-title {
+        font-weight: 500;
+    }
 </style>
 
 

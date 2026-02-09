@@ -4,22 +4,53 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Task;
+use App\Models\UserGoogle;
 use Carbon\Carbon;
 
 class TaskController extends Controller
 {
     public function move(Request $request, $id)
     {
-        Task::where('id', $id)->update([
+        $task = Task::findOrFail($id);
+
+        $task->update([
             'start_date' => Carbon::parse($request->start),
             'end_date'   => Carbon::parse($request->end),
             'updated_by' => auth()->user()->username,
         ]);
 
-        // 🔥 later: sync update to Google here if google_event_id exists
+        // 🔁 SYNC TO GOOGLE
+        if ($task->google_event_id) {
+            $google = UserGoogle::where('username', auth()->user()->username)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($google) {
+                try {
+                    $service = GoogleCalendarService::make($google);
+
+                    $event = $service->events->get('primary', $task->google_event_id);
+
+                    $event->setStart([
+                        'dateTime' => $task->start_date->toIso8601String(),
+                        'timeZone' => config('app.timezone'),
+                    ]);
+
+                    $event->setEnd([
+                        'dateTime' => $task->end_date->toIso8601String(),
+                        'timeZone' => config('app.timezone'),
+                    ]);
+
+                    $service->events->update('primary', $event->getId(), $event);
+                } catch (\Throwable $e) {
+                    logger()->error('Google update failed', ['e' => $e->getMessage()]);
+                }
+            }
+        }
 
         return response()->json(['ok' => true]);
     }
+
 
     public function store(Request $request)
     {
@@ -57,13 +88,52 @@ class TaskController extends Controller
             'task_description' => $request->description,
             'task_location' => $request->location,
             'sync_to_google' => $request->sync_to_google ?? false,
-            'status' => 'pending',
+            'status' => Task::STATUS_MAP['PENDING'],
             'created_by' => auth()->user()->username,
             'updated_by' => auth()->user()->username,
         ]);
 
         return response()->json($task);
     }
+
+public function destroy($id)
+{
+    $task = Task::findOrFail($id);
+
+    // 🔒 SECURITY: only owner can delete
+    abort_if(
+        $task->created_by !== auth()->user()->username,
+        403,
+        'You are not allowed to delete this task'
+    );
+
+    // 🧹 Delete from Google if linked
+    if ($task->sync_to_google && $task->google_event_id) {
+        $google = UserGoogle::where('username', auth()->user()->username)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($google) {
+            try {
+                $service = GoogleCalendarService::make($google);
+                $service->events->delete('primary', $task->google_event_id);
+            } catch (\Throwable $e) {
+                // Do NOT block DB delete
+                logger()->warning('Google delete failed', [
+                    'task_id' => $task->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+    }
+
+    // 🗑 Soft delete local DB
+    $task->delete();
+
+    return response()->json(['success' => true]);
+}
+
+
 
     
 }

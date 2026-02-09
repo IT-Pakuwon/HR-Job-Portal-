@@ -104,6 +104,8 @@ use App\Http\Controllers\Integration\IFCAAPIPOController;
 
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\GoogleCalendarApiController;
+use App\Http\Controllers\TaskController;
+
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -1284,29 +1286,35 @@ Route::post('/logout', function () {
     Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
 
 
-    // User must be logged in to START OAuth
-    Route::get('/google/calendar/connect', [GoogleCalendarController::class, 'redirect'])
-        ->middleware('auth');
+// User must be logged in to START OAuth
+Route::get('/google/calendar/connect', [GoogleCalendarController::class, 'redirect'])
+    ->middleware('auth');
 
-    // CALLBACK MUST BE PUBLIC (no auth middleware)
-    Route::get('/google/calendar/callback', [GoogleCalendarController::class, 'callback']);
+// CALLBACK MUST BE PUBLIC (Google redirect)
+Route::get('/google/calendar/callback', [GoogleCalendarController::class, 'callback']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | AJAX APIs (require auth)
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('auth')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| AJAX (Session-based, CSRF-protected)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
 
-        Route::get('/google/calendar/status', [GoogleCalendarApiController::class, 'status']);
-        Route::get('/google/calendar/events', [GoogleCalendarApiController::class, 'events']);
-        Route::post('/google/calendar/event', [GoogleCalendarApiController::class, 'createEvent']);
+    // 🔹 Google calendar (read / write)
+    Route::get('/google/calendar/status', [GoogleCalendarApiController::class, 'status']);
+    Route::get('/google/calendar/events', [GoogleCalendarApiController::class, 'events']);
+    Route::post('/google/calendar/event', [GoogleCalendarApiController::class, 'createEvent']);
+    Route::post('/google/calendar/disconnect', [GoogleCalendarController::class, 'disconnect']);
 
-        Route::post('/agenda', [AgendaController::class, 'store']);
-    });
+    // 🔹 Tasks
+    Route::post('/tasks', [TaskController::class, 'store']);
+    Route::put('/tasks/{id}', [TaskController::class, 'update']);
+    Route::post('/tasks/{id}/move', [TaskController::class, 'move']);
+    Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
 
-
-
+    // 🔹 Agenda (if separate)
+    Route::post('/agenda', [AgendaController::class, 'store']);
+});
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
     // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');

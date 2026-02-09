@@ -67,9 +67,7 @@
 
             <!-- MODAL HEADER -->
             <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                    New task
-                </h3>
+                <h3 x-text="editingTaskId ? 'Edit task' : 'New task'"></h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     This task will sync with Google Calendar
                 </p>
@@ -154,11 +152,12 @@
                     class="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
                     Cancel
                 </button>
-
-                <button @click="addTask()"
-                    class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                    Create
+                <button @click="submitTask()" :disabled="!newTask.title || !newTask.deadline || !newTask.description"
+                    class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">
+                    Submit
                 </button>
+
+
             </div>
         </div>
     </div>
@@ -290,10 +289,20 @@
                     Close
                 </button>
 
-                <button @click="deleteEvent(selectedEvent)"
-                    class="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600">
-                    Delete
-                </button>
+                <div class="flex gap-4">
+                    {{-- <template x-if="!selectedEvent?.extendedProps?.fromGoogle">
+                        <button @click="openEdit(selectedEvent)"
+                            class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                            Edit
+                        </button>
+                    </template> --}}
+                    <button @click="deleteEvent(selectedEvent)"
+                        class="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600">
+                        Delete
+                    </button>
+
+                </div>
+
             </div>
 
         </div>
@@ -336,6 +345,9 @@
             duration: '',
             manualEndTime: false,
             selectedEvent: null,
+            hasFocusedMonth: false,
+
+            editingTaskId: null,
 
             toast: {
                 show: false,
@@ -416,24 +428,42 @@
 
 
             initCalendar() {
+                const now = new Date();
                 this.calendar = new FullCalendar.Calendar(
                     document.getElementById('calendar'), {
-                        initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
+                        // initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
+                        initialView: 'listWeek',
+
+                        // ✅ OPEN ON TODAY
+                        initialDate: now,
 
                         height: '100%',
-
                         editable: true,
                         selectable: true,
                         eventResizableFromStart: true,
                         expandRows: true,
                         handleWindowResize: true,
 
+                        // ✅ FOCUS ON CURRENT TIME
+                        nowIndicator: true,
+                        scrollTime: now.toTimeString().slice(0, 8),
 
                         headerToolbar: {
                             left: 'prev,next today',
                             center: 'title',
                             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
                         },
+
+                        datesSet: (info) => {
+                            if (
+                                info.view.type === 'dayGridMonth' &&
+                                !this.hasFocusedMonth
+                            ) {
+                                this.hasFocusedMonth = true;
+                                this.calendar.gotoDate(new Date());
+                            }
+                        },
+
 
 
                         select: (info) => {
@@ -447,8 +477,14 @@
                         eventResize: info => this.syncMove(info),
 
                         eventClick: (info) => {
+                            if (info.event.extendedProps.fromGoogle) {
+                                this.showToast('Google events are read-only');
+                                return;
+                            }
+
                             this.selectedEvent = info.event;
                         },
+
 
                         events: async (_, successCallback, failureCallback) => {
                             try {
@@ -507,11 +543,12 @@
             },
 
             async syncMove(info) {
-                const res = await fetch(`/tasks/${info.event.id}/move`, {
+                const res = await fetch(`/api/tasks/${info.event.id}/move`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'Accept': 'application/json',
                     },
                     body: JSON.stringify({
                         start: info.event.start,
@@ -536,6 +573,106 @@
                 this.autoCalculateEnd();
             },
 
+            openEdit(event) {
+                this.newTask = {
+                    title: event.title.replace(' (Google)', ''),
+                    description: event.extendedProps.description ?? '',
+                    deadline: event.start.toISOString().slice(0, 10),
+                    start_time: event.allDay ? '' : event.start.toTimeString().slice(0, 5),
+                    end_time: event.end && !event.allDay ?
+                        event.end.toTimeString().slice(0, 5) : '',
+                    location: event.extendedProps.location ?? '',
+                    link: event.extendedProps.meeting_link ?? '',
+                    all_day: event.allDay,
+                };
+
+                this.editingTaskId = event.id;
+                this.showModal = true;
+                this.selectedEvent = null;
+            },
+
+            validateTask() {
+                // title
+                if (!this.newTask.title.trim()) {
+                    this.showToast('Title is required', 'error');
+                    return false;
+                }
+
+                // date
+                if (!this.newTask.deadline) {
+                    this.showToast('Date is required', 'error');
+                    return false;
+                }
+
+                // time (only if not all-day)
+                if (!this.newTask.all_day) {
+                    if (!this.newTask.start_time) {
+                        this.showToast('Start time is required', 'error');
+                        return false;
+                    }
+
+                    if (!this.newTask.end_time) {
+                        this.showToast('End time is required', 'error');
+                        return false;
+                    }
+                }
+
+                // description
+                if (!this.newTask.description.trim()) {
+                    this.showToast('Description is required', 'error');
+                    return false;
+                }
+
+                return true;
+            },
+            async submitTask() {
+                if (!this.validateTask()) {
+                    return; // ❌ stop submit
+                }
+
+                if (this.editingTaskId) {
+                    await this.updateTask();
+                } else {
+                    await this.addTask();
+                }
+            },
+
+
+            async updateTask() {
+                try {
+                    const payload = {
+                        ...this.newTask,
+                        start_time: this.newTask.all_day ? null : this.newTask.start_time,
+                        end_time: this.newTask.all_day ? null : this.newTask.end_time,
+                    };
+
+                    const res = await fetch(`/api/tasks/${this.editingTaskId}`, {
+                        method: 'PUT',
+                        credentials: 'same-origin', // 🔥 REQUIRED
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+
+                    if (!res.ok) {
+                        this.showToast('Failed to update task', 'error');
+                        return;
+                    }
+
+                    this.calendar.refetchEvents();
+                    this.showModal = false;
+                    this.editingTaskId = null;
+
+                    this.showToast('Task updated successfully', 'success');
+                } catch (err) {
+                    console.error(err);
+                    this.showToast('Unexpected error occurred', 'error');
+                }
+            },
+
             async addTask() {
                 try {
                     const payload = {
@@ -547,14 +684,17 @@
                     };
 
                     // 1️⃣ Save to your app DB
-                    const res = await fetch('/tasks', {
+                    const res = await // ALWAYS this
+                    fetch('/tasks', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
                     });
+
 
                     // ❌ backend failed
                     if (!res.ok) {
@@ -609,17 +749,33 @@
             async deleteEvent(event) {
                 if (!confirm('Delete this task?')) return;
 
-                await fetch(`/api/tasks/${event.id}`, {
+                const xsrfToken = decodeURIComponent(
+                    document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('XSRF-TOKEN='))
+                    ?.split('=')[1] || ''
+                );
+
+                const res = await fetch(`/api/tasks/${event.id}`, {
                     method: 'DELETE',
+                    credentials: 'include', // 🔥 REQUIRED for Sanctum
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'Accept': 'application/json',
+                        'X-XSRF-TOKEN': xsrfToken, // 🔥 REQUIRED
                     }
                 });
 
+                if (!res.ok) {
+                    this.showToast('Failed to delete task', 'error');
+                    return;
+                }
+
                 event.remove();
                 this.selectedEvent = null;
-                this.showToast('Task deleted');
+                this.showToast('Task deleted', 'success');
             }
+
+
 
         }
     }
