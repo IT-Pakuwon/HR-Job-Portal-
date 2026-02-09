@@ -255,7 +255,24 @@
             <tr>
                 <td class="td-center no-col">{{ $i + 1 }}</td>
                 <td>{{ $dt->inventoryid }}</td>
-                <td class="description">{{ $dt->inventory_descr }}</td>
+                <td class="description">
+                    <div style="font-weight:700;">
+                        {{ $dt->inventory_descr }}
+                    </div>
+
+                    @if (!empty($dt->csnote_detail))
+                        <div style="margin-top:1rem;">
+                            {{ $dt->csnote_detail }}
+                        </div>
+                    @endif
+                </td>
+
+
+
+
+
+                </td>
+
                 <td class="td-right qty-col">{{ nf($dt->qty) }}</td>
                 <td class="td-center uom-col">{{ $dt->uom }}</td>
                 @for ($k = 0; $k < $maxVendors; $k++)
