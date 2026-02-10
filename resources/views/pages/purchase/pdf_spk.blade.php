@@ -196,7 +196,7 @@
         <p><strong>Tanggal :</strong> {{ \Carbon\Carbon::parse($po->spkstartworkingdate)->translatedFormat('d F Y') }}
             s/d {{ \Carbon\Carbon::parse($po->spkendworkingdate)->translatedFormat('d F Y') }} (Pelaksanaan Pekerjaan).
         </p>
-        <p><strong>Jenis Pekerjaan :</strong> Pekerjaan general check up diesel fire pump di ruang pompa Lt. B2</p>
+        <p><strong>Jenis Pekerjaan :</strong> {{ $po->keperluan }}</p>
         <br>
         @php
             $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');

@@ -78,8 +78,8 @@
                             <th class="w-32 px-6 py-2 font-medium">Delivery Date</th>
                             <th class="w-32 px-6 py-2 font-medium">Purpose</th>
                             {{-- <th class="w-32 px-6 py-2 font-medium">Total</th>
-                            <th class="w-32 px-6 py-2 font-medium">Tax</th>
-                            <th class="w-32 px-6 py-2 font-medium">Grand Total</th> --}}
+                            <th class="w-32 px-6 py-2 font-medium">Tax</th> --}}
+                            <th class="w-32 px-6 py-2 font-medium">Grand Total</th>
                             <th class="w-32 px-6 py-2 font-medium">Created By</th>
                             <th class="w-32 px-6 py-2 font-medium">Status</th>
                         </tr>
@@ -280,11 +280,11 @@
                     //     className: 'text-right',
                     //     render: (v) => fmtNumber(v)
                     // },
-                    // {
-                    //     data: 'grandtotalamt',
-                    //     className: 'text-right',
-                    //     render: (v) => fmtNumber(v)
-                    // },
+                    {
+                         data: 'grandtotalamt',
+                         className: 'text-right',
+                         render: (v) => fmtNumber(v)
+                    },
                     {
                         data: 'created_by',
                         className: 'text-left'

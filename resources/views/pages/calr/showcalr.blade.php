@@ -180,13 +180,13 @@
                                     'icon' => 'document-text',
                                     'label' => 'SPPB/J/K/T',
                                     'value' =>
-                                        !empty($calrUrl) && !empty($calr->calrjktid)
+                                        !empty($sppbUrl) && !empty($calr->sppbjktid)
                                             ? '<a href="' .
-                                                $calrUrl .
+                                                $sppbUrl .
                                                 '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                                e($calr->calrjktid) .
+                                                e($calr->sppbjktid) .
                                                 '</a>'
-                                            : $calr->calrjktid ?? '-',
+                                            : $calr->sppbjktid ?? '-',
                                 ],
                                 [
                                     'icon' => 'clipboard-document-list',

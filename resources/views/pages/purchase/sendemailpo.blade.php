@@ -77,6 +77,35 @@
     gap:12px;
 ">
 
+    <!-- ===== OVERLAY LOADING ===== -->
+    <div id="sendOverlay" style="
+        position:fixed;
+        inset:0;
+        background:rgba(17,24,39,.55);
+        display:none;
+        align-items:center;
+        justify-content:center;
+        z-index:99999;
+    ">
+        <div style="
+            background:#fff;
+            padding:18px 22px;
+            border-radius:12px;
+            display:flex;
+            align-items:center;
+            gap:12px;
+            box-shadow:0 10px 30px rgba(0,0,0,.25);
+            min-width:240px;
+        ">
+            <div class="spinner-border" role="status" aria-hidden="true"></div>
+            <div>
+                <div style="font-weight:600;color:#111827;">Sending email…</div>
+                <div style="font-size:12px;color:#6b7280;">Please wait</div>
+            </div>
+        </div>
+    </div>
+
+
                 <!-- LEFT : TITLE -->
                 <div>
                     <h2 style="margin:0;font-size:18px;font-weight:600;color:#111827;">
@@ -132,41 +161,43 @@
             <!-- ===== META GRID ===== -->
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 12px;">
                 <div>
-                    <div style="font-size:12px;color:#6b7280;">Order Nbr</div>
-                    <input id="orderNbr" type="text" value="{{ $ponbr }}" readonly
-                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
-                </div>
-                <div>
-                    <div style="font-size:12px;color:#6b7280;">Template</div>
-                    <input id="templateType" type="text" value="{{ $template }}" readonly
-                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
-                </div>
-                <div>
                     <div style="font-size:12px;color:#6b7280;">Vendor</div>
                     <input id="vendorName" type="text" value="{{ $vendor }}" readonly
                         style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
                 </div>
-            </div>
-
-            <!-- ===== FROM / TO ===== -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <div style="font-size:12px;color:#6b7280;">Order Nbr</div>
+                    <input id="orderNbr" type="text" value="{{ $ponbr }}" readonly
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                </div>
                 <div>
                     <label style="font-size:12px;color:#6b7280;">From</label>
                     <input id="from" type="text" value="{{ $from_email }}" readonly
                         style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
                     <div style="font-size:11px;color:#9ca3af;">This email will appear as the sender</div>
                 </div>
+                {{-- <div>
+                    <div style="font-size:12px;color:#6b7280;">Template</div>
+                    <input id="templateType" type="text" value="{{ $template }}" readonly
+                        style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
+                </div> --}}
+                
+            </div>
 
-                <div>
+            <!-- ===== FROM / TO ===== -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">         
+                <div style="grid-column: span 2;">
                     <label style="font-size:12px;color:#6b7280;">Send Email To :</label>
-                    <input id="toInput" placeholder="email1@domain.com, email2@domain.com" {{-- <input id="toInput" type="text" value="{{ $to_email }}"
-                        placeholder="email1@domain.com, email2@domain.com" --}}
+                    <input id="toInput"
+                        value="{{ $to_email }}"
+                        placeholder="email1@domain.com, email2@domain.com"
                         style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
                     <div style="font-size:11px;color:#9ca3af;">
                         Press <strong>Enter</strong> or <strong>Space</strong> to add the email
                     </div>
                 </div>
             </div>
+
 
             <!-- ===== RECIPIENTS ===== -->
             {{-- <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
@@ -494,7 +525,82 @@
 
             $('#editor').summernote('code', `{!! $initial_html !!}`);
 
+            function setSending(isSending) {
+                const overlay = document.getElementById('sendOverlay');
+                const btn = document.getElementById('btnSend');
+
+                if (isSending) {
+                    overlay.style.display = 'flex';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                    btn.style.cursor = 'not-allowed';
+                    btn.dataset.oldText = btn.innerHTML;
+                    btn.innerHTML = 'Sending...';
+                } else {
+                    overlay.style.display = 'none';
+                    btn.disabled = false;
+                    btn.style.opacity = '';
+                    btn.style.cursor = '';
+                    if (btn.dataset.oldText) btn.innerHTML = btn.dataset.oldText;
+                }
+            }
+
+
             // ===== SEND EMAIL =====
+            // $('#btnSend').on('click', async function() {
+
+            //     const payload = {
+            //         ponbr: $('#ponbr').val(),
+            //         cpny_id: $('#cpny_id').val(),
+            //         from: $('#from').val(),
+            //         to: toTagify.value.map(v => v.value),
+            //         cc: ccTagify.value.map(v => v.value),
+            //         bcc: bccTagify.value.map(v => v.value),
+            //         subject: $('#subject').val().trim(),
+            //         html: $('#editor').summernote('code')
+            //     };
+
+            //     if (!payload.to.length) {
+            //         toastr.error('Field "To" wajib diisi');
+            //         return;
+            //     }
+
+            //     if (!payload.subject) {
+            //         toastr.error('Subject wajib diisi');
+            //         return;
+            //     }
+
+            //     try {
+            //         const ponbr = encodeURIComponent($('#orderNbr').val());
+            //         const cpny = encodeURIComponent(payload.cpny_id || '');
+
+            //         const res = await fetch(`/po/${ponbr}/email/send?cpny_id=${cpny}`, {
+            //             method: 'POST',
+            //             headers: {
+            //                 'Content-Type': 'application/json',
+            //                 'Accept': 'application/json',
+            //                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            //             },
+            //             body: JSON.stringify(payload)
+            //         });
+
+            //         const json = await res.json();
+
+            //         if (res.ok && json.success) {
+            //             toastr.success('Email terkirim.');
+            //             setTimeout(() => {
+            //                 window.location.href = `/showpo/${@json($eid)}`;
+            //             }, 800);
+            //         } else {
+            //             toastr.error(json.message || 'Gagal mengirim email.');
+            //         }
+
+
+            //     } catch (err) {
+            //         console.error(err);
+            //         toastr.error('Terjadi kesalahan jaringan.');
+            //     }
+            // });
             $('#btnSend').on('click', async function() {
 
                 const payload = {
@@ -512,11 +618,12 @@
                     toastr.error('Field "To" wajib diisi');
                     return;
                 }
-
                 if (!payload.subject) {
                     toastr.error('Subject wajib diisi');
                     return;
                 }
+
+                setSending(true); // ✅ SHOW overlay
 
                 try {
                     const ponbr = encodeURIComponent($('#orderNbr').val());
@@ -543,12 +650,14 @@
                         toastr.error(json.message || 'Gagal mengirim email.');
                     }
 
-
                 } catch (err) {
                     console.error(err);
                     toastr.error('Terjadi kesalahan jaringan.');
+                } finally {
+                    setSending(false); // ✅ HIDE overlay (kalau sukses, redirect akan jalan, tapi aman)
                 }
             });
+
 
         })();
     </script>

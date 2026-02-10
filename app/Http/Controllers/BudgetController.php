@@ -1589,11 +1589,33 @@ class BudgetController extends Controller
         //     ->orderBy('created_at')
         //     ->get();
 
+        // $approval = TrApproval::query()
+        //     ->where('refnbr', $budget->budget_id)          // dulu: docid
+        //     ->where('status', '<>', 'X')           
+        //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+        //     ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
+        //     ->get();
+
+        $refnbr    = $budget->budget_id;
+        $apprTable = (new TrApproval)->getTable(); // "tr_approval"
+
         $approval = TrApproval::query()
-            ->where('refnbr', $budget->budget_id)          // dulu: docid
-            ->where('status', '<>', 'X')           
-            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
+            ->where('refnbr', $refnbr)
+            ->where('status', '<>', 'X')
+            ->where('created_at', function ($q) use ($refnbr, $apprTable) {
+                $q->selectRaw('MAX(created_at)')
+                ->from($apprTable)
+                ->where('refnbr', $refnbr)
+                ->where('status', '<>', 'X');
+            })
+            ->orderByRaw("
+                CASE
+                    WHEN trim(coalesce(aprv_leveling::text, '')) ~ '^[0-9]+(\\.[0-9]+)?$'
+                    THEN trim(aprv_leveling::text)::numeric
+                    ELSE NULL
+                END ASC
+            ")
+            ->orderBy('id', 'asc')
             ->get();
 
         $approve_count = $approval->count();

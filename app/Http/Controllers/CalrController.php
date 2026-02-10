@@ -619,11 +619,33 @@ class CalrController extends Controller
         }
 
         // Approval list
+        // $approval = TrApproval::query()
+        //     ->where('refnbr', $calr->calrid)
+        //     ->where('status', '<>', 'X')
+        //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+        //     ->orderBy('created_at', 'ASC')
+        //     ->get();
+
+        $refnbr    = $calr->calrid;
+        $apprTable = (new TrApproval)->getTable(); // "tr_approval"
+
         $approval = TrApproval::query()
-            ->where('refnbr', $calr->calrid)
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
-            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-            ->orderBy('created_at', 'ASC')
+            ->where('created_at', function ($q) use ($refnbr, $apprTable) {
+                $q->selectRaw('MAX(created_at)')
+                ->from($apprTable)
+                ->where('refnbr', $refnbr)
+                ->where('status', '<>', 'X');
+            })
+            ->orderByRaw("
+                CASE
+                    WHEN trim(coalesce(aprv_leveling::text, '')) ~ '^[0-9]+(\\.[0-9]+)?$'
+                    THEN trim(aprv_leveling::text)::numeric
+                    ELSE NULL
+                END ASC
+            ")
+            ->orderBy('id', 'asc')
             ->get();
 
         $approve_count = $approval->count();

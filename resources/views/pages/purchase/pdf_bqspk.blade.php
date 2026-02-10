@@ -84,6 +84,11 @@
 
     <div class="header">
         <div class="title">ATTACHMENT</div>
+        @if($businessUnit)
+            <div style="font-size:12px;">
+                {{ $businessUnit->business_unit_name }}
+            </div>
+        @endif
     </div>
 
     <table style="width:100%; margin-bottom:12px;">

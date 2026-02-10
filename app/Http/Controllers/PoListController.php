@@ -125,23 +125,27 @@ class PoListController extends Controller
             3 => "$poTable.potype",
             4 => "$poTable.vendorname",
             5 => "$poTable.podeliverydate",
-            6 => "$poTable.totalamt",
-            7 => "$poTable.taxamt",
-            8 => "$poTable.grandtotalamt",
-            9 => "$poTable.created_by",
-            10 => "$poTable.status",
+            6 => "$poTable.keperluan",
+            7 => "$poTable.totalamt",
+            8 => "$poTable.taxamt",
+            9 => "$poTable.grandtotalamt",
+            10 => "$poTable.created_by",
+            11 => "$poTable.status",
         ];
 
 
-        $orderIdx = (int) $req->input('order.0.column', 1);
-        $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? "$poTable.podate";
+        // $orderIdx = (int) $req->input('order.0.column', 1);
+        // $orderDir = $req->input('ordFORCE order by podate DESC
+        $orderCol = "$poTable.podate";
+        $orderDir = 'desc';
+        // $orderCol = $columns[$orderIdx] ?? "$poTable.podate";
 
         if ($search !== '') {
             $base->where(function ($q) use ($search, $poTable) {
                 $q->where("$poTable.ponbr", 'ilike', "%{$search}%")
                     ->orWhere("$poTable.vendorname", 'ilike', "%{$search}%")
                     ->orWhere("$poTable.created_by", 'ilike', "%{$search}%")
+                    ->orWhere("$poTable.keperluan", 'ilike', "%{$search}%")
                     ->orWhereRaw("CAST($poTable.cpny_id AS TEXT) ILIKE ?", ["%{$search}%"]) // ✅ NEW
                     ->orWhereRaw("TO_CHAR($poTable.podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR($poTable.podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
@@ -163,6 +167,7 @@ class PoListController extends Controller
             "$poTable.potype",
             "$poTable.vendorname",
             "$poTable.podeliverydate",
+            "$poTable.keperluan",
             "$poTable.totalamt",
             "$poTable.taxamt",
             "$poTable.grandtotalamt",

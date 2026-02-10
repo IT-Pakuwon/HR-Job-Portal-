@@ -2629,18 +2629,28 @@ class SpptController extends Controller
             ->where('spptid', $sppt->spptid)
             ->get();
 
-        // Approval list (non-cancelled)
-        // $approval = T_approval::where('docid', $sppt->spptid)
-        //     ->where('status', '<>', 'X')
-        //     ->orderBy('aprvid')
-        //     ->orderBy('created_at')
-        //     ->get();
+        $refnbr    = $sppt->spptid;
+        $apprTable = (new TrApproval)->getTable(); // "tr_approval"
+
         $approval = TrApproval::query()
-            ->where('refnbr', $sppt->spptid)          // dulu: docid
-            ->where('status', '<>', 'X')           
-            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-            ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
+            ->where('refnbr', $refnbr)
+            ->where('status', '<>', 'X')
+            ->where('created_at', function ($q) use ($refnbr, $apprTable) {
+                $q->selectRaw('MAX(created_at)')
+                ->from($apprTable)
+                ->where('refnbr', $refnbr)
+                ->where('status', '<>', 'X');
+            })
+            ->orderByRaw("
+                CASE
+                    WHEN trim(coalesce(aprv_leveling::text, '')) ~ '^[0-9]+(\\.[0-9]+)?$'
+                    THEN trim(aprv_leveling::text)::numeric
+                    ELSE NULL
+                END ASC
+            ")
+            ->orderBy('id', 'asc')
             ->get();
+
 
         $approve_count = $approval->count();
 

@@ -856,7 +856,7 @@ class IssueController extends Controller
             ->get();
 
         // Company (untuk header)
-        $company = MsCompany::where('cpnyid', $iss->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $iss->cpny_id)->first();
 
         // Label type
         $issuetypeLabel = $iss->issuetype === 'IS'

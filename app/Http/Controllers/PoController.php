@@ -37,9 +37,13 @@ use App\Models\TrReceipt;
 use App\Models\MsEmailCcRule;
 use App\Models\TrBQCS;
 use App\Models\TrBQCSDetail;
+use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\BusinessUnit;
 
 class PoController extends Controller
 {
+    use HasAutonbr;
+
     public function showPo($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -239,10 +243,10 @@ class PoController extends Controller
                 $po->podeliverydate = $deliveryDate ? Carbon::parse($deliveryDate) : null;
 
                 // (opsional) catat sedikit ringkasan di ponote
-                if ($deliveryDate) {
-                    $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
-                        'Delivery Date: '.Carbon::parse($deliveryDate)->format('d/m/Y'));
-                }
+                // if ($deliveryDate) {
+                //     $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
+                //         'Delivery Date: '.Carbon::parse($deliveryDate)->format('d/m/Y'));
+                // }
             } else {
                 // simpan field SPK ke kolom yang tersedia di model
                 $po->spkstartworkingdate = $req->input('work_date_from');
@@ -744,7 +748,7 @@ class PoController extends Controller
         $basename = ($potype === 'PO') ? 'PO' : 'SPK';
         return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
     }
-
+    
     public function printSpkBq(string $hash)
     {
         $ids = Hashids::decode($hash);
@@ -753,6 +757,78 @@ class PoController extends Controller
 
         $po = TrPO::findOrFail($poId);
 
+        abort_if(strtoupper((string) $po->potype) !== 'SPK', 403);
+
+        abort_if(empty($po->csid), 404);
+        $cs = TrCS::where('csid', $po->csid)->firstOrFail();
+
+        abort_if(empty($cs->bqid), 404);
+        $bq = TrBQCS::where('bqid', $cs->bqid)->firstOrFail();
+
+        $details = TrBQCSDetail::where('bqid', $bq->bqid)
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
+        // =====================================================
+        // (FIX) Ambil Business Unit dari TrPODetail (bukan TrBQCSDetail)
+        // =====================================================
+        $buId = TrPODetail::where('ponbr', $po->ponbr)
+            ->where('budget_cpny_id', $po->cpny_id)
+            ->whereNotNull('budget_business_unit_id')
+            ->value('budget_business_unit_id'); // <-- ambil 1 saja
+
+        $businessUnit = null;
+        if ($buId) {
+            $businessUnit = BusinessUnit::query()
+                ->where('cpny_id', $po->cpny_id) // safety
+                ->where('business_unit_id', $buId)
+                ->select('business_unit_id', 'business_unit_name')
+                ->first();
+        }
+
+        // =====================================================
+        // Vendors (tetap)
+        // =====================================================
+        $vendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $vid = $cs->{"vendorid{$i}"} ?? null;
+            if (!$vid) continue;
+
+            $vendors[] = [
+                'idx'        => $i,
+                'vendorid'   => $vid,
+                'vendorname' => $cs->{"vendorname{$i}"} ?? '',
+                'vendoraddr' => $cs->{"vendoralamat{$i}"} ?? '',
+                'vendortelp' => $cs->{"vendortelp{$i}"} ?? '',
+                'vendorcp'   => $cs->{"vendorcp{$i}"} ?? '',
+                'mat_total'  => (float) ($bq->{"grandtotalmaterialvendor{$i}"} ?? 0),
+                'jsa_total'  => (float) ($bq->{"grandtotaljasavendor{$i}"} ?? 0),
+            ];
+        }
+
+        return Pdf::loadView('pages.purchase.pdf_bqspk', [
+                'po'               => $po,
+                'cs'               => $cs,
+                'bq'               => $bq,
+                'details'          => $details,
+                'vendors'          => $vendors,
+                'businessUnit'  => $businessUnit,                 
+                'now'              => Carbon::now(),
+            ])
+            ->setPaper('A4', 'portrait')
+            ->stream("BQ_SPK_{$po->ponbr}.pdf", ['Attachment' => false]);
+    }
+
+
+    public function printSpkBq_aca(string $hash)
+    {
+        $ids = Hashids::decode($hash);
+        abort_if(empty($ids), 404);
+        $poId = $ids[0];
+
+        $po = TrPO::findOrFail($poId);
+      
         abort_if(strtoupper((string) $po->potype) !== 'SPK', 403);
 
         abort_if(empty($po->csid), 404);
@@ -1085,114 +1161,237 @@ class PoController extends Controller
         $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
 
         // =========================
-        // (NEW) Generate PDF BQCS Vendor untuk dilampirkan
+        // (FIX) Generate PDF BQCS Vendor berdasarkan PO->vendorid (ONLY)
         // =========================
-        $bqVendorIdx = (int)($data['bq_vendor_idx'] ?? 1);
-        if ($bqVendorIdx < 1 || $bqVendorIdx > 6) $bqVendorIdx = 1;
 
+        // =========================
+        // (FIX) Generate PDF BQ SPK (template printSpkBq) ONLY vendor PO->vendorid
+        // =========================
         $bqPdfBinary = null;
         $bqPdfName   = null;
 
         try {
-            // ambil CS dari po->csid untuk dapat bqid (sesuaikan jika kolom beda)
+            // PO harus punya csid
             $cs = TrCS::on('pgsql')
                 ->where('csid', $po->csid)
                 ->first();
 
-            if ($cs) {
-                // bqid bisa ada di cs->bqid (sesuaikan jika kolom berbeda di sistemmu)
-                $bqid = $cs->bqid ?? null;
+            if ($cs && !empty($cs->bqid)) {
+                $bq = TrBQCS::on('pgsql')
+                    ->where('bqid', $cs->bqid)
+                    ->first();
 
-                if ($bqid) {
-                    // cari BQCS header berdasarkan bqid + csid
-                    $bq = TrBQCS::on('pgsql')
-                        ->where('bqid', $bqid)
-                        ->where('csid', $po->csid)
-                        ->first();
+                if ($bq) {
+                    $details = TrBQCSDetail::on('pgsql')
+                        ->where('bqid', $bq->bqid)
+                        ->orderBy('bq_no')
+                        ->orderBy('bq_line_no')
+                        ->get();
 
-                    if ($bq) {
-                        // ambil vendor data dari CS (vendor1..6)
-                        $idx = $bqVendorIdx;
+                    // =====================================================
+                    // Business Unit (ambil 1) dari TrPODetail
+                    // =====================================================
+                    $buId = TrPODetail::where('ponbr', $po->ponbr)
+                        ->where('budget_cpny_id', $po->cpny_id)
+                        ->whereNotNull('budget_business_unit_id')
+                        ->value('budget_business_unit_id');
 
-                        $vendor = [
-                            'id'   => $cs->{"vendorid{$idx}"} ?? null,
-                            'name' => $cs->{"vendorname{$idx}"} ?? null,
-                            'addr' => $cs->{"vendoralamat{$idx}"} ?? null,
-                            'cp'   => $cs->{"vendorcp{$idx}"} ?? null,
-                            'telp' => $cs->{"vendortelp{$idx}"} ?? null,
-                            'top'  => $cs->{"vendortop{$idx}"} ?? null,
-                        ];
+                    $businessUnit = null;
+                    if ($buId) {
+                        $businessUnit = BusinessUnit::query()
+                            ->where('cpny_id', $po->cpny_id)
+                            ->where('business_unit_id', $buId)
+                            ->select('business_unit_id', 'business_unit_name')
+                            ->first();
+                    }
 
-                        // kalau vendor idx tidak ada, fallback cari vendor pertama yang ada
-                        if (!filled($vendor['id']) && !filled($vendor['name'])) {
-                            for ($try=1; $try<=6; $try++) {
-                                $vTry = $cs->{"vendorname{$try}"} ?? null;
-                                $idTry = $cs->{"vendorid{$try}"} ?? null;
-                                if (filled($idTry) || filled($vTry)) {
-                                    $idx = $try;
-                                    $vendor = [
-                                        'id'   => $cs->{"vendorid{$idx}"} ?? null,
-                                        'name' => $cs->{"vendorname{$idx}"} ?? null,
-                                        'addr' => $cs->{"vendoralamat{$idx}"} ?? null,
-                                        'cp'   => $cs->{"vendorcp{$idx}"} ?? null,
-                                        'telp' => $cs->{"vendortelp{$idx}"} ?? null,
-                                        'top'  => $cs->{"vendortop{$idx}"} ?? null,
-                                    ];
-                                    break;
-                                }
+                    // =====================================================
+                    // Vendors ONLY vendor PO->vendorid
+                    // =====================================================
+                    $poVendorId = (string) ($po->vendorid ?? '');
+                    $vendors = [];
+
+                    if ($poVendorId !== '') {
+                        for ($i = 1; $i <= 6; $i++) {
+                            $vid = (string) ($cs->{"vendorid{$i}"} ?? '');
+                            if ($vid === '') continue;
+
+                            if (strcasecmp($vid, $poVendorId) !== 0) {
+                                continue; // ✅ ONLY vendor PO
                             }
+
+                            $vendors[] = [
+                                'idx'        => $i,
+                                'vendorid'   => $vid,
+                                'vendorname' => $cs->{"vendorname{$i}"} ?? '',
+                                'vendoraddr' => $cs->{"vendoralamat{$i}"} ?? '',
+                                'vendortelp' => $cs->{"vendortelp{$i}"} ?? '',
+                                'vendorcp'   => $cs->{"vendorcp{$i}"} ?? '',
+                                'mat_total'  => (float) ($bq->{"grandtotalmaterialvendor{$i}"} ?? 0),
+                                'jsa_total'  => (float) ($bq->{"grandtotaljasavendor{$i}"} ?? 0),
+                            ];
+
+                            break; // ✅ ketemu 1 vendor, stop loop
                         }
+                    }
 
-                        // detail
-                        $bqdetail = TrBQCSDetail::on('pgsql')
-                            ->where('bqid', $bq->bqid)
-                            ->orderBy('bq_no')
-                            ->orderBy('bq_line_no')
-                            ->get();
-
-                        // hitung total (same logic as printBQCSVend)
-                        $grandTotalMaterial = 0;
-                        $grandTotalJasa     = 0;
-
-                        foreach ($bqdetail as $item) {
-                            $qty  = (float) ($item->qty ?? 0);
-                            $mat  = (float) ($item->{"vendorproductprice{$idx}"} ?? 0);
-                            $jasa = (float) ($item->{"vendorjasaprice{$idx}"} ?? 0);
-
-                            $grandTotalMaterial += $qty * $mat;
-                            $grandTotalJasa     += $qty * $jasa;
-                        }
-
-                        $companyBq = MsCompany::where('cpny_id', $bq->cpny_id)->first();
-
-                        $bqData = [
-                            'title'     => 'CS Bills of Quantities (BQ)',
-                            'doc_type'  => 'BQ',
-                            'cpny_id'   => $companyBq->cpny_id ?? $bq->cpny_id,
-                            'cpny_name' => $companyBq->cpny_name ?? '',
-                            'vendor'    => $vendor,
-                            'idx'       => $idx,
-                            'grandTotalMaterial' => $grandTotalMaterial,
-                            'grandTotalJasa'     => $grandTotalJasa,
-                            'bq'       => $bq,
-                            'bqdetail' => $bqdetail,
-                        ];
-
-                        // generate PDF
-                        $bqPdf = \PDF::loadView('pages.canvass.pdfbq_cs_vendor', $bqData)->setPaper('A4');
+                    // kalau vendor PO tidak ada di CS vendor1..6, jangan buat PDF biar tidak salah
+                    if (empty($vendors)) {
+                        \Log::warning('BQ SPK PDF: vendor PO not found in CS vendor1..6', [
+                            'ponbr'     => $po->ponbr,
+                            'po_vendor' => $poVendorId,
+                            'csid'      => $po->csid,
+                            'bqid'      => $cs->bqid,
+                        ]);
+                    } else {
+                        // =====================================================
+                        // Render PDF pakai template yang sama seperti printSpkBq
+                        // =====================================================
+                        $bqPdf = \PDF::loadView('pages.purchase.pdf_bqspk', [
+                            'po'           => $po,
+                            'cs'           => $cs,
+                            'bq'           => $bq,
+                            'details'      => $details,
+                            'vendors'      => $vendors,       // ✅ cuma 1 vendor
+                            'businessUnit' => $businessUnit,
+                            'now'          => Carbon::now(),
+                        ])->setPaper('A4', 'portrait');
 
                         $bqDompdf = $bqPdf->getDomPDF();
                         $bqDompdf->render();
-                        $bqPdfBinary = $bqDompdf->output();
 
-                        // $safeVendorName = preg_replace('/[^A-Za-z0-9_\-]/', '_', (string)($vendor['name'] ?? "vendor{$idx}"));
-                        $bqPdfName = "BQCS_{$bq->bqid}.pdf";
+                        $bqPdfBinary = $bqDompdf->output();
+                        $bqPdfName   = "BQ_SPK_{$po->ponbr}.pdf";
                     }
                 }
             }
         } catch (\Throwable $e) {
-            \Log::warning('Generate BQCS PDF failed', ['ponbr'=>$po->ponbr, 'error'=>$e->getMessage()]);
+            \Log::warning('Generate BQ SPK PDF failed', [
+                'ponbr' => $po->ponbr,
+                'error' => $e->getMessage(),
+            ]);
         }
+
+
+        // $bqPdfBinary = null;
+        // $bqPdfName   = null;
+
+        // try {
+        //     // ambil CS dari po->csid untuk dapat bqid (sesuaikan jika kolom beda)
+        //     $cs = TrCS::on('pgsql')
+        //         ->where('csid', $po->csid)
+        //         ->first();
+
+        //     if ($cs) {
+        //         $bqid = $cs->bqid ?? null;
+
+        //         if ($bqid) {
+        //             // cari BQCS header berdasarkan bqid + csid
+        //             $bq = TrBQCS::on('pgsql')
+        //                 ->where('bqid', $bqid)
+        //                 ->where('csid', $po->csid)
+        //                 ->first();
+
+        //             if ($bq) {
+
+        //                 // =========================
+        //                 // 1) Tentukan vendor idx dari PO->vendorid
+        //                 // =========================
+        //                 $poVendorId = (string) ($po->vendorid ?? '');
+        //                 $idx = null;
+
+        //                 if ($poVendorId !== '') {
+        //                     for ($i = 1; $i <= 6; $i++) {
+        //                         $csVendorId = (string) ($cs->{"vendorid{$i}"} ?? '');
+        //                         if ($csVendorId !== '' && strcasecmp($csVendorId, $poVendorId) === 0) {
+        //                             $idx = $i;
+        //                             break;
+        //                         }
+        //                     }
+        //                 }
+
+        //                 // Jika vendor PO tidak ditemukan pada CS vendor1..6, STOP (jangan generate PDF salah vendor)
+        //                 if (!$idx) {
+        //                     \Log::warning('BQCS vendor idx not found by PO vendorid', [
+        //                         'ponbr'     => $po->ponbr,
+        //                         'po_vendor' => $poVendorId,
+        //                         'csid'      => $po->csid,
+        //                         'bqid'      => $bqid,
+        //                     ]);
+        //                 } else {
+
+        //                     // =========================
+        //                     // 2) Ambil vendor data sesuai idx tersebut (ONLY)
+        //                     // =========================
+        //                     $vendor = [
+        //                         'id'   => $cs->{"vendorid{$idx}"} ?? null,
+        //                         'name' => $cs->{"vendorname{$idx}"} ?? null,
+        //                         'addr' => $cs->{"vendoralamat{$idx}"} ?? null,
+        //                         'cp'   => $cs->{"vendorcp{$idx}"} ?? null,
+        //                         'telp' => $cs->{"vendortelp{$idx}"} ?? null,
+        //                         'top'  => $cs->{"vendortop{$idx}"} ?? null,
+        //                     ];
+
+        //                     // =========================
+        //                     // 3) Ambil detail BQ
+        //                     // =========================
+        //                     $bqdetail = TrBQCSDetail::on('pgsql')
+        //                         ->where('bqid', $bq->bqid)
+        //                         ->orderBy('bq_no')
+        //                         ->orderBy('bq_line_no')
+        //                         ->get();
+
+        //                     // =========================
+        //                     // 4) Hitung total khusus vendor idx itu
+        //                     // =========================
+        //                     $grandTotalMaterial = 0;
+        //                     $grandTotalJasa     = 0;
+
+        //                     foreach ($bqdetail as $item) {
+        //                         $qty  = (float) ($item->qty ?? 0);
+        //                         $mat  = (float) ($item->{"vendorproductprice{$idx}"} ?? 0);
+        //                         $jasa = (float) ($item->{"vendorjasaprice{$idx}"} ?? 0);
+
+        //                         $grandTotalMaterial += $qty * $mat;
+        //                         $grandTotalJasa     += $qty * $jasa;
+        //                     }
+
+        //                     $companyBq = MsCompany::where('cpny_id', $bq->cpny_id)->first();
+
+        //                     $bqData = [
+        //                         'title'     => 'CS Bills of Quantities (BQ)',
+        //                         'doc_type'  => 'BQ',
+        //                         'cpny_id'   => $companyBq->cpny_id ?? $bq->cpny_id,
+        //                         'cpny_name' => $companyBq->cpny_name ?? '',
+        //                         'vendor'    => $vendor,
+        //                         'idx'       => $idx,
+        //                         'grandTotalMaterial' => $grandTotalMaterial,
+        //                         'grandTotalJasa'     => $grandTotalJasa,
+        //                         'bq'        => $bq,
+        //                         'bqdetail'  => $bqdetail,
+        //                     ];
+
+        //                     // =========================
+        //                     // 5) Generate PDF
+        //                     // =========================
+        //                     $bqPdf = \PDF::loadView('pages.canvass.pdfbq_cs_vendor', $bqData)->setPaper('A4');
+
+        //                     $bqDompdf = $bqPdf->getDomPDF();
+        //                     $bqDompdf->render();
+
+        //                     $bqPdfBinary = $bqDompdf->output();
+        //                     $bqPdfName   = "BQCS_{$bq->bqid}_VENDOR_{$poVendorId}.pdf";
+        //                 }
+        //             }
+        //         }
+        //     }
+        // } catch (\Throwable $e) {
+        //     \Log::warning('Generate BQCS PDF failed', [
+        //         'ponbr' => $po->ponbr,
+        //         'error' => $e->getMessage(),
+        //     ]);
+        // }
+
 
 
         // ===== kirim email =====

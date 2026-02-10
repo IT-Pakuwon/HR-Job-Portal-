@@ -174,7 +174,7 @@
 
                                         <a href="{{ url('/pdf_po') }}/{{ $hash }}" target="_blank"
                                             class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
-                                            Print PDF PO
+                                            Print PDF SPK
                                         </a>
 
                                         <a href="{{ url('/pdf_spk_bq') }}/{{ $hash }}" target="_blank"
