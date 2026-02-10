@@ -64,12 +64,12 @@
             height: 10px;
         }
 
+        /* Signature / approval table */
+        /* === Signature / approval table (with border) === */
         .sig-table {
             width: 100%;
-            table-layout: fixed;
             border-collapse: collapse;
             margin-top: 12px;
-            border: 1px solid #000;
         }
 
         .sig-table th,
@@ -78,14 +78,13 @@
             padding: 6px;
             vertical-align: top;
             font-size: 11px;
-            box-sizing: border-box;
         }
 
         .sig-table th {
+            background: #f7f7f7;
             text-align: left;
             font-weight: bold;
         }
-
 
         .sig-name {
             font-weight: bold;
@@ -281,130 +280,83 @@
     @endphp
 
 
+    {{-- Approvals --}}
+    @php
+        $stColor = match (true) {
+            in_array($status_doc, ['Approved', 'Completed']) => 'blue',
+            in_array($status_doc, ['Rejected', 'Cancel']) => 'red',
+            $status_doc === 'Hold' => 'orange',
+            default => 'black',
+        };
+
+        $colsPerRow = $approve_count > 5 ? 4 : 3;
+        $chunks = $approval->values()->chunk($colsPerRow);
+        $idx = 1;
+        $totalCols = 1 + $colsPerRow;
+    @endphp
+
     <table class="sig-table">
-        <tbody>
-            {{-- ================= STATUS ================= --}}
+        <thead>
             <tr>
-                <td style="width: {{ $leftColWidth }}; font-weight:bold;">
-                    Status
-                </td>
-                <td>
-                    : <span class="status {{ $stColor }}">{{ $status_doc }}</span>
-                </td>
+                <th colspan="{{ $totalCols }}" style="text-align: left;">
+                    Status: <span class="status {{ $stColor }}">{{ $status_doc }}</span>
+                </th>
             </tr>
-
-            {{-- ================= CREATED + APPROVAL ================= --}}
-            @if ($approvalCount === 0)
-                {{-- CREATED ONLY --}}
+        </thead>
+        <tbody>
+            @forelse($chunks as $rowIndex => $chunk)
                 <tr>
-                    <td style="width: {{ $leftColWidth }};">
-                        <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                        <div class="sig-status blue">Created</div>
-                        <div>{{ $req_date_fmt }}</div>
-                    </td>
-                    <td>&nbsp;</td>
-                </tr>
-            @elseif ($singleApproval)
-                {{-- CREATED + SINGLE APPROVAL (1 ROW ONLY) --}}
-                @php $dt2 = $approval->first(); @endphp
-                <tr>
-                    <td style="width: {{ $leftColWidth }};">
-                        <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                        <div class="sig-status blue">Created</div>
-                        <div>{{ $req_date_fmt }}</div>
-                    </td>
+                    @if ($rowIndex === 0)
+                        <td rowspan="{{ $chunks->count() }}" style="width:160px;">
+                            <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
+                            <div class="sig-status blue">Created</div>
+                            <div>{{ $req_date_fmt }}</div>
+                        </td>
+                    @endif
 
-                    <td>
-                        <div>
-                            <span class="sig-num">1.</span>
-                            <span class="sig-name">{{ $dt2->aprv_name }}</span>
-                        </div>
-
-                        <div
-                            class="sig-status {{ $dt2->status === 'A' ? 'blue' : ($dt2->status === 'R' ? 'red' : 'orange') }}">
-                            {{ match ($dt2->status) {
+                    @foreach ($chunk as $dt2)
+                        @php
+                            $label = match ($dt2->status) {
                                 'A' => 'Approved',
                                 'R' => 'Rejected',
                                 'P' => 'Waiting',
                                 default => 'Revised',
-                            } }}
-                        </div>
+                            };
+                            $color = match ($dt2->status) {
+                                'A' => 'blue',
+                                'R' => 'red',
+                                'P' => 'orange',
+                                default => 'red',
+                            };
+                            $dateStr = $dt2->aprv_dateafter
+                                ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
+                                : '';
+                        @endphp
+                        <td>
+                            <div><span class="sig-num">{{ $idx++ }}.</span><span
+                                    class="sig-name">{{ $dt2->aprv_name }}</span></div>
+                            <div class="sig-status {{ $color }}">{{ $label }}</div>
+                            <div>{{ $dateStr }}</div>
+                        </td>
+                    @endforeach
 
-                        <div>
-                            {{ $dt2->aprv_dateafter ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i') : '' }}
-                        </div>
-                    </td>
+                    @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
+                        <td>&nbsp;</td>
+                    @endfor
                 </tr>
-            @else
-                {{-- MULTI APPROVAL --}}
-                @php
-                    $colsPerRow = $approve_count > 5 ? 4 : 3;
-                    $chunks = $approval->values()->chunk($colsPerRow);
-                    $idx = 1;
-                @endphp
-
-                {{-- FIRST ROW (CREATED + FIRST APPROVALS) --}}
+            @empty
                 <tr>
-                    <td style="width: {{ $leftColWidth }};" rowspan="{{ $chunks->count() }}">
+                    <td>
                         <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
                         <div class="sig-status blue">Created</div>
                         <div>{{ $req_date_fmt }}</div>
                     </td>
-
-                    @foreach ($chunks->first() as $dt2)
-                        <td>
-                            <div>
-                                <span class="sig-num">{{ $idx++ }}.</span>
-                                <span class="sig-name">{{ $dt2->aprv_name }}</span>
-                            </div>
-
-                            <div
-                                class="sig-status {{ $dt2->status === 'A' ? 'blue' : ($dt2->status === 'R' ? 'red' : 'orange') }}">
-                                {{ match ($dt2->status) {
-                                    'A' => 'Approved',
-                                    'R' => 'Rejected',
-                                    'P' => 'Waiting',
-                                    default => 'Revised',
-                                } }}
-                            </div>
-
-                            <div>
-                                {{ $dt2->aprv_dateafter ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i') : '' }}
-                            </div>
-                        </td>
-                    @endforeach
                 </tr>
-
-                {{-- NEXT ROWS --}}
-                @foreach ($chunks->slice(1) as $chunk)
-                    <tr>
-                        @foreach ($chunk as $dt2)
-                            <td>
-                                <div>
-                                    <span class="sig-num">{{ $idx++ }}.</span>
-                                    <span class="sig-name">{{ $dt2->aprv_name }}</span>
-                                </div>
-
-                                <div
-                                    class="sig-status {{ $dt2->status === 'A' ? 'blue' : ($dt2->status === 'R' ? 'red' : 'orange') }}">
-                                    {{ match ($dt2->status) {
-                                        'A' => 'Approved',
-                                        'R' => 'Rejected',
-                                        'P' => 'Waiting',
-                                        default => 'Revised',
-                                    } }}
-                                </div>
-
-                                <div>
-                                    {{ $dt2->aprv_dateafter ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i') : '' }}
-                                </div>
-                            </td>
-                        @endforeach
-                    </tr>
-                @endforeach
-            @endif
+            @endforelse
         </tbody>
     </table>
+
+
 
 
 

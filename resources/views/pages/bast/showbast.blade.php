@@ -25,7 +25,7 @@
     @endphp
 
     <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex items-center justify-end">
 
 
             <div class="flex gap-3">
@@ -812,8 +812,8 @@
 
     <script>
         /* ============================
-                                                       RATING STATE
-                                                    ============================ */
+                                                           RATING STATE
+                                                        ============================ */
         let ratingRows = [];
         const $ratingTbody = $('#ratingTableBody');
         const $ratingAvg = $('#ratingAvg');
@@ -857,10 +857,10 @@
                         ${r.rating_name || '-'}
                     </div>
                     ${r.rating_descr ? `
-                                                                            <div class="mt-0.5 text-sm text-gray-500">
-                                                                                ${r.rating_descr}
-                                                                            </div>
-                                                                        ` : ''}
+                                                                                <div class="mt-0.5 text-sm text-gray-500">
+                                                                                    ${r.rating_descr}
+                                                                                </div>
+                                                                            ` : ''}
                 </td>
 
                 <td class="px-4 py-3 text-center">

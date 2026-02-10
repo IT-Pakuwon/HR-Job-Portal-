@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex items-center justify-end">
 
 
             <div class="flex gap-3">

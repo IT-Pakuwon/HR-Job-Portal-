@@ -92,16 +92,21 @@
                 <td class="meta-label">Date</td>
                 <td>{{ date('j F Y', strtotime($bq->created_at)) }}</td>
             </tr>
+
             <tr>
                 <td class="meta-label">User</td>
-                <td>{{ ucwords(strtolower(optional($bq->creator)->name)) }}</td>
+                <td colspan="3">
+                    {{ ucwords(strtolower(optional($bq->creator)->name)) }}
+                </td>
             </tr>
+
             <tr>
                 <td class="meta-label">SPPT ID</td>
                 <td>{{ $bq->sppjtid }}</td>
                 <td class="meta-label">CS ID</td>
                 <td>&nbsp;</td>
             </tr>
+
             <tr>
                 <td class="meta-label">Keperluan</td>
                 <td colspan="3" class="wrap">
@@ -110,6 +115,7 @@
             </tr>
         </tbody>
     </table>
+
 
     <!-- ===== ITEMS TABLE ===== -->
     <table>

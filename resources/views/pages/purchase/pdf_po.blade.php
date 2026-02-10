@@ -145,6 +145,12 @@
             padding-top: 5px;
         }
 
+        /* DESCRIPTION */
+        .description {
+            font-size: 10.5px;
+        }
+
+
         /* .fixed-footer {
             position: absolute;
             bottom: 0;
@@ -298,7 +304,18 @@
                 @foreach ($podetail as $i => $item)
                     <tr>
                         <td style="text-align:center;">{{ $i + 1 }}</td>
-                        <td>{{ $item->inventory_descr }}</td>
+                        {{-- <td>{{ $item->inventory_descr }}</td> --}}
+                        <td class="description">
+                            <div style="font-weight:700;">
+                                {{ $item->inventory_descr }}
+                            </div>
+
+                            @if (!empty($item->ponote_detail))
+                                <div style="margin-top:1rem;">
+                                    {{ $item->ponote_detail }}
+                                </div>
+                            @endif
+                        </td>
                         <td style="text-align:center;">{{ $item->uom }}</td>
                         <td style="text-align:right;">{{ $nf2($item->qty) }}</td>
                         <td style="text-align:right;">{{ $nf2($item->unitcost) }}</td>
@@ -333,12 +350,20 @@
             </tbody>
         </table>
 
-        <div style="text-align:right; margin-top:40px;">
-            <div class="signature-box">
-                <div class="title">Approved by System</div>
-                <div class="line">Paraf by Supplier</div>
-            </div>
-        </div>
+        <table style="width:100%; border-collapse:collapse;">
+            <tbody>
+                <tr>
+                    <td style="height:200px; text-align:right; padding-left:40px;">
+                        <strong>Approved by System</strong><br><br><br><br><br>
+
+                        ___________________________<br>
+                        Paraf by Supplier
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
 
 
         {{-- <div class="fixed-footer">

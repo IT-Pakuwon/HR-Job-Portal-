@@ -1,28 +1,117 @@
 <x-app-layout>
     {{-- ===== Basic error styles ===== --}}
     <style>
-        .is-invalid { border-color:#ef4444 !important; }
-        .error-feedback { display:block; color:#dc2626; font-size:12px; margin-top:6px; }
+        .is-invalid {
+            border-color: #ef4444 !important;
+        }
+
+        .error-feedback {
+            display: block;
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 6px;
+        }
     </style>
 
     {{-- ===== Overlay styles (tetap) ===== --}}
     <style>
-        #loadingSpinnerContainer{position:fixed;inset:0;display:none;background:rgba(17,24,39,.55);backdrop-filter:blur(2px);z-index:2000}
-        #loadingSpinnerContainer .loading-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 22px;border-radius:16px;background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04)}
-        #loadingSpinnerContainer .loading-spinner{width:54px;height:54px;border-radius:50%;border:4px solid transparent;border-top-color:#6366f1;animation:spin 1s linear infinite;position:relative}
-        #loadingSpinnerContainer .loading-spinner::after{content:"";position:absolute;inset:6px;border-radius:50%;border:4px solid transparent;border-left-color:#a5b4fc;animation:spinReverse .75s linear infinite}
-        #loadingSpinnerContainer .loading-text{color:#e5e7eb;font-weight:600;letter-spacing:.02em}
-        #loadingSpinnerContainer .loading-ellipsis span{display:inline-block;animation:blink 1.4s infinite both}
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2){animation-delay:.2s}
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3){animation-delay:.4s}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes spinReverse{to{transform:rotate(-360deg)}}
-        @keyframes blink{0%{opacity:.3;transform:translateY(0)}20%{opacity:1;transform:translateY(-2px)}100%{opacity:.3;transform:translateY(0)}}
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            display: none;
+            background: rgba(17, 24, 39, .55);
+            backdrop-filter: blur(2px);
+            z-index: 2000
+        }
+
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04)
+        }
+
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            animation: spin 1s linear infinite;
+            position: relative
+        }
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            animation: spinReverse .75s linear infinite
+        }
+
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes spinReverse {
+            to {
+                transform: rotate(-360deg)
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: .3;
+                transform: translateY(0)
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-2px)
+            }
+
+            100% {
+                opacity: .3;
+                transform: translateY(0)
+            }
+        }
     </style>
 
     @php
         $totalLines = $details->count();
-        $totalSisa  = $details->sum(fn($d)=> (float)($d->qty ?? 0));
+        $totalSisa = $details->sum(fn($d) => (float) ($d->qty ?? 0));
     @endphp
 
     <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
@@ -40,8 +129,10 @@
                                 <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Receipt</h2>
 
                                 {{-- mini summary --}}
-                                <div class="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200">
-                                    Lines: {{ $totalLines }} • Total Remaining: {{ number_format((float)$totalSisa,2) }}
+                                <div
+                                    class="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200">
+                                    Lines: {{ $totalLines }} • Total Remaining:
+                                    {{ number_format((float) $totalSisa, 2) }}
                                 </div>
                             </div>
 
@@ -58,19 +149,23 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Date</label>
-                                <input type="text" value="{{ \Carbon\Carbon::parse($po->podate)->format('Y-m-d') }}" readonly
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO
+                                    Date</label>
+                                <input type="text" value="{{ \Carbon\Carbon::parse($po->podate)->format('Y-m-d') }}"
+                                    readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
                                 <input type="text" value="{{ $po->sppbjktid }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">User Peminta</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">User
+                                    Peminta</label>
                                 <input type="text" value="{{ $po->user_peminta }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -84,13 +179,15 @@
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
                                 <input type="text" value="{{ $po->cpny_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
                                 <input type="text" value="{{ $po->department_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -109,7 +206,8 @@
 
                     {{-- ===== Detail ===== --}}
                     <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="mb-3 flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
+                        <div
+                            class="mb-3 flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
                             <h3 class="text-base font-extrabold text-gray-800 dark:text-white">Receipt Detail</h3>
                             <span class="text-sm font-medium text-gray-500 dark:text-gray-300">
                                 *Remaining = Qty PO - Net Received - Completed
@@ -117,105 +215,141 @@
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+
+                            <table class="min-w-full table-fixed divide-y divide-gray-200 text-sm dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-700">
                                     <tr>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inventory</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
+                                        <th
+                                            class="w-40 px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                            Inventory
+                                        </th>
+                                        <th
+                                            class="w-20 px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                            Description
+                                        </th>
 
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">PO Qty</th>
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Received</th>
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Completed</th>
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Returned</th>
+                                        <th
+                                            class="w-20 px-2 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                            PO Qty
+                                        </th>
+                                        <th
+                                            class="w-20 px-2 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                            Received
+                                        </th>
+                                        <th
+                                            class="w-20 px-2 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                            Completed
+                                        </th>
+                                        <th
+                                            class="w-20 px-2 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                            Returned
+                                        </th>
 
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Remaining</th>
-                                        <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
+                                        <th
+                                            class="w-24 px-2 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                            Remaining
+                                        </th>
+                                        <th
+                                            class="w-16 px-2 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">
+                                            UoM
+                                        </th>
 
-                                        <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Receipt</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Site</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Note</th>
+                                        <th
+                                            class="w-24 px-2 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                            Qty Receipt
+                                        </th>
+                                        <th
+                                            class="w-20 px-2 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                            Site
+                                        </th>
+                                        <th
+                                            class="w-40 px-2 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                            Note
+                                        </th>
                                     </tr>
                                 </thead>
 
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                     @forelse($details as $d)
                                         @php
-                                            $invType = strtoupper(trim((string)($d->inventory_type ?? '')));
+                                            $invType = strtoupper(trim((string) ($d->inventory_type ?? '')));
                                             $isGI = $invType === 'GI';
-                                            $poQty = (float)($d->qty_original ?? 0);
-                                            $rec   = (float)($d->qty_received ?? 0);
-                                            $comp  = (float)($d->qty_completed ?? 0);
-                                            $ret   = (float)($d->qty_return ?? 0);
-                                            $remain= (float)($d->qty ?? 0); // qty sudah kamu set dari qty_sisa
+
+                                            $poQty = (float) ($d->qty_original ?? 0);
+                                            $rec = (float) ($d->qty_received ?? 0);
+                                            $comp = (float) ($d->qty_completed ?? 0);
+                                            $ret = (float) ($d->qty_return ?? 0);
+                                            $remain = (float) ($d->qty ?? 0);
                                         @endphp
+
                                         <tr>
-                                            <td class="px-4 py-2">
-                                                <div class="font-semibold text-gray-800 dark:text-gray-100">{{ $d->inventoryid }}</div>
-                                                <div class="text-xs text-gray-500 dark:text-gray-300">
-                                                    {{ $d->inventory_sub_type ?? '-' }} • {{ $d->inventory_category ?? '-' }}
+                                            {{-- INVENTORY --}}
+                                            <td class="px-3 py-2 align-top">
+                                                <div class="font-semibold text-gray-800 dark:text-gray-100">
+                                                    {{ $d->inventoryid }}
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                    {{ $d->inventory_sub_type ?? '-' }} •
+                                                    {{ $d->inventory_category ?? '-' }}
                                                 </div>
                                             </td>
 
-                                            <td class="px-4 py-2 text-gray-700 dark:text-gray-100">
+                                            {{-- DESCRIPTION --}}
+                                            <td class="px-3 py-2 text-gray-700 dark:text-gray-100">
                                                 {{ $d->inventory_descr }}
                                             </td>
 
-                                            <td class="px-4 py-2 text-right">{{ number_format($poQty,2) }}</td>
-                                            <td class="px-4 py-2 text-right">{{ number_format($rec,2) }}</td>
-                                            <td class="px-4 py-2 text-right">{{ number_format($comp,2) }}</td>
-                                            <td class="px-4 py-2 text-right">{{ number_format($ret,2) }}</td>
+                                            <td class="px-2 py-2 text-right">{{ number_format($poQty, 2) }}</td>
+                                            <td class="px-2 py-2 text-right">{{ number_format($rec, 2) }}</td>
+                                            <td class="px-2 py-2 text-right">{{ number_format($comp, 2) }}</td>
+                                            <td class="px-2 py-2 text-right">{{ number_format($ret, 2) }}</td>
 
-                                            <td class="px-4 py-2 text-right">
-                                                <span class="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
-                                                    {{ number_format($remain,2) }}
+                                            {{-- REMAINING --}}
+                                            <td class="px-2 py-2 text-right">
+                                                <span
+                                                    class="inline-flex rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                                                    {{ number_format($remain, 2) }}
                                                 </span>
                                             </td>
 
-                                            <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
+                                            <td class="px-2 py-2 text-center">{{ $d->uom }}</td>
 
-                                            <td class="px-4 py-2 text-right">
+                                            {{-- QTY RECEIPT (SMALL) --}}
+                                            <td class="px-2 py-2 text-right align-top">
                                                 <input type="hidden" name="detail_id[]" value="{{ $d->id }}">
-                                                <input
-                                                    type="text"
-                                                    name="qty_receipt[{{ $d->id }}]"
-                                                    class="qtyReceipt w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                    inputmode="decimal"
-                                                    autocomplete="off"
-                                                    placeholder="0,00"
-                                                    data-max="{{ $remain }}"
-                                                    aria-label="Qty receipt for {{ $d->inventoryid }}"
-                                                />
-                                                <div class="mt-1 text-[11px] text-gray-500 dark:text-gray-300">
-                                                    max: {{ number_format($remain,2) }}
+
+                                                <input type="text" name="qty_receipt[{{ $d->id }}]"
+                                                    class="qtyReceipt w-20 rounded border border-gray-300 px-2 py-1 text-right text-xs leading-tight dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                    placeholder="0,00" inputmode="decimal"
+                                                    data-max="{{ $remain }}">
+
+                                                <div class="mt-0.5 text-[10px] leading-tight text-gray-500">
+                                                    max: {{ number_format($remain, 2) }}
                                                 </div>
                                             </td>
 
-                                            <td class="px-4 py-2">
+                                            {{-- SITE (SMALL) --}}
+                                            <td class="px-2 py-2 align-top">
                                                 @if (!$isGI)
                                                     <input type="text" value="{{ $d->siteid }}" readonly
-                                                        class="w-28 rounded border border-gray-300 bg-gray-50 p-1 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                    <input type="hidden" name="siteid[{{ $d->id }}]" value="{{ $d->siteid }}">
+                                                        class="w-20 rounded border border-gray-300 bg-gray-50 px-2 py-1 text-xs leading-tight">
+                                                    <input type="hidden" name="siteid[{{ $d->id }}]"
+                                                        value="{{ $d->siteid }}">
                                                 @else
-                                                    <select
-                                                        name="siteid[{{ $d->id }}]"
-                                                        class="siteSelect w-36 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                        data-cpny-id="{{ $po->cpny_id }}"
-                                                        data-current-site="{{ $d->siteid }}"
-                                                        data-loaded="0"
+                                                    <select name="siteid[{{ $d->id }}]"
+                                                        class="w-20 rounded border border-gray-300 px-1 py-1 text-xs leading-tight dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                         required>
-                                                        @if ($d->siteid)
-                                                            <option value="{{ $d->siteid }}" selected>{{ $d->siteid }}</option>
-                                                        @else
-                                                            <option value="" selected disabled>Select site…</option>
-                                                        @endif
+                                                        <option value="{{ $d->siteid }}" selected>
+                                                            {{ $d->siteid }}</option>
                                                     </select>
                                                 @endif
                                             </td>
 
-                                            <td class="px-4 py-2">
+                                            {{-- NOTE (SMALLER) --}}
+                                            <td class="px-2 py-2 align-top">
                                                 <input type="text" name="detail_note[{{ $d->id }}]"
-                                                    class="w-48 rounded border border-gray-300 p-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                    placeholder="Catatan item (opsional)">
+                                                    class="w-36 rounded border border-gray-300 px-2 py-1 text-xs leading-tight dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                    placeholder="Catatan">
                                             </td>
                                         </tr>
                                     @empty
@@ -227,16 +361,21 @@
                                     @endforelse
                                 </tbody>
                             </table>
+
                         </div>
                     </div>
 
                     {{-- ===== Attachments + Actions ===== --}}
                     <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
-                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details →</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details ↓</span>
                             </summary>
 
                             <div class="flex flex-col pt-6">
@@ -288,19 +427,24 @@
     <script>
         function showOverlay(text = 'Processing') {
             const $ov = $('#loadingSpinnerContainer');
-            $ov.find('.loading-text').html((text || 'Processing') + ' <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>');
+            $ov.find('.loading-text').html((text || 'Processing') +
+                ' <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>');
             $ov.stop(true, true).fadeIn(120);
         }
-        function hideOverlay() { $('#loadingSpinnerContainer').stop(true, true).fadeOut(120); }
+
+        function hideOverlay() {
+            $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
+        }
     </script>
 
     {{-- ===== Submit + Validasi Qty Receipt (dengan clamp max) ===== --}}
     <script>
-        $(function () {
+        $(function() {
             function clearFormErrors() {
                 $('#receiptForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
                 $('#receiptForm .error-feedback').remove();
             }
+
             function addError($el, msg) {
                 if (!$el || !$el.length) return;
                 $el.addClass('is-invalid').attr('aria-invalid', 'true');
@@ -309,16 +453,17 @@
                 }
             }
 
-            $(document).on('input change', '#receiptForm input, #receiptForm select, #receiptForm textarea', function () {
-                $(this).removeClass('is-invalid').removeAttr('aria-invalid');
-                $(this).next('.error-feedback').remove();
-            });
+            $(document).on('input change', '#receiptForm input, #receiptForm select, #receiptForm textarea',
+                function() {
+                    $(this).removeClass('is-invalid').removeAttr('aria-invalid');
+                    $(this).next('.error-feedback').remove();
+                });
 
             // angka + , .
             $(document).on('keypress', '.qtyReceipt', function(e) {
                 const code = e.which || e.keyCode;
                 const ch = String.fromCharCode(code);
-                if ([8,9,13,27,37,38,39,40,46].includes(code)) return;
+                if ([8, 9, 13, 27, 37, 38, 39, 40, 46].includes(code)) return;
                 if (!/[0-9.,]/.test(ch)) e.preventDefault();
                 const v = this.value;
                 if ((ch === '.' && v.includes('.')) || (ch === ',' && v.includes(','))) e.preventDefault();
@@ -336,7 +481,8 @@
                 if (isNaN(n) || n <= 0) return;
                 if (!isNaN(max) && max > 0 && n > max) {
                     this.value = String(max.toFixed(2));
-                    if (window.toastr) toastr.warning('Qty Receipt melebihi Remaining, otomatis disesuaikan.');
+                    if (window.toastr) toastr.warning(
+                        'Qty Receipt melebihi Remaining, otomatis disesuaikan.');
                 }
             });
 
@@ -345,7 +491,10 @@
                 $('.qtyReceipt').each(function() {
                     const raw = (this.value || '').replace(',', '.');
                     const n = parseFloat(raw);
-                    if (!isNaN(n) && n > 0) { ok = true; return false; }
+                    if (!isNaN(n) && n > 0) {
+                        ok = true;
+                        return false;
+                    }
                 });
                 return ok;
             }
@@ -373,38 +522,42 @@
 
                 const formData = new FormData(document.getElementById('receiptForm'));
                 $.ajax({
-                    url: "{{ route('receipt.store') }}",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                })
-                .done(function(res) {
-                    if (window.toastr) toastr.success(res.message || 'Receipt created successfully!');
-                    window.location.href = "/receiptlist";
-                })
-                .fail(function(xhr) {
-                    if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                        let msg = 'Mohon periksa input:<br>';
-                        Object.keys(xhr.responseJSON.errors).forEach(k => { msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`; });
-                        if (window.toastr) toastr.error(msg);
-                    } else {
-                        if (window.toastr) toastr.error(xhr.responseJSON?.message || 'Error! Please check the input.');
-                    }
-                })
-                .always(function() {
-                    $('#submitBtn').prop('disabled', false);
-                    $('#btnText').text('Submit Receipt');
-                    hideOverlay();
-                });
+                        url: "{{ route('receipt.store') }}",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false
+                    })
+                    .done(function(res) {
+                        if (window.toastr) toastr.success(res.message ||
+                            'Receipt created successfully!');
+                        window.location.href = "/receiptlist";
+                    })
+                    .fail(function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                            let msg = 'Mohon periksa input:<br>';
+                            Object.keys(xhr.responseJSON.errors).forEach(k => {
+                                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+                            });
+                            if (window.toastr) toastr.error(msg);
+                        } else {
+                            if (window.toastr) toastr.error(xhr.responseJSON?.message ||
+                                'Error! Please check the input.');
+                        }
+                    })
+                    .always(function() {
+                        $('#submitBtn').prop('disabled', false);
+                        $('#btnText').text('Submit Receipt');
+                        hideOverlay();
+                    });
             });
 
             // attachments
             $('#addAttachment').on('click', function() {
                 $('#attachmentsContainer').append(
                     '<div class="attachment-row flex items-center gap-2">' +
-                        '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
-                        '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>' +
+                    '<input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">' +
+                    '<button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>' +
                     '</div>'
                 );
             });
@@ -422,7 +575,14 @@
                 if (siteCacheByCpny[cpnyId]) return siteCacheByCpny[cpnyId];
                 try {
                     const url = @json(route('sites.index'));
-                    const res = await $.ajax({ url, method:'GET', data:{ cpny_id: cpnyId }, dataType:'json' });
+                    const res = await $.ajax({
+                        url,
+                        method: 'GET',
+                        data: {
+                            cpny_id: cpnyId
+                        },
+                        dataType: 'json'
+                    });
                     if (!res.ok) throw new Error(res.message || 'Failed to load sites.');
                     siteCacheByCpny[cpnyId] = res.data || [];
                     return siteCacheByCpny[cpnyId];
@@ -431,12 +591,14 @@
                     return [];
                 }
             }
+
             function populateSelectOptions($sel, sites, currentValue) {
                 const hasCurrent = currentValue && sites.some(s => s.siteid === currentValue);
                 const options = [];
                 if (!hasCurrent) options.push(new Option('Select site…', '', true, true));
                 sites.forEach(s => options.push(new Option(s.siteid, s.siteid, false, s.siteid === currentValue)));
-                $sel.empty(); options.forEach(opt => $sel.append(opt));
+                $sel.empty();
+                options.forEach(opt => $sel.append(opt));
             }
             $(document).on('focus click', '.siteSelect', async function() {
                 const $sel = $(this);
