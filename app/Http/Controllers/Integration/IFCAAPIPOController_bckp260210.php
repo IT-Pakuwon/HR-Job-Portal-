@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Integration;
 use App\Http\Controllers\Controller;
 use App\Models\ViewStagingPO;
 use App\Models\StagingIfcaPoApprove;
-use App\Models\BusinessUnit;
-use App\Models\DepartmentFin;
 use App\Models\MsIntegrationSetting;
 use App\Models\TrIntegrationLog;
 use Illuminate\Http\Request;
@@ -26,7 +24,7 @@ class IFCAAPIPOController extends Controller
     {
         $from = $request->query('from');
         $to   = $request->query('to');
-    
+
         if (!$from || !$to) {
             return response()->json([
                 'ok' => false,
@@ -34,134 +32,112 @@ class IFCAAPIPOController extends Controller
                 'data' => [],
             ], 422);
         }
-    
+
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
-    
-        // 1) Header PO dari VIEW (karena view detail, header harus group by)
+
+        // ✅ 1) Ambil header PO (distinct) dari VIEW purchasing
         $srcRows = ViewStagingPO::query()
-            ->select([
-                'cpny_id',
-                'order_no',
-                DB::raw('MIN(order_date) as order_date'),
-                DB::raw('MIN(supplier_cd) as supplier_cd'),
-            ])
-            ->whereBetween('order_date', [$fromDt, $toDt])
-            ->groupBy('cpny_id', 'order_no')
-            ->orderByDesc(DB::raw('MIN(order_date)'))
+            ->distinct()
+            ->select(['cpny_id','order_no','order_date','supplier_cd'])
+            ->whereBetween('created_at', [$fromDt, $toDt])
+            ->orderByDesc('created_at')
             ->limit(100)
             ->get();
-    
+
         if ($srcRows->isEmpty()) {
             return response()->json(['ok' => true, 'data' => []]);
         }
-    
-        // keys untuk whereIn (NonStock-style)
-        $keys = $srcRows
-            ->map(fn($r) => (string)$r->cpny_id . '||' . (string)$r->order_no)
-            ->values()
-            ->all();
-    
-        // 2) Aggregation staging per header
+
+        // key list utk mapping
+        $pairs = $srcRows->map(fn($r) => [
+            'cpny_id' => (string)$r->cpny_id,
+            'order_no' => (string)$r->order_no,
+        ])->values();
+
+        // ✅ 2) Ambil status dari staging (aggregate per cpny_id + order_no)
         $stagingAgg = StagingIfcaPoApprove::query()
             ->select([
                 'cpny_id',
                 'order_no',
-                DB::raw('COUNT(*) as cnt'),
-                DB::raw("SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) as cnt_c"),
-                DB::raw("SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) as cnt_p"),
-                DB::raw("SUM(CASE WHEN status = 'D' THEN 1 ELSE 0 END) as cnt_d"),
-                DB::raw("MAX(updated_at) as last_update"),
-                DB::raw("MAX(process_note) as process_note"),
+                DB::raw("count(*) as cnt"),
+                DB::raw("sum(case when process_flag = 'Y' then 1 else 0 end) as cnt_y"),
+                DB::raw("max(updated_at) as last_update"),
             ])
-            ->whereIn(DB::raw("(cpny_id || '||' || order_no)"), $keys)
+            ->where(function ($q) use ($pairs) {
+                foreach ($pairs as $p) {
+                    $q->orWhere(function ($qq) use ($p) {
+                        $qq->where('cpny_id', $p['cpny_id'])
+                           ->where('order_no', $p['order_no']);
+                    });
+                }
+            })
             ->groupBy('cpny_id', 'order_no')
             ->get()
             ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->order_no);
-    
-        // 3) Latest log (pakai ref key biar aman antar company)
+
+        // ✅ 2.5) latest log per order (optional, mirip NonStock)
+        $refList = $pairs->map(fn($p) => (string)$p['order_no'])->unique()->values()->all();
+
         $logRows = TrIntegrationLog::query()
             ->where('integration_id', 'IFCA')
-            ->where('setting_id', 'api.POApprove.url')
-            ->whereIn('refnbr', $keys) // ✅ refnbr disarankan cpny||order_no
+            ->where('setting_id', 'api.POApprove.url') // ✅ samakan dengan setting_id kamu
+            ->whereIn('refnbr', $refList)
             ->orderByDesc('id')
-            ->get(['refnbr', 'payload_response', 'created_at']);
-    
+            ->get(['id', 'refnbr', 'payload_response', 'created_at']);
+
         $logMap = [];
         foreach ($logRows as $lg) {
             $ref = (string)$lg->refnbr;
             if (isset($logMap[$ref])) continue;
-    
+
             $msg = '';
             $raw = $lg->payload_response;
-    
+
             if ($raw !== null && $raw !== '') {
                 $decoded = json_decode($raw, true);
-                $msg = (json_last_error() === JSON_ERROR_NONE && is_array($decoded))
-                    ? (string)($decoded['message'] ?? $raw)
-                    : (string)$raw;
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $msg = (string)($decoded['message'] ?? '');
+                } else {
+                    $msg = (string)$raw;
+                }
             }
-    
+
             $logMap[$ref] = [
                 'message' => $msg,
                 'last_update' => optional($lg->created_at)->format('Y-m-d H:i:s'),
             ];
         }
-    
-        // 4) Merge response
+
+        // ✅ 3) merge to response
         $rows = $srcRows->map(function ($r) use ($stagingAgg, $logMap) {
             $cpny = (string)$r->cpny_id;
             $ord  = (string)$r->order_no;
             $key  = $cpny . '||' . $ord;
-    
+
             $st = $stagingAgg->get($key);
-    
+
             $stage = 'H';
-            $note  = '';
-            $last  = '';
-    
             if ($st) {
-                $cnt   = (int)$st->cnt;
-                $cntC  = (int)$st->cnt_c;
-                $cntP  = (int)$st->cnt_p;
-                $cntD  = (int)$st->cnt_d;
-    
-                if ($cnt > 0 && $cntC === $cnt) $stage = 'C';
-                else if ($cnt > 0 && $cntP === $cnt) $stage = 'P';
-                else if ($cnt > 0 && $cntD === $cnt) $stage = 'D';
-                else $stage = 'D'; // mixed dianggap belum siap kirim
-    
-                $note = (string)($st->process_note ?? '');
-                $last = optional($st->last_update)->format('Y-m-d H:i:s') ?? '';
+                // kalau semua record sudah Y -> C
+                $stage = ((int)$st->cnt > 0 && (int)$st->cnt === (int)$st->cnt_y) ? 'C' : 'P';
             }
-    
-            // response: untuk C/P ambil log, untuk D ambil process_note
-            $respMsg = '';
-            $respLast = '';
-    
-            if ($stage === 'D') {
-                $respMsg = $note;
-                $respLast = $last;
-            } else if ($stage === 'P' || $stage === 'C') {
-                $respMsg = $logMap[$key]['message'] ?? $note ?? '';
-                $respLast = $logMap[$key]['last_update'] ?? $last ?? '';
-            }
-    
+
             return [
-                'key' => $key,
+                'key' => $key, // untuk checkbox
                 'cpny_id' => $cpny,
                 'order_no' => $ord,
-                'order_date' => Carbon::parse($r->order_date)->format('Y-m-d H:i:s'),
+                'order_date' => optional($r->order_date)->format('Y-m-d H:i:s') ?? (string)$r->order_date,
                 'supplier_cd' => (string)($r->supplier_cd ?? ''),
+
                 'stage_status' => $stage,
-                'payload_response' => $respMsg,
-                'last_update' => $respLast,
+                'payload_response' => ($stage === 'H') ? '' : ($logMap[$ord]['message'] ?? ''),
+                'last_update' => ($stage === 'H') ? '' : ($logMap[$ord]['last_update'] ?? ''),
             ];
         })->values();
-    
+
         return response()->json(['ok' => true, 'data' => $rows]);
     }
-    
 
     /**
      * Process PO:
@@ -175,263 +151,178 @@ class IFCAAPIPOController extends Controller
             'ids'   => ['required', 'array', 'min:1'],
             'ids.*' => ['string'],
         ]);
-    
+
         $user = $request->user();
         $username = $user->username ?? $user->name ?? 'system';
-    
-        // parse ids => pairs
+
+        // parse ids
         $pairs = [];
         foreach ($request->ids as $key) {
             $parts = explode('||', (string)$key, 2);
             if (count($parts) !== 2) continue;
-            $pairs[] = ['cpny_id' => $parts[0], 'order_no' => $parts[1], 'key' => $key];
+            $pairs[] = ['cpny_id' => $parts[0], 'order_no' => $parts[1]];
         }
+
         if (empty($pairs)) {
             return response()->json(['ok' => false, 'message' => 'Format ids tidak valid.'], 422);
         }
-    
-        $keys = array_values(array_unique(array_map(fn($p) => (string)$p['key'], $pairs)));
-    
-        // staging agg utk cek status per PO (1 query)
-        $stMap = StagingIfcaPoApprove::query()
-            ->select([
-                'cpny_id',
-                'order_no',
-                DB::raw('COUNT(*) as cnt'),
-                DB::raw("SUM(CASE WHEN status='C' THEN 1 ELSE 0 END) as cnt_c"),
-                DB::raw("SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) as cnt_p"),
-                DB::raw("SUM(CASE WHEN status='D' THEN 1 ELSE 0 END) as cnt_d"),
-            ])
-            ->whereIn(DB::raw("(cpny_id || '||' || order_no)"), $keys)
-            ->groupBy('cpny_id', 'order_no')
-            ->get()
-            ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->order_no);
-    
-        $insertedHtoD = 0;
-        $sentOkPtoC   = 0;
-        $sentFailP    = 0;
-        $skippedD     = 0;
-        $skippedC     = 0;
-    
-        // ===== STEP A: H -> D (insert staging) =====
-        $stagingConn = (new StagingIfcaPoApprove)->getConnectionName();
+
+        $insertedH = 0;
+        $sentOkP   = 0;
+        $sentFailP = 0;
+        $skippedC  = 0;
+
+        // ===== STEP A: H -> P (insert staging bila belum ada) =====
+        $stagingConn = (new StagingIfcaPoApprove)->getConnectionName(); // e.g. 'pgsql3'
         DB::connection($stagingConn)->beginTransaction();
-    
+
         try {
             foreach ($pairs as $p) {
                 $cpny = (string)$p['cpny_id'];
                 $ord  = (string)$p['order_no'];
-                $key  = (string)$p['key'];
-    
-                $st = $stMap->get($key);
-    
-                $stage = 'H';
-                if ($st) {
-                    $cnt  = (int)$st->cnt;
-                    if ($cnt > 0 && (int)$st->cnt_c === $cnt) $stage = 'C';
-                    else if ($cnt > 0 && (int)$st->cnt_p === $cnt) $stage = 'P';
-                    else $stage = 'D';
+
+                $exists = StagingIfcaPoApprove::query()
+                    ->where('cpny_id', $cpny)
+                    ->where('order_no', $ord)
+                    ->exists();
+
+                if ($exists) {
+                    continue; // sudah P/C
                 }
-    
-                if ($stage !== 'H') {
-                    continue; // yang bukan H tidak diinsert
-                }
-    
-                // ambil semua line dari purchasing view utk PO terpilih
-                $lines = ViewStagingPO::query()
+
+                // ambil semua line dari view
+                $lines = DB::table('v_staging_po')
                     ->where('cpny_id', $cpny)
                     ->where('order_no', $ord)
                     ->orderBy('order_line')
                     ->get();
 
-                if ($lines->isEmpty()) {
-                    continue;
-                    }
-                                
-                // BULK mapping BU + Dept (sekali per order)
-                $buIds = $lines->pluck('budget_business_unit_id')->filter()->unique()->values()->all();
-                $deptIds = $lines->pluck('budget_department_fin_id')->filter()->unique()->values()->all();
-
-                $buMap = BusinessUnit::query()
-                    ->whereIn('business_unit_id', $buIds)
-                    ->where('status','A')
-                    ->get()
-                    ->keyBy('business_unit_id');
-
-                $deptMap = DepartmentFin::query()
-                    ->whereIn('department_fin_id', $deptIds)
-                    ->where('status','A')
-                    ->get()
-                    ->keyBy('department_fin_id');
-
-                // insert per line
                 foreach ($lines as $ln) {
-                    $bu = $buMap->get($ln->budget_business_unit_id);
-                    $dp = $deptMap->get($ln->budget_department_fin_id);
-
-                    $integrationType = (string)($bu->integration_type ?? 'IFCA');
-
-                    // default
-                    $entityCd = '';
-                    $locationCd = '';
-                    $deptCd = '';
-                    $divCd = ''; // kalau belum ada mapping, kosong dulu
-
-                    // IFCA vs SOLOMON entity
-                    if (strtoupper($integrationType) === 'IFCA') {
-                        $entityCd = (string)($bu->ifca_entity_cd ?? '');
-                        $locationCd = (string)($bu->ifca_entity_cd ?? '');
-                        $deptCd = (string)($dp->ifca_dept_cd ?? '');
-                    } else { // SOLOMON
-                        $entityCd = (string)($bu->solomon_cpny_id ?? '');
-                        $locationCd = (string)($bu->solomon_cpny_id ?? '');
-                        $deptCd = (string)($dp->department_fin_id ?? ''); // atau blank (tergantung kebutuhan Solomon)
-                    }
-
-                    StagingIfcaPoApprove::create([
+                    StagingIfcaPoApprove::query()->create([
                         'cpny_id' => $cpny,
-                        'entity_cd' => $entityCd,
-                        'order_no' => (string)$ln->order_no,
+                        'entity_cd' => (string)($ln->entity_cd ?? ''),   // pastikan ada di view, kalau belum: mapping sendiri
+                        'order_no' => (string)($ln->order_no ?? $ord),
                         'order_type' => (string)($ln->order_type ?? 'P'),
-                        'order_date' => $ln->order_date,
-                        'supplier_cd' => (string)$ln->supplier_cd,
-                        'remark' => (string)$ln->remark,
-                        'ref_no_spbjkt' => (string)$ln->ref_no_sppjkt,
-                        'ref_no_cs' => (string)$ln->ref_no_cs,
-                        'credit_terms' => (string)$ln->credit_terms,
-                        'currency_cd' => (string)$ln->currency_cd,
-                        'currency_rate' => (float)$ln->currency_rate,
-                        'total_record' => (int)$ln->total_record,
-                        'order_line' => (int)$ln->order_line,
-                        'item_cd' => (string)$ln->item_cd,
-                        'item_remark' => (string)$ln->item_remark,
-                        'uom' => (string)$ln->uom, // di view kamu namanya uoms
-                        'order_qty' => (float)$ln->order_qty,
-                        'item_cost' => (float)$ln->item_cost,
-                        'schedule_dt' => $ln->schedule_dt,
-                        'acct_type' => (string)$ln->acct_type,
-                        'location_cd' => $locationCd,
-                        'acct_cd' => (string)($ln->budget_account_id ?? ''), // kalau ini memang acct_cd
-                        'div_cd' => $divCd,
-                        'dept_cd' => $deptCd,
-
-                        'integration_type' => $integrationType,
-
-                        // Solomon fields (boleh diisi walau integration IFCA, sesuai kebutuhan kamu)
-                        'solomon_allocation_cd' => (string)($bu->solomon_allocation_cd ?? ''),
-                        'solomon_subaccount_dept' => (string)($dp->solomon_subaccount_dept ?? ''),
+                        'order_date' => $ln->order_date ?? now(),
+                        'supplier_cd' => (string)($ln->supplier_cd ?? ''),
+                        'remark' => (string)($ln->remark ?? ''),
+                        'ref_no_spbjkt' => (string)($ln->ref_no_spbjkt ?? ''),
+                        'ref_no_cs' => (string)($ln->ref_no_cs ?? ''),
+                        'credit_terms' => (string)($ln->credit_terms ?? ''),
+                        'currency_cd' => (string)($ln->currency_cd ?? 'IDR'),
+                        'currency_rate' => (float)($ln->currency_rate ?? 1),
+                        'total_record' => (int)($ln->total_record ?? 0),
+                        'order_line' => (int)($ln->order_line ?? 0),
+                        'item_cd' => (string)($ln->item_cd ?? ''),
+                        'item_remark' => (string)($ln->item_remark ?? ''),
+                        'uom' => (string)($ln->uom ?? ''),
+                        'order_qty' => (float)($ln->order_qty ?? 0),
+                        'item_cost' => (float)($ln->item_cost ?? 0),
+                        'schedule_dt' => $ln->schedule_dt ?? now(),
+                        'acct_type' => (string)($ln->acct_type ?? ''),
+                        'location_cd' => (string)($ln->location_cd ?? ''),
+                        'acct_cd' => (string)($ln->acct_cd ?? ''),
+                        'div_cd' => (string)($ln->div_cd ?? ''),
+                        'dept_cd' => (string)($ln->dept_cd ?? ''),
+                        'integration_type' => (string)($ln->integration_type ?? 'PO'),
+                        'solomon_allocation_cd' => (string)($ln->solomon_allocation_cd ?? ''),
+                        'solomon_subaccount_dept' => (string)($ln->solomon_subaccount_dept ?? ''),
 
                         'process_flag' => 'N',
                         'create_date' => now(),
                         'process_dt' => null,
                         'process_note' => null,
 
-                        'status' => 'D', // ✅ H -> D
+                        'status' => 'A',
                         'created_by' => $username,
                         'created_at' => now(),
                         'updated_by' => $username,
                         'updated_at' => now(),
                     ]);
 
-                    $insertedHtoD++;
+                    $insertedH++;
                 }
             }
-    
+
             DB::connection($stagingConn)->commit();
         } catch (\Throwable $e) {
             DB::connection($stagingConn)->rollBack();
             return response()->json([
                 'ok' => false,
-                'message' => 'Gagal insert staging PO (H->D): ' . $e->getMessage(),
+                'message' => 'Gagal insert staging PO (staging DB): ' . $e->getMessage(),
             ], 500);
         }
-    
-        // ===== STEP B: P -> C (send API) =====
-        // Filter hanya yang statusnya P (reviewed)
-        $toSendPairs = [];
-        foreach ($pairs as $p) {
-            $key = (string)$p['key'];
-            $st = $stMap->get($key);
-    
-            if (!$st) continue; // H yang baru diinsert tidak ikut kirim (harus review dulu)
-    
-            $cnt  = (int)$st->cnt;
-            $cntC = (int)$st->cnt_c;
-            $cntP = (int)$st->cnt_p;
-    
-            if ($cnt > 0 && $cntC === $cnt) { $skippedC++; continue; }
-            if ($cnt > 0 && $cntP === $cnt) { $toSendPairs[] = $p; continue; }
-    
-            // D / mixed
-            $skippedD++;
+
+        // ===== STEP B: P -> C (send to IFCA API per order) =====
+        try {
+            $token = $this->getIfcaToken($username);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Gagal ambil token IFCA: ' . $e->getMessage(),
+                'inserted_H_to_P' => $insertedH,
+            ], 500);
         }
-    
-        if (!empty($toSendPairs)) {
-            try {
-                $token = $this->getIfcaToken($username);
-            } catch (\Throwable $e) {
-                return response()->json([
-                    'ok' => false,
-                    'message' => 'Gagal ambil token IFCA: ' . $e->getMessage(),
-                    'inserted_H_to_D' => $insertedHtoD,
-                ], 500);
+
+        foreach ($pairs as $p) {
+            $cpny = (string)$p['cpny_id'];
+            $ord  = (string)$p['order_no'];
+
+            $lines = StagingIfcaPoApprove::query()
+                ->where('cpny_id', $cpny)
+                ->where('order_no', $ord)
+                ->orderBy('order_line')
+                ->get();
+
+            if ($lines->isEmpty()) continue;
+
+            $allY = $lines->every(fn($x) => $x->process_flag === 'Y');
+            if ($allY) {
+                $skippedC++;
+                continue;
             }
-    
-            foreach ($toSendPairs as $p) {
-                $cpny = (string)$p['cpny_id'];
-                $ord  = (string)$p['order_no'];
-                $key  = (string)$p['key']; // ✅ refnbr log
-    
-                $lines = StagingIfcaPoApprove::query()
+
+            // kirim hanya yang belum Y
+            $toSend = $lines->where('process_flag', '!=', 'Y')->values();
+
+            $res = $this->sendPoApproveAPI($toSend, $token, $username, $ord);
+
+            if ($res['ok']) {
+                StagingIfcaPoApprove::query()
                     ->where('cpny_id', $cpny)
                     ->where('order_no', $ord)
-                    ->where('status', 'P') // ✅ hanya reviewed
-                    ->orderBy('order_line')
-                    ->get();
-    
-                if ($lines->isEmpty()) continue;
-    
-                $res = $this->sendPoApproveAPI($lines, $token, $username, $key);
-    
-                if ($res['ok']) {
-                    StagingIfcaPoApprove::query()
-                        ->where('cpny_id', $cpny)
-                        ->where('order_no', $ord)
-                        ->where('status', 'P')
-                        ->update([
-                            'status' => 'C',
-                            'process_flag' => 'Y',
-                            'process_dt' => now(),
-                            'process_note' => null,
-                            'updated_by' => $username,
-                            'updated_at' => now(),
-                        ]);
-                    $sentOkPtoC++;
-                } else {
-                    StagingIfcaPoApprove::query()
-                        ->where('cpny_id', $cpny)
-                        ->where('order_no', $ord)
-                        ->where('status', 'P')
-                        ->update([
-                            'process_note' => substr((string)($res['response_body'] ?? 'ERROR'), 0, 255),
-                            'updated_by' => $username,
-                            'updated_at' => now(),
-                        ]);
-                    $sentFailP++;
-                }
+                    ->update([
+                        'process_flag' => 'Y',
+                        'process_dt' => now(),
+                        'process_note' => null,
+                        'updated_by' => $username,
+                        'updated_at' => now(),
+                        'reviewed_by' => $username,
+                        'reviewed_at' => now(),
+                    ]);
+                $sentOkP++;
+            } else {
+                StagingIfcaPoApprove::query()
+                    ->where('cpny_id', $cpny)
+                    ->where('order_no', $ord)
+                    ->update([
+                        'process_note' => substr((string)($res['response_body'] ?? 'ERROR'), 0, 255),
+                        'updated_by' => $username,
+                        'updated_at' => now(),
+                    ]);
+                $sentFailP++;
             }
         }
-    
+
         return response()->json([
             'ok' => true,
-            'inserted_H_to_D' => $insertedHtoD,
-            'sent_success_P_to_C' => $sentOkPtoC,
+            'inserted_H_to_P' => $insertedH,
+            'sent_success_P_to_C' => $sentOkP,
             'sent_failed_still_P' => $sentFailP,
-            'skipped_D' => $skippedD,
             'skipped_C' => $skippedC,
         ]);
     }
-    
+
     // ======================
     // helper (copy style NonStock)
     // ======================
@@ -534,7 +425,7 @@ class IFCAAPIPOController extends Controller
         return (string)$token;
     }
 
-    private function sendPoApproveAPI($lines, string $token, string $usernameForLog, string $refKey): array
+    private function sendPoApproveAPI($lines, string $token, string $usernameForLog, string $refOrderNo): array
     {
         $url = $this->buildUrl('api.POApprove.url'); // ✅ setting_id untuk endpoint PO
         if ($url === '') throw new \RuntimeException('Setting api.POApprove.url kosong');
@@ -584,7 +475,7 @@ class IFCAAPIPOController extends Controller
             $this->writeIntegrationLog([
                 'setting_id'       => 'api.POApprove.url',
                 'setting_name'     => $settingName,
-                'refnbr'           => $refKey,
+                'refnbr'           => $refOrderNo,
                 'payload'          => json_encode($payload),
                 'payload_response' => $body,
                 'payload_status'   => (string)$resp->status(),

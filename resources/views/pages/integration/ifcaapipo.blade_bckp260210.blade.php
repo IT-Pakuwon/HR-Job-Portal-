@@ -63,17 +63,11 @@
 
     <div class="border-t border-gray-200 bg-white px-4 py-2 text-xs text-gray-500">
         <span class="font-semibold">Legend:</span>
-        H = belum ada di staging (boleh insert),
-        D = di staging menunggu review (disabled),
-        P = reviewed siap kirim API,
-        C = completed (disabled).
+        H = belum ada di staging, P = di staging belum terkirim, C = sudah terkirim (disabled).
     </div>
 </div>
 
 <script>
-    // =========================
-    // PO Integration (H -> D -> P -> C)
-    // =========================
     const csrfPO = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     function setInfoPO(el, type, msg) {
@@ -90,27 +84,25 @@
         el.textContent = '';
     }
 
-    // refs
-    const poFrom   = document.getElementById('po_from');
-    const poTo     = document.getElementById('po_to');
-    const poTbody  = document.getElementById('poTbody');
-    const poTotal  = document.getElementById('poTotal');
-    const poInfo   = document.getElementById('poInfo');
-    const poChkAll = document.getElementById('poChkAll');
+    const poFrom  = document.getElementById('po_from');
+    const poTo    = document.getElementById('po_to');
+    const poTbody = document.getElementById('poTbody');
+    const poTotal = document.getElementById('poTotal');
+    const poInfo  = document.getElementById('poInfo');
+    const poChkAll= document.getElementById('poChkAll');
 
     // default tanggal
-    const todayPO = new Date();
-    const yyyyPO = todayPO.getFullYear();
-    const mmPO = String(todayPO.getMonth() + 1).padStart(2, '0');
-    const ddPO = String(todayPO.getDate()).padStart(2, '0');
-    poTo.value = `${yyyyPO}-${mmPO}-${ddPO}`;
-    poFrom.value = `${yyyyPO}-${mmPO}-01`;
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    poTo.value = `${yyyy}-${mm}-${dd}`;
+    poFrom.value = `${yyyy}-${mm}-01`;
 
     function getStatusBadgeClassPO(stage) {
         if (stage === 'H') return 'bg-gray-200 text-gray-800';
-        if (stage === 'D') return 'bg-blue-200 text-blue-800';
         if (stage === 'P') return 'bg-yellow-200 text-yellow-800';
-        return 'bg-green-200 text-green-800'; // C
+        return 'bg-green-200 text-green-800';
     }
 
     function syncChkAllStatePO() {
@@ -146,14 +138,10 @@
 
         poTbody.innerHTML = rows.map(r => {
             const stage = r.stage_status ?? 'H';
-            const disabled = (stage === 'C' || stage === 'D');
+            const isC = stage === 'C';
 
-            const trClass = disabled ? 'bg-gray-50 text-gray-400' : 'hover:bg-gray-50';
-            const checkboxClass = disabled ? 'opacity-40 cursor-not-allowed' : '';
-
-            let title = '';
-            if (stage === 'C') title = 'Sudah completed (C). Tidak bisa diproses.';
-            if (stage === 'D') title = 'Menunggu review (D). Tidak bisa diproses di screen ini.';
+            const trClass = isC ? 'bg-gray-50 text-gray-400' : 'hover:bg-gray-50';
+            const checkboxClass = isC ? 'opacity-40 cursor-not-allowed' : '';
 
             return `
                 <tr class="${trClass}">
@@ -162,7 +150,7 @@
                             class="poRowChk rounded border-gray-300 ${checkboxClass}"
                             value="${r.key}"
                             data-stage="${stage}"
-                            ${disabled ? `disabled title="${title}"` : ''}>
+                            ${isC ? 'disabled title="Sudah terkirim (C). Tidak bisa diproses."' : ''}>
                     </td>
                     <td class="px-3 py-2 font-medium">${r.cpny_id ?? ''}</td>
                     <td class="px-3 py-2 font-medium">${r.order_no ?? ''}</td>
@@ -214,11 +202,9 @@
             const rows = json.data || [];
             renderRowsPO(rows);
 
-            const readyCount = rows.filter(x => ['H','P'].includes(x.stage_status ?? 'H')).length;
-            const waitingReview = rows.filter(x => (x.stage_status ?? '') === 'D').length;
-            const doneCount = rows.filter(x => (x.stage_status ?? '') === 'C').length;
-
-            setInfoPO(poInfo, 'ok', `Loaded ${rows.length} PO. Ready(H/P): ${readyCount}. Waiting Review(D): ${waitingReview}. Completed(C): ${doneCount}.`);
+            const readyCount = rows.filter(x => (x.stage_status ?? 'H') !== 'C').length;
+            const doneCount = rows.length - readyCount;
+            setInfoPO(poInfo, 'ok', `Loaded ${rows.length} PO. Ready: ${readyCount}. Completed(C): ${doneCount}.`);
         } catch (e) {
             renderRowsPO([]);
             setInfoPO(poInfo, 'err', e.message ?? 'Error saat load.');
@@ -228,13 +214,12 @@
     document.getElementById('btnProcessPO').addEventListener('click', async () => {
         hideInfoPO(poInfo);
 
-        // ✅ hanya H atau P yang boleh diproses
         const ids = Array.from(poTbody.querySelectorAll('.poRowChk:checked'))
-            .filter(chk => chk.dataset.stage === 'H' || chk.dataset.stage === 'P')
+            .filter(chk => chk.dataset.stage !== 'C')
             .map(chk => chk.value);
 
         if (ids.length === 0) {
-            setInfoPO(poInfo, 'warn', 'Pilih minimal 1 PO status H atau P untuk diproses. Status D/C tidak bisa.');
+            setInfoPO(poInfo, 'warn', 'Pilih minimal 1 PO status H/P untuk diproses. PO C diabaikan.');
             return;
         }
 
@@ -255,13 +240,8 @@
                 return;
             }
 
-            // response key baru sesuai flow:
-            // inserted_H_to_D, sent_success_P_to_C, sent_failed_still_P, skipped_D, skipped_C
             setInfoPO(poInfo, 'ok',
-                `Process done. Inserted(H->D lines): ${json.inserted_H_to_D ?? 0}, ` +
-                `Sent OK(P->C orders): ${json.sent_success_P_to_C ?? 0}, ` +
-                `Failed(P): ${json.sent_failed_still_P ?? 0}, ` +
-                `Skipped(D): ${json.skipped_D ?? 0}, Skipped(C): ${json.skipped_C ?? 0}`
+                `Process done. Inserted(H->P lines): ${json.inserted_H_to_P ?? 0}, Sent OK(P->C orders): ${json.sent_success_P_to_C ?? 0}, Failed: ${json.sent_failed_still_P ?? 0}, Skipped(C): ${json.skipped_C ?? 0}`
             );
 
             document.getElementById('btnLoadPO').click();

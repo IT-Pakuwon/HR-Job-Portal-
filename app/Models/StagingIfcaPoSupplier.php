@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class StagingIfcaPoSupplier extends Model
 {
 
-    protected $connection = 'pgsql3';
+    protected $connection = 'pgsql4';
     protected $table = "staging_ifca_po_supplier";
     protected $primaryKey = 'id';
     protected $fillable = [

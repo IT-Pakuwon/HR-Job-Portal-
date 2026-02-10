@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class StagingIfcaIcStkMas  extends Model
 {
 
-    protected $connection = 'pgsql3';
+    protected $connection = 'pgsql4';
     protected $table = "staging_ifca_ic_stkmas";
     protected $primaryKey = 'id';
     protected $fillable = [
