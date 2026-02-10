@@ -227,7 +227,17 @@
             <tbody>
                 @foreach ($podetail as $i => $item)
                     <tr>
-                        <td>{{ $item->inventory_descr }}</td>
+                        <td class="#">
+                            <div style="font-weight:700;">
+                                {{ $item->inventory_descr }}
+                            </div>
+
+                            @if (!empty($item->ponote_detail))
+                                <div style="margin-top:1rem;">
+                                    {{ $item->ponote_detail }}
+                                </div>
+                            @endif
+                        </td>
                         <td style="text-align:right;">{{ $nf2($item->totalcost) }}</td>
                     </tr>
                 @endforeach

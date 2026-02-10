@@ -744,6 +744,58 @@ class PoController extends Controller
         $basename = ($potype === 'PO') ? 'PO' : 'SPK';
         return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
     }
+
+    public function printSpkBq(string $hash)
+    {
+        $ids = Hashids::decode($hash);
+        abort_if(empty($ids), 404);
+        $poId = $ids[0];
+
+        $po = TrPO::findOrFail($poId);
+
+        abort_if(strtoupper((string) $po->potype) !== 'SPK', 403);
+
+        abort_if(empty($po->csid), 404);
+        $cs = TrCS::where('csid', $po->csid)->firstOrFail();
+
+        abort_if(empty($cs->bqid), 404);
+        $bq = TrBQCS::where('bqid', $cs->bqid)->firstOrFail();
+
+        $details = TrBQCSDetail::where('bqid', $bq->bqid)
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
+
+        $vendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $vid = $cs->{"vendorid{$i}"} ?? null;
+            if (!$vid) continue;
+
+            $vendors[] = [
+                'idx'        => $i,
+                'vendorid'   => $vid,
+                'vendorname' => $cs->{"vendorname{$i}"} ?? '',
+                'vendoraddr' => $cs->{"vendoralamat{$i}"} ?? '',
+                'vendortelp' => $cs->{"vendortelp{$i}"} ?? '',
+                'vendorcp'   => $cs->{"vendorcp{$i}"} ?? '',
+                'mat_total'  => (float) ($bq->{"grandtotalmaterialvendor{$i}"} ?? 0),
+                'jsa_total'  => (float) ($bq->{"grandtotaljasavendor{$i}"} ?? 0),
+            ];
+        }
+
+        return Pdf::loadView('pages.purchase.pdf_bqspk', [
+                'po'      => $po,
+                'cs'      => $cs,
+                'bq'      => $bq,
+                'details' => $details,
+                'vendors' => $vendors,
+                'now'     => Carbon::now(),
+            ])
+            ->setPaper('A4', 'portrait')
+            ->stream("BQ_SPK_{$po->ponbr}.pdf", ['Attachment' => false]);
+    }
+
   
 
     

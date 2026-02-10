@@ -744,6 +744,8 @@ Route::post('/logout', function () {
         // VIEW PO
         Route::get('/showpo/{hash}', [PoController::class, 'showPo']);
         Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
+        Route::get('/pdf_spk_bq/{hash}', [PoController::class, 'printSpkBq']);
+
         // VIEW EMAIL PREVIEW
         Route::get('/po/{hash}/view-email', [PoController::class, 'viewEmailPO'])->name('po.viewemail');
     });

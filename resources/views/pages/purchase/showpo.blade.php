@@ -2,16 +2,7 @@
 
     <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
         <div class="mb-4 flex items-center justify-between">
-            <div>
-                <button onclick="history.back()"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                    </svg>
-                    Back
-                </button>
-            </div>
+
             @php
                 $loginUser = auth()->user();
                 $createdBy = $po->created_by ?? ($po->created_user ?? null);
@@ -52,8 +43,8 @@
                     @if ($po->status === 'H')
                         <button id="submitBtn"
                             class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="h-4 w-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
                             </svg>
@@ -154,13 +145,46 @@
                                 {{ $statusText }}
                             </span>
 
-                            <a href="{{ url('/pdf_po') }}/{{ $hash }}" target="_blank">
-                                <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                    title="Open PO PDF">
-                                    Print PDF
-                                </button>
-                            </a>
+                            @php
+                                $isSPK = strtoupper($po->potype ?? '') === 'SPK';
+                            @endphp
+
+                            @if (!$isSPK)
+                                {{-- ===== NORMAL PO ===== --}}
+                                <a href="{{ url('/pdf_po') }}/{{ $hash }}" target="_blank">
+                                    <button
+                                        class="inline-flex items-center rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        Print PDF
+                                    </button>
+                                </a>
+                            @else
+                                {{-- ===== SPK DROPDOWN ===== --}}
+                                <div x-data="{ open: false }" class="relative">
+                                    <button @click="open = !open"
+                                        class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        Print PDF
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    <div x-show="open" @click.outside="open = false"
+                                        class="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-lg border bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700">
+
+                                        <a href="{{ url('/pdf_po') }}/{{ $hash }}" target="_blank"
+                                            class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                            Print PDF PO
+                                        </a>
+
+                                        <a href="{{ url('/pdf_spk_bq') }}/{{ $hash }}" target="_blank"
+                                            class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                            Print PDF BQ SPK
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
+
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
@@ -369,8 +393,8 @@
                                     @csrf
                                     <input type="hidden" name="potype"
                                         value="{{ strtoupper($po->potype ?? '') }}">
-                                        <input type="hidden" name="cpny_id" value="{{ $po->cpny_id }}">
-                                        <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
+                                    <input type="hidden" name="cpny_id" value="{{ $po->cpny_id }}">
+                                    <input type="hidden" name="ponbr" value="{{ $po->ponbr }}">
                                     @php
                                         $isPO = strtoupper($po->potype ?? '') === 'PO';
                                         $readOnlyDelivery = $po->status === 'P';
@@ -1758,7 +1782,7 @@
                     toastr.info('Email untuk dokumen ini sudah pernah dikirim.');
                     return;
                 }
-                
+
                 // const url = "{{ route('po.viewemail', ['hash' => '__HASH__']) }}"
                 //     .replace('__HASH__', encodeURIComponent(eid_ponbr));
                 // window.location.href = url;
@@ -1777,7 +1801,7 @@
             // const listUrl = @json(route('attachments.list', ['doctype' => 'PO', 'refnbr' => $hash]));
             // const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => $hash]));
             const refnbr = @json($po->ponbr);
-            const listUrl   = @json(route('attachments.list',   ['doctype' => 'PO', 'refnbr' => '__REF__']))
+            const listUrl = @json(route('attachments.list', ['doctype' => 'PO', 'refnbr' => '__REF__']))
                 .replace('__REF__', encodeURIComponent(refnbr));
 
             const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PO', 'refnbr' => '__REF__']))
@@ -1831,14 +1855,16 @@
             }
 
             function refreshAttachments() {
-            const cpnyId = @json($po->cpny_id);
+                const cpnyId = @json($po->cpny_id);
 
-            $.get(listUrl, { cpny_id: cpnyId })
-                .done(res => {
-                if (res.success) renderAttachmentRows(res.attachments || []);
-                else toastr.error(res.message || 'Failed to load attachments.');
-                })
-                .fail(() => toastr.error('Failed to load attachments.'));
+                $.get(listUrl, {
+                        cpny_id: cpnyId
+                    })
+                    .done(res => {
+                        if (res.success) renderAttachmentRows(res.attachments || []);
+                        else toastr.error(res.message || 'Failed to load attachments.');
+                    })
+                    .fail(() => toastr.error('Failed to load attachments.'));
             }
 
 

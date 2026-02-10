@@ -7,16 +7,14 @@
 
         {{-- ===== Tabs ===== --}}
         <div class="mb-4 flex items-center gap-2">
-            @if(!$isFinanceAccess)
-                <button type="button" id="tabMy"
-                    class="po-tab rounded-lg border px-4 py-2 text-sm font-semibold"
+            @if (!$isFinanceAccess)
+                <button type="button" id="tabMy" class="po-tab rounded-lg border px-4 py-2 text-sm font-semibold"
                     data-tab="my">
                     My PO
                 </button>
             @endif
 
-            <button type="button" id="tabAll"
-                class="po-tab rounded-lg border px-4 py-2 text-sm font-semibold"
+            <button type="button" id="tabAll" class="po-tab rounded-lg border px-4 py-2 text-sm font-semibold"
                 data-tab="all">
                 All PO
             </button>
@@ -35,13 +33,13 @@
                         <select id="filterCompany"
                             class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                             <option value="">All</option>
-                            @foreach($companies as $c)
+                            @foreach ($companies as $c)
                                 <option value="{{ $c }}">{{ $c }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    
+
                     {{-- Status (HANYA My PO) --}}
                     <div class="flex items-center gap-2" id="wrapStatus" style="display:none;">
                         <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Status</label>
@@ -66,18 +64,22 @@
 
             <div class="rounded-base relative overflow-x-auto">
                 <table id="poTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr class="transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                             <th class="dtr-control"></th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">PO Nbr</th>
+                            <th
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                PO Nbr</th>
                             <th class="w-32 px-6 py-2 font-medium">PO Date</th>
                             <th class="w-32 px-6 py-2 font-medium">Company</th>
                             <th class="w-32 px-6 py-2 font-medium">PO Type</th>
                             <th class="w-32 px-6 py-2 font-medium">Vendor</th>
                             <th class="w-32 px-6 py-2 font-medium">Delivery Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">Total</th>
+                            <th class="w-32 px-6 py-2 font-medium">Purpose</th>
+                            {{-- <th class="w-32 px-6 py-2 font-medium">Total</th>
                             <th class="w-32 px-6 py-2 font-medium">Tax</th>
-                            <th class="w-32 px-6 py-2 font-medium">Grand Total</th>
+                            <th class="w-32 px-6 py-2 font-medium">Grand Total</th> --}}
                             <th class="w-32 px-6 py-2 font-medium">Created By</th>
                             <th class="w-32 px-6 py-2 font-medium">Status</th>
                         </tr>
@@ -118,11 +120,15 @@
                 }
 
                 $('.po-tab').removeClass('bg-indigo-600 text-white border-indigo-600')
-                            .addClass('bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600');
+                    .addClass(
+                        'bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600'
+                    );
 
                 $(`.po-tab[data-tab="${tab}"]`)
                     .addClass('bg-indigo-600 text-white border-indigo-600')
-                    .removeClass('bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600');
+                    .removeClass(
+                        'bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600'
+                    );
 
                 if (tab === 'my') {
                     $('#wrapStatus').show();
@@ -144,7 +150,10 @@
             function fmtNumber(n) {
                 const x = parseFloat(n ?? 0);
                 if (Number.isNaN(x)) return '0';
-                return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(x);
+                return new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(x);
             }
 
             function renderPONbr(_v, row) {
@@ -166,56 +175,132 @@
                 deferRender: true,
                 autoWidth: false,
                 pageLength: 10,
-                lengthMenu: [[10,25,50,100,250,-1],[10,25,50,100,250,'All']],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
                 dom: '<"dt-toolbar"l B f>rtip',
-                buttons: [
-                    {
+                buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
                         title: 'List_PO',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                        exportOptions: { columns: ':visible', modifier: { page: 'current' } }
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
                     },
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
                         title: 'List_PO',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                        exportOptions: { columns: ':visible', modifier: { page: 'current' } }
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
                     }
                 ],
-                responsive: { details: { type: 'column', target: 0 } },
-                order: [[2,'desc'],[1,'desc']],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+                order: [
+                    [2, 'desc'],
+                    [1, 'desc']
+                ],
                 ajax: {
                     url: "{{ route('polist.json') }}",
                     type: "GET",
                     data: function(d) {
-                        d.tab     = activeTab;                         // my / all
-                        d.company = ($('#filterCompany').val() || '');  // optional
-                        d.creator = ($('#filterCreator').val() || '');  // optional / hidden for non-fin
-                        d.status  = ($('#filterStatus').val() || '');   // only My PO (All PO will send '')
+                        d.tab = activeTab; // my / all
+                        d.company = ($('#filterCompany').val() || ''); // optional
+                        d.creator = ($('#filterCreator').val() || ''); // optional / hidden for non-fin
+                        d.status = ($('#filterStatus').val() || ''); // only My PO (All PO will send '')
                     }
                 },
-                columns: [
-                    { data: null, defaultContent: '', className: 'dtr-control', orderable:false, searchable:false, width:'32px' },
-                    { data: 'ponbr', className: 'text-left', render: (_v, t, row) => renderPONbr(_v, row) },
-                    { data: 'podate', className: 'text-center', render: (v) => fmtDate(v) },
-                    { data: 'cpny_id', className: 'text-center' },
-                    { data: 'potype', className: 'text-center' },
-                    { data: 'vendorname', className: 'text-left' },
-                    { data: 'podeliverydate', className: 'text-center', render: (v) => fmtDate(v) },
-                    { data: 'totalamt', className: 'text-right', render: (v) => fmtNumber(v) },
-                    { data: 'taxamt', className: 'text-right', render: (v) => fmtNumber(v) },
-                    { data: 'grandtotalamt', className: 'text-right', render: (v) => fmtNumber(v) },
-                    { data: 'created_by', className: 'text-left' },
-                    { data: 'status', className: 'text-left', render: (_v, _t, row) => renderStatusBadge(row) },
+                columns: [{
+                        data: null,
+                        defaultContent: '',
+                        className: 'dtr-control',
+                        orderable: false,
+                        searchable: false,
+                        width: '32px'
+                    },
+                    {
+                        data: 'ponbr',
+                        className: 'text-left',
+                        width: '42px',
+                        render: (_v, t, row) => renderPONbr(_v, row),
+                    },
+                    {
+                        data: 'podate',
+                        className: 'text-center',
+                        width: '42px',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'cpny_id',
+                        width: '42px',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'potype',
+                        width: '42px',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'vendorname',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'podeliverydate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'keperluan',
+                        className: 'text-left',
+                        render: (v) => v ?? '-'
+                    },
+
+                    // {
+                    //     data: 'totalamt',
+                    //     className: 'text-right',
+                    //     render: (v) => fmtNumber(v)
+                    // },
+                    // {
+                    //     data: 'taxamt',
+                    //     className: 'text-right',
+                    //     render: (v) => fmtNumber(v)
+                    // },
+                    // {
+                    //     data: 'grandtotalamt',
+                    //     className: 'text-right',
+                    //     render: (v) => fmtNumber(v)
+                    // },
+                    {
+                        data: 'created_by',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-left',
+                        render: (_v, _t, row) => renderStatusBadge(row)
+                    },
                 ],
                 searchDelay: 400,
                 stateSave: true,
             });
 
             function reloadAndResetState() {
-                table.state.clear();          // biar gak nyangkut state tab lama
+                table.state.clear(); // biar gak nyangkut state tab lama
                 table.ajax.reload(null, true);
             }
 
@@ -244,7 +329,7 @@
             $('#btnReset').on('click', function() {
                 $('#filterCompany').val('');
                 $('#filterStatus').val('');
-                @if($isFinanceAccess)
+                @if ($isFinanceAccess)
                     $('#filterCreator').val('');
                 @endif
                 reloadAndResetState();
