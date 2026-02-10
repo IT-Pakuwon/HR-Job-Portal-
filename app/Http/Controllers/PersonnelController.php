@@ -628,8 +628,68 @@ class PersonnelController extends Controller
         }
     }
 
+    public function editPersonnel($hash)
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
 
-    public function editPersonnel($hash) 
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $personnel = Personnel::findOrFail($id);
+
+        $usercpny  = Usercpny::where('username', $user->username)->get();
+        $usercpny2 = Usercpny::where('username', $user->username)->first();
+        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept2 = Userdept::where('username', $user->username)->first();
+
+        $companies = MsCompany::select('cpny_id')->get();
+        $skillTags = MJobtag::select('id', 'job_tags')->get();
+
+        // subgradings sama seperti create (ambil group_grade)
+        $subgradings = StoSubGrading::select('subgrade_id','subgrade_name','group_grade')
+            ->where('status', 'A')
+            ->orderBy('grade_id', 'ASC')
+            ->get();
+
+        // division user-based sama seperti create
+        $userDivisionIds = Userdivision::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('division_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $division = Division::query()
+            ->select('division_id', 'division_name')
+            ->where('status', 'A')
+            ->whereIn('division_id', $userDivisionIds)
+            ->orderBy('division_name')
+            ->get();
+
+        $attachment = TrAttachment::where('refnbr', $personnel->docid)
+            ->where('status','A')
+            ->orderByDesc('attachment_date')
+            ->get(['id','attachment_name','filename','folder','extention','created_by','attachment_date']);
+
+        $jobres = JobResponsiblities::where('docid', $personnel->docid)->get();
+        $jobqua = JobQualification::where('docid', $personnel->docid)->get();
+
+        $selectedTags = TrJobtag::where('docid', $personnel->docid)
+            ->pluck('job_tags')
+            ->toArray();
+
+        return view('pages.personnels.editpersonnels', compact(
+            'companies','usercpny','usercpny2','userdept','userdept2',
+            'skillTags','division','personnel','attachment','subgradings',
+            'jobres','jobqua','selectedTags','hash'
+        ));
+    }
+
+
+
+    public function editPersonnel_xxx($hash) 
     {
         $user = Auth::user();       
         if (!$user) {
@@ -643,12 +703,13 @@ class PersonnelController extends Controller
         $user = request()->user();
 
         $usercpny  = Usercpny::where('username', $user->username)->get();
+        // dd($usercpny);
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
         $companies = MsCompany::select('cpny_id')->get();
         $departements = MsDepartment::select('department_id')->get();
-        $joblevel = JobLevel::select('title_level')->get();
+        // $joblevel = JobLevel::select('title_level')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get(); 
         $division  = Division::select('division_id','division_name')->get();
 
@@ -671,7 +732,7 @@ class PersonnelController extends Controller
             ->toArray();
 
         return view('pages.personnels.editpersonnels', compact(
-            'companies','departements','joblevel','usercpny','usercpny2',
+            'companies','departements','usercpny','usercpny2',
             'userdept','userdept2','skillTags','division','personnel',
             'attachment','subgradings','jobres','jobqua','selectedTags','hash'
         ));

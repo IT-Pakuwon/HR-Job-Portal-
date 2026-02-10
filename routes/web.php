@@ -100,6 +100,7 @@ use App\Http\Controllers\Integration\IFCAAPINonStockController;
 use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
+use App\Http\Controllers\MappingPoERPController;
 
 
 use App\Http\Controllers\GoogleCalendarController;
@@ -506,6 +507,13 @@ Route::post('/logout', function () {
         Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
         Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
         Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
+
+       
+        Route::get('/mapping-po-erp', [MappingPoERPController::class, 'index'])->name('mapping_po_erp.index');
+        Route::get('/mapping-po-erp/json', [MappingPoERPController::class, 'json'])->name('mapping_po_erp.json');
+        Route::get('/mapping-po-erp/{id}', [MappingPoERPController::class, 'showMapping'])->name('mapping_po_erp.show');
+        Route::put('/mapping-po-erp/{id}', [MappingPoERPController::class, 'updateMapping'])->name('mapping_po_erp.update');
+    
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {
@@ -1348,8 +1356,10 @@ Route::middleware('auth')->group(function () {
         Route::prefix('ifcaintegration/po')->name('ifcaintegration.po.')->group(function () {
             Route::get('list', [IFCAAPIPOController::class, 'list'])->name('list');
             Route::post('process', [IFCAAPIPOController::class, 'process'])->name('process');
-        });
+        });        
     
     });
+
+    
 
 });
