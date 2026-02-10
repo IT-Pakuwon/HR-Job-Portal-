@@ -122,23 +122,7 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-
-
-        // 'pgsql' => [
-        //     'driver' => 'pgsql',
-        //     'url' => env('DATABASE_URL'),
-        //     'host' => env('DB_HOST', '127.0.0.1'),
-        //     'port' => env('DB_PORT', '5432'),
-        //     'database' => env('DB_DATABASE', 'forge'),
-        //     'username' => env('DB_USERNAME', 'forge'),
-        //     'password' => env('DB_PASSWORD', ''),
-        //     'charset' => 'utf8',
-        //     'prefix' => '',
-        //     'prefix_indexes' => true,
-        //     'search_path' => 'public',
-        //     'sslmode' => 'prefer',
-        // ],
-
+      
         'pgsql' => [
             'driver' => 'pgsql',
             'host' => env('DB_PGSQL_HOST', '127.0.0.1'),
@@ -172,6 +156,19 @@ return [
             'database' => env('DB_PGSQL_DATABASE_3', 'forge'),
             'username' => env('DB_PGSQL_USERNAME_3', 'forge'),
             'password' => env('DB_PGSQL_PASSWORD_3', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
+        'pgsql4' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HOST_4', '127.0.0.1'),
+            'port' => env('DB_PGSQL_PORT_4', '5432'),
+            'database' => env('DB_PGSQL_DATABASE_4', 'forge'),
+            'username' => env('DB_PGSQL_USERNAME_4', 'forge'),
+            'password' => env('DB_PGSQL_PASSWORD_4', ''),
             'charset' => 'utf8',
             'prefix' => '',
             'schema' => 'public',
