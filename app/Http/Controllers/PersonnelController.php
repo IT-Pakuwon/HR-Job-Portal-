@@ -328,6 +328,7 @@ class PersonnelController extends Controller
         $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
+        $datenow   = Carbon::now()->format('Y-m-d');
 
         // cek availability approval line (Normal atau Condition yg cocok)
         $count_approval = MsApproval::where('status', 'A')
