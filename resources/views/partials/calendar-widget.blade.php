@@ -32,11 +32,20 @@
                     </div>
                 </template>
 
+                <!-- DISCONNECTED -->
                 <template x-if="!googleConnected">
-                    <div
-                        class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600">
-                        <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-                        Google disconnected
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600">
+                            <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                            Google disconnected
+                        </div>
+
+                        <!-- 🔑 CONNECT BUTTON -->
+                        <button @click="connectGoogle()"
+                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700">
+                            Connect
+                        </button>
                     </div>
                 </template>
             </div>
@@ -405,6 +414,10 @@
                     console.error('Google status fetch failed:', err)
                     this.googleConnected = false
                 }
+            },
+
+            connectGoogle() {
+                window.location.href = '/google/calendar/connect';
             },
 
             async disconnectGoogle() {

@@ -151,12 +151,21 @@
     }
 
     /* ======================================================
-   DARK MODE
+   FULLCALENDAR — DARK MODE FIX (COMPLETE)
    ====================================================== */
 
+    /* Base */
     .dark .fc {
-        color: #d1d5db;
-        /* gray-300 */
+        background-color: #1f2933;
+        /* slate-950 */
+        color: #e5e7eb;
+        /* gray-200 */
+    }
+
+    /* ---------------- TOOLBAR ---------------- */
+
+    .dark .fc-header-toolbar {
+        background-color: #1f2933;
     }
 
     .dark .fc .fc-toolbar-title {
@@ -164,41 +173,155 @@
     }
 
     .dark .fc .fc-button {
+        background: transparent !important;
         border-color: #374151 !important;
         color: #d1d5db !important;
     }
 
     .dark .fc .fc-button:hover {
-        background: #1f2933 !important;
+        background-color: #1f2937 !important;
     }
 
     .dark .fc .fc-button.fc-button-active {
-        background: #f9fafb !important;
-        color: #111827 !important;
+        background-color: #f9fafb !important;
+        color: #1f2933 !important;
         border-color: #f9fafb !important;
     }
 
+    /* ---------------- GRID / HEADERS ---------------- */
+
     .dark .fc-theme-standard td,
     .dark .fc-theme-standard th {
-        border-color: #1f2937;
+        border-color: #1f2933;
     }
 
-    .dark .fc-day-today {
-        background: #1f2937 !important;
+    .dark .fc-col-header-cell {
+        background-color: #1f2933;
+        color: #9ca3af;
+        font-weight: 500;
     }
 
-    .dark .fc-day-sun,
-    .dark .fc-day-sat {
-        background: #0f172a;
-    }
-
-    .dark .fc-timegrid-slot-label {
+    .dark .fc-daygrid-day-number {
         color: #6b7280;
     }
 
-    .dark .fc-event {
-        box-shadow: none;
+    /* Today */
+    .dark .fc-day-today {
+        background-color: rgba(99, 102, 241, 0.08) !important;
     }
+
+    /* Weekend */
+    .dark .fc-day-sun,
+    .dark .fc-day-sat {
+        background-color: #1f2933;
+    }
+
+    /* ---------------- TIME GRID ---------------- */
+
+    .dark .fc-timegrid-slot {
+        border-color: #1f2933;
+    }
+
+    .dark .fc-timegrid-slot-label {
+        color: #9ca3af;
+    }
+
+    .dark .fc-timegrid-axis {
+        border-color: #1f2933;
+    }
+
+    /* ---------------- EVENTS ---------------- */
+
+    .dark .fc-event {
+        background-color: #1f2933 !important;
+        color: #e5e7eb !important;
+        border-radius: 0.5rem !important;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .dark .fc-event-title {
+        font-weight: 600;
+    }
+
+    .dark .fc-event-time {
+        opacity: 0.7;
+    }
+
+    /* Google events */
+    .dark .fc-event[style*="#6366F1"] {
+        background-color: rgba(99, 102, 241, 0.15) !important;
+        color: #e0e7ff !important;
+    }
+
+    /* Local events */
+    .dark .fc-event[style*="#10B981"] {
+        background-color: rgba(16, 185, 129, 0.15) !important;
+        color: #d1fae5 !important;
+    }
+
+    /* ---------------- LIST VIEW ---------------- */
+
+    .dark .fc-list {
+        background-color: #1f2933;
+        border: none;
+    }
+
+    .dark .fc-list-table {
+        background-color: transparent;
+    }
+
+    .dark .fc-list-day-cushion {
+        background-color: #1f2933;
+        color: #e5e7eb;
+        font-weight: 600;
+    }
+
+    .dark .fc-timegrid-col.fc-day-today {
+        background-color: rgba(99, 102, 241, 0.08);
+    }
+
+    .dark .fc-list-event td {
+        background-color: transparent;
+        border-color: #1f2933;
+        color: #e5e7eb;
+        transition: background-color 0.15s ease;
+    }
+
+    .dark .fc-list-event:hover td {
+        background-color: rgba(99, 102, 241, 0.08);
+    }
+
+    .dark .fc-list-event-title {
+        font-weight: 500;
+    }
+
+    /* Remove list borders */
+    .fc-theme-standard .fc-list {
+        border: none;
+    }
+
+    /* ---------------- SCROLL GRID ---------------- */
+
+    .dark .fc-scrollgrid {
+        background-color: #1f2933;
+    }
+
+    /* ---------------- MISC ---------------- */
+
+    .dark .fc-popover {
+        background-color: #1f2933;
+        border-color: #1f2937;
+    }
+
+    .dark .fc-popover-header {
+        background-color: #1f2933;
+        color: #f9fafb;
+    }
+
+    .dark .fc-popover-body {
+        background-color: #1f2933;
+    }
+
 
     [x-cloak] {
         display: none !important;

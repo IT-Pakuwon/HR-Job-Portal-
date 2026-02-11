@@ -133,7 +133,8 @@ TABLE CELLS & ROWS (GLOBAL)
     }
 
     table.dataTable tbody tr:hover {
-        background-color: #8f8f8f11;
+        background-color: rgba(224, 242, 254, 0.5) !important;
+
         cursor: pointer;
     }
 
