@@ -1287,5 +1287,146 @@ class BastController extends Controller
         ]);
     }
 
+    public function editBast($hash)
+    {        
+        $bastId = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$bastId, 404);
+
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        
+        $bast = TrBast::query()
+            ->with(['location', 'subLocation', 'creator', 'userpeminta'])
+            ->findOrFail($bastId);
+
+        return view('pages.bast.editbast', [
+            'bast'     => $bast,
+            'hash' => $hash,
+        ]);
+    }
+
+    public function updateBast(Request $request, string $hash)
+    {
+        $request->validate([
+            'location_id'      => 'required|string',
+            'sub_location_id'  => 'required|string',
+            'attachments.*'    => 'file|max:10240', // Photo After (10MB/file)
+            'attachments_ba.*' => 'file|max:10240', // Attachments BA (10MB/file)
+        ]);
+
+        // decode hash dari route param
+        $decoded = Hashids::decode($hash);
+        if (empty($decoded)) {
+            return response()->json(['message' => 'Bast hash tidak valid.'], 422);
+        }
+        $bastPkId = (int) $decoded[0];
+
+        /** @var TrBast|null $bast */
+        $bast = TrBast::find($bastPkId);
+        if (!$bast) {
+            return response()->json(['message' => 'Data TrBast tidak ditemukan.'], 404);
+        }
+
+        $doctype  = 'BA'; // BAST
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+        $dt       = Carbon::now('Asia/Jakarta');
+
+        /** @var \App\Http\Controllers\ApprovalController $approvalCtl */
+        $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $bast->cpny_id, $bast->department_id);
+
+        DB::beginTransaction();
+        try {
+            // 1) update header
+            $bast->location_id     = $request->location_id;
+            $bast->sub_location_id = $request->sub_location_id;
+
+            // jika memang setiap edit harus balik ke pending
+            $bast->status     = 'P';
+            $bast->updated_by = $username;
+            $bast->updated_at = $dt;
+            $bast->save();
+
+            // 2) upload Photo After (doctype BQ) -> folder BQ
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $bast->bastid,
+                    'doctype'       => 'BQ',
+                    'cpnyid'        => $bast->cpny_id,
+                    'departementid' => $bast->department_id,
+                    'base_folder'   => 'att-purchasing-app/bq',   // ✅ FIX
+                    'created_by'    => $username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                /** @var \App\Http\Controllers\TrAttachmentController $uploader */
+                $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
+                $uploader->uploadInternal($meta, $files);
+            }
+
+            // 3) upload Attachments BA (doctype BA) -> folder BA
+            if ($request->hasFile('attachments_ba')) {
+                $meta = [
+                    'refnbr'        => $bast->bastid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $bast->cpny_id,
+                    'departementid' => $bast->department_id,
+                    'base_folder'   => 'att-purchasing-app/ba',
+                    'created_by'    => $username,
+                ];
+
+                $files = (array) $request->file('attachments_ba');
+
+                /** @var \App\Http\Controllers\TrAttachmentController $uploader */
+                $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
+                $uploader->uploadInternal($meta, $files);
+            }
+
+            // 4) regenerate approval (hindari dobel)
+            // HAPUS approval lama dulu (sesuaikan nama tabel/model kamu)
+            // TrApproval::where('docid', $bast->bastid)
+            //     ->where('doctype', $doctype)
+            //     ->delete();
+
+            $ctx = ['ignore_nominal' => true];
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $bast->bastid,
+                $doctype,
+                $bast->cpny_id,
+                $bast->department_id,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            if (!empty($firstApprovalUsernames)) {
+                $bast->completed_by = is_array($firstApprovalUsernames)
+                    ? implode(',', $firstApprovalUsernames)
+                    : (string) $firstApprovalUsernames;
+                $bast->save();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'ok'      => true,
+                'message' => 'Bast updated successfully.',
+                'bastid'  => $bast->bastid,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'message' => 'Gagal update BAST.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
 }

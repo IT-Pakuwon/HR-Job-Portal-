@@ -954,12 +954,12 @@
             `);
                 });
         }
-        $(document).on("click", "#approveBtn", async function() {
-            const bastid = "{{ $bast->bastid }}";
+        // $(document).on("click", "#approveBtn", async function() {
+        //     const bastid = "{{ $bast->bastid }}";
 
-            $('#ratingModal').removeClass('hidden').addClass('flex');
-            await loadRatings(bastid);
-        });
+        //     $('#ratingModal').removeClass('hidden').addClass('flex');
+        //     await loadRatings(bastid);
+        // });
 
         $(document).on('click', '#ratingOkBtn', function() {
             const bastid = "{{ $bast->bastid }}";
@@ -982,6 +982,109 @@
             });
         });
     </script>
+    <script>
+        function openRatingModal() {
+            $('#ratingModal').removeClass('hidden').addClass('flex');
+        }
+        function closeRatingModal() {
+            $('#ratingModal').addClass('hidden').removeClass('flex');
+        }
+
+        // ✅ Fix: ratingCancelBtn
+        $(document).on('click', '#ratingCancelBtn', function (e) {
+            e.preventDefault();
+            closeRatingModal();
+        });
+
+        // Optional: klik backdrop tutup modal
+        $(document).on('click', '#ratingModal', function(e){
+            if (e.target === this) closeRatingModal();
+        });
+
+        // Optional: ESC tutup modal
+        $(document).on('keydown', function(e){
+            if (e.key === 'Escape') closeRatingModal();
+        });
+
+        // =========================
+        // APPROVE BUTTON
+        // =========================
+        $(document).on("click", "#approveBtn", async function () {
+            const bastid  = "{{ $bast->bastid }}";
+            const doctype = "BA";
+            const $spinner = $("#loadingSpinnerContainer");
+
+            $spinner.fadeIn();
+
+            try {
+            // 1) cek akses + ambil leveling
+            const resp = await $.getJSON(
+                `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=${encodeURIComponent(doctype)}`
+            );
+
+            if (!resp || !resp.canPerformAction) {
+                toastr.error("You are not authorized to approve this BAST.");
+                return;
+            }
+
+            // penting: backend harus mengirim aprv_leveling
+            const leveling = parseInt(resp.aprv_leveling ?? 0, 10);
+
+            // 2) kalau leveling == 1 -> tampilkan rating modal
+            if (leveling === 1) {
+                openRatingModal();
+                await loadRatings(bastid); // fungsi kamu yang sudah ada
+                return;
+            }
+
+            // 3) selain leveling 1 -> langsung approve tanpa popup
+            await $.post(`/bast/${encodeURIComponent(bastid)}/approve`, {
+                _token: "{{ csrf_token() }}"
+                // no rating_vendor, no ratings_json
+            });
+
+            toastr.success('Approved');
+            closeOrRedirect("/bastlist");
+
+            } catch (e) {
+            console.error(e);
+            toastr.error("Error checking approval status / approving.");
+            } finally {
+            $spinner.fadeOut();
+            }
+        });
+
+        // =========================
+        // SUBMIT RATING (LEVEL 1)
+        // =========================
+        $(document).on('click', '#ratingOkBtn', function() {
+            const bastid = "{{ $bast->bastid }}";
+
+            if (ratingRows.some(r => (Number(r.rating_score) || 0) < 1)) {
+            toastr.warning('Please rate all criteria.');
+            return;
+            }
+
+            const avg = ratingRows.reduce((a, b) => a + (Number(b.rating_score) || 0), 0) / ratingRows.length;
+
+            $.post(`/bast/${encodeURIComponent(bastid)}/approve`, {
+            _token: "{{ csrf_token() }}",
+            rating_vendor: avg.toFixed(2),
+            ratings_json: JSON.stringify(ratingRows)
+            })
+            .done(() => {
+            toastr.success('Approved');
+            closeRatingModal();
+            closeOrRedirect("/bastlist");
+            })
+            .fail((xhr) => {
+            toastr.error(xhr.responseJSON?.message || 'Approve failed');
+            });
+        });
+    </script>
+
+
+
 
     {{-- <script>
         // util modal

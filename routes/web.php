@@ -946,6 +946,7 @@ Route::post('/logout', function () {
     Route::middleware('access:BASTLIST,EDIT')->group(function () {
         Route::get('/editbasts/{hash}', [BastController::class, 'editBast'])->name('bast.edit');
         Route::put('/editbasts/{hash}', [BastController::class, 'updateBast'])->name('bast.update');
+        
         // Approval Actions
         Route::post('/bast/{id}/approve', [BastController::class, 'approveBast']);
         Route::post('/bast/{id}/reject',  [BastController::class, 'rejectBast']);
