@@ -1,4 +1,3 @@
-{{-- @props(['tr_approval']) --}}
 @props(['tr_approval', 'doctypes'])
 
 <div class="col-span-12 col-span-full rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -49,12 +48,15 @@
 
                     <input id="waitingSearch" type="text" placeholder="Search..."
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
+                </div>  
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-gray-500 dark:text-gray-300">Auto refresh in</span>
+                    <span id="waitingCountdown"
+                        class="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-700 dark:text-white">
+                        01:00
+                    </span>
                 </div>
-
-                {{-- <div class="flex gap-2">
-                    <input id="waitingSearch" type="text" placeholder="Search..."
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
-                </div> --}}
+            
             </div>
             <div>
                 <p class="text-m ml-8 dark:text-white">See what's your task for today!</p>
@@ -108,11 +110,6 @@
                     <input id="approvedSearch" type="text" placeholder="Search..."
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
                 </div>
-
-                {{-- <div class="flex gap-2">
-                    <input id="approvedSearch" type="text" placeholder="Search..."
-                        class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
-                </div> --}}
             </div>
             <div>
                 <p class="text-m ml-8 dark:text-white">Track your approved documents here!</p>
@@ -143,184 +140,6 @@
         </div>
     </div>
 </div>
-
-{{-- <script>
-    function switchTab(tab) {
-        const tabs = ['waiting', 'approved'];
-
-        tabs.forEach(name => {
-            const btn = document.getElementById(`tab-${name}`);
-            const content = document.getElementById(`content-${name}`);
-            if (!btn || !content) return;
-
-            if (name === tab) {
-                // Active state
-                btn.classList.remove(
-                    'border-transparent',
-                    'text-gray-500',
-                    'dark:text-gray-400'
-                );
-                btn.classList.add(
-                    'border-violet-600',
-                    'text-violet-600',
-                    'dark:border-violet-400',
-                    'dark:text-violet-400'
-                );
-                content.classList.remove('hidden');
-            } else {
-                // Inactive state
-                btn.classList.remove(
-                    'border-violet-600',
-                    'text-violet-600',
-                    'dark:border-violet-400',
-                    'dark:text-violet-400'
-                );
-                btn.classList.add(
-                    'border-transparent',
-                    'text-gray-500',
-                    'dark:text-gray-400'
-                );
-                content.classList.add('hidden');
-            }
-        });
-    }
-
-    // Search & Pagination logic
-    function renderTable(data, tbodySelector, page, perPage, searchValue) {
-        const tbody = document.querySelector(tbodySelector);
-        tbody.innerHTML = '';
-
-        let filtered = data;
-        if (searchValue) {
-            const val = searchValue.toLowerCase();
-            filtered = data.filter(ap =>
-                (ap.docid && ap.docid.toLowerCase().includes(val)) ||
-                (ap.docdate && ap.docdate.toLowerCase().includes(val)) ||
-                (ap.cpnyid && ap.cpnyid.toLowerCase().includes(val)) ||
-                (ap.departementid && ap.departementid.toLowerCase().includes(val)) ||
-                (ap.infohd && ap.infohd.toLowerCase().includes(val))
-            );
-        }
-
-        const total = filtered.length;
-        const start = (page - 1) * perPage;
-        const end = start + perPage;
-        const paged = filtered.slice(start, end);
-
-        if (paged.length > 0) {
-            paged.forEach(ap => {
-                tbody.innerHTML += `
-                    <tr class="border-b border-gray-200 transition hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800">
-                        <td class="whitespace-nowrap p-3 text-center">
-                            <a href="${ap.url}/${ap.hid}" target="_blank" class="rounded-md bg-blue-500 px-3 py-1 text-white transition hover:bg-blue-600">${ap.docid}</a>
-                        </td>
-                        <td class="px-4 py-2 text-center break-words whitespace-normal max-w-xs">${ap.docdate ?? '-'}</td>
-                        <td class="px-4 py-2 text-center break-words whitespace-normal max-w-xs">${ap.cpnyid ?? '-'}</td>
-                        <td class="px-4 py-2 text-left break-words whitespace-normal max-w-xs">${ap.departementid ?? '-'}</td>
-                        <td class="px-4 py-2 text-left break-words whitespace-normal max-w-xs">${ap.infohd ?? '-'}</td>
-                    </tr>
-                `;
-            });
-        } else {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center">No data found.</td></tr>';
-        }
-
-        return {
-            total,
-            filteredCount: filtered.length
-        };
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        let waitingData = [];
-        let approvedData = [];
-        let waitingPage = 1;
-        let approvedPage = 1;
-        const perPage = 10;
-        let waitingSearch = '';
-        let approvedSearch = '';
-
-        function updateWaitingTable() {
-            const {
-                filteredCount
-            } = renderTable(waitingData, '#waitingTable tbody', waitingPage, perPage, waitingSearch);
-            document.getElementById('waitingPaginationInfo').innerText =
-                `Page ${waitingPage} of ${Math.ceil(filteredCount / perPage) || 1}`;
-        }
-
-        function updateApprovedTable() {
-            const {
-                filteredCount
-            } = renderTable(approvedData, '#approvedTable tbody', approvedPage, perPage, approvedSearch);
-            document.getElementById('approvedPaginationInfo').innerText =
-                `Page ${approvedPage} of ${Math.ceil(filteredCount / perPage) || 1}`;
-        }
-
-        // Load data
-        fetch('/waitingjson')
-            .then(response => response.json())
-            .then(data => {
-                waitingData = data.data || [];
-                updateWaitingTable();
-            });
-
-        fetch('/approvejson')
-            .then(response => response.json())
-            .then(data => {
-                approvedData = data.data || [];
-                updateApprovedTable();
-            });
-
-        // Search handlers
-        document.getElementById('waitingSearch').addEventListener('input', function(e) {
-            waitingSearch = e.target.value;
-            waitingPage = 1;
-            updateWaitingTable();
-        });
-
-        document.getElementById('approvedSearch').addEventListener('input', function(e) {
-            approvedSearch = e.target.value;
-            approvedPage = 1;
-            updateApprovedTable();
-        });
-
-        // Pagination handlers
-        document.getElementById('waitingPrev').addEventListener('click', function() {
-            if (waitingPage > 1) {
-                waitingPage--;
-                updateWaitingTable();
-            }
-        });
-
-        document.getElementById('waitingNext').addEventListener('click', function() {
-            const {
-                filteredCount
-            } = renderTable(waitingData, '#waitingTable tbody', 1, waitingData.length, waitingSearch);
-            if (waitingPage < Math.ceil(filteredCount / perPage)) {
-                waitingPage++;
-                updateWaitingTable();
-            }
-        });
-
-        document.getElementById('approvedPrev').addEventListener('click', function() {
-            if (approvedPage > 1) {
-                approvedPage--;
-                updateApprovedTable();
-            }
-        });
-
-        document.getElementById('approvedNext').addEventListener('click', function() {
-            const {
-                filteredCount
-            } = renderTable(approvedData, '#approvedTable tbody', 1, approvedData.length,
-                approvedSearch);
-            if (approvedPage < Math.ceil(filteredCount / perPage)) {
-                approvedPage++;
-                updateApprovedTable();
-            }
-        });
-    });
-</script> --}}
 
 <script>
     function switchTab(tab) {
@@ -462,6 +281,14 @@
         // initial load
         loadWaiting();
         loadApproved();
+        // const activeTab = document.querySelector('.tab-content:not(.hidden)');
+        // if (activeTab?.id === 'content-waiting') {
+        //     loadWaiting();
+        // }
+        // if (activeTab?.id === 'content-approved') {
+        //     loadApproved();
+        // }
+
 
         // Search handlers
         document.getElementById('waitingSearch')?.addEventListener('input', function(e) {
@@ -512,4 +339,101 @@
             updateApprovedTable();
         });
     });
+
+    // ===============================
+    // ROBUST AUTO REFRESH (every 60s)
+    // fetch + render langsung + anti redirect/html
+    // ===============================
+    const REFRESH_INTERVAL_MS = 20 * 1000; // 1 menit
+    let refreshTimer = null;
+    let refreshing = false;
+
+    async function fetchJsonSafe(url) {
+        const resp = await fetch(url, {
+            method: 'GET',
+            credentials: 'same-origin',          // penting untuk session Laravel
+            cache: 'no-store',                   // jangan pakai cache
+            headers: { 'Accept': 'application/json' }
+        });
+
+        const ct = (resp.headers.get('content-type') || '').toLowerCase();
+
+        // Debug status
+        if (!resp.ok) {
+            const txt = await resp.text().catch(() => '');
+            throw new Error(`HTTP ${resp.status} ${resp.statusText} | ${txt.slice(0, 200)}`);
+        }
+
+        // Kalau kena redirect/login, biasanya balik HTML bukan JSON
+        if (!ct.includes('application/json')) {
+            const txt = await resp.text().catch(() => '');
+            throw new Error(`Not JSON (content-type: ${ct || '-'}) | body: ${txt.slice(0, 120)}`);
+        }
+
+        return await resp.json();
+    }
+
+    async function refreshWaitingNow() {
+        const dt = (document.getElementById('waitingDoctype')?.value) || 'ALL';
+        const url = `/waitingjson?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`; // cache bust
+
+        const json = await fetchJsonSafe(url);
+        waitingData = json.data || [];
+        waitingPage = 1;
+        updateWaitingTable();
+
+        const el = document.getElementById('waitingLastRefresh');
+        if (el) el.innerText = `Last: ${new Date().toLocaleTimeString()}`;
+    }
+
+    async function refreshApprovedNow() {
+        const dt = (document.getElementById('approvedDoctype')?.value) || 'ALL';
+        const url = `/approvejson?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`;
+
+        const json = await fetchJsonSafe(url);
+        approvedData = json.data || [];
+        approvedPage = 1;
+        updateApprovedTable();
+
+        const el = document.getElementById('approvedLastRefresh');
+        if (el) el.innerText = `Last: ${new Date().toLocaleTimeString()}`;
+    }
+
+    async function refreshActiveTabNow() {
+        // hemat: jangan refresh kalau tab browser tidak aktif
+        if (document.hidden) return;
+        if (refreshing) return;
+
+        const activeTab = document.querySelector('.tab-content:not(.hidden)');
+        if (!activeTab) return;
+
+        refreshing = true;
+        try {
+            if (activeTab.id === 'content-waiting') {
+                console.log('🔄 Refresh waiting...');
+                await refreshWaitingNow();
+            } else if (activeTab.id === 'content-approved') {
+                console.log('🔄 Refresh approved...');
+                await refreshApprovedNow();
+            }
+        } catch (e) {
+            console.error('❌ Refresh failed:', e.message || e);
+        } finally {
+            refreshing = false;
+        }
+    }
+
+    function startAutoRefresh() {
+        if (refreshTimer) clearInterval(refreshTimer);
+        refreshTimer = setInterval(refreshActiveTabNow, REFRESH_INTERVAL_MS);
+    }
+
+    // Jalankan
+    startAutoRefresh();
+
+
+
+
+
+
 </script>

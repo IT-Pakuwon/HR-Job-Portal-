@@ -2591,16 +2591,14 @@ class SpptController extends Controller
         $temp_id  = session('import_temp_id');
         $tempData = $temp_id ? BqDetailTemp::where('temp_id', $temp_id)->get() : [];
 
-        $attachment = Attachment::where('docid', $bq->bqid)
-            ->where('status','A')
-            ->get();
+    
 
         return view('pages.sppts.editbqsppts', compact(
             'bq',
             'bq_detail',
             'temp_id',
-            'tempData',
-            'attachment'
+            'tempData'
+            
         ));
     }
     
