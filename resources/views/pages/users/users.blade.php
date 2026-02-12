@@ -2,7 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'users' ? 'Users' : '';
     @endphp
-    <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Users List</h1>
@@ -47,7 +47,8 @@
                         class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                         <option value="">All Business Unit</option>
                         @foreach ($businessUnits as $bu)
-                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} - {{ $bu->business_unit_name }}</option>
+                            <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }} -
+                                {{ $bu->business_unit_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -136,7 +137,8 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">Division</label>
-                            <select name="division_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple required>
+                            <select name="division_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
+                                required>
                                 @foreach ($divisions as $d)
                                     <option value="{{ $d->division_id }}">
                                         {{ $d->division_id }} - {{ $d->division_name }}
@@ -150,7 +152,8 @@
                             <select name="business_unit_id[]" class="select2 w-full rounded-lg border px-3 py-2"
                                 multiple required>
                                 @foreach ($businessUnits as $p)
-                                    <option value="{{ $p->business_unit_id }}">{{ $p->business_unit_id }} - {{ $p->business_unit_name }}</option>
+                                    <option value="{{ $p->business_unit_id }}">{{ $p->business_unit_id }} -
+                                        {{ $p->business_unit_name }}</option>
                                 @endforeach
                             </select>
 
@@ -318,7 +321,7 @@
                     {
                         data: 'business_unit_id',
                         className: 'no-pointer'
-                    },                  
+                    },
                     {
                         data: 'jabatan',
                         className: 'no-pointer'
@@ -599,7 +602,7 @@
         });
     </script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             // 🔍 Filter Company
             $('#filterCompany').select2({

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             {{-- header + tombol add --}}
             <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -100,7 +100,8 @@
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                 <option value="">-- choose --</option>
                                 @foreach ($doctypes as $dt)
-                                    <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}</option>
+                                    <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -363,23 +364,23 @@
                     html += `<option value="${escapeHtml(v)}" ${sel}>${escapeHtml(v)}</option>`;
                 });
                 return html;
-                }
+            }
 
-                function escapeHtml(str) {
+            function escapeHtml(str) {
                 return String(str ?? '')
                     .replaceAll('&', '&amp;')
                     .replaceAll('<', '&lt;')
                     .replaceAll('>', '&gt;')
                     .replaceAll('"', '&quot;')
                     .replaceAll("'", '&#039;');
-                }
+            }
 
-                function lineRowTemplate(idx, data) {
-                const level    = data?.aprv_leveling ?? '';
-                const typeVal  = data?.aprv_type ?? '';
-                const condVal  = data?.aprv_condition ?? '';
+            function lineRowTemplate(idx, data) {
+                const level = data?.aprv_leveling ?? '';
+                const typeVal = data?.aprv_type ?? '';
+                const condVal = data?.aprv_condition ?? '';
                 const startNom = data?.aprv_start_nominal ?? '';
-                const endNom   = data?.aprv_end_nominal ?? '';
+                const endNom = data?.aprv_end_nominal ?? '';
 
                 return `
                     <div class="grid grid-cols-1 items-start gap-2 md:grid-cols-6 line-row" data-row="${idx}">
@@ -477,7 +478,8 @@
             });
 
             function loadDepartmentsByDoctype(doctype, selectedValue = null) {
-                const url = "{{ route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype || '');
+                const url = "{{ route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype ||
+                    '');
                 const $dep = $('#aprv_departementid');
 
                 // Clear select2 selection
@@ -502,14 +504,15 @@
 
 
             // Reload department saat doctype berubah
-            $('#aprv_doctype').on('change', function () {
+            $('#aprv_doctype').on('change', function() {
                 const dt = $(this).val() || '';
                 // reset pilihan department dulu
                 loadDepartmentsByDoctype(dt, null);
             });
 
             function loadFilterDepartmentsByDoctype(doctype) {
-                const url = "{{ route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype || '');
+                const url = "{{ route('approvals.departments') }}" + "?doctype=" + encodeURIComponent(doctype ||
+                    '');
                 const $fDept = $('#filterDept');
 
                 // simpan value yang sedang dipilih (kalau masih ada)
@@ -556,7 +559,8 @@
                 $('#aprv_cpnyid_select').val('').trigger('change');
 
                 // set doctype kosong & load dept default
-                $('#aprv_doctype').val('').trigger('change'); // ini akan memanggil handler change -> loadDepartmentsByDoctype('')
+                $('#aprv_doctype').val('').trigger(
+                'change'); // ini akan memanggil handler change -> loadDepartmentsByDoctype('')
                 // jadi tidak perlu panggil loadDepartmentsByDoctype lagi di sini
 
                 lineIdxCounter = 0;
@@ -626,10 +630,10 @@
 
                 const dt = $('#aprv_doctype').val();
                 const cp = $('#aprv_cpnyid_select').val();
-                const dep = $('#aprv_departementid').val();               
+                const dep = $('#aprv_departementid').val();
 
 
-                if (!dt || !cp || !dep ) {
+                if (!dt || !cp || !dep) {
                     alert('Doctype, Company, dan Department wajib diisi.');
                     return;
                 }
@@ -746,6 +750,6 @@
         });
     </script>
 
-    
+
 
 </x-app-layout>

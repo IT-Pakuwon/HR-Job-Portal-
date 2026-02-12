@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <div class="mb-4 flex items-center justify-end sm:mb-0"></div>
         <div class="mb-2 mt-2 rounded-xl bg-white p-6 dark:bg-gray-800">
