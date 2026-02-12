@@ -86,8 +86,8 @@
                     <input type="hidden" name="ref_issueid" value="{{ $ref_issueid }}">
 
                     {{-- ===== Header ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Return (Issue)
                             </h2>
                         </div>
@@ -123,7 +123,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
@@ -236,7 +236,7 @@
                     </div>
 
                     {{-- Attachments --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

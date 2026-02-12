@@ -20,7 +20,10 @@
     </style>
     <style>
         /* select2 biar full dan tinggi sama input */
-        .select2-container { width: 100% !important; }
+        .select2-container {
+            width: 100% !important;
+        }
+
         .select2-container .select2-selection--single {
             height: 42px;
             border: 1px solid #d1d5db;
@@ -29,6 +32,7 @@
             align-items: center;
             padding: 0 10px;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 40px;
         }
@@ -60,9 +64,10 @@
                                     @endforeach
                                 </select>
                             </div>
-                             <!-- Business Unit -->
+                            <!-- Business Unit -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business
+                                    Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -636,7 +641,7 @@
                     </div>
 
                     {{-- ===== Attachment ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -1465,45 +1470,45 @@
             // LOAD COA (BY WO atau BY DEPT)
             // ===================================================
             function loadCoa() {
-                    $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
+                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
-                    const esc = v => $('<div>').text(v ?? '').html();
+                const esc = v => $('<div>').text(v ?? '').html();
 
-                    const url = coaState.woid
-                        ? "{{ route('coa.byWo') }}"
-                        : "{{ route('coa.byDept') }}";
+                const url = coaState.woid ?
+                    "{{ route('coa.byWo') }}" :
+                    "{{ route('coa.byDept') }}";
 
-                    const params = coaState.woid ? {
-                        woid: coaState.woid,
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page
-                    } : {
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                        perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page
-                    };
+                const params = coaState.woid ? {
+                    woid: coaState.woid,
+                    cpnyid: coaState.cpnyid,
+                    deptid: coaState.deptid,
+                    search: coaState.search,
+                    page: coaState.page,
+                    per_page: coaState.per_page
+                } : {
+                    cpnyid: coaState.cpnyid,
+                    deptid: coaState.deptid,
+                    perpost: coaState.perpost,
+                    business_unit_id: coaState.business_unit_id,
+                    search: coaState.search,
+                    page: coaState.page,
+                    per_page: coaState.per_page
+                };
 
-                    $.getJSON(url, params)
-                        .done(function(res) {
+                $.getJSON(url, params)
+                    .done(function(res) {
 
-                            // update badge kalau backend kirim meta
-                            if (res.meta) {
-                                $coaCpny.text(res.meta.cpnyid ?? coaState.cpnyid ?? '-');
-                                $coaDept.text(res.meta.deptid ?? coaState.deptid ?? '-');
-                                $coaPerpost.text(res.meta.perpost ?? coaState.perpost ?? '-');
-                            }
+                        // update badge kalau backend kirim meta
+                        if (res.meta) {
+                            $coaCpny.text(res.meta.cpnyid ?? coaState.cpnyid ?? '-');
+                            $coaDept.text(res.meta.deptid ?? coaState.deptid ?? '-');
+                            $coaPerpost.text(res.meta.perpost ?? coaState.perpost ?? '-');
+                        }
 
-                            const data = res.data || [];
-                            coaState.total = Number(res.total || 0);
+                        const data = res.data || [];
+                        coaState.total = Number(res.total || 0);
 
-                            const rows = data.map(item => `
+                        const rows = data.map(item => `
                                 <tr>
                                     <td class="border p-2">${esc(item.account_id)}</td>
                                     <td class="border p-2">${esc(item.account_descr)}</td>
@@ -1524,18 +1529,20 @@
                                 </tr>
                             `).join('');
 
-                            $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
-                            $coaCount.text(`Showing ${data.length} of ${coaState.total} items`);
+                        $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
+                        $coaCount.text(`Showing ${data.length} of ${coaState.total} items`);
 
-                            const maxPage = Math.max(1, Math.ceil(coaState.total / coaState.per_page));
-                            $('#coaPrev').prop('disabled', coaState.page <= 1);
-                            $('#coaNext').prop('disabled', coaState.page >= maxPage);
-                        })
-                        .fail(function() {
-                            $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                            $coaCount.text('');
-                            $('#coaPrev, #coaNext').prop('disabled', true);
-                        });
+                        const maxPage = Math.max(1, Math.ceil(coaState.total / coaState.per_page));
+                        $('#coaPrev').prop('disabled', coaState.page <= 1);
+                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $coaTbody.html(
+                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            );
+                        $coaCount.text('');
+                        $('#coaPrev, #coaNext').prop('disabled', true);
+                    });
             }
 
 
@@ -1589,19 +1596,20 @@
                 $coaModal.addClass('hidden').removeClass('flex');
             });
 
-             $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
-                if ($coaModal.is(':visible')) {
-                    coaState.cpnyid = $('select[name="cpnyid"]').val();
-                    coaState.deptid = $('select[name="departementid"]').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
-                    coaState.perpost = $('#perpost').val();
-                    $coaCpny.text(coaState.cpnyid || '-');
-                    $coaDept.text(coaState.deptid || '-');
-                    $coaPerpost.text(coaState.perpost || '-');
-                    coaState.page = 1;
-                    loadCoa();
-                }
-            });
+            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change',
+                function() {
+                    if ($coaModal.is(':visible')) {
+                        coaState.cpnyid = $('select[name="cpnyid"]').val();
+                        coaState.deptid = $('select[name="departementid"]').val();
+                        coaState.business_unit_id = $('#business_unit_id').val();
+                        coaState.perpost = $('#perpost').val();
+                        $coaCpny.text(coaState.cpnyid || '-');
+                        $coaDept.text(coaState.deptid || '-');
+                        $coaPerpost.text(coaState.perpost || '-');
+                        coaState.page = 1;
+                        loadCoa();
+                    }
+                });
 
         });
     </script>
@@ -1989,202 +1997,203 @@
                 }
             });
         });
-    </script>    
+    </script>
 
     <script>
-        $(function () {
-        const $lokasiModal = $('#modalLokasi');
-        const $selLoc = $('#modal_location_id');
-        const $selSub = $('#modal_sub_location_id');
-        let currentLocRow = null;
+        $(function() {
+            const $lokasiModal = $('#modalLokasi');
+            const $selLoc = $('#modal_location_id');
+            const $selSub = $('#modal_sub_location_id');
+            let currentLocRow = null;
 
-        // ===== cache =====
-        const locationCache = {}; // key: cpny => array [{value,text}]
-        const subLocCache   = {}; // key: `${cpny}|${loc}` => array [{value,text}]
+            // ===== cache =====
+            const locationCache = {}; // key: cpny => array [{value,text}]
+            const subLocCache = {}; // key: `${cpny}|${loc}` => array [{value,text}]
 
-        // ===== helpers =====
-        function fetchLocationsCached(cpny) {
-            if (locationCache[cpny]) {
-            return $.Deferred().resolve(locationCache[cpny]).promise();
-            }
-
-            return $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-            .then(function(list){
-                locationCache[cpny] = list || [];
-                return locationCache[cpny];
-            });
-        }
-
-        function fetchSubLocationsCached(cpny, loc) {
-            const key = `${cpny}|${loc}`;
-            if (subLocCache[key]) {
-            return $.Deferred().resolve(subLocCache[key]).promise();
-            }
-
-            return $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-            .then(function(list){
-                subLocCache[key] = list || [];
-                return subLocCache[key];
-            });
-        }
-
-        function ensureSelect2() {
-            // destroy dulu kalau sudah init
-            if ($selLoc.hasClass('select2-hidden-accessible')) $selLoc.select2('destroy');
-            if ($selSub.hasClass('select2-hidden-accessible')) $selSub.select2('destroy');
-
-            $selLoc.select2({
-            dropdownParent: $lokasiModal,
-            width: '100%',
-            placeholder: '-- choose --',
-            allowClear: true
-            });
-
-            $selSub.select2({
-            dropdownParent: $lokasiModal,
-            width: '100%',
-            placeholder: '-- choose --',
-            allowClear: true
-            });
-        }
-
-        function fillSelect($select, list, selectedValue) {
-            $select.empty().append(new Option('', '', true, true)); // allowClear
-
-            (list || []).forEach(function(it){
-            $select.append(new Option(it.text, it.value, false, false));
-            });
-
-            if (selectedValue) {
-            $select.val(selectedValue).trigger('change.select2');
-            } else {
-            $select.val(null).trigger('change.select2');
-            }
-        }
-
-        // ===== open / close =====
-        function openLokasiModal(forRow) {
-            currentLocRow = forRow;
-
-            const cpny = ($('select[name="cpnyid"]').val() || '').trim();
-            if (!cpny) {
-            toastr.warning('Pilih Company terlebih dahulu.');
-            return;
-            }
-
-            // tampilkan modal dulu supaya select2 bisa render
-            $lokasiModal.removeClass('hidden').addClass('flex');
-
-            // init select2
-            ensureSelect2();
-
-            // reset dropdown
-            fillSelect($selLoc, [], null);
-            fillSelect($selSub, [], null);
-
-            // ambil nilai existing row
-            const curLoc = (currentLocRow.find('.locationIdField').val() || '').trim();
-            const curSub = (currentLocRow.find('.subLocationIdField').val() || '').trim();
-
-            // load locations (cache)
-            fetchLocationsCached(cpny)
-            .done(function(list){
-                fillSelect($selLoc, list, curLoc || null);
-
-                // kalau ada location existing, load sublocations juga
-                if (curLoc) {
-                fetchSubLocationsCached(cpny, curLoc)
-                    .done(function(sublist){
-                    fillSelect($selSub, sublist, curSub || null);
-                    })
-                    .fail(function(){
-                    toastr.error('Gagal memuat sub location.');
-                    });
+            // ===== helpers =====
+            function fetchLocationsCached(cpny) {
+                if (locationCache[cpny]) {
+                    return $.Deferred().resolve(locationCache[cpny]).promise();
                 }
 
-                // auto open select2 agar bisa langsung search
-                setTimeout(function(){
-                $selLoc.select2('open');
-                }, 100);
-            })
-            .fail(function(){
-                toastr.error('Gagal memuat lokasi.');
-            });
-        }
-
-        function closeLokasiModal() {
-            $lokasiModal.addClass('hidden').removeClass('flex');
-        }
-
-        // ===== click open =====
-        $(document).on('click', '.openLokasiPicker', function () {
-            openLokasiModal($(this).closest('tr'));
-        });
-
-        // ===== close =====
-        $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
-
-        // ===== change location => load sublocations =====
-        $selLoc.on('change', function () {
-            const cpny = ($('select[name="cpnyid"]').val() || '').trim();
-            const loc  = ($selLoc.val() || '').trim();
-
-            // reset sub
-            fillSelect($selSub, [], null);
-
-            if (!cpny || !loc) return;
-
-            fetchSubLocationsCached(cpny, loc)
-            .done(function(list){
-                // preselect jika row punya sub sebelumnya (kalau masih valid)
-                const curSub = currentLocRow ? (currentLocRow.find('.subLocationIdField').val() || '').trim() : '';
-                fillSelect($selSub, list, curSub || null);
-            })
-            .fail(function(){
-                toastr.error('Gagal memuat sub location.');
-            });
-        });
-
-        // ===== save =====
-        $('#saveLokasi').on('click', function () {
-            if (!currentLocRow) return;
-
-            const locId = ($selLoc.val() || '').trim();
-            const subId = ($selSub.val() || '').trim();
-
-            const locText = $('#modal_location_id option:selected').text();
-            const subText = $('#modal_sub_location_id option:selected').text();
-
-            if (!locId || !subId) {
-            toastr.error('Pilih Location dan Sub Location.');
-            return;
+                return $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
+                    .then(function(list) {
+                        locationCache[cpny] = list || [];
+                        return locationCache[cpny];
+                    });
             }
 
-            currentLocRow.find('.locationIdField').val(locId);
-            currentLocRow.find('.subLocationIdField').val(subId);
-            currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+            function fetchSubLocationsCached(cpny, loc) {
+                const key = `${cpny}|${loc}`;
+                if (subLocCache[key]) {
+                    return $.Deferred().resolve(subLocCache[key]).promise();
+                }
 
-            currentLocRow.find('.locationDisplayField')
-            .removeClass('is-invalid')
-            .next('.error-feedback').remove();
-
-            closeLokasiModal();
-        });
-
-        // ===== company berubah saat modal terbuka => reload locations =====
-        $('select[name="cpnyid"]').on('change', function () {
-            if (!$lokasiModal.is(':visible')) return;
-
-            // reset row selection (optional: kamu bisa keep, tapi biasanya lebih aman reset)
-            if (currentLocRow) {
-            currentLocRow.find('.locationIdField').val('');
-            currentLocRow.find('.subLocationIdField').val('');
-            currentLocRow.find('.locationDisplayField').val('');
+                return $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
+                    .then(function(list) {
+                        subLocCache[key] = list || [];
+                        return subLocCache[key];
+                    });
             }
 
-            // reload modal untuk cpny baru
-            if (currentLocRow) openLokasiModal(currentLocRow);
-        });
+            function ensureSelect2() {
+                // destroy dulu kalau sudah init
+                if ($selLoc.hasClass('select2-hidden-accessible')) $selLoc.select2('destroy');
+                if ($selSub.hasClass('select2-hidden-accessible')) $selSub.select2('destroy');
+
+                $selLoc.select2({
+                    dropdownParent: $lokasiModal,
+                    width: '100%',
+                    placeholder: '-- choose --',
+                    allowClear: true
+                });
+
+                $selSub.select2({
+                    dropdownParent: $lokasiModal,
+                    width: '100%',
+                    placeholder: '-- choose --',
+                    allowClear: true
+                });
+            }
+
+            function fillSelect($select, list, selectedValue) {
+                $select.empty().append(new Option('', '', true, true)); // allowClear
+
+                (list || []).forEach(function(it) {
+                    $select.append(new Option(it.text, it.value, false, false));
+                });
+
+                if (selectedValue) {
+                    $select.val(selectedValue).trigger('change.select2');
+                } else {
+                    $select.val(null).trigger('change.select2');
+                }
+            }
+
+            // ===== open / close =====
+            function openLokasiModal(forRow) {
+                currentLocRow = forRow;
+
+                const cpny = ($('select[name="cpnyid"]').val() || '').trim();
+                if (!cpny) {
+                    toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+
+                // tampilkan modal dulu supaya select2 bisa render
+                $lokasiModal.removeClass('hidden').addClass('flex');
+
+                // init select2
+                ensureSelect2();
+
+                // reset dropdown
+                fillSelect($selLoc, [], null);
+                fillSelect($selSub, [], null);
+
+                // ambil nilai existing row
+                const curLoc = (currentLocRow.find('.locationIdField').val() || '').trim();
+                const curSub = (currentLocRow.find('.subLocationIdField').val() || '').trim();
+
+                // load locations (cache)
+                fetchLocationsCached(cpny)
+                    .done(function(list) {
+                        fillSelect($selLoc, list, curLoc || null);
+
+                        // kalau ada location existing, load sublocations juga
+                        if (curLoc) {
+                            fetchSubLocationsCached(cpny, curLoc)
+                                .done(function(sublist) {
+                                    fillSelect($selSub, sublist, curSub || null);
+                                })
+                                .fail(function() {
+                                    toastr.error('Gagal memuat sub location.');
+                                });
+                        }
+
+                        // auto open select2 agar bisa langsung search
+                        setTimeout(function() {
+                            $selLoc.select2('open');
+                        }, 100);
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat lokasi.');
+                    });
+            }
+
+            function closeLokasiModal() {
+                $lokasiModal.addClass('hidden').removeClass('flex');
+            }
+
+            // ===== click open =====
+            $(document).on('click', '.openLokasiPicker', function() {
+                openLokasiModal($(this).closest('tr'));
+            });
+
+            // ===== close =====
+            $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
+
+            // ===== change location => load sublocations =====
+            $selLoc.on('change', function() {
+                const cpny = ($('select[name="cpnyid"]').val() || '').trim();
+                const loc = ($selLoc.val() || '').trim();
+
+                // reset sub
+                fillSelect($selSub, [], null);
+
+                if (!cpny || !loc) return;
+
+                fetchSubLocationsCached(cpny, loc)
+                    .done(function(list) {
+                        // preselect jika row punya sub sebelumnya (kalau masih valid)
+                        const curSub = currentLocRow ? (currentLocRow.find('.subLocationIdField')
+                        .val() || '').trim() : '';
+                        fillSelect($selSub, list, curSub || null);
+                    })
+                    .fail(function() {
+                        toastr.error('Gagal memuat sub location.');
+                    });
+            });
+
+            // ===== save =====
+            $('#saveLokasi').on('click', function() {
+                if (!currentLocRow) return;
+
+                const locId = ($selLoc.val() || '').trim();
+                const subId = ($selSub.val() || '').trim();
+
+                const locText = $('#modal_location_id option:selected').text();
+                const subText = $('#modal_sub_location_id option:selected').text();
+
+                if (!locId || !subId) {
+                    toastr.error('Pilih Location dan Sub Location.');
+                    return;
+                }
+
+                currentLocRow.find('.locationIdField').val(locId);
+                currentLocRow.find('.subLocationIdField').val(subId);
+                currentLocRow.find('.locationDisplayField').val(`${locText} — ${subText}`);
+
+                currentLocRow.find('.locationDisplayField')
+                    .removeClass('is-invalid')
+                    .next('.error-feedback').remove();
+
+                closeLokasiModal();
+            });
+
+            // ===== company berubah saat modal terbuka => reload locations =====
+            $('select[name="cpnyid"]').on('change', function() {
+                if (!$lokasiModal.is(':visible')) return;
+
+                // reset row selection (optional: kamu bisa keep, tapi biasanya lebih aman reset)
+                if (currentLocRow) {
+                    currentLocRow.find('.locationIdField').val('');
+                    currentLocRow.find('.subLocationIdField').val('');
+                    currentLocRow.find('.locationDisplayField').val('');
+                }
+
+                // reload modal untuk cpny baru
+                if (currentLocRow) openLokasiModal(currentLocRow);
+            });
 
         });
     </script>
@@ -2296,16 +2305,16 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $cpny = $('#cpnyid');
-            const $bu   = $('#business_unit_id');
+            const $bu = $('#business_unit_id');
 
             function renderBuOptions(list, selected) {
                 let html = '<option value="" disabled>Select Business Unit</option>';
                 (list || []).forEach(it => {
-                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
+                    const id = it.business_unit_id ?? it.businessunit_id ?? '';
                     const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
+                    const sel = (selected && String(selected) === String(id)) ? 'selected' : '';
                     html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
                 });
                 return html;
@@ -2319,8 +2328,10 @@
 
                 $bu.html('<option value="" disabled selected>Loading...</option>');
 
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
-                    .done(function(res){
+                $.getJSON("{{ route('businessunits.byCpny') }}", {
+                        cpnyid
+                    })
+                    .done(function(res) {
                         const list = res.data || [];
                         if (!list.length) {
                             $bu.html('<option value="" disabled selected>No Business Unit</option>');
@@ -2333,7 +2344,7 @@
                             }
                         }
                     })
-                    .fail(function(){
+                    .fail(function() {
                         $bu.html('<option value="" disabled selected>Failed to load</option>');
                     });
             }
@@ -2342,99 +2353,100 @@
             loadBusinessUnitsByCpny($cpny.val());
 
             // kalau company berubah → reload BU
-            $cpny.on('change', function(){
+            $cpny.on('change', function() {
                 loadBusinessUnitsByCpny($(this).val());
             });
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(function () {
-        const $cpny = $('select[name="cpnyid"]');
-        const $bu   = $('#business_unit_id');
+        $(function() {
+            const $cpny = $('select[name="cpnyid"]');
+            const $bu = $('#business_unit_id');
 
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
+            let prevCpny = $cpny.val();
+            let prevBu = $bu.val();
 
-        let isReverting = false; // penting: cegah loop saat revert
+            let isReverting = false; // penting: cegah loop saat revert
 
-        function hasAnyDetailFilled() {
-            return $('#spbTable tr.spb-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.siteid-hidden').val(),
-                $tr.find('.stock_unitField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
+            function hasAnyDetailFilled() {
+                return $('#spbTable tr.spb-row').toArray().some(tr => {
+                    const $tr = $(tr);
+                    return [
+                        $tr.find('.inventoryIdField').val(),
+                        $tr.find('.qtyField').val(),
+                        $tr.find('.coaIdField').val(),
+                        $tr.find('.locationIdField').val(),
+                        $tr.find('.subLocationIdField').val(),
+                        $tr.find('.siteid-hidden').val(),
+                        $tr.find('.stock_unitField').val(),
+                    ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !==
+                        '-');
+                });
+            }
 
-        function resetWo() {
-            $('#woid').val('');
-        }
+            function resetWo() {
+                $('#woid').val('');
+            }
 
-        function resetDetailAllRows() {
-            $('#spbTable tr.spb-row').each(function () {
-            const $tr = $(this);
+            function resetDetailAllRows() {
+                $('#spbTable tr.spb-row').each(function() {
+                    const $tr = $(this);
 
-            // Inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
+                    // Inventory
+                    $tr.find('.inventoryIdField').val('');
+                    $tr.find('.productNameField').val('');
 
-            // item meta
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
+                    // item meta
+                    $tr.find('.prodItemTypeField').val('');
+                    $tr.find('.prodItemSubTypeField').val('');
+                    $tr.find('.prodItemCategoryField').val('');
 
-            // Qty
-            $tr.find('.qtyField').val('');
+                    // Qty
+                    $tr.find('.qtyField').val('');
 
-            // UoM
-            $tr.find('.stock_unitField').val('-'); // atau '' kalau mau kosong
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
+                    // UoM
+                    $tr.find('.stock_unitField').val('-'); // atau '' kalau mau kosong
+                    $tr.find('.uomFromField').val('');
+                    $tr.find('.uomToField').val('');
+                    $tr.find('.uomMultDivField').val('');
+                    $tr.find('.uomRateField').val('');
 
-            // SiteID
-            $tr.find('.siteid-hidden').val('');
-            $tr.find('.siteid-display').val('-');
+                    // SiteID
+                    $tr.find('.siteid-hidden').val('');
+                    $tr.find('.siteid-display').val('-');
 
-            // Location & Sub
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val(''); // ini yang ada di view kamu
+                    // Location & Sub
+                    $tr.find('.locationIdField').val('');
+                    $tr.find('.subLocationIdField').val('');
+                    $tr.find('.locationDisplayField').val(''); // ini yang ada di view kamu
 
-            // COA + Budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
+                    // COA + Budget mapping
+                    $tr.find('.coaIdField').val('');
+                    $tr.find('.coaNameField').val('');
+                    $tr.find('.activityIdField').val('');
+                    $tr.find('.businessUnitIdField').val('');
+                    $tr.find('.departmentFinIdField').val('');
 
-            // Note (optional)
-            $tr.find('input[name="note[]"]').val('');
+                    // Note (optional)
+                    $tr.find('input[name="note[]"]').val('');
 
-            // bersihkan error UI
-            $tr.find('.is-invalid').removeClass('is-invalid');
-            $tr.find('.error-feedback').remove();
+                    // bersihkan error UI
+                    $tr.find('.is-invalid').removeClass('is-invalid');
+                    $tr.find('.error-feedback').remove();
 
-            // trigger update site visibility (optional)
-            $tr.find('.prodItemTypeField').trigger('change');
-            });
-        }
+                    // trigger update site visibility (optional)
+                    $tr.find('.prodItemTypeField').trigger('change');
+                });
+            }
 
-        async function confirmContextChange(type) {
-            if (!hasAnyDetailFilled()) return true;
+            async function confirmContextChange(type) {
+                if (!hasAnyDetailFilled()) return true;
 
-            const result = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: `Ubah ${type}?`,
+                    html: `
                 Mengubah <b>${type}</b> akan <b>mereset semua detail</b>:
                 <ul style="text-align:left; margin:10px 0 0 0;">
                 <li>Inventory, Qty, UoM</li>
@@ -2445,60 +2457,60 @@
                 </ul>
                 <div style="margin-top:10px;">Lanjut?</div>
             `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, lanjut',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true,
-            confirmButtonColor: '#2563eb',
-            cancelButtonColor: '#6b7280'
-            });
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, lanjut',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    focusCancel: true,
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#6b7280'
+                });
 
-            return result.isConfirmed;
-        }
-
-        function revertContext() {
-            isReverting = true;
-            $cpny.val(prevCpny);
-            $bu.val(prevBu);
-            // kalau kamu punya loader BU via AJAX yang listen change cpny,
-            // jangan trigger('change') di sini supaya gak reload lagi.
-            // Kalau perlu refresh UI select2, baru trigger khusus select2.
-            isReverting = false;
-        }
-
-        async function onContextChange(type) {
-            if (isReverting) return;
-
-            const ok = await confirmContextChange(type);
-            if (!ok) {
-            revertContext();
-            return;
+                return result.isConfirmed;
             }
 
-            resetDetailAllRows();
-            resetWo();
+            function revertContext() {
+                isReverting = true;
+                $cpny.val(prevCpny);
+                $bu.val(prevBu);
+                // kalau kamu punya loader BU via AJAX yang listen change cpny,
+                // jangan trigger('change') di sini supaya gak reload lagi.
+                // Kalau perlu refresh UI select2, baru trigger khusus select2.
+                isReverting = false;
+            }
 
-            // update prev setelah sukses
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
+            async function onContextChange(type) {
+                if (isReverting) return;
 
-            Swal.fire({
-            icon: 'info',
-            title: 'Detail direset',
-            text: `${type} berubah. Semua detail sudah direset.`,
-            timer: 1200,
-            showConfirmButton: false
+                const ok = await confirmContextChange(type);
+                if (!ok) {
+                    revertContext();
+                    return;
+                }
+
+                resetDetailAllRows();
+                resetWo();
+
+                // update prev setelah sukses
+                prevCpny = $cpny.val();
+                prevBu = $bu.val();
+
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Detail direset',
+                    text: `${type} berubah. Semua detail sudah direset.`,
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+            }
+
+            $cpny.on('change', function() {
+                onContextChange('Company');
             });
-        }
 
-        $cpny.on('change', function () {
-            onContextChange('Company');
-        });
-
-        $bu.on('change', function () {
-            onContextChange('Business Unit');
-        });
+            $bu.on('change', function() {
+                onContextChange('Business Unit');
+            });
         });
     </script>
 
@@ -2510,7 +2522,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
+
 
 
 

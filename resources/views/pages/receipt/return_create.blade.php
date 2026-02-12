@@ -85,8 +85,8 @@
 
 
                     {{-- ===== Header ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Return</h2>
                         </div>
 
@@ -117,7 +117,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
                                 <input type="text" value="{{ $rcp->vendorname }}" readonly
@@ -152,61 +152,78 @@
                                         details ↓</span>
                                 </summary>
 
-                                <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
-                                    <b>Note:</b> Qty Return tidak boleh melebihi <b>Remaining Return</b>. Sistem akan menolak jika lebih.
+                                <div
+                                    class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
+                                    <b>Note:</b> Qty Return tidak boleh melebihi <b>Remaining Return</b>. Sistem akan
+                                    menolak jika lebih.
                                 </div>
                                 <div class="mt-6 overflow-x-auto">
                                     <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                                         <thead class="bg-gray-50 dark:bg-gray-700">
                                             <tr>
-                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Inventory ID</th>
-                                                <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Description</th>
-                                                <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">UoM</th>
+                                                <th
+                                                    class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                                    Inventory ID</th>
+                                                <th
+                                                    class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                                    Description</th>
+                                                <th
+                                                    class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">
+                                                    UoM</th>
 
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Received (Ref)</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Already Returned</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Remaining Return</th>
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Qty Received (Ref)</th>
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Already Returned</th>
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Remaining Return</th>
 
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty Return</th>
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Qty Return</th>
                                             </tr>
                                         </thead>
 
                                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        @forelse($details as $d)
-                                            @php
-                                                $qtyRec  = (float) ($d->qty_received ?? 0);
-                                                $sisa    = (float) ($d->qty_sisa_return ?? $d->qty ?? 0);
-                                                $sudah   = max($qtyRec - $sisa, 0); // hitung tampilannya (received - remaining)
-                                            @endphp
-                                            <tr>
-                                                <td class="px-4 py-2">{{ $d->inventoryid }}</td>
-                                                <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
-                                                <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
+                                            @forelse($details as $d)
+                                                @php
+                                                    $qtyRec = (float) ($d->qty_received ?? 0);
+                                                    $sisa = (float) ($d->qty_sisa_return ?? ($d->qty ?? 0));
+                                                    $sudah = max($qtyRec - $sisa, 0); // hitung tampilannya (received - remaining)
+                                                @endphp
+                                                <tr>
+                                                    <td class="px-4 py-2">{{ $d->inventoryid }}</td>
+                                                    <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
+                                                    <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
 
-                                                <td class="px-4 py-2 text-right">{{ number_format($qtyRec, 2) }}</td>
-                                                <td class="px-4 py-2 text-right">{{ number_format($sudah, 2) }}</td>
-                                                <td class="px-4 py-2 text-right font-semibold text-emerald-700 dark:text-emerald-300">
-                                                    {{ number_format($sisa, 2) }}
-                                                </td>
+                                                    <td class="px-4 py-2 text-right">{{ number_format($qtyRec, 2) }}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-right">{{ number_format($sudah, 2) }}
+                                                    </td>
+                                                    <td
+                                                        class="px-4 py-2 text-right font-semibold text-emerald-700 dark:text-emerald-300">
+                                                        {{ number_format($sisa, 2) }}
+                                                    </td>
 
-                                                <td class="px-4 py-2 text-right">
-                                                    <input
-                                                        type="text"
-                                                        name="qty_return[{{ $d->id }}]"
-                                                        class="qtyReturn w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                        inputmode="decimal"
-                                                        autocomplete="off"
-                                                        placeholder="0,00 (max {{ number_format($sisa,2) }})"
-                                                        data-max="{{ $sisa }}"
-                                                    />
-                                                    <div class="mt-1 text-xs text-gray-500">Max: {{ number_format($sisa,2) }}</div>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="7" class="px-4 py-4 text-center text-gray-500">No receipt detail</td>
-                                            </tr>
-                                        @endforelse
+                                                    <td class="px-4 py-2 text-right">
+                                                        <input type="text" name="qty_return[{{ $d->id }}]"
+                                                            class="qtyReturn w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                            inputmode="decimal" autocomplete="off"
+                                                            placeholder="0,00 (max {{ number_format($sisa, 2) }})"
+                                                            data-max="{{ $sisa }}" />
+                                                        <div class="mt-1 text-xs text-gray-500">Max:
+                                                            {{ number_format($sisa, 2) }}</div>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="7" class="px-4 py-4 text-center text-gray-500">No
+                                                        receipt detail</td>
+                                                </tr>
+                                            @endforelse
                                         </tbody>
 
                                     </table>
@@ -216,7 +233,7 @@
                     </div>
 
                     {{-- (optional) Attachments pakai blok bawaanmu --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -419,7 +436,8 @@
                     .fail(xhr => {
                         if (xhr.status === 422 && xhr.responseJSON?.errors) {
                             let msg = 'Periksa input:<br>';
-                            Object.values(xhr.responseJSON.errors).forEach(arr => msg += '- ' + arr.join(', ') + '<br>');
+                            Object.values(xhr.responseJSON.errors).forEach(arr => msg += '- ' + arr
+                                .join(', ') + '<br>');
                             if (window.toastr) toastr.error(msg);
                         } else {
                             if (window.toastr) toastr.error(xhr.responseJSON?.message || 'Failed.');

@@ -295,7 +295,7 @@
                             </div>
 
                             {{-- Financial Summary --}}
-                            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {{-- Total Amount --}}
                                 <div
                                     class="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">

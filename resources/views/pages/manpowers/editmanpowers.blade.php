@@ -13,7 +13,7 @@
                                     <h2 class="mb-4 text-base font-bold">{{ $manpower->docid }}</h2>
                                 </div>
                                 <div
-                                    class="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2 lg:grid-cols-2 dark:border-gray-600">
+                                    class="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2 lg:grid-cols-2 dark:border-gray-600">
                                     <input type="hidden" name="_method" value="PUT">
                                     <div class="flex w-full flex-col gap-2">
                                         <label class="font-semibold text-gray-700 dark:text-gray-300">Company</label>

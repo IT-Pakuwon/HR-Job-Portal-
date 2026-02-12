@@ -121,8 +121,8 @@
                     <input type="hidden" name="spbid" value="{{ $iss->spbid }}">
 
                     {{-- ===== Header (readonly) ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Edit Issue</h2>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
                         </div>
@@ -153,7 +153,7 @@
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                         </div>
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div class="flex flex-col gap-2">
                                 <label for="issuenote"
                                     class="block text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -277,7 +277,7 @@
                     </div>
 
                     {{-- ===== Attachments (show existing + add new) ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

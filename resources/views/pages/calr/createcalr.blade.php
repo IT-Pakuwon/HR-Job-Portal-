@@ -127,7 +127,7 @@
                     <input type="hidden" id="rfca_amount_raw" value="{{ $rfcaAmount }}">
 
                     {{-- ===== HEADER RFCA ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <div
                             class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
@@ -172,7 +172,7 @@
                         </div>
 
                         {{-- Row 2 --}}
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
                                 <input type="text" value="{{ $rfca->vendorname }}" readonly
@@ -187,7 +187,7 @@
                         </div>
 
                         {{-- Row 3 – Amounts + Location --}}
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">RFCA
                                     Amount</label>
@@ -221,7 +221,7 @@
                     </div>
 
                     {{-- ===== PO DETAIL (TrPOdetail) ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                             <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">PO Detail</h3>
                         </div>
@@ -261,7 +261,7 @@
                     </div>
 
                     {{-- ===== Attachments ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

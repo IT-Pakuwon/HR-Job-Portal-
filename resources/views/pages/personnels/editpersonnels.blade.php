@@ -5,10 +5,12 @@
             height: 42px;
             border-radius: 0.5rem;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 42px;
             padding-left: .75rem;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 42px;
             right: .5rem;
@@ -23,8 +25,8 @@
                     @csrf
 
                     {{-- HEADER --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
                                 Edit Personnel Requisition - {{ $personnel->docid ?? '' }}
                             </h2>
@@ -33,7 +35,8 @@
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="cpnyid" id="cpnyid" required>
@@ -48,7 +51,8 @@
 
                             {{-- Division --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="division" id="division_id" required>
@@ -64,7 +68,8 @@
 
                             {{-- Department (AJAX loaded like create) --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="departementid" id="departementid" required>
@@ -74,7 +79,8 @@
 
                             {{-- Site (AJAX loaded like create) --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement Location</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Placement
+                                    Location</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="siteid" id="siteid" required>
@@ -85,38 +91,46 @@
                     </div>
 
                     {{-- JOB DETAIL INFO --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Job Detail Info</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details →</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details ↓</span>
                             </summary>
 
                             <div class="pt-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Type</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
+                                            Type</label>
                                         <select name="job_type" id="job_type"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
                                             <option value="" disabled>Select Job Type</option>
                                             <option value="New" @selected(old('job_type', $personnel->job_type) === 'New')>New</option>
-                                            <option value="Replacement" @selected(old('job_type', $personnel->job_type) === 'Replacement')>Replacement</option>
+                                            <option value="Replacement" @selected(old('job_type', $personnel->job_type) === 'Replacement')>Replacement
+                                            </option>
                                         </select>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Title</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
+                                            Title</label>
                                         <input type="text" name="job_title" id="job_title"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('job_title', $personnel->job_title) }}" required>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Level</label>
-                                        <input type="hidden" name="group_grade" id="group_grade" value="{{ old('group_grade', $personnel->group_grade ?? '') }}">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
+                                            Level</label>
+                                        <input type="hidden" name="group_grade" id="group_grade"
+                                            value="{{ old('group_grade', $personnel->group_grade ?? '') }}">
 
                                         <select
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -132,28 +146,33 @@
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate Superior</label>
+                                        <label
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
+                                            Superior</label>
                                         <input type="text" name="immediate_superior" id="immediate_superior"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('immediate_superior', $personnel->immediate_superior) }}">
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State Position</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
+                                            Position</label>
                                         <input type="text" name="state_position" id="state_position"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             value="{{ old('state_position', $personnel->state_position) }}">
                                     </div>
 
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason for Vacancy</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason
+                                            for Vacancy</label>
                                         <textarea name="reason_vacancy" id="reason_vacancy"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>{{ old('reason_vacancy', $personnel->reason_vacancy) }}</textarea>
                                     </div>
                                 </div>
 
-                                <div class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-4 sm:grid-cols-3">
+                                <div
+                                    class="mb-6 mt-6 grid grid-cols-1 gap-4 rounded-l bg-gray-200/40 p-4 sm:grid-cols-3">
                                     <div class="flex items-center gap-4">
                                         <label class="font-medium text-gray-700 dark:text-gray-300">Actual</label>
                                         <input type="number" name="actual" id="actual" min="0"
@@ -161,13 +180,17 @@
                                             value="{{ old('actual', $personnel->actual) }}" readonly>
                                     </div>
                                     <div class="flex items-center gap-4">
-                                        <label class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Number Required</label>
+                                        <label
+                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Number
+                                            Required</label>
                                         <input type="number" name="required" id="required" min="0"
                                             class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                             value="{{ old('required', $personnel->required) }}" readonly>
                                     </div>
                                     <div class="flex items-center gap-4">
-                                        <label class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Total Actual Number</label>
+                                        <label
+                                            class="mb-1 block w-40 font-medium text-gray-700 dark:text-gray-300">Total
+                                            Actual Number</label>
                                         <input type="number" name="total_actual" id="total_actual" min="0"
                                             class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                             value="{{ old('total_actual', $personnel->total_actual) }}" readonly>
@@ -199,11 +222,12 @@
                                             </thead>
                                             <tbody id="responsibilitiesTable">
                                                 @php $res = $jobres ?? collect(); @endphp
-                                                @if($res->count() === 0)
+                                                @if ($res->count() === 0)
                                                     <tr class="responsibilities-row">
                                                         <td class="border p-3 text-center">1</td>
                                                         <td class="border p-3">
-                                                            <input type="text" name="responsibilities[]" placeholder="Type here..."
+                                                            <input type="text" name="responsibilities[]"
+                                                                placeholder="Type here..."
                                                                 class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                                                         </td>
                                                         <td class="border p-3 text-center">
@@ -214,9 +238,11 @@
                                                 @else
                                                     @foreach ($res as $i => $resp)
                                                         <tr class="responsibilities-row">
-                                                            <td class="border p-3 text-center">{{ $i+1 }}</td>
+                                                            <td class="border p-3 text-center">{{ $i + 1 }}
+                                                            </td>
                                                             <td class="border p-3">
-                                                                <input type="text" name="responsibilities[]" placeholder="Type here..."
+                                                                <input type="text" name="responsibilities[]"
+                                                                    placeholder="Type here..."
                                                                     class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                     value="{{ $resp->job_responsibilities_descr }}">
                                                             </td>
@@ -233,7 +259,8 @@
 
                                     <button type="button" id="addResponsibilities"
                                         class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
@@ -261,9 +288,12 @@
                                     <div class="relative pl-4">
                                         <select name="education" id="education"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                                            <option value="" disabled {{ old('education', $personnel->education) ? '' : 'selected' }}>Select</option>
-                                            @foreach (['SMP','SMA / SMK','D1','D2','D3','D4','S1','S2','S3'] as $edu)
-                                                <option value="{{ $edu }}" @selected(old('education', $personnel->education) === $edu)>{{ $edu }}</option>
+                                            <option value="" disabled
+                                                {{ old('education', $personnel->education) ? '' : 'selected' }}>Select
+                                            </option>
+                                            @foreach (['SMP', 'SMA / SMK', 'D1', 'D2', 'D3', 'D4', 'S1', 'S2', 'S3'] as $edu)
+                                                <option value="{{ $edu }}" @selected(old('education', $personnel->education) === $edu)>
+                                                    {{ $edu }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -274,15 +304,19 @@
                                     <label class="mb-2 font-semibold"> 🔹 Experience</label>
                                     <div class="flex gap-4 pl-4">
                                         <div class="flex w-1/2 flex-col">
-                                            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Start</label>
-                                            <input type="number" name="experience_start" id="experience_start" min="0"
+                                            <label
+                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">Start</label>
+                                            <input type="number" name="experience_start" id="experience_start"
+                                                min="0"
                                                 value="{{ old('experience_start', $personnel->experience_start) }}"
                                                 placeholder="Input here"
                                                 class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         </div>
                                         <div class="flex w-1/2 flex-col">
-                                            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">End</label>
-                                            <input type="number" name="experience_end" id="experience_end" min="0"
+                                            <label
+                                                class="mb-2 font-medium text-gray-700 dark:text-gray-300">End</label>
+                                            <input type="number" name="experience_end" id="experience_end"
+                                                min="0"
                                                 value="{{ old('experience_end', $personnel->experience_end) }}"
                                                 placeholder="Input here"
                                                 class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
@@ -304,11 +338,12 @@
                                             </thead>
                                             <tbody id="qualificationTable">
                                                 @php $qua = $jobqua ?? collect(); @endphp
-                                                @if($qua->count() === 0)
+                                                @if ($qua->count() === 0)
                                                     <tr class="qualification-row">
                                                         <td class="border p-3 text-center">1</td>
                                                         <td class="border p-3">
-                                                            <input type="text" name="qualification[]" placeholder="Type here..."
+                                                            <input type="text" name="qualification[]"
+                                                                placeholder="Type here..."
                                                                 class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
                                                         </td>
                                                         <td class="border p-3 text-center">
@@ -319,9 +354,11 @@
                                                 @else
                                                     @foreach ($qua as $i => $q)
                                                         <tr class="qualification-row">
-                                                            <td class="border p-3 text-center">{{ $i+1 }}</td>
+                                                            <td class="border p-3 text-center">{{ $i + 1 }}
+                                                            </td>
                                                             <td class="border p-3">
-                                                                <input type="text" name="qualification[]" placeholder="Type here..."
+                                                                <input type="text" name="qualification[]"
+                                                                    placeholder="Type here..."
                                                                     class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                     value="{{ $q->job_qualification_descr }}">
                                                             </td>
@@ -338,7 +375,8 @@
 
                                     <button type="button" id="addQualification"
                                         class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
@@ -348,7 +386,8 @@
 
                                 {{-- Tags --}}
                                 <div class="mt-4 w-full min-w-0">
-                                    <label class="mb-2 flex items-center gap-1 font-semibold text-gray-700 dark:text-gray-200">
+                                    <label
+                                        class="mb-2 flex items-center gap-1 font-semibold text-gray-700 dark:text-gray-200">
                                         <span>🔹</span><span>Tags</span>
                                     </label>
 
@@ -371,7 +410,8 @@
                                     <select name="tags[]" id="tags" multiple
                                         class="tags-input block w-full min-w-0 rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         @foreach ($allTags as $tag)
-                                            <option value="{{ $tag }}" {{ in_array($tag, $selected, true) ? 'selected' : '' }}>
+                                            <option value="{{ $tag }}"
+                                                {{ in_array($tag, $selected, true) ? 'selected' : '' }}>
                                                 {{ $tag }}
                                             </option>
                                         @endforeach
@@ -382,21 +422,26 @@
                     </div>
 
                     {{-- ATTACHMENTS --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details →</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details ↓</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details →</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details ↓</span>
                             </summary>
 
                             <div class="flex max-h-[125px] flex-col overflow-y-auto pt-6">
                                 <div id="attachmentsContainer">
                                     @foreach ($attachment as $attach)
                                         @php $fileUrl = route('attachments.view', ['id' => $attach->id]); @endphp
-                                        <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
-                                            <a href="{{ $fileUrl }}" target="_blank" class="mt-4 w-full border p-3 text-sm">
+                                        <div class="attachment-row flex items-center gap-2"
+                                            data-attachid="{{ $attach->id }}">
+                                            <a href="{{ $fileUrl }}" target="_blank"
+                                                class="mt-4 w-full border p-3 text-sm">
                                                 📎 {{ $attach->attachment_name ?? basename($attach->filename) }}
                                             </a>
                                             <button type="button"
@@ -417,7 +462,8 @@
 
                             <button type="button" id="addAttachment"
                                 class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
                                     <path fill-rule="evenodd"
                                         d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                         clip-rule="evenodd" />
@@ -425,11 +471,14 @@
                             </button>
                         </details>
 
-                        <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                        <div
+                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
                                 class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
                                 </svg>
                                 <span>Back</span>
                             </button>
@@ -440,7 +489,8 @@
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
@@ -450,7 +500,8 @@
                                     <span id="cancelText">Cancel</span>
                                     <svg id="cancelSpinner" class="ml-2 hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
@@ -518,14 +569,32 @@
             });
 
             // ========= SELECT2 INIT =========
-            $('#cpnyid').select2({ placeholder: 'Select Company', width: '100%', allowClear: true });
-            $('#division_id').select2({ placeholder: 'Select Division', width: '100%', allowClear: true });
-            $('#departementid').select2({ placeholder: 'Select Department', width: '100%', allowClear: true });
-            $('#tags').select2({ placeholder: "Select or type tags", tags: true, tokenSeparators: [','], width: '100%' });
+            $('#cpnyid').select2({
+                placeholder: 'Select Company',
+                width: '100%',
+                allowClear: true
+            });
+            $('#division_id').select2({
+                placeholder: 'Select Division',
+                width: '100%',
+                allowClear: true
+            });
+            $('#departementid').select2({
+                placeholder: 'Select Department',
+                width: '100%',
+                allowClear: true
+            });
+            $('#tags').select2({
+                placeholder: "Select or type tags",
+                tags: true,
+                tokenSeparators: [','],
+                width: '100%'
+            });
 
             // ========= GROUP GRADE from SUBGRADE =========
             const subgradeSelect = document.getElementById("subgrade_id");
             const hiddenGroupInput = document.getElementById("group_grade");
+
             function updateGroupGrade() {
                 const selected = subgradeSelect.options[subgradeSelect.selectedIndex];
                 hiddenGroupInput.value = selected?.dataset?.group ?? "";
@@ -535,6 +604,7 @@
 
             // ========= DIVISION -> DEPT (AJAX like create) =========
             const currentDeptId = @json($personnel->departementid);
+
             function resetDept(message = 'Select Department') {
                 $('#departementid').empty().append(`<option value="" disabled selected>${message}</option>`);
                 $('#departementid').val(null).trigger('change');
@@ -546,13 +616,17 @@
                     url: `/hr/departments`,
                     type: 'GET',
                     dataType: 'json',
-                    data: { division_id: divisionId },
+                    data: {
+                        division_id: divisionId
+                    },
                     success: function(rows) {
                         resetDept('Select Department');
 
                         if (rows && rows.length) {
                             rows.forEach(r => {
-                                $('#departementid').append(`<option value="${r.department_id}">${r.department_name}</option>`);
+                                $('#departementid').append(
+                                    `<option value="${r.department_id}">${r.department_name}</option>`
+                                );
                             });
 
                             if (selectedDeptId) {
@@ -608,7 +682,9 @@
             }
 
             loadSites($('#cpnyid').val(), currentSiteValue);
-            $('#cpnyid').on('change', function() { loadSites(this.value, null); });
+            $('#cpnyid').on('change', function() {
+                loadSites(this.value, null);
+            });
 
             // ========= ATTACHMENT (add/remove) =========
             $('#addAttachment').click(function() {
@@ -646,7 +722,10 @@
                 $.ajax({
                     url: "/personnels/remove-attachment/" + attachmentId,
                     type: "POST",
-                    data: { _method: "PUT", _token: "{{ csrf_token() }}" },
+                    data: {
+                        _method: "PUT",
+                        _token: "{{ csrf_token() }}"
+                    },
                     success: function(response) {
                         if (response.success) {
                             row.remove();
@@ -667,6 +746,7 @@
                 if ($('.responsibilities-row').length > 1) $('.removeResponsibilities').removeClass('hidden');
                 else $('.removeResponsibilities').addClass('hidden');
             }
+
             function renumberResponsibilities() {
                 $('#responsibilitiesTable .responsibilities-row').each(function(i) {
                     $(this).find('td:first').text(i + 1);
@@ -704,6 +784,7 @@
                 if ($('.qualification-row').length > 1) $('.removeQualification').removeClass('hidden');
                 else $('.removeQualification').addClass('hidden');
             }
+
             function renumberQualification() {
                 $('#qualificationTable .qualification-row').each(function(i) {
                     $(this).find('td:first').text(i + 1);

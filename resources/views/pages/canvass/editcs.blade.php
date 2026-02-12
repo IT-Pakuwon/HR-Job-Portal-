@@ -113,9 +113,9 @@
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
 
                     <!-- Create CS Header -->
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <!-- Header -->
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white"><span
                                     class="text-indigo-500">🆔</span>
                                 {{ $cs->csid }}</h2>
@@ -338,7 +338,7 @@
                     <!-- Attachments -->
                     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <!-- Existing Attachments -->
-                        <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                                 <h3 class="text-sm font-bold text-gray-800 dark:text-white">Attachments
@@ -410,7 +410,7 @@
 
 
                         <!-- New Attachments -->
-                        <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <details class="group" open>
                                 <summary
                                     class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

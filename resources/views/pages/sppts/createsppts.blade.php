@@ -144,7 +144,7 @@
                     <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
 
                         <!-- Header -->
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPT</h2>
                         </div>
 
@@ -168,7 +168,8 @@
 
                             <!-- Business Unit -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business
+                                    Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
@@ -191,7 +192,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                     
+
                             <!-- Request Type -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Request
@@ -229,8 +230,8 @@
                                     <option value="{{ $year }}">{{ $year }}</option>
                                     <option value="{{ $year + 1 }}">{{ $year + 1 }}</option>
                                 </select>
-                            </div>             
-                            
+                            </div>
+
 
 
                         </div>
@@ -315,7 +316,7 @@
                                 </select>
                             </div>
 
-                            
+
 
                         </div>
 
@@ -2084,19 +2085,20 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
-                if ($coaModal.is(':visible')) {
-                    coaState.cpnyid = $('select[name="cpnyid"]').val();
-                    coaState.deptid = $('select[name="departementid"]').val();
-                    coaState.perpost = $('#perpost').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
-                    $coaCpny.text(coaState.cpnyid || '-');
-                    $coaDept.text(coaState.deptid || '-');
-                    $coaPerpost.text(coaState.perpost || '-');
-                    coaState.page = 1;
-                    loadCoa();
-                }
-            });
+            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change',
+                function() {
+                    if ($coaModal.is(':visible')) {
+                        coaState.cpnyid = $('select[name="cpnyid"]').val();
+                        coaState.deptid = $('select[name="departementid"]').val();
+                        coaState.perpost = $('#perpost').val();
+                        coaState.business_unit_id = $('#business_unit_id').val();
+                        $coaCpny.text(coaState.cpnyid || '-');
+                        $coaDept.text(coaState.deptid || '-');
+                        $coaPerpost.text(coaState.perpost || '-');
+                        coaState.page = 1;
+                        loadCoa();
+                    }
+                });
         });
     </script>
 
@@ -3003,16 +3005,16 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $cpny = $('#cpnyid');
-            const $bu   = $('#business_unit_id');
+            const $bu = $('#business_unit_id');
 
             function renderBuOptions(list, selected) {
                 let html = '<option value="" disabled>Select Business Unit</option>';
                 (list || []).forEach(it => {
-                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
+                    const id = it.business_unit_id ?? it.businessunit_id ?? '';
                     const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
+                    const sel = (selected && String(selected) === String(id)) ? 'selected' : '';
                     html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
                 });
                 return html;
@@ -3026,8 +3028,10 @@
 
                 $bu.html('<option value="" disabled selected>Loading...</option>');
 
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
-                    .done(function(res){
+                $.getJSON("{{ route('businessunits.byCpny') }}", {
+                        cpnyid
+                    })
+                    .done(function(res) {
                         const list = res.data || [];
                         if (!list.length) {
                             $bu.html('<option value="" disabled selected>No Business Unit</option>');
@@ -3040,7 +3044,7 @@
                             }
                         }
                     })
-                    .fail(function(){
+                    .fail(function() {
                         $bu.html('<option value="" disabled selected>Failed to load</option>');
                     });
             }
@@ -3049,7 +3053,7 @@
             loadBusinessUnitsByCpny($cpny.val());
 
             // kalau company berubah → reload BU
-            $cpny.on('change', function(){
+            $cpny.on('change', function() {
                 loadBusinessUnitsByCpny($(this).val());
             });
         });
@@ -3057,195 +3061,209 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(function () {
-        const $cpny = $('#cpnyid');
-        const $bu   = $('#business_unit_id');
+        $(function() {
+            const $cpny = $('#cpnyid');
+            const $bu = $('#business_unit_id');
 
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
-        let isReverting = false;
+            let prevCpny = $cpny.val();
+            let prevBu = $bu.val();
+            let isReverting = false;
 
-        // ===== helper: cek ada detail terisi =====
-        function hasAnyDetailFilled() {
-            return $('#spptTable tr.sppt-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.stock_unitField').val(),
-                $tr.find('.siteidField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
+            // ===== helper: cek ada detail terisi =====
+            function hasAnyDetailFilled() {
+                return $('#spptTable tr.sppt-row').toArray().some(tr => {
+                    const $tr = $(tr);
+                    return [
+                        $tr.find('.inventoryIdField').val(),
+                        $tr.find('.qtyField').val(),
+                        $tr.find('.coaIdField').val(),
+                        $tr.find('.locationIdField').val(),
+                        $tr.find('.subLocationIdField').val(),
+                        $tr.find('.stock_unitField').val(),
+                        $tr.find('.siteidField').val(),
+                    ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !==
+                        '-');
+                });
+            }
 
-        // ===== reset semua field detail =====
-        function resetAllDetailRows() {
-            $('#spptTable tr.sppt-row').each(function () {
-            const $tr = $(this);
+            // ===== reset semua field detail =====
+            function resetAllDetailRows() {
+                $('#spptTable tr.sppt-row').each(function() {
+                    const $tr = $(this);
 
-            // inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
-            $tr.find('.purchaseUnitField').val('');
+                    // inventory
+                    $tr.find('.inventoryIdField').val('');
+                    $tr.find('.productNameField').val('');
+                    $tr.find('.prodItemTypeField').val('');
+                    $tr.find('.prodItemSubTypeField').val('');
+                    $tr.find('.prodItemCategoryField').val('');
+                    $tr.find('.purchaseUnitField').val('');
 
-            // qty
-            $tr.find('.qtyField').val('');
+                    // qty
+                    $tr.find('.qtyField').val('');
 
-            // uom
-            $tr.find('.stock_unitField').val('-');
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
+                    // uom
+                    $tr.find('.stock_unitField').val('-');
+                    $tr.find('.uomFromField').val('');
+                    $tr.find('.uomToField').val('');
+                    $tr.find('.uomMultDivField').val('');
+                    $tr.find('.uomRateField').val('');
 
-            // site
-            $tr.find('.siteidField').val('');
-            // trigger supaya kolom site hidden lagi kalau item_type kosong
-            $tr.find('.prodItemTypeField').trigger('change');
+                    // site
+                    $tr.find('.siteidField').val('');
+                    // trigger supaya kolom site hidden lagi kalau item_type kosong
+                    $tr.find('.prodItemTypeField').trigger('change');
 
-            // lokasi
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val('');
+                    // lokasi
+                    $tr.find('.locationIdField').val('');
+                    $tr.find('.subLocationIdField').val('');
+                    $tr.find('.locationDisplayField').val('');
 
-            // coa/budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
-            $tr.find('.actDescrField').val('');
+                    // coa/budget mapping
+                    $tr.find('.coaIdField').val('');
+                    $tr.find('.coaNameField').val('');
+                    $tr.find('.activityIdField').val('');
+                    $tr.find('.businessUnitIdField').val('');
+                    $tr.find('.departmentFinIdField').val('');
+                    $tr.find('.actDescrField').val('');
 
-            // note
-            $tr.find('input[name="note[]"]').val('');
+                    // note
+                    $tr.find('input[name="note[]"]').val('');
 
-            // clear validation UI
-            $tr.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
-            $tr.find('.error-feedback').remove();
-            });
+                    // clear validation UI
+                    $tr.find('.is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
+                    $tr.find('.error-feedback').remove();
+                });
 
-            // reset WO
-            $('#woid').val('');
-        }
+                // reset WO
+                $('#woid').val('');
+            }
 
-        // ===== reset locked item type global (punya script inventory modal kamu) =====
-        function resetLockedItemTypeIfExists() {
-            try {
-            // lockedItemType ada di script inventory, tapi scope-nya closure.
-            // Jadi cara aman: simpan di window (kita buatkan window.lockedItemType di bawah)
-            if (typeof window.lockedItemType !== 'undefined') window.lockedItemType = '';
-            } catch (e) {}
-        }
+            // ===== reset locked item type global (punya script inventory modal kamu) =====
+            function resetLockedItemTypeIfExists() {
+                try {
+                    // lockedItemType ada di script inventory, tapi scope-nya closure.
+                    // Jadi cara aman: simpan di window (kita buatkan window.lockedItemType di bawah)
+                    if (typeof window.lockedItemType !== 'undefined') window.lockedItemType = '';
+                } catch (e) {}
+            }
 
-        async function confirmReset(type) {
-            const res = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
+            async function confirmReset(type) {
+                const res = await Swal.fire({
+                    icon: 'warning',
+                    title: `Ubah ${type}?`,
+                    html: `
                 <div style="text-align:left">
                 Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
                 </div>
             `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, reset',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true
-            });
-            return res.isConfirmed;
-        }
-
-        // ===== revert helper (cpny/bu balik) =====
-        function revertSelects() {
-            isReverting = true;
-
-            // revert cpny
-            $cpny.val(prevCpny);
-
-            // reload BU sesuai cpny lama, lalu set BU lama
-            // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
-            // jadi kita buat loader kecil di sini juga:
-            $bu.html('<option value="" disabled selected>Loading...</option>');
-            $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: prevCpny })
-            .done(function(res){
-                const list = res.data || [];
-                let html = '<option value="" disabled>Select Business Unit</option>';
-                list.forEach(it => {
-                const id   = it.business_unit_id ?? it.businessunit_id ?? '';
-                const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                const sel  = (String(prevBu) === String(id)) ? 'selected' : '';
-                html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, reset',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    focusCancel: true
                 });
-                $bu.html(html);
-                $bu.val(prevBu);
-            })
-            .always(function(){
-                isReverting = false;
+                return res.isConfirmed;
+            }
+
+            // ===== revert helper (cpny/bu balik) =====
+            function revertSelects() {
+                isReverting = true;
+
+                // revert cpny
+                $cpny.val(prevCpny);
+
+                // reload BU sesuai cpny lama, lalu set BU lama
+                // kita duplicate logic loadBusinessUnitsByCpny karena fungsinya ada di closure script lain
+                // jadi kita buat loader kecil di sini juga:
+                $bu.html('<option value="" disabled selected>Loading...</option>');
+                $.getJSON("{{ route('businessunits.byCpny') }}", {
+                        cpnyid: prevCpny
+                    })
+                    .done(function(res) {
+                        const list = res.data || [];
+                        let html = '<option value="" disabled>Select Business Unit</option>';
+                        list.forEach(it => {
+                            const id = it.business_unit_id ?? it.businessunit_id ?? '';
+                            const name = it.business_unit_name ?? it.businessunit_name ?? id;
+                            const sel = (String(prevBu) === String(id)) ? 'selected' : '';
+                            html +=
+                                `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
+                        });
+                        $bu.html(html);
+                        $bu.val(prevBu);
+                    })
+                    .always(function() {
+                        isReverting = false;
+                    });
+            }
+
+            // ===== handler change company =====
+            $cpny.on('change', async function() {
+                if (isReverting) return;
+
+                // jika detail kosong → update prev dan biarkan lanjut normal (BU akan reload oleh script kamu)
+                if (!hasAnyDetailFilled()) {
+                    prevCpny = $cpny.val();
+                    // prevBu nanti akan ke-update setelah BU ke-load (lihat handler BU)
+                    return;
+                }
+
+                const ok = await confirmReset('Company');
+                if (!ok) {
+                    revertSelects();
+                    return;
+                }
+
+                // user confirm → reset detail
+                resetAllDetailRows();
+                resetLockedItemTypeIfExists();
+
+                prevCpny = $cpny.val();
+                // prevBu akan ikut update setelah BU ke-load
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Detail direset',
+                    timer: 900,
+                    showConfirmButton: false
+                });
             });
-        }
 
-        // ===== handler change company =====
-        $cpny.on('change', async function () {
-            if (isReverting) return;
+            // ===== handler change BU =====
+            $bu.on('change', async function() {
+                if (isReverting) return;
 
-            // jika detail kosong → update prev dan biarkan lanjut normal (BU akan reload oleh script kamu)
-            if (!hasAnyDetailFilled()) {
-            prevCpny = $cpny.val();
-            // prevBu nanti akan ke-update setelah BU ke-load (lihat handler BU)
-            return;
-            }
+                if (!hasAnyDetailFilled()) {
+                    prevBu = $bu.val();
+                    return;
+                }
 
-            const ok = await confirmReset('Company');
-            if (!ok) {
-            revertSelects();
-            return;
-            }
+                const ok = await confirmReset('Business Unit');
+                if (!ok) {
+                    isReverting = true;
+                    $bu.val(prevBu);
+                    isReverting = false;
+                    return;
+                }
 
-            // user confirm → reset detail
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
+                resetAllDetailRows();
+                resetLockedItemTypeIfExists();
 
-            prevCpny = $cpny.val();
-            // prevBu akan ikut update setelah BU ke-load
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
+                prevBu = $bu.val();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Detail direset',
+                    timer: 900,
+                    showConfirmButton: false
+                });
+            });
 
-        // ===== handler change BU =====
-        $bu.on('change', async function () {
-            if (isReverting) return;
-
-            if (!hasAnyDetailFilled()) {
-            prevBu = $bu.val();
-            return;
-            }
-
-            const ok = await confirmReset('Business Unit');
-            if (!ok) {
-            isReverting = true;
-            $bu.val(prevBu);
-            isReverting = false;
-            return;
-            }
-
-            resetAllDetailRows();
-            resetLockedItemTypeIfExists();
-
-            prevBu = $bu.val();
-            Swal.fire({ icon:'info', title:'Detail direset', timer: 900, showConfirmButton:false });
-        });
-
-        // ===== optional: pastikan prevBu ter-update setelah BU selesai load pertama kali =====
-        // delay kecil karena BU awalnya "Loading..."
-        setTimeout(() => {
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
-        }, 300);
+            // ===== optional: pastikan prevBu ter-update setelah BU selesai load pertama kali =====
+            // delay kecil karena BU awalnya "Loading..."
+            setTimeout(() => {
+                prevCpny = $cpny.val();
+                prevBu = $bu.val();
+            }, 300);
         });
     </script>
 

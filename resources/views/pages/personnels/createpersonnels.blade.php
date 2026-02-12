@@ -22,8 +22,8 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="personnelForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Personnel
                                 Requisition
                             </h2>
@@ -76,7 +76,7 @@
                         </div>
                     </div>
 
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -233,7 +233,7 @@
                         </div>
                     </div>
 
-                    {{-- <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    {{-- <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -435,7 +435,7 @@
                         </div>
                     </div>
 
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -976,13 +976,21 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $division = $('#division_id');
             const $dept = $('#departementid');
 
             // select2 init
-            $division.select2({ placeholder: 'Select Division', width: '100%', allowClear: true });
-            $dept.select2({ placeholder: 'Select Department', width: '100%', allowClear: true });
+            $division.select2({
+                placeholder: 'Select Division',
+                width: '100%',
+                allowClear: true
+            });
+            $dept.select2({
+                placeholder: 'Select Department',
+                width: '100%',
+                allowClear: true
+            });
 
             function resetDept(message = 'Select Department') {
                 $dept.empty().append(`<option value="" disabled selected>${message}</option>`);
@@ -996,28 +1004,32 @@
                     url: `/hr/departments`,
                     type: 'GET',
                     dataType: 'json',
-                    data: { division_id: divisionId },
-                    success: function (rows) {
+                    data: {
+                        division_id: divisionId
+                    },
+                    success: function(rows) {
                         resetDept('Select Department');
 
                         if (rows && rows.length) {
                             rows.forEach(r => {
                                 // NOTE: value bisa kamu pilih mau department_id atau department_name
                                 // rekomendasi: pakai department_id (lebih aman buat relasi)
-                                $dept.append(`<option value="${r.department_id}">${r.department_name}</option>`);
+                                $dept.append(
+                                    `<option value="${r.department_id}">${r.department_name}</option>`
+                                );
                             });
                         } else {
                             resetDept('No department found');
                         }
                     },
-                    error: function () {
+                    error: function() {
                         resetDept('Error loading department');
                     }
                 });
             }
 
             // on division change
-            $division.on('change', function () {
+            $division.on('change', function() {
                 const divisionId = $(this).val();
                 if (!divisionId) {
                     resetDept();

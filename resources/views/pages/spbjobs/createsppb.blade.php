@@ -117,8 +117,8 @@
                     <input type="hidden" name="spbid" value="{{ $spb->spbid }}">
 
                     {{-- ===== Header ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPB - SPB</h2>
                         </div>
 
@@ -129,14 +129,16 @@
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB Date - User</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB Date -
+                                    User</label>
                                 <input type="text"
-                                    value="{{ \Carbon\Carbon::parse($spb->spbdate)->format('Y-m-d') }} - {{ $spb->created_by }}" readonly
+                                    value="{{ \Carbon\Carbon::parse($spb->spbdate)->format('Y-m-d') }} - {{ $spb->created_by }}"
+                                    readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                             <div class="flex flex-col gap-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company - Department</label>
+                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company -
+                                    Department</label>
                                 <input type="text" value="{{ $spb->cpny_id }} - {{ $spb->department_id }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
@@ -156,14 +158,14 @@
                             </div>
                         </div>
 
-                        {{-- <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {{-- <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label class="block  text-sm  font-medium text-gray-600 dark:text-gray-300">Keperluan</label>
                                 <input type="text" value="{{ $spb->keperluan }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                             </div>
                         </div> --}}
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
                             {{-- ===== Keperluan ===== --}}
                             <div class="flex flex-col gap-2">
@@ -213,8 +215,12 @@
                                                 <th
                                                     class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
                                                     Description</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty</th>
-                                                <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Qty (Open)</th>
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Qty</th>
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Qty (Open)</th>
 
                                                 <th
                                                     class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">
@@ -245,17 +251,12 @@
                                                     <td class="px-4 py-2 text-right">
                                                         <input type="hidden" name="detail_id[]"
                                                             value="{{ $d->id }}">
-                                                        <input
-                                                            type="text"
-                                                            name="qty_sppb[{{ $d->id }}]"
+                                                        <input type="text" name="qty_sppb[{{ $d->id }}]"
                                                             class="qtySPPB w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            inputmode="decimal"
-                                                            autocomplete="off"
-                                                            placeholder="0,00"
+                                                            inputmode="decimal" autocomplete="off" placeholder="0,00"
                                                             data-detail-id="{{ $d->id }}"
                                                             data-qty-original="{{ (float) $d->qty_original }}"
-                                                            data-qty-open="{{ (float) $d->qty_sisa }}"
-                                                        />
+                                                            data-qty-open="{{ (float) $d->qty_sisa }}" />
 
                                                     </td>
 
@@ -298,7 +299,7 @@
                     </div>
 
                     {{-- ===== Attachments ===== --}}
-                    <div class="w-full rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -452,14 +453,17 @@
 
                     // 1) validasi data open vs original (data row)
                     if (!isNaN(qtyOpen) && !isNaN(qtyOriginal) && qtyOpen > qtyOriginal + 1e-9) {
-                        addError($inp, `Data tidak valid: Qty (Open) (${qtyOpen}) > Qty (${qtyOriginal}).`);
+                        addError($inp,
+                            `Data tidak valid: Qty (Open) (${qtyOpen}) > Qty (${qtyOriginal}).`);
                         invalid = true;
                         return false; // break each
                     }
 
                     // 2) validasi input user tidak melebihi open
-                    if (!isNaN(qtySppb) && qtySppb > 0 && !isNaN(qtyOpen) && qtySppb > qtyOpen + 1e-9) {
-                        addError($inp, `Qty SPPB tidak boleh lebih besar dari Qty (Open) (${qtyOpen}).`);
+                    if (!isNaN(qtySppb) && qtySppb > 0 && !isNaN(qtyOpen) && qtySppb > qtyOpen +
+                        1e-9) {
+                        addError($inp,
+                            `Qty SPPB tidak boleh lebih besar dari Qty (Open) (${qtyOpen}).`);
                         invalid = true;
                         return false; // break each
                     }
