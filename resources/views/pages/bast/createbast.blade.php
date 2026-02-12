@@ -1,9 +1,4 @@
 <x-app-layout>
-
-
-
-
-
     <style>
         .req::after {
             content: " *";

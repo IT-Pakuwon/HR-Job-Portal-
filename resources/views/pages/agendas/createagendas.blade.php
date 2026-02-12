@@ -143,7 +143,7 @@
                                 <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">
                                     <div class="w-1/8 flex flex-col justify-start">
                                         <button type="button" id="cancelBtn" onclick="window.location.href='/agendas'"
-                                            class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
+                                            class="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
                                             <span id="btnText">Cancel</span>
                                             <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -155,7 +155,7 @@
                                         </button>
                                     </div>
                                     <div class="w-1/8 flex flex-col justify-start" ">
-                                        <button type="submit" id="submitBtn" class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
+                                        <button type="submit" id="submitBtn" class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                             <span id="btnText">Submit Approval</span>
                                             <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r=" 10"

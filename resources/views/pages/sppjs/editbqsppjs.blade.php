@@ -1,271 +1,232 @@
 <x-app-layout>
-
-
-    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
-        <div class="max-w-9xl mx-auto w-full px-4">
-            <div class="gap-6">
-                <div class="flex flex-col gap-10">
-                    {{-- Form Import --}}
-                    <form id="bqForm" action="{{ $bq ? route('bqsppj.import.edit', $bq->id) : route('bqs.import') }}"
-                        method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="idx" value="{{ $bq->id ?? '' }}">
-                        <input type="hidden" name="sppjtid" value="{{ $bq->sppjtid ?? '' }}">
-                        <input type="hidden" name="bqid" value="{{ $bq->bqid ?? '' }}">
-                        <div class="rounded-xl border bg-white p-4 shadow dark:bg-gray-800">
-                            <div class="mb-4 flex justify-between border-b pb-2 dark:border-gray-600">
-                                <h2 class="text-base font-bold">📥 Import BQ {{ $bq->bq_id }}</h2>
-                            </div>
-
-                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">BQID</label>
-                                    <input
-                                        class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                                        value="{{ $bq->bqid }}" readonly>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">SPPJ ID</label>
-                                    <input
-                                        class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                                        value="{{ $bq->sppjtid }}" readonly>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">Company</label>
-                                    <input
-                                        class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                                        value="{{ $bq->cpny_id }}" readonly>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <label class="mb-1 block text-sm text-gray-500 dark:text-gray-400">Created
-                                        By</label>
-                                    <input
-                                        class="w-full rounded-md border bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                                        value="{{ $bq->created_by }}" readonly>
-                                </div>
-                                <div class="col-span-2 flex items-center gap-4">
-                                    <label class="block w-40 font-medium text-gray-700 dark:text-gray-300">Import
-                                        Excel</label>
-                                    <input type="file" name="file" id="file" required
-                                        class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800">
-                                </div>
-                                <div class="col-span-2 flex justify-end">
-                                    <button type="submit" id="importBtn"
-                                        class="rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
-                                        Import
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-
-                    {{-- Table Preview Import --}}
-                    {{-- @if (isset($tempData) && count($tempData) > 0) --}}
-                    @php
-                        $rows = isset($tempData) && count($tempData) > 0 ? $tempData : $bq_detail;
-                    @endphp
-                    <div class="rounded-xl border bg-white p-4 shadow dark:bg-gray-800">
-                        <h2 class="mb-4 text-sm font-bold">
-                            📊 BQ Detail
-                            @if (isset($tempData) && count($tempData) > 0)
-                                <span class="text-sm font-normal text-red-600">(preview import)</span>
-                            @endif
-                        </h2>
-
-                        {{-- ✅ Scroll Container --}}
-                        <div class="w-full overflow-x-auto">
-                            <table class="w-full min-w-[1500px] table-auto whitespace-nowrap border text-left text-sm">
-                                <thead class="bg-gray-100 font-bold text-gray-700">
-                                    <tr>
-                                        <th class="px-4 py-2">No</th>
-                                        <th class="px-4 py-2">Line No</th>
-                                        <th class="px-4 py-2">Description</th>
-                                        <th class="px-4 py-2 text-right">Qty</th>
-                                        <th class="px-4 py-2">UoM</th>
-                                        <th class="px-4 py-2 text-right">Est Mat Price</th>
-                                        <th class="px-4 py-2 text-right">Total Est Mat</th>
-                                        <th class="px-4 py-2 text-right">Est Jasa Price</th>
-                                        <th class="px-4 py-2 text-right">Total Est Jasa</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($rows as $item)
-                                        <tr
-                                            class="border-t bg-gray-50 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                                            <td class="px-4 py-2">{{ $item->bq_no }}</td>
-                                            <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
-                                            <td class="px-4 py-2">{{ $item->bq_descr }}</td>
-                                            <td class="px-4 py-2 text-right">
-                                                {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
-                                            </td>
-                                            <td class="px-4 py-2">{{ $item->uom }}</td>
-                                            <td class="px-4 py-2 text-right">
-                                                {{ is_null($item->est_material_price) ? '' : number_format((float) $item->est_material_price, 2) }}
-                                            </td>
-                                            <td class="px-4 py-2 text-right">
-                                                {{ is_null($item->total_est_material_price) ? '' : number_format((float) $item->total_est_material_price, 2) }}
-                                            </td>
-                                            <td class="px-4 py-2 text-right">
-                                                {{ is_null($item->est_jasa_price) ? '' : number_format((float) $item->est_jasa_price, 2) }}
-                                            </td>
-                                            <td class="px-4 py-2 text-right">
-                                                {{ is_null($item->total_est_jasa_price) ? '' : number_format((float) $item->total_est_jasa_price, 2) }}
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td class="px-4 py-6 text-center text-gray-500 dark:text-gray-300"
-                                                colspan="9">No detail.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                        <form id="submitApprovalForm" method="POST" enctype="multipart/form-data">
-                            @csrf
-
-                            <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
-                                <div class="flex w-full flex-col gap-2 rounded-xl pl-8 pr-8 pt-4">
-                                    <div class="flex w-full flex-col">
-                                        <details class="group mb-4" open>
-                                            <summary
-                                                class="mb-4 flex cursor-pointer items-center justify-between rounded">
-                                                <span class="text-sm font-semibold">📸 Photo Before</span>
-                                                <span class="transition-all group-open:hidden">See details</span>
-                                                <span class="hidden transition-all group-open:inline">Hide
-                                                    details</span>
-                                            </summary>
-
-                                            {{-- ===== EXISTING ATTACHMENTS (thumbnail, clickable, deletable) ===== --}}
-                                            {{-- <div class="mb-4">
-                                                    <div id="existingAttachments"
-                                                        class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                                    @forelse ($attachment as $at)
-                                                        @php
-                                                        $year    = $at->created_at->year ?? now()->year;
-                                                        $fileUrl = url('/attachments/'.$year.'/'.$at->attachfile);
-                                                        $ext     = strtolower(pathinfo($at->attachfile, PATHINFO_EXTENSION));
-                                                        $isImg   = in_array($ext, ['jpg','jpeg','png','gif','webp','bmp','svg']);
-                                                        @endphp
-
-                                                        <div class="relative group rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                                        <a href="{{ $fileUrl }}" target="_blank" class="block aspect-[4/3]">
-                                                            @if ($isImg)
-                                                            <img src="{{ $fileUrl }}" alt="{{ $at->name }}"
-                                                                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                                loading="lazy" referrerpolicy="no-referrer">
-                                                            @else
-                                                            <div class="flex h-full w-full items-center justify-center bg-gray-50 dark:bg-gray-700">
-                                                                <span class="text-lg">📄</span>
-                                                            </div>
-                                                            @endif
-                                                        </a>
-
-                                                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition"></div>
-
-                                                        
-                                                        <div class="absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1">
-                                                            <div class="truncate  text-sm  text-white" title="{{ $at->name }}">{{ $at->name }}</div>
-                                                        </div>
-
-                                                       
-                                                        <button type="button"
-                                                                class="absolute top-2 right-2 bg-white/90 hover:bg-white rounded-full p-1 shadow
-                                                                        removeAttachmentExisting"
-                                                                data-id="{{ $at->id }}">
-                                                            ✕
-                                                        </button>
-                                                        </div>
-                                                    @empty
-                                                        <p class="col-span-full text-center italic text-gray-500 dark:text-gray-400">
-                                                        No attachments found.
-                                                        </p>
-                                                    @endforelse
-                                                    </div>
-                                                </div> --}}
-                                            {{-- ===== EXISTING ATTACHMENTS (thumbnail, clickable, deletable) ===== --}}
-                                            <div class="mb-4">
-                                                <div id="existingAttachments"
-                                                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                                    {{-- Akan di-render via JS dari attachments.list --}}
-                                                    <p
-                                                        class="col-span-full text-center italic text-gray-500 dark:text-gray-400">
-                                                        Loading attachments...
-                                                    </p>
-                                                </div>
-                                            </div>
-
-
-                                            {{-- ===== NEW ATTACHMENTS (grid + hidden inputs in this form) ===== --}}
-                                            <div class="flex h-auto flex-col justify-start">
-                                                <div id="hiddenInputs"></div>
-                                                <input type="file" id="hiddenPicker" class="hidden" accept="image/*"
-                                                    multiple>
-
-                                                <div id="newAttachmentsGrid"
-                                                    class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                                    {{-- Add Photo tile --}}
-                                                    <button type="button" id="addAttachmentTile"
-                                                        class="flex aspect-[4/3] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600">
-                                                        <div class="flex flex-col items-center gap-1">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7"
-                                                                viewBox="0 0 20 20" fill="currentColor">
-                                                                <path fill-rule="evenodd"
-                                                                    d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
-                                                                    clip-rule="evenodd" />
-                                                            </svg>
-                                                            <span class="text-sm font-medium">Add Photo</span>
-                                                        </div>
-                                                    </button>
-                                                </div>
-
-                                                <p class="mt-2 text-sm text-gray-500">Accepted: JPG/PNG, max 5 MB per
-                                                    photo.</p>
-                                            </div>
-                                        </details>
-
-                                    </div>
-                                    <div class="border-b"></div>
-                                </div>
-                                <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">
-                                    <div class="w-1/8 flex flex-col justify-start">
-                                        <button id="cancelBtn"
-                                            class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-red-700 bg-red-200/10 p-2 text-red-700 hover:border-red-700 hover:bg-red-700 hover:font-medium hover:text-white">
-                                            <span id="cancelText">Cancel</span>
-                                            <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <input type="hidden" name="temp_id" value="{{ $temp_id }}">
-                                    <div class="w-1/8 flex flex-col justify-start">
-                                        <button type="submit" id="submitBtn"
-                                            class="mb-4 mt-4 flex items-center justify-center gap-2 rounded border border-blue-700 bg-blue-200/10 p-2 text-blue-700 hover:border-blue-700 hover:bg-blue-700 hover:font-medium hover:text-white">
-                                            <span id="btnText">Save</span>
-                                            <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4">
-                                                </circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
+    <div class="max-w-9xl mx-auto p-2">
+        <div class="flex flex-col gap-2">
+            {{-- Form Import --}}
+            <form id="bqForm" action="{{ $bq ? route('bqsppj.import.edit', $bq->id) : route('bqs.import') }}"
+                method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="idx" value="{{ $bq->id ?? '' }}">
+                <input type="hidden" name="sppjtid" value="{{ $bq->sppjtid ?? '' }}">
+                <input type="hidden" name="bqid" value="{{ $bq->bqid ?? '' }}">
+                <div class="flex w-full flex-col gap-2 rounded-2xl bg-white px-8 py-6 shadow-sm dark:bg-gray-900">
+                    <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Edit BQ</h2>
                     </div>
 
+                    @php
+                        $labelClass = 'font-semibold text-gray-800 dark:text-gray-200';
+                        $valueClass = 'text-gray-600 dark:text-gray-400';
+                    @endphp
+
+                    <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2">
+
+                        <div>
+                            <span class="{{ $labelClass }}">BQID:</span>
+                            <span class="{{ $valueClass }}">{{ $bq->bqid }}</span>
+                        </div>
+
+                        <div>
+                            <span class="{{ $labelClass }}">SPPJ ID:</span>
+                            <span class="{{ $valueClass }}">{{ $bq->sppjtid }}</span>
+                        </div>
+
+                        <div>
+                            <span class="{{ $labelClass }}">Company:</span>
+                            <span class="{{ $valueClass }}">{{ $bq->cpny_id }}</span>
+                        </div>
+
+                        <div>
+                            <span class="{{ $labelClass }}">Created By:</span>
+                            <span class="{{ $valueClass }}">{{ $bq->created_by }}</span>
+                        </div>
+
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="my-2 border-t border-gray-100 dark:border-gray-800"></div>
+
+                    <!-- Import Section -->
+                    <div class="flex items-end gap-4">
+
+                        <div class="flex-1">
+                            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Import Excel
+                            </label>
+
+                            <input type="file" name="file" id="file" required
+                                class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm focus:border-blue-500 focus:ring-0 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                        </div>
+
+                        <button type="submit" id="importBtn"
+                            class="rounded-lg bg-blue-600 px-6 py-2.5 text-white transition hover:bg-blue-700">
+                            Import
+                        </button>
+
+                    </div>
+
+
                 </div>
+            </form>
+
+            {{-- Table Preview Import --}}
+            {{-- @if (isset($tempData) && count($tempData) > 0) --}}
+            @php
+                $rows = isset($tempData) && count($tempData) > 0 ? $tempData : $bq_detail;
+            @endphp
+            <div class="rounded-2xl border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+
+                <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">
+                    📊 BQ Detail
+                    @if (isset($tempData) && count($tempData) > 0)
+                        <span class="ml-2 text-sm font-normal text-red-500">(preview import)</span>
+                    @endif
+                </h2>
+
+                <div class="w-full overflow-x-auto rounded-lg border dark:border-gray-700">
+                    <table class="w-full min-w-[1200px] table-auto whitespace-nowrap text-sm">
+                        <thead
+                            class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                            <tr>
+                                <th class="px-4 py-3 text-left">No</th>
+                                <th class="px-4 py-3 text-left">Line No</th>
+                                <th class="px-4 py-3 text-left">Description</th>
+                                <th class="px-4 py-3 text-right">Qty</th>
+                                <th class="px-4 py-3 text-left">UoM</th>
+                                <th class="px-4 py-3 text-right">Est Mat Price</th>
+                                <th class="px-4 py-3 text-right">Total Est Mat</th>
+                                <th class="px-4 py-3 text-right">Est Jasa Price</th>
+                                <th class="px-4 py-3 text-right">Total Est Jasa</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y dark:divide-gray-700">
+                            @forelse ($rows as $item)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="px-4 py-3">{{ $item->bq_no }}</td>
+                                    <td class="px-4 py-3">{{ $item->bq_line_no }}</td>
+                                    <td class="px-4 py-3">{{ $item->bq_descr }}</td>
+                                    <td class="px-4 py-3 text-right">
+                                        {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
+                                    </td>
+                                    <td class="px-4 py-3">{{ $item->uom }}</td>
+                                    <td class="px-4 py-3 text-right">
+                                        {{ is_null($item->est_material_price) ? '' : number_format((float) $item->est_material_price, 2) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        {{ is_null($item->total_est_material_price) ? '' : number_format((float) $item->total_est_material_price, 2) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        {{ is_null($item->est_jasa_price) ? '' : number_format((float) $item->est_jasa_price, 2) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        {{ is_null($item->total_est_jasa_price) ? '' : number_format((float) $item->total_est_jasa_price, 2) }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                        No detail.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
+
+            <form id="submitApprovalForm" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div
+                    class="flex flex-col gap-2 rounded-2xl border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+
+                    <details class="group" open>
+
+                        <summary
+                            class="flex cursor-pointer items-center justify-between text-base font-semibold text-gray-800 dark:text-gray-100">
+                            <span>📸 Photo Before</span>
+                            <span class="text-xs text-gray-500 group-open:hidden">See details</span>
+                            <span class="hidden text-xs text-gray-500 group-open:inline">Hide details</span>
+                        </summary>
+
+                        <!-- Existing Attachments -->
+                        <div class="mt-6">
+                            <div id="existingAttachments"
+                                class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                                <p class="col-span-full text-center italic text-gray-500 dark:text-gray-400">
+                                    Loading attachments...
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- New Attachments -->
+                        <div class="mt-8">
+                            <div id="hiddenInputs"></div>
+                            <input type="file" id="hiddenPicker" class="hidden" accept="image/*" multiple>
+
+                            <div id="newAttachmentsGrid"
+                                class="grid max-w-6xl grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+
+                                <!-- Add Photo Tile -->
+                                <button type="button" id="addAttachmentTile"
+                                    class="group relative flex aspect-square h-28 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 transition-all duration-200 hover:-translate-y-1 hover:border-blue-400 hover:bg-blue-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-500 dark:hover:bg-gray-700">
+
+                                    <div
+                                        class="flex flex-col items-center gap-2 text-gray-500 transition group-hover:text-blue-600">
+
+                                        <div
+                                            class="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm transition group-hover:bg-blue-600 group-hover:text-white dark:bg-gray-700">
+
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+
+                                        <span class="text-xs font-medium tracking-wide">
+                                            Add Photo
+                                        </span>
+                                    </div>
+
+                                </button>
+
+                            </div>
+
+                            <p class="mt-3 text-xs text-gray-500">
+                                JPG / PNG · Max 5 MB per photo
+                            </p>
+                        </div>
+
+                    </details>
+                    <div class="flex flex-col justify-end gap-3 md:flex-row md:items-center">
+                        <button id="cancelBtn"
+                            class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+
+                            <span id="cancelText">Cancel</span>
+                            <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4" />
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                            </svg>
+                        </button>
+
+                        <input type="hidden" name="temp_id" value="{{ $temp_id }}">
+                        <button type="submit" id="submitBtn"
+                            class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+
+                            <span id="btnText">Submit Approval</span>
+                            <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4" />
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -515,14 +476,24 @@
                 // preview card
                 const url = URL.createObjectURL(file);
                 const card = document.createElement('div');
-                card.className = 'relative group rounded-xl border overflow-hidden';
-                card.dataset.ref = id;
+                card.className =
+                    'relative group aspect-square h-28 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700';
+
                 card.innerHTML = `
-            <img src="${url}" alt="attachment" class="w-full h-40 object-cover" />
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
-            <button type="button" title="Remove"
-                    class="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white">✕</button>
-            `;
+    <img src="${url}" 
+         class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+         alt="attachment" />
+
+    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition"></div>
+
+    <button type="button"
+        class="absolute top-2 right-2 flex h-7 w-7 items-center justify-center
+               rounded-full bg-white/90 text-gray-700 shadow
+               hover:bg-red-500 hover:text-white transition">
+        ✕
+    </button>
+`;
+
 
                 // remove (new)
                 card.querySelector('button').addEventListener('click', () => {
