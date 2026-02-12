@@ -766,7 +766,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("WO approved successfully!");
-                        window.location.href = "/wos";
+                        // window.location.href = "/wos";
+                        closeOrRedirect("/wos");
                     } else {
                         toastr.error(response.message);
                     }
@@ -839,7 +840,8 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/wos";
+                            // window.location.href = "/wos";
+                            closeOrRedirect("/wos");
                         } else {
                             alert("Failed to reject wo.");
                         }
@@ -905,7 +907,8 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/wos";
+                            // window.location.href = "/wos";
+                            closeOrRedirect("/wos");
                         } else {
                             alert("Failed to revise wo.");
                         }
@@ -1286,6 +1289,18 @@
                 }
             });
         });
+    </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/wos') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
     </script>
 
 

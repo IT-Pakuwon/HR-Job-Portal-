@@ -1477,20 +1477,7 @@
                 }
             });
         });
-    </script>
-
-    <script>
-        function closeOrRedirect(fallbackUrl = '/imbudgets') {
-            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
-            window.close();
-
-            // fallback kalau browser blok close
-            setTimeout(() => {
-                // kalau masih belum tertutup, redirect saja
-                window.location.href = fallbackUrl;
-            }, 300);
-        }
-    </script>
+    </script>   
 
     <script>
         function closeOrRedirect(fallbackUrl = '/dashboard') {

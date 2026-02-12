@@ -39,18 +39,7 @@ class BastController extends Controller
     
     public function createBast(Request $request)
     {
-
-       
-
-        // $date = Carbon::parse('2026-01-17');
-
-        // if($date->isBusinessDay()) {
-        //     echo "Hari kerja";
-        // } else {
-        //     echo "Weekend / holiday";
-        // }
-
-
+             
         // Expect: /bast/create?term=<hashid-of-TrPOterm.id>
         $termHash = (string) $request->query('term', '');
         if (!$termHash) {

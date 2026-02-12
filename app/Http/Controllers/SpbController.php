@@ -33,6 +33,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\SysUserRole;
 
 
+
 class SpbController extends Controller
 {
     use HasAutonbr;
@@ -2046,8 +2047,8 @@ class SpbController extends Controller
 
         $approve_count = $approval->count();
 
-        // Company (handle null)
-        $company = Company::where('cpnyid', $spb->cpny_id)->first();
+        // Company (handle null)       
+        $company = MsCompany::where('cpny_id', $spb->cpny_id)->first();
 
         // Mapping status dokumen
         switch ($spb->status) {
