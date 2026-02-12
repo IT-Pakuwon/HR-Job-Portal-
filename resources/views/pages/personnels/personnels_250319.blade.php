@@ -2,7 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'personnels' ? 'HR' : '';
     @endphp
-    <div class="max-w-9xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <!-- Dashboard actions -->
         <div class="mb-4 sm:flex sm:items-center sm:justify-between"></div>
         <!-- Breadcrumb dengan Dropdown -->
