@@ -776,7 +776,8 @@
                 success: function(res) {
                     if (res.success) {
                         toastr.success("SPPT approved successfully!");
-                        window.location.href = "/sppts";
+                        // window.location.href = "/sppts";
+                        closeOrRedirect("/sppts");
                     } else {
                         toastr.error(res.message || "Error: Unable to approve sppt.");
                     }
@@ -860,7 +861,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPT Rejected successfully!");
-                            window.location.href = "/sppts";
+                            // window.location.href = "/sppts";
+                            closeOrRedirect("/sppts");
                         } else {
                             alert("Failed to reject sppt.");
                         }
@@ -927,7 +929,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPT Revised successfully!");
-                            window.location.href = "/sppts";
+                            // window.location.href = "/sppts";
+                            closeOrRedirect("/sppts");
                         } else {
                             alert("Failed to revise sppt.");
                         }
@@ -1389,6 +1392,18 @@
             });
 
         });
+    </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/sppts') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
     </script>
 
 

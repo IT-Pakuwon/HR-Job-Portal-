@@ -742,7 +742,8 @@
                 success: function(res) {
                     if (res.success) {
                         toastr.success("SPPJ approved successfully!");
-                        window.location.href = "/sppjs";
+                        // window.location.href = "/sppjs";
+                        closeOrRedirect("/sppjs");
                     } else {
                         toastr.error(res.message || "Error: Unable to approve sppj.");
                     }
@@ -825,7 +826,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPJ Rejected successfully!");
-                            window.location.href = "/sppjs";
+                            // window.location.href = "/sppjs";
+                            closeOrRedirect("/sppjs");
                         } else {
                             alert("Failed to reject sppj.");
                         }
@@ -892,7 +894,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPJ Revised successfully!");
-                            window.location.href = "/sppjs";
+                            // window.location.href = "/sppjs";
+                            closeOrRedirect("/sppjs");
                         } else {
                             alert("Failed to revise sppj.");
                         }
@@ -1354,6 +1357,18 @@
             });
 
         });
+    </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/sppbjs') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
     </script>
 
 

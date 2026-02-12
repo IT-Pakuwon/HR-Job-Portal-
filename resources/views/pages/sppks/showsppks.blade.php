@@ -709,7 +709,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("SPPK approved successfully!");
-                        window.location.href = "/sppks";
+                        // window.location.href = "/sppks";
+                        closeOrRedirect("/sppks");
                     } else {
                         toastr.error(response.message);
                     }
@@ -782,7 +783,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPK Rejected successfully!");
-                            window.location.href = "/sppks";
+                            // window.location.href = "/sppks";
+                            closeOrRedirect("/sppks");
                         } else {
                             alert("Failed to reject sppk.");
                         }
@@ -849,7 +851,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPK Revised successfully!");
-                            window.location.href = "/sppks";
+                            // window.location.href = "/sppks";
+                            closeOrRedirect("/sppks");
                         } else {
                             alert("Failed to revise sppk.");
                         }
@@ -1299,6 +1302,19 @@
             });
 
         });
+    </script>
+
+    <script>
+        function closeOrRedirect(fallbackUrl = '/sppks') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
     </script>
 
 

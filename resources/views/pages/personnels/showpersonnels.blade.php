@@ -841,7 +841,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("Personnel approved successfully!");
-                        window.location.href = "/personnels";
+                        // window.location.href = "/personnels";
+                        closeOrRedirect("/personnels");
                     } else {
                         toastr.error(response.message);
                     }
@@ -914,7 +915,8 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/personnels";
+                            // window.location.href = "/personnels";
+                            closeOrRedirect("/personnels");
                         } else {
                             alert("Failed to reject personnel.");
                         }
@@ -980,7 +982,8 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/personnels";
+                            // window.location.href = "/personnels";
+                            closeOrRedirect("/personnels");
                         } else {
                             alert("Failed to revise personnel.");
                         }
@@ -1032,6 +1035,19 @@
             });
         }
     </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/personnels') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
+    </script>
+
     <style>
         /* Styling untuk loading spinner di kanan bawah */
         #loadingSpinnerContainer {

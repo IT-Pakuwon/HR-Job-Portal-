@@ -731,7 +731,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("SPPB approved successfully!");
-                        window.location.href = "/sppbs";
+                        // window.location.href = "/sppbs";
+                        closeOrRedirect("/sppbs");
                     } else {
                         toastr.error(response.message);
                     }
@@ -804,7 +805,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPB Rejected successfully!");
-                            window.location.href = "/sppbs";
+                            // window.location.href = "/sppbs";
+                            closeOrRedirect("/sppbs");
                         } else {
                             alert("Failed to reject sppb.");
                         }
@@ -871,7 +873,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("SPPB Revised successfully!");
-                            window.location.href = "/sppbs";
+                            // window.location.href = "/sppbs";
+                            closeOrRedirect("/sppbs");
                         } else {
                             alert("Failed to revise sppb.");
                         }
@@ -1292,6 +1295,19 @@
 
         });
     </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/sppbs') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
+    </script>
+
 
 
 

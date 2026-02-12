@@ -921,13 +921,13 @@
            LOAD RATINGS FROM SERVER
         ============================ */
         function loadRatings(bastid) {
-            $ratingTbody.html(`
-        <tr>
-            <td colspan="3" class="px-4 py-4 text-center text-gray-500">
-                Loading ratings…
-            </td>
-        </tr>
-    `);
+                    $ratingTbody.html(`
+                <tr>
+                    <td colspan="3" class="px-4 py-4 text-center text-gray-500">
+                        Loading ratings…
+                    </td>
+                </tr>
+            `);
 
             return $.getJSON(`/bast/${encodeURIComponent(bastid)}/ratings`)
                 .done(res => {
@@ -977,7 +977,8 @@
                 ratings_json: JSON.stringify(ratingRows)
             }).done(() => {
                 toastr.success('Approved');
-                window.location.href = '/bastlist';
+                // window.location.href = '/bastlist';
+                closeOrRedirect("/bastlist");
             });
         });
     </script>
@@ -1381,7 +1382,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Bast Rejected successfully!");
-                            window.location.href = "/bastlist";
+                            // window.location.href = "/bastlist";
+                            closeOrRedirect("/bastlist");
                         } else {
                             alert("Failed to reject bast.");
                         }
@@ -1448,7 +1450,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Bast Revised successfully!");
-                            window.location.href = "/bastlist";
+                            // window.location.href = "/bastlist";
+                            closeOrRedirect("/bastlist");
                         } else {
                             alert("Failed to revise bast.");
                         }
@@ -1768,6 +1771,18 @@
                 if (e.key === 'Escape') close();
             });
         });
+    </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/bastlist') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
     </script>
 
 

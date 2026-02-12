@@ -574,7 +574,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("SPB approved successfully!");
-                        window.location.href = "/issuelist";
+                        // window.location.href = "/issuelist";
+                        closeOrRedirect("/issuelist");
                     } else {
                         toastr.error(response.message);
                     }
@@ -645,7 +646,8 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/issuelist";
+                            // window.location.href = "/issuelist";
+                            closeOrRedirect("/issuelist");
                         } else {
                             alert("Failed to reject Issue.");
                         }
@@ -711,7 +713,8 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/issuelist";
+                            // window.location.href = "/issuelist";
+                            closeOrRedirect("/issuelist");
                         } else {
                             alert("Failed to revise Issue.");
                         }
@@ -925,6 +928,19 @@
             }
 
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
+        }
+    </script>
+
+    <script>
+        function closeOrRedirect(fallbackUrl = '/issuelist') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
         }
     </script>
 </x-app-layout>

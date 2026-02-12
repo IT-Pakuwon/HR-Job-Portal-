@@ -716,7 +716,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("Receipt approved successfully!");
-                        window.location.href = "/receiptlist";
+                        // window.location.href = "/receiptlist";
+                        closeOrRedirect("/receiptlist");
                     } else {
                         toastr.error(response.message);
                     }
@@ -789,7 +790,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Receipt Rejected successfully!");
-                            window.location.href = "/receiptlist";
+                            // window.location.href = "/receiptlist";
+                            closeOrRedirect("/receiptlist");
                         } else {
                             alert("Failed to reject receipt.");
                         }
@@ -856,7 +858,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Receipt Revised successfully!");
-                            window.location.href = "/receiptlist";
+                            // window.location.href = "/receiptlist";
+                            closeOrRedirect("/receiptlist");
                         } else {
                             alert("Failed to revise receipt.");
                         }
@@ -1102,6 +1105,19 @@
             }
 
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
+        }
+    </script>
+
+    <script>
+        function closeOrRedirect(fallbackUrl = '/receiptlist') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
         }
     </script>
 

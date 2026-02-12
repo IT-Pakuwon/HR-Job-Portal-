@@ -293,50 +293,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="approval-table-body">
-                                </tbody>
-                                {{-- <tbody>
-                                        @foreach ($approval as $ap)
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="px-3 py-2">{{ $ap->aprvid }}</td>
-                                                <td class="px-3 py-2">{{ $ap->name }}</td>
-                                                <td class="px-3 py-2">
-                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                                </td>
-                                                <td class="px-3 py-2">
-                                                    @php
-                                                        $statusText = '';
-                                                        $statusClass = '';
-                                                        switch ($ap->status) {
-                                                            case 'P':
-                                                                $statusText = 'Waiting Approval';
-                                                                $statusClass = 'bg-yellow-500 text-white';
-                                                                break;
-                                                            case 'A':
-                                                                $statusText = 'Approved';
-                                                                $statusClass = 'bg-green-500 text-white';
-                                                                break;
-                                                            case 'R':
-                                                                $statusText = 'Rejected';
-                                                                $statusClass = 'bg-red-500 text-white';
-                                                                break;
-                                                            case 'D':
-                                                                $statusText = 'Revise';
-                                                                $statusClass = 'bg-blue-500 text-white';
-                                                                break;
-                                                            default:
-                                                                $statusText = 'Unknown';
-                                                                $statusClass = 'bg-gray-500 text-white';
-                                                        }
-                                                    @endphp
-                                                    <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1  text-sm  font-semibold">
-                                                        {{ $statusText }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody> --}}
+                                </tbody>                                
                             </table>
                         </div>
                         {{-- Attachment tab --}}
@@ -349,54 +306,7 @@
                                         <th class="p-3 text-left font-semibold">Created By</th>
                                         <th class="p-3 text-left font-semibold">Date</th>
                                     </tr>
-                                </thead>
-                                {{-- <tbody>
-                                        @php
-                                            // Gabungkan: lampiran dari dokumen sumber (PB/PJ/PK/PT) + lampiran dari CS
-                                            // attachmentBJKT & attachmentCS sudah berisi object: display_name, url, created_by, created_at, folder, filename, extention, size
-                                            $allAttachments = collect($attachmentBJKT)
-                                                ->map(function ($at) use ($prefix) {
-                                                    $at->type = $prefix; // PB / PJ / PK / PT
-                                                    return $at;
-                                                })
-                                                ->merge(
-                                                    collect($attachmentCS)->map(function ($at) {
-                                                        $at->type = 'CS';
-                                                        return $at;
-                                                    })
-                                                );
-                                        @endphp
-
-                                        @forelse ($allAttachments as $at)
-                                            <tr class="border-b border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="px-3 py-2">
-                                                    @if (!empty($at->url))
-                                                        <a href="{{ $at->url }}" target="_blank"
-                                                        class="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->display_name }}
-                                                        </a>
-                                                    @else
-                                                        <span class="font-medium text-gray-700 dark:text-gray-300">
-                                                            📎 {{ $at->display_name }}
-                                                        </span>
-                                                        <span class="ml-2  text-sm  text-red-500">(link unavailable)</span>
-                                                    @endif
-                                                </td>
-                                                <td class="px-3 py-2">{{ $at->type }}</td>
-                                                <td class="px-3 py-2">{{ $at->created_by }}</td>
-                                                <td class="px-3 py-2">
-                                                    {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="4"
-                                                    class="p-3 text-center  text-sm  italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody> --}}
+                                </thead>                                
                                 <tbody id="allAttachmentTbody"></tbody>
                             </table>
                             @if ($canUpload)
@@ -462,176 +372,9 @@
                 <header
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
-                    {{-- Button Edit COA --}}
-                    {{-- <button
-                            id="btnEditCoa"
-                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2  text-sm  font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                            </svg>
-                            Edit COA
-                        </button> --}}
+                    {{-- Button Edit COA --}}                   
                 </header>
-                {{-- <div class="mt-4 overflow-x-auto">
-                    <table class="min-w-full border-separate border-spacing-0  text-sm ">
-
-                        <!-- Table Header (Summary) -->
-                        <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                            <tr>
-                                <th class="w-64 px-3 py-2 text-left">Inventory Descr</th>
-                                <th class="w-20 px-3 py-2 text-center">Qty</th>
-                                <th class="w-16 px-3 py-2 text-center">UOM</th>
-                                <th class="w-40 px-3 py-2 text-left">Note</th>
-
-                                @foreach ($vendors as $v)
-                                    <th class="align-center max-w-xs px-3 py-2 text-left">
-
-                                        <div class="flex items-start justify-between gap-2">
-
-                                            <!-- Left: Vendor Name + Payment Term -->
-                                            <div class="space-y-0.5">
-                                                <div class=" text-sm  font-semibold">
-                                                    {{ $v['vendorname'] }}
-                                                </div>
-
-                                                @if ($v['vendortop'])
-                                                    <div class=" text-sm  text-gray-600 dark:text-gray-300">
-                                                        <span class="font-semibold">Payment Term:</span>
-                                                        {{ $v['vendortop'] }}
-                                                    </div>
-                                                @endif
-                                            </div>
-
-                                            <!-- Right: Info Tooltip -->
-                                            <div class="group relative">
-                                                <span
-                                                    class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold text-gray-700 dark:bg-gray-600 dark:text-gray-200">
-                                                    i
-                                                </span>
-
-                                                <!-- Tooltip -->
-                                                <div
-                                                    class="absolute right-0 top-5 z-30 hidden w-56 rounded-md border border-gray-300 bg-white p-3  text-sm  shadow-lg group-hover:block dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-
-                                                    <div class="space-y-1">
-                                                        <div><span class="font-semibold">Contact:</span>
-                                                            {{ $v['vendorcp'] ?: '-' }}</div>
-                                                        <div><span class="font-semibold">Phone:</span>
-                                                            {{ $v['vendortelp'] ?: '-' }}</div>
-                                                        <div><span class="font-semibold">Address:</span>
-                                                            {{ $v['vendoralamat'] ?: '-' }}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </th>
-                                @endforeach
-                            </tr>
-                        </thead>
-
-
-                        <!-- Table Body -->
-
-                        <tbody id="cvBody" class="divide-y divide-gray-100 dark:divide-gray-700">
-                            @foreach ($csdetail as $row)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                                    <td class="px-3 py-2">{{ $row->inventory_descr }}</td>
-                                    <td class="px-3 py-2 text-center">
-                                        <input type="text" readonly
-                                            class="w-20 rounded border bg-gray-50 px-2 text-center dark:bg-gray-700"
-                                            value="{{ number_format((float) $row->qty, 2, ',', '.') }}">
-                                    </td>
-                                    <td class="px-3 py-2 text-center">{{ $row->uom }}</td>
-                                    <td class="px-3 py-2">{{ $row->csnote_detail }}</td>
-
-                                    @foreach ($vendors as $v)
-                                        @php
-                                            $i = $v['i'];
-                                            $prc = (float) ($row->{"vendorprice{$i}"} ?? 0);
-                                            $tot = (float) ($row->{"vendortotalprice{$i}"} ?? 0);
-                                            $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
-                                        @endphp
-                                        <td class="px-3 py-2 text-center">
-                                            <div class="space-y-1">
-                                                <input type="text" readonly
-                                                    class="w-full rounded border bg-gray-50 px-1 text-right  text-sm  dark:bg-gray-700"
-                                                    value="{{ number_format($prc, 2, ',', '.') }}">
-                                                <div class="flex items-center justify-center gap-3">
-                                                    <input type="radio" class="h-3 w-3 text-indigo-600"
-                                                        {{ $sel ? 'checked' : '' }} disabled>
-
-                                                    <div class=" text-sm  font-bold text-gray-600 dark:text-gray-300">
-                                                        Total : {{ number_format($tot, 2, ',', '.') }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        </tbody>
-
-
-
-                        <!-- Table Footer (Summary) -->
-                        <tfoot
-                            class="sticky bottom-0 z-10 bg-gray-50  text-sm  text-gray-700 dark:bg-gray-700/40 dark:text-gray-300">
-                            <tr class=" text-sm ">
-                                <!-- Summary label -->
-                                <td colspan="4"
-                                    class="px-3 py-2 text-right font-semibold text-gray-700 dark:text-gray-200">
-                                    Summary
-                                </td>
-
-                                <!-- Vendor totals -->
-                                @foreach ($vendors as $v)
-                                    @php
-                                        $ppn = (float) ($v['ppn'] ?? 11);
-                                        $pph = (float) ($v['pph'] ?? 0);
-                                    @endphp
-                                    <td class="max-w-xs space-y-2 px-3 py-2">
-
-                                        <!-- Total -->
-                                        <div class="flex justify-between">
-                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Total:</span>
-                                            <span>{{ number_format($v['total'], 0, ',', '.') }}</span>
-                                        </div>
-
-                                        <!-- Taxes block -->
-                                        <div class="space-y-1 rounded-md bg-gray-50 py-1 dark:bg-gray-700/40">
-                                            <div class="flex justify-between  text-sm ">
-                                                <span class="font-medium text-gray-600 dark:text-gray-300">PPN:</span>
-                                                <span>{{ number_format($ppn, 2, ',', '.') }}%</span>
-                                            </div>
-
-                                            <div class="flex justify-between  text-sm ">
-                                                <span class="font-medium text-gray-600 dark:text-gray-300">PPh:</span>
-                                                <span>{{ number_format($pph, 2, ',', '.') }}%</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Grand total -->
-                                        <div class="flex justify-between">
-                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Grand
-                                                Total:</span>
-                                            <span>{{ number_format($v['grand'], 0, ',', '.') }}</span>
-                                        </div>
-
-                                        <!-- Selected grand -->
-                                        <div class="flex justify-between">
-                                            <span class="font-semibold text-gray-700 dark:text-gray-300">G. Total
-                                                Sel:</span>
-                                            <span>{{ number_format($v['selected_grand'] ?: $v['selected_total'], 0, ',', '.') }}</span>
-                                        </div>
-
-                                    </td>
-                                @endforeach
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div> --}}
+                
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
                         <!-- HEADER -->
@@ -748,14 +491,7 @@
                                                             {{ $row->budget_account_id ?? '-' }}
                                                         </td>
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
-                                                            {{-- <button type="button"
-                                                                class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                                                                title="View Last Price History"
-                                                                data-inventoryid="{{ $row->inventoryid }}"
-                                                                data-inventorydescr="{{ $row->inventory_descr ?? '' }}">
-                                                                🔍
-                                                            </button> --}}
+                                                            {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}                                                          
                                                             <button type="button"
                                                                 class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                                 title="View Last Price History"
@@ -826,13 +562,7 @@
                                             <div class="flex w-full justify-between">
                                                 <span>PPN:</span>
                                                 <span>{{ $v['ppn'] }}%</span>
-                                            </div>
-                                            {{-- 
-        <div class="flex justify-between">
-            <span>PPh:</span>
-            <span>{{ $v['pph'] }}%</span>
-        </div> 
-        --}}
+                                            </div>                                           
                                         </div>
 
                                         <div class="flex justify-between">
@@ -1142,58 +872,7 @@
 
 
         });
-    </script>
-    {{-- <script>
-        $(document).on("click", "#approveBtn", function() {
-            let csid = "{{ $cs->csid }}"; // Ambil Task ID dari modal        
-            approveCS(csid);
-        });
-
-        function approveCS(csid) {
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
-
-            // Tampilkan spinner di kanan bawah
-            $spinner.fadeIn();
-
-            $.ajax({
-                url: `/cs/${csid}/approve`,
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    csid: csid
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Update status di UI
-                        $("#xstatus").text("Approved")
-                            .removeClass()
-                            .addClass(
-                                "w-full max-w-32 bg-green-300/30 dark:bg-green-300 text-green-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
-                            );
-
-                        // Tampilkan alert sukses
-                        toastr.success("CS approved successfully!");
-                        window.location.href = "/dashboard";
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-
-                    if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this cs.");
-                    } else {
-                        toastr.error("Error: Unable to approve cs.");
-                    }
-                },
-                complete: function() {
-                    // Sembunyikan spinner setelah request selesai
-                    $spinner.fadeOut();
-                }
-            });
-        }
-    </script> --}}
+    </script>    
 
     <script>
         $(document).on("click", "#approveBtn", function() {
@@ -1245,7 +924,8 @@
                                             }
                                         } else if (res2?.success) {
                                             toastr.success(res2.message || 'Success');
-                                            window.location.href = "/dashboard";
+                                            // window.location.href = "/dashboard";
+                                            closeOrRedirect("/dashboard");
                                         } else {
                                             toastr.error(res2?.message || 'Failed');
                                         }
@@ -1276,7 +956,8 @@
                     $spinner.fadeOut();
                     if (res?.success) {
                         toastr.success(res.message || 'CS approved successfully!');
-                        window.location.href = "/dashboard";
+                        // window.location.href = "/dashboard";
+                        closeOrRedirect("/dashboard");
                     } else {
                         toastr.error(res?.message || 'Approve failed.');
                     }
@@ -1345,7 +1026,8 @@
                                 );
                             $spinner.fadeOut();
 
-                            window.location.href = "/dashboard";
+                            // window.location.href = "/dashboard";
+                            closeOrRedirect("/dashboard");
                         } else {
                             alert("Failed to reject cs.");
                         }
@@ -1411,7 +1093,8 @@
                                     "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
                                 );
                             $spinner.fadeOut();
-                            window.location.href = "/dashboard";
+                            // window.location.href = "/dashboard";
+                            closeOrRedirect("/dashboard");
                         } else {
                             alert("Failed to revise cs.");
                         }
@@ -1434,36 +1117,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    {{-- <script>
-        function checkApproval(csid, action) {
-            console.log(csid, '-', action);
-            $.ajax({
-                url: `/cs/${csid}/check-approval/${action}`,
-                type: "GET",
-                success: function(response) {
-                    if (response.canPerformAction) {
-                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
-                        if (action === "reject") {
-                            $("#rejectReason").val(""); // Reset alasan reject
-                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                        } else if (action === "revise") {
-                            $("#reviseReason").val(""); // Reset alasan revise
-                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                            // } else if (action === "approve") {
-                            //     approveCS(csid); // Jika approve, langsung jalankan proses approval
-                        }
-                    } else {
-                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this cs.");
-                    }
-                },
-                error: function() {
-                    toastr.error("Error checking approval status.");
-                }
-            });
-        }
-    </script> --}}
-
+   
     <script>
         function checkApproval(spptid, action) {
             $.ajax({
@@ -1731,140 +1385,7 @@
             height: 30px;
         }
     </style>
-
-
-    {{-- <script>
-    $(function () {
-        const $modal = $('#editCoaModal');
-
-        console.log('[Edit COA] script loaded, modal found?', $modal.length); // DEBUG
-
-        // === Buka modal Edit COA ===
-        // pakai event delegation
-        $(document).on('click', '#btnEditCoa', function () {
-            console.log('[Edit COA] btnEditCoa clicked'); // DEBUG
-
-            $modal.removeClass('hidden').addClass('flex');
-            initCoaSelect2();
-        });
-
-        // === Tutup modal ===
-        $(document).on('click', '#btnCloseEditCoa, #btnCancelEditCoa', function () {
-            console.log('[Edit COA] close clicked'); // DEBUG
-
-            $modal.addClass('hidden').removeClass('flex');
-        });
-
-        // Init Select2 untuk semua select COA
-        function initCoaSelect2() {
-            console.log('[Edit COA] initCoaSelect2 called'); // DEBUG
-
-            $('.coa-select').each(function () {
-                const $sel = $(this);
-
-                // Kalau sudah di-init Select2, skip
-                if ($sel.hasClass('select2-hidden-accessible')) {
-                    console.log('[Edit COA] select sudah Select2, skip', $sel.data('row-id'));
-                    return;
-                }
-
-                const $tr      = $sel.closest('tr');
-                const cpnyid   = $tr.data('cpny');
-                const deptid   = $tr.data('dept');
-                const perpost  = $tr.data('perpost');
-
-                console.log('[Edit COA] row', $tr.data('row-id'), '=>', cpnyid, deptid, perpost); // DEBUG
-
-                $sel.select2({
-                    width: '100%',
-                    placeholder: 'Pilih COA...',
-                    allowClear: true,
-                    ajax: {
-                        url: "{{ route('coa.byDept') }}",
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                cpnyid:   cpnyid,
-                                deptid:   deptid,
-                                perpost:  perpost,
-                                search:   params.term || '',
-                                page:     params.page || 1,
-                                per_page: 10
-                            };
-                        },
-                        processResults: function (res, params) {
-                            console.log('[Edit COA] ajax result', res); // DEBUG
-
-                            params.page = params.page || 1;
-                            const items = res.data || [];
-
-                            return {
-                                results: items.map(function (item) {
-                                    const kode = item.account_id;
-                                    const nama = item.activity_descr || '';
-                                    return {
-                                        id: kode,
-                                        text: kode + ' - ' + nama
-                                    };
-                                }),
-                                pagination: {
-                                    more: (params.page * res.per_page) < res.total
-                                }
-                            };
-                        },
-                        cache: true
-                    }
-                });
-            });
-        }
-
-        // === Save COA ===
-        $(document).on('click', '#btnSaveEditCoa', function () {
-            console.log('[Edit COA] Save clicked'); // DEBUG
-
-            let payload = [];
-
-            $('#editCoaTableBody tr').each(function () {
-                const $tr = $(this);
-                const rowId = $tr.data('row-id');
-                const coaVal = $tr.find('.coa-select').val();
-
-                payload.push({
-                    id: rowId,
-                    budget_account_id: coaVal
-                });
-            });
-
-            console.log('[Edit COA] payload', payload); // DEBUG
-
-            $.ajax({
-                url: "{{ route('cs.update-coa', $cs->csid ?? $cs->id ?? null) }}",
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    rows: payload
-                },
-                success: function (res) {
-                    console.log('[Edit COA] save response', res); // DEBUG
-
-                    if (res.success) {
-                        toastr.success(res.message || 'COA updated successfully');
-                        $modal.addClass('hidden').removeClass('flex');
-                        location.reload();
-                    } else {
-                        toastr.error(res.message || 'Failed to update COA');
-                    }
-                },
-                error: function (xhr) {
-                    console.error('[Edit COA] save error', xhr.responseText);
-                    toastr.error('Error updating COA');
-                }
-            });
-        });
-    });
-</script> --}}
-
+  
     <script>
         function formatNumID(n) {
             n = Number(n || 0);
@@ -1958,6 +1479,31 @@
         });
     </script>
 
+    <script>
+        function closeOrRedirect(fallbackUrl = '/imbudgets') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
+    </script>
+
+    <script>
+        function closeOrRedirect(fallbackUrl = '/dashboard') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
+    </script>
 
 
 

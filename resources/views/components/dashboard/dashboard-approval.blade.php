@@ -33,6 +33,13 @@
                 <div>
                     <h1 class="text-lg font-bold dark:text-white">📝 Waiting Approval</h1>
                 </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-gray-500 dark:text-gray-300">Auto refresh in</span>
+                    <span id="waitingCountdown"
+                        class="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-700 dark:text-white">
+                        01:00
+                    </span>
+                </div>
                 <div class="flex gap-2">
                     <select id="waitingDoctype"
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
@@ -48,15 +55,7 @@
 
                     <input id="waitingSearch" type="text" placeholder="Search..."
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
-                </div>  
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] text-gray-500 dark:text-gray-300">Auto refresh in</span>
-                    <span id="waitingCountdown"
-                        class="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-700 dark:text-white">
-                        01:00
-                    </span>
-                </div>
-            
+                </div>               
             </div>
             <div>
                 <p class="text-m ml-8 dark:text-white">See what's your task for today!</p>
@@ -94,6 +93,14 @@
                 <div>
                     <h1 class="text-lg font-bold dark:text-white">✅ Approval</h1>
                 </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-gray-500 dark:text-gray-300">Auto refresh in</span>
+                    <span id="approvedCountdown"
+                        class="rounded-md bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-700 dark:text-white">
+                        00:20
+                    </span>
+                </div>
+
                 <div class="flex gap-2">
                     <select id="approvedDoctype"
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
@@ -162,6 +169,12 @@
                 content.classList.add('hidden');
             }
         });
+
+        // reset timer setiap ganti tab
+        secLeft = REFRESH_INTERVAL_SEC;
+        setCountdownUI();
+        refreshActiveTabNow(); // optional: langsung refresh tab yg baru dibuka
+
     }
 
     function renderTable(data, tbodySelector, page, perPage, searchValue) {
@@ -338,69 +351,115 @@
             approvedPage++;
             updateApprovedTable();
         });
+
+        window.__approval = {
+            get waitingData() { return waitingData; },
+            set waitingData(v) { waitingData = v; },
+
+            get approvedData() { return approvedData; },
+            set approvedData(v) { approvedData = v; },
+
+            get waitingPage() { return waitingPage; },
+            set waitingPage(v) { waitingPage = v; },
+
+            get approvedPage() { return approvedPage; },
+            set approvedPage(v) { approvedPage = v; },
+
+            updateWaitingTable,
+            updateApprovedTable,
+            loadWaiting,
+            loadApproved
+        };
+
+        console.log('✅ window.__approval ready');
+
+
     });
 
     // ===============================
-    // ROBUST AUTO REFRESH (every 60s)
-    // fetch + render langsung + anti redirect/html
+    // AUTO REFRESH + COUNTDOWN (20s)
     // ===============================
-    const REFRESH_INTERVAL_MS = 20 * 1000; // 1 menit
-    let refreshTimer = null;
+    const REFRESH_INTERVAL_SEC = 20; // 20 detik
+    let secLeft = REFRESH_INTERVAL_SEC;
+    let tickTimer = null;
     let refreshing = false;
+
+    function formatMMSS(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function setCountdownUI() {
+        const w = document.getElementById('waitingCountdown');
+        const a = document.getElementById('approvedCountdown');
+
+        // tampilkan countdown untuk dua tab (biar konsisten)
+        if (w) w.innerText = formatMMSS(secLeft);
+        if (a) a.innerText = formatMMSS(secLeft);
+    }
 
     async function fetchJsonSafe(url) {
         const resp = await fetch(url, {
             method: 'GET',
-            credentials: 'same-origin',          // penting untuk session Laravel
-            cache: 'no-store',                   // jangan pakai cache
+            credentials: 'same-origin',
+            cache: 'no-store',
             headers: { 'Accept': 'application/json' }
         });
 
         const ct = (resp.headers.get('content-type') || '').toLowerCase();
 
-        // Debug status
         if (!resp.ok) {
             const txt = await resp.text().catch(() => '');
-            throw new Error(`HTTP ${resp.status} ${resp.statusText} | ${txt.slice(0, 200)}`);
+            throw new Error(`HTTP ${resp.status} ${resp.statusText} | ${txt.slice(0, 120)}`);
         }
 
-        // Kalau kena redirect/login, biasanya balik HTML bukan JSON
+        // kalau ternyata HTML/redirect login
         if (!ct.includes('application/json')) {
             const txt = await resp.text().catch(() => '');
-            throw new Error(`Not JSON (content-type: ${ct || '-'}) | body: ${txt.slice(0, 120)}`);
+            throw new Error(`Not JSON (ct:${ct || '-'}) | body:${txt.slice(0, 120)}`);
         }
 
         return await resp.json();
     }
 
+    
+
     async function refreshWaitingNow() {
         const dt = (document.getElementById('waitingDoctype')?.value) || 'ALL';
-        const url = `/waitingjson?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`; // cache bust
+        const url = `/waitingjson?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`;
 
         const json = await fetchJsonSafe(url);
-        waitingData = json.data || [];
-        waitingPage = 1;
-        updateWaitingTable();
 
-        const el = document.getElementById('waitingLastRefresh');
-        if (el) el.innerText = `Last: ${new Date().toLocaleTimeString()}`;
+        if (!window.__approval) {
+            console.error('window.__approval belum ready');
+            return;
+        }
+
+        window.__approval.waitingData = json.data || [];
+        window.__approval.waitingPage = 1;
+        window.__approval.updateWaitingTable();
     }
+
 
     async function refreshApprovedNow() {
         const dt = (document.getElementById('approvedDoctype')?.value) || 'ALL';
         const url = `/approvejson?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`;
 
         const json = await fetchJsonSafe(url);
-        approvedData = json.data || [];
-        approvedPage = 1;
-        updateApprovedTable();
 
-        const el = document.getElementById('approvedLastRefresh');
-        if (el) el.innerText = `Last: ${new Date().toLocaleTimeString()}`;
+        if (!window.__approval) {
+            console.error('window.__approval belum ready');
+            return;
+        }
+
+        window.__approval.approvedData = json.data || [];
+        window.__approval.approvedPage = 1;
+        window.__approval.updateApprovedTable();
     }
 
+
     async function refreshActiveTabNow() {
-        // hemat: jangan refresh kalau tab browser tidak aktif
         if (document.hidden) return;
         if (refreshing) return;
 
@@ -410,26 +469,51 @@
         refreshing = true;
         try {
             if (activeTab.id === 'content-waiting') {
-                console.log('🔄 Refresh waiting...');
+                console.log('🔄 Auto refresh: Waiting');
                 await refreshWaitingNow();
             } else if (activeTab.id === 'content-approved') {
-                console.log('🔄 Refresh approved...');
+                console.log('🔄 Auto refresh: Approved');
                 await refreshApprovedNow();
             }
         } catch (e) {
-            console.error('❌ Refresh failed:', e.message || e);
+            console.error('❌ Auto refresh failed:', e.message || e);
         } finally {
             refreshing = false;
         }
     }
 
-    function startAutoRefresh() {
-        if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(refreshActiveTabNow, REFRESH_INTERVAL_MS);
+    function startCountdown() {
+        if (tickTimer) clearInterval(tickTimer);
+
+        secLeft = REFRESH_INTERVAL_SEC;
+        setCountdownUI();
+
+        tickTimer = setInterval(async () => {
+            if (document.hidden) return;
+
+            secLeft--;
+            if (secLeft <= 0) {
+                secLeft = REFRESH_INTERVAL_SEC;
+                setCountdownUI();
+                await refreshActiveTabNow();
+            } else {
+                setCountdownUI();
+            }
+        }, 1000);
     }
 
-    // Jalankan
-    startAutoRefresh();
+    // start
+    startCountdown();
+
+    // OPTIONAL: refresh sekali saat user balik ke tab browser
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            // reset countdown supaya user lihat bergerak lagi
+            secLeft = REFRESH_INTERVAL_SEC;
+            setCountdownUI();
+            refreshActiveTabNow();
+        }
+    });
 
 
 

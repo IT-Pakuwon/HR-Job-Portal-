@@ -809,7 +809,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Budget Rejected successfully!");
-                            window.location.href = "/budgets";
+                            // window.location.href = "/budgets";
+                            closeOrRedirect("/budgets");
                         } else {
                             alert("Failed to reject budget.");
                         }
@@ -876,7 +877,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Budget Revised successfully!");
-                            window.location.href = "/budgets";
+                            // window.location.href = "/budgets";
+                            closeOrRedirect("/budgets");
                         } else {
                             alert("Failed to revise budget.");
                         }
@@ -1130,7 +1132,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("Budget approved successfully!");
-                        window.location.href = "/budgets";
+                        // window.location.href = "/budgets";
+                        closeOrRedirect("/budgets");
                     } else {
                         toastr.error(response.message);
                     }
@@ -1149,6 +1152,18 @@
                     $spinner.fadeOut();
                 }
             });
+        }
+    </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/budgets') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
         }
     </script>
 

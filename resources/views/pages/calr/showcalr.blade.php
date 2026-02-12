@@ -604,7 +604,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("CALR approved successfully!");
-                        window.location.href = "/calrlist";
+                        // window.location.href = "/calrlist";
+                        closeOrRedirect("/calrlist");
                     } else {
                         toastr.error(response.message);
                     }
@@ -718,7 +719,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Calr Rejected successfully!");
-                            window.location.href = "/calrlist";
+                            // window.location.href = "/calrlist";
+                            closeOrRedirect("/calrlist");
                         } else {
                             alert("Failed to reject calr.");
                         }
@@ -785,7 +787,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("Calr Revised successfully!");
-                            window.location.href = "/calrlist";
+                            // window.location.href = "/calrlist";
+                            closeOrRedirect("/calrlist");
                         } else {
                             alert("Failed to revise calr.");
                         }
@@ -1002,6 +1005,18 @@
             }
 
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
+        }
+    </script>
+    <script>
+        function closeOrRedirect(fallbackUrl = '/calrlist') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
         }
     </script>
 

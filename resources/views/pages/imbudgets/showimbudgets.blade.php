@@ -541,7 +541,8 @@
 
                         // Tampilkan alert sukses
                         toastr.success("IMBudget approved successfully!");
-                        window.location.href = "/imbudgets";
+                        // window.location.href = "/imbudgets";
+                        closeOrRedirect("/imbudgets");
                     } else {
                         toastr.error(response.message);
                     }
@@ -614,7 +615,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("IMBudget Rejected successfully!");
-                            window.location.href = "/imbudgets";
+                            // window.location.href = "/imbudgets";
+                            closeOrRedirect("/imbudgets");
                         } else {
                             alert("Failed to reject imbudget.");
                         }
@@ -681,7 +683,8 @@
                                 );
                             $spinner.fadeOut();
                             toastr.success("IMBudget Revised successfully!");
-                            window.location.href = "/imbudgets";
+                            // window.location.href = "/imbudgets";
+                            closeOrRedirect("/imbudgets");
                         } else {
                             alert("Failed to revise imbudget.");
                         }
@@ -903,6 +906,19 @@
             }
 
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
+        }
+    </script>
+
+    <script>
+        function closeOrRedirect(fallbackUrl = '/imbudgets') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
         }
     </script>
 
