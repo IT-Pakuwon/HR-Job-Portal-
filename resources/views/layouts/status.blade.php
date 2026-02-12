@@ -347,4 +347,117 @@
                 transform: translateY(0);
             }
         }
+
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            display: none;
+            background: rgba(17, 24, 39, .55);
+            backdrop-filter: blur(2px);
+            z-index: 2000
+        }
+
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04)
+        }
+
+        #loadingSpinnerContainer .loading-spinner {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            animation: spin 1s linear infinite;
+            position: relative
+        }
+
+        #loadingSpinnerContainer .loading-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-left-color: #a5b4fc;
+            animation: spinReverse .75s linear infinite
+        }
+
+        #loadingSpinnerContainer .loading-text {
+            color: #e5e7eb;
+            font-weight: 600;
+            letter-spacing: .02em
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span {
+            display: inline-block;
+            animation: blink 1.4s infinite both
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s
+        }
+
+        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s
+        }
+
+        .is-invalid {
+            border-color: #ef4444 !important;
+        }
+
+        .error-feedback {
+            display: block;
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        /* tinggi ~42px seperti p-2.5 Tailwind */
+        .select2-container .select2-selection--single {
+            height: 42px;
+            border-radius: 0.5rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 42px;
+            padding-left: .75rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 42px;
+            right: .5rem;
+        }
+
+        .req::after {
+            content: " *";
+        }
+
+        .track-tab {
+            padding: .4rem .75rem;
+            border-radius: .5rem;
+            font-size: .875rem;
+            font-weight: 600;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+
+        .track-tab:hover {
+            background: rgba(0, 0, 0, .05)
+        }
+
+        .track-tab.active {
+            background: rgba(79, 70, 229, .12);
+            color: #4338ca
+        }
     </style>

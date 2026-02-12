@@ -1,77 +1,8 @@
 <x-app-layout>
     {{-- ===== error + overlay styles (tetap dari template) ===== --}}
-    <style>
-        .is-invalid {
-            border-color: #ef4444 !important
-        }
+    =
 
-        .error-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 12px;
-            margin-top: 6px
-        }
-    </style>
-    <style>
-        #loadingSpinnerContainer {
-            position: fixed;
-            inset: 0;
-            display: none;
-            background: rgba(17, 24, 39, .55);
-            backdrop-filter: blur(2px);
-            z-index: 2000
-        }
-
-        #loadingSpinnerContainer .loading-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 18px 22px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04)
-        }
-
-        #loadingSpinnerContainer .loading-spinner {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: #6366f1;
-            animation: spin 1s linear infinite;
-            position: relative
-        }
-
-        #loadingSpinnerContainer .loading-spinner::after {
-            content: "";
-            position: absolute;
-            inset: 6px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-left-color: #a5b4fc;
-            animation: spinReverse .75s linear infinite
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        @keyframes spinReverse {
-            to {
-                transform: rotate(-360deg)
-            }
-        }
-    </style>
-
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="returnForm" class="flex flex-col gap-4" enctype="multipart/form-data" method="POST"
@@ -85,7 +16,7 @@
 
 
                     {{-- ===== Header ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Return</h2>
                         </div>
@@ -233,7 +164,7 @@
                     </div>
 
                     {{-- (optional) Attachments pakai blok bawaanmu --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

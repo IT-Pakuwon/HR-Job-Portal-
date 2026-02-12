@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full py-4">
         <div class="grid">
-            <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+            <div class="max-w-9xl mx-auto w-full p-2">
                 <div class="grid grid-cols-12 gap-6">
                     <div
                         class="shadow-xs col-span-full flex flex-col rounded-xl bg-white sm:col-span-6 xl:col-span-6 dark:bg-gray-800">
@@ -128,7 +128,7 @@
 
                 </div>
             </div>
-            <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+            <div class="max-w-9xl mx-auto w-full p-2">
                 <div class="grid grid-cols-12 gap-6">
                     <div
                         class="shadow-xs col-span-full flex flex-col rounded-xl bg-white sm:col-span-6 xl:col-span-5 dark:bg-gray-800">

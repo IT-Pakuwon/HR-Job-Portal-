@@ -1,6 +1,6 @@
 <x-app-layout>
-     <style>
-        .track-tab{
+    <style>
+        .track-tab {
             padding: .4rem .75rem;
             border-radius: .5rem;
             font-size: .875rem;
@@ -8,17 +8,21 @@
             color: #4b5563;
             white-space: nowrap;
         }
-        .track-tab:hover{ background: rgba(0,0,0,.05); }
-        .track-tab.active{
-            background: rgba(79,70,229,.12);
+
+        .track-tab:hover {
+            background: rgba(0, 0, 0, .05);
+        }
+
+        .track-tab.active {
+            background: rgba(79, 70, 229, .12);
             color: #4338ca;
         }
-        </style>
+    </style>
 
     @php
         $currentPage = Route::currentRouteName() == 'sppbs' ? 'HR' : '';
     @endphp
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
@@ -157,80 +161,87 @@
         <!-- Tracking Modal -->
         <!-- ================== TRACKING DETAIL MODAL (TABS) ================== -->
         <div id="trackingModal" class="fixed inset-0 z-50 hidden bg-black/50">
-        <div class="flex min-h-screen items-center justify-center p-4">
-            <div class="w-full max-w-7xl max-h-[90vh] overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div
+                    class="max-h-[90vh] w-full max-w-7xl overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
 
-            <!-- Header -->
-            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
-                Tracking Detail <span id="trackDoc" class="font-bold text-indigo-600"></span>
-                </h3>
-                <button type="button" id="closeTracking"
-                class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                ✕
-                </button>
-            </div>
+                    <!-- Header -->
+                    <div
+                        class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
+                            Tracking Detail <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                        </h3>
+                        <button type="button" id="closeTracking"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            ✕
+                        </button>
+                    </div>
 
-            <!-- Tabs -->
-            <div class="border-b border-gray-200 px-4 dark:border-gray-700">
-                <div class="flex gap-2 overflow-x-auto py-2" id="trackTabs">
-                <button class="track-tab active" data-tab="tab-sppb">SPPB</button>
-                <button class="track-tab" data-tab="tab-cs">CS</button>
-                <button class="track-tab" data-tab="tab-po">PO</button>
-                <button class="track-tab" data-tab="tab-receipt">Receipt</button>
-                </div>
-            </div>
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 px-4 dark:border-gray-700">
+                        <div class="flex gap-2 overflow-x-auto py-2" id="trackTabs">
+                            <button class="track-tab active" data-tab="tab-sppb">SPPB</button>
+                            <button class="track-tab" data-tab="tab-cs">CS</button>
+                            <button class="track-tab" data-tab="tab-po">PO</button>
+                            <button class="track-tab" data-tab="tab-receipt">Receipt</button>
+                        </div>
+                    </div>
 
-            <!-- Body -->
-            <div class="p-4 overflow-y-auto max-h-[calc(90vh-110px)]">
-                <div id="tlLoading" class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
-                <span class="h-4 w-4 animate-spin inline-block rounded-full border-2 border-gray-300 border-t-transparent"></span>
-                Loading...
-                </div>
+                    <!-- Body -->
+                    <div class="max-h-[calc(90vh-110px)] overflow-y-auto p-4">
+                        <div id="tlLoading"
+                            class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
+                            <span
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                            Loading...
+                        </div>
 
-                <!-- SPPB -->
-                <div id="tab-sppb" class="track-pane">
-                <div id="sppbHeaderBox"></div>
-                <div class="mt-3" id="sppbDetailBox"></div>
-                </div>
+                        <!-- SPPB -->
+                        <div id="tab-sppb" class="track-pane">
+                            <div id="sppbHeaderBox"></div>
+                            <div class="mt-3" id="sppbDetailBox"></div>
+                        </div>
 
-                <!-- CS -->
-                <div id="tab-cs" class="track-pane hidden">
-                <div class="mb-2">
-                    <label class="text-xs text-gray-500">Select CS</label>
-                    <select id="selCs" class="w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700"></select>
-                </div>
-                <div id="csHeaderBox"></div>
-                <div class="mt-3" id="csDetailBox"></div>
-                </div>
+                        <!-- CS -->
+                        <div id="tab-cs" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select CS</label>
+                                <select id="selCs"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="csHeaderBox"></div>
+                            <div class="mt-3" id="csDetailBox"></div>
+                        </div>
 
-                <!-- PO -->
-                <div id="tab-po" class="track-pane hidden">
-                <div class="mb-2">
-                    <label class="text-xs text-gray-500">Select PO</label>
-                    <select id="selPo" class="w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700"></select>
-                </div>
-                <div id="poHeaderBox"></div>
-                <div class="mt-3" id="poDetailBox"></div>
-                </div>
+                        <!-- PO -->
+                        <div id="tab-po" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select PO</label>
+                                <select id="selPo"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="poHeaderBox"></div>
+                            <div class="mt-3" id="poDetailBox"></div>
+                        </div>
 
-                <!-- Receipt -->
-                <div id="tab-receipt" class="track-pane hidden">
-                <div class="mb-2">
-                    <label class="text-xs text-gray-500">Select Receipt</label>
-                    <select id="selReceipt" class="w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700"></select>
-                </div>
-                <div id="receiptHeaderBox"></div>
-                <div class="mt-3" id="receiptDetailBox"></div>
-                </div>
+                        <!-- Receipt -->
+                        <div id="tab-receipt" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select Receipt</label>
+                                <select id="selReceipt"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="receiptHeaderBox"></div>
+                            <div class="mt-3" id="receiptDetailBox"></div>
+                        </div>
 
-            </div>
+                    </div>
+                </div>
             </div>
         </div>
-        </div>
 
-       
-        
+
+
     </div>
     <script>
         function renderTimeline(steps = []) {
@@ -378,7 +389,7 @@
         });
     </script> --}}
     <script>
-        function fmt2(val){
+        function fmt2(val) {
             if (val === null || val === undefined || val === '') return '0.00';
             const num = Number(val);
             if (isNaN(num)) return '0.00';
@@ -391,144 +402,149 @@
 
     <script>
         /* =========================================================
-        TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-        ========================================================= */
+            TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+            ========================================================= */
 
-        (function () {
-        // ---------- Modal open/close ----------
-        function openTrackingModal(docText) {
-            document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-            const modal = document.getElementById('trackingModal');
-            modal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
+        (function() {
+            // ---------- Modal open/close ----------
+            function openTrackingModal(docText) {
+                document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+                const modal = document.getElementById('trackingModal');
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
 
-        function closeTrackingModal() {
-            document.getElementById('trackingModal')?.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
+            function closeTrackingModal() {
+                document.getElementById('trackingModal')?.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
 
-        document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
-        document.getElementById('trackingModal')?.addEventListener('click', (e) => {
-            if (e.target.id === 'trackingModal') closeTrackingModal();
-        });
-
-        // ---------- Tabs ----------
-        (function () {
-            const tabs = document.getElementById('trackTabs');
-            if (!tabs) return;
-
-            tabs.addEventListener('click', (e) => {
-            const btn = e.target.closest('.track-tab');
-            if (!btn) return;
-
-            document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
-            btn.classList.add('active');
-
-            const target = btn.dataset.tab;
-            document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
-            document.getElementById(target)?.classList.remove('hidden');
+            document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
+            document.getElementById('trackingModal')?.addEventListener('click', (e) => {
+                if (e.target.id === 'trackingModal') closeTrackingModal();
             });
-        })();
 
-        function resetToSppbTab() {
-            document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
-            document.querySelector('.track-tab[data-tab="tab-sppb"]')?.classList.add('active');
-            document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
-            document.getElementById('tab-sppb')?.classList.remove('hidden');
-        }
+            // ---------- Tabs ----------
+            (function() {
+                const tabs = document.getElementById('trackTabs');
+                if (!tabs) return;
 
-        // ---------- Utilities ----------
-        function esc(s) {
-            return String(s ?? '')
-            .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
-        }
+                tabs.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.track-tab');
+                    if (!btn) return;
 
-        function setLoading(on) {
-            const el = document.getElementById('tlLoading');
-            if (!el) return;
-            el.classList.toggle('hidden', !on);
-            el.classList.toggle('flex', on);
-        }
+                    document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+                    btn.classList.add('active');
 
-        function statusLabel(st){
-            st = String(st || '').toUpperCase();
+                    const target = btn.dataset.tab;
+                    document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+                    document.getElementById(target)?.classList.remove('hidden');
+                });
+            })();
 
-            const map = {
-                'C': {
-                    text: 'Completed',
-                    cls: 'bg-green-100 text-green-700'
-                },
-                'P': {
-                    text: 'On Progress',
-                    cls: 'bg-yellow-100 text-yellow-700'
-                },
-                'R': {
-                    text: 'Rejected',
-                    cls: 'bg-red-100 text-red-700'
-                },
-                'D': {
-                    text: 'Revise',
-                    cls: 'bg-blue-100 text-blue-700'
-                }
-            };
+            function resetToSppbTab() {
+                document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+                document.querySelector('.track-tab[data-tab="tab-sppb"]')?.classList.add('active');
+                document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+                document.getElementById('tab-sppb')?.classList.remove('hidden');
+            }
 
-            const it = map[st] || {
-                text: st || '-',
-                cls: 'bg-gray-100 text-gray-700'
-            };
+            // ---------- Utilities ----------
+            function esc(s) {
+                return String(s ?? '')
+                    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+            }
 
-            return `
+            function setLoading(on) {
+                const el = document.getElementById('tlLoading');
+                if (!el) return;
+                el.classList.toggle('hidden', !on);
+                el.classList.toggle('flex', on);
+            }
+
+            function statusLabel(st) {
+                st = String(st || '').toUpperCase();
+
+                const map = {
+                    'C': {
+                        text: 'Completed',
+                        cls: 'bg-green-100 text-green-700'
+                    },
+                    'P': {
+                        text: 'On Progress',
+                        cls: 'bg-yellow-100 text-yellow-700'
+                    },
+                    'R': {
+                        text: 'Rejected',
+                        cls: 'bg-red-100 text-red-700'
+                    },
+                    'D': {
+                        text: 'Revise',
+                        cls: 'bg-blue-100 text-blue-700'
+                    }
+                };
+
+                const it = map[st] || {
+                    text: st || '-',
+                    cls: 'bg-gray-100 text-gray-700'
+                };
+
+                return `
                 <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold ${it.cls}">
                     ${it.text}
                 </span>
             `;
-        }
-
-        function statusLabel2(st){
-            st = String(st || '').toUpperCase();
-            switch (st) {
-                case 'P': return 'On Progress';
-                case 'C': return 'Completed';
-                case 'R': return 'Rejected';
-                case 'D': return 'Revise';
-                default:  return st || '-';
             }
-        }
 
-        function badgeApproved(isApproved) {
-            if (isApproved) {
-            return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
+            function statusLabel2(st) {
+                st = String(st || '').toUpperCase();
+                switch (st) {
+                    case 'P':
+                        return 'On Progress';
+                    case 'C':
+                        return 'Completed';
+                    case 'R':
+                        return 'Rejected';
+                    case 'D':
+                        return 'Revise';
+                    default:
+                        return st || '-';
+                }
             }
-            return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
-        }
 
-        function resetBoxes() {
-            [
-            'sppbHeaderBox','csHeaderBox','poHeaderBox','receiptHeaderBox',
-            'sppbDetailBox','csDetailBox','poDetailBox','receiptDetailBox'
-            ].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = '';
-            });
-        }
+            function badgeApproved(isApproved) {
+                if (isApproved) {
+                    return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
+                }
+                return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
+            }
 
-        
+            function resetBoxes() {
+                [
+                    'sppbHeaderBox', 'csHeaderBox', 'poHeaderBox', 'receiptHeaderBox',
+                    'sppbDetailBox', 'csDetailBox', 'poDetailBox', 'receiptDetailBox'
+                ].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '';
+                });
+            }
 
-        function renderHeader(boxId, header, title) {
-            const box = document.getElementById(boxId);
-            if (!box) return;
 
-            if (!header) {
-            box.innerHTML = `
+
+            function renderHeader(boxId, header, title) {
+                const box = document.getElementById(boxId);
+                if (!box) return;
+
+                if (!header) {
+                    box.innerHTML = `
                 <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
                 ${esc(title)} not created yet.
                 </div>`;
-            return;
-            }
+                    return;
+                }
 
-            box.innerHTML = `
+                box.innerHTML = `
             <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                 <div class="flex items-center justify-between gap-3">
                     <div>
@@ -548,12 +564,13 @@
                                  
                 </div>
             </div>`;
-        }
+            }
 
-        // ---------- Detail renderers ----------
-        function renderDetailSppb(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
-            const trs = rows.map(r => `
+            // ---------- Detail renderers ----------
+            function renderDetailSppb(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
                 <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
@@ -562,7 +579,7 @@
                 <td class="px-3 py-2">${esc(r.siteid)}</td>
                 <td class="px-3 py-2">${esc(r.ordered || '')}</td>
             </tr>`).join('');
-            return `
+                return `
             <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
                 <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700/30">
@@ -578,12 +595,13 @@
                 <tbody>${trs}</tbody>
                 </table>
             </div>`;
-        }
+            }
 
-        function renderDetailCs(rows){
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            function renderDetailCs(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                return `<div class="text-sm text-gray-500">No detail.</div>`;
 
-            const trs = rows.map(r => `
+                const trs = rows.map(r => `
                 <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
                 <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
@@ -595,7 +613,7 @@
                 </tr>
             `).join('');
 
-            return `
+                return `
                 <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-700/30">
@@ -614,9 +632,10 @@
             }
 
 
-        function renderDetailPo(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
-            const trs = rows.map(r => `
+            function renderDetailPo(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
                 <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
@@ -625,7 +644,7 @@
                 <td class="px-3 py-2 text-right">${fmt2(r.unitcost)}</td>
                 <td class="px-3 py-2 text-right">${fmt2(r.totalcost)}</td>
             </tr>`).join('');
-            return `
+                return `
             <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
                 <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700/30">
@@ -641,11 +660,12 @@
                 <tbody>${trs}</tbody>
                 </table>
             </div>`;
-        }
+            }
 
-        function renderDetailReceipt(rows) {
-            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
-            const trs = rows.map(r => `
+            function renderDetailReceipt(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
                 <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
@@ -653,7 +673,7 @@
                 <td class="px-3 py-2 text-right">${fmt2(r.qty_received)}</td>
                 <td class="px-3 py-2">${esc(r.uom)}</td>
             </tr>`).join('');
-            return `
+                return `
             <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
                 <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700/30">
@@ -668,160 +688,174 @@
                 <tbody>${trs}</tbody>
                 </table>
             </div>`;
-        }
-
-        // ---------- Select helpers ----------
-        function fillSelect(selectId, items, selectedDoc) {
-            const sel = document.getElementById(selectId);
-            if (!sel) return;
-
-            sel.innerHTML = '';
-
-            if (!items || items.length === 0) {
-            sel.innerHTML = `<option value="">-- none --</option>`;
-            return;
             }
 
-            items.forEach(it => {
-            const opt = document.createElement('option');
-            opt.value = it.doc;
-            // opt.textContent = `${it.doc}${it.date ? ' | ' + it.date : ''}${it.is_approved ? ' | APPROVED' : ''}`;
-            opt.textContent = `${it.doc}`
-                + (it.date ? ` | ${it.date}` : '')
-                + (it.status ? ` | ${statusLabel2(it.status)}` : '');
+            // ---------- Select helpers ----------
+            function fillSelect(selectId, items, selectedDoc) {
+                const sel = document.getElementById(selectId);
+                if (!sel) return;
 
-            if (selectedDoc && it.doc === selectedDoc) opt.selected = true;
-            sel.appendChild(opt);
-            });
+                sel.innerHTML = '';
 
-            // kalau selectedDoc kosong, auto pilih pertama
-            if (!selectedDoc && sel.options.length > 0) sel.selectedIndex = 0;
-        }
+                if (!items || items.length === 0) {
+                    sel.innerHTML = `<option value="">-- none --</option>`;
+                    return;
+                }
 
-        function filterReceiptsByPo(poDoc) {
-            const all = window.__receiptList || [];
-            if (!poDoc) return all;
+                items.forEach(it => {
+                    const opt = document.createElement('option');
+                    opt.value = it.doc;
+                    // opt.textContent = `${it.doc}${it.date ? ' | ' + it.date : ''}${it.is_approved ? ' | APPROVED' : ''}`;
+                    opt.textContent = `${it.doc}` +
+                        (it.date ? ` | ${it.date}` : '') +
+                        (it.status ? ` | ${statusLabel2(it.status)}` : '');
 
-            // backend kamu harus kirim: lists.receipt[].ponbr atau .po
-            return all.filter(x => (x.ponbr === poDoc) || (x.po === poDoc));
-        }
+                    if (selectedDoc && it.doc === selectedDoc) opt.selected = true;
+                    sel.appendChild(opt);
+                });
 
-        // ---------- AJAX helpers (jQuery Deferred) ----------
-        function fetchItem(eid, type, doc) {
-            return $.ajax({
-            url: `/sppbs/${eid}/tracking-detail/item`,
-            method: 'GET',
-            dataType: 'json',
-            data: { type, doc }
-            });
-        }
-
-        // ---------- Change handlers (safe: off/on) ----------
-        $(document).off('change', '#selCs').on('change', '#selCs', function () {
-            const eid = window.__trackEid;
-            const doc = this.value;
-            if (!eid || !doc) return;
-
-            fetchItem(eid, 'cs', doc).done(res => {
-            renderHeader('csHeaderBox', res.header, 'CS');
-            document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.details || []);
-            });
-        });
-
-        $(document).off('change', '#selPo').on('change', '#selPo', function () {
-            const eid = window.__trackEid;
-            const doc = this.value;
-            if (!eid || !doc) return;
-
-            fetchItem(eid, 'po', doc).done(res => {
-            renderHeader('poHeaderBox', res.header, 'PO');
-            document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.details || []);
-            });
-
-            // filter receipt list by PO selected
-            const filtered = filterReceiptsByPo(doc);
-            fillSelect('selReceipt', filtered, (filtered[0]?.doc || ''));
-
-            // auto load first receipt after filter
-            const first = filtered[0]?.doc;
-            if (first) {
-            fetchItem(eid, 'receipt', first).done(res => {
-                renderHeader('receiptHeaderBox', res.header, 'Receipt');
-                document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res.details || []);
-            });
-            } else {
-            renderHeader('receiptHeaderBox', null, 'Receipt');
-            document.getElementById('receiptDetailBox').innerHTML = `<div class="text-sm text-gray-500">No detail.</div>`;
+                // kalau selectedDoc kosong, auto pilih pertama
+                if (!selectedDoc && sel.options.length > 0) sel.selectedIndex = 0;
             }
-        });
 
-        $(document).off('change', '#selReceipt').on('change', '#selReceipt', function () {
-            const eid = window.__trackEid;
-            const doc = this.value;
-            if (!eid || !doc) return;
+            function filterReceiptsByPo(poDoc) {
+                const all = window.__receiptList || [];
+                if (!poDoc) return all;
 
-            fetchItem(eid, 'receipt', doc).done(res => {
-            renderHeader('receiptHeaderBox', res.header, 'Receipt');
-            document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res.details || []);
+                // backend kamu harus kirim: lists.receipt[].ponbr atau .po
+                return all.filter(x => (x.ponbr === poDoc) || (x.po === poDoc));
+            }
+
+            // ---------- AJAX helpers (jQuery Deferred) ----------
+            function fetchItem(eid, type, doc) {
+                return $.ajax({
+                    url: `/sppbs/${eid}/tracking-detail/item`,
+                    method: 'GET',
+                    dataType: 'json',
+                    data: {
+                        type,
+                        doc
+                    }
+                });
+            }
+
+            // ---------- Change handlers (safe: off/on) ----------
+            $(document).off('change', '#selCs').on('change', '#selCs', function() {
+                const eid = window.__trackEid;
+                const doc = this.value;
+                if (!eid || !doc) return;
+
+                fetchItem(eid, 'cs', doc).done(res => {
+                    renderHeader('csHeaderBox', res.header, 'CS');
+                    document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.details ||
+                []);
+                });
             });
-        });
 
-        // ---------- Main click handler (ONLY ONE) ----------
-        $(document).off('click', '.tracking-btn').on('click', '.tracking-btn', function () {
-            const eid = $(this).data('id');
-            const doc = $(this).data('doc') || '';
-            window.__trackEid = eid;
+            $(document).off('change', '#selPo').on('change', '#selPo', function() {
+                const eid = window.__trackEid;
+                const doc = this.value;
+                if (!eid || !doc) return;
 
-            resetToSppbTab();
-            resetBoxes();
-            openTrackingModal(doc);
-            setLoading(true);
+                fetchItem(eid, 'po', doc).done(res => {
+                    renderHeader('poHeaderBox', res.header, 'PO');
+                    document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.details ||
+                []);
+                });
 
-            $.ajax({
-            url: `/sppbs/${eid}/tracking-detail`,
-            method: 'GET',
-            dataType: 'json',
-            success: function (res) {
-                setLoading(false);
+                // filter receipt list by PO selected
+                const filtered = filterReceiptsByPo(doc);
+                fillSelect('selReceipt', filtered, (filtered[0]?.doc || ''));
 
-                // simpan list untuk filtering
-                window.__receiptList = res.lists?.receipt || [];
+                // auto load first receipt after filter
+                const first = filtered[0]?.doc;
+                if (first) {
+                    fetchItem(eid, 'receipt', first).done(res => {
+                        renderHeader('receiptHeaderBox', res.header, 'Receipt');
+                        document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res
+                            .details || []);
+                    });
+                } else {
+                    renderHeader('receiptHeaderBox', null, 'Receipt');
+                    document.getElementById('receiptDetailBox').innerHTML =
+                        `<div class="text-sm text-gray-500">No detail.</div>`;
+                }
+            });
 
-                // render header default (selected)
-                renderHeader('sppbHeaderBox', res.sppb?.header, 'SPPB');
-                renderHeader('csHeaderBox',   res.cs?.header, 'CS');
-                renderHeader('poHeaderBox',   res.po?.header, 'PO');
-                renderHeader('receiptHeaderBox', res.receipt?.header, 'Receipt');
+            $(document).off('change', '#selReceipt').on('change', '#selReceipt', function() {
+                const eid = window.__trackEid;
+                const doc = this.value;
+                if (!eid || !doc) return;
 
-                // render detail default (selected)
-                document.getElementById('sppbDetailBox').innerHTML    = renderDetailSppb(res.sppb?.details || []);
-                document.getElementById('csDetailBox').innerHTML      = renderDetailCs(res.cs?.details || []);
-                document.getElementById('poDetailBox').innerHTML      = renderDetailPo(res.po?.details || []);
-                document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res.receipt?.details || []);
+                fetchItem(eid, 'receipt', doc).done(res => {
+                    renderHeader('receiptHeaderBox', res.header, 'Receipt');
+                    document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res
+                        .details || []);
+                });
+            });
 
-                // dropdown lists (support multiple)
-                fillSelect('selCs', res.lists?.cs || [], res.selected?.cs_no || '');
-                fillSelect('selPo', res.lists?.po || [], res.selected?.po_no || '');
+            // ---------- Main click handler (ONLY ONE) ----------
+            $(document).off('click', '.tracking-btn').on('click', '.tracking-btn', function() {
+                const eid = $(this).data('id');
+                const doc = $(this).data('doc') || '';
+                window.__trackEid = eid;
 
-                // receipt list default: filter by selected PO
-                const poSelected = (res.selected?.po_no) || document.getElementById('selPo')?.value || '';
-                const filteredReceipt = filterReceiptsByPo(poSelected);
-                const receiptSelected = res.selected?.receipt_no || (filteredReceipt[0]?.doc || '');
-                fillSelect('selReceipt', filteredReceipt, receiptSelected);
+                resetToSppbTab();
+                resetBoxes();
+                openTrackingModal(doc);
+                setLoading(true);
 
-            },
-            error: function (xhr) {
-                setLoading(false);
-                document.getElementById('sppbHeaderBox').innerHTML =
-                `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                $.ajax({
+                    url: `/sppbs/${eid}/tracking-detail`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(res) {
+                        setLoading(false);
+
+                        // simpan list untuk filtering
+                        window.__receiptList = res.lists?.receipt || [];
+
+                        // render header default (selected)
+                        renderHeader('sppbHeaderBox', res.sppb?.header, 'SPPB');
+                        renderHeader('csHeaderBox', res.cs?.header, 'CS');
+                        renderHeader('poHeaderBox', res.po?.header, 'PO');
+                        renderHeader('receiptHeaderBox', res.receipt?.header, 'Receipt');
+
+                        // render detail default (selected)
+                        document.getElementById('sppbDetailBox').innerHTML = renderDetailSppb(res
+                            .sppb?.details || []);
+                        document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.cs
+                            ?.details || []);
+                        document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.po
+                            ?.details || []);
+                        document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(
+                            res.receipt?.details || []);
+
+                        // dropdown lists (support multiple)
+                        fillSelect('selCs', res.lists?.cs || [], res.selected?.cs_no || '');
+                        fillSelect('selPo', res.lists?.po || [], res.selected?.po_no || '');
+
+                        // receipt list default: filter by selected PO
+                        const poSelected = (res.selected?.po_no) || document.getElementById('selPo')
+                            ?.value || '';
+                        const filteredReceipt = filterReceiptsByPo(poSelected);
+                        const receiptSelected = res.selected?.receipt_no || (filteredReceipt[0]
+                            ?.doc || '');
+                        fillSelect('selReceipt', filteredReceipt, receiptSelected);
+
+                    },
+                    error: function(xhr) {
+                        setLoading(false);
+                        document.getElementById('sppbHeaderBox').innerHTML =
+                            `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                     Failed to load tracking (HTTP ${xhr.status || ''})
                 </div>`;
-            }
+                    }
+                });
             });
-        });
 
         })(); // end IIFE
-        </script>
+    </script>
 
 
 

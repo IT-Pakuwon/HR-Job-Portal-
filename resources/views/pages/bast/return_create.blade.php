@@ -1,246 +1,164 @@
 <x-app-layout>
-    {{-- ===== error + overlay styles (tetap dari template) ===== --}}
-    <style>
-        .is-invalid {
-            border-color: #ef4444 !important
-        }
+    <div class="max-w-9xl p-2> <div class= mx-auto w-full"grid grid-cols-1 gap-8 lg:grid-cols-2
+        lg:grid-rows-[minmax(0,auto)_1fr]">
+        <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
+            <form id="returnForm" class="flex flex-col gap-4" enctype="multipart/form-data" method="POST"
+                action="{{ route('receipt.return.store') }}">
+                @csrf
 
-        .error-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 12px;
-            margin-top: 6px
-        }
-    </style>
-    <style>
-        #loadingSpinnerContainer {
-            position: fixed;
-            inset: 0;
-            display: none;
-            background: rgba(17, 24, 39, .55);
-            backdrop-filter: blur(2px);
-            z-index: 2000
-        }
+                {{-- hidden refs --}}
+                <input type="hidden" name="rcp" value="{{ $eid }}">
+                <input type="hidden" name="ref_receiptnbr" value="{{ $rcp->receiptnbr }}">
 
-        #loadingSpinnerContainer .loading-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 18px 22px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04)
-        }
+                {{-- ===== Header ===== --}}
+                <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                        <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Return</h2>
+                    </div>
 
-        #loadingSpinnerContainer .loading-spinner {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: #6366f1;
-            animation: spin 1s linear infinite;
-            position: relative
-        }
-
-        #loadingSpinnerContainer .loading-spinner::after {
-            content: "";
-            position: absolute;
-            inset: 6px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-left-color: #a5b4fc;
-            animation: spinReverse .75s linear infinite
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        @keyframes spinReverse {
-            to {
-                transform: rotate(-360deg)
-            }
-        }
-    </style>
-
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
-            <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="returnForm" class="flex flex-col gap-4" enctype="multipart/form-data" method="POST"
-                    action="{{ route('receipt.return.store') }}">
-                    @csrf
-
-                    {{-- hidden refs --}}
-                    <input type="hidden" name="rcp" value="{{ $eid }}">
-                    <input type="hidden" name="ref_receiptnbr" value="{{ $rcp->receiptnbr }}">
-
-                    {{-- ===== Header ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Return</h2>
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt Nbr
+                                (Ref)</label>
+                            <input type="text" value="{{ $rcp->receiptnbr }}" readonly
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                         </div>
-
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt Nbr
-                                    (Ref)</label>
-                                <input type="text" value="{{ $rcp->receiptnbr }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt
-                                    Date</label>
-                                <input type="text"
-                                    value="{{ \Carbon\Carbon::parse($rcp->receiptdate)->format('Y-m-d') }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
-                                <input type="text" value="{{ $rcp->ponbr }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
-                                <input type="text" value="{{ $rcp->sppbjktid }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Receipt
+                                Date</label>
+                            <input type="text"
+                                value="{{ \Carbon\Carbon::parse($rcp->receiptdate)->format('Y-m-d') }}" readonly
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                         </div>
-
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
-                                <input type="text" value="{{ $rcp->vendorname }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
-                                <input type="text" value="{{ $rcp->cpny_id }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
-                                <input type="text" value="{{ $rcp->department_id }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
+                            <input type="text" value="{{ $rcp->ponbr }}" readonly
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
+                            <input type="text" value="{{ $rcp->sppbjktid }}" readonly
+                                class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                         </div>
                     </div>
 
-                    {{-- ===== Detail ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
-                        <div class="flex w-full flex-col rounded-xl p-4">
-                            <details class="group" open>
-                                <summary
-                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                    <span>Return Detail</span>
-                                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
-                                        details →</span>
-                                    <span
-                                        class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
-                                        details ↓</span>
-                                </summary>
-
-                                <div class="mt-6 overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                                        <thead class="bg-gray-50 dark:bg-gray-700">
-                                            <tr>
-                                                <th
-                                                    class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
-                                                    Inventory ID</th>
-                                                <th
-                                                    class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
-                                                    Description</th>
-                                                <th
-                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
-                                                    Qty Received</th>
-                                                <th
-                                                    class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">
-                                                    UoM</th>
-                                                <th
-                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
-                                                    Qty Return</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                            @forelse($details as $d)
-                                                <tr>
-                                                    <td class="px-4 py-2">{{ $d->inventoryid }}</td>
-                                                    <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
-                                                    <td class="px-4 py-2 text-right">
-                                                        {{ number_format((float) $d->qty_received, 2) }}</td>
-                                                    <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
-                                                    <td class="px-4 py-2 text-right">
-                                                        <input type="text" name="qty_return[{{ $d->id }}]"
-                                                            class="qtyReturn w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            inputmode="decimal" autocomplete="off" placeholder="0,00" />
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="5" class="px-4 py-4 text-center text-gray-500">No
-                                                        receipt detail</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </details>
-                        </div>
+                    mt-4 grid iv class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="flex flex-col gap-2">
+                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
+                        <input type="text" value="{{ $rcp->vendorname }}" readonly
+                            class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                     </div>
-
-                    {{-- (optional) Attachments pakai blok bawaanmu --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                        <details class="group" open>
-                            <summary
-                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
-                                    details →</span>
-                                <span
-                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
-                                    details ↓</span>
-                            </summary>
-
-                            <div class="flex flex-col pt-6">
-                                <div id="attachmentsContainer">
-                                    <div class="attachment-row flex items-center gap-2">
-                                        <input type="file" name="attachments[]"
-                                            class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                                        <button type="button"
-                                            class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button type="button" id="addAttachment"
-                                class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                + Add Attachment
-                            </button>
-
-                        </details>
-
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <a href="{{ url()->previous() }}"
-                                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white hover:bg-red-700">Cancel</a>
-                            <button type="submit" id="submitBtn"
-                                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
-                                <span id="btnText">Submit Return</span>
-                            </button>
-                        </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
+                        <input type="text" value="{{ $rcp->cpny_id }}" readonly
+                            class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                     </div>
-                </form>
+                    <div class="flex flex-col gap-2">
+                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
+                        <input type="text" value="{{ $rcp->department_id }}" readonly
+                            class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                    </div>
+                </div>
+        </div>
+
+        {{-- ===== Detail ===== --}}
+        <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
+            <div class="flex w-full flex-col rounded-xl p-4">
+                <details class="group" open>
+                    <summary
+                        class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                        <span>Return Detail</span>
+                        <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                            details →</span>
+                        <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                            details ↓</span>
+                    </summary>
+
+                    <div class="mt-6 overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                        Inventory ID</th>
+                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">
+                                        Description</th>
+                                    <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                        Qty Received</th>
+                                    <th class="px-4 py-2 text-center font-semibold text-gray-600 dark:text-gray-300">
+                                        UoM</th>
+                                    <th class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                        Qty Return</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                @forelse($details as $d)
+                                    <tr>
+                                        <td class="px-4 py-2">{{ $d->inventoryid }}</td>
+                                        <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
+                                        <td class="px-4 py-2 text-right">
+                                            {{ number_format((float) $d->qty_received, 2) }}</td>
+                                        <td class="px-4 py-2 text-center">{{ $d->uom }}</td>
+                                        <td class="px-4 py-2 text-right">
+                                            <input type="text" name="qty_return[{{ $d->id }}]"
+                                                class="qtyReturn w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                                inputmode="decimal" autocomplete="off" placeholder="0,00" />
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="px-4 py-4 text-center text-gray-500">No
+                                            receipt detail</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
             </div>
         </div>
+
+        {{-- (optional) Attachments pakai blok bawaanmu --}}
+        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+            <details class="group" open>
+                <summary
+                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                    <span>Attachments</span>
+                    <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                        details →</span>
+                    <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                        details ↓</span>
+                </summary>
+
+                <div class="flex flex-col pt-6">
+                    <div id="attachmentsContainer">
+                        <div class="attachment-row flex items-center gap-2">
+                            <input type="file" name="attachments[]"
+                                class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                            <button type="button"
+                                class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="addAttachment"
+                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    + Add Attachment
+                </button>
+
+            </details>
+
+            <div class="flex w-full justify-end gap-4 pt-4">
+                <a href="{{ url()->previous() }}"
+                    class="inline-flex items-center justify-center rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white hover:bg-red-700">Cancel</a>
+                <button type="submit" id="submitBtn"
+                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
+                    <span id="btnText">Submit Return</span>
+                </button>
+            </div>
+        </div>
+        </form>
+    </div>
+    </div>
     </div>
 
     {{-- Overlay --}}

@@ -2,25 +2,8 @@
     <!-- Select2 CSS & JS -->
     {{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script> --}}
-    <style>
-        .is-invalid {
-            border-color: #ef4444 !important;
-        }
 
-        .error-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-    </style>
-    <style>
-        .req::after {
-            content: " *";
-            color: #dc2626;
-            font-weight: 700;
-        }
-    </style>
+
 
     <style>
         /* Samakan tinggi Select2 tenant & pic ≈ input p-2.5 (~40px) */
@@ -136,7 +119,7 @@
 
 
 
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="spptForm" class="flex flex-col gap-4" enctype="multipart/form-data">

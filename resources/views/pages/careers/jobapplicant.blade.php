@@ -2,7 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
-    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
+    <div class="max-w-9xl mx-auto p-2">
         <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}

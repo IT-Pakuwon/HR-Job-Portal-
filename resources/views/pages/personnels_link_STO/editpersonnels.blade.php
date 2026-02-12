@@ -1,10 +1,10 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="personnelForm" enctype="multipart/form-data" method="POST">
                     @csrf
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Edit Personnel Requisition
                                 -
@@ -63,7 +63,7 @@
                         </div>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -159,7 +159,7 @@
                         </details>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -190,7 +190,7 @@
                         </details>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -295,7 +295,7 @@
                         </details>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

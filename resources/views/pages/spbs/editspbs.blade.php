@@ -1,24 +1,7 @@
 <x-app-layout>
-    <style>
-        .is-invalid {
-            border-color: #ef4444 !important;
-        }
 
-        .error-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-    </style>
-    <style>
-        .req::after {
-            content: " *";
-            color: #dc2626;
-            font-weight: 700;
-        }
-    </style>
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
 
@@ -64,16 +47,16 @@
                                     $selectedBuName = old('business_unit_name', $spb->business_unit_name ?? '');
                                 @endphp
 
-                                <input type="hidden" name="business_unit_name" id="business_unit_name" value="{{ $selectedBuName }}">
+                                <input type="hidden" name="business_unit_name" id="business_unit_name"
+                                    value="{{ $selectedBuName }}">
 
                                 <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
-                                        focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
-                                    @if($selectedBuId)
+                                    @if ($selectedBuId)
                                         {{-- placeholder saat edit (biar tidak kosong sebelum AJAX load) --}}
                                         <option value="{{ $selectedBuId }}" selected>
-                                            {{ $selectedBuId }}{{ $selectedBuName ? ' — '.$selectedBuName : '' }}
+                                            {{ $selectedBuId }}{{ $selectedBuName ? ' — ' . $selectedBuName : '' }}
                                         </option>
                                     @else
                                         <option value="" selected disabled>Select Business Unit</option>
@@ -117,7 +100,8 @@
                                 <div class="flex gap-2">
                                     <input type="text" id="jenis_pekerjaan_display"
                                         class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Worktype & Subworktype" value="{{ $jenisDisplay }}" readonly>
+                                        placeholder="Pilih Worktype & Subworktype" value="{{ $jenisDisplay }}"
+                                        readonly>
                                     <button type="button" id="btnJenisPekerjaan"
                                         class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         title="Lookup">
@@ -292,10 +276,11 @@
                                                         </td>
 
                                                         {{-- SiteID --}}
-                                              
+
                                                         <td class="siteid-column border p-3">
                                                             <div class="siteid-wrapper">
-                                                                <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
+                                                                <input type="hidden" name="siteid[]"
+                                                                    class="siteid-hidden" value="">
                                                                 <input type="text"
                                                                     class="siteid-display w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                                                     placeholder="-" readonly
@@ -311,7 +296,7 @@
                                                         </td>
 
                                                         {{-- Location --}}
-                                                       
+
 
                                                         @php
                                                             // Ambil data lokasi & sublokasi dari relasi (fallback ke field mentah jika ada)
@@ -2125,59 +2110,59 @@
 
             // Load COA from API
             function loadCoa() {
-                    $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
+                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
-                    const url = coaState.woid
-                        ? "{{ route('coa.byWo') }}"
-                        : "{{ route('coa.byDept') }}";
+                const url = coaState.woid ?
+                    "{{ route('coa.byWo') }}" :
+                    "{{ route('coa.byDept') }}";
 
-                    const params = coaState.woid ? {
-                        woid: coaState.woid,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page,
-                        // optional: kalau backend butuh context
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                    } : {
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                        perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id, // kalau backend butuh
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page
-                    };
+                const params = coaState.woid ? {
+                    woid: coaState.woid,
+                    search: coaState.search,
+                    page: coaState.page,
+                    per_page: coaState.per_page,
+                    // optional: kalau backend butuh context
+                    cpnyid: coaState.cpnyid,
+                    deptid: coaState.deptid,
+                } : {
+                    cpnyid: coaState.cpnyid,
+                    deptid: coaState.deptid,
+                    perpost: coaState.perpost,
+                    business_unit_id: coaState.business_unit_id, // kalau backend butuh
+                    search: coaState.search,
+                    page: coaState.page,
+                    per_page: coaState.per_page
+                };
 
-                    $.getJSON(url, params)
-                        .done(function(res) {
+                $.getJSON(url, params)
+                    .done(function(res) {
 
-                            // badge update kalau backend kirim meta
-                            if (res.meta) {
-                                $coaCpny.text(res.meta.cpnyid ?? coaState.cpnyid ?? '-');
-                                $coaDept.text(res.meta.deptid ?? coaState.deptid ?? '-');
-                                $coaPerpost.text(res.meta.perpost ?? coaState.perpost ?? '-');
-                            }
+                        // badge update kalau backend kirim meta
+                        if (res.meta) {
+                            $coaCpny.text(res.meta.cpnyid ?? coaState.cpnyid ?? '-');
+                            $coaDept.text(res.meta.deptid ?? coaState.deptid ?? '-');
+                            $coaPerpost.text(res.meta.perpost ?? coaState.perpost ?? '-');
+                        }
 
-                            if (res.message) toastr.warning(res.message);
+                        if (res.message) toastr.warning(res.message);
 
-                            const esc = v => $('<div>').text(v ?? '').html();
+                        const esc = v => $('<div>').text(v ?? '').html();
 
-                            const rows = (res.data || []).map(item => {
-                                const id = item.account_id ?? '';
-                                const accDescr = item.account_descr ?? '';
-                                const act_Descr = item.act_descr ?? '';
-                                const actDetail = item.activity_descr ?? '';
+                        const rows = (res.data || []).map(item => {
+                            const id = item.account_id ?? '';
+                            const accDescr = item.account_descr ?? '';
+                            const act_Descr = item.act_descr ?? '';
+                            const actDetail = item.activity_descr ?? '';
 
-                                const actId = item.activity_id ?? '';
-                                const buId = item.business_unit_id ?? '';
-                                const deptFinId = item.department_fin_id ?? '';
+                            const actId = item.activity_id ?? '';
+                            const buId = item.business_unit_id ?? '';
+                            const deptFinId = item.department_fin_id ?? '';
 
-                                const available = formatNumber(item.availablebudget) ?? '';
-                                const used = formatNumber(item.usedbudget) ?? '';
-                                const remaining = formatNumber(item.remaining) ?? '';
+                            const available = formatNumber(item.availablebudget) ?? '';
+                            const used = formatNumber(item.usedbudget) ?? '';
+                            const remaining = formatNumber(item.remaining) ?? '';
 
-                                return `
+                            return `
                                     <tr>
                                         <td class="border p-2">${esc(id)}</td>
                                         <td class="border p-2">${esc(accDescr)}</td>
@@ -2200,23 +2185,25 @@
                                         </td>
                                     </tr>
                                 `;
-                            }).join('');
+                        }).join('');
 
-                            $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
+                        $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
 
-                            coaState.total = Number(res.total || 0);
-                            $coaCount.text(`Showing ${(res.data || []).length} of ${coaState.total} items`);
+                        coaState.total = Number(res.total || 0);
+                        $coaCount.text(`Showing ${(res.data || []).length} of ${coaState.total} items`);
 
-                            const maxPage = Math.max(1, Math.ceil(coaState.total / coaState.per_page));
-                            $('#coaPrev').prop('disabled', coaState.page <= 1);
-                            $('#coaNext').prop('disabled', coaState.page >= maxPage);
-                        })
-                        .fail(function() {
-                            $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-                            $coaCount.text('');
-                            $('#coaPrev, #coaNext').prop('disabled', true);
-                        });
-                }
+                        const maxPage = Math.max(1, Math.ceil(coaState.total / coaState.per_page));
+                        $('#coaPrev').prop('disabled', coaState.page <= 1);
+                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $coaTbody.html(
+                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $coaCount.text('');
+                        $('#coaPrev, #coaNext').prop('disabled', true);
+                    });
+            }
 
 
             // Choose -> isi row
@@ -2239,19 +2226,20 @@
 
 
             // Jika company/department berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost,#business_unit_id').on('change', function() {
-                if ($coaModal.is(':visible')) {
-                    coaState.cpnyid = $('select[name="cpnyid"]').val();
-                    coaState.deptid = $('select[name="departementid"]').val();
-                    coaState.perpost = $('#perpost').val();
-                    coaState.business_unit_id = $('#business_unit_id').val();
-                    $coaCpny.text(coaState.cpnyid || '-');
-                    $coaDept.text(coaState.deptid || '-');
-                    $coaPerpost.text(coaState.perpost || '-');
-                    coaState.page = 1;
-                    loadCoa();
-                }
-            });
+            $('select[name="cpnyid"], select[name="departementid"], #perpost,#business_unit_id').on('change',
+                function() {
+                    if ($coaModal.is(':visible')) {
+                        coaState.cpnyid = $('select[name="cpnyid"]').val();
+                        coaState.deptid = $('select[name="departementid"]').val();
+                        coaState.perpost = $('#perpost').val();
+                        coaState.business_unit_id = $('#business_unit_id').val();
+                        $coaCpny.text(coaState.cpnyid || '-');
+                        $coaDept.text(coaState.deptid || '-');
+                        $coaPerpost.text(coaState.perpost || '-');
+                        coaState.page = 1;
+                        loadCoa();
+                    }
+                });
         });
     </script>
 
@@ -3007,7 +2995,7 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $cpny = $('#cpnyid');
             const $bu = $('#business_unit_id');
             const $buName = $('#business_unit_name');
@@ -3023,7 +3011,8 @@
                     const name = it.business_unit_name ?? '';
                     const sel = String(id) === String(selectedId) ? 'selected' : '';
                     const label = name ? `${id} — ${name}` : id;
-                    html += `<option value="${id}" data-name="${$('<div>').text(name).html()}" ${sel}>${label}</option>`;
+                    html +=
+                        `<option value="${id}" data-name="${$('<div>').text(name).html()}" ${sel}>${label}</option>`;
                 });
                 return html;
             }
@@ -3037,8 +3026,10 @@
 
                 $bu.html('<option value="" disabled selected>Loading...</option>');
 
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid: cpnyId })
-                    .done(function (res) {
+                $.getJSON("{{ route('businessunits.byCpny') }}", {
+                        cpnyid: cpnyId
+                    })
+                    .done(function(res) {
                         const data = res?.data || [];
                         $bu.html(renderBuOptions(data, selectedId));
 
@@ -3051,7 +3042,7 @@
                             $buName.val('');
                         }
                     })
-                    .fail(function () {
+                    .fail(function() {
                         $bu.html('<option value="" selected disabled>Failed to load</option>');
                         $buName.val('');
                     });
@@ -3061,105 +3052,106 @@
             loadBusinessUnits($cpny.val(), initialBuId);
 
             // on company change => reload BU + reset selection
-            $cpny.on('change', function () {
+            $cpny.on('change', function() {
                 loadBusinessUnits(this.value, '');
             });
 
             // on BU change => set hidden name
-            $bu.on('change', function () {
+            $bu.on('change', function() {
                 const $opt = $(this).find('option:selected');
                 $buName.val($opt.data('name') || '');
             });
         });
     </script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(function () {
-        const $cpny = $('select[name="cpnyid"]');
-        const $bu   = $('#business_unit_id');
+        $(function() {
+            const $cpny = $('select[name="cpnyid"]');
+            const $bu = $('#business_unit_id');
 
-        let prevCpny = $cpny.val();
-        let prevBu   = $bu.val();
+            let prevCpny = $cpny.val();
+            let prevBu = $bu.val();
 
-        let isReverting = false; // penting: cegah loop saat revert
+            let isReverting = false; // penting: cegah loop saat revert
 
-        function hasAnyDetailFilled() {
-            return $('#spbTable tr.spb-row').toArray().some(tr => {
-            const $tr = $(tr);
-            return [
-                $tr.find('.inventoryIdField').val(),
-                $tr.find('.qtyField').val(),
-                $tr.find('.coaIdField').val(),
-                $tr.find('.locationIdField').val(),
-                $tr.find('.subLocationIdField').val(),
-                $tr.find('.siteid-hidden').val(),
-                $tr.find('.stock_unitField').val(),
-            ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !== '-');
-            });
-        }
+            function hasAnyDetailFilled() {
+                return $('#spbTable tr.spb-row').toArray().some(tr => {
+                    const $tr = $(tr);
+                    return [
+                        $tr.find('.inventoryIdField').val(),
+                        $tr.find('.qtyField').val(),
+                        $tr.find('.coaIdField').val(),
+                        $tr.find('.locationIdField').val(),
+                        $tr.find('.subLocationIdField').val(),
+                        $tr.find('.siteid-hidden').val(),
+                        $tr.find('.stock_unitField').val(),
+                    ].some(v => (v || '').toString().trim() !== '' && (v || '').toString().trim() !==
+                        '-');
+                });
+            }
 
-        function resetWo() {
-            $('#woid').val('');
-        }
+            function resetWo() {
+                $('#woid').val('');
+            }
 
-        function resetDetailAllRows() {
-            $('#spbTable tr.spb-row').each(function () {
-            const $tr = $(this);
+            function resetDetailAllRows() {
+                $('#spbTable tr.spb-row').each(function() {
+                    const $tr = $(this);
 
-            // Inventory
-            $tr.find('.inventoryIdField').val('');
-            $tr.find('.productNameField').val('');
+                    // Inventory
+                    $tr.find('.inventoryIdField').val('');
+                    $tr.find('.productNameField').val('');
 
-            // item meta
-            $tr.find('.prodItemTypeField').val('');
-            $tr.find('.prodItemSubTypeField').val('');
-            $tr.find('.prodItemCategoryField').val('');
+                    // item meta
+                    $tr.find('.prodItemTypeField').val('');
+                    $tr.find('.prodItemSubTypeField').val('');
+                    $tr.find('.prodItemCategoryField').val('');
 
-            // Qty
-            $tr.find('.qtyField').val('');
+                    // Qty
+                    $tr.find('.qtyField').val('');
 
-            // UoM
-            $tr.find('.stock_unitField').val('-'); // atau '' kalau mau kosong
-            $tr.find('.uomFromField').val('');
-            $tr.find('.uomToField').val('');
-            $tr.find('.uomMultDivField').val('');
-            $tr.find('.uomRateField').val('');
+                    // UoM
+                    $tr.find('.stock_unitField').val('-'); // atau '' kalau mau kosong
+                    $tr.find('.uomFromField').val('');
+                    $tr.find('.uomToField').val('');
+                    $tr.find('.uomMultDivField').val('');
+                    $tr.find('.uomRateField').val('');
 
-            // SiteID
-            $tr.find('.siteid-hidden').val('');
-            $tr.find('.siteid-display').val('-');
+                    // SiteID
+                    $tr.find('.siteid-hidden').val('');
+                    $tr.find('.siteid-display').val('-');
 
-            // Location & Sub
-            $tr.find('.locationIdField').val('');
-            $tr.find('.subLocationIdField').val('');
-            $tr.find('.locationDisplayField').val(''); // ini yang ada di view kamu
+                    // Location & Sub
+                    $tr.find('.locationIdField').val('');
+                    $tr.find('.subLocationIdField').val('');
+                    $tr.find('.locationDisplayField').val(''); // ini yang ada di view kamu
 
-            // COA + Budget mapping
-            $tr.find('.coaIdField').val('');
-            $tr.find('.coaNameField').val('');
-            $tr.find('.activityIdField').val('');
-            $tr.find('.businessUnitIdField').val('');
-            $tr.find('.departmentFinIdField').val('');
+                    // COA + Budget mapping
+                    $tr.find('.coaIdField').val('');
+                    $tr.find('.coaNameField').val('');
+                    $tr.find('.activityIdField').val('');
+                    $tr.find('.businessUnitIdField').val('');
+                    $tr.find('.departmentFinIdField').val('');
 
-            // Note (optional)
-            $tr.find('input[name="note[]"]').val('');
+                    // Note (optional)
+                    $tr.find('input[name="note[]"]').val('');
 
-            // bersihkan error UI
-            $tr.find('.is-invalid').removeClass('is-invalid');
-            $tr.find('.error-feedback').remove();
+                    // bersihkan error UI
+                    $tr.find('.is-invalid').removeClass('is-invalid');
+                    $tr.find('.error-feedback').remove();
 
-            // trigger update site visibility (optional)
-            $tr.find('.prodItemTypeField').trigger('change');
-            });
-        }
+                    // trigger update site visibility (optional)
+                    $tr.find('.prodItemTypeField').trigger('change');
+                });
+            }
 
-        async function confirmContextChange(type) {
-            if (!hasAnyDetailFilled()) return true;
+            async function confirmContextChange(type) {
+                if (!hasAnyDetailFilled()) return true;
 
-            const result = await Swal.fire({
-            icon: 'warning',
-            title: `Ubah ${type}?`,
-            html: `
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: `Ubah ${type}?`,
+                    html: `
                 Mengubah <b>${type}</b> akan <b>mereset semua detail</b>:
                 <ul style="text-align:left; margin:10px 0 0 0;">
                 <li>Inventory, Qty, UoM</li>
@@ -3170,60 +3162,60 @@
                 </ul>
                 <div style="margin-top:10px;">Lanjut?</div>
             `,
-            showCancelButton: true,
-            confirmButtonText: 'Ya, lanjut',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            focusCancel: true,
-            confirmButtonColor: '#2563eb',
-            cancelButtonColor: '#6b7280'
-            });
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, lanjut',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    focusCancel: true,
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#6b7280'
+                });
 
-            return result.isConfirmed;
-        }
-
-        function revertContext() {
-            isReverting = true;
-            $cpny.val(prevCpny);
-            $bu.val(prevBu);
-            // kalau kamu punya loader BU via AJAX yang listen change cpny,
-            // jangan trigger('change') di sini supaya gak reload lagi.
-            // Kalau perlu refresh UI select2, baru trigger khusus select2.
-            isReverting = false;
-        }
-
-        async function onContextChange(type) {
-            if (isReverting) return;
-
-            const ok = await confirmContextChange(type);
-            if (!ok) {
-            revertContext();
-            return;
+                return result.isConfirmed;
             }
 
-            resetDetailAllRows();
-            resetWo();
+            function revertContext() {
+                isReverting = true;
+                $cpny.val(prevCpny);
+                $bu.val(prevBu);
+                // kalau kamu punya loader BU via AJAX yang listen change cpny,
+                // jangan trigger('change') di sini supaya gak reload lagi.
+                // Kalau perlu refresh UI select2, baru trigger khusus select2.
+                isReverting = false;
+            }
 
-            // update prev setelah sukses
-            prevCpny = $cpny.val();
-            prevBu   = $bu.val();
+            async function onContextChange(type) {
+                if (isReverting) return;
 
-            Swal.fire({
-            icon: 'info',
-            title: 'Detail direset',
-            text: `${type} berubah. Semua detail sudah direset.`,
-            timer: 1200,
-            showConfirmButton: false
+                const ok = await confirmContextChange(type);
+                if (!ok) {
+                    revertContext();
+                    return;
+                }
+
+                resetDetailAllRows();
+                resetWo();
+
+                // update prev setelah sukses
+                prevCpny = $cpny.val();
+                prevBu = $bu.val();
+
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Detail direset',
+                    text: `${type} berubah. Semua detail sudah direset.`,
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+            }
+
+            $cpny.on('change', function() {
+                onContextChange('Company');
             });
-        }
 
-        $cpny.on('change', function () {
-            onContextChange('Company');
-        });
-
-        $bu.on('change', function () {
-            onContextChange('Business Unit');
-        });
+            $bu.on('change', function() {
+                onContextChange('Business Unit');
+            });
         });
     </script>
 

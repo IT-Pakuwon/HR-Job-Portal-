@@ -5,7 +5,7 @@
 
 
 
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- My CS --}}
             <button>
@@ -268,9 +268,9 @@
                         render: (v) => fmtDate(v)
                     },
                     {
-                    data: 'days',
-                    className: 'text-center',
-                    render: (v, t, row) => renderDays(v, row)
+                        data: 'days',
+                        className: 'text-center',
+                        render: (v, t, row) => renderDays(v, row)
                     },
 
                     {
@@ -284,7 +284,7 @@
                 createdRow: function(row, data) {
                     if (data && data.is_overdue) {
                         row.style.backgroundColor = '#ffe4e6'; // merah muda
-                        row.style.color = '#b91c1c';           // teks merah
+                        row.style.color = '#b91c1c'; // teks merah
                         row.style.fontWeight = '700';
                     }
                 },

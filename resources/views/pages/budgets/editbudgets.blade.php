@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
+    <div class="max-w-9xl mx-auto p-2">
         <div class="max-w-9xl mx-auto w-full px-4">
             <div class="gap-4">
                 <div class="flex flex-col gap-4">
@@ -9,7 +9,7 @@
                         action="{{ $budget ? route('budgets.import.edit', $hash) : route('budgets.import') }}"
                         method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
                         @csrf
-                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
 
 
                             <!-- Header -->

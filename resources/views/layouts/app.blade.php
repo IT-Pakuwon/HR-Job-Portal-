@@ -123,7 +123,7 @@
 
 
     <!-- ================= MAIN CONTENT ================= -->
-    <main class="min-h-[calc(100dvh-56px)] overflow-y-auto p-4">
+    <main class="min-h-[calc(100dvh-56px)] overflow-y-auto p-2">
         {{ $slot }}
     </main>
 

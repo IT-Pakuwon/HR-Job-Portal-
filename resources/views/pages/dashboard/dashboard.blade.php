@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
 
         <!-- Dashboard actions -->
         <div class="mb-4 sm:flex sm:items-center sm:justify-between">
@@ -35,7 +35,7 @@
         <!-- Cards -->
         <div class="grid grid-cols-12 gap-6">
             {{-- <x-dashboard.dashboard-agenda :agendas="$agendas" /> --}}
-            <x-dashboard.dashboard-approval :tr_approval="$tr_approval" :doctypes="($doctypes ?? [])" />
+            <x-dashboard.dashboard-approval :tr_approval="$tr_approval" :doctypes="$doctypes ?? []" />
             {{-- <x-dashboard.dashboard-approval :tr_approval="$tr_approval" /> --}}
             {{-- <x-dashboard.dashboard-news :news="$news" /> --}}
         </div>

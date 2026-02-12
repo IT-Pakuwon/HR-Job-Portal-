@@ -3,20 +3,18 @@
         $currentPage = Route::currentRouteName() == 'kontrak.index' ? 'KONTRAK' : '';
     @endphp
 
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- ===== Tabs ===== --}}
         <div class="mb-4 flex items-center gap-2">
-            @if(!$isFinanceAccess)
-                <button type="button" id="tabMy"
-                    class="kontrak-tab rounded-lg border px-4 py-2 text-sm font-semibold"
+            @if (!$isFinanceAccess)
+                <button type="button" id="tabMy" class="kontrak-tab rounded-lg border px-4 py-2 text-sm font-semibold"
                     data-tab="my">
                     My Kontrak
                 </button>
             @endif
 
-            <button type="button" id="tabAll"
-                class="kontrak-tab rounded-lg border px-4 py-2 text-sm font-semibold"
+            <button type="button" id="tabAll" class="kontrak-tab rounded-lg border px-4 py-2 text-sm font-semibold"
                 data-tab="all">
                 All Kontrak
             </button>
@@ -35,7 +33,7 @@
                         <select id="filterCompany"
                             class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                             <option value="">All</option>
-                            @foreach($companies as $c)
+                            @foreach ($companies as $c)
                                 <option value="{{ $c }}">{{ $c }}</option>
                             @endforeach
                         </select>
@@ -49,7 +47,7 @@
                             <option value="">All</option>
                             <option value="H">Unsend</option>
                             <option value="P">On Progress</option>
-                            <option value="C">Completed</option>                           
+                            <option value="C">Completed</option>
                         </select>
                     </div>
 
@@ -62,10 +60,13 @@
 
             <div class="rounded-base relative overflow-x-auto">
                 <table id="kontrakTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr class="transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                             <th class="dtr-control"></th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Kontrak ID</th>
+                            <th
+                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                Kontrak ID</th>
                             <th class="w-32 px-6 py-2 font-medium">Kontrak Date</th>
                             <th class="w-24 px-6 py-2 font-medium">Company</th>
                             <th class="w-24 px-6 py-2 font-medium">Type</th>
@@ -106,11 +107,15 @@
                 }
 
                 $('.kontrak-tab').removeClass('bg-indigo-600 text-white border-indigo-600')
-                    .addClass('bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600');
+                    .addClass(
+                        'bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600'
+                        );
 
                 $(`.kontrak-tab[data-tab="${tab}"]`)
                     .addClass('bg-indigo-600 text-white border-indigo-600')
-                    .removeClass('bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600');
+                    .removeClass(
+                        'bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600'
+                        );
 
                 if (tab === 'my') {
                     $('#wrapStatus').show();
@@ -179,48 +184,109 @@
                 deferRender: true,
                 autoWidth: false,
                 pageLength: 10,
-                lengthMenu: [[10,25,50,100,250,-1],[10,25,50,100,250,'All']],
+                lengthMenu: [
+                    [10, 25, 50, 100, 250, -1],
+                    [10, 25, 50, 100, 250, 'All']
+                ],
                 dom: '<"dt-toolbar"l B f>rtip',
-                buttons: [
-                    {
+                buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
                         title: 'List_Kontrak',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                        exportOptions: { columns: ':visible', modifier: { page: 'current' } }
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
                     },
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
                         title: 'List_Kontrak',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                        exportOptions: { columns: ':visible', modifier: { page: 'current' } }
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
                     }
                 ],
-                responsive: { details: { type: 'column', target: 0 } },
-                order: [[2,'desc'],[1,'desc']],
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+                order: [
+                    [2, 'desc'],
+                    [1, 'desc']
+                ],
                 ajax: {
                     url: "{{ route('kontrak.json') }}",
                     type: "GET",
                     data: function(d) {
-                        d.tab     = activeTab;
+                        d.tab = activeTab;
                         d.company = ($('#filterCompany').val() || '');
                         d.creator = ($('#filterCreator').val() || '');
-                        d.status  = ($('#filterStatus').val() || '');
+                        d.status = ($('#filterStatus').val() || '');
                     }
                 },
-                columns: [
-                    { data: null, defaultContent: '', className: 'dtr-control', orderable:false, searchable:false, width:'32px' },
-                    { data: 'kontrakid', className: 'text-left', render: (_v, _t, row) => renderKontrakId(_v, row) },
-                    { data: 'kontrakdate', className: 'text-center', render: (v) => fmtDate(v) },
-                    { data: 'cpny_id', className: 'text-center' },
-                    { data: 'kontraktype', className: 'text-center' },
-                    { data: 'kontrakcategory', className: 'text-center' },
-                    { data: 'vendorname', className: 'text-left' },
-                    { data: 'startdate', className: 'text-center', render: (v) => fmtDate(v) },
-                    { data: 'enddate', className: 'text-center', render: (v) => fmtDate(v) },
-                    { data: 'created_by', className: 'text-left' },
-                    { data: 'status', className: 'text-left', render: (_v, _t, row) => renderStatusBadge(row) },
+                columns: [{
+                        data: null,
+                        defaultContent: '',
+                        className: 'dtr-control',
+                        orderable: false,
+                        searchable: false,
+                        width: '32px'
+                    },
+                    {
+                        data: 'kontrakid',
+                        className: 'text-left',
+                        render: (_v, _t, row) => renderKontrakId(_v, row)
+                    },
+                    {
+                        data: 'kontrakdate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'cpny_id',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kontraktype',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'kontrakcategory',
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'vendorname',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'startdate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'enddate',
+                        className: 'text-center',
+                        render: (v) => fmtDate(v)
+                    },
+                    {
+                        data: 'created_by',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'status',
+                        className: 'text-left',
+                        render: (_v, _t, row) => renderStatusBadge(row)
+                    },
                 ],
                 searchDelay: 400,
                 stateSave: true,
@@ -252,7 +318,7 @@
             $('#btnReset').on('click', function() {
                 $('#filterCompany').val('');
                 $('#filterStatus').val('');
-                @if($isFinanceAccess)
+                @if ($isFinanceAccess)
                     $('#filterCreator').val('');
                 @endif
                 reloadAndResetState();

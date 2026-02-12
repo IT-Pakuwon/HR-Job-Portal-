@@ -2,7 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'personnels' ? 'HR' : '';
     @endphp
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- All Status --}}
             <button>

@@ -17,13 +17,7 @@
             margin-top: 6px;
         }
     </style>
-    <style>
-        .req::after {
-            content: " *";
-            color: #dc2626;
-            font-weight: 700;
-        }
-    </style>
+ 
 
     <style>
         /* ===== FORCE HEIGHT SELECT2 (SINGLE) ===== */

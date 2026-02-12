@@ -1,113 +1,9 @@
 <x-app-layout>
-    {{-- ===== Basic error styles ===== --}}
-    <style>
-        .is-invalid {
-            border-color: #ef4444 !important;
-        }
 
-        .error-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-    </style>
 
-    {{-- ===== Overlay styles ===== --}}
-    <style>
-        #loadingSpinnerContainer {
-            position: fixed;
-            inset: 0;
-            display: none;
-            background: rgba(17, 24, 39, .55);
-            backdrop-filter: blur(2px);
-            z-index: 2000
-        }
 
-        #loadingSpinnerContainer .loading-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 18px 22px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04)
-        }
 
-        #loadingSpinnerContainer .loading-spinner {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: #6366f1;
-            animation: spin 1s linear infinite;
-            position: relative
-        }
 
-        #loadingSpinnerContainer .loading-spinner::after {
-            content: "";
-            position: absolute;
-            inset: 6px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-left-color: #a5b4fc;
-            animation: spinReverse .75s linear infinite
-        }
-
-        #loadingSpinnerContainer .loading-text {
-            color: #e5e7eb;
-            font-weight: 600;
-            letter-spacing: .02em
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span {
-            display: inline-block;
-            animation: blink 1.4s infinite both
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
-            animation-delay: .2s
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
-            animation-delay: .4s
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        @keyframes spinReverse {
-            to {
-                transform: rotate(-360deg)
-            }
-        }
-
-        @keyframes blink {
-            0% {
-                opacity: .3;
-                transform: translateY(0)
-            }
-
-            20% {
-                opacity: 1;
-                transform: translateY(-2px)
-            }
-
-            100% {
-                opacity: .3;
-                transform: translateY(0)
-            }
-        }
-    </style>
     <style>
         .req::after {
             content: " *";
@@ -116,7 +12,7 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="bastForm" class="flex flex-col gap-4" enctype="multipart/form-data">
@@ -125,140 +21,128 @@
                     <input type="hidden" name="term_eid" value="{{ $term_eid }}">
                     <input type="hidden" name="ponbr" value="{{ $term->ponbr }}">
 
-                    {{-- ===== Header ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-2xl bg-white px-8 py-6 shadow-sm dark:bg-gray-900">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Bast</h2>
                         </div>
 
-                        {{-- Row 1 (5 kolom) --}}
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">PO Nbr</label>
-                                <input type="text" value="{{ $term->ponbr }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                        @php
+                            $labelClass = 'font-semibold text-gray-800 dark:text-gray-200';
+                            $valueClass = 'text-gray-600 dark:text-gray-400';
+                        @endphp
+
+                        <!-- Row 1 -->
+                        <div class="grid grid-cols-1 gap-y-2 md:grid-cols-2 lg:grid-cols-3">
+
+                            <div>
+                                <span class="{{ $labelClass }}">PO Nbr:</span>
+                                <span class="{{ $valueClass }}">{{ $term->ponbr }}</span>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
-                                <input type="text" value="{{ $term->cpny_id }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+
+                            <div>
+                                <span class="{{ $labelClass }}">Company:</span>
+                                <span class="{{ $valueClass }}">{{ $term->cpny_id }}</span>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">CS ID</label>
-                                <input type="text" value="{{ $term->csid }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+
+                            <div>
+                                <span class="{{ $labelClass }}">Department:</span>
+                                <span class="{{ $valueClass }}">{{ $term->department_id }}</span>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPPB/J/K/T</label>
-                                <input type="text" value="{{ $term->sppbjktid }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+
+                            <div>
+                                <span class="{{ $labelClass }}">Start Date:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ \Carbon\Carbon::parse($term->start_date)->format('Y-m-d') }}
+                                </span>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Department</label>
-                                <input type="text" value="{{ $term->department_id }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+
+                            <div>
+                                <span class="{{ $labelClass }}">End Date:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ \Carbon\Carbon::parse($term->end_date)->format('Y-m-d') }}
+                                </span>
                             </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">User Peminta:</span>
+                                <span class="{{ $valueClass }}">{{ $term->user_peminta }}</span>
+                            </div>
+
                         </div>
 
-                        {{-- Row 2 (5 kolom) --}}
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">User
-                                    Peminta</label>
-                                <input type="text" value="{{ $term->user_peminta }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                        <!-- Divider -->
+                        <div class="my-2 border-t border-gray-100 dark:border-gray-800"></div>
+
+                        <!-- Row 2 -->
+                        <div class="grid grid-cols-1 gap-y-2 md:grid-cols-2 lg:grid-cols-3">
+
+                            <div>
+                                <span class="{{ $labelClass }}">CS ID:</span>
+                                <span class="{{ $valueClass }}">{{ $term->csid }}</span>
                             </div>
-                            <div class="flex flex-col gap-2 lg:col-span-2">
-                                <label
-                                    class="block text-sm font-medium text-gray-600 dark:text-gray-300">Keperluan</label>
-                                <input type="text" value="{{ $term->keperluan }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+
+                            <div>
+                                <span class="{{ $labelClass }}">SPPB/J/K/T:</span>
+                                <span class="{{ $valueClass }}">{{ $term->sppbjktid }}</span>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor
-                                    ID</label>
-                                <input type="text" value="{{ $term->vendorid }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+
+                            <div>
+                                <span class="{{ $labelClass }}">Vendor:</span>
+                                <span class="{{ $valueClass }}">{{ $term->vendorname }}</span>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Vendor</label>
-                                <input type="text" value="{{ $term->vendorname }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+
+                            <div>
+                                <span class="{{ $labelClass }}">Terms Name:</span>
+                                <span class="{{ $valueClass }}">{{ $term->terms_name }}</span>
                             </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Progress %:</span>
+                                <span class="{{ $valueClass }}">{{ $term->progress_pct }}%</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Payment %:</span>
+                                <span class="{{ $valueClass }}">{{ $term->payment_pct }}%</span>
+                            </div>
+
                         </div>
 
-                        {{-- Row 3 (5 kolom) --}}
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Terms
-                                    ID</label>
-                                <input type="text" value="{{ $term->terms_id }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">TOP ID</label>
-                                <input type="text" value="{{ $term->topid }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">TOP
-                                    Type</label>
-                                <input type="text" value="{{ $term->top_type }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2 lg:col-span-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Terms
-                                    Name</label>
-                                <input type="text" value="{{ $term->terms_name }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                        </div>
+                        <!-- Divider -->
+                        <div class="my-2 border-t border-gray-100 dark:border-gray-800"></div>
 
-                        {{-- Row 4 (5 kolom) --}}
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Progress
-                                    %</label>
-                                <input type="text" value="{{ $term->progress_pct }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
+                        <!-- Row 3 -->
+                        <div class="grid grid-cols-1 gap-y-2 md:grid-cols-2">
+
+                            <div>
+                                <span class="{{ $labelClass }}">Keperluan:</span>
+                                <span class="{{ $valueClass }}">{{ $term->keperluan }}</span>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Payment
-                                    %</label>
-                                <input type="text" value="{{ $term->payment_pct }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Terms
-                                    Type</label>
-                                <input type="text" value="{{ $term->terms_type }}" readonly
-                                    class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex flex-col gap-2 lg:col-span-2">
-                                {{-- <label class="req block  text-sm  font-medium text-gray-700 dark:text-gray-300">Location</label> --}}
-                                <label
-                                    class="req text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="lokasi_display"
-                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        placeholder="Pilih Location & Sub Location" readonly>
-                                    <button type="button" id="btnLokasi"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button>
-                                </div>
-                                <!-- hidden fields to submit -->
+
+                            <!-- Location -->
+                            <div class="flex items-center gap-3">
+                                <span class="{{ $labelClass }}">Location:</span>
+
+                                <span id="lokasi_display" class="{{ $valueClass }}">
+                                    Pilih Location & Sub Location
+                                </span>
+
+                                <button type="button" id="btnLokasi"
+                                    class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                    Change
+                                </button>
+
+                                <!-- Hidden fields (FUNCTION STILL WORKING) -->
                                 <input type="hidden" name="location_id" id="location_id">
                                 <input type="hidden" name="sub_location_id" id="sub_location_id">
                             </div>
 
-                            <div></div>
                         </div>
+
                     </div>
 
                     {{-- ===== Photo Before ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Photo Before</h2>
                         </div>
@@ -286,8 +170,7 @@
                                     <!-- file inputs tersembunyi untuk submit -->
                                     <div id="hiddenInputs"></div>
                                     <!-- picker hidden untuk open file dialog (multiple) -->
-                                    <input type="file" id="hiddenPicker" class="hidden" accept="image/*"
-                                        multiple>
+                                    <input type="file" id="hiddenPicker" class="hidden" accept="image/*" multiple>
 
                                     <!-- grid thumbnail -->
                                     <div id="attachmentsGrid"
@@ -353,7 +236,7 @@
                     </div>
 
                     {{-- ===== Attachments ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -464,7 +347,8 @@
                 clearFormErrors();
 
                 // === VALIDASI lokasi_display WAJIB ===
-                const lokasiVal = $('#lokasi_display').val().trim();
+                const lokasiVal = $('#lokasi_display').text().trim();
+
                 if (!lokasiVal) {
                     addError($('#lokasi_display'), 'Location & Sub Location wajib dipilih.');
                     toastr.error('Location & Sub Location wajib dipilih.');
@@ -752,7 +636,7 @@
 
                 $('#location_id').val(locVal);
                 $('#sub_location_id').val(subVal);
-                $('#lokasi_display').val(`${locTxt} — ${subTxt}`);
+                $('#lokasi_display').text(`${locTxt} — ${subTxt}`);
                 closeLokasiModal();
             });
 

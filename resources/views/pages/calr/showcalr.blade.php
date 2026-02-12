@@ -22,7 +22,7 @@
         $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
     @endphp
 
-    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
+    <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
 
 

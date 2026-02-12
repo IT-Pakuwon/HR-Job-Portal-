@@ -3,7 +3,7 @@
         $currentPage = Route::currentRouteName() == 'polist.index' ? 'PO' : '';
     @endphp
 
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- ===== Tabs ===== --}}
         <div class="mb-4 flex items-center gap-2">
@@ -281,9 +281,9 @@
                     //     render: (v) => fmtNumber(v)
                     // },
                     {
-                         data: 'grandtotalamt',
-                         className: 'text-right',
-                         render: (v) => fmtNumber(v)
+                        data: 'grandtotalamt',
+                        className: 'text-right',
+                        render: (v) => fmtNumber(v)
                     },
                     {
                         data: 'created_by',

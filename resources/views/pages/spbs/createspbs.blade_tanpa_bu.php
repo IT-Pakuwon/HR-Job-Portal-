@@ -11,13 +11,7 @@
             margin-top: 6px;
         }
     </style>
-    <style>
-        .req::after {
-            content: " *";
-            color: #dc2626;
-            font-weight: 700;
-        }
-    </style>
+ 
     <style>
         /* select2 biar full dan tinggi sama input */
         .select2-container { width: 100% !important; }

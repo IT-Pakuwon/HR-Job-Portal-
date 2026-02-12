@@ -2,14 +2,7 @@
     @php
         $currentPage = Route::currentRouteName() == 'sppjs' ? 'HR' : '';
     @endphp
-     <style>
-        .track-tab{
-            padding:.4rem .75rem;border-radius:.5rem;font-size:.875rem;font-weight:600;color:#4b5563;white-space:nowrap;
-        }
-        .track-tab:hover{background:rgba(0,0,0,.05)}
-        .track-tab.active{background:rgba(79,70,229,.12);color:#4338ca}
-    </style>
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
@@ -144,83 +137,90 @@
             </div>
         </div>
 
-        <!-- ================== TRACKING MODAL ================== -->      
+        <!-- ================== TRACKING MODAL ================== -->
 
         <div id="trackingModal" class="fixed inset-0 z-50 hidden bg-black/50">
-        <div class="flex min-h-screen items-center justify-center p-4">
-            <div class="w-full max-w-7xl max-h-[90vh] overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div
+                    class="max-h-[90vh] w-full max-w-7xl overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
 
-            <!-- Header -->
-            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
-                Tracking Detail <span id="trackDoc" class="font-bold text-indigo-600"></span>
-                </h3>
-                <button type="button" id="closeTracking"
-                class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                ✕
-                </button>
+                    <!-- Header -->
+                    <div
+                        class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
+                            Tracking Detail <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                        </h3>
+                        <button type="button" id="closeTracking"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 px-4 dark:border-gray-700">
+                        <div class="flex gap-2 overflow-x-auto py-2" id="trackTabs">
+                            <button class="track-tab active" data-tab="tab-sppj">SPPJ</button>
+                            <button class="track-tab" data-tab="tab-cs">CS</button>
+                            <button class="track-tab" data-tab="tab-po">PO</button>
+                            <button class="track-tab" data-tab="tab-bast">BAST</button>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="max-h-[calc(90vh-110px)] overflow-y-auto p-4">
+                        <div id="tlLoading"
+                            class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
+                            <span
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                            Loading...
+                        </div>
+
+                        <!-- SPPJ -->
+                        <div id="tab-sppj" class="track-pane">
+                            <div id="sppjHeaderBox"></div>
+                            <div class="mt-3" id="sppjDetailBox"></div>
+                        </div>
+
+                        <!-- CS -->
+                        <div id="tab-cs" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select CS</label>
+                                <select id="selCs"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="csHeaderBox"></div>
+                            <div class="mt-3" id="csDetailBox"></div>
+                        </div>
+
+                        <!-- PO -->
+                        <div id="tab-po" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select PO</label>
+                                <select id="selPo"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="poHeaderBox"></div>
+                            <div class="mt-3" id="poDetailBox"></div>
+                        </div>
+
+                        <!-- BAST -->
+                        <div id="tab-bast" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select BAST</label>
+                                <select id="selBast"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="bastHeaderBox"></div>
+                            <div class="mt-3" id="bastInfoBox"></div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
-
-            <!-- Tabs -->
-            <div class="border-b border-gray-200 px-4 dark:border-gray-700">
-                <div class="flex gap-2 overflow-x-auto py-2" id="trackTabs">
-                <button class="track-tab active" data-tab="tab-sppj">SPPJ</button>
-                <button class="track-tab" data-tab="tab-cs">CS</button>
-                <button class="track-tab" data-tab="tab-po">PO</button>
-                <button class="track-tab" data-tab="tab-bast">BAST</button>
-                </div>
-            </div>
-
-            <!-- Body -->
-            <div class="p-4 overflow-y-auto max-h-[calc(90vh-110px)]">
-                <div id="tlLoading" class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
-                <span class="h-4 w-4 animate-spin inline-block rounded-full border-2 border-gray-300 border-t-transparent"></span>
-                Loading...
-                </div>
-
-                <!-- SPPJ -->
-                <div id="tab-sppj" class="track-pane">
-                <div id="sppjHeaderBox"></div>
-                <div class="mt-3" id="sppjDetailBox"></div>
-                </div>
-
-                <!-- CS -->
-                <div id="tab-cs" class="track-pane hidden">
-                <div class="mb-2">
-                    <label class="text-xs text-gray-500">Select CS</label>
-                    <select id="selCs" class="w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700"></select>
-                </div>
-                <div id="csHeaderBox"></div>
-                <div class="mt-3" id="csDetailBox"></div>
-                </div>
-
-                <!-- PO -->
-                <div id="tab-po" class="track-pane hidden">
-                <div class="mb-2">
-                    <label class="text-xs text-gray-500">Select PO</label>
-                    <select id="selPo" class="w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700"></select>
-                </div>
-                <div id="poHeaderBox"></div>
-                <div class="mt-3" id="poDetailBox"></div>
-                </div>
-
-                <!-- BAST -->
-                <div id="tab-bast" class="track-pane hidden">
-                <div class="mb-2">
-                    <label class="text-xs text-gray-500">Select BAST</label>
-                    <select id="selBast" class="w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700"></select>
-                </div>
-                <div id="bastHeaderBox"></div>
-                <div class="mt-3" id="bastInfoBox"></div>
-                </div>
-
-            </div>
-            </div>
-        </div>
         </div>
 
     </div>
-    <script>      
+    <script>
         function renderTimeline(steps = []) {
             const list = document.getElementById('tlList');
             if (!list) return;
@@ -302,110 +302,131 @@
 
     <script>
         /* =========================
-        MODAL open/close + tabs
-        ========================= */
+                MODAL open/close + tabs
+                ========================= */
         function openTrackingModal(docText) {
-        document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-        document.getElementById('trackingModal').classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
+            document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+            document.getElementById('trackingModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
         }
+
         function closeTrackingModal() {
-        document.getElementById('trackingModal').classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
+            document.getElementById('trackingModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
         }
         document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
         document.getElementById('trackingModal')?.addEventListener('click', (e) => {
-        if (e.target.id === 'trackingModal') closeTrackingModal();
+            if (e.target.id === 'trackingModal') closeTrackingModal();
         });
 
-        (function(){
-        const tabs = document.getElementById('trackTabs');
-        if (!tabs) return;
-        tabs.addEventListener('click', (e) => {
-            const btn = e.target.closest('.track-tab');
-            if (!btn) return;
+        (function() {
+            const tabs = document.getElementById('trackTabs');
+            if (!tabs) return;
+            tabs.addEventListener('click', (e) => {
+                const btn = e.target.closest('.track-tab');
+                if (!btn) return;
 
-            document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
-            btn.classList.add('active');
+                document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+                btn.classList.add('active');
 
-            const target = btn.dataset.tab;
-            document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
-            document.getElementById(target)?.classList.remove('hidden');
-        });
+                const target = btn.dataset.tab;
+                document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+                document.getElementById(target)?.classList.remove('hidden');
+            });
         })();
 
         /* =========================
         helpers
         ========================= */
-        function esc(s){
-        return String(s ?? '')
-            .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
-            .replaceAll('"','&quot;').replaceAll("'","&#039;");
+        function esc(s) {
+            return String(s ?? '')
+                .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;').replaceAll("'", "&#039;");
         }
-        function fmt2(v){
-        if (v === null || v === undefined || v === '') return '';
-        const n = Number(String(v).replace(',', '.'));
-        if (!Number.isFinite(n)) return esc(v);
-        return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        function fmt2(v) {
+            if (v === null || v === undefined || v === '') return '';
+            const n = Number(String(v).replace(',', '.'));
+            if (!Number.isFinite(n)) return esc(v);
+            return n.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
-        function setLoading(on){
-        const el = document.getElementById('tlLoading');
-        if (!el) return;
-        el.classList.toggle('hidden', !on);
-        el.classList.toggle('flex', on);
+
+        function setLoading(on) {
+            const el = document.getElementById('tlLoading');
+            if (!el) return;
+            el.classList.toggle('hidden', !on);
+            el.classList.toggle('flex', on);
         }
-        function resetBoxes(){
-        [
-            'sppjHeaderBox','csHeaderBox','poHeaderBox','bastHeaderBox',
-            'sppjDetailBox','csDetailBox','poDetailBox','bastInfoBox'
-        ].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+
+        function resetBoxes() {
+            [
+                'sppjHeaderBox', 'csHeaderBox', 'poHeaderBox', 'bastHeaderBox',
+                'sppjDetailBox', 'csDetailBox', 'poDetailBox', 'bastInfoBox'
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '';
+            });
         }
 
         /* =========================
         status badge (P/C/R/D)
         ========================= */
-        function statusBadge(st){
-        st = String(st || '').toUpperCase();
-        if (st === 'C') return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Completed</span>`;
-        if (st === 'P') return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">On Progress</span>`;
-        if (st === 'R') return `<span class="inline-block rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Rejected</span>`;
-        if (st === 'D') return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Revise</span>`;
-        if (st === 'H') return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Hold</span>`;
-        return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">${esc(st || '-')}</span>`;
+        function statusBadge(st) {
+            st = String(st || '').toUpperCase();
+            if (st === 'C')
+                return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Completed</span>`;
+            if (st === 'P')
+                return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">On Progress</span>`;
+            if (st === 'R')
+                return `<span class="inline-block rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Rejected</span>`;
+            if (st === 'D')
+                return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Revise</span>`;
+            if (st === 'H')
+                return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Hold</span>`;
+            return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">${esc(st || '-')}</span>`;
         }
 
-        function statusLabel2(st){
+        function statusLabel2(st) {
             st = String(st || '').toUpperCase();
             switch (st) {
-                case 'P': return 'On Progress';
-                case 'C': return 'Completed';
-                case 'R': return 'Rejected';
-                case 'D': return 'Revise';
-                default:  return st || '-';
+                case 'P':
+                    return 'On Progress';
+                case 'C':
+                    return 'Completed';
+                case 'R':
+                    return 'Rejected';
+                case 'D':
+                    return 'Revise';
+                default:
+                    return st || '-';
             }
         }
 
-        function badgeApproved(isApproved){
-        if (isApproved) return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
-        return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
+        function badgeApproved(isApproved) {
+            if (isApproved)
+                return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
+            return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
         }
 
         /* =========================
         render header box
         ========================= */
-        function renderHeader(boxId, header, title){
-        const box = document.getElementById(boxId);
-        if (!box) return;
+        function renderHeader(boxId, header, title) {
+            const box = document.getElementById(boxId);
+            if (!box) return;
 
-        if (!header){
-            box.innerHTML = `
+            if (!header) {
+                box.innerHTML = `
             <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
                 ${esc(title)} not created yet.
             </div>`;
-            return;
-        }
+                return;
+            }
 
-        box.innerHTML = `
+            box.innerHTML = `
             <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
             <div class="flex items-center justify-between gap-3">
                 <div>
@@ -432,9 +453,9 @@
         /* =========================
         render detail tables
         ========================= */
-        function renderDetailSppj(rows){
-        if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
-        const trs = rows.map(r => `
+        function renderDetailSppj(rows) {
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
             <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
@@ -444,7 +465,7 @@
             <td class="px-3 py-2">${statusBadge(r.ordered)}</td>
             </tr>
         `).join('');
-        return `
+            return `
             <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700/30">
@@ -462,9 +483,9 @@
             </div>`;
         }
 
-        function renderDetailCs(rows){
-        if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
-        const trs = rows.map(r => `
+        function renderDetailCs(rows) {
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
             <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
@@ -474,7 +495,7 @@
             <td class="px-3 py-2 text-right">${fmt2(r.vendorprice_selected)}</td>
             </tr>
         `).join('');
-        return `
+            return `
             <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700/30">
@@ -492,9 +513,9 @@
             </div>`;
         }
 
-        function renderDetailPo(rows){
-        if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
-        const trs = rows.map(r => `
+        function renderDetailPo(rows) {
+            if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
             <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
@@ -504,7 +525,7 @@
             <td class="px-3 py-2 text-right">${fmt2(r.totalcost)}</td>
             </tr>
         `).join('');
-        return `
+            return `
             <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 dark:bg-gray-700/30">
@@ -522,7 +543,7 @@
             </div>`;
         }
 
-        function renderBastExtra(extra){
+        function renderBastExtra(extra) {
             if (!extra) {
                 return `<div class="text-sm text-gray-500">No detail.</div>`;
             }
@@ -568,131 +589,137 @@
                 </div>
                 </div>
             `;
-            }
+        }
 
 
         /* =========================
         dropdown fill + ajax item fetch
         ========================= */
-        function fillSelect(selectId, items, selectedDoc){
-        const sel = document.getElementById(selectId);
-        if (!sel) return;
+        function fillSelect(selectId, items, selectedDoc) {
+            const sel = document.getElementById(selectId);
+            if (!sel) return;
 
-        sel.innerHTML = '';
-        if (!items || items.length === 0){
-            sel.innerHTML = `<option value="">-- none --</option>`;
-            return;
+            sel.innerHTML = '';
+            if (!items || items.length === 0) {
+                sel.innerHTML = `<option value="">-- none --</option>`;
+                return;
+            }
+
+            items.forEach(it => {
+                const opt = document.createElement('option');
+                opt.value = it.doc;
+                opt.textContent = `${it.doc}` +
+                    (it.date ? ` | ${it.date}` : '') +
+                    (it.status ? ` | ${statusLabel2(it.status)}` : '');
+                if (String(it.doc) === String(selectedDoc)) opt.selected = true;
+                sel.appendChild(opt);
+            });
         }
 
-        items.forEach(it => {
-            const opt = document.createElement('option');
-            opt.value = it.doc;
-            opt.textContent = `${it.doc}`
-                + (it.date ? ` | ${it.date}` : '')
-                + (it.status ? ` | ${statusLabel2(it.status)}` : '');
-            if (String(it.doc) === String(selectedDoc)) opt.selected = true;
-            sel.appendChild(opt);
-        });
-        }
-
-        function fetchItem(eid, type, doc){
-        return $.ajax({
-            url: `/sppjs/${eid}/tracking-detail/item`,
-            method: 'GET',
-            dataType: 'json',
-            data: { type, doc }
-        });
+        function fetchItem(eid, type, doc) {
+            return $.ajax({
+                url: `/sppjs/${eid}/tracking-detail/item`,
+                method: 'GET',
+                dataType: 'json',
+                data: {
+                    type,
+                    doc
+                }
+            });
         }
 
         /* =========================
         change handlers (delegated)
         ========================= */
-        $(document).off('change', '#selCs').on('change', '#selCs', function(){
-        const eid = window.__trackEid;
-        const doc = this.value;
-        if (!eid || !doc) return;
+        $(document).off('change', '#selCs').on('change', '#selCs', function() {
+            const eid = window.__trackEid;
+            const doc = this.value;
+            if (!eid || !doc) return;
 
-        fetchItem(eid,'cs',doc).done(res=>{
-            renderHeader('csHeaderBox', res.header, 'CS');
-            document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.details || []);
-        });
-        });
-
-        $(document).off('change', '#selPo').on('change', '#selPo', function(){
-        const eid = window.__trackEid;
-        const doc = this.value;
-        if (!eid || !doc) return;
-
-        fetchItem(eid,'po',doc).done(res=>{
-            renderHeader('poHeaderBox', res.header, 'PO');
-            document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.details || []);
-        });
+            fetchItem(eid, 'cs', doc).done(res => {
+                renderHeader('csHeaderBox', res.header, 'CS');
+                document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.details || []);
+            });
         });
 
-        $(document).off('change', '#selBast').on('change', '#selBast', function(){
-        const eid = window.__trackEid;
-        const doc = this.value;
-        if (!eid || !doc) return;
+        $(document).off('change', '#selPo').on('change', '#selPo', function() {
+            const eid = window.__trackEid;
+            const doc = this.value;
+            if (!eid || !doc) return;
 
-        fetchItem(eid,'bast',doc).done(res=>{            
-            renderHeader('bastHeaderBox', res.header, 'BAST');
-            document.getElementById('bastInfoBox').innerHTML = renderBastExtra(res.extra);
+            fetchItem(eid, 'po', doc).done(res => {
+                renderHeader('poHeaderBox', res.header, 'PO');
+                document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.details || []);
+            });
         });
+
+        $(document).off('change', '#selBast').on('change', '#selBast', function() {
+            const eid = window.__trackEid;
+            const doc = this.value;
+            if (!eid || !doc) return;
+
+            fetchItem(eid, 'bast', doc).done(res => {
+                renderHeader('bastHeaderBox', res.header, 'BAST');
+                document.getElementById('bastInfoBox').innerHTML = renderBastExtra(res.extra);
+            });
         });
 
         /* =========================
         click tracking button
         ========================= */
         $(document).off('click', '.tracking-btn').on('click', '.tracking-btn', function() {
-        const eid = $(this).data('id');
-        const doc = $(this).data('doc') || '';
-        window.__trackEid = eid;
+            const eid = $(this).data('id');
+            const doc = $(this).data('doc') || '';
+            window.__trackEid = eid;
 
-        // reset tab to SPPJ
-        document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
-        document.querySelector('.track-tab[data-tab="tab-sppj"]')?.classList.add('active');
-        document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
-        document.getElementById('tab-sppj')?.classList.remove('hidden');
+            // reset tab to SPPJ
+            document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+            document.querySelector('.track-tab[data-tab="tab-sppj"]')?.classList.add('active');
+            document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+            document.getElementById('tab-sppj')?.classList.remove('hidden');
 
-        resetBoxes();
-        openTrackingModal(doc);
-        setLoading(true);
+            resetBoxes();
+            openTrackingModal(doc);
+            setLoading(true);
 
-        $.ajax({
-            url: `/sppjs/${eid}/tracking-detail`,
-            method: 'GET',
-            dataType: 'json',
-            success: function(res){
-            setLoading(false);
+            $.ajax({
+                url: `/sppjs/${eid}/tracking-detail`,
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    setLoading(false);
 
-            // headers
-            renderHeader('sppjHeaderBox', res.sppj?.header, 'SPPJ');
-            renderHeader('csHeaderBox',   res.cs?.header,   'CS');
-            renderHeader('poHeaderBox',   res.po?.header,   'PO');
-            renderHeader('bastHeaderBox', res.bast?.header, 'BAST');
+                    // headers
+                    renderHeader('sppjHeaderBox', res.sppj?.header, 'SPPJ');
+                    renderHeader('csHeaderBox', res.cs?.header, 'CS');
+                    renderHeader('poHeaderBox', res.po?.header, 'PO');
+                    renderHeader('bastHeaderBox', res.bast?.header, 'BAST');
 
-            // details
-            document.getElementById('sppjDetailBox').innerHTML = renderDetailSppj(res.sppj?.details || []);
-            document.getElementById('csDetailBox').innerHTML   = renderDetailCs(res.cs?.details || []);
-            document.getElementById('poDetailBox').innerHTML   = renderDetailPo(res.po?.details || []);
-            document.getElementById('bastInfoBox').innerHTML = renderBastExtra(res.bast?.extra);
+                    // details
+                    document.getElementById('sppjDetailBox').innerHTML = renderDetailSppj(res.sppj
+                        ?.details || []);
+                    document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.cs?.details ||
+                        []);
+                    document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.po?.details ||
+                        []);
+                    document.getElementById('bastInfoBox').innerHTML = renderBastExtra(res.bast?.extra);
 
 
-            // dropdown lists
-            fillSelect('selCs',   res.lists?.cs   || [], res.selected?.cs_no   || '');
-            fillSelect('selPo',   res.lists?.po   || [], res.selected?.po_no   || '');
-            fillSelect('selBast', res.lists?.bast || [], res.selected?.bast_no || '');
-            },
-            error: function(xhr){
-            setLoading(false);
-            document.getElementById('sppjHeaderBox').innerHTML =
-                `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    // dropdown lists
+                    fillSelect('selCs', res.lists?.cs || [], res.selected?.cs_no || '');
+                    fillSelect('selPo', res.lists?.po || [], res.selected?.po_no || '');
+                    fillSelect('selBast', res.lists?.bast || [], res.selected?.bast_no || '');
+                },
+                error: function(xhr) {
+                    setLoading(false);
+                    document.getElementById('sppjHeaderBox').innerHTML =
+                        `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 Failed to load tracking (HTTP ${xhr.status || ''})
                 </div>`;
-            }
+                }
+            });
         });
-        });
-        </script>
+    </script>
 
 
     <script>

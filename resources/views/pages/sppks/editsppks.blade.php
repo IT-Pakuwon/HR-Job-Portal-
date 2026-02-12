@@ -1,23 +1,6 @@
 <x-app-layout>
-    <style>
-        .is-invalid {
-            border-color: #ef4444 !important;
-        }
 
-        .error-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-    </style>
-    <style>
-        .req::after {
-            content: " *";
-            color: #dc2626;
-            font-weight: 700;
-        }
-    </style>
+
     <style>
         /* Samakan tinggi Select2 dengan input Tailwind (h-10 / p-2.5) */
         .select2-container .select2-selection--single {
@@ -68,7 +51,7 @@
             /* gray-200 */
         }
     </style>
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
 

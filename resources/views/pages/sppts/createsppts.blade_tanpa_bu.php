@@ -14,13 +14,7 @@
             margin-top: 6px;
         }
     </style>
-    <style>
-        .req::after {
-            content: " *";
-            color: #dc2626;
-            font-weight: 700;
-        }
-    </style>
+ 
 
     <style>
         /* Samakan tinggi Select2 tenant & pic ≈ input p-2.5 (~40px) */

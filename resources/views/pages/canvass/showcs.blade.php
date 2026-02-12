@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto px-8 py-4 sm:px-8 lg:px-8">
+    <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
             <div class="flex gap-3">
                 <button id="approveBtn"
@@ -1931,10 +1931,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                            target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                            class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                            ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                        </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
 
             {{-- Receipt Jobs --}}
@@ -442,13 +442,13 @@
             // function renderPlusCreate(row) {
             //     const url = `{{ route('receipt.create') }}` + `?ponbr=${encodeURIComponent(row.ponbr_eid ?? '')}`;
             //     return `<a href="${url}" class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
-            //         <i class="fas fa-plus"></i></a>`;
+        //         <i class="fas fa-plus"></i></a>`;
             // }
 
             function renderPlusCreate(row) {
                 const base = `{{ route('receipt.create') }}`;
                 const ponbr = encodeURIComponent(row.ponbr_eid ?? '');
-                const cpny  = encodeURIComponent(row.cpny_id ?? '');
+                const cpny = encodeURIComponent(row.cpny_id ?? '');
 
                 const url = `${base}?ponbr=${ponbr}&cpny_id=${cpny}`;
 

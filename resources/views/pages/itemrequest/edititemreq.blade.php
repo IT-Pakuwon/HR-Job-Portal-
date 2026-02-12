@@ -83,12 +83,12 @@
         }
     </style>
 
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <form id="itemreqForm" class="flex flex-col gap-6" enctype="multipart/form-data">
             @csrf
 
             {{-- HEADER --}}
-            <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+            <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                 <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-700">
                     <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
                         Edit Item Request - {{ $itemReq->irid }}
@@ -162,7 +162,7 @@
             </div>
 
             {{-- ATTACHMENTS --}}
-            <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+            <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                 <details class="group" open>
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">

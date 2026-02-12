@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full px-8 py-4 sm:px-6 lg:px-8">
+    <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
@@ -103,7 +103,7 @@
                             <th scope="col" class="px-6 py-3 font-medium">
                                 Company
                             </th>
-                             <th scope="col" class="px-6 py-3 font-medium">
+                            <th scope="col" class="px-6 py-3 font-medium">
                                 Division
                             </th>
                             <th scope="col" class="px-6 py-3 font-medium">
