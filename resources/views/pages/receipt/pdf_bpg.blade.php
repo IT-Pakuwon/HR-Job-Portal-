@@ -108,8 +108,19 @@
                     </tr>
                 @endforeach
                 <tr>
-                    <td colspan="6" style="border:1px solid #000;height:25mm;">&nbsp;</td>
-                </tr>
+                    <td colspan="6"
+                        style="
+            border:1px solid #000;
+            padding:6px;
+            white-space:normal;
+            word-wrap:break-word;
+            overflow-wrap:break-word;
+            text-align:left;
+        ">
+                        <strong>Note :</strong><br>
+                        {{ $rcp->receiptnote ?? '-' }}
+                    </td>
+
             </tbody>
         </table>
 

@@ -57,13 +57,13 @@
                                 <td>{{ $spb->spbid }}</td>
                             </tr>
                         @endif
-                        @if (!empty($iss->issuenote))
+                        {{-- @if (!empty($iss->issuenote))
                             <tr>
                                 <td>Note</td>
                                 <td>:</td>
                                 <td>{{ $iss->issuenote }}</td>
                             </tr>
-                        @endif
+                        @endif --}}
                     </table>
                 </td>
 
@@ -123,6 +123,22 @@
                             {{ $nf2($item->issue_qty ?? ($item->qty ?? 0)) }}</td>
                     </tr>
                 @endforeach
+
+                <tr>
+                    <td colspan="6"
+                        style="
+            border:1px solid #000;
+            padding:6px;
+            min-height:40px;
+            word-wrap:break-word;
+            overflow-wrap:break-word;
+            white-space:normal;
+        ">
+                        <strong>Note :</strong><br>
+                        {{ $iss->issuenote ?? '-' }}
+                    </td>
+                </tr>
+
 
                 {{-- Baris kosong untuk ruang tanda tangan jika item sedikit --}}
                 {{-- @for ($k = count($issdetails); $k < max(8, count($issdetails)); $k++)
