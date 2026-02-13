@@ -473,64 +473,65 @@
                                     if (data === 'D') {
                                         statusText = "Revise";
                                         badgeClass =
-                                            "w-32 bg-gray-300/30 dark:bg-gray-300 text-gray-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
+                                            "w-32 bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 focus:outline-none pointer-events-none border border-amber-600/40 font-semibold px-4 py-2 text-center rounded";
                                     } else if (data === 'P') {
                                         statusText = "On Progress";
                                         badgeClass =
-                                            "w-32 bg-blue-300/30 dark:bg-blue-300 text-blue-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'C') {
-                                        statusText = "Completed";
-                                        badgeClass =
-                                            "w-32 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'X') {
-                                        statusText = "Cancel";
-                                        badgeClass =
-                                            "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'R') {
-                                        statusText = "Rejected";
-                                        badgeClass =
-                                            "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else {
-                                        badgeClass =
-                                            "  w-full max-w-32 bg-gray-300/30  bg-gray-300  text-gray-600 flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
+                                            "w-32 bg-orange-200/60 text-orange-800 dark:bg-orange-300/40 dark:text-orange-900 focus:outline-none pointer-events-none border border-orange-600/40 font-semibold px-4 py-2 text-center rounded";
                                     }
-                                    return `<span class="${badgeClass}">${statusText}</span>`;
+                                } else if (data === 'C') {
+                                    statusText = "Completed";
+                                    badgeClass =
+                                        "w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 focus:outline-none pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded";
+                                } else if (data === 'X') {
+                                    statusText = "Cancel";
+                                    badgeClass =
+                                        "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 focus:outline-none pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
+                                } else if (data === 'R') {
+                                    statusText = "Rejected";
+                                    badgeClass =
+                                        "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 focus:outline-none pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
+                                } else {
+                                    badgeClass =
+                                        "w-32 bg-gray-200/60 text-gray-700 dark:bg-gray-300/40 dark:text-gray-900 focus:outline-none pointer-events-none border border-gray-500/40 font-semibold px-4 py-2 text-center rounded";
                                 }
                             }
-                        ]
-                    });
+                            return `<span class="${badgeClass}">${statusText}</span>`;
+                        }
+                    }]
+                });
 
-                    // Event listener untuk klik pada baris grup (collapse/expand) untuk changestosTable
-                    $('#changestosTable tbody').on('click', 'tr.group-row', function() {
-                        let groupName = $(this).data('group');
-                        let iconElement = $(this).find('i');
+                // Event listener untuk klik pada baris grup (collapse/expand) untuk changestosTable
+                $('#changestosTable tbody').on('click', 'tr.group-row', function() {
+                    let groupName = $(this).data('group');
+                    let iconElement = $(this).find('i');
 
-                        changestosTable.rows().every(function() {
-                            if (this.data().cpnyid ===
-                                groupName
-                            ) { // Sesuaikan dengan nama properti data yang digunakan untuk grouping
-                                $(this.node()).toggleClass('collapsed-group-row');
-                            }
-                        });
-
-                        // Mengganti ikon plus/minus
-                        if (iconElement.hasClass('fa-plus-circle')) {
-                            iconElement.removeClass('fa-plus-circle').addClass('fa-minus-circle');
-                        } else {
-                            iconElement.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    changestosTable.rows().every(function() {
+                        if (this.data().cpnyid ===
+                            groupName
+                        ) { // Sesuaikan dengan nama properti data yang digunakan untuk grouping
+                            $(this.node()).toggleClass('collapsed-group-row');
                         }
                     });
 
+                    // Mengganti ikon plus/minus
+                    if (iconElement.hasClass('fa-plus-circle')) {
+                        iconElement.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                    } else {
+                        iconElement.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    }
+                });
 
-                    // Filter status akan memfilter data di changestosTable
-                    $('.status-filter').on('click', function(e) {
-                        e.preventDefault();
-                        let selectedStatus = $(this).data('status');
-                        let newUrl = "{{ route('changestos.json') }}";
-                        newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
-                        console.log("Loading changestosTable with URL:", newUrl);
-                        changestosTable.ajax.url(newUrl).load();
-                    });
+
+                // Filter status akan memfilter data di changestosTable
+                $('.status-filter').on('click', function(e) {
+                e.preventDefault();
+                let selectedStatus = $(this).data('status');
+                let newUrl = "{{ route('changestos.json') }}";
+                newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
+                console.log("Loading changestosTable with URL:", newUrl);
+                changestosTable.ajax.url(newUrl).load();
+                });
                 });
                 // Toggle .active class and remember selected status
                 const statusFilters = document.querySelectorAll('.status-filter');

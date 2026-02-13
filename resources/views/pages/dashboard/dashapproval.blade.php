@@ -213,82 +213,83 @@
 
             <script>
                 $(document).ready(function() {
-                    let table = $('#agendasxTable').DataTable({
-                        ajax: "{{ route('dashapproval.json') }}",
-                        processing: true,
-                        serverSide: false,
-                        responsive: true,
-                        order: [
-                            [0, 'desc']
-                        ],
-                        columns: [{
-                                data: null,
-                                defaultContent: ''
-                            }, {
-                                data: 'id',
-                                render: function(data, type, row) {
-                                    let url = `${window.location.origin}${row.url}/${row.id}`;
-                                    let buttonClass =
-                                        'inline-flex justify-center items-center w-[120px] px-3 py-1.5  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
-                                    let buttonText = row.docid;
+                let table = $('#agendasxTable').DataTable({
+                    ajax: "{{ route('dashapproval.json') }}",
+                    processing: true,
+                    serverSide: false,
+                    responsive: true,
+                    order: [
+                        [0, 'desc']
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                let url = `${window.location.origin}${row.url}/${row.id}`;
+                                let buttonClass =
+                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
+                                let buttonText = row.docid;
 
 
-                                    return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
-                                }
-                            },
-                            {
-                                data: 'docdate',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'cpnyid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'departementid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'infohd',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'status',
-                                className: 'no-pointer',
-                                render: function(data) {
-                                    let statusText = "";
-                                    let badgeClass = "";
-
-                                    if (data === 'D') {
-                                        statusText = "Revise";
-                                        badgeClass =
-                                            "w-32 bg-gray-300/30 dark:bg-gray-300 text-gray-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'P') {
-                                        statusText = "On Progress";
-                                        badgeClass =
-                                            "w-32 bg-blue-300/30 dark:bg-blue-300 text-blue-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'C') {
-                                        statusText = "Completed";
-                                        badgeClass =
-                                            "w-32 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'X') {
-                                        statusText = "Cancel";
-                                        badgeClass =
-                                            "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'R') {
-                                        statusText = "Rejected";
-                                        badgeClass =
-                                            "w-32 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else {
-                                        statusClass =
-                                            "  w-full max-w-32 bg-gray-300/30  bg-gray-300  text-gray-600 flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    }
-                                    return `<span class="${badgeClass}">${statusText}</span>`;
-                                }
-
+                                return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
                             }
-                        ]
-                    });
+                        },
+                        {
+                            data: 'docdate',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpnyid',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'departementid',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'infohd',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                let statusText = "";
+                                let badgeClass = "";
+
+                                if (data === 'D') {
+                                    statusText = "Revise";
+                                    badgeClass =
+                                        "w-32 bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 focus:outline-none pointer-events-none border border-amber-600/40 font-semibold px-4 py-2 text-center rounded";
+                                } else if (data === 'P') {
+                                    statusText = "On Progress";
+                                    badgeClass =
+                                        "w-32 bg-orange-200/60 text-orange-800 dark:bg-orange-300/40 dark:text-orange-900 focus:outline-none pointer-events-none border border-orange-600/40 font-semibold px-4 py-2 text-center rounded";
+                                }
+                            } else if (data === 'C') {
+                                statusText = "Completed";
+                                badgeClass =
+                                    "w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 focus:outline-none pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded";
+                            } else if (data === 'X') {
+                                statusText = "Cancel";
+                                badgeClass =
+                                    "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 focus:outline-none pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
+                            } else if (data === 'R') {
+                                statusText = "Rejected";
+                                badgeClass =
+                                    "w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 focus:outline-none pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded";
+                            } else {
+                                statusClass =
+                                    "w-32 bg-gray-200/60 text-gray-700 dark:bg-gray-300/40 dark:text-gray-900 focus:outline-none pointer-events-none border border-gray-500/40 font-semibold px-4 py-2 text-center rounded";
+                            }
+                        }
+                        return `<span class="${badgeClass}">${statusText}</span>`;
+                    }
+
+                }]
+                });
                 });
             </script>
         </div>

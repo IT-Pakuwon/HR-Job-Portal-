@@ -402,8 +402,8 @@
 
     <script>
         /* =========================================================
-            TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-            ========================================================= */
+                                        TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                        ========================================================= */
 
         (function() {
             // ---------- Modal open/close ----------
@@ -569,7 +569,7 @@
             // ---------- Detail renderers ----------
             function renderDetailSppb(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -599,7 +599,7 @@
 
             function renderDetailCs(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
 
                 const trs = rows.map(r => `
                 <tr class="border-b dark:border-gray-700">
@@ -634,7 +634,7 @@
 
             function renderDetailPo(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -664,7 +664,7 @@
 
             function renderDetailReceipt(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
-                return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
                 const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
@@ -1036,28 +1036,28 @@
                             const map = {
                                 'D': {
                                     t: 'Revise',
-                                    c: 'bg-gray-300/30 text-gray-600'
+                                    c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
                                 },
                                 'P': {
                                     t: 'On Progress',
-                                    c: 'bg-blue-300/30 text-blue-600'
+                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
                                 },
                                 'C': {
                                     t: 'Completed',
-                                    c: 'bg-green-300/30 text-green-600'
+                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
                                 },
                                 'X': {
                                     t: 'Cancel',
-                                    c: 'bg-red-300/30 text-red-600'
+                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
                                 },
                                 'R': {
                                     t: 'Rejected',
-                                    c: 'bg-red-300/30 text-red-600'
+                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
                                 },
                             };
                             const it = map[data] || {
                                 t: data || '-',
-                                c: 'bg-gray-300/30 text-gray-600'
+                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
                             };
                             return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                         }

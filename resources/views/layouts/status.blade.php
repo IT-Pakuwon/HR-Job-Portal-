@@ -1,115 +1,268 @@
     <style>
-        /* Active / Selected state */
+        /* =====================================================
+   STATUS FILTER — DEFAULT SOFT COLOR
+===================================================== */
+
+        .status-filter[data-status="ALL"] .status-card {
+            background-color: rgba(229, 231, 235, .35);
+            border-color: rgba(31, 41, 55, .35);
+            color: rgb(75 85 99);
+        }
+
+        /* ALL */
+        .status-filter[data-status=""] .status-card {
+            background-color: rgba(229, 231, 235, .35);
+            border-color: rgba(31, 41, 55, .35);
+            color: rgb(75 85 99);
+        }
+
+        /* ON PROGRESS 🟧 */
+        .status-filter[data-status="P"] .status-card {
+            background-color: rgba(254, 215, 170, .25);
+            border-color: rgba(194, 65, 12, .35);
+            color: rgb(194 65 12);
+        }
+
+        /* REJECT 🟥 */
+        .status-filter[data-status="R"] .status-card {
+            background-color: rgba(254, 202, 202, .25);
+            border-color: rgba(185, 28, 28, .35);
+            color: rgb(185 28 28);
+        }
+
+
+        /* HOLD / DRAFT */
+        .status-filter[data-status="H,D"] .status-card,
+        .status-filter[data-status="D"] .status-card {
+            background-color: rgba(254, 243, 199, .35);
+            /* amber-100 */
+            border-color: rgba(180, 83, 9, .35);
+            /* amber-700 soft */
+            color: rgb(180 83 9);
+        }
+
+        /* COMPLETED 🟩 */
+        .status-filter[data-status="C"] .status-card {
+            background-color: rgba(187, 247, 208, .25);
+            border-color: rgba(21, 128, 61, .35);
+            color: rgb(21 128 61);
+        }
+
+        /* TRACK 🟪 */
+        .status-filter[data-status="TRACK"] .status-card {
+            background-color: rgba(233, 213, 255, .25);
+            border-color: rgba(126, 34, 206, .35);
+            color: rgb(126 34 206);
+        }
+
+        /* UNREAD 🔵 */
+        .status-filter[data-status="is_read_N"] .status-card {
+            background-color: rgba(191, 219, 254, .25);
+            border-color: rgba(29, 78, 216, .35);
+            color: rgb(29 78 216);
+        }
+
+        /* READ ⚪ */
+        .status-filter[data-status="is_read_Y"] .status-card {
+            background-color: rgba(243, 244, 246, .35);
+            border-color: rgba(107, 114, 128, .35);
+            color: rgb(75 85 99);
+        }
+
+        /* =====================================================
+   STATUS FILTER — COLOR SYSTEM
+===================================================== */
+
         .status-filter.active .status-card {
             transform: scale(1.02);
         }
 
-        /* Receipt Jobs */
-        .scope-filter[data-scope="calrjobs"].active .scope-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12);
-            /* orange-700 */
-            color: rgb(194 65 12);
-        }
-
-        .status-filter[data-status=""].active .status-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12)
-        }
-
-        .status-filter[data-status="P"].active .status-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-        }
-
-        .status-filter[data-status="R"].active .status-card {
-            background-color: rgb(254 202 202);
-            /* red-200 */
-            border-color: rgb(185 28 28);
-            /* red-700 */
-        }
-
-        .status-filter[data-status="H,D"].active .status-card {
+        /* ALL */
+        .status-filter[data-status="ALL"].active .status-card {
             background-color: rgb(229 231 235);
-            /* gray-200 */
             border-color: rgb(31 41 55);
-            /* gray-700 */
-        }
-
-        .status-filter[data-status="C"].active .status-card {
-            background-color: rgb(187 247 208);
-            /* green-200 */
-            border-color: rgb(21 128 61);
-            /* green-700 */
-        }
-
-        .status-filter[data-status="TRACK"].active .status-card {
-            background-color: rgb(233 213 255);
-            /* purple-200 */
-            border-color: rgb(126 34 206);
-            /* purple-700 */
-        }
-
-        .status-filter[data-status="is_read_N"].active .status-card,
-        .status-filter[data-status="P"].active .status-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
-        }
-
-        .status-filter[data-status="is_read_Y"].active .status-card,
-        .status-filter[data-status="D"].active .status-card {
-            background-color: rgb(229 231 235);
-            /* gray-200 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
             color: rgb(31 41 55);
         }
 
-        /* Active / Selected state */
+        /* ALL */
+        .status-filter[data-status=""].active .status-card {
+            background-color: rgb(229 231 235);
+            border-color: rgb(31 41 55);
+            color: rgb(31 41 55);
+        }
+
+        /* ON PROGRESS 🟧 */
+        .status-filter[data-status="P"].active .status-card {
+            background-color: rgb(254 215 170);
+            border-color: rgb(194 65 12);
+            color: rgb(194 65 12);
+        }
+
+        /* REJECT 🟥 */
+        .status-filter[data-status="R"].active .status-card {
+            background-color: rgb(254 202 202);
+            border-color: rgb(185 28 28);
+            color: rgb(185 28 28);
+        }
+
+        /* HOLD / DRAFT ⚪ */
+        .status-filter[data-status="H,D"].active .status-card,
+        .status-filter[data-status="D"].active .status-card {
+            background-color: rgb(251 191 36);
+            /* amber-400 */
+            border-color: rgb(180 83 9);
+            /* amber-700 */
+            color: rgb(120 53 15);
+            /* amber-900 text */
+        }
+
+        /* COMPLETED 🟩 */
+        .status-filter[data-status="C"].active .status-card {
+            background-color: rgb(187 247 208);
+            border-color: rgb(21 128 61);
+            color: rgb(21 128 61);
+        }
+
+        /* TRACK 🟪 */
+        .status-filter[data-status="TRACK"].active .status-card {
+            background-color: rgb(233 213 255);
+            border-color: rgb(126 34 206);
+            color: rgb(126 34 206);
+        }
+
+        /* UNREAD 🔵 */
+        .status-filter[data-status="is_read_N"].active .status-card {
+            background-color: rgb(191 219 254);
+            border-color: rgb(29 78 216);
+            color: rgb(29 78 216);
+        }
+
+        /* READ ⚪ */
+        .status-filter[data-status="is_read_Y"].active .status-card {
+            background-color: rgb(243 244 246);
+            border-color: rgb(107 114 128);
+            color: rgb(75 85 99);
+        }
+
+        /* =====================================================
+   SCOPE FILTER — DEFAULT SOFT COLOR (NOT ACTIVE)
+===================================================== */
+
+        /* 🟧 JOBS / QUEUE */
+        .scope-filter[data-scope="calrjobs"] .scope-card,
+        .scope-filter[data-scope="bastjobs"] .scope-card,
+        .scope-filter[data-scope="receiptjobs"] .scope-card,
+        .scope-filter[data-scope="issuejobsnew"] .scope-card,
+        .scope-filter[data-scope="rfcajobs"] .scope-card,
+        .scope-filter[data-scope="my"] .scope-card,
+        .scope-filter[data-scope="partial"] .scope-card,
+        .scope-filter[data-scope="sppbprogress"] .scope-card,
+        .scope-filter[data-scope="treasurypayment"] .scope-card {
+            background-color: rgba(254, 215, 170, .25);
+            border-color: rgba(194, 65, 12, .35);
+            color: rgb(194 65 12);
+        }
+
+        /* 🔵 ACTIVE FLOW */
+        .scope-filter[data-scope="onprogress"] .scope-card,
+        .scope-filter[data-scope="hold"] .scope-card,
+        .scope-filter[data-scope="financereceived"] .scope-card,
+        .scope-filter[data-scope="purchase"] .scope-card {
+            background-color: rgba(191, 219, 254, .25);
+            border-color: rgba(29, 78, 216, .35);
+            color: rgb(29 78 216);
+        }
+
+        /* 🟩 COMPLETED */
+        .scope-filter[data-scope="completed"] .scope-card {
+            background-color: rgba(187, 247, 208, .25);
+            border-color: rgba(21, 128, 61, .35);
+            color: rgb(21 128 61);
+        }
+
+        /* 🟪 TRACKING */
+        .scope-filter[data-scope="issuejobs"] .scope-card,
+        .scope-filter[data-scope="tracking"] .scope-card {
+            background-color: rgba(233, 213, 255, .25);
+            border-color: rgba(126, 34, 206, .35);
+            color: rgb(126 34 206);
+        }
+
+        /* 🟥 ISSUE PROGRESS */
+        .scope-filter[data-scope="issueprogress"] .scope-card {
+            background-color: rgba(254, 202, 202, .25);
+            border-color: rgba(185, 28, 28, .35);
+            color: rgb(185 28 28);
+        }
+
+        /* ⚪ NEUTRAL */
+        .scope-filter[data-scope="all"] .scope-card,
+        .scope-filter[data-scope="reuse"] .scope-card {
+            background-color: rgba(229, 231, 235, .35);
+            border-color: rgba(31, 41, 55, .35);
+            color: rgb(75 85 99);
+        }
+
+        /* =====================================================
+   SCOPE FILTER — SAME VIBE AS STATUS
+===================================================== */
+
         .scope-filter.active .scope-card {
             transform: scale(1.02);
         }
 
-        /* Receipt Jobs */
-        .scope-filter[data-scope="bastjobs"].active .scope-card {
+        /* 🟧 JOBS / QUEUE */
+        .scope-filter[data-scope="calrjobs"].active .scope-card,
+        .scope-filter[data-scope="bastjobs"].active .scope-card,
+        .scope-filter[data-scope="receiptjobs"].active .scope-card,
+        .scope-filter[data-scope="issuejobsnew"].active .scope-card,
+        .scope-filter[data-scope="rfcajobs"].active .scope-card,
+        .scope-filter[data-scope="my"].active .scope-card,
+        .scope-filter[data-scope="partial"].active .scope-card,
+        .scope-filter[data-scope="sppbprogress"].active .scope-card,
+        .scope-filter[data-scope="treasurypayment"].active .scope-card {
             background-color: rgb(254 215 170);
-            /* orange-200 */
             border-color: rgb(194 65 12);
-            /* orange-700 */
             color: rgb(194 65 12);
         }
 
-        /* On Progress */
-        .scope-filter[data-scope="onprogress"].active .scope-card {
+        /* 🔵 ACTIVE FLOW */
+        .scope-filter[data-scope="onprogress"].active .scope-card,
+        .scope-filter[data-scope="hold"].active .scope-card,
+        .scope-filter[data-scope="financereceived"].active .scope-card,
+        .scope-filter[data-scope="purchase"].active .scope-card {
             background-color: rgb(191 219 254);
-            /* blue-200 */
             border-color: rgb(29 78 216);
-            /* blue-700 */
             color: rgb(29 78 216);
         }
 
-        /* Completed */
+        /* 🟩 COMPLETED */
         .scope-filter[data-scope="completed"].active .scope-card {
             background-color: rgb(187 247 208);
-            /* green-200 */
             border-color: rgb(21 128 61);
-            /* green-700 */
             color: rgb(21 128 61);
         }
 
-        /* All */
-        .scope-filter[data-scope="all"].active .scope-card {
+        /* 🟪 TRACKING / ISSUE JOBS */
+        .scope-filter[data-scope="issuejobs"].active .scope-card,
+        .scope-filter[data-scope="tracking"].active .scope-card {
+            background-color: rgb(233 213 255);
+            border-color: rgb(126 34 206);
+            color: rgb(126 34 206);
+        }
+
+        /* 🟥 ISSUE PROGRESS */
+        .scope-filter[data-scope="issueprogress"].active .scope-card {
+            background-color: rgb(254 202 202);
+            border-color: rgb(185 28 28);
+            color: rgb(185 28 28);
+        }
+
+        /* ⚪ NEUTRAL */
+        .scope-filter[data-scope="all"].active .scope-card,
+        .scope-filter[data-scope="reuse"].active .scope-card {
             background-color: rgb(229 231 235);
-            /* gray-200 */
             border-color: rgb(31 41 55);
-            /* gray-700 */
             color: rgb(31 41 55);
         }
 
@@ -156,167 +309,6 @@
             border-color: rgb(15 23 42);
             /* slate-900 */
             color: rgb(15 23 42);
-        }
-
-        .status-filter.active .status-card {
-            transform: scale(1.02);
-        }
-
-        .status-filter[data-filter="all"].active .status-card {
-            background-color: rgb(254 215 170);
-            border-color: rgb(194 65 12);
-        }
-
-        .status-filter[data-filter="jobs"].active .status-card {
-            background-color: rgb(191 219 254);
-            border-color: rgb(29 78 216);
-        }
-
-        .status-filter[data-filter="done"].active .status-card {
-            background-color: rgb(187 247 208);
-            border-color: rgb(21 128 61);
-        }
-
-        .status-filter[data-filter="inv"].active .status-card {
-            background-color: rgb(224 231 255);
-            border-color: rgb(67 56 202);
-        }
-
-        /* Issue Jobs */
-        .scope-filter[data-scope="issuejobs"].active .scope-card {
-            background-color: rgb(254 215 170);
-            border-color: rgb(194 65 12);
-            color: rgb(194 65 12);
-        }
-
-        /* On Progress */
-        .scope-filter[data-scope="onprogress"].active .scope-card {
-            background-color: rgb(191 219 254);
-            border-color: rgb(29 78 216);
-            color: rgb(29 78 216);
-        }
-
-        /* Completed */
-        .scope-filter[data-scope="completed"].active .scope-card {
-            background-color: rgb(187 247 208);
-            border-color: rgb(21 128 61);
-            color: rgb(21 128 61);
-        }
-
-        /* All */
-        .scope-filter[data-scope="all"].active .scope-card {
-            background-color: rgb(229 231 235);
-            border-color: rgb(31 41 55);
-            color: rgb(31 41 55);
-        }
-
-        /* My CS */
-        .scope-filter[data-scope="my"].active .scope-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12);
-            /* orange-700 */
-            color: rgb(194 65 12);
-        }
-
-        /* Hold */
-        .scope-filter[data-scope="hold"].active .scope-card {
-            background-color: rgb(219 234 254);
-            /* blue-100 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
-        }
-
-        /* Purchase */
-        .scope-filter[data-scope="purchase"].active .scope-card {
-            background-color: rgb(224 231 255);
-            /* indigo-100 */
-            border-color: rgb(67 56 202);
-            /* indigo-700 */
-            color: rgb(67 56 202);
-        }
-
-        /* Partial */
-        .scope-filter[data-scope="partial"].active .scope-card {
-            background-color: rgb(254 243 199);
-            /* amber-100 */
-            border-color: rgb(180 83 9);
-            /* amber-700 */
-            color: rgb(180 83 9);
-        }
-
-        /* Reuse */
-        .scope-filter[data-scope="reuse"].active .scope-card {
-            background-color: rgb(243 244 246);
-            /* gray-100 */
-            border-color: rgb(31 41 55);
-            /* gray-700 */
-            color: rgb(31 41 55);
-        }
-
-        .scope-filter[data-scope="receiptjobs"].active .scope-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12);
-            /* orange-700 */
-            color: rgb(194 65 12);
-        }
-
-        /* Issue On Progress */
-        .scope-filter[data-scope="issueprogress"].active .scope-card {
-            background-color: rgb(254 202 202);
-            border-color: rgb(185 28 28);
-            color: rgb(185 28 28);
-        }
-
-        /* SPPB On Progress */
-        .scope-filter[data-scope="sppbprogress"].active .scope-card {
-            background-color: rgb(254 249 195);
-            border-color: rgb(133 77 14);
-            color: rgb(133 77 14);
-        }
-
-        /* Issue New Jobs */
-        .scope-filter[data-scope="issuejobsnew"].active .scope-card {
-            background-color: rgb(254 215 170);
-            border-color: rgb(194 65 12);
-            color: rgb(194 65 12);
-        }
-
-        /* Issue Jobs */
-        .scope-filter[data-scope="issuejobs"].active .scope-card {
-            background-color: rgb(221 214 254);
-            border-color: rgb(91 33 182);
-            color: rgb(91 33 182);
-        }
-
-        .scope-filter[data-scope="rfcajobs"].active .scope-card {
-            background-color: rgb(254 215 170);
-            /* orange-200 */
-            border-color: rgb(194 65 12);
-            /* orange-700 */
-            color: rgb(194 65 12);
-        }
-
-        /* Finance Received */
-        .scope-filter[data-scope="financereceived"].active .scope-card {
-            background-color: rgb(191 219 254);
-            /* blue-200 */
-            border-color: rgb(29 78 216);
-            /* blue-700 */
-            color: rgb(29 78 216);
-        }
-
-        /* Treasury Payment */
-        .scope-filter[data-scope="treasurypayment"].active .scope-card {
-            background-color: rgb(254 249 195);
-            /* yellow-100 */
-            border-color: rgb(202 138 4);
-            /* yellow-600 */
-            color:
-
-                rgb(202 138 4);
         }
 
         @keyframes spin {

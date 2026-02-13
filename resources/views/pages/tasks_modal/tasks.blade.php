@@ -263,94 +263,95 @@
             <script>
                 $(document).ready(function() {
                     let table = $('#tasksTable').DataTable({
-                        ajax: "{{ route('tasks.json') }}",
-                        processing: true,
-                        serverSide: false,
-                        responsive: true,
-                        order: [
-                            [0, 'desc']
-                        ],
-                        columns: [{
-                                data: 'id',
-                                className: 'text-center',
-                                render: function(data, type, row) {
-                                    return `<a href="/showtasks/${row.id}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-700">${row.taskid}</a>`;
-                                }
-                            },
-                            {
-                                data: 'cpnyid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'departementid',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'summary',
-                                className: 'no-pointer'
-                            },
-                            {
-                                data: 'taskpriority',
-                                className: 'no-pointer',
-                                render: function(data) {
-                                    let priorityText = "";
-                                    let badgeClass = "";
-
-                                    if (data === 'Highest') {
-                                        priorityText = "Highest";
-                                        badgeClass =
-                                            "bg-red-300/30 dark:bg-red-300 text-red-500 dark:text-red-800 font-semibold focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
-                                    } else if (data === 'High') {
-                                        priorityText = "High";
-                                        badgeClass =
-                                            "bg-red-300/30 dark:bg-red-300 text-red-500 dark:text-red-800 font-semibold focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
-                                    } else if (data === 'Medium') {
-                                        priorityText = "Medium";
-                                        badgeClass =
-                                            "bg-yellow-300/30  dark:bg-yellow-300 text-yellow-600 dark:text-yellow-800 font-semibold  focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
-                                    } else if (data === 'Low') {
-                                        priorityText = "Low";
-                                        badgeClass =
-                                            "bg-blue-300/30  dark:bg-bluee-300 text-blue-600 dark:text-blue-800 font-semibold  focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
-                                    } else if (data === 'Lowest') {
-                                        priorityText = "Lowest";
-                                        badgeClass =
-                                            "bg-green-300/30  dark:bg-green-300 text-green-600 dark:text-green-800 font-semibold  focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
+                            ajax: "{{ route('tasks.json') }}",
+                            processing: true,
+                            serverSide: false,
+                            responsive: true,
+                            order: [
+                                [0, 'desc']
+                            ],
+                            columns: [{
+                                    data: 'id',
+                                    className: 'text-center',
+                                    render: function(data, type, row) {
+                                        return `<a href="/showtasks/${row.id}" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-700">${row.taskid}</a>`;
                                     }
+                                },
+                                {
+                                    data: 'cpnyid',
+                                    className: 'no-pointer'
+                                },
+                                {
+                                    data: 'departementid',
+                                    className: 'no-pointer'
+                                },
+                                {
+                                    data: 'summary',
+                                    className: 'no-pointer'
+                                },
+                                {
+                                    data: 'taskpriority',
+                                    className: 'no-pointer',
+                                    render: function(data) {
+                                        let priorityText = "";
+                                        let badgeClass = "";
 
-                                    return `<span class="${badgeClass}">${priorityText}</span>`;
-                                }
-                            },
-                            {
-                                data: 'status',
-                                className: 'no-pointer',
-                                render: function(data) {
-                                    let statusText = "";
-                                    let badgeClass = "";
+                                        if (data === 'Highest') {
+                                            priorityText = "Highest";
+                                            badgeClass =
+                                                "bg-red-300/30 dark:bg-red-300 text-red-500 dark:text-red-800 font-semibold focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
+                                        } else if (data === 'High') {
+                                            priorityText = "High";
+                                            badgeClass =
+                                                "bg-red-300/30 dark:bg-red-300 text-red-500 dark:text-red-800 font-semibold focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
+                                        } else if (data === 'Medium') {
+                                            priorityText = "Medium";
+                                            badgeClass =
+                                                "bg-yellow-300/30  dark:bg-yellow-300 text-yellow-600 dark:text-yellow-800 font-semibold  focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
+                                        } else if (data === 'Low') {
+                                            priorityText = "Low";
+                                            badgeClass =
+                                                "bg-blue-300/30  dark:bg-bluee-300 text-blue-600 dark:text-blue-800 font-semibold  focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
+                                        } else if (data === 'Lowest') {
+                                            priorityText = "Lowest";
+                                            badgeClass =
+                                                "bg-green-300/30  dark:bg-green-300 text-green-600 dark:text-green-800 font-semibold  focus:outline-none pointer-events-none border-none px-4 py-2 rounded-full";
+                                        }
 
-                                    if (data === 'H') {
-                                        statusText = "Hold";
-                                        badgeClass =
-                                            "bg-gray-300/30 dark:bg-gray-300 text-gray-600  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded ";
-                                    } else if (data === 'P') {
-                                        statusText = "On Progress";
-                                        badgeClass =
-                                            " bg-blue-300/30 dark:bg-blue-300 text-blue-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center  rounded";
-                                    } else if (data === 'C') {
-                                        statusText = "Completed";
-                                        badgeClass =
-                                            "bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'X') {
-                                        statusText === 'Cancel';
-                                        statusClass =
-                                            "bg-red-300/30 dark:bg-red-300 text-red-600  flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else if (data === 'R') {
-                                        statusText === 'Rejected';
-                                        statusClass =
-                                            "bg-red-300/30 dark:bg-red-300 text-red-600  flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
-                                    } else {
-                                        statusClass =
-                                            "  w-full max-w-32 bg-gray-300/30  bg-gray-300  text-gray-600 flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
+                                        return `<span class="${badgeClass}">${priorityText}</span>`;
+                                    }
+                                },
+                                {
+                                    data: 'status',
+                                    className: 'no-pointer',
+                                    render: function(data) {
+                                        let statusText = "";
+                                        let badgeClass = "";
+
+                                        if (data === 'H') {
+                                            statusText = "Hold";
+                                            badgeClass =
+                                                "bg-gray-300/30 dark:bg-gray-300 text-gray-600  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded ";
+                                        } else if (data === 'P') {
+                                            statusText = "On Progress";
+                                            badgeClass =
+                                                " bg-blue-300/30 dark:bg-blue-300 text-blue-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center  rounded";
+                                        } else if (data === 'C') {
+                                            statusText = "Completed";
+                                            badgeClass =
+                                                "bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
+                                        } else if (data === 'X') {
+                                            statusText === 'Cancel';
+                                            statusClass =
+                                                "bg-red-300/30 dark:bg-red-300 text-red-600  flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
+                                        } else if (data === 'R') {
+                                            statusText === 'Rejected';
+                                            statusClass =
+                                                "bg-red-300/30 dark:bg-red-300 text-red-600  flex justify-items-center  focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded";
+                                        } else {
+                                            statusClass =
+                                                "w-32 bg-gray-200/60 text-gray-700 dark:bg-gray-300/40 dark:text-gray-900 focus:outline-none pointer-events-none border border-gray-500/40 font-semibold px-4 py-2 text-center rounded";
+                                        }
                                     }
                                     return `<span class="${badgeClass}">${statusText}</span>`;
                                 }
@@ -359,28 +360,28 @@
                         ]
                     });
 
-                    $('#appForm').submit(function(e) {
-                        e.preventDefault();
-                        let appId = $('#task_id').val();
-                        let url = appId ? `/tasks/${appId}` : "{{ route('tasks.store') }}";
-                        let method = appId ? 'PUT' : 'POST';
+                $('#appForm').submit(function(e) {
+                    e.preventDefault();
+                    let appId = $('#task_id').val();
+                    let url = appId ? `/tasks/${appId}` : "{{ route('tasks.store') }}";
+                    let method = appId ? 'PUT' : 'POST';
 
-                        $.ajax({
-                            url: url,
-                            type: method,
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            data: {
-                                task_code: $('#task_code').val(),
-                                task_name: $('#task_name').val(),
-                            },
-                            success: function() {
-                                $('#appModal').addClass('hidden');
-                                table.ajax.reload();
-                            }
-                        });
+                    $.ajax({
+                        url: url,
+                        type: method,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: {
+                            task_code: $('#task_code').val(),
+                            task_name: $('#task_name').val(),
+                        },
+                        success: function() {
+                            $('#appModal').addClass('hidden');
+                            table.ajax.reload();
+                        }
                     });
+                });
 
 
                 });
