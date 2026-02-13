@@ -58,11 +58,10 @@
                 </button>
             </div>
         </div>
-
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (Bast Info) --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex h-[500px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
@@ -294,10 +293,10 @@
 
                 </div>
 
-                {{-- Right card (Tabs) --}}
-                <div class="flex flex-1 flex-col gap-4 rounded-xl duration-300 sm:w-1/2 md:w-full">
-                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
+                <div class="flex flex-col gap-4">
+                    {{-- Right card (Tabs) --}}
+                    <div class="flex h-[235px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
+                        <div x-data="{ activeTab: 'attachment' }" class="flex-1 flex-col overflow-y-auto">
                             <header
                                 class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                                 <nav class="flex flex-grow">
@@ -427,110 +426,100 @@
                         </header>
 
                         <div class="overflow-auto rounded-b-xl bg-white">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-200"
-                                            style="width: 60px;">No</th>
-                                        <th
-                                            class="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-200">
-                                            Kriteria</th>
-                                        <th class="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
-                                            style="width: 100px;">Score</th>
-                                        <th class="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-200"
-                                            style="width: 220px;">Legend</th>
+                            <table class="w-full table-fixed text-sm">
+
+                                <colgroup>
+                                    <col class="w-[10%]">
+                                    <col class="w-[35%]">
+                                    <col class="w-[35%]">
+                                    <col class="w-[35%]">
+                                </colgroup>
+
+                                <thead class="bg-gray-50 dark:bg-gray-800">
+                                    <tr class="text-gray-500 dark:text-gray-400">
+                                        <th class="px-6 py-3 text-left font-medium tracking-wide">
+                                            No
+                                        </th>
+                                        <th class="px-6 py-3 text-left font-medium tracking-wide">
+                                            Criteria
+                                        </th>
+                                        <th class="px-6 py-3 text-center font-medium tracking-wide">
+                                            Score
+                                        </th>
+                                        <th class="px-6 py-3 text-center font-medium tracking-wide">
+                                            Legend
+                                        </th>
                                     </tr>
                                 </thead>
+
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                    @php
-                                        $fmt1 = fn($v) => is_null($v) ? '-' : number_format((float) $v, 1, ',', '.');
-                                    @endphp
 
+                                    @forelse ($bastRatingRows as $row)
 
-                                    @php
-                                        // Convert 1–10 score → 1–5 stars
-                                        $starsFrom10 = function ($score) {
-                                            if (!is_numeric($score)) {
-                                                return 0;
-                                            }
-                                            return (int) ceil($score / 2);
-                                        };
+                                        @php
+                                            $score = (float) $row->rating_score;
+                                            $starCount = max(0, min(5, round($score)));
+                                        @endphp
 
-                                        $ratingLabel = function ($score) {
-                                            if ($score >= 5) {
-                                                return 'Excellent';
-                                            }
-                                            if ($score >= 4) {
-                                                return 'Good';
-                                            }
-                                            if ($score >= 3) {
-                                                return 'Fair';
-                                            }
-                                            if ($score >= 2) {
-                                                return 'Poor';
-                                            }
-                                            return 'Very Poor';
-                                        };
-                                    @endphp
-
-                                    @forelse ($bastRatingRows as $i => $row)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                                            <td class="px-3 py-2 text-gray-800 dark:text-gray-100">
-                                                {{ $row->rating_no ?? $i + 1 }}</td>
-                                            <td class="px-3 py-2">
-                                                <div class="font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ $row->rating_name ?? '-' }}
-                                                </div>
+                                        <tr class="transition hover:bg-gray-50 dark:hover:bg-gray-800/40">
+                                            {{-- No --}}
+                                            <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+                                                {{ $row->rating_no ?? $i + 1 }}
                                             </td>
-                                            <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">
-                                                @php
-                                                    $score = (float) $row->rating_score;
-                                                    $starCount = max(0, min(5, (int) $score));
-                                                @endphp
+                                            {{-- Criteria --}}
+                                            <td
+                                                class="px-6 py-4 font-medium tracking-wide text-gray-900 dark:text-gray-100">
+                                                {{ \Illuminate\Support\Str::title(strtolower($row->rating_name)) }}
+                                            </td>
 
-                                                <div class="flex items-center justify-end gap-3 whitespace-nowrap"
-                                                    title="{{ number_format($score, 1) }} / 5 — {{ $ratingLabel($score) }}">
+                                            {{-- Score --}}
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center justify-center gap-4">
 
-                                                    <!-- Number -->
-                                                    <span class="w-10 text-right tabular-nums">
+                                                    {{-- Number --}}
+                                                    <span
+                                                        class="w-10 text-right tabular-nums text-gray-900 dark:text-gray-100">
                                                         {{ number_format($score, 1) }}
                                                     </span>
 
-                                                    <!-- Stars -->
-                                                    <span class="flex w-[88px] justify-center gap-0.5">
+                                                    {{-- Stars (fixed width container) --}}
+                                                    <div class="flex w-[100px] justify-center gap-1">
                                                         @for ($s = 1; $s <= 5; $s++)
                                                             <span
-                                                                class="{{ $s <= $starCount ? 'text-yellow-400' : 'text-gray-500/40' }}">
+                                                                class="{{ $s <= $starCount ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}">
                                                                 ★
                                                             </span>
                                                         @endfor
-                                                    </span>
+                                                    </div>
+
                                                 </div>
                                             </td>
 
-
-
-                                            <td class="px-3 py-2">
+                                            {{-- Legend --}}
+                                            <td class="px-6 py-4 text-center">
                                                 @if (!empty($row->rating_legend_name))
                                                     <span
-                                                        class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
+                                                        class="inline-flex min-w-[120px] justify-center rounded-full bg-emerald-100 px-4 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300">
                                                         {{ $row->rating_legend_name }}
                                                     </span>
                                                 @else
-                                                    <span class="text-gray-500 dark:text-gray-400">-</span>
+                                                    <span class="text-gray-400">-</span>
                                                 @endif
                                             </td>
+
                                         </tr>
+
                                     @empty
                                         <tr>
-                                            <td colspan="4"
-                                                class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                                            <td colspan="3" class="px-6 py-6 text-center text-gray-400">
                                                 No rating rows found.
                                             </td>
                                         </tr>
                                     @endforelse
+
                                 </tbody>
                             </table>
+
                         </div>
                     </div>
                 </div>
@@ -812,8 +801,8 @@
 
     <script>
         /* ============================
-                                                               RATING STATE
-                                                            ============================ */
+                                                                                                                                                                                               RATING STATE
+                                                                                                                                                                                            ============================ */
         let ratingRows = [];
         const $ratingTbody = $('#ratingTableBody');
         const $ratingAvg = $('#ratingAvg');
@@ -857,10 +846,10 @@
                         ${r.rating_name || '-'}
                     </div>
                     ${r.rating_descr ? `
-                                                                                    <div class="mt-0.5 text-sm text-gray-500">
-                                                                                        ${r.rating_descr}
-                                                                                    </div>
-                                                                                ` : ''}
+                                                                                                                                                                                                                    <div class="mt-0.5 text-sm text-gray-500">
+                                                                                                                                                                                                                        ${r.rating_descr}
+                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                ` : ''}
                 </td>
 
                 <td class="px-4 py-3 text-center">
@@ -921,7 +910,7 @@
            LOAD RATINGS FROM SERVER
         ============================ */
         function loadRatings(bastid) {
-                    $ratingTbody.html(`
+            $ratingTbody.html(`
                 <tr>
                     <td colspan="3" class="px-4 py-4 text-center text-gray-500">
                         Loading ratings…
@@ -986,71 +975,72 @@
         function openRatingModal() {
             $('#ratingModal').removeClass('hidden').addClass('flex');
         }
+
         function closeRatingModal() {
             $('#ratingModal').addClass('hidden').removeClass('flex');
         }
 
         // ✅ Fix: ratingCancelBtn
-        $(document).on('click', '#ratingCancelBtn', function (e) {
+        $(document).on('click', '#ratingCancelBtn', function(e) {
             e.preventDefault();
             closeRatingModal();
         });
 
         // Optional: klik backdrop tutup modal
-        $(document).on('click', '#ratingModal', function(e){
+        $(document).on('click', '#ratingModal', function(e) {
             if (e.target === this) closeRatingModal();
         });
 
         // Optional: ESC tutup modal
-        $(document).on('keydown', function(e){
+        $(document).on('keydown', function(e) {
             if (e.key === 'Escape') closeRatingModal();
         });
 
         // =========================
         // APPROVE BUTTON
         // =========================
-        $(document).on("click", "#approveBtn", async function () {
-            const bastid  = "{{ $bast->bastid }}";
+        $(document).on("click", "#approveBtn", async function() {
+            const bastid = "{{ $bast->bastid }}";
             const doctype = "BA";
             const $spinner = $("#loadingSpinnerContainer");
 
             $spinner.fadeIn();
 
             try {
-            // 1) cek akses + ambil leveling
-            const resp = await $.getJSON(
-                `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=${encodeURIComponent(doctype)}`
-            );
+                // 1) cek akses + ambil leveling
+                const resp = await $.getJSON(
+                    `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=${encodeURIComponent(doctype)}`
+                );
 
-            if (!resp || !resp.canPerformAction) {
-                toastr.error("You are not authorized to approve this BAST.");
-                return;
-            }
+                if (!resp || !resp.canPerformAction) {
+                    toastr.error("You are not authorized to approve this BAST.");
+                    return;
+                }
 
-            // penting: backend harus mengirim aprv_leveling
-            const leveling = parseInt(resp.aprv_leveling ?? 0, 10);
+                // penting: backend harus mengirim aprv_leveling
+                const leveling = parseInt(resp.aprv_leveling ?? 0, 10);
 
-            // 2) kalau leveling == 1 -> tampilkan rating modal
-            if (leveling === 1) {
-                openRatingModal();
-                await loadRatings(bastid); // fungsi kamu yang sudah ada
-                return;
-            }
+                // 2) kalau leveling == 1 -> tampilkan rating modal
+                if (leveling === 1) {
+                    openRatingModal();
+                    await loadRatings(bastid); // fungsi kamu yang sudah ada
+                    return;
+                }
 
-            // 3) selain leveling 1 -> langsung approve tanpa popup
-            await $.post(`/bast/${encodeURIComponent(bastid)}/approve`, {
-                _token: "{{ csrf_token() }}"
-                // no rating_vendor, no ratings_json
-            });
+                // 3) selain leveling 1 -> langsung approve tanpa popup
+                await $.post(`/bast/${encodeURIComponent(bastid)}/approve`, {
+                    _token: "{{ csrf_token() }}"
+                    // no rating_vendor, no ratings_json
+                });
 
-            toastr.success('Approved');
-            closeOrRedirect("/bastlist");
+                toastr.success('Approved');
+                closeOrRedirect("/bastlist");
 
             } catch (e) {
-            console.error(e);
-            toastr.error("Error checking approval status / approving.");
+                console.error(e);
+                toastr.error("Error checking approval status / approving.");
             } finally {
-            $spinner.fadeOut();
+                $spinner.fadeOut();
             }
         });
 
@@ -1061,25 +1051,25 @@
             const bastid = "{{ $bast->bastid }}";
 
             if (ratingRows.some(r => (Number(r.rating_score) || 0) < 1)) {
-            toastr.warning('Please rate all criteria.');
-            return;
+                toastr.warning('Please rate all criteria.');
+                return;
             }
 
             const avg = ratingRows.reduce((a, b) => a + (Number(b.rating_score) || 0), 0) / ratingRows.length;
 
             $.post(`/bast/${encodeURIComponent(bastid)}/approve`, {
-            _token: "{{ csrf_token() }}",
-            rating_vendor: avg.toFixed(2),
-            ratings_json: JSON.stringify(ratingRows)
-            })
-            .done(() => {
-            toastr.success('Approved');
-            closeRatingModal();
-            closeOrRedirect("/bastlist");
-            })
-            .fail((xhr) => {
-            toastr.error(xhr.responseJSON?.message || 'Approve failed');
-            });
+                    _token: "{{ csrf_token() }}",
+                    rating_vendor: avg.toFixed(2),
+                    ratings_json: JSON.stringify(ratingRows)
+                })
+                .done(() => {
+                    toastr.success('Approved');
+                    closeRatingModal();
+                    closeOrRedirect("/bastlist");
+                })
+                .fail((xhr) => {
+                    toastr.error(xhr.responseJSON?.message || 'Approve failed');
+                });
         });
     </script>
 

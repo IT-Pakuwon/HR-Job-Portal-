@@ -623,23 +623,42 @@
                                                     </div>
                                                 @else
                                                     {{-- ==================== READ-ONLY MODE ==================== --}}
-                                                    <div class="max-w-4xl space-y-8 text-sm">
+                                                    @php
+                                                        $dateRange =
+                                                            $po->spkstartworkingdate && $po->spkendtworkingdate
+                                                                ? \Carbon\Carbon::parse(
+                                                                        $po->spkstartworkingdate,
+                                                                    )->format('d M Y') .
+                                                                    ' — ' .
+                                                                    \Carbon\Carbon::parse(
+                                                                        $po->spkendtworkingdate,
+                                                                    )->format('d M Y')
+                                                                : '-';
 
-                                                        {{-- ================= EXECUTION ================= --}}
-                                                        <div class="space-y-4">
+                                                        $type = $po->spkworkdaytype ?? 'EXCLUDE';
 
-                                                            <h3
-                                                                class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                                Work Execution
-                                                            </h3>
+                                                        $workdayLabel =
+                                                            $type === 'INCLUDE'
+                                                                ? 'Including weekends & holidays'
+                                                                : 'Excluding weekends & holidays';
 
+                                                        $schedule = $po->spkworkschedule ?? '-';
+                                                    @endphp
+
+
+                                                    <div class="mx-auto max-w-4xl text-sm">
+
+                                                        <div class="space-y-2">
+
+                                                            {{-- ================= EXECUTION ================= --}}
                                                             <div
-                                                                class="grid grid-cols-1 gap-y-4 md:grid-cols-3 md:gap-x-10">
+                                                                class="grid grid-cols-1 gap-y-5 md:grid-cols-3 md:gap-x-14">
 
                                                                 {{-- Date --}}
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        Date
+                                                                <div class="min-w-0">
+                                                                    <p
+                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                                                                        Execution Date
                                                                     </p>
                                                                     <p
                                                                         class="mt-1 break-words text-gray-900 dark:text-gray-100">
@@ -648,8 +667,9 @@
                                                                 </div>
 
                                                                 {{-- Duration --}}
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
+                                                                <div class="min-w-0">
+                                                                    <p
+                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
                                                                         Duration
                                                                     </p>
 
@@ -660,44 +680,40 @@
                                                                         </span>
 
                                                                         <span
-                                                                            class="{{ $type === 'INCLUDE' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400' }} text-xs">
+                                                                            class="text-xs text-gray-400 dark:text-gray-500">
                                                                             • {{ $workdayLabel }}
                                                                         </span>
                                                                     </div>
                                                                 </div>
 
                                                                 {{-- Manpower --}}
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
+                                                                <div class="min-w-0">
+                                                                    <p
+                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
                                                                         Man Power
                                                                     </p>
-                                                                    <p class="mt-1 text-gray-900 dark:text-gray-100">
+                                                                    <p
+                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
                                                                         {{ $po->spkmanpower ?? '-' }} people
                                                                     </p>
                                                                 </div>
 
                                                             </div>
-                                                        </div>
 
 
-                                                        {{-- subtle divider --}}
-                                                        <div class="border-t border-gray-100 dark:border-gray-700">
-                                                        </div>
+                                                            {{-- Divider --}}
+                                                            <div class="border-t border-gray-100 dark:border-gray-700">
+                                                            </div>
 
 
-                                                        {{-- ================= SCHEDULE ================= --}}
-                                                        <div class="space-y-4">
-
-                                                            <h3
-                                                                class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                                Schedule
-                                                            </h3>
-
+                                                            {{-- ================= SCHEDULE ================= --}}
                                                             <div
-                                                                class="grid grid-cols-1 gap-y-4 md:grid-cols-2 md:gap-x-10">
+                                                                class="grid grid-cols-1 gap-y-5 md:grid-cols-2 md:gap-x-14">
 
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
+                                                                {{-- Work Schedule --}}
+                                                                <div class="min-w-0">
+                                                                    <p
+                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
                                                                         Work Schedule
                                                                     </p>
                                                                     <p
@@ -706,8 +722,10 @@
                                                                     </p>
                                                                 </div>
 
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
+                                                                {{-- Warranty --}}
+                                                                <div class="min-w-0">
+                                                                    <p
+                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
                                                                         Warranty
                                                                     </p>
                                                                     <p
@@ -717,208 +735,54 @@
                                                                 </div>
 
                                                             </div>
-                                                        </div>
 
 
-                                                        {{-- subtle divider --}}
-                                                        <div class="border-t border-gray-100 dark:border-gray-700">
-                                                        </div>
+                                                            {{-- Divider --}}
+                                                            <div class="border-t border-gray-100 dark:border-gray-700">
+                                                            </div>
 
 
-                                                        {{-- ================= PIC & PAYMENT ================= --}}
-                                                        <div class="space-y-4">
-
-                                                            <h3
-                                                                class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                                PIC & Terms
-                                                            </h3>
-
+                                                            {{-- ================= PIC & PAYMENT ================= --}}
                                                             <div
-                                                                class="grid grid-cols-1 gap-y-4 md:grid-cols-2 md:gap-x-10">
+                                                                class="grid grid-cols-1 gap-y-5 md:grid-cols-2 md:gap-x-14">
 
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
+                                                                {{-- PIC --}}
+                                                                <div class="min-w-0">
+                                                                    <p
+                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
                                                                         PIC
                                                                     </p>
                                                                     <p
                                                                         class="mt-1 break-words text-gray-900 dark:text-gray-100">
                                                                         {{ $po->spkpic ?? '-' }}
+                                                                        @if (!empty($po->spkpicphone))
+                                                                            <span
+                                                                                class="text-gray-400 dark:text-gray-500">
+                                                                                · {{ $po->spkpicphone }}
+                                                                            </span>
+                                                                        @endif
                                                                     </p>
                                                                 </div>
 
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
+                                                                {{-- Payment --}}
+                                                                <div class="min-w-0">
+                                                                    <p
+                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
                                                                         Payment Method
                                                                     </p>
                                                                     <p
                                                                         class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                        {{ $po->spkpaymentmethod ?? 'GIRO' }}
+                                                                        {{ $po->spkpaymentmethod ?? 'TRANSFER' }}
                                                                     </p>
                                                                 </div>
 
-                                                                @if (!empty($po->spkpicphone))
-                                                                    <div>
-                                                                        <p class="text-xs text-gray-500">
-                                                                            PIC Contact
-                                                                        </p>
-                                                                        <p
-                                                                            class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                            {{ $po->spkpicphone }}
-                                                                        </p>
-                                                                    </div>
-                                                                @endif
-
                                                             </div>
+
                                                         </div>
 
                                                     </div>
-                                                    <div class="max-w-4xl space-y-2 text-sm">
-
-                                                        {{-- ================= EXECUTION ================= --}}
-                                                        <div class="space-y-4">
-
-                                                            <h3
-                                                                class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                                Work Execution
-                                                            </h3>
-
-                                                            <div
-                                                                class="grid grid-cols-1 gap-y-4 md:grid-cols-3 md:gap-x-10">
-
-                                                                {{-- Date --}}
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        Date
-                                                                    </p>
-                                                                    <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                        {{ $dateRange }}
-                                                                    </p>
-                                                                </div>
-
-                                                                {{-- Duration --}}
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        Duration
-                                                                    </p>
-
-                                                                    <div
-                                                                        class="mt-1 flex flex-wrap items-center gap-2">
-                                                                        <span class="text-gray-900 dark:text-gray-100">
-                                                                            {{ $po->spktotalday ?? '-' }} days
-                                                                        </span>
-
-                                                                        <span
-                                                                            class="{{ $type === 'INCLUDE' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400' }} text-xs">
-                                                                            • {{ $workdayLabel }}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-
-                                                                {{-- Manpower --}}
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        Man Power
-                                                                    </p>
-                                                                    <p class="mt-1 text-gray-900 dark:text-gray-100">
-                                                                        {{ $po->spkmanpower ?? '-' }} people
-                                                                    </p>
-                                                                </div>
-
-                                                            </div>
-                                                        </div>
 
 
-                                                        {{-- subtle divider --}}
-                                                        <div class="border-t border-gray-100 dark:border-gray-700">
-                                                        </div>
-
-
-                                                        {{-- ================= SCHEDULE ================= --}}
-                                                        <div class="space-y-4">
-
-                                                            <h3
-                                                                class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                                Schedule
-                                                            </h3>
-
-                                                            <div
-                                                                class="grid grid-cols-1 gap-y-4 md:grid-cols-2 md:gap-x-10">
-
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        Work Schedule
-                                                                    </p>
-                                                                    <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                        {{ $schedule }}
-                                                                    </p>
-                                                                </div>
-
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        Warranty
-                                                                    </p>
-                                                                    <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                        {{ $po->spkwarranty ?? '-' }}
-                                                                    </p>
-                                                                </div>
-
-                                                            </div>
-                                                        </div>
-
-
-                                                        {{-- subtle divider --}}
-                                                        <div class="border-t border-gray-100 dark:border-gray-700">
-                                                        </div>
-
-
-                                                        {{-- ================= PIC & PAYMENT ================= --}}
-                                                        <div class="space-y-4">
-
-                                                            <h3
-                                                                class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                                                                PIC & Terms
-                                                            </h3>
-
-                                                            <div
-                                                                class="grid grid-cols-1 gap-y-4 md:grid-cols-2 md:gap-x-10">
-
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        PIC
-                                                                    </p>
-                                                                    <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                        {{ $po->spkpic ?? '-' }}
-                                                                    </p>
-                                                                </div>
-
-                                                                <div>
-                                                                    <p class="text-xs text-gray-500">
-                                                                        Payment Method
-                                                                    </p>
-                                                                    <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                        {{ $po->spkpaymentmethod ?? 'GIRO' }}
-                                                                    </p>
-                                                                </div>
-
-                                                                @if (!empty($po->spkpicphone))
-                                                                    <div>
-                                                                        <p class="text-xs text-gray-500">
-                                                                            PIC Contact
-                                                                        </p>
-                                                                        <p
-                                                                            class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                            {{ $po->spkpicphone }}
-                                                                        </p>
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    </div>
                                                 @endif
                                             </section>
                                         </div>

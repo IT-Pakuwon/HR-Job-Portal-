@@ -120,24 +120,28 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4 md:col-span-1 md:grid-cols-2">
-                                <!-- RIGHT SIDE: NOTE -->
-                                <div>
-                                    <label
-                                        class="req text-xs font-medium text-gray-600 dark:text-gray-400">Purpose</label>
-                                    <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                                {{-- Purpose --}}
                                 <div class="flex flex-col">
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Note CS</label>
-                                    <textarea name="csnote" id="csnote"
-                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
+                                    <label class="req text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Purpose
+                                    </label>
+
+                                    <input type="text" value="{{ $header->keperluan }}" readonly
+                                        class="mt-1 h-32 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
                                 </div>
 
+                                {{-- Note CS --}}
+                                <div class="flex flex-col">
+                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Note CS
+                                    </label>
 
+                                    <textarea name="csnote" id="csnote"
+                                        class="mt-1 h-32 w-full resize-none rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
+                                </div>
                             </div>
-
-
                         </div>
 
                     </div>

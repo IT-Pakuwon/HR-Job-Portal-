@@ -460,4 +460,66 @@
             background: rgba(79, 70, 229, .12);
             color: #4338ca
         }
+
+        .vendor-title {
+            white-space: normal;
+            /* boleh turun baris */
+            overflow-wrap: anywhere;
+            /* pecah kata sangat panjang */
+            word-break: break-word;
+            /* jaga pecah kata yang wajar */
+            line-height: 1.1;
+            /* rapatkan sedikit */
+        }
+
+        .tax-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .5rem;
+            align-items: center
+        }
+
+        .tax-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem
+        }
+
+        .tax-input {
+            width: 3.75rem;
+            text-align: right;
+            padding: .125rem .25rem
+        }
+
+        .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: #fff
+        }
+
+        .icon-btn:hover {
+            background: #f3f4f6
+        }
+
+        .summary-label {
+            font-size: 2rem;
+            /* sedikit lebih besar dari  text-sm  */
+            font-weight: 600;
+            color: #374151;
+            /* gray-700 */
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            /* font lebih besar utk nominal */
+            font-weight: 700;
+            color: #111827;
+            /* gray-900 */
+        }
     </style>

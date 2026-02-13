@@ -1,10 +1,4 @@
 <x-app-layout>
-    {{-- ===== error + overlay styles (tetap dari template) ===== --}}
-    =
-
-
-    {{-- ===== error + overlay styles ===== --}}
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
