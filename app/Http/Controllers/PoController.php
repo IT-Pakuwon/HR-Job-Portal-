@@ -39,6 +39,7 @@ use App\Models\TrBQCS;
 use App\Models\TrBQCSDetail;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\BusinessUnit;
+use App\Models\SysCalendar;
 
 class PoController extends Controller
 {
@@ -171,7 +172,12 @@ class PoController extends Controller
                 return $r;
             });
 
-
+        $holidayDates = SysCalendar::query()
+            ->where('status', 'A') // active only
+            ->whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
+            ->whereNull('deleted_at')
+            ->pluck('date_calendar')
+            ->values();
 
         return view('pages.purchase.showpo', [
             'po'          => $po,
@@ -184,6 +190,7 @@ class PoController extends Controller
             'hasReceiptCompleted' => $hasReceiptCompleted,
             'poHistory'   => $poHistory,
             'hash'        => $hash,
+            'holidayDates'          => $holidayDates,
         ]);
     }
 
@@ -232,6 +239,40 @@ class PoController extends Controller
                 'warranty'       => ['required','string'],
             ]);
         }
+
+        $start = Carbon::parse($req->input('work_date_from'));
+        $end   = Carbon::parse($req->input('work_date_to'));
+
+        $holidays = SysCalendar::query()
+            ->where('status', 'A')
+            ->whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
+            ->whereNull('deleted_at')
+            ->pluck('date_calendar')
+            ->toArray();
+
+        $calculatedWorkingDays = 0;
+        $current = $start->copy();
+
+        while ($current <= $end) {
+
+            $isWeekend = $current->isWeekend();
+            $isHoliday = in_array($current->format('Y-m-d'), $holidays);
+
+            if (!$isWeekend && !$isHoliday) {
+                $calculatedWorkingDays++;
+            }
+
+            $current->addDay();
+        }
+
+        // Compare with input
+        if ((int)$req->input('work_days') !== $calculatedWorkingDays) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Working days mismatch. Please recheck selected dates.'
+            ], 422);
+        }
+
 
         DB::transaction(function () use ($po, $req, $deliveryDate) {
             $now = Carbon::now();
