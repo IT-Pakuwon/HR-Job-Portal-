@@ -1,66 +1,4 @@
 <x-app-layout>
-
-
-
-
-    <style>
-        /* Samakan tinggi Select2 tenant & pic ≈ input p-2.5 (~40px) */
-        .select2-container--default .select2-selection--single {
-            height: 35px !important;
-            border: 1px solid #bbbbbb;
-            /* = border-gray-300 */
-            border-radius: 0.375rem;
-            /* = rounded-md */
-            background-color: white;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 40px !important;
-            padding-left: 10px;
-            /* biar sejajar dengan p-2.5 */
-            padding-right: 28px;
-            color: #111827;
-            /* text-gray-900 */
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px !important;
-            right: 6px;
-        }
-
-        /* Optional: Dark mode */
-        .dark .select2-container--default .select2-selection--single {
-            background-color: #1f2937;
-            /* gray-800 */
-            border-color: #4b5563;
-            /* gray-600 */
-        }
-
-        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #e5e7eb;
-            /* gray-200 */
-        }
-
-        .dark .select2-dropdown {
-            background-color: #111827;
-            /* gray-900 */
-            color: #e5e7eb;
-            border-color: #374151;
-            /* gray-700 */
-        }
-
-        .dark .select2-results__option--highlighted {
-            background-color: #2563eb;
-            /* blue-600 */
-            color: #fff;
-        }
-
-        */
-    </style>
-
-
-
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -1363,6 +1301,43 @@
             $('#spptForm').on('submit', function(e) {
                 e.preventDefault();
 
+                // ==============================
+                // ✅ ATTACHMENT REQUIRED CHECK
+                // ==============================
+                let hasAttachment = false;
+
+                $('#attachmentsContainer input[type="file"]').each(function() {
+                    if (this.files && this.files.length > 0) {
+                        hasAttachment = true;
+                        return false; // break loop
+                    }
+                });
+
+                // If edit mode: also check existing attachment rows
+                if (!hasAttachment) {
+                    const existingCount = $('.attachment-row[data-id]').length;
+                    if (existingCount > 0) {
+                        hasAttachment = true;
+                    }
+                }
+
+                if (!hasAttachment) {
+                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+
+                    toastr.error('Minimal 1 attachment wajib diupload.');
+
+                    if ($firstFile.length) {
+                        $firstFile.addClass('is-invalid');
+                        $('html,body').animate({
+                            scrollTop: $firstFile.offset().top - 120
+                        }, 300);
+                    }
+
+                    return;
+                }
+                // ==============================
+
+
                 // normalisasi qty (koma -> titik)
                 $('.qtyField').each(function() {
                     if (this.value.includes(',')) this.value = this.value.replace(',', '.');
@@ -1507,6 +1482,12 @@
                         hideOverlay();
                     }
                 });
+            });
+
+            $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
+                if (this.files.length > 0) {
+                    $(this).removeClass('is-invalid');
+                }
             });
 
             // ===== Cancel Button =====

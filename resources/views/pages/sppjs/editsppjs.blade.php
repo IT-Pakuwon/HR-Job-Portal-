@@ -1,6 +1,4 @@
 <x-app-layout>
-
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -1178,6 +1176,43 @@
             $('#sppjForm').on('submit', function(e) {
                 e.preventDefault();
 
+                // ==============================
+                // ✅ ATTACHMENT REQUIRED CHECK
+                // ==============================
+                let hasAttachment = false;
+
+                $('#attachmentsContainer input[type="file"]').each(function() {
+                    if (this.files && this.files.length > 0) {
+                        hasAttachment = true;
+                        return false; // break loop
+                    }
+                });
+
+                // If edit mode: also check existing attachment rows
+                if (!hasAttachment) {
+                    const existingCount = $('.attachment-row[data-id]').length;
+                    if (existingCount > 0) {
+                        hasAttachment = true;
+                    }
+                }
+
+                if (!hasAttachment) {
+                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+
+                    toastr.error('Minimal 1 attachment wajib diupload.');
+
+                    if ($firstFile.length) {
+                        $firstFile.addClass('is-invalid');
+                        $('html,body').animate({
+                            scrollTop: $firstFile.offset().top - 120
+                        }, 300);
+                    }
+
+                    return;
+                }
+                // ==============================
+
+
                 let headerOk = true;
 
                 const $cpny = $('select[name="cpnyid"]');
@@ -1378,6 +1413,12 @@
                         hideOverlay();
                     }
                 });
+            });
+
+            $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
+                if (this.files.length > 0) {
+                    $(this).removeClass('is-invalid');
+                }
             });
 
             // ===== Cancel Button =====

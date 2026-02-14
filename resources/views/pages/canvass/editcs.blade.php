@@ -729,7 +729,7 @@
 
             /* ========== 4) Header vendor + summary cell ========== */
             function addHeader(idKey, v) {
-                const colWidth = '20rem';
+                const colWidth = '22rem';
                 const $th = $(`
             <th id="th-vendor-${idKey}"
                 class="relative border px-3 py-2 align-top w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
@@ -809,13 +809,16 @@
                 <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
                 <div class="flex justify-between gap-2">
                     <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class=" text-sm  font-medium">PPN</span>
+                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">
+    PPN
+</span>
+
                     <input type="number" class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right  text-sm  focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="11.00" step="0.01" min="0">
                     <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1  text-sm  text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="ppn" data-vendor="${idKey}" title="Pilih PPN">🔍</button>
                     <input type="hidden" class="sum-ppn-id" value="">
                     </div>
                     <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class=" text-sm  font-medium">PPh</span>
+                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
                     <input type="number" class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right  text-sm  focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="0" step="0.01" min="0">
                     <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1  text-sm  text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="pph" data-vendor="${idKey}" title="Pilih PPh">🔍</button>
                     <input type="hidden" class="sum-pph-id" value="">
@@ -2090,17 +2093,33 @@
         });
 
         document.getElementById('csForm').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
 
-                const inputs = Array.from(
-                    this.querySelectorAll('input, select, textarea')
-                ).filter(el => !el.disabled && el.tabIndex !== -1);
+            // Only handle Enter
+            if (e.key !== 'Enter') return;
 
-                const index = inputs.indexOf(document.activeElement);
-                if (index > -1 && index + 1 < inputs.length) {
-                    inputs[index + 1].focus();
-                }
+            const tag = e.target.tagName;
+            const type = (e.target.type || '').toLowerCase();
+
+            // ✅ Allow normal Enter inside textarea
+            if (tag === 'TEXTAREA') return;
+
+            // ✅ Allow Enter for file inputs
+            if (type === 'file') return;
+
+            // Otherwise → move to next field
+            e.preventDefault();
+
+            const inputs = Array.from(
+                this.querySelectorAll('input, select, textarea')
+            ).filter(el =>
+                !el.disabled &&
+                el.offsetParent !== null // skip hidden
+            );
+
+            const index = inputs.indexOf(document.activeElement);
+
+            if (index > -1 && index + 1 < inputs.length) {
+                inputs[index + 1].focus();
             }
         });
     </script>

@@ -234,7 +234,7 @@
                                     <div>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">Note CS</p>
                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $cs->csnote }}
+                                            {{ $dt->csnote_detail }}
                                         </p>
                                     </div>
                                 </div>
@@ -293,7 +293,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="approval-table-body">
-                                </tbody>                                
+                                </tbody>
                             </table>
                         </div>
                         {{-- Attachment tab --}}
@@ -306,7 +306,7 @@
                                         <th class="p-3 text-left font-semibold">Created By</th>
                                         <th class="p-3 text-left font-semibold">Date</th>
                                     </tr>
-                                </thead>                                
+                                </thead>
                                 <tbody id="allAttachmentTbody"></tbody>
                             </table>
                             @if ($canUpload)
@@ -372,9 +372,9 @@
                 <header
                     class="flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                     <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">📝 CS Detail</h2>
-                    {{-- Button Edit COA --}}                   
+                    {{-- Button Edit COA --}}
                 </header>
-                
+
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
                         <!-- HEADER -->
@@ -491,7 +491,7 @@
                                                             {{ $row->budget_account_id ?? '-' }}
                                                         </td>
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}                                                          
+                                                            {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
                                                             <button type="button"
                                                                 class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                                 title="View Last Price History"
@@ -562,7 +562,7 @@
                                             <div class="flex w-full justify-between">
                                                 <span>PPN:</span>
                                                 <span>{{ $v['ppn'] }}%</span>
-                                            </div>                                           
+                                            </div>
                                         </div>
 
                                         <div class="flex justify-between">
@@ -872,7 +872,7 @@
 
 
         });
-    </script>    
+    </script>
 
     <script>
         $(document).on("click", "#approveBtn", function() {
@@ -1117,7 +1117,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-   
+
     <script>
         function checkApproval(spptid, action) {
             $.ajax({
@@ -1385,7 +1385,7 @@
             height: 30px;
         }
     </style>
-  
+
     <script>
         function formatNumID(n) {
             n = Number(n || 0);
@@ -1452,10 +1452,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
@@ -1477,7 +1477,7 @@
                 }
             });
         });
-    </script>   
+    </script>
 
     <script>
         function closeOrRedirect(fallbackUrl = '/dashboard') {

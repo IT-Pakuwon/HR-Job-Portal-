@@ -173,7 +173,7 @@ class KontrakController extends Controller
 
             $st = strtoupper((string)($r->status ?? ''));
             $statusText  = $st !== '' ? $st : 'Unknown';
-            $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+            $statusClass = 'bg-gray-200/60 text-gray-700 border border-gray-500/40';
 
             switch ($st) {
                 case 'H':

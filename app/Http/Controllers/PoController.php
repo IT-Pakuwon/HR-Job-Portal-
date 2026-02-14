@@ -725,7 +725,12 @@ class PoController extends Controller
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
             ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')
-            ->get();
+            ->first();
+
+        $poTerms = TrPOterm::where('ponbr', $po->ponbr)
+            ->where('cpny_id', $po->cpny_id)
+            ->orderBy('order_term')
+            ->first();   
 
         // Amount
         $dpp   = (float) ($po->totalamt ?? 0);
@@ -740,6 +745,7 @@ class PoController extends Controller
         $data = [
             'po'        => $po,
             'podetail'  => $podetail,
+            'poTerms'   => $poTerms, 
             'dpp'       => $dpp,
             'ppn'       => $ppn,
             'grand'     => $grand,

@@ -1,10 +1,4 @@
 <x-app-layout>
-    <style>
-        .req::after { content:" *"; color:#dc2626; font-weight:700; }
-        .is-invalid { border-color:#ef4444 !important; }
-        .error-feedback { display:block; color:#dc2626; font-size:12px; margin-top:6px; }
-    </style>
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -112,7 +106,7 @@
                                 <span class="{{ $labelClass }}">Location:</span>
 
                                 <span id="lokasi_display" class="{{ $valueClass }}">
-                                    @if($bast->location_id && $bast->sub_location_id)
+                                    @if ($bast->location_id && $bast->sub_location_id)
                                         {{ optional($bast->location)->location_name ?? $bast->location_id }}
                                         —
                                         {{ optional($bast->subLocation)->sub_location_name ?? $bast->sub_location_id }}
@@ -126,8 +120,10 @@
                                     Change
                                 </button>
 
-                                <input type="hidden" name="location_id" id="location_id" value="{{ $bast->location_id }}">
-                                <input type="hidden" name="sub_location_id" id="sub_location_id" value="{{ $bast->sub_location_id }}">
+                                <input type="hidden" name="location_id" id="location_id"
+                                    value="{{ $bast->location_id }}">
+                                <input type="hidden" name="sub_location_id" id="sub_location_id"
+                                    value="{{ $bast->sub_location_id }}">
                             </div>
                         </div>
                     </div>
@@ -138,7 +134,8 @@
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Photo Before</h2>
                         </div>
 
-                        <div id="bqAttachmentGrid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                        <div id="bqAttachmentGrid"
+                            class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                             <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
                                 Loading...
                             </p>
@@ -157,9 +154,13 @@
 
                                 {{-- Existing Photo After --}}
                                 <div class="mb-4">
-                                    <div class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Existing Photo After</div>
-                                    <div id="afterExistingGrid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">Loading...</p>
+                                    <div class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Existing
+                                        Photo After</div>
+                                    <div id="afterExistingGrid"
+                                        class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                                        <p
+                                            class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
+                                            Loading...</p>
                                     </div>
                                 </div>
 
@@ -167,11 +168,13 @@
                                     <div id="hiddenInputs"></div>
                                     <input type="file" id="hiddenPicker" class="hidden" accept="image/*" multiple>
 
-                                    <div id="attachmentsGrid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                                    <div id="attachmentsGrid"
+                                        class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                                         <button type="button" id="addAttachmentTile"
                                             class="flex aspect-[4/3] items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600">
                                             <div class="flex flex-col items-center gap-1">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7"
+                                                    viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd"
                                                         d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                         clip-rule="evenodd" />
@@ -191,12 +194,14 @@
                         <div class="w-[95vw] max-w-2xl rounded-xl bg-white p-4 dark:bg-gray-800">
                             <div class="mb-4 flex items-center justify-between">
                                 <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Pilih Lokasi</h3>
-                                <button type="button" id="closeLokasi" class="text-lg leading-none text-gray-400 hover:text-gray-600">×</button>
+                                <button type="button" id="closeLokasi"
+                                    class="text-lg leading-none text-gray-400 hover:text-gray-600">×</button>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+                                    <label
+                                        class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                     <select id="modal_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                         <option value="">-- choose --</option>
@@ -204,7 +209,8 @@
                                 </div>
 
                                 <div>
-                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub Location</label>
+                                    <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Sub
+                                        Location</label>
                                     <select id="modal_sub_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                         <option value="">-- choose --</option>
@@ -224,14 +230,19 @@
                     {{-- ===== Attachments BA (existing + add new) ===== --}}
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
-                            <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span>Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
                             </summary>
 
                             <div class="pt-6">
-                                <div class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Existing Attachments</div>
+                                <div class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">Existing
+                                    Attachments</div>
                                 <div id="baExistingList" class="space-y-2">
                                     <p class="py-3 text-center italic text-gray-500 dark:text-gray-400">Loading...</p>
                                 </div>
@@ -246,7 +257,8 @@
 
                                     <button type="button" id="addAttachment"
                                         class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
@@ -297,6 +309,7 @@
                 '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>');
             $ov.stop(true, true).fadeIn(120);
         }
+
         function hideOverlay() {
             $('#loadingSpinnerContainer').stop(true, true).fadeOut(120, function() {
                 $(this).addClass('hidden');
@@ -356,36 +369,38 @@
                 formData.append('_method', 'PUT'); // ✅ ini penting
 
                 $.ajax({
-                    url: "{{ route('bast.update', ['hash' => $hash]) }}",
-                    type: "POST", // tetap POST karena FormData + spoof PUT
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: { 'X-CSRF-TOKEN': $('input[name="_token"]').val() }
-                })
+                        url: "{{ route('bast.update', ['hash' => $hash]) }}",
+                        type: "POST", // tetap POST karena FormData + spoof PUT
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                        }
+                    })
 
-                .done(function(res) {
-                    toastr.success(res.message || 'Bast updated successfully!');
-                    window.location.href = "/bastlist";
-                })
-                .fail(function(xhr) {
-                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                        let msg = 'Mohon periksa input:<br>';
-                        Object.keys(xhr.responseJSON.errors).forEach(k => {
-                            msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
-                        });
-                        toastr.error(msg);
-                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                        toastr.error(xhr.responseJSON.message);
-                    } else {
-                        toastr.error('Error! Please check the input.');
-                    }
-                })
-                .always(function() {
-                    $('#submitBtn').prop('disabled', false);
-                    $('#btnText').text('Update');
-                    hideOverlay();
-                });
+                    .done(function(res) {
+                        toastr.success(res.message || 'Bast updated successfully!');
+                        window.location.href = "/bastlist";
+                    })
+                    .fail(function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            let msg = 'Mohon periksa input:<br>';
+                            Object.keys(xhr.responseJSON.errors).forEach(k => {
+                                msg += `- ${xhr.responseJSON.errors[k].join(', ')}<br>`;
+                            });
+                            toastr.error(msg);
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            toastr.error(xhr.responseJSON.message);
+                        } else {
+                            toastr.error('Error! Please check the input.');
+                        }
+                    })
+                    .always(function() {
+                        $('#submitBtn').prop('disabled', false);
+                        $('#btnText').text('Update');
+                        hideOverlay();
+                    });
             });
         });
     </script>
@@ -402,11 +417,11 @@
                 const dateStr = at.created_at ? dayjs(at.created_at).format("DD MMM 'YY") : '-';
                 const ext = (at.extention || '').toLowerCase();
                 const href = at.url || '#';
-                const isImg = ['jpg','jpeg','png','gif','webp','bmp','svg','avif'].includes(ext);
+                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes(ext);
 
-                const thumb = isImg && at.url
-                    ? `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">`
-                    : `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
+                const thumb = isImg && at.url ?
+                    `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">` :
+                    `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
                         <span class="text-lg">${ ext === 'pdf' ? '📕' : '📄' }</span>
                        </div>`;
 
@@ -432,7 +447,9 @@
             function renderGrid(rows) {
                 $grid.empty();
                 if (!rows || !rows.length) {
-                    $grid.append(`<p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">No attachments found.</p>`);
+                    $grid.append(
+                        `<p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">No attachments found.</p>`
+                        );
                     return;
                 }
                 rows.forEach(at => $grid.append(cardTpl(at)));
@@ -461,11 +478,11 @@
                 const name = at.name || at.display_name || '(no name)';
                 const href = at.url || '#';
                 const ext = (at.extention || '').toLowerCase();
-                const isImg = ['jpg','jpeg','png','gif','webp','bmp','svg','avif'].includes(ext);
+                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes(ext);
 
-                const thumb = isImg && at.url
-                    ? `<img src="${href}" class="h-full w-full object-cover" loading="lazy" referrerpolicy="no-referrer">`
-                    : `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700"><span class="text-lg">📄</span></div>`;
+                const thumb = isImg && at.url ?
+                    `<img src="${href}" class="h-full w-full object-cover" loading="lazy" referrerpolicy="no-referrer">` :
+                    `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700"><span class="text-lg">📄</span></div>`;
 
                 return `
                     <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
@@ -480,7 +497,9 @@
             function render(rows) {
                 $grid.empty();
                 if (!rows || !rows.length) {
-                    $grid.append(`<p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">No photo after uploaded.</p>`);
+                    $grid.append(
+                        `<p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">No photo after uploaded.</p>`
+                        );
                     return;
                 }
                 rows.forEach(at => $grid.append(tpl(at)));
@@ -504,7 +523,9 @@
             function render(rows) {
                 $wrap.empty();
                 if (!rows || !rows.length) {
-                    $wrap.append(`<p class="py-3 text-center italic text-gray-500 dark:text-gray-400">No attachments.</p>`);
+                    $wrap.append(
+                        `<p class="py-3 text-center italic text-gray-500 dark:text-gray-400">No attachments.</p>`
+                        );
                     return;
                 }
 
@@ -608,7 +629,7 @@
                         class="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white">✕</button>
                 `;
 
-                card.querySelector('button').addEventListener('click', function () {
+                card.querySelector('button').addEventListener('click', function() {
                     var ref = card.getAttribute('data-ref');
                     var hidden = hiddenInputs.querySelector('input[data-ref="' + ref + '"]');
                     if (hidden) hidden.remove();
@@ -632,6 +653,7 @@
             function openLokasiModal() {
                 $('#modalLokasi').removeClass('hidden').addClass('flex');
             }
+
             function closeLokasiModal() {
                 $('#modalLokasi').addClass('hidden').removeClass('flex');
             }
@@ -641,7 +663,8 @@
                 $('#modal_sub_location_id').empty().append('<option value="">-- choose --</option>');
 
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list) {
-                    list.forEach(it => $('#modal_location_id').append(new Option(it.text, it.value)));
+                    list.forEach(it => $('#modal_location_id').append(new Option(it.text, it
+                        .value)));
 
                     // preselect current
                     const currentLoc = @json($bast->location_id);
@@ -659,13 +682,14 @@
                 $sub.empty().append('<option value="">-- choose --</option>');
                 if (!loc) return;
 
-                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`, function(list) {
-                    list.forEach(it => $sub.append(new Option(it.text, it.value)));
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`,
+                    function(list) {
+                        list.forEach(it => $sub.append(new Option(it.text, it.value)));
 
-                    // preselect current subloc (only if loc matches)
-                    const currentSub = @json($bast->sub_location_id);
-                    if (currentSub) $sub.val(currentSub);
-                });
+                        // preselect current subloc (only if loc matches)
+                        const currentSub = @json($bast->sub_location_id);
+                        if (currentSub) $sub.val(currentSub);
+                    });
             });
 
             $('#saveLokasi').on('click', function() {

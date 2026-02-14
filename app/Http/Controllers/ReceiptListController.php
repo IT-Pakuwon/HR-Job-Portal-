@@ -198,15 +198,15 @@ class ReceiptListController extends Controller
             // status badge tetap
             $st = strtoupper((string)($r->status ?? ''));
             $statusText = 'Unknown';
-            $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+            $statusClass = 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
 
             switch ($st) {
-                case 'P': $statusText='Pending';   $statusClass='bg-yellow-100 text-yellow-700 border-yellow-200'; break;
-                case 'A': $statusText='Approved';  $statusClass='bg-green-100 text-green-700 border-green-200'; break;
-                case 'R': $statusText='Rejected';  $statusClass='bg-red-100 text-red-700 border-red-200'; break;
-                case 'C': $statusText='Completed'; $statusClass='bg-emerald-100 text-emerald-700 border-emerald-200'; break;
-                case 'D': $statusText='Revise';    $statusClass='bg-blue-100 text-blue-700 border-blue-200'; break;
-                case 'X': $statusText='Canceled';  $statusClass='bg-gray-200 text-gray-700 border-gray-300'; break;
+                case 'P': $statusText='Pending';   $statusClass='bg-orange-200/60 text-orange-800 border border-orange-600/40'; break;
+                case 'A': $statusText='Approved';  $statusClass='bg-green-200/60 text-green-800 border border-green-600/40'; break;
+                case 'R': $statusText='Rejected';  $statusClass='bg-red-200/60 text-red-800 border border-red-600/40'; break;
+                case 'C': $statusText='Completed'; $statusClass='bg-emerald-200/60 text-emerald-800 border border-emerald-600/40'; break;
+                case 'D': $statusText='Revise';    $statusClass='bg-yellow-200/60 text-yellow-800 border border-yellow-600/40'; break;
+                case 'X': $statusText='Canceled';  $statusClass='bg-gray-200/60 text-gray-700 border border-gray-500/40'; break;
                 default:  $statusText = $st !== '' ? $st : 'Unknown'; break;
             }
 

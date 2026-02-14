@@ -1,56 +1,4 @@
 <x-app-layout>
-
-
-    <style>
-        /* Samakan tinggi Select2 dengan input Tailwind (h-10 / p-2.5) */
-        .select2-container .select2-selection--single {
-            height: 40px !important;
-            border: 1px solid #d1d5db;
-            /* border-gray-300 */
-            border-radius: 0.375rem;
-            /* rounded-md */
-            display: flex;
-            align-items: center;
-        }
-
-        /* Geser tombol clear (X) ke sebelah kanan */
-        .select2-container--default .select2-selection--single .select2-selection__clear {
-            position: absolute;
-            right: 28px;
-            /* beri jarak dari panah dropdown */
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6b7280;
-            /* gray-500 */
-            font-size: 16px;
-            cursor: pointer;
-            margin: 0;
-            z-index: 2;
-        }
-
-        /* Biar teks tidak nempel ke X */
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            padding-right: 40px !important;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 40px !important;
-            right: 6px;
-        }
-
-        /* Dark mode support */
-        .dark .select2-container--default .select2-selection--single {
-            background-color: #1f2937;
-            /* gray-800 */
-            border-color: #374151;
-            /* gray-700 */
-        }
-
-        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #e5e7eb;
-            /* gray-200 */
-        }
-    </style>
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -1275,6 +1223,43 @@
             $('#sppkForm').on('submit', function(e) {
                 e.preventDefault();
 
+                // ==============================
+                // ✅ ATTACHMENT REQUIRED CHECK
+                // ==============================
+                let hasAttachment = false;
+
+                $('#attachmentsContainer input[type="file"]').each(function() {
+                    if (this.files && this.files.length > 0) {
+                        hasAttachment = true;
+                        return false; // break loop
+                    }
+                });
+
+                // If edit mode: also check existing attachment rows
+                if (!hasAttachment) {
+                    const existingCount = $('.attachment-row[data-id]').length;
+                    if (existingCount > 0) {
+                        hasAttachment = true;
+                    }
+                }
+
+                if (!hasAttachment) {
+                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+
+                    toastr.error('Minimal 1 attachment wajib diupload.');
+
+                    if ($firstFile.length) {
+                        $firstFile.addClass('is-invalid');
+                        $('html,body').animate({
+                            scrollTop: $firstFile.offset().top - 120
+                        }, 300);
+                    }
+
+                    return;
+                }
+                // ==============================
+
+
                 // normalisasi qty (koma -> titik)
                 $('.qtyField').each(function() {
                     if (this.value.includes(',')) this.value = this.value.replace(',', '.');
@@ -1431,6 +1416,12 @@
             //         window.location.href = "{{ route('sppks') }}";
             //     }
             // });
+
+            $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
+                if (this.files.length > 0) {
+                    $(this).removeClass('is-invalid');
+                }
+            });
         });
     </script>
 

@@ -1,65 +1,4 @@
 <x-app-layout>
-
-
-
-    <style>
-        /* ===== FORCE HEIGHT SELECT2 (SINGLE) ===== */
-        .select2-container {
-            width: 100% !important;
-        }
-
-        .select2-container .select2-selection--single {
-            height: 50px !important;
-            /* ⬅️ NAIK JELAS */
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            display: flex !important;
-            align-items: center !important;
-            background-color: #fff;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 50px !important;
-            /* ⬅️ SAMA DENGAN HEIGHT */
-            padding-left: 16px !important;
-            padding-right: 44px !important;
-            /* ruang arrow */
-            font-size: 14px;
-            color: #374151;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 50px !important;
-            /* ⬅️ arrow ikut tinggi */
-            right: 12px;
-        }
-
-        /* ===== Dropdown list ===== */
-        .select2-results__options {
-            max-height: 320px;
-        }
-
-        /* ===== Dark mode ===== */
-        .dark .select2-container--default .select2-selection--single {
-            background-color: #374151;
-            border-color: #4b5563;
-        }
-
-        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #e5e7eb;
-        }
-
-        .select2-dropdown {
-            border: 1px solid #d1d5db;
-        }
-
-        .dark .select2-dropdown {
-            background: #111827;
-            border-color: #4b5563;
-        }
-    </style>
-
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
@@ -949,6 +888,30 @@
                     toastr.error('Mohon lengkapi field wajib di bagian header.');
                     return;
                 }
+                // =========================
+                // Attachment validation
+                // =========================
+                let attachmentOk = false;
+
+                $('#attachmentsContainer input[type="file"]').each(function() {
+                    if (this.files && this.files.length > 0) {
+                        attachmentOk = true;
+                        return false; // stop loop
+                    }
+                });
+
+                if (!attachmentOk) {
+                    toastr.error('Minimal 1 attachment wajib diupload.');
+
+                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                    $firstFile.addClass('is-invalid');
+
+                    $('html,body').animate({
+                        scrollTop: $firstFile.offset().top - 120
+                    }, 300);
+
+                    return;
+                }
 
                 // =========================
                 // Detail validation
@@ -998,6 +961,12 @@
                         $('#btnText').text('Submit Approval');
                         hideOverlay();
                     });
+            });
+
+            $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
+                if (this.files.length > 0) {
+                    $(this).removeClass('is-invalid');
+                }
             });
 
         });

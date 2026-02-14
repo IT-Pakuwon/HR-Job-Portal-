@@ -2,8 +2,6 @@
 
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
-
-
             <div class="flex gap-3">
                 {{-- <button id="approveBtn" 
                     {{ $sppj->bqid ? '' : 'disabled' }}
@@ -69,13 +67,36 @@
                 <div class="flex h-[250px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        @php
+                            $bqType = $sppj->bqtype;
+
+                            $bqClasses = match ($bqType) {
+                                'Jasa' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300',
+                                'Kontrak'
+                                    => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+                                default => '',
+                            };
+                        @endphp
+
+                        <h1 class="flex items-center gap-3 text-sm font-bold text-gray-800 dark:text-gray-100">
+
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
+
                             {{ $sppj->sppjid }}
+
+                            @if ($bqType)
+                                <span
+                                    class="{{ $bqClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
+                                    {{ $bqType }}
+                                </span>
+                            @endif
+
                         </h1>
+
+
 
                         @php
                             $statusText = match ($sppj->status) {

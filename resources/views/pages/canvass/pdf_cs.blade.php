@@ -37,6 +37,8 @@
         width: 100%;
         border-collapse: collapse;
         margin-bottom: 12px;
+        table-layout: fixed;
+        /* VERY IMPORTANT */
     }
 
     th {
@@ -46,6 +48,10 @@
         padding: 6px;
         text-align: center;
         vertical-align: middle;
+
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
     td {
@@ -54,6 +60,10 @@
         vertical-align: top;
         word-wrap: break-word;
         line-height: 1.35;
+
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
     th.no-col,
@@ -205,9 +215,13 @@
     @endif
 
     <tr>
-        <td class="label">Purpose</td>
-        <td colspan="9" class="value">{{ $keperluan }}</td>
+        <td class="label">Note CS</td>
+        <td colspan="9" class="value">{!! nl2br(e($keperluan)) !!}</td>
     </tr>
+    {{-- <tr>
+        <td class="label">Note CS</td>
+        <td colspan="9" class="value">{{ $csnote }}</td>
+    </tr> --}}
 </table>
 
 {{-- MAIN TABLE --}}
@@ -333,7 +347,7 @@
     $idx = 1;
 @endphp
 
-<table>
+<table style="width:100%; table-layout:fixed; border-collapse:collapse;">
     <thead>
         <tr>
             <th colspan="{{ 1 + $colsPerRow }}" style="text-align:left; background:#f8f8f8;">

@@ -518,7 +518,7 @@
 
             function renderStatusBadge(row) {
                 const label = row.status_label ?? row.status ?? 'Unknown';
-                const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                const cls = row.status_class ?? 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
 
                 return `
                         <span class="inline-flex items-center rounded-full border px-3 py-1  text-sm  font-semibold ${cls}">

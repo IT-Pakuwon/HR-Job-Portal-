@@ -26,7 +26,7 @@
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
                                 @if ($doc === 'PO')
-                                    Create CS Revision for PO
+                                    Create CS Reuse for PO
                                 @else
                                     Create CS
                                 @endif
@@ -698,7 +698,10 @@
                             <div class="flex justify-between gap-2">
                                 <!-- PPN -->
                                 <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                                    <span class="text-xs font-medium">PPN</span>
+                                   <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">
+    PPN
+</span>
+
                                     <input type="number" 
                                         class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
                                         value="11.00" step="0.01" min="0">
@@ -712,7 +715,7 @@
 
                                 <!-- PPh -->
                                 <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                                    <span class="text-xs font-medium">PPh</span>
+                                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
                                     <input type="number" 
                                         class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
                                         value="0" step="0.01" min="0">
@@ -1841,17 +1844,33 @@
         });
 
         document.getElementById('csForm').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
 
-                const inputs = Array.from(
-                    this.querySelectorAll('input, select, textarea')
-                ).filter(el => !el.disabled && el.tabIndex !== -1);
+            // Only handle Enter
+            if (e.key !== 'Enter') return;
 
-                const index = inputs.indexOf(document.activeElement);
-                if (index > -1 && index + 1 < inputs.length) {
-                    inputs[index + 1].focus();
-                }
+            const tag = e.target.tagName;
+            const type = (e.target.type || '').toLowerCase();
+
+            // ✅ Allow normal Enter inside textarea
+            if (tag === 'TEXTAREA') return;
+
+            // ✅ Allow Enter for file inputs
+            if (type === 'file') return;
+
+            // Otherwise → move to next field
+            e.preventDefault();
+
+            const inputs = Array.from(
+                this.querySelectorAll('input, select, textarea')
+            ).filter(el =>
+                !el.disabled &&
+                el.offsetParent !== null // skip hidden
+            );
+
+            const index = inputs.indexOf(document.activeElement);
+
+            if (index > -1 && index + 1 < inputs.length) {
+                inputs[index + 1].focus();
             }
         });
     </script>

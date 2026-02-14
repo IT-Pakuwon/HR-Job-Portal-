@@ -109,13 +109,13 @@
                 $('.kontrak-tab').removeClass('bg-indigo-600 text-white border-indigo-600')
                     .addClass(
                         'bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600'
-                        );
+                    );
 
                 $(`.kontrak-tab[data-tab="${tab}"]`)
                     .addClass('bg-indigo-600 text-white border-indigo-600')
                     .removeClass(
                         'bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600'
-                        );
+                    );
 
                 if (tab === 'my') {
                     $('#wrapStatus').show();
@@ -174,8 +174,8 @@
 
             function renderStatusBadge(row) {
                 const label = row.status_label ?? row.status ?? '-';
-                const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
-                return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${cls}">${label}</span>`;
+                const cls = row.status_class ?? 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                return `<span class="inline-flex items-center rounded border px-3 py-1.5 text-sm font-semibold ${cls}">${label}</span>`;
             }
 
             const table = $('#kontrakTable').DataTable({

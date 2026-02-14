@@ -30,7 +30,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">CS Revision</p>
+                        <p class="break-words text-sm font-medium">CS Reuse</p>
                     </div>
 
                     <p id="count-revision" class="shrink-0 text-base font-bold">{{ $revision }}</p>

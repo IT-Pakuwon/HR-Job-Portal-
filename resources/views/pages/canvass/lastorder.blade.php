@@ -2,44 +2,6 @@
     {{-- Toastr --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
-    <style>
-        a.link-underline {
-            color: #2563eb;
-            text-decoration-line: underline;
-            text-decoration-color: #2563eb;
-            text-underline-offset: 3px;
-            text-decoration-thickness: 1.5px;
-        }
-
-        a.link-underline:hover {
-            color: #1d4ed8;
-            text-decoration-color: #1d4ed8;
-        }
-
-        table.dataTable {
-            width: 100% !important;
-        }
-
-        /* Wrap kolom Description */
-        #invTable td:nth-child(7),
-        #invTable th:nth-child(7) {
-            white-space: normal !important;
-            word-break: break-word !important;
-            overflow-wrap: anywhere !important;
-            max-width: 420px;
-        }
-
-        /* Wrap kolom BQ Description (bq_descr) */
-        #bqTable td:nth-child(5),
-        #bqTable th:nth-child(5) {
-            white-space: normal !important;
-            word-break: break-word !important;
-            overflow-wrap: anywhere !important;
-            max-width: 520px;
-        }
-    </style>
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
             <div class="border-b border-gray-200 p-4 dark:border-gray-700">

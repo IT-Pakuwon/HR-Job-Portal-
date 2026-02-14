@@ -3,8 +3,6 @@
         $currentPage = Route::currentRouteName() == 'cslist.index' ? 'CS' : '';
     @endphp
 
-
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid-col-1 grid gap-6 xl:grid-cols-5 xl:grid-rows-1">
             {{-- My CS --}}
@@ -349,7 +347,7 @@
 
             function renderStatusBadge(row) {
                 const label = row.status_label ?? row.status ?? '-';
-                const cls = row.status_class ?? 'bg-gray-100 text-gray-700 border-gray-200';
+                const cls = row.status_class ?? 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
                 return `<span class="inline-flex items-center rounded-full border px-3 py-1  text-sm  font-semibold ${cls}">${label}</span>`;
             }
 

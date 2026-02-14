@@ -12,7 +12,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                Issue New Jobs
+                                SPB Open
                             </p>
                         </div>
 
@@ -31,7 +31,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                Issue Jobs
+                                Issue Partial
                             </p>
                         </div>
 
@@ -50,7 +50,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPPB Jobs
+                                SPB To SPPB
                             </p>
                         </div>
 

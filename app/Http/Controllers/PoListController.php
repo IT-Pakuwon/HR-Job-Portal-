@@ -187,7 +187,7 @@ class PoListController extends Controller
 
             // default
             $statusText  = $st !== '' ? $st : 'Unknown';
-            $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+            $statusClass = 'bg-gray-200/60 text-gray-700 border border-gray-500/40';
 
             // mapping status PO: H/P/O/C/X/R
             switch ($st) {
@@ -201,15 +201,14 @@ class PoListController extends Controller
                     break;
                 case 'O':
                     $statusText  = 'Partial';
-                    $statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
-                    break;
+                    $statusClass = 'bg-amber-200/60 text-amber-800 border border-amber-600/40';
                 case 'C':
                     $statusText  = 'Completed';
                     $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
                     break;
                 case 'X':
                     $statusText  = 'Canceled';
-                    $statusClass = 'bg-red-100 text-red-700 border-red-200';
+                    $statusClass = 'bg-red-200/60 text-red-800 border border-red-600/40';
                     break;
                 case 'D':
                     $statusText  = 'Reuse';

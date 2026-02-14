@@ -150,6 +150,42 @@
                 }
             });
         });
+        document.addEventListener('keydown', function(e) {
+
+            if (e.key !== 'Enter') return;
+
+            const target = e.target;
+            const form = target.closest('form');
+            if (!form) return; // not inside form
+
+            const tag = target.tagName;
+            const type = (target.type || '').toLowerCase();
+
+            // ✅ Allow Enter inside textarea (new line)
+            if (tag === 'TEXTAREA') return;
+
+            // ✅ Allow Enter for buttons
+            if (tag === 'BUTTON') return;
+
+            // ✅ Allow Enter for file input
+            if (type === 'file') return;
+
+            e.preventDefault();
+
+            const inputs = Array.from(
+                form.querySelectorAll('input, select, textarea')
+            ).filter(el =>
+                !el.disabled &&
+                el.type !== 'hidden' &&
+                el.offsetParent !== null // visible only
+            );
+
+            const index = inputs.indexOf(target);
+
+            if (index > -1 && index + 1 < inputs.length) {
+                inputs[index + 1].focus();
+            }
+        });
     </script>
 
     @stack('scripts')

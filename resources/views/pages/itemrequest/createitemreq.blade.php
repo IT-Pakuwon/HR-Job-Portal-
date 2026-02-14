@@ -1,88 +1,4 @@
 <x-app-layout>
-    <style>
-        .is-invalid {
-            border-color: #ef4444 !important;
-        }
-
-        .error-feedback {
-            display: block;
-            color: #dc2626;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-
-        .req::after {
-            content: " *";
-            color: #dc2626;
-            font-weight: 700;
-        }
-
-        /* Overlay full-screen */
-        #loadingSpinnerContainer {
-            position: fixed;
-            inset: 0;
-            display: none;
-            background: rgba(17, 24, 39, .55);
-            backdrop-filter: blur(2px);
-            z-index: 2000;
-        }
-
-        #loadingSpinnerContainer .loading-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 18px 22px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(31, 41, 55, .9), rgba(17, 24, 39, .9));
-            border: 1px solid rgba(255, 255, 255, .08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .04);
-        }
-
-        #loadingSpinnerContainer .loading-spinner {
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: #6366f1;
-            animation: spin 1s linear infinite;
-            position: relative;
-        }
-
-        #loadingSpinnerContainer .loading-spinner::after {
-            content: "";
-            position: absolute;
-            inset: 6px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-left-color: #a5b4fc;
-            animation: spinReverse .75s linear infinite;
-        }
-
-        #loadingSpinnerContainer .loading-text {
-            color: #e5e7eb;
-            font-weight: 600;
-            letter-spacing: .02em;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span {
-            display: inline-block;
-            animation: blink 1.4s infinite both;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(2) {
-            animation-delay: .2s;
-        }
-
-        #loadingSpinnerContainer .loading-ellipsis span:nth-child(3) {
-            animation-delay: .4s;
-        }
-    </style>
-
     <div class="max-w-9xl mx-auto w-full p-2">
         <form id="itemreqForm" class="flex flex-col gap-6" enctype="multipart/form-data">
             @csrf
@@ -281,6 +197,36 @@
         $('#itemreqForm').on('submit', function(e) {
             e.preventDefault();
 
+            // ===============================
+            // ✅ ATTACHMENT REQUIRED CHECK
+            // ===============================
+            let hasAttachment = false;
+
+            $('#attachmentsContainer input[type="file"]').each(function() {
+                if (this.files && this.files.length > 0) {
+                    hasAttachment = true;
+                    return false; // break loop
+                }
+            });
+
+            if (!hasAttachment) {
+                const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+
+                toastr.error('Minimal 1 attachment wajib diupload.');
+
+                if ($firstFile.length) {
+                    $firstFile.addClass('is-invalid');
+
+                    $('html,body').animate({
+                        scrollTop: $firstFile.offset().top - 120
+                    }, 300);
+                }
+
+                return;
+            }
+            // ===============================
+
+
             $('#submitBtn, #cancelBtn').prop('disabled', true);
             $('#btnText').text('Processing...');
             showOverlay('Submitting');
@@ -316,6 +262,12 @@
                     $('#btnText').text('Submit');
                     hideOverlay();
                 });
+        });
+
+        $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
+            if (this.files.length > 0) {
+                $(this).removeClass('is-invalid');
+            }
         });
 
         // init
