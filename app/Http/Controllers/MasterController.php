@@ -362,6 +362,7 @@ class MasterController extends Controller
 
     public function InventoryByWorktype(Request $request)
     {
+        // dd($request->all());
         $worktypeid = trim($request->get('worktypeid', ''));
         $cpnyid     = strtoupper(trim($request->get('cpnyid', '')));
         $search     = trim($request->get('search', ''));
@@ -371,9 +372,12 @@ class MasterController extends Controller
         // 1) Ambil item_class utk worktype + ATK
         $classesQ = \App\Models\MsWorktypeItem::query();
         if ($worktypeid !== '') {
+            // $classesQ->where(function($q) use ($worktypeid){
+            //     $q->where('worktypeid', $worktypeid)
+            //     ->orWhere('worktypeid', 'ATK');
+            // });
             $classesQ->where(function($q) use ($worktypeid){
-                $q->where('worktypeid', $worktypeid)
-                ->orWhere('worktypeid', 'ATK');
+                $q->where('worktypeid', $worktypeid);
             });
         } else {
             $classesQ->where('worktypeid', 'ATK');
@@ -436,17 +440,6 @@ class MasterController extends Controller
         //    Ganti nama kolom di selectRaw di bawah sesuai HASIL TINKER kamu!
         $invIds = $rows->pluck('inventoryid')->map(fn($v) => (string)$v)->unique()->values();
 
-        // --- Ambil data AW ---
-        // $awRows = \App\Models\ViewInventoryAW::on('sqlsrv5')
-        //     ->selectRaw("
-        //         invtid,
-        //         cpnyid,
-        //         CAST(stock AS float) AS stock,   
-        //         CAST(cost   AS float) AS cost     
-        //     ")
-        //     ->whereIn('invtid', $invIds)
-        //     ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
-        //     ->get();
 
         // Tentukan model berdasarkan cpnyid
         switch ($cpnyid) {
@@ -781,6 +774,7 @@ class MasterController extends Controller
 
     public function CoaBudget(Request $request)
     {
+        // dd($request->all());
         $user = Auth::user();
 
         // $businessUnitIds = collect(explode(',', (string) ($user->business_unit_id ?? '')))
@@ -1028,6 +1022,114 @@ class MasterController extends Controller
         ]);
     }
 
+    public function CoaBudgetbyDept(Request $request)
+    {
+        // dd($request->all());
+        $cpnyid  = $request->get('cpnyid');
+        $deptid  = $request->get('deptid');
+        $perpost = $request->get('perpost');
+        $search  = trim($request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = max((int) $request->get('per_page', 10), 1);
+
+        if (!$cpnyid || !$deptid) {
+            return response()->json([
+                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage
+            ]);
+        }
+
+        $msdepartment = MsDepartment::query()
+            ->where('department_id', $deptid)
+            ->where('status', 'A')
+            ->first(['department_fin_id']);
+
+        if (!$msdepartment) {
+            return response()->json([
+                'data' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage,
+                'message' => "Department {$deptid} tidak ditemukan / tidak aktif."
+            ]);
+        }
+
+        $budget = Budget::where('status', 'C')
+            ->where('cpny_id', $cpnyid)
+            ->where('department_fin_id', $msdepartment->department_fin_id)
+            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+            ->get();
+
+        if (!$budget) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, Dept {$deptid}, Perpost {$perpost}."
+            ]);
+        }
+
+        $q = BudgetDetail::query()
+            ->from('ms_budget as b')
+            ->join('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'b.account_id')
+                ->on('c.cpny_id', '=', 'b.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'b.activity_id')
+                ->on('a.cpny_id', '=', 'b.cpny_id');
+            })
+            // ->where('b.budget_id', $budget->budget_id)
+            ->where('b.cpny_id', $cpnyid)
+            ->where('b.department_fin_id', $msdepartment->department_fin_id)
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+
+        if ($search !== '') {
+            $q->where(function ($w) use ($search) {
+                $w->where('b.account_id', 'ilike', "%{$search}%")
+                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                ->orWhere('b.activity_id', 'ilike', "%{$search}%")          // opsional tapi berguna
+                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")       // ✅ INI YANG KURANG (Budget Descr yg kamu tampilkan)
+                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")       // tetap boleh
+                ->orWhereRaw(
+                    "(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?",
+                    ["%{$search}%"]
+                );
+            });
+
+        }
+
+        $total = (clone $q)->count();
+
+        $rows = $q->orderBy('a.activity_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'b.account_id',
+                'c.account_descr',
+                'b.activity_id',
+                'b.activity_descr as activity_descr',
+                'a.activity_descr as act_descr',
+                'b.business_unit_id',
+                'b.department_fin_id',
+
+                // ===== budget fields mentah (opsional utk debug) =====
+                DB::raw("COALESCE(b.totalbudget,0)      as totalbudget"),
+                DB::raw("COALESCE(b.totalbudget_add,0)  as totalbudget_add"),
+                DB::raw("COALESCE(b.total_reserve,0)    as total_reserve"),
+                DB::raw("COALESCE(b.total_used,0)       as total_used"),
+
+                // ===== hasil rumus =====
+                DB::raw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) as availablebudget"),
+                DB::raw("(COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))   as usedbudget"),
+                DB::raw("((COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) - (COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))) as remaining"),
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
     public function editCoaBudget(Request $request)
     {
         $user = Auth::user();
@@ -1137,6 +1239,7 @@ class MasterController extends Controller
 
     public function CoaBudgetWo(Request $request)
     {
+        // dd($request->all());
         $woid    = trim((string) $request->get('woid', ''));
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
@@ -1805,18 +1908,24 @@ class MasterController extends Controller
 
     public function getWoComplated(Request $request)
     {
-        // dd($request->all());
-        $status        = $request->input('status', 'C');
-        $worktypeid    = trim($request->input('worktypeid', ''));
-        $subworktypeid = trim($request->input('subworktypeid', ''));
+        $status          = $request->input('status', 'C');
+        $worktypeid      = trim($request->input('worktypeid', ''));
+        $subworktypeid   = trim($request->input('subworktypeid', ''));
         $departmentid    = trim($request->input('departmentid', ''));
-        $search        = trim($request->input('search', ''));
-        $page          = max((int) $request->input('page', 1), 1);
-        $perPage       = min(max((int) $request->input('per_page', 10), 1), 100);
+        $search          = trim($request->input('search', ''));
+        $page            = max((int) $request->input('page', 1), 1);
+        $perPage         = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $query = TrWO::query()
-            ->select('woid', 'wodate', 'created_by', 'department_id', 'worktypeid')
-            ->where('flag_sppbjkt', true) 
+            ->select([
+                'woid',
+                'wodate',
+                'created_by',
+                'department_id',
+                'worktypeid',
+                'keperluan'   // ✅ TAMBAHKAN INI
+            ])
+            ->where('flag_sppbjkt', true)
             ->where('status', $status)
             ->where('status_pekerjaan', 'P')
             ->where('pic_department', $departmentid);
@@ -1824,16 +1933,14 @@ class MasterController extends Controller
         if ($worktypeid !== '') {
             $query->where('worktypeid', $worktypeid);
         }
-        // if ($subworktypeid !== '') {
-        //     $query->where('subworktypeid', $subworktypeid);
-        // }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('woid', 'ILIKE', "%{$search}%")
                 ->orWhere('created_by', 'ILIKE', "%{$search}%")
                 ->orWhere('department_id', 'ILIKE', "%{$search}%")
-                ->orWhere('wodate', 'ILIKE', "%{$search}%");
+                ->orWhere('wodate', 'ILIKE', "%{$search}%")
+                ->orWhere('keperluan', 'ILIKE', "%{$search}%"); // optional: biar bisa search keperluan
             });
         }
 
@@ -1851,6 +1958,7 @@ class MasterController extends Controller
             'per_page'  => $perPage,
         ]);
     }
+
 
 
     public function getWoComplated_xxx(Request $request)

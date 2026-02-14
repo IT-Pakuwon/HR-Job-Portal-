@@ -108,7 +108,7 @@
                         </div>
                         <!-- WOID (letakkan sebelum Description) -->
                         <div id="woSection" class="flex hidden flex-col gap-2 lg:col-span-4">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
+                            <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">WO ID</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="woid" id="woid"
                                     class="flex-1 rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"

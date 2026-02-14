@@ -1088,6 +1088,7 @@ Route::post('/logout', function () {
     Route::post('/coa', [MasterController::class, 'updateCoa'])->name('coa.update');
 
     Route::get('/users/businessunits/by-cpny', [MasterController::class, 'businessUnitsByCpny'])->name('businessunits.byCpny');
+    Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
 
 
     
