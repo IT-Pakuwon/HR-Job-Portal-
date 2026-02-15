@@ -79,7 +79,10 @@
                                 </label>
                                 <textarea id="sppbnote" name="sppbnote" rows="3"
                                     class="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-800 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                    placeholder="Tuliskan catatan sppb (opsional)...">{{ old('sppbnote') }}</textarea>
+                                    placeholder="Tuliskan catatan sppb (opsional)...">{{ old('sppbnote', $spb->keperluan) }}</textarea>
+                                {{-- <textarea id="sppbnote" name="sppbnote" rows="3"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-800 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                    placeholder="Tuliskan catatan sppb (opsional)...">{{ old('sppbnote') }}</textarea> --}}
                             </div>
 
                         </div>
@@ -113,6 +116,9 @@
                                                     Description</th>
                                                 <th
                                                     class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
+                                                    Stock</th>
+                                                <th
+                                                    class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
                                                     Qty</th>
                                                 <th
                                                     class="px-4 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">
@@ -136,7 +142,16 @@
                                             @forelse($details as $d)
                                                 <tr>
                                                     <td class="px-4 py-2">{{ $d->inventoryid }}</td>
-                                                    <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
+                                                    {{-- <td class="px-4 py-2">{{ $d->inventory_descr }}</td> --}}
+                                                    <td class="px-4 py-2">
+                                                        <div class="font-medium text-gray-800 dark:text-gray-100">
+                                                            {{ $d->inventory_descr }}
+                                                        </div>
+                                                        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                            {{ $d->note }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-2 text-center">{{ $d->stock_unit ?? '0' }}</td>
                                                     <td class="px-4 py-2 text-right">
                                                         {{ number_format((float) $d->qty_original, 2) }}
                                                     </td>

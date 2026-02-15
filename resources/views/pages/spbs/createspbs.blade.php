@@ -19,6 +19,17 @@
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 40px;
         }
+
+        .is-invalid {
+            border: 1px solid #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+
+        .error-feedback {
+            color: #ef4444;
+            font-size: 0.75rem;
+        }
+
     </style>
 
 
@@ -830,9 +841,29 @@
             $('#spbForm').on('submit', function(e) {
                 e.preventDefault();
 
-                if (!$('#worktypeid').val() || !$('#subworktypeid').val()) {
-                    alert('Silakan pilih Jenis Pekerjaan dulu.');
+                clearAllErrors(); // pastikan ini dipanggil
+
+                // ✅ VALIDASI JENIS PEKERJAAN
+                const wt  = ($('#worktypeid').val() || '').trim();
+                const swt = ($('#subworktypeid').val() || '').trim();
+
+                if (!wt || !swt) {
+                    const $display = $('#jenis_pekerjaan_display');
+
+                    addError($display, 'Jenis Pekerjaan wajib dipilih.');
+                    toastr.error('Jenis Pekerjaan wajib dipilih.');
+
+                    $('html,body').animate({
+                        scrollTop: $display.offset().top - 120
+                    }, 300);
+
+                    return;
                 }
+
+
+                // if (!$('#worktypeid').val() || !$('#subworktypeid').val()) {
+                //     alert('Silakan pilih Jenis Pekerjaan dulu.');
+                // }
 
                 // ✅ validasi WO dulu
                 if (!validateWoidRequirement()) return;
@@ -1927,24 +1958,32 @@
                     .done(function(res) {
                         // Expected: { data: [{ woid, wodate, created_by, departement_id }], total, page, per_page }
                         const rows = (res.data || []).map(it => {
-                            const woid = it.woid || '';
-                            const wodate = it.wodate || '';
-                            const created_by = it.created_by || '';
-                            const dept = it.departement_id || it.department_id || '';
-                            const worktype = it.worktypeid || '';
-                            return `
-                <tr>
-                    <td class="border p-2">${woid}</td>
-                    <td class="border p-2">${wodate}</td>
-                    <td class="border p-2">${dept}</td>
-                    <td class="border p-2">${worktype}</td>
-                    <td class="border p-2">${created_by}</td>                    
-                    <td class="border p-2 text-center">
-                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
-                        data-woid="${$('<div>').text(woid).html()}">Choose</button>
-                    </td>
-                </tr>`;
-                        }).join('');
+                        const woid = it.woid || '';
+                        const wodate = it.wodate || '';
+                        const created_by = it.created_by || '';
+                        const dept = it.departement_id || it.department_id || '';
+                        const worktype = it.worktypeid || '';
+
+                        // ✅ ambil keperluan/desc dari backend (sesuaikan key yang kamu kirim)
+                        const keperluan = it.keperluan || it.work_description || it.description || '';
+
+                        return `
+                            <tr>
+                                <td class="border p-2">${woid}</td>
+                                <td class="border p-2">${wodate}</td>
+                                <td class="border p-2">${dept}</td>
+                                <td class="border p-2">${worktype}</td>
+                                <td class="border p-2">${created_by}</td>
+                                <td class="border p-2 text-center">
+                                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
+                                        data-woid="${$('<div>').text(woid).html()}"
+                                        data-keperluan="${$('<div>').text(keperluan).html()}">
+                                        Choose
+                                    </button>
+                                </td>
+                            </tr>`;
+                    }).join('');
+
 
                         $woTbody.html(rows || '<tr><td colspan="5" class="p-3 text-center">No data</td></tr>');
                         woState.total = res.total || 0;
@@ -1966,10 +2005,18 @@
             // pilih WO → isi input
             $(document).on('click', '.chooseWo', function() {
                 const woid = $(this).data('woid') || '';
-                $('#woid').val(woid);
-                $('#woid').removeClass('is-invalid').next('.error-feedback').remove();
+                const kep  = $(this).data('keperluan') || '';
+
+                $('#woid').val(woid).removeClass('is-invalid').next('.error-feedback').remove();
+
+                // ✅ auto isi keperluan
+                if (kep) {
+                    $('#keperluan').val(kep).trigger('input'); // trigger supaya error clear kalau ada
+                }
+
                 closeWoModal();
             });
+
 
             // jika user mengganti Jenis Pekerjaan dan modal WO sedang terbuka → refresh
             $('#saveJenisPekerjaan').on('click', function() {

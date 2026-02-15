@@ -407,7 +407,7 @@ class SpbController extends Controller
         
     public function storeSpb(Request $request)
     {
-        // dd($request->all());
+        dd($request->all());
         $doctype  = 'RB';
         $user     = $request->user();
         $username = $user->username ?? 'system';

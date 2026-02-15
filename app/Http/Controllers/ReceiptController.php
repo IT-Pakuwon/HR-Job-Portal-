@@ -50,7 +50,7 @@ class ReceiptController extends Controller
         // --- Ambil header PO ---
         $poQ = TrPO::select([
                 'id','ponbr','podate','sppbjktid','vendorname',
-                'cpny_id','department_id','user_peminta'
+                'cpny_id','department_id','user_peminta','keperluan'
             ])
             ->where('id', $id);
 
@@ -68,7 +68,7 @@ class ReceiptController extends Controller
         $details = TrPOdetail::select([
                 'id','ponbr',
                 'inventoryid','inventory_descr','siteid','inventory_type',
-                'inventory_sub_type','inventory_category',
+                'inventory_sub_type','inventory_category','ponote_detail',
                 DB::raw("COALESCE(uom,'')          AS uom"),
                 DB::raw("COALESCE(qty,0)           AS qty_original"),
                 DB::raw("COALESCE(qty_received,0)  AS qty_received"),

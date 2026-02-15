@@ -1908,13 +1908,13 @@ class MasterController extends Controller
 
     public function getWoComplated(Request $request)
     {
-        $status          = $request->input('status', 'C');
-        $worktypeid      = trim($request->input('worktypeid', ''));
-        $subworktypeid   = trim($request->input('subworktypeid', ''));
-        $departmentid    = trim($request->input('departmentid', ''));
-        $search          = trim($request->input('search', ''));
-        $page            = max((int) $request->input('page', 1), 1);
-        $perPage         = min(max((int) $request->input('per_page', 10), 1), 100);
+        $status        = $request->input('status', 'C');
+        $worktypeid    = trim($request->input('worktypeid', ''));
+        $subworktypeid = trim($request->input('subworktypeid', ''));
+        $departmentid  = trim($request->input('departmentid', ''));
+        $search        = trim($request->input('search', ''));
+        $page          = max((int) $request->input('page', 1), 1);
+        $perPage       = min(max((int) $request->input('per_page', 10), 1), 100);
 
         $query = TrWO::query()
             ->select([
@@ -1923,7 +1923,9 @@ class MasterController extends Controller
                 'created_by',
                 'department_id',
                 'worktypeid',
-                'keperluan'   // ✅ TAMBAHKAN INI
+                'keperluan',
+                'location_id',       // ✅ tambah
+                'sub_location_id',   // ✅ tambah
             ])
             ->where('flag_sppbjkt', true)
             ->where('status', $status)
@@ -1933,18 +1935,21 @@ class MasterController extends Controller
         if ($worktypeid !== '') {
             $query->where('worktypeid', $worktypeid);
         }
+        if ($subworktypeid !== '') {
+            $query->where('subworktypeid', $subworktypeid);
+        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('woid', 'ILIKE', "%{$search}%")
                 ->orWhere('created_by', 'ILIKE', "%{$search}%")
                 ->orWhere('department_id', 'ILIKE', "%{$search}%")
-                ->orWhere('wodate', 'ILIKE', "%{$search}%")
-                ->orWhere('keperluan', 'ILIKE', "%{$search}%"); // optional: biar bisa search keperluan
+                ->orWhereRaw("CAST(wodate AS TEXT) ILIKE ?", ["%{$search}%"])
+                ->orWhere('keperluan', 'ILIKE', "%{$search}%");
             });
         }
 
-        $total = $query->count();
+        $total = (clone $query)->count();
 
         $rows = $query->orderByDesc('wodate')
             ->offset(($page - 1) * $perPage)
@@ -1952,12 +1957,13 @@ class MasterController extends Controller
             ->get();
 
         return response()->json([
-            'data'      => $rows,
-            'total'     => $total,
-            'page'      => $page,
-            'per_page'  => $perPage,
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
         ]);
     }
+
 
 
 

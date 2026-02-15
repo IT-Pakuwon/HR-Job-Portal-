@@ -70,7 +70,11 @@
                                 </label>
                                 <textarea id="issuenote" name="issuenote" rows="3"
                                     class="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-800 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                    placeholder="Tuliskan catatan issue (opsional)...">{{ old('issuenote') }}</textarea>
+                                    placeholder="Tuliskan catatan issue (opsional)...">{{ old('issuenote', $spb->keperluan) }}</textarea>
+
+                                {{-- <textarea id="issuenote" name="issuenote" rows="3"
+                                    class="mt-1 w-full rounded-lg border border-gray-300 p-2 text-sm text-gray-800 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                    placeholder="Tuliskan catatan issue (opsional)...">{{ old('issuenote') }}</textarea> --}}
                             </div>
 
                         </div>
@@ -129,7 +133,16 @@
                                             @forelse($details as $d)
                                                 <tr>
                                                     <td class="px-4 py-2">{{ $d->inventoryid }}</td>
-                                                    <td class="px-4 py-2">{{ $d->inventory_descr }}</td>
+                                                    {{-- <td class="px-4 py-2">{{ $d->inventory_descr }}</td> --}}
+                                                    <td class="px-4 py-2">
+                                                        <div class="font-medium text-gray-800 dark:text-gray-100">
+                                                            {{ $d->inventory_descr }}
+                                                        </div>
+                                                        <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                            {{ $d->note }}
+                                                        </div>
+                                                    </td>
+
                                                     <td class="px-4 py-2 text-center">{{ $d->stock_unit ?? '0' }}</td>
                                                     <td class="px-4 py-2 text-right">
                                                         {{ number_format((float) $d->qty_original, 2) }}
@@ -143,10 +156,13 @@
                                                             value="{{ $d->id }}">
                                                         <input type="text" name="qty_issue[{{ $d->id }}]"
                                                             class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            inputmode="decimal" autocomplete="off" placeholder="0,00"
+                                                            inputmode="decimal"
+                                                            autocomplete="off"
+                                                            placeholder="0,00"
                                                             data-detail-id="{{ $d->id }}"
                                                             data-qty-original="{{ (float) $d->qty_original }}"
-                                                            data-qty-open="{{ (float) $d->qty_sisa }}" />
+                                                            data-qty-open="{{ (float) $d->qty_sisa }}"
+                                                            data-stock-unit="{{ (float) ($d->stock_unit ?? 0) }}" />
                                                     </td>
 
                                                     {{-- ===== Detail Issue Note per baris ===== --}}
@@ -389,11 +405,43 @@
                     }
                 });
                 return ok;
+            }        
+
+            function validateStockNotZero() {
+                let ok = true;
+
+                $('.qtyIssue').each(function () {
+                    const $qty = $(this);
+
+                    const stockUnit = parseFloat(String($qty.data('stock-unit') ?? '0')) || 0;
+
+                    const rawIssue = String($qty.val() || '').replace(/,/g, '.');
+                    const qtyIssue = parseFloat(rawIssue) || 0;
+
+                    // Jika user isi qty > 0 tapi stock = 0
+                    if (qtyIssue > 0 && stockUnit <= 0) {
+                        ok = false;
+                        window.addError($qty, 'Stock tidak tersedia (0). Tidak bisa melakukan Issue.');
+                    }
+                });
+
+                return ok;
             }
+
 
             $('#issueForm').on('submit', function(e) {
                 e.preventDefault();
                 clearFormErrors();
+
+                // ✅ Validasi stock tidak boleh 0
+                if (!validateStockNotZero()) {
+                    const $firstInvalid = $('.qtyIssue.is-invalid').first();
+                    if ($firstInvalid.length) $firstInvalid.focus();
+                    if (window.toastr) toastr.error(
+                        'Ada item dengan Stock = 0 yang tetap di-issue. Mohon cek kembali.'
+                    );
+                    return;
+                }
 
                 if (!hasAtLeastOneQty()) {
                     const $first = $('.qtyIssue').first();

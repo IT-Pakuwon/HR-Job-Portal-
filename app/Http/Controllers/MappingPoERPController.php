@@ -21,24 +21,36 @@ class MappingPoERPController extends Controller
 
     private function statusLabel(?string $status): string
     {
-        $st = strtoupper(trim((string)$status));
+        $st = strtoupper(trim((string) $status));
+
         switch ($st) {
-            case 'D': return 'Waiting Review';
-            case 'P': return 'Review';
-            case 'C': return 'Completed';
-            default:  return $st !== '' ? $st : '-';
+            case 'D':
+                return 'Waiting Review';
+            case 'P':
+                return 'Review';
+            case 'C':
+                return 'Completed';
+            default:
+                return $st !== '' ? $st : '-';
         }
     }
+
 
     public function json(Request $req)
     {
         $user = Auth::user();
-        if (!$user) return response()->json(['data'=>[]], 401);
+        if (!$user) return response()->json(['data' => []], 401);
 
-        $status = strtoupper(trim((string) $req->query('status', ''))); // D/P/C atau kosong
-        $search = trim((string) $req->query('search', ''));
+        $status = strtoupper(trim((string)$req->query('status', ''))); // D/P/C atau kosong
+        $search = trim((string)$req->query('search', ''));
 
-        $q = StagingIfcaPoApprove::query();
+        // 1) subquery: ambil id TERAKHIR per (cpny_id, order_no)
+        $sub = StagingIfcaPoApprove::query()
+            ->selectRaw('MAX(id) AS id')
+            ->groupBy('cpny_id', 'order_no');
+
+        // 2) ambil representative rows
+        $q = StagingIfcaPoApprove::query()->whereIn('id', $sub);
 
         if (in_array($status, ['D','P','C'], true)) {
             $q->where('status', $status);
@@ -55,9 +67,12 @@ class MappingPoERPController extends Controller
             });
         }
 
-        $rows = $q->orderByDesc('id')->limit(500)->get();
+        $rows = $q->orderByDesc('id')->limit(500)->get([
+            'id','cpny_id','order_no','order_date','supplier_cd',
+            'ref_no_spbjkt','ref_no_cs','status'
+        ]);
 
-        // ===== lookup vendor_name dari ms_vendor (pgsql) =====
+        // vendor map (bulk)
         $vendorIds = $rows->pluck('supplier_cd')
             ->filter()
             ->map(fn($v) => trim((string)$v))
@@ -88,16 +103,52 @@ class MappingPoERPController extends Controller
 
     public function showMapping(int $id)
     {
-        $row = StagingIfcaPoApprove::findOrFail($id);
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
 
-        $row->status_label = $this->statusLabel($row->status ?? null);
+        // representative row
+        $row = StagingIfcaPoApprove::query()->findOrFail($id);
 
+        $cpny  = (string)$row->cpny_id;
+        $order = (string)$row->order_no;
+
+        // all lines for this PO
+        $details = StagingIfcaPoApprove::query()
+            ->where('cpny_id', $cpny)
+            ->where('order_no', $order)
+            ->orderBy('order_line', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // vendor name
         $vid = trim((string)($row->supplier_cd ?? ''));
-        $row->vendor_name = $vid !== ''
+        $vendorName = $vid !== ''
             ? MsVendor::query()->where('vendor_id', $vid)->value('vendor_name')
             : null;
 
-        return response()->json(['success' => true, 'data' => $row]);
+        // header (dari row representative)
+        $header = [
+            'cpny_id'        => $row->cpny_id,
+            'order_no'       => $row->order_no,
+            'order_date'     => $row->order_date,
+            'order_type'     => $row->order_type,
+            'supplier_cd'    => $row->supplier_cd,
+            'vendor_name'    => $vendorName,
+            'remark'         => $row->remark,
+            'ref_no_spbjkt'  => $row->ref_no_spbjkt,
+            'ref_no_cs'      => $row->ref_no_cs,
+            'status'         => $row->status,
+            'status_label'   => $this->statusLabel($row->status ?? null),
+            'process_note'   => $row->process_note,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'header'  => $header,
+                'details' => $details,
+            ]
+        ]);
     }
 
     public function updateMapping(Request $req, int $id)
@@ -105,50 +156,71 @@ class MappingPoERPController extends Controller
         $user = Auth::user();
         if (!$user) return response()->json(['success'=>false,'message'=>'Unauthenticated'], 401);
 
-        $row = StagingIfcaPoApprove::findOrFail($id);
+        // representative row untuk tahu group
+        $rep = StagingIfcaPoApprove::query()->findOrFail($id);
+        $cpny  = (string)$rep->cpny_id;
+        $order = (string)$rep->order_no;
 
-        // ✅ editable fields (bagian bawah modal)
         $data = $req->validate([
-            'status'   => ['required','in:D,P,C'],
+            'status'       => ['required','in:D,P,C'],
             'process_note' => ['nullable','string','max:500'],
 
-            // IFCA editable
-            'entity_cd'   => ['nullable','string','max:50'],
-            'location_cd' => ['nullable','string','max:50'],
-            'acct_cd'     => ['nullable','string','max:50'],
-            'div_cd'      => ['nullable','string','max:50'],
-            'dept_cd'     => ['nullable','string','max:50'],
+            // lines update (per item)
+            'lines' => ['required','array','min:1'],
+            'lines.*.id' => ['required','integer'],
+            'lines.*.entity_cd'   => ['nullable','string','max:50'],
+            'lines.*.location_cd' => ['nullable','string','max:50'],
+            'lines.*.acct_cd'     => ['nullable','string','max:50'],
+            'lines.*.div_cd'      => ['nullable','string','max:50'],
+            'lines.*.dept_cd'     => ['nullable','string','max:50'],
 
-            // SOLOMON editable
-            'solomon_acct_cd'        => ['nullable','string','max:50'],
-            'solomon_allocation_cd'  => ['nullable','string','max:50'],
-            'solomon_subaccount_dept'=> ['nullable','string','max:50'],
+            'lines.*.solomon_acct_cd'        => ['nullable','string','max:50'],
+            'lines.*.solomon_allocation_cd'  => ['nullable','string','max:50'],
+            'lines.*.solomon_subaccount_dept'=> ['nullable','string','max:50'],
         ]);
 
-        $row->status = $data['status'];
-        $row->process_note = $data['process_note'] ?? $row->process_note;
+        // ambil semua row group sekali
+        $groupRows = StagingIfcaPoApprove::query()
+            ->where('cpny_id', $cpny)
+            ->where('order_no', $order)
+            ->get()
+            ->keyBy('id');
 
-        // set editable mapping fields (kalau tidak ada di request, biarkan yang lama)
-        foreach ([
-            'entity_cd','location_cd','acct_cd','div_cd','dept_cd',
-            'solomon_acct_cd','solomon_allocation_cd','solomon_subaccount_dept',
-        ] as $f) {
-            if (array_key_exists($f, $data)) {
-                $row->{$f} = $data[$f];
+        // update status/note untuk semua baris group biar konsisten
+        $now = Carbon::now();
+        foreach ($groupRows as $r) {
+            $r->status = $data['status'];
+            if (array_key_exists('process_note', $data)) {
+                $r->process_note = $data['process_note'];
+            }
+            $r->reviewed_by = $user->username ?? ($user->name ?? 'system');
+            $r->reviewed_at = $now;
+            $r->updated_by  = $user->username ?? ($user->name ?? 'system');
+            $r->updated_at  = $now;
+        }
+
+        // apply mapping per line
+        foreach ($data['lines'] as $ln) {
+            $rid = (int)$ln['id'];
+            if (!isset($groupRows[$rid])) continue; // safety: ignore non-group id
+
+            $row = $groupRows[$rid];
+            foreach ([
+                'entity_cd','location_cd','acct_cd','div_cd','dept_cd',
+                'solomon_acct_cd','solomon_allocation_cd','solomon_subaccount_dept',
+            ] as $f) {
+                if (array_key_exists($f, $ln)) {
+                    $row->{$f} = $ln[$f];
+                }
             }
         }
 
-        $row->reviewed_by = $user->username ?? ($user->name ?? 'system');
-        $row->reviewed_at = Carbon::now();
-
-        $row->updated_by = $user->username ?? ($user->name ?? 'system');
-        $row->updated_at = Carbon::now();
-
-        $row->save();
+        // save all
+        foreach ($groupRows as $r) $r->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Data berhasil diupdate.',
+            'message' => 'Mapping berhasil diupdate.',
         ]);
     }
 }

@@ -96,7 +96,7 @@
                             </label>
                             <textarea id="receiptnote" name="receiptnote" rows="3"
                                 class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                placeholder="Catatan umum untuk receipt (opsional)"></textarea>
+                                placeholder="Catatan umum untuk receipt (opsional)">{{ old('receiptnote', $po->keperluan) }}</textarea>
                         </div>
                     </div>
 
@@ -192,7 +192,13 @@
 
                                             {{-- DESCRIPTION --}}
                                             <td class="px-3 py-2 text-gray-700 dark:text-gray-100">
-                                                {{ $d->inventory_descr }}
+                                                {{-- {{ $d->inventory_descr }} --}}
+                                                <div class="font-medium text-gray-800 dark:text-gray-100">
+                                                    {{ $d->inventory_descr }}
+                                                </div>
+                                                <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ $d->ponote_detail }}
+                                                </div>
                                             </td>
 
                                             <td class="px-2 py-2 text-right">{{ number_format($poQty, 2) }}</td>

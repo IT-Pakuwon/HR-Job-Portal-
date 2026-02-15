@@ -464,6 +464,7 @@ class SpbJobsController extends Controller
                 'spb_no',
                 'inventoryid',
                 'inventory_descr',
+                'note',
                 'siteid',
                 DB::raw("COALESCE(uom,'') AS uom"),
                 DB::raw("COALESCE(qty,0) AS qty_original"),
@@ -797,6 +798,7 @@ class SpbJobsController extends Controller
                 'spb_no',
                 'inventoryid',
                 'inventory_descr',
+                'note',
                 'siteid',
                 DB::raw("COALESCE(uom,'') AS uom"),
 
