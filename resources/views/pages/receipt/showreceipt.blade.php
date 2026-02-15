@@ -118,11 +118,15 @@
                                             </a>
                                         @endif
 
-                                        <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb"
+                                        {{-- <a href="{{ route('receipts.print', ['hash' => $hash]) }}" ?type=sttb"
                                             target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                            Print STTB/SPB --}}
+                                        <a href="{{ route('receipts.print', ['hash' => $hash]) }}" target="_blank"
+                                            class="block px-4 py-2 hover:bg-gray-100">
                                             Print STTB/SPB
                                         </a>
 
+                                        {{-- </a> --}}
                                     </div>
                                 </div>
                             </div>
@@ -1103,6 +1107,17 @@
                 // kalau masih belum tertutup, redirect saja
                 window.location.href = fallbackUrl;
             }, 300);
+        }
+    </script>
+
+
+    <script>
+        function printSTTB(hash) {
+            window.open(`/receipt/${hash}?type=sttb&copy=ASLI`, '_blank');
+
+            setTimeout(() => {
+                window.open(`/receipt/${hash}?type=sttb&copy=COPY`, '_blank');
+            }, 500);
         }
     </script>
 

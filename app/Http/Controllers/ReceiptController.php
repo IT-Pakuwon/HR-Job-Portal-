@@ -29,9 +29,11 @@ use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Http\Controllers\Traits\HasAutonbr;
+use setasign\Fpdi\Fpdi;
 
 class ReceiptController extends Controller
 {
+
     use HasAutonbr;
 
     public function createReceipt(Request $req)
@@ -1291,81 +1293,151 @@ class ReceiptController extends Controller
     //     return $dompdf->stream("{$basename}_{$rcp->receiptnbr}.pdf", ['Attachment' => false]);
     // }
 
-public function printReceipt(string $hash, Request $request)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
-    abort_if(!$id, 404);
 
-    $user = auth()->user();
-    if (!$user) return redirect()->route('login');
 
-    $rcp = TrReceipt::with(['creator:username,name'])->findOrFail($id);
+    public function printReceipt(string $hash, Request $request)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
 
-    $po  = TrPO::where('ponbr', $rcp->ponbr)
-        ->where('cpny_id', $rcp->cpny_id)
-        ->first();
+        $rcp = TrReceipt::with(['creator:username,name'])->findOrFail($id);
 
-    $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
-        ->orderBy('receipt_no')
-        ->get();
+        $po  = TrPO::where('ponbr', $rcp->ponbr)
+            ->where('cpny_id', $rcp->cpny_id)
+            ->first();
 
-    $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();
+        $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
+            ->orderBy('receipt_no')
+            ->get();
 
-    $type = strtolower((string)$request->query('type', 'sttb'));
+        $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();
 
-    // ===============================
-    // BPG (Non Stock) → normal print
-    // ===============================
-    if ($type === 'bpg') {
+        $type = strtolower($request->query('type', 'sttb'));
 
-        $pdf = Pdf::loadView(
-            'pages.receipt.pdf_bpg',
-            compact('rcp','po','rcpdetails','company')
-        )->setPaper('A4','portrait');
 
-    } else {
+        /*
+        |--------------------------------------------------------------------------
+        |  BPG (NON STOCK) → NORMAL SINGLE PDF
+        |--------------------------------------------------------------------------
+        */
+        if ($type === 'bpg') {
 
-        // ===============================
-        // STTB → ASLI + COPY in one file
-        // Blade will duplicate automatically
-        // ===============================
+            $pdf = Pdf::loadView(
+                'pages.receipt.pdf_bpg',
+                compact('rcp','po','rcpdetails','company')
+            )->setPaper('A4','portrait');
 
-        $pdf = Pdf::loadView(
+            $dompdf = $pdf->getDomPDF();
+            $dompdf->render();
+
+            $canvas = $dompdf->get_canvas();
+            $font   = $dompdf->getFontMetrics()->get_font('sans-serif','normal');
+
+            $canvas->page_text(
+                480,
+                820,
+                "Page {PAGE_NUM} of {PAGE_COUNT}",
+                $font,
+                9,
+                [0,0,0]
+            );
+
+            return $dompdf->stream(
+                "BPG_{$rcp->receiptnbr}.pdf",
+                ['Attachment' => false]
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        |  STTB → ASLI + COPY (RESET PAGE)
+        |--------------------------------------------------------------------------
+        */
+
+        // ===== 1️⃣ ASLI =====
+        $pdfAsli = Pdf::loadView(
             'pages.receipt.pdf_receipt',
             compact('rcp','po','rcpdetails','company')
         )->setPaper('A4','portrait');
+
+        $domAsli = $pdfAsli->getDomPDF();
+        $domAsli->render();
+
+        $canvas = $domAsli->get_canvas();
+        $font   = $domAsli->getFontMetrics()->get_font('sans-serif','normal');
+
+        $canvas->page_text(
+            480,
+            820,
+            "Page {PAGE_NUM} of {PAGE_COUNT}",
+            $font,
+            9,
+            [0,0,0]
+        );
+
+        $asliPath = storage_path('app/asli_temp.pdf');
+        file_put_contents($asliPath, $domAsli->output());
+
+
+        // ===== 2️⃣ COPY =====
+        $pdfCopy = Pdf::loadView(
+            'pages.receipt.pdf_receipt_copy',
+            compact('rcp','po','rcpdetails','company')
+        )->setPaper('A4','portrait');
+
+        $domCopy = $pdfCopy->getDomPDF();
+        $domCopy->render();
+
+        $canvas = $domCopy->get_canvas();
+        $font   = $domCopy->getFontMetrics()->get_font('sans-serif','normal');
+
+        $canvas->page_text(
+            480,
+            820,
+            "Page {PAGE_NUM} of {PAGE_COUNT}",
+            $font,
+            9,
+            [0,0,0]
+        );
+
+        $copyPath = storage_path('app/copy_temp.pdf');
+        file_put_contents($copyPath, $domCopy->output());
+
+
+        // ===== 3️⃣ MERGE =====
+        $pdf = new Fpdi();
+
+        foreach ([$asliPath, $copyPath] as $file) {
+
+            $pageCount = $pdf->setSourceFile($file);
+
+            for ($i = 1; $i <= $pageCount; $i++) {
+
+                $tpl  = $pdf->importPage($i);
+                $size = $pdf->getTemplateSize($tpl);
+
+                $pdf->AddPage(
+                    $size['orientation'],
+                    [$size['width'], $size['height']]
+                );
+
+                $pdf->useTemplate($tpl);
+            }
+        }
+
+        unlink($asliPath);
+        unlink($copyPath);
+
+        return response($pdf->Output('S'))
+            ->header('Content-Type', 'application/pdf')
+            ->header(
+                'Content-Disposition',
+                'inline; filename="STTB_'.$rcp->receiptnbr.'.pdf"'
+            );
     }
 
-    // ===============================
-    // Render DomPDF
-    // ===============================
-    $dompdf = $pdf->getDomPDF();
-    $dompdf->render();
 
-    // ===============================
-    // Footer
-    // ===============================
-    $canvas  = $dompdf->get_canvas();
-    $w       = $canvas->get_width();
-    $h       = $canvas->get_height();
-    $metrics = $dompdf->getFontMetrics();
-    $font    = $metrics->get_font('sans-serif', 'normal');
-    $size    = 9;
-
-    $createdName = ucwords(strtolower(optional($rcp->creator)->name ?? $rcp->created_by));
-    $now = now();
-
-    $leftTxt  = "Created by: {$createdName}, On: ".$now->format('d/m/Y H:i');
-    $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
-    $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
-
-    $y = $h - 28;
-
-    $canvas->page_text(30, $y, $leftTxt, $font, $size, [0,0,0]);
-    $canvas->page_text($w - $rightWidth - 30, $y, $rightTpl, $font, $size, [0,0,0]);
-
-    return $dompdf->stream("STTB_{$rcp->receiptnbr}.pdf", ['Attachment' => false]);
-}
 
 
     public function updatePO(Request $request, $id)

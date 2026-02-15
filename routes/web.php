@@ -774,7 +774,7 @@ Route::post('/logout', function () {
         Route::get('/receiptlist/json', [ReceiptListController::class, 'json'])->name('receiptlist.json');
         // Detail & Print
         Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
-        Route::get('/receipt/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
+        Route::get('/receipts/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
         // Lookup sites / warehouse
         
     });
