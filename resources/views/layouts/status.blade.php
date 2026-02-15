@@ -508,7 +508,9 @@
         }
 
         .req::after {
-            content: " *";
+            content: "*";
+            color: #ef4444;
+            margin-left: 4px;
         }
 
         .track-tab {
