@@ -108,39 +108,25 @@
 
                                 {{-- Dropdown --}}
                                 <div
-                                    class="absolute right-0 z-50 mt-2 hidden w-48 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+                                    class="absolute right-0 z-50 mt-2 hidden w-56 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
                                     <div class="py-1 text-sm text-gray-700">
+
                                         @if ($isNonStock)
                                             <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=bpg"
                                                 target="_blank" class="block px-4 py-2 hover:bg-gray-100">
                                                 Print BPG Non Stock
                                             </a>
-
-                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=ASLI"
-                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
-                                                Print STTB/SPB (ASLI)
-                                            </a>
-
-                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=COPY"
-                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
-                                                Print STTB/SPB (COPY)
-                                            </a>
-                                        @else
-                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=ASLI"
-                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
-                                                Print STTB/SPB (ASLI)
-                                            </a>
-
-                                            <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb&copy=COPY"
-                                                target="_blank" class="block px-4 py-2 hover:bg-gray-100">
-                                                Print STTB/SPB (COPY)
-                                            </a>
                                         @endif
 
+                                        <a href="{{ route('receipts.print', ['hash' => $hash]) }}?type=sttb"
+                                            target="_blank" class="block px-4 py-2 hover:bg-gray-100">
+                                            Print STTB/SPB
+                                        </a>
 
                                     </div>
                                 </div>
                             </div>
+
 
 
                             {{-- Dropdown Print
@@ -388,8 +374,7 @@
                             </div>
 
                             {{-- Attachment Tab --}}
-                            <div x-show="activeTab === 'attachment'"
-                                class="flex h-full flex-1 flex-col transition-all">
+                            <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
                                 <div class="flex-1 overflow-auto rounded-lg">
                                     <table class="w-full text-sm">
                                         <thead class="text-gray-600 dark:text-gray-300">

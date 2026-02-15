@@ -387,6 +387,7 @@ class RfcaListController extends Controller
             'currentStep' => $currentStep,
             'canSubmit'   => $canSubmit, 
             'canProcessStepDept' => $canProcessStepDept,
+            'docPrefix'   => $prefix,
         ]);
     }
 

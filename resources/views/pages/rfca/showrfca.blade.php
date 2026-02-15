@@ -538,30 +538,38 @@
                         </p>
 
                         <div class="mb-4 space-y-3">
+
+                            {{-- CALR selalu ada --}}
                             <label
                                 class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                                 <input type="radio" name="rfca_type_choice" value="RFCA"
                                     class="h-4 w-4 text-indigo-600">
                                 <div>
-                                    <div class="font-semibold text-gray-800 dark:text-gray-100">RFCA</div>
+                                    <div class="font-semibold text-gray-800 dark:text-gray-100">CALR</div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">
                                         Standard RFCA process
                                     </div>
                                 </div>
                             </label>
 
-                            <label
-                                class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
-                                <input type="radio" name="rfca_type_choice" value="RFP"
-                                    class="h-4 w-4 text-indigo-600">
-                                <div>
-                                    <div class="font-semibold text-gray-800 dark:text-gray-100">RFP</div>
-                                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                                        RFCA for RFP (Request for Payment)
+                            {{-- CALR RFP hanya untuk PJ & PT --}}
+                            @if (in_array($docPrefix, ['PK', 'PJ', 'PT']))
+                                <label
+                                    class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
+                                    <input type="radio" name="rfca_type_choice" value="RFP"
+                                        class="h-4 w-4 text-indigo-600">
+                                    <div>
+                                        <div class="font-semibold text-gray-800 dark:text-gray-100">CALR RFP</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                            RFCA for RFP (Request for Payment)
+                                        </div>
                                     </div>
-                                </div>
-                            </label>
+                                </label>
+                            @endif
+
                         </div>
+
+
 
                         <div class="mt-4 flex justify-end gap-2">
                             <button type="button" id="rfcaTypeCancel"

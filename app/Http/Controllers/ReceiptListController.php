@@ -198,7 +198,7 @@ class ReceiptListController extends Controller
             // status badge tetap
             $st = strtoupper((string)($r->status ?? ''));
             $statusText = 'Unknown';
-            $statusClass = 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+            $statusClass = 'bg-gray-200/60 text-gray-700 border border-gray-500/40';
 
             switch ($st) {
                 case 'P': $statusText='Pending';   $statusClass='bg-orange-200/60 text-orange-800 border border-orange-600/40'; break;
