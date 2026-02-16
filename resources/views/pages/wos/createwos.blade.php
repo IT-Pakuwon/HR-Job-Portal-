@@ -50,7 +50,7 @@
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">WO Type</label>
                                 <select name="wotype" id="wotype" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    <option value="">choose </option>
                                 </select>
                             </div>
 
@@ -60,7 +60,7 @@
                                     Request</label>
                                 <select name="worequest" id="worequest" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    <option value="">choose </option>
                                 </select>
                             </div>
                         </div>
@@ -143,7 +143,7 @@
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
                                 <select name="wobudget" id="wobudget" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="">-- choose --</option>
+                                    <option value="">choose </option>
                                     <option value="Internal">Pemberi Kerja</option>
                                     <option value="External">Penerima Kerja</option>
                                 </select>
@@ -203,7 +203,7 @@
                                         class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Worktype</label>
                                     <select id="modal_worktypeid"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">choose </option>
                                     </select>
                                 </div>
 
@@ -213,7 +213,7 @@
                                         Worktype</label>
                                     <select id="modal_subworktypeid"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">choose </option>
                                     </select>
                                 </div>
                             </div>
@@ -243,7 +243,7 @@
                                         class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                     <select id="modal_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">choose </option>
                                     </select>
                                 </div>
 
@@ -253,7 +253,7 @@
                                         Location</label>
                                     <select id="modal_sub_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">choose </option>
                                     </select>
                                 </div>
                             </div>
@@ -423,7 +423,7 @@
 
             // ====== Load Categories (wotype & worequest) ======
             function loadCategories($select, categoryid) {
-                $select.empty().append('<option value="">-- choose --</option>');
+                $select.empty().append('<option value="">choose </option>');
                 $.getJSON(`/wos/ajax/categories/${encodeURIComponent(categoryid)}?doctype=WO`)
                     .done(function(list) {
                         list.forEach(function(it) {
@@ -454,8 +454,8 @@
                 const params = $.param({
                     departementid: $dept.val() || ''
                 });
-                $('#modal_worktypeid').empty().append('<option value="">-- choose --</option>');
-                $('#modal_subworktypeid').empty().append('<option value="">-- choose --</option>');
+                $('#modal_worktypeid').empty().append('<option value="">choose </option>');
+                $('#modal_subworktypeid').empty().append('<option value="">choose </option>');
                 $.getJSON(`/wos/ajax/worktypes?${params}`, function(list) {
                     list.forEach(it => $('#modal_worktypeid').append(new Option(it.text, it
                         .value)));
@@ -469,7 +469,7 @@
             // $('#modal_worktypeid').on('change', function(){
             //     const wt = $(this).val();
             //     const $sub = $('#modal_subworktypeid');
-            //     $sub.empty().append('<option value="">-- choose --</option>');
+            //     $sub.empty().append('<option value="">choose </option>');
             //     if (!wt) return;
             //     $.getJSON(`/wos/ajax/subworktypes/${encodeURIComponent(wt)}`, function(list){
             //     list.forEach(it => $sub.append(new Option(it.text, it.value)));
@@ -479,7 +479,7 @@
             $('#modal_worktypeid').on('change', function() {
                 const wt = $(this).val();
                 const $sub = $('#modal_subworktypeid');
-                $sub.empty().append('<option value="">-- choose --</option>');
+                $sub.empty().append('<option value="">choose </option>');
                 if (!wt) return;
 
                 const doctype = 'WO'; // kirim dari view
@@ -530,8 +530,8 @@
                     return;
                 }
                 // reset
-                $('#modal_location_id').empty().append('<option value="">-- choose --</option>');
-                $('#modal_sub_location_id').empty().append('<option value="">-- choose --</option>');
+                $('#modal_location_id').empty().append('<option value="">choose </option>');
+                $('#modal_sub_location_id').empty().append('<option value="">choose </option>');
                 // load locations
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list) {
                     list.forEach(it => $('#modal_location_id').append(new Option(it.text, it
@@ -547,7 +547,7 @@
                 const cpny = $cpny.val();
                 const loc = $(this).val();
                 const $sub = $('#modal_sub_location_id');
-                $sub.empty().append('<option value="">-- choose --</option>');
+                $sub.empty().append('<option value="">choose </option>');
                 if (!cpny || !loc) return;
                 $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`,
                     function(list) {

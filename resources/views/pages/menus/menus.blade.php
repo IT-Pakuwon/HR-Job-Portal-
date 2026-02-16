@@ -40,7 +40,7 @@
                             <label class="block text-gray-700 dark:text-white">Parent Menu (optional)</label>
                             <select id="parent_menu_id" name="parent_menu_id"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                                <option value="">-- ROOT (no parent) --</option>
+                                <option value="">ROOT (no parent) </option>
                                 @foreach ($parentMenus as $pm)
                                     <option value="{{ $pm->menu_id }}">
                                         {{ $pm->menu_id }} - {{ $pm->menu_name }}
@@ -79,7 +79,7 @@
                             <label class="block text-gray-700 dark:text-white">Screen ID</label>
                             <select id="screen_id" name="screen_id"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                                <option value="">-- (optional) pilih Screen --</option>
+                                <option value="">(optional) pilih Screen </option>
                                 @foreach ($screens as $screen)
                                     <option value="{{ $screen->screen_id }}">
                                         {{ $screen->screen_name }}
@@ -93,7 +93,7 @@
                             <label class="block text-gray-700 dark:text-white">Application ID</label>
                             <select id="application_id" name="application_id"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                                <option value="">-- (optional) pilih Application --</option>
+                                <option value="">(optional) pilih Application </option>
                                 @foreach ($applications as $app)
                                     <option value="{{ $app->application_id }}">
                                         {{ $app->application_name }}

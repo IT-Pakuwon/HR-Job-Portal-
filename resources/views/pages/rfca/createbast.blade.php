@@ -216,7 +216,7 @@
                                         class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                     <select id="modal_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">choose </option>
                                     </select>
                                 </div>
 
@@ -226,7 +226,7 @@
                                         Location</label>
                                     <select id="modal_sub_location_id"
                                         class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        <option value="">-- choose --</option>
+                                        <option value="">choose </option>
                                     </select>
                                 </div>
                             </div>
@@ -569,11 +569,11 @@
                 // reset
                 $('#modal_location_id')
                     .empty()
-                    .append('<option value="">-- choose --</option>');
+                    .append('<option value="">choose </option>');
 
                 $('#modal_sub_location_id')
                     .empty()
-                    .append('<option value="">-- choose --</option>');
+                    .append('<option value="">choose </option>');
 
                 // load locations tanpa cek cpny karena sudah fix dari Blade
                 $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list) {
@@ -593,7 +593,7 @@
                 const loc = $(this).val();
                 const $sub = $('#modal_sub_location_id');
 
-                $sub.empty().append('<option value="">-- choose --</option>');
+                $sub.empty().append('<option value="">choose </option>');
 
                 if (!loc) return;
 

@@ -62,7 +62,7 @@
                     <select name="site" id="siteDropdown" required
                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                         style="width: 100%; margin-bottom: 16px;">
-                        <option value="">-- Select Site --</option>
+                        <option value="">Select Site </option>
                         @foreach ($companyaddress as $site)
                             <option value="{{ $site->site }}">{{ $site->site }}</option>
                         @endforeach

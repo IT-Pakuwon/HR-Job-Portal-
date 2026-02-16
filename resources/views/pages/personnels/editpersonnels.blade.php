@@ -68,7 +68,7 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="siteid" id="siteid" required>
-                                    <option value="">-- Select Site --</option>
+                                    <option value="">Select Site </option>
                                 </select>
                             </div>
                         </div>
@@ -645,12 +645,12 @@
                 const $site = $('#siteid');
 
                 if (!cpnyid) {
-                    $site.html('<option value="">-- Select Site --</option>');
+                    $site.html('<option value="">Select Site </option>');
                     return;
                 }
 
                 $.getJSON(`/api/sites/${cpnyid}`, function(data) {
-                    $site.empty().append('<option value="">-- Select Site --</option>');
+                    $site.empty().append('<option value="">Select Site </option>');
 
                     data.forEach(function(row) {
                         // kalau API kamu return: {site:"xxx"} tanpa id, pakai row.site untuk value

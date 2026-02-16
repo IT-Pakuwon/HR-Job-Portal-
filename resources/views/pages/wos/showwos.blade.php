@@ -471,7 +471,7 @@
                                     </label>
                                     <select id="jobStatusSelect" {{ $isPicWo ? '' : 'disabled' }}
                                         class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                        <option value="">-- pilih --</option>
+                                        <option value="">pilih </option>
                                         <option value="P" @selected($wo->status_pekerjaan === 'P')>On Progress</option>
                                         <option value="X" @selected($wo->status_pekerjaan === 'X')>Cancel Jobs</option>
                                         <option value="C" @selected($wo->status_pekerjaan === 'C')>Completed</option>

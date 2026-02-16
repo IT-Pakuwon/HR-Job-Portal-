@@ -442,7 +442,7 @@
                                             class="req mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                                         <select id="modal_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">choose </option>
                                         </select>
                                         <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih Location.</small>
@@ -455,7 +455,7 @@
                                             Location</label>
                                         <select id="modal_sub_location_id"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                            <option value="">-- choose --</option>
+                                            <option value="">choose </option>
                                         </select>
                                         <small class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Wajib
                                             memilih sub location.</small>
@@ -631,7 +631,7 @@
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
+                                <span class="req">Attachments</span>
                                 <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
