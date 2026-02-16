@@ -12,6 +12,8 @@ use Carbon\CarbonPeriod;
 use App\Models\SysCalendar;
 use App\Models\MsSPPBJKTCounting;
 use Cmixin\BusinessDay;
+use App\Models\MsCompany;
+
 
 class CsListController extends Controller
 {
@@ -46,43 +48,103 @@ class CsListController extends Controller
         };
 
         // === SUMMARY COUNT ===
-
-        // My CS → selalu milik user
         $my = TrCS::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('created_by', $u)
             ->count();
 
-        // On Progress
         $onProgress = TrCS::where('status', 'P')
             ->where($filterCompany)
             ->where($filterCreator)
             ->count();
 
-        // Rejected
         $reject = TrCS::where('status', 'R')
             ->where($filterCompany)
             ->where($filterCreator)
             ->count();
 
-        // Completed
         $completed = TrCS::where('status', 'C')
             ->where($filterCompany)
             ->where($filterCreator)
             ->count();
 
-        // All → semua company user, tanpa filter created_by
-        // $all = TrCS::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-        //     ->count();
         $all = TrCS::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->whereNotIn('status', ['H', 'D'])
             ->count();
 
-        return view('pages.canvass.cslist', compact('my','onProgress','reject','all','completed'));
+        // ✅ Company dropdown list dari ms_company (pgsql2), dibatasi sesuai cpnyList user
+        $companies = MsCompany::query()
+            ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->where('status', 'A')
+            ->orderBy('cpny_id')
+            ->pluck('cpny_id')
+            ->toArray();
+
+        return view('pages.canvass.cslist', compact('my','onProgress','reject','all','completed','companies'));
+    }
+
+
+    public function json(Request $req)
+    {
+        $scope = strtolower((string) $req->query('scope', 'my'));
+        $filterCpny = strtoupper(trim((string)$req->query('cpny_id', '')));
+
+        $user = Auth::user();
+        $u    = $user->username ?? '';
+
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
+
+        $base = TrCS::query();
+
+        // Always enforce user company list
+        if (!empty($cpnyList)) {
+            $base->whereIn('cpny_id', $cpnyList);
+        }
+
+        // ✅ apply dropdown filter
+        if ($filterCpny !== '') {
+            if (!empty($cpnyList) && !in_array($filterCpny, $cpnyList, true)) {
+                $base->whereRaw('1=0');
+            } else {
+                $base->where('cpny_id', $filterCpny);
+            }
+        }
+
+        $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u) {
+            if (!$isFinanceAccess) {
+                $q->where('created_by', $u);
+            }
+        };
+
+        switch ($scope) {
+            case 'all':
+                $base->whereNotIn('status', ['H','D']);
+                break;
+            case 'onprogress':
+                $base->where('status', 'P')->where($applyCreatorFilter);
+                break;
+            case 'rejected':
+                $base->where('status', 'R')->where($applyCreatorFilter);
+                break;
+            case 'completed':
+                $base->where('status', 'C')->where($applyCreatorFilter);
+                break;
+            case 'my':
+            default:
+                $base->where('created_by', $u);
+                break;
+        }
+
+        return $this->buildJsonTrCS($req, $base);
     }
 
 
 
-    public function json(Request $req)
+    public function json_zzz(Request $req)
     {
         $scope = strtolower((string) $req->query('scope', 'my'));
 

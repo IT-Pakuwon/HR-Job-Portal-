@@ -212,9 +212,9 @@
 
             @php
                 $budgetText =
-                    $budget_use === 'Internal'
+                    $budget_use === 'Pemberi Kerja'
                         ? 'Pemberi Kerja'
-                        : ($budget_use === 'External'
+                        : ($budget_use === 'Penerima Kerja'
                             ? 'Penerima Kerja'
                             : '-');
             @endphp

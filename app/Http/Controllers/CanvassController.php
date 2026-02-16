@@ -5188,6 +5188,11 @@ class CanvassController extends Controller
         $nonEmptyGroups = $pickedByVendorIdx->filter(fn($g) => $g->isNotEmpty());
         if ($nonEmptyGroups->isEmpty()) return;
 
+        $u_approval = TrApproval::where('refnbr', $cs->sppbjktid)
+            ->where('aprv_leveling', '1.00')           
+            ->first();
+        $user_approval = $u_approval->aprv_username ?? null;
+
         // $now   = Carbon::now();
         $now = Carbon::create(2026, 2, 5, 10, 0, 0);
         // dd($now);
@@ -5220,7 +5225,7 @@ class CanvassController extends Controller
 
                 $k->department_id   = $cs->department_id ?? $cs->departementid ?? null;
                 $k->user_peminta    = $cs->user_peminta ?? null;
-                $k->user_approval   = null;
+                $k->user_approval   = $user_approval ?? null;
                 $k->purchaser       = $cs->created_by ?? null;
 
                 $k->keperluan       = $cs->keperluan ?? null;

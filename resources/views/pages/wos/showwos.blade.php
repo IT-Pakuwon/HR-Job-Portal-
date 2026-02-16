@@ -113,9 +113,9 @@
                                 : '-';
 
                             $budgetText =
-                                $wo->budget_use === 'Internal'
+                                $wo->budget_use === 'Pemberi Kerja'
                                     ? 'Pemberi Kerja'
-                                    : ($wo->budget_use === 'External'
+                                    : ($wo->budget_use === 'Penerima Kerja'
                                         ? 'Penerima Kerja'
                                         : '-');
 
