@@ -170,7 +170,7 @@
                             <label class="block text-gray-700 dark:text-white">Item Type</label>
                             <select id="item_type" name="item_type_id"
                                 class="select2 w-full rounded-lg border px-3 py-2" required>
-                                <option value="">-- Select Item Type --</option>
+                                <option value="">Select Item Type </option>
                             </select>
                             <input type="hidden" id="item_type_hidden" name="item_type_id">
                         </div>
@@ -180,7 +180,7 @@
                             <label class="block text-gray-700 dark:text-white">Item Sub Type</label>
                             <select id="item_sub_type" name="item_sub_type_id"
                                 class="select2 w-full rounded-lg border px-3 py-2" required disabled>
-                                <option value="">-- Select Sub Type --</option>
+                                <option value="">Select Sub Type </option>
                             </select>
                             <input type="hidden" id="item_sub_type_hidden" name="item_sub_type_id">
                         </div>
@@ -190,7 +190,7 @@
                             <label class="block text-gray-700 dark:text-white">Item Class</label>
                             <select id="item_class" name="item_class_id"
                                 class="select2 w-full rounded-lg border px-3 py-2" required disabled>
-                                <option value="">-- Select Class --</option>
+                                <option value="">Select Class </option>
                             </select>
                             <input type="hidden" id="item_class_hidden" name="item_class_id">
                         </div>
@@ -200,7 +200,7 @@
                             <label class="block text-gray-700 dark:text-white">Item Sub Class</label>
                             <select id="item_sub_class" name="item_sub_class_id"
                                 class="select2 w-full rounded-lg border px-3 py-2" required disabled>
-                                <option value="">-- Select Sub Class --</option>
+                                <option value="">Select Sub Class </option>
                             </select>
                             <input type="hidden" id="item_sub_class_hidden" name="item_sub_class_id">
                         </div>
@@ -224,7 +224,7 @@
                             <label class="block text-gray-700 dark:text-white">Stock Unit</label>
                             <select id="stock_unit" name="stock_unit"
                                     class="select2 w-full rounded-lg border px-3 py-2" required>
-                                <option value="">-- Select --</option>
+                                <option value="">Select </option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
@@ -237,7 +237,7 @@
                             <label class="block text-gray-700 dark:text-white">Purchase Unit</label>
                             <select id="purchase_unit" name="purchase_unit"
                                     class="select2 w-full rounded-lg border px-3 py-2" required>
-                                <option value="">-- Select --</option>
+                                <option value="">Select </option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
@@ -248,7 +248,7 @@
                             <label>Stock Unit</label>
                             <select id="stock_unit" name="stock_unit"
                                 class="select2 w-full rounded-lg border px-3 py-2" required>
-                                <option value="">-- Select --</option>
+                                <option value="">Select </option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
@@ -260,7 +260,7 @@
                             <label>Purchase Unit</label>
                             <select id="purchase_unit" name="purchase_unit"
                                 class="select2 w-full rounded-lg border px-3 py-2" required>
-                                <option value="">-- Select --</option>
+                                <option value="">Select </option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach

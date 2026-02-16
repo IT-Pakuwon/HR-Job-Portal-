@@ -398,7 +398,7 @@
                                 <select name="subgrade_id" id="subgrade_id"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required onchange="updateSubgradeName(this)">
-                                    <option value="" disabled selected>-- Pilih --</option>
+                                    <option value="" disabled selected>Pilih </option>
                                     @foreach ($subgrading as $p)
                                         <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} -
                                             {{ $p->subgrade_name }}</option>
@@ -431,7 +431,7 @@
                                 {{-- <select name="job_level" id="job_level"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     required>
-                                    <option value="" disabled selected>-- Select Position --</option>
+                                    <option value="" disabled selected>Select Position </option>
                                     @foreach ($subgrading as $p)
                                         <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} -
                                             {{ $p->subgrade_name }}</option>
@@ -476,7 +476,7 @@
                                     <select name="education_level" id="education_level"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         required>
-                                        <option value="" disabled selected>-- Pilih --</option>
+                                        <option value="" disabled selected>Pilih </option>
                                         <option value="SMP">SMP</option>
                                         <option value="SMA / SMK">SMA / SMK</option>
                                         <option value="D1">D1</option>
@@ -543,7 +543,7 @@
                                     class="block text-xs font-medium text-gray-700 dark:text-gray-300">Name</label>
                                 <select name="employee_name" id="edit_name"
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    <option value="" disabled selected>-- Select Employee --</option>
+                                    <option value="" disabled selected>Select Employee </option>
                                     @foreach ($users as $p)
                                         <option value="{{ $p->name }}" data-npk="{{ $p->npk }}">
                                             {{ $p->name }}</option>
@@ -853,13 +853,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                                        </span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                `).join('')}
+                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                    ${m.name} (${m.company})
+                                                                                                                                                                                </span>
+                                                                                                                                                                            </div>
+                                                                                                                                                                        `).join('')}
                                             </div>
                                         </div>
                                     </div>
@@ -1151,13 +1151,13 @@
                                         <div style="font-size:12px;color:#333">                                    
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
-                                                                                                                                                                    <div style="display:flex;align-items:center;margin-bottom:6px;">
-                                                                                                                                                                        <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
-                                                                                                                                                                        <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
-                                                                                                                                                                            ${m.name} (${m.company})
-                                                                                                                                                                        </span>
-                                                                                                                                                                    </div>
-                                                                                                                                                                `).join('')}
+                                                                                                                                                                            <div style="display:flex;align-items:center;margin-bottom:6px;">
+                                                                                                                                                                                <img src="${m.image}" style="width:30px;height:30px;border-radius:50%;margin-right:8px;" />
+                                                                                                                                                                                <span style="font-size:12px; color:${m.name.toUpperCase() === 'VACANT' ? 'red' : '#000'};">
+                                                                                                                                                                                    ${m.name} (${m.company})
+                                                                                                                                                                                </span>
+                                                                                                                                                                            </div>
+                                                                                                                                                                        `).join('')}
                                             </div>
                                         </div>
                                     </div>

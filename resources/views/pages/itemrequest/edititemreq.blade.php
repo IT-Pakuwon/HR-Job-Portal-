@@ -51,7 +51,7 @@
                         <select name="inventory_type"
                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                             required>
-                            <option value="">-- Select Type --</option>
+                            <option value="">Select Type </option>
                             <option value="STOCK"
                                 {{ old('inventory_type', $itemReq->inventory_type) === 'STOCK' ? 'selected' : '' }}>
                                 STOCK
@@ -82,7 +82,7 @@
                 <details class="group" open>
                     <summary
                         class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                        <span>Attachments</span>
+                        <span class="req">Attachments</span>
                         <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                             details &rarr;</span>
                         <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide

@@ -111,7 +111,7 @@
                             <select name="bank_name" id="bank_name"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                 required>
-                                <option value="">-- Bank Name --</option>
+                                <option value="">Bank Name </option>
                                 <option value="BCA">BCA</option>
                                 <option value="MANDIRI">MANDIRI</option>
                             </select>
@@ -162,7 +162,7 @@
                         <select name="employment_status" id="employment_status"
                             class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                             required>
-                            <option value="">-- Employment Status --</option>
+                            <option value="">Employment Status </option>
                             <option value="PKWT">PKWT</option>
                             <option value="PKWTT">PKWTT</option>
                         </select>
@@ -173,7 +173,7 @@
                             </label>
                             <select name="contract_term" id="contract_term"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                                <option value="">-- Select Contract Term --</option>
+                                <option value="">Select Contract Term </option>
                                 <option value="2">Contract 2 bulan</option>
                                 <option value="3">Contract 3 bulan</option>
                                 <option value="6">Contract 6 bulan</option>
@@ -350,7 +350,7 @@
                             <select name="aprvusername[]"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 required>
-                                <option value="" disabled selected>-- Select Employee --</option>
+                                <option value="" disabled selected>Select Employee </option>
                                 @foreach ($userlist as $u)
                                     <option value="{{ $u->username }}" data-npk="{{ $u->name }}">
                                         {{ $u->name }}</option>

@@ -98,7 +98,7 @@
                             <label class="mb-1 block text-gray-700 dark:text-white">Doctype</label>
                             <select id="aprv_doctype" name="aprv_doctype"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- choose --</option>
+                                <option value="">choose </option>
                                 @foreach ($doctypes as $dt)
                                     <option value="{{ $dt->doctype }}">{{ $dt->doctype }} - {{ $dt->doctype_descr }}
                                     </option>
@@ -111,7 +111,7 @@
                             <label class="mb-1 block text-gray-700 dark:text-white">Company</label>
                             <select id="aprv_cpnyid_select" name="aprv_cpnyid"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- choose --</option>
+                                <option value="">choose </option>
                                 @foreach ($companies as $c)
                                     <option value="{{ $c->cpny_id }}">
                                         {{ $c->cpny_id }} — {{ $c->cpny_name }}
@@ -125,11 +125,11 @@
                             <label class="mb-1 block text-gray-700 dark:text-white">Department</label>
                             <select id="aprv_departementid" name="aprv_departementid"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- choose --</option>
+                                <option value="">choose </option>
                             </select>
                             {{-- <select id="aprv_departementid" name="aprv_departementid"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- choose --</option>
+                                <option value="">choose </option>
                                 @foreach ($departments as $d)
                                     <option value="{{ $d->department_id }}">
                                         {{ $d->department_name }}
@@ -168,7 +168,7 @@
 
                     {{-- template options username (hidden) --}}
                     <select id="usernameOptionsTemplate" class="hidden">
-                        <option value="">-- choose --</option>
+                        <option value="">choose </option>
                         @foreach ($users as $u)
                             <option value="{{ $u->username }}">{{ $u->name }}</option>
                         @endforeach
@@ -486,7 +486,7 @@
                 $dep.empty().append('<option value="">Loading...</option>').val('').trigger('change');
 
                 $.get(url, function(items) {
-                    $dep.empty().append('<option value="">-- choose --</option>');
+                    $dep.empty().append('<option value="">choose </option>');
 
                     items.forEach(function(it) {
                         const v = String(it.value ?? '').trim();
@@ -560,7 +560,7 @@
 
                 // set doctype kosong & load dept default
                 $('#aprv_doctype').val('').trigger(
-                'change'); // ini akan memanggil handler change -> loadDepartmentsByDoctype('')
+                    'change'); // ini akan memanggil handler change -> loadDepartmentsByDoctype('')
                 // jadi tidak perlu panggil loadDepartmentsByDoctype lagi di sini
 
                 lineIdxCounter = 0;

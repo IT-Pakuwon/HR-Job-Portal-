@@ -64,7 +64,7 @@
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="siteid" id="siteid" required>
-                                    <option value="">-- Select Site --</option>
+                                    <option value="">Select Site </option>
                                 </select>
                             </div>
                         </div>
@@ -628,7 +628,7 @@
                         success: function(data) {
                             let $siteSelect = $('select[name="siteid"]');
                             $siteSelect.empty();
-                            $siteSelect.append('<option value="">-- Select Site --</option>');
+                            $siteSelect.append('<option value="">Select Site </option>');
 
                             $.each(data, function(key, value) {
                                 $siteSelect.append(
@@ -639,7 +639,7 @@
                     });
                 } else {
                     $('select[name="siteid"]').empty().append(
-                        '<option value="">-- Select Site --</option>');
+                        '<option value="">Select Site </option>');
                 }
             });
 

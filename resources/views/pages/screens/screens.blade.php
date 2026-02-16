@@ -60,7 +60,7 @@
                         <label class="block text-gray-700 dark:text-white">Application</label>
                         <select id="application_id" name="application_id"
                             class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                            <option value="">-- Select Application --</option>
+                            <option value="">Select Application </option>
                             @foreach ($applications as $app)
                                 <option value="{{ $app->application_id }}">
                                     {{ $app->application_id }} - {{ $app->application_name }}

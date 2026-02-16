@@ -47,7 +47,7 @@
                             <label class="mb-1 block text-gray-700 dark:text-white">Doctype</label>
                             <select id="doctype" name="doctype"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                                <option value="">-- choose --</option>
+                                <option value="">choose </option>
                                 @foreach ($doctypes as $dt)
                                     <option value="{{ $dt->doctype }}">{{ $dt->doctype }}</option>
                                 @endforeach
@@ -59,7 +59,7 @@
                             <label class="mb-1 block text-gray-700 dark:text-white">Category ID</label>
                             <select id="categoryid" name="categoryid"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700 dark:text-white" required>
-                                <option value="">-- Select Category --</option>
+                                <option value="">Select Category </option>
                                 <option value="condition">Condition</option>
                                 <option value="type">Type</option>
                                 <option value="wotype">WO Type</option>
@@ -93,7 +93,7 @@
                             <label class="mb-1 block text-gray-700 dark:text-white">Username</label>
                             <select id="username" name="username"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                                <option value="">-- choose --</option>
+                                <option value="">choose </option>
                                 @foreach ($users as $u)
                                     <option value="{{ $u->username }}">
                                         {{ $u->username }} — {{ $u->name }}

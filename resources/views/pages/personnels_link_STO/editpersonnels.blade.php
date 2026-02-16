@@ -669,7 +669,7 @@
                             console.log("Received sites data:", data);
                             let $siteSelect = $('select[name="siteid"]');
                             $siteSelect.empty();
-                            $siteSelect.append('<option value="">-- Select Site --</option>');
+                            $siteSelect.append('<option value="">Select Site </option>');
 
                             $.each(data, function(key, value) {
                                 // console.log("Adding site option:", value);
@@ -682,7 +682,7 @@
                     });
                 } else {
                     $('select[name="siteid"]').empty().append(
-                        '<option value="">-- Select Site --</option>');
+                        '<option value="">Select Site </option>');
                 }
             });
 
@@ -707,7 +707,7 @@
             //             success: function(data) {
 
             //                 $jobTitle.empty().append(
-            //                     '<option value="">-- Select Vacant Position --</option>');
+            //                     '<option value="">Select Vacant Position </option>');
             //                 if (data.length > 0) {
             //                     $.each(data, function(key, emp) {
             //                         $jobTitle.append(
@@ -724,7 +724,7 @@
             //             }
             //         });
             //     } else {
-            //         $jobTitle.empty().append('<option value="">-- Select Vacant Position --</option>');
+            //         $jobTitle.empty().append('<option value="">Select Vacant Position </option>');
             //     }
             // });
 

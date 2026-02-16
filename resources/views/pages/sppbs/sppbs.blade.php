@@ -402,8 +402,8 @@
 
     <script>
         /* =========================================================
-                                        TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-                                        ========================================================= */
+                                                TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                                ========================================================= */
 
         (function() {
             // ---------- Modal open/close ----------
@@ -698,7 +698,7 @@
                 sel.innerHTML = '';
 
                 if (!items || items.length === 0) {
-                    sel.innerHTML = `<option value="">-- none --</option>`;
+                    sel.innerHTML = `<option value="">none </option>`;
                     return;
                 }
 
