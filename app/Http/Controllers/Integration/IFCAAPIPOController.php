@@ -9,6 +9,7 @@ use App\Models\BusinessUnit;
 use App\Models\DepartmentFin;
 use App\Models\MsIntegrationSetting;
 use App\Models\TrIntegrationLog;
+use App\Models\StagingIfcaMappingDiv;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -269,25 +270,34 @@ class IFCAAPIPOController extends Controller
                     $bu = $buMap->get($ln->budget_business_unit_id);
                     $dp = $deptMap->get($ln->budget_department_fin_id);
 
-                    $integrationType = (string)($bu->integration_type ?? 'IFCA');
+                    $integrationType = strtoupper((string)($bu->integration_type ?? 'IFCA'));
 
-                    // default
-                    $entityCd = '';
-                    $locationCd = '';
-                    $deptCd = '';
-                    $divCd = ''; // kalau belum ada mapping, kosong dulu
-
-                    // IFCA vs SOLOMON entity
-                    if (strtoupper($integrationType) === 'IFCA') {
-                        $entityCd = (string)($bu->ifca_entity_cd ?? '');
-                        $locationCd = (string)($bu->ifca_entity_cd ?? '');
-                        $deptCd = (string)($dp->ifca_dept_cd ?? '');
+                    // default kosong semua dulu
+                    $entityCd = $locationCd = '';
+                    $acctType = $acctCd = $divCd = $deptCd = '';
+                    $solAcctCd = $solAlloc = $solSubDept = '';
+                    
+                    // entity + location always diisi sesuai integration_type
+                    if ($integrationType === 'IFCA') {
+                        $entityCd    = $this->s($bu->ifca_entity_cd ?? '', 4);   // staging entity_cd varchar(4)
+                        $locationCd  = $this->s($bu->ifca_entity_cd ?? '', 4);   // staging location_cd varchar(4)
+                    
+                        $acctType    = $this->s((string)($ln->acct_type ?? ''), 1);
+                        $acctCd      = $this->s((string)($ln->budget_account_id ?? ''), 20);
+                        $divCd       = $this->s((string)($ln->div_cd ?? ''), 4); // kalau belum ada sumber, isi '' saja
+                        $deptCd      = $this->s($dp->ifca_dept_cd ?? '', 8);     // dept_cd varchar(8)
                     } else { // SOLOMON
-                        $entityCd = (string)($bu->solomon_cpny_id ?? '');
-                        $locationCd = (string)($bu->solomon_cpny_id ?? '');
-                        $deptCd = (string)($dp->department_fin_id ?? ''); // atau blank (tergantung kebutuhan Solomon)
+                        $entityCd    = $this->s($bu->solomon_cpny_id ?? '', 4);  // entity_cd varchar(4) -> pastikan data mu <=4, kalau >4 ya harus ubah schema
+                        $locationCd  = $this->s($bu->solomon_cpny_id ?? '', 4);
+                    
+                        $solAcctCd   = $this->s((string)($ln->budget_account_id ?? ''), 10); // solomon_acct_cd varchar(10)
+                        $solAlloc    = $this->s($bu->solomon_allocation_cd ?? '', 10);       // varchar(10)
+                        $solSubDept  = $this->s($dp->solomon_subaccount_dept ?? '', 10);     // varchar(10)
+                    
+                        // kosongkan IFCA-only fields (biar gak kebawa)
+                        $acctType = $acctCd = $divCd = $deptCd = '';
                     }
-
+                    
                     StagingIfcaPoApprove::create([
                         'cpny_id' => $cpny,
                         'entity_cd' => $entityCd,
@@ -309,23 +319,21 @@ class IFCAAPIPOController extends Controller
                         'order_qty' => (float)$ln->order_qty,
                         'item_cost' => (float)$ln->item_cost,
                         'schedule_dt' => $ln->schedule_dt,
-                        'acct_type' => (string)$ln->acct_type,
-                        'location_cd' => $locationCd,
-                        'acct_cd' => (string)($ln->budget_account_id ?? ''), // kalau ini memang acct_cd
-                        'div_cd' => $divCd,
-                        'dept_cd' => $deptCd,
-
-                        'integration_type' => $integrationType,
-
-                        // Solomon fields (boleh diisi walau integration IFCA, sesuai kebutuhan kamu)
-                        'solomon_allocation_cd' => (string)($bu->solomon_allocation_cd ?? ''),
-                        'solomon_subaccount_dept' => (string)($dp->solomon_subaccount_dept ?? ''),
-
+                        // IFCA only (atau kosong kalau SOLOMON)
+                        'location_cd'    => $locationCd,
+                        'acct_type'      => $acctType,
+                        'acct_cd'        => $acctCd,
+                        'div_cd'         => $divCd,
+                        'dept_cd'        => $deptCd,
+                        // SOLOMON only (atau kosong kalau IFCA)
+                        'solomon_acct_cd'         => $solAcctCd,
+                        'solomon_allocation_cd'   => $solAlloc,
+                        'solomon_subaccount_dept' => $solSubDept,
+                        'integration_type' => $this->s($integrationType, 20),
                         'process_flag' => 'N',
                         'create_date' => now(),
                         'process_dt' => null,
                         'process_note' => null,
-
                         'status' => 'D', // ✅ H -> D
                         'created_by' => $username,
                         'created_at' => now(),
@@ -616,4 +624,13 @@ class IFCAAPIPOController extends Controller
             ];
         }
     }
+
+    private function s(?string $v, int $max): string
+    {
+        $v = (string)($v ?? '');
+        $v = trim($v);
+        if ($v === '') return '';
+        return mb_substr($v, 0, $max);
+    }
+
 }

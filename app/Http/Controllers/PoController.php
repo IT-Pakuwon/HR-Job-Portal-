@@ -28,6 +28,7 @@ use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Str;
 use App\Models\MsTopdetail;
 use App\Models\TrPOterm;
+use App\Models\MsTOP;
 use App\Models\TrRfca;
 use App\Models\TrPOReuse;
 use App\Models\Bq;
@@ -727,9 +728,13 @@ class PoController extends Controller
             ->orderBy('cs_no')
             ->first();
 
-        $poTerms = TrPOterm::where('ponbr', $po->ponbr)
-            ->where('cpny_id', $po->cpny_id)
-            ->orderBy('order_term')
+        // $poTerms = TrPOterm::where('ponbr', $po->ponbr)
+        //     ->where('cpny_id', $po->cpny_id)
+        //     ->orderBy('order_term')
+        //     ->first();
+
+        $poTerms = MsTop::where('top_type', $po->potype)
+            ->where('topid', $po->vendortop)
             ->first();   
 
         // Amount

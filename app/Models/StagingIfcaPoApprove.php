@@ -19,6 +19,6 @@ class StagingIfcaPoApprove  extends Model
         'acct_cd', 'div_cd', 'dept_cd', 'process_flag', 'create_date', 'process_dt',
         'process_note', 'integration_type', 'solomon_allocation_cd', 'solomon_subaccount_dept',
         'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'reviewed_by',
-         'reviewed_at',
+         'reviewed_at', 'reviewed_note',
         ];
 }

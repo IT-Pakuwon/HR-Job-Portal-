@@ -11,7 +11,7 @@ class MsCoa extends Model
     protected $table = "ms_coa";
     
     protected $fillable = [       
-         'account_id', 'cpny_id', 'account_descr', 'account_type', 'category_type', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at'
+         'account_id', 'cpny_id', 'account_descr', 'account_type', 'category_type', 'ifca_acct_cd', 'solomon_acct_cd', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at'
     ];
 
    
