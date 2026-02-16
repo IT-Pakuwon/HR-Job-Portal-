@@ -726,7 +726,7 @@ class PoController extends Controller
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
             ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')
-            ->first();
+            ->get();
 
         // $poTerms = TrPOterm::where('ponbr', $po->ponbr)
         //     ->where('cpny_id', $po->cpny_id)
