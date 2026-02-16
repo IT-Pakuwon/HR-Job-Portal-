@@ -19,12 +19,12 @@
                         </div>
 
                         <!-- Row 1 -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
 
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                                <select name="cpnyid" required
+                                <select name="cpnyid" id="cpnyid" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($usercpny as $p)
                                         <option value="{{ $p->cpny_id }}"
@@ -35,11 +35,20 @@
                                 </select>
                             </div>
 
+                            <!-- ✅ Business Unit -->
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" id="business_unit_id" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+
                             <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
-                                <select name="departementid" required
+                                <select name="departementid" id="departementid" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}"
@@ -197,8 +206,8 @@
                                 <select name="wobudget" id="wobudget" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="">-- choose --</option>
-                                    <option value="Internal">Pemberi Kerja</option>
-                                    <option value="External">Penerima Kerja</option>
+                                    <option value="Pemberi Kerja">Pemberi Kerja</option>
+                                    <option value="Penerima Kerja">Penerima Kerja</option>
                                 </select>
                             </div>
 
@@ -219,7 +228,7 @@
 
                             <!-- hidden -->
                             <input type="hidden" name="activity_id" id="activity_id">
-                            <input type="hidden" name="business_unit_id" id="business_unit_id">
+                            <input type="hidden" name="coa_business_unit_id" id="coa_business_unit_id">
                             <input type="hidden" name="department_fin_id" id="department_fin_id">
                             <input type="hidden" name="coa_id" id="coa_id">
                             <input type="hidden" name="activity_descr" id="activity_descr">
@@ -302,6 +311,53 @@
                                     class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
                                 <button type="button" id="saveLokasi"
                                     class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="coaModal"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <button type="button" id="closeCoaModal"
+                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                                <input id="coaSearch" type="text" placeholder="Search code/name..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <button id="coaRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+                                <div class="ml-auto flex items-center gap-3">
+                                    <span>Company: <b id="coaCpnyBadge"></b></span>
+                                    <span>Dept: <b id="coaDeptBadge"></b></span>
+                                    <span>Perpost: <b id="coaPerpostBadge"></b></span>
+                                </div>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                                <table class="w-full text-left">
+                                    <thead class="sticky top-0 bg-gray-50 text-sm dark:bg-gray-900">
+                                        <tr>
+                                            <th class="border p-2">Account ID</th>
+                                            <th class="border p-2">Activity</th>
+                                            <th class="border p-2">Remaining Budget</th>
+                                            <th class="w-24 border p-2 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="coaTableBody" class="text-sm"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                                <span id="coaCount" class="opacity-80"></span>
+                                <div class="space-x-2">
+                                    <button id="coaPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="coaNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -540,15 +596,19 @@
             $('#coa_id').val(prefill.coa_id || '');
             $('#activity_descr').val(prefill.activity_descr || '');
 
-            // tampilkan budget text di display (sesuaikan format yg kamu mau)
+            // ===== tampilkan budget text di display (ACCOUNT_ID harus muncul) =====
+            const accountId = prefill.coa_id || prefill.account_id || '';          // <-- ini yg benar
+            const actDescr  = prefill.activity_descr || prefill.act_descr || '';   // deskripsi activity
+
             if (prefill.coa_display) {
-                // kalau controller sudah kasih string siap tampil
+                // kalau controller kasih string siap tampil (pastikan formatnya ACCOUNT_ID — ACTIVITY)
                 $('#budget_display').val(prefill.coa_display);
             } else {
-                // fallback minimal
-                const coaDisp = [prefill.activity_id, prefill.activity_descr].filter(Boolean).join(' — ');
-                if (coaDisp) $('#budget_display').val(coaDisp);
+                // fallback: ACCOUNT_ID — ACTIVITY_DESCR
+                const text = [accountId, actDescr].filter(Boolean).join(' — ');
+                $('#budget_display').val(text);
             }
+
 
             // toggleCoaSection();
 
@@ -779,7 +839,7 @@
                 }
 
                 // Jika Pemberi Kerja => COA wajib
-                if (($budget.val() || '').toString().trim() === 'Internal') {
+                if (($budget.val() || '').toString().trim() === 'Pemberi Kerja') {
                     // minimal salah satu identitas COA harus ada
                     if (!$coaId.val() && !$activityId.val()) {
                         addError($coaDisp, 'COA wajib diisi untuk Pemberi Kerja.');
@@ -925,22 +985,23 @@
 
     <script>
         function toggleCoaSection() {
-            const budgetVal = ($('#wobudget').val() || '').toString().trim(); // Internal/External
+            const budgetVal = ($('#wobudget').val() || '').toString().trim(); // Pemberi Kerja/External
             const $coaGroup = $('#coaGroup');
 
-            if (budgetVal === 'Internal') {
+            if (budgetVal === 'Pemberi Kerja') {
                 $coaGroup.removeClass('hidden');
                 $('#btnBudget').prop('disabled', false);
             } else {
                 $coaGroup.addClass('hidden');
 
                 // clear COA fields
-                $('#budget_display').val('');
+               $('#budget_display').val('');
                 $('#activity_id').val('');
-                $('#business_unit_id').val('');
+                $('#coa_business_unit_id').val('');
                 $('#department_fin_id').val('');
                 $('#coa_id').val('');
                 $('#activity_descr').val('');
+
 
                 $('#budget_display').removeClass('is-invalid').removeAttr('aria-invalid');
                 $('#budget_display').next('.error-feedback').remove();
@@ -955,6 +1016,612 @@
             $('#wobudget').on('change', toggleCoaSection);
         });
     </script>
+
+    <script>
+        $(function() {
+            const prefill = @json($prefill ?? []);
+
+            const $cpny = $('#cpnyid');
+            const $bu   = $('#business_unit_id');
+
+            function renderBuOptions(list, selected) {
+                let html = '<option value="" disabled>Select Business Unit</option>';
+                (list || []).forEach(it => {
+                    const id = it.business_unit_id ?? it.businessunit_id ?? '';
+                    const name = it.business_unit_name ?? it.businessunit_name ?? id;
+                    const sel = (selected && String(selected) === String(id)) ? 'selected' : '';
+                    html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
+                });
+                return html;
+            }
+
+            function loadBusinessUnitsByCpny(cpnyid, selected = null) {
+                if (!cpnyid) {
+                    $bu.html('<option value="" disabled selected>Select Company first</option>');
+                    return;
+                }
+
+                $bu.html('<option value="" disabled selected>Loading...</option>');
+
+                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
+                    .done(function(res) {
+                        const list = res.data || [];
+                        if (!list.length) {
+                            $bu.html('<option value="" disabled selected>No Business Unit</option>');
+                            return;
+                        }
+
+                        $bu.html(renderBuOptions(list, selected));
+
+                        // kalau selected kosong, auto pilih pertama
+                        if (!selected) $bu.val(list[0].business_unit_id);
+                    })
+                    .fail(function() {
+                        $bu.html('<option value="" disabled selected>Failed to load</option>');
+                    });
+            }
+
+            // initial load berdasarkan company prefill, dan pilih BU prefill
+            loadBusinessUnitsByCpny($cpny.val(), prefill.business_unit_id || null);
+
+            // change company -> reload BU + reset COA
+            $cpny.on('change', function() {
+                loadBusinessUnitsByCpny($(this).val(), null);
+
+                // reset COA ketika company berubah
+                $('#budget_display, #activity_id, #department_fin_id, #coa_id, #activity_descr').val('');
+            });
+
+            // change BU -> reset COA (karena COA tergantung BU)
+            $bu.on('change', function() {
+                $('#budget_display, #activity_id, #department_fin_id, #coa_id, #activity_descr').val('');
+            });
+        });
+    </script>
+
+    <script>
+        $(function () {
+            // pastikan element ada
+            console.log('btnBudget:', $('#btnBudget').length, 'coaModal:', $('#coaModal').length);
+
+            const $coaModal = $('#coaModal');
+            const $btnBudget = $('#btnBudget');
+
+            function openCoaModal() {
+                const cpny = $('#cpnyid').val() || $('select[name="cpnyid"]').val();
+                const dept = $('#departementid').val() || $('select[name="departementid"]').val();
+                const buid = $('#business_unit_id').val();
+                const perpost = $('#perpost').val();
+
+                if (!cpny) return toastr.warning('Pilih Company terlebih dahulu.');
+                if (!dept) return toastr.warning('Pilih Department terlebih dahulu.');
+                if (!buid) return toastr.warning('Pilih Business Unit terlebih dahulu.');
+
+                // tampilkan modal
+                $coaModal.removeClass('hidden').addClass('flex');
+
+                // TODO: panggil loadCoa() kamu disini
+                // loadCoa({cpnyid: cpny, deptid: dept, perpost, business_unit_id: buid});
+            }
+
+            function closeCoaModal() {
+                $coaModal.addClass('hidden').removeClass('flex');
+            }
+
+            // bind click
+            $btnBudget.off('click').on('click', openCoaModal);
+
+            // close
+            $('#closeCoaModal').off('click').on('click', closeCoaModal);
+        });
+    </script>
+
+    {{-- <script>
+        $(function () {
+            const prefill = @json($prefill) || {};
+
+            // Elements
+            const $coaModal = $('#coaModal');
+            const $tbody    = $('#coaTableBody');
+            const $search   = $('#coaSearch');
+            const $count    = $('#coaCount');
+            const $prev     = $('#coaPrev');
+            const $next     = $('#coaNext');
+
+            // badges
+            const $bCpny    = $('#coaCpnyBadge');
+            const $bDept    = $('#coaDeptBadge');
+            const $bPerpost = $('#coaPerpostBadge');
+
+            // state paging
+            let state = {
+                page: 1,
+                per_page: 10,
+                total: 0,
+                search: ''
+            };
+
+            function esc(s){ return $('<div>').text(s ?? '').html(); }
+            function fmtNum(n){
+                if (n === null || n === undefined || n === '') return '';
+                const x = Number(n);
+                if (isNaN(x)) return esc(n);
+                return x.toLocaleString('id-ID');
+            }
+
+            function getHeaderParams() {
+                return {
+                    cpnyid: $('#cpnyid').val(),
+                    deptid: $('#departementid').val(),
+                    perpost: $('#perpost').val(),
+                    business_unit_id: $('#business_unit_id').val(), // ✅ kirim BU ke backend
+                };
+            }
+
+            function openCoaModal() {
+                const p = getHeaderParams();
+
+                if (!p.cpnyid) return toastr.warning('Pilih Company terlebih dahulu.');
+                if (!p.deptid) return toastr.warning('Pilih Department terlebih dahulu.');
+                if (!p.business_unit_id) return toastr.warning('Pilih Business Unit terlebih dahulu.');
+                if (!p.perpost) return toastr.warning('Pilih Perpost terlebih dahulu.');
+
+                // set badge
+                $bCpny.text(p.cpnyid);
+                $bDept.text(p.deptid);
+                $bPerpost.text(p.perpost);
+
+                // show modal
+                $coaModal.removeClass('hidden').addClass('flex');
+
+                // load data
+                state.page = 1;
+                state.search = $search.val().trim();
+                loadCoa();
+            }
+
+            function closeCoaModal() {
+                $coaModal.addClass('hidden').removeClass('flex');
+            }
+
+            function renderRows(rows) {
+                if (!rows || !rows.length) {
+                    $tbody.html(`<tr><td colspan="4" class="border p-3 text-center text-gray-500">No data</td></tr>`);
+                    return;
+                }
+
+                const html = rows.map(r => {
+                    const accountId = r.account_id ?? '';
+                    const accountDescr = r.account_descr ?? '';
+                    const activityId = r.activity_id ?? '';
+                    const activityDescr = r.activity_descr ?? r.act_descr ?? '';
+                    const remaining = r.remaining ?? '';
+
+                    // data yang harus kita simpan ke hidden saat pilih
+                    const deptFin = r.department_fin_id ?? '';
+                    const buid = r.business_unit_id ?? '';
+
+                    const actLabel = [
+                        activityId,
+                        activityDescr
+                    ].filter(Boolean).join(' — ');
+
+                    const accLabel = [
+                        accountId,
+                        accountDescr
+                    ].filter(Boolean).join(' — ');
+
+                    return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                        <td class="border p-2">${esc(accLabel)}</td>
+                        <td class="border p-2">${esc(actLabel)}</td>
+                        <td class="border p-2">${esc(fmtNum(remaining))}</td>
+                        <td class="border p-2 text-center">
+                            <button type="button"
+                                class="coaPick rounded bg-indigo-600 px-3 py-1 text-white hover:bg-indigo-700"
+                                data-account_id="${esc(accountId)}"
+                                data-account_descr="${esc(accountDescr)}"
+                                data-activity_id="${esc(activityId)}"
+                                data-activity_descr="${esc(activityDescr)}"
+                                data-department_fin_id="${esc(deptFin)}"
+                                data-business_unit_id="${esc(buid)}"
+                            >Select</button>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+
+                $tbody.html(html);
+            }
+
+            function updatePager() {
+                const totalPages = Math.max(1, Math.ceil((state.total || 0) / state.per_page));
+                $prev.prop('disabled', state.page <= 1);
+                $next.prop('disabled', state.page >= totalPages);
+                $count.text(`Page ${state.page} / ${totalPages} • Total ${state.total || 0}`);
+            }
+
+            function loadCoa() {
+                const p = getHeaderParams();
+
+                // 🔥 endpoint backend kamu (sesuaikan route kalau berbeda)
+                // kamu minta "tambahkan business_unit_id pada CoaBudgetbyDept"
+                // jadi endpoint ini harus mengarah ke function itu
+                const url = "{{ route('coa.byDeptWo') }}"; // <-- sesuaikan nama route kamu
+
+                $tbody.html(`<tr><td colspan="4" class="border p-3 text-center text-gray-500">Loading...</td></tr>`);
+
+                $.getJSON(url, {
+                    cpnyid: p.cpnyid,
+                    deptid: p.deptid,
+                    perpost: p.perpost,
+                    business_unit_id: p.business_unit_id,   // ✅ penting
+                    search: state.search,
+                    page: state.page,
+                    per_page: state.per_page
+                })
+                .done(function(res){
+                    const rows = res.data || [];
+                    state.total = Number(res.total || 0);
+
+                    renderRows(rows);
+                    updatePager();
+                })
+                .fail(function(xhr){
+                    console.error(xhr.responseText);
+                    $tbody.html(`<tr><td colspan="4" class="border p-3 text-center text-red-600">Failed load COA</td></tr>`);
+                    toastr.error('Gagal load COA.');
+                });
+            }
+
+            // =========================
+            // Events
+            // =========================
+            $('#btnBudget').off('click').on('click', openCoaModal);
+            $('#closeCoaModal').off('click').on('click', closeCoaModal);
+
+            $('#coaRefresh').on('click', function(){
+                state.page = 1;
+                state.search = $search.val().trim();
+                loadCoa();
+            });
+
+            let t = null;
+            $search.on('input', function(){
+                clearTimeout(t);
+                t = setTimeout(function(){
+                    state.page = 1;
+                    state.search = $search.val().trim();
+                    loadCoa();
+                }, 350);
+            });
+
+            $prev.on('click', function(){
+                if (state.page <= 1) return;
+                state.page -= 1;
+                loadCoa();
+            });
+
+            $next.on('click', function(){
+                const totalPages = Math.max(1, Math.ceil((state.total || 0) / state.per_page));
+                if (state.page >= totalPages) return;
+                state.page += 1;
+                loadCoa();
+            });
+
+            // pick row
+            $(document).on('click', '.coaPick', function(){
+                const $btn = $(this);
+
+                const accountId = $btn.data('account_id') || '';
+                const accountDescr = $btn.data('account_descr') || '';
+                const activityId = $btn.data('activity_id') || '';
+                const activityDescr = $btn.data('activity_descr') || '';
+                const deptFin = $btn.data('department_fin_id') || '';
+                const buid = $btn.data('business_unit_id') || '';
+
+                // set hidden fields
+                $('#coa_id').val(accountId);
+                $('#activity_id').val(activityId);
+                $('#activity_descr').val(activityDescr);
+                $('#department_fin_id').val(deptFin);
+                $('#coa_business_unit_id').val(buid);
+
+                // display
+                const disp = [
+                    accountId,
+                    accountDescr,
+                    activityId,
+                    activityDescr
+                ].filter(Boolean).join(' — ');
+                $('#budget_display').val(disp);
+
+                closeCoaModal();
+            });
+
+            // reset COA if header changes
+            function resetCoaFields(){
+                $('#budget_display').val('');
+                $('#activity_id').val('');
+                $('#coa_business_unit_id').val('');
+                $('#department_fin_id').val('');
+                $('#coa_id').val('');
+                $('#activity_descr').val('');
+            }
+
+            $('#cpnyid, #departementid, #business_unit_id, #perpost').on('change', function(){
+                resetCoaFields();
+            });
+
+            // prefill COA hidden yg benar
+            if (prefill && prefill.business_unit_id) {
+                $('#coa_business_unit_id').val(prefill.business_unit_id);
+            }
+        });
+    </script> --}}
+    <script>
+$(function () {
+    // ===== Prefill safe (tidak error kalau $prefill null) =====
+    const prefill = @json($prefill ?? []);
+
+    // ===== Elements =====
+    const $coaModal   = $('#coaModal');
+    const $coaTbody   = $('#coaTableBody');
+    const $coaCount   = $('#coaCount');
+    const $coaCpny    = $('#coaCpnyBadge');
+    const $coaDept    = $('#coaDeptBadge');
+    const $coaPerpost = $('#coaPerpostBadge');
+    const $btnBudget  = $('#btnBudget');
+    const $search     = $('#coaSearch');
+
+    // ===== State =====
+    let coaState = {
+        search: '',
+        page: 1,
+        per_page: 10,
+        total: 0,
+        cpnyid: null,
+        deptid: null,
+        perpost: null,
+        buid: null,
+    };
+
+    function esc(s){ return $('<div>').text(s ?? '').html(); }
+
+    function formatNumber(n){
+        if (n === null || n === undefined || n === '') return '';
+        const x = Number(n);
+        if (isNaN(x)) return String(n);
+        return x.toLocaleString('id-ID');
+    }
+
+    function getHeader() {
+        return {
+            cpnyid: $('#cpnyid').val(),
+            deptid: $('#departementid').val(),
+            perpost: $('#perpost').val(),
+            buid: $('#business_unit_id').val(),
+        };
+    }
+
+    function openCoaModal() {
+        const h = getHeader();
+
+        if (!h.cpnyid) { toastr.warning('Pilih Company terlebih dahulu.'); return; }
+        if (!h.deptid) { toastr.warning('Pilih Department terlebih dahulu.'); return; }
+        if (!h.buid)   { toastr.warning('Pilih Business Unit terlebih dahulu.'); return; }
+        if (!h.perpost){ toastr.warning('Pilih Perpost terlebih dahulu.'); return; }
+
+        coaState.cpnyid  = h.cpnyid;
+        coaState.deptid  = h.deptid;
+        coaState.perpost = h.perpost;
+        coaState.buid    = h.buid;
+        coaState.page    = 1;
+        coaState.search  = '';
+
+        $coaCpny.text(coaState.cpnyid);
+        $coaDept.text(coaState.deptid);
+        $coaPerpost.text(coaState.perpost);
+        $search.val('');
+
+        $coaModal.removeClass('hidden').addClass('flex');
+        loadCoa();
+    }
+
+    function closeCoaModal() {
+        $coaModal.addClass('hidden').removeClass('flex');
+    }
+
+    // ===== Open/Close events =====
+    $btnBudget.off('click').on('click', openCoaModal);
+    $('#closeCoaModal').off('click').on('click', closeCoaModal);
+
+    $(document).off('keydown.coa').on('keydown.coa', function(e){
+        if (e.key === 'Escape' && $coaModal.is(':visible')) closeCoaModal();
+    });
+
+    // ===== Search (debounce) + refresh =====
+    let t = null;
+    $search.off('input').on('input', function(){
+        clearTimeout(t);
+        t = setTimeout(function(){
+            coaState.search = $search.val().trim();
+            coaState.page = 1;
+            loadCoa();
+        }, 350);
+    });
+
+    $('#coaRefresh').off('click').on('click', function(){
+        $search.val('');
+        coaState.search = '';
+        coaState.page = 1;
+        loadCoa();
+    });
+
+    // ===== Pagination =====
+    $('#coaPrev').off('click').on('click', function(){
+        if (coaState.page > 1) {
+            coaState.page--;
+            loadCoa();
+        }
+    });
+
+    $('#coaNext').off('click').on('click', function(){
+        const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
+        if (coaState.page < maxPage) {
+            coaState.page++;
+            loadCoa();
+        }
+    });
+
+    // ===== Load COA =====
+    function loadCoa() {
+        $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+        $coaCount.text('');
+
+        $.getJSON("{{ route('coa.byDeptWo') }}", {
+            cpnyid: coaState.cpnyid,
+            deptid: coaState.deptid,
+            perpost: coaState.perpost,
+            business_unit_id: coaState.buid, // ✅ kirim BU ke backend
+            search: coaState.search,
+            page: coaState.page,
+            per_page: coaState.per_page
+        })
+        .done(function(res){
+            const data  = res.data || [];
+            coaState.total = Number(res.total || 0);
+
+            if (!data.length) {
+                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+            } else {
+                const rowsHtml = data.map(item => {
+                    const accountId   = item.account_id ?? item.coa_id ?? '';
+                    const accountDesc = item.account_descr ?? '';
+                    const actId       = item.activity_id ?? '';
+                    const actDescr    = item.activity_descr ?? item.act_descr ?? '';
+
+                    const buId        = item.business_unit_id ?? '';
+                    const deptFinId   = item.department_fin_id ?? '';
+
+                    const available   = formatNumber(item.availablebudget ?? item.available_budget ?? '');
+                    const used        = formatNumber(item.usedbudget ?? item.used_budget ?? '');
+                    const remaining   = formatNumber(item.remaining ?? '');
+
+                    // label display di input: ACCOUNT_ID — ACCOUNT_DESCR — ACTIVITY_ID — ACTIVITY_DESCR
+                    const label = [
+                        accountId,
+                        accountDesc,
+                        actId,
+                        actDescr
+                    ].filter(Boolean).join(' — ');
+
+                    return `
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                            <td class="border p-2">${esc(accountId)}</td>
+                            <td class="border p-2">${esc(actDescr)}</td>
+                            <td class="border p-2">
+                                <div class="font-semibold">${esc(remaining)}</div>
+                                <div class="text-sm opacity-70">Available : ${esc(available)}</div>
+                                <div class="text-sm opacity-70">Used : ${esc(used)}</div>
+                            </td>
+                            <td class="border p-2 text-center">
+                                <button type="button"
+                                    class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    data-account_id="${esc(accountId)}"
+                                    data-account_descr="${esc(accountDesc)}"
+                                    data-activity_id="${esc(actId)}"
+                                    data-activity_descr="${esc(actDescr)}"
+                                    data-business_unit_id="${esc(buId)}"
+                                    data-department_fin_id="${esc(deptFinId)}"
+                                    data-label="${esc(label)}"
+                                >Choose</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                $coaTbody.html(rowsHtml);
+            }
+
+            const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
+            $('#coaPrev').prop('disabled', coaState.page <= 1);
+            $('#coaNext').prop('disabled', coaState.page >= maxPage);
+
+            const shown = data.length;
+            $coaCount.text(`Page ${coaState.page}/${maxPage} • Showing ${shown} of ${coaState.total} items`);
+        })
+        .fail(function(xhr){
+            console.error(xhr.responseText);
+            $coaTbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+            $coaCount.text('');
+            $('#coaPrev, #coaNext').prop('disabled', true);
+            toastr.error('Gagal load COA.');
+        });
+    }
+
+    // ===== Choose COA =====
+    $(document).off('click.chooseCoa').on('click.chooseCoa', '.chooseCoa', function(){
+        const $btn = $(this);
+
+        const accountId   = $btn.data('account_id') || '';
+        const actId       = $btn.data('activity_id') || '';
+        const buId        = $btn.data('business_unit_id') || '';
+        const deptFinId   = $btn.data('department_fin_id') || '';
+        const actDescr    = $btn.data('activity_descr') || '';
+        const label       = $btn.data('label') || '';
+
+        // hidden fields (sesuai form kamu)
+        $('#coa_id').val(accountId);
+        $('#activity_id').val(actId);
+        $('#coa_business_unit_id').val(buId);
+        $('#department_fin_id').val(deptFinId);
+        $('#activity_descr').val(actDescr);
+
+        // display: pastikan ACCOUNT_ID tampil (bukan activity_id)
+        $('#budget_display').val(label);
+
+        // clear error
+        $('#budget_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+        closeCoaModal();
+    });
+
+    // ===== Reset COA jika header berubah =====
+    function resetCoaFields(){
+        $('#budget_display').val('');
+        $('#coa_id').val('');
+        $('#activity_id').val('');
+        $('#activity_descr').val('');
+        $('#department_fin_id').val('');
+        $('#coa_business_unit_id').val('');
+    }
+
+    $('#cpnyid, #departementid, #business_unit_id, #perpost').on('change', function(){
+        resetCoaFields();
+
+        // kalau modal sedang terbuka, auto reload sesuai header baru
+        if ($coaModal.is(':visible')) {
+            const h = getHeader();
+            coaState.cpnyid  = h.cpnyid;
+            coaState.deptid  = h.deptid;
+            coaState.perpost = h.perpost;
+            coaState.buid    = h.buid;
+            coaState.page    = 1;
+            loadCoa();
+        }
+    });
+
+    // ===== Prefill hidden aman (optional) =====
+    if (prefill && prefill.business_unit_id) {
+        $('#coa_business_unit_id').val(prefill.business_unit_id);
+    }
+});
+</script>
+
+
+
+
 
 
 

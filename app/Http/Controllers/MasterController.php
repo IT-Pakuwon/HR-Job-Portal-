@@ -1024,10 +1024,10 @@ class MasterController extends Controller
 
     public function CoaBudgetbyDept(Request $request)
     {
-        // dd($request->all());
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
         $perpost = $request->get('perpost');
+        $buid    = $request->get('business_unit_id'); // ✅ NEW
         $search  = trim($request->get('search', ''));
         $page    = max((int) $request->get('page', 1), 1);
         $perPage = max((int) $request->get('per_page', 10), 1);
@@ -1050,19 +1050,22 @@ class MasterController extends Controller
             ]);
         }
 
-        $budget = Budget::where('status', 'C')
+        // ✅ Cek apakah ada budget completed untuk kombinasi ini
+        $budgetExists = Budget::query()
+            ->where('status', 'C')
             ->where('cpny_id', $cpnyid)
             ->where('department_fin_id', $msdepartment->department_fin_id)
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-            ->get();
+            ->when($buid, fn ($q) => $q->where('business_unit_id', $buid)) // ✅ NEW
+            ->exists();
 
-        if (!$budget) {
+        if (!$budgetExists) {
             return response()->json([
                 'data' => [],
                 'total' => 0,
                 'page' => $page,
                 'per_page' => $perPage,
-                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, Dept {$deptid}, Perpost {$perpost}."
+                'message' => "Budget Belum Completed Approval untuk Company {$cpnyid}, Dept {$deptid}, BU {$buid}, Perpost {$perpost}."
             ]);
         }
 
@@ -1076,24 +1079,24 @@ class MasterController extends Controller
                 $j->on('a.activity_id', '=', 'b.activity_id')
                 ->on('a.cpny_id', '=', 'b.cpny_id');
             })
-            // ->where('b.budget_id', $budget->budget_id)
             ->where('b.cpny_id', $cpnyid)
             ->where('b.department_fin_id', $msdepartment->department_fin_id)
-            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost))
+            ->when($buid, fn ($qq) => $qq->where('b.business_unit_id', $buid)) // ✅ NEW
+            ->where('b.status', 'C'); // ✅ rekomendasi supaya konsisten hanya budget completed
 
         if ($search !== '') {
             $q->where(function ($w) use ($search) {
                 $w->where('b.account_id', 'ilike', "%{$search}%")
                 ->orWhere('c.account_descr', 'ilike', "%{$search}%")
-                ->orWhere('b.activity_id', 'ilike', "%{$search}%")          // opsional tapi berguna
-                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")       // ✅ INI YANG KURANG (Budget Descr yg kamu tampilkan)
-                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")       // tetap boleh
+                ->orWhere('b.activity_id', 'ilike', "%{$search}%")
+                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
+                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
                 ->orWhereRaw(
                     "(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?",
                     ["%{$search}%"]
                 );
             });
-
         }
 
         $total = (clone $q)->count();
@@ -1110,13 +1113,11 @@ class MasterController extends Controller
                 'b.business_unit_id',
                 'b.department_fin_id',
 
-                // ===== budget fields mentah (opsional utk debug) =====
                 DB::raw("COALESCE(b.totalbudget,0)      as totalbudget"),
                 DB::raw("COALESCE(b.totalbudget_add,0)  as totalbudget_add"),
                 DB::raw("COALESCE(b.total_reserve,0)    as total_reserve"),
                 DB::raw("COALESCE(b.total_used,0)       as total_used"),
 
-                // ===== hasil rumus =====
                 DB::raw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) as availablebudget"),
                 DB::raw("(COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))   as usedbudget"),
                 DB::raw("((COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) - (COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))) as remaining"),
@@ -1129,6 +1130,7 @@ class MasterController extends Controller
             'per_page' => $perPage,
         ]);
     }
+
 
     public function editCoaBudget(Request $request)
     {

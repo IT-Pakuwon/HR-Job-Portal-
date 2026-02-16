@@ -663,7 +663,7 @@
                 }
 
                 const $wobudget = $('#wobudget');
-                const needsCoa = $wobudget.val() === 'Pemberi Kerja';
+                const needsCoa = $wobudget.val() === 'Internal';
                 if (needsCoa && !$('#coa_id').val()) {
                     addError($('#budget_display'), 'Silakan pilih COA.');
                     ok = false;
@@ -779,7 +779,7 @@
 
             function applyBudgetVisibility() {
                 const val = $wobudget.val();
-                if (val === 'Pemberi Kerja') { // Pemberi Kerja
+                if (val === 'Internal') { // Pemberi Kerja
                     $coaGroup.slideDown(120);
                 } else { // External = Penerima Kerja
                     $coaGroup.slideUp(120);
@@ -909,7 +909,7 @@
             // Load COA from API
             function loadCoa() {
                 $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
-                $.getJSON("{{ route('coa.byDeptWo') }}", {
+                $.getJSON("{{ route('coa.byDept') }}", {
                         cpnyid: coaState.cpnyid,
                         deptid: coaState.deptid,
                         perpost: coaState.perpost,

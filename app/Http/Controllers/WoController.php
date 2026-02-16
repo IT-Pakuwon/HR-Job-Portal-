@@ -260,12 +260,12 @@ class WoController extends Controller
             'location_id'     => ['required','string','max:50'],
             'sub_location_id' => ['required','string','max:50'],
             'keperluan'       => ['nullable','string','max:1000'],
-            'wobudget'        => ['required','in:Internal,External'], // Pemberi Kerja/ Penerima Kerja
+            'wobudget'        => ['required','in:Pemberi Kerja,Penerima Kerja'], // Pemberi Kerja/ Penerima Kerja
         ];
 
         // Kalau budget = Internal (Pemberi Kerja) → COA wajib + perpost dipakai
         $input = $request->all();
-        if (($input['wobudget'] ?? null) === 'Internal') {
+        if (($input['wobudget'] ?? null) === 'Pemberi Kerja') {
             $baseRules = array_merge($baseRules, [
                 'perpost'            => ['required','string','max:10'],
                 'coa_id'             => ['required','string','max:100'],
@@ -377,7 +377,7 @@ class WoController extends Controller
 
             // Simpan info Budget + COA (jika Internal)
             $wo->budget_use        = $validated['wobudget'];
-            if ($validated['wobudget'] === 'Internal') {
+            if ($validated['wobudget'] === 'Pemberi Kerja') {
                 $wo->budget_perpost            = $validated['perpost'] ?? null;
                 $wo->budget_cpny_id            = $validated['cpnyid'] ?? null;
                 $wo->budget_account_id         = $validated['coa_id'] ?? null;
@@ -388,10 +388,10 @@ class WoController extends Controller
             } else {
                 // Pastikan null untuk keamanan
                 $wo->budget_perpost            = $validated['perpost'] ?? null;
-                $wo->budget_cpny_id            = null;
+                $wo->budget_cpny_id            = $validated['cpnyid'] ?? null;
                 $wo->budget_account_id         = null;
                 $wo->budget_activity_id        = null;
-                $wo->budget_business_unit_id   = null;
+                $wo->budget_business_unit_id   = $validated['business_unit_id'] ?? null;
                 $wo->budget_department_fin_id  = null;
                 $wo->budget_activity_descr     = null;
             }
@@ -654,11 +654,11 @@ class WoController extends Controller
             'location_id'     => ['required','string','max:50'],
             'sub_location_id' => ['required','string','max:50'],
             'keperluan'       => ['nullable','string','max:1000'],
-            'wobudget'        => ['required','in:Internal,External'],
+            'wobudget'        => ['required','in:Pemberi Kerja,Penerima Kerja'],
         ];
 
         $input = $request->all();
-        if (($input['wobudget'] ?? null) === 'Internal') {
+        if (($input['wobudget'] ?? null) === 'Pemberi Kerja') {
             $baseRules = array_merge($baseRules, [
                 'perpost'            => ['required','string','max:10'],
                 'coa_id'             => ['required','string','max:100'],
@@ -735,7 +735,7 @@ class WoController extends Controller
             // Simpan info Budget + COA (SAMA seperti create)
             $wo->budget_use = $validated['wobudget'];
 
-            if ($validated['wobudget'] === 'Internal') {
+            if ($validated['wobudget'] === 'Pemberi Kerja') {
                 $wo->budget_perpost           = $validated['perpost'] ?? null;
                 $wo->budget_cpny_id           = $validated['cpnyid'] ?? null;
                 $wo->budget_account_id        = $validated['coa_id'] ?? null;
