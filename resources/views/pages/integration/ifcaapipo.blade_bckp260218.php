@@ -9,11 +9,11 @@
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div class="pointer-events-auto rounded-xl bg-white px-5 py-4 shadow-lg border border-gray-200 flex items-center gap-3">
             <svg class="h-6 w-6 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                 viewBox="0 0 24 24" aria-hidden="true">
+                viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                        stroke-width="4"></circle>
+                    stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
-                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>
             <div class="text-sm">
                 <div class="font-semibold text-gray-800" id="poBusyTitle">Processing...</div>
@@ -28,20 +28,20 @@
         <div>
             <label class="text-sm font-medium text-gray-600">Start Date</label>
             <input type="date" id="po_from"
-                   class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
         </div>
         <div>
             <label class="text-sm font-medium text-gray-600">End Date</label>
             <input type="date" id="po_to"
-                   class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
         </div>
         <div class="flex gap-2">
             <button type="button" id="btnLoadPO"
-                    class="mt-6 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60">
+                class="mt-6 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60">
                 Load
             </button>
             <button type="button" id="btnProcessPO"
-                    class="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                class="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
                 Process
             </button>
         </div>
@@ -61,25 +61,25 @@
     <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
             <thead class="bg-white">
-            <tr class="border-b border-gray-200 text-left text-gray-600">
-                <th class="w-10 px-3 py-2">
-                    <input type="checkbox" id="poChkAll" class="rounded border-gray-300">
-                </th>
-                <th class="w-24 px-3 py-2">Company</th>
-                <th class="w-40 px-3 py-2">Order No</th>
-                <th class="w-44 px-3 py-2">Order Date</th>
-                <th class="w-32 px-3 py-2">Supplier</th>
-                <th class="w-32 px-3 py-2">Status</th>
-                <th class="px-3 py-2">Response</th>
-                <th class="w-44 px-3 py-2">Last Update</th>
-            </tr>
+                <tr class="border-b border-gray-200 text-left text-gray-600">
+                    <th class="w-10 px-3 py-2">
+                        <input type="checkbox" id="poChkAll" class="rounded border-gray-300">
+                    </th>
+                    <th class="w-24 px-3 py-2">Company</th>
+                    <th class="w-40 px-3 py-2">Order No</th>
+                    <th class="w-44 px-3 py-2">Order Date</th>
+                    <th class="w-32 px-3 py-2">Supplier</th>
+                    <th class="w-20 px-3 py-2">Status</th>
+                    <th class="px-3 py-2">Response</th>
+                    <th class="w-44 px-3 py-2">Last Update</th>
+                </tr>
             </thead>
             <tbody id="poTbody" class="divide-y divide-gray-100">
-            <tr>
-                <td colspan="8" class="px-4 py-10 text-center text-gray-500">
-                    Belum ada data. Klik Load.
-                </td>
-            </tr>
+                <tr>
+                    <td colspan="8" class="px-4 py-10 text-center text-gray-500">
+                        Belum ada data. Klik Load.
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -88,8 +88,7 @@
         <span class="font-semibold">Legend:</span>
         H = belum ada di staging (boleh insert),
         D = di staging menunggu review (disabled),
-        P-IFCA = reviewed siap kirim API,
-        P-SOLOMON = reviewed (tidak bisa kirim di screen ini),
+        P = reviewed siap kirim API,
         C = completed (disabled).
     </div>
 </div>
@@ -117,11 +116,16 @@
 
     let poBusy = false;
 
+    // ===== helper to find tabs/menu clickable elements (optional) =====
     function getTabEls() {
+        // sesuaikan selector ini jika tab kamu punya class/attribute khusus
+        // contoh aman: button/anchor yang ada di container tab integration
         return Array.from(document.querySelectorAll('a, button'))
             .filter(el => {
+                // filter hanya yang terlihat & bukan tombol load/process sendiri
                 if (!el || el === btnLoadPO || el === btnProcessPO) return false;
                 const txt = (el.textContent || '').trim().toLowerCase();
+                // heuristik: tab integration biasanya ada text ini
                 return ['non stock','stock','supplier','po','sttb','bast','issue','receipt'].some(k => txt === k || txt.includes(k));
             });
     }
@@ -140,11 +144,9 @@
         el.textContent = '';
     }
 
-    // ✅ badge class (P-SOLOMON beda warna, optional)
-    function getStatusBadgeClassPO(stage, it = '') {
+    function getStatusBadgeClassPO(stage) {
         if (stage === 'H') return 'bg-gray-200 text-gray-800';
         if (stage === 'D') return 'bg-blue-200 text-blue-800';
-        if (stage === 'P' && it === 'SOLOMON') return 'bg-orange-200 text-orange-800';
         if (stage === 'P') return 'bg-yellow-200 text-yellow-800';
         return 'bg-green-200 text-green-800'; // C
     }
@@ -183,24 +185,16 @@
 
         poTbody.innerHTML = rows.map(r => {
             const stage = r.stage_status ?? 'H';
-            const it = String(r.integration_type ?? '').toUpperCase(); // IFCA / SOLOMON / ...
-            const stageLabel = r.stage_label ?? stage;
 
-            // ✅ disable:
-            // - D/C: disabled
-            // - P-SOLOMON: disabled
-            // - busy: disabled
-            const disableByStage = (stage === 'C' || stage === 'D');
-            const disablePSolomon = (stage === 'P' && it !== 'IFCA');
-            const disabled = poBusy || disableByStage || disablePSolomon;
+            // disable checkbox kalau D/C atau saat busy
+            const disabled = poBusy || (stage === 'C' || stage === 'D');
 
-            const trClass = (disableByStage || disablePSolomon) ? 'bg-gray-50 text-gray-400' : 'hover:bg-gray-50';
-            const checkboxClass = (disableByStage || disablePSolomon) ? 'opacity-40 cursor-not-allowed' : '';
+            const trClass = (stage === 'C' || stage === 'D') ? 'bg-gray-50 text-gray-400' : 'hover:bg-gray-50';
+            const checkboxClass = (stage === 'C' || stage === 'D') ? 'opacity-40 cursor-not-allowed' : '';
 
             let title = '';
             if (stage === 'C') title = 'Sudah completed (C). Tidak bisa diproses.';
             if (stage === 'D') title = 'Menunggu review (D). Tidak bisa diproses di screen ini.';
-            if (disablePSolomon) title = 'P-SOLOMON tidak dikirim di screen ini (hanya IFCA).';
 
             return `
                 <tr class="${trClass}">
@@ -209,7 +203,6 @@
                             class="poRowChk rounded border-gray-300 ${checkboxClass}"
                             value="${r.key}"
                             data-stage="${stage}"
-                            data-it="${it}"
                             ${disabled ? `disabled title="${title}"` : ''}>
                     </td>
                     <td class="px-3 py-2 font-medium">${r.cpny_id ?? ''}</td>
@@ -217,9 +210,7 @@
                     <td class="px-3 py-2">${r.order_date ?? ''}</td>
                     <td class="px-3 py-2">${r.supplier_cd ?? ''}</td>
                     <td class="px-3 py-2">
-                        <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeClassPO(stage, it)}">
-                            ${stageLabel}
-                        </span>
+                        <span class="px-2 py-1 rounded text-sm font-semibold ${getStatusBadgeClassPO(stage)}">${stage}</span>
                     </td>
                     <td class="px-3 py-2 text-gray-600">${r.payload_response ?? ''}</td>
                     <td class="px-3 py-2 text-gray-600">${r.last_update ?? ''}</td>
@@ -240,6 +231,7 @@
     function setBusyPO(isBusy, title = 'Processing...', sub = 'Mohon tunggu, jangan klik menu/tab.') {
         poBusy = isBusy;
 
+        // overlay + lock scroll
         if (isBusy) {
             poBusyTitle.textContent = title;
             poBusySub.textContent = sub;
@@ -250,11 +242,19 @@
             document.body.style.overflow = '';
         }
 
+        // disable input + buttons
         poFrom.disabled = isBusy;
         poTo.disabled = isBusy;
         btnLoadPO.disabled = isBusy;
         btnProcessPO.disabled = isBusy;
         poChkAll.disabled = isBusy;
+
+        // disable checkbox di table (tetap keep status disabled asli)
+        poTbody.querySelectorAll('.poRowChk').forEach(chk => {
+            if (isBusy) chk.dataset._po_prev_disabled = chk.disabled ? '1' : '0';
+            chk.disabled = isBusy ? true : (chk.dataset._po_prev_disabled === '1');
+            if (!isBusy) delete chk.dataset._po_prev_disabled;
+        });
 
         // disable tab/menu (optional)
         const tabs = getTabEls();
@@ -272,6 +272,7 @@
             }
         });
 
+        // ubah label tombol
         if (isBusy) {
             btnLoadPO.dataset._txt = btnLoadPO.textContent;
             btnProcessPO.dataset._txt = btnProcessPO.textContent;
@@ -315,18 +316,12 @@
             const rows = json.data || [];
             renderRowsPO(rows);
 
-            // ✅ Ready hanya H dan P-IFCA
-            const readyCount = rows.filter(x => {
-                const st = x.stage_status ?? 'H';
-                const it = String(x.integration_type ?? '').toUpperCase();
-                return st === 'H' || (st === 'P' && it === 'IFCA');
-            }).length;
-
+            const readyCount    = rows.filter(x => ['H','P'].includes(x.stage_status ?? 'H')).length;
             const waitingReview = rows.filter(x => (x.stage_status ?? '') === 'D').length;
             const doneCount     = rows.filter(x => (x.stage_status ?? '') === 'C').length;
 
             setInfoPO(poInfo, 'ok',
-                `Loaded ${rows.length} PO. Ready(H/P-IFCA): ${readyCount}. Waiting Review(D): ${waitingReview}. Completed(C): ${doneCount}.`
+                `Loaded ${rows.length} PO. Ready(H/P): ${readyCount}. Waiting Review(D): ${waitingReview}. Completed(C): ${doneCount}.`
             );
         } catch (e) {
             renderRowsPO([]);
@@ -336,6 +331,7 @@
         }
     }
 
+    // default tanggal
     (function initDefaultDatesPO() {
         const todayPO = new Date();
         const yyyyPO = todayPO.getFullYear();
@@ -345,6 +341,7 @@
         poFrom.value = `${yyyyPO}-${mmPO}-01`;
     })();
 
+    // ===== events =====
     btnLoadPO.addEventListener('click', async () => {
         if (poBusy) return;
         await loadPO();
@@ -355,13 +352,13 @@
 
         hideInfoPO(poInfo);
 
-        // ✅ hanya H atau P-IFCA yg boleh diproses
+        // hanya H/P yg boleh diproses
         const ids = Array.from(poTbody.querySelectorAll('.poRowChk:checked'))
-            .filter(chk => chk.dataset.stage === 'H' || (chk.dataset.stage === 'P' && chk.dataset.it === 'IFCA'))
+            .filter(chk => chk.dataset.stage === 'H' || chk.dataset.stage === 'P')
             .map(chk => chk.value);
 
         if (ids.length === 0) {
-            setInfoPO(poInfo, 'warn', 'Pilih minimal 1 PO status H atau P-IFCA untuk diproses. Status D/C/P-SOLOMON tidak bisa.');
+            setInfoPO(poInfo, 'warn', 'Pilih minimal 1 PO status H atau P untuk diproses. Status D/C tidak bisa.');
             return;
         }
 
@@ -394,9 +391,11 @@
         } catch (e) {
             setInfoPO(poInfo, 'err', e.message ?? 'Error saat process.');
         } finally {
+            // matikan busy dulu supaya load tidak ke-block
             setBusyPO(false);
         }
 
+        // auto reload (tanpa click)
         await loadPO();
     });
 </script>
