@@ -574,6 +574,9 @@ Route::post('/logout', function () {
         // BQ (Bill of Quantity) VIEW
         Route::get('/showbqsppjs/{hash}', [SppjController::class, 'showBQ']);
         Route::get('/pdf_bq_pj/{hash}', [SppjController::class, 'printBQ']);
+
+        Route::get('/createbqkontrak/{sppjId}/categories', [SppjController::class, 'categoriesBqKontrak'])->name('bqkontrak.categories');
+        Route::get('/showbqkontrak/{hash}', [SppjController::class, 'showBqKontrak'])->name('bqkontrak.show');
     });
 
     Route::middleware('access:SPPJ,CREATE')->group(function () {
@@ -584,6 +587,11 @@ Route::post('/logout', function () {
         Route::get('/createbqsppj/{id}', [SppjController::class, 'createBQ'])->name('bqsppj.create');
         Route::post('/bqsppj', [SppjController::class, 'storeBQ'])->name('bqsppj.store');
         Route::post('/bqsppj/import', [SppjController::class, 'importCreate'])->name('bqsppj.import');
+
+        Route::get('/createbqkontrak/{sppjId}', [SppjController::class, 'createBqKontrak'])->name('bqkontrak.create');   
+        Route::post('/createbqkontrak/{sppjId}/pick-category', [SppjController::class, 'pickCategoryBqKontrak'])->name('bqkontrak.pickCategory');
+        Route::post('/createbqkontrak/{sppjId}/save', [SppjController::class, 'saveBqKontrak'])->name('bqkontrak.save');
+
     });
 
     Route::middleware('access:SPPJ,EDIT')->group(function () {
@@ -600,7 +608,13 @@ Route::post('/logout', function () {
         Route::put('/bqs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
         // BQ import (action edit)
         Route::post('/bqsppj/{bq}/import', [SppjController::class, 'importEdit'])->name('bqsppj.import.edit');
-        Route::put('/sppjs/{hash}/cancel', [SppjController::class, 'cancelSppj'])->name('sppjs.cancel');
+        Route::put('/sppjs/{hash}/cancel', [SppjController::class, 'cancelSppj'])->name('sppjs.cancel');       
+        
+        Route::get('/editbqkontrak/{id}', [SppjController::class, 'editBqKontrak'])->name('bqkontrak.edit');
+        Route::put('/bqkontrak/{id}', [SppjController::class, 'updateBqKontrak'])->name('bqkontrak.update');
+
+        Route::get('/bqkontrak/{eid}/categories', [SppjController::class, 'listKontrakCategories'])->name('bqkontrak.categories');
+        Route::post('/bqkontrak/{eid}/pick-category', [SppjController::class, 'pickKontrakCategory'])->name('bqkontrak.pickCategory');
     });
 
     Route::middleware('access:SPPK,VIEW')->group(function () {

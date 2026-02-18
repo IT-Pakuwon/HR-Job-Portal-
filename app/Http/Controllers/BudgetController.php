@@ -247,23 +247,23 @@ class BudgetController extends Controller
                 // =========================
                 // ✅ CEK BUDGET SUDAH ADA?
                 // =========================
-                // $exists = Budget::query()
-                //     ->where('cpny_id', $request->cpny_id)
-                //     ->where('business_unit_id', $request->business_unit_id)
-                //     ->where('department_fin_id', $request->department_fin_id)
-                //     ->where('status', 'C')
-                //     ->where('perpost', $perpostFromExcel)
-                //     ->when($budget, function ($q) use ($budget) {
-                //         // kalau edit mode, abaikan record yang sedang diedit
-                //         $q->where('id', '<>', $budget->id);
-                //     })
-                //     ->exists();
+                $exists = Budget::query()
+                    ->where('cpny_id', $request->cpny_id)
+                    ->where('business_unit_id', $request->business_unit_id)
+                    ->where('department_fin_id', $request->department_fin_id)
+                    ->where('status', 'C')
+                    ->where('perpost', $perpostFromExcel)
+                    ->when($budget, function ($q) use ($budget) {
+                        // kalau edit mode, abaikan record yang sedang diedit
+                        $q->where('id', '<>', $budget->id);
+                    })
+                    ->exists();
 
-                // if ($exists) {
-                //     throw new \RuntimeException(
-                //         "Import ditolak: Budget sudah ada untuk Perpost {$perpostFromExcel} (status C) pada company/BU/Dept tersebut."
-                //     );
-                // }
+                if ($exists) {
+                    throw new \RuntimeException(
+                        "Import ditolak: Budget sudah ada untuk Perpost {$perpostFromExcel} (status C) pada company/BU/Dept tersebut."
+                    );
+                }
 
                 // =========================
                 // ✅ VALIDASI: TOLAK FORMULA

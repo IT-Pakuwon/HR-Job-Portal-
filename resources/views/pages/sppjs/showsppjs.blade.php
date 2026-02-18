@@ -405,11 +405,25 @@
             </div>
 
             {{-- Bottom card (SPPJ Detail Table + Button BQ) --}}
-            @php
-                $bqId = $sppj->bqid ?? '';
-                $bqIdx = $bq->eid ?? '';
+           @php
+                $bqId   = $sppj->bqid ?? '';
+                $bqIdx  = $bq->eid ?? '';      // existing kamu
                 $sppjId = $sppj->id ?? '';
-                $hasBq = filled($bqId);
+                $hasBq  = filled($bqId);
+
+                $bqtype = $sppj->bqtype ?? ''; // 'Jasa' | 'Kontrak' | dll
+            @endphp
+
+            @php
+                // default (Jasa / lainnya)
+                $urlCreate = url('/createbqsppj/' . $sppjId);
+                $urlShow   = url('/showbqsppjs/' . $bqIdx);
+
+                // khusus kontrak
+                if ($bqtype === 'Kontrak') {
+                    $urlCreate = url('/createbqkontrak/' . $sppjId);
+                    $urlShow   = url('/showbqkontrak/' . $bqIdx);
+                }
             @endphp
 
             <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -421,11 +435,12 @@
                     </h2>
                     <!-- Right: Tombol Create BQ + Edit COA -->
                     <div class="flex items-center gap-3">
-                        <a href="{{ $hasBq ? url('/showbqsppjs/' . $bqIdx) : url('/createbqsppj/' . $sppjId) }}"
+                        <a href="{{ $hasBq ? $urlShow : $urlCreate }}"
                             class="{{ $hasBq
-                                ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
-                                : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
-                            {{ $hasBq ? $bqId : 'Create BQ' }}
+                                    ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+                            }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
+                                {{ $hasBq ? $bqId : 'Create BQ' }}
                         </a>
                         <button id="btnEditCoa"
                             class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">

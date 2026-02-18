@@ -14,7 +14,8 @@ class TrBQCSDetail extends Model
 
     protected $fillable = [
         
-        'bqid' , 'csid' , 'sppjtid' , 'bq_no' , 'bq_line_no' , 'bq_descr' , 'bq_source','bq_qty','qty' , 'uom' , 
+        'bqid' , 'csid' , 'sppjtid' , 'bq_no' , 'bq_line_no' , 'bq_descr' , 'bq_source','bq_qty','qty' , 'uom' , 'bqtype',
+        'kontrakcategory', 'kontrak_bq_id', 'kontrak_bq_type', 'kontrak_duration_qty',
         'vendorid1' , 'vendorproductprice1' , 'vendortotalproductprice1' , 'vendorjasaprice1' , 'vendortotaljasaprice1' , 
         'vendorid2' , 'vendorproductprice2' , 'vendortotalproductprice2' , 'vendorjasaprice2' , 'vendortotaljasaprice2' , 
         'vendorid3' , 'vendorproductprice3' , 'vendortotalproductprice3' , 'vendorjasaprice3' , 'vendortotaljasaprice3' , 
