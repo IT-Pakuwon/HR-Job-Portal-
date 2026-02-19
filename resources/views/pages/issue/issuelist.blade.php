@@ -11,7 +11,7 @@
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">↩️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">Return Jobs</p>
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">Return Issue</p>
                         </div>
 
                         <p class="shrink-0 text-base font-bold">{{ $returnjobs }}</p>
@@ -206,8 +206,8 @@
                 const url = `{{ route('issue.return.create') }}` + `?id=${encodeURIComponent(issueHash)}`;
 
                 return `
-                            <a href="${url}" 
-                            class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium 
+                            <a href="${url}"
+                            class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium
                                     text-white rounded bg-purple-600 hover:bg-purple-700">
                                 <i class="fas fa-plus"></i>
                             </a>

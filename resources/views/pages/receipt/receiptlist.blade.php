@@ -10,7 +10,7 @@
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Receipt Jobs</p>
+                        <p class="break-words text-sm font-medium">Purchase Receipt</p>
                     </div>
 
                     <p class="shrink-0 text-base font-extrabold">{{ $receiptjobs }}</p>
@@ -25,7 +25,7 @@
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">↩️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Return Jobs</p>
+                        <p class="break-words text-sm font-medium">Return STTB</p>
                     </div>
 
                     <p class="shrink-0 text-base font-extrabold">{{ $returnjobs }}</p>
