@@ -201,7 +201,7 @@
                 const hash = row.spb_eid || row.spb_hash || row.hash || row.id;
                 if (!label) return '';
                 const url = `/showspbs/${encodeURIComponent(hash ?? '')}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" target="_blank" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderSppbLink(row) {
@@ -209,7 +209,7 @@
                 const hash = row.eid || row.sppb_hash || row.hash || row.id;
                 if (!label) return '';
                 const url = `/showsppbs/${encodeURIComponent(hash ?? '')}`; // sesuaikan dengan route detail SPPB-mu
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" target="_blank" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             function renderIssueLinkCell(_value, _type, row) {

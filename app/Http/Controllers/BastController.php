@@ -39,25 +39,30 @@ class BastController extends Controller
     
     public function createBast(Request $request)
     {
-             
         // Expect: /bast/create?term=<hashid-of-TrPOterm.id>
         $termHash = (string) $request->query('term', '');
-        if (!$termHash) {
-            abort(404, 'Parameter term tidak ditemukan.');
-        }
+        if (!$termHash) abort(404, 'Parameter term tidak ditemukan.');
 
         $decoded = Hashids::decode($termHash);
-        if (empty($decoded)) {
-            abort(404, 'Parameter term tidak valid.');
-        }
+        if (empty($decoded)) abort(404, 'Parameter term tidak valid.');
+
         $termId = (int) $decoded[0];
 
+        // ambil term
         $term = TrPOterm::findOrFail($termId);
+
+        // ✅ ambil PO by ponbr + cpny_id (penting!)
+        $po = TrPO::query()
+            ->where('ponbr', $term->ponbr)
+            ->where('cpny_id', $term->cpny_id)
+            ->select(['ponbr','cpny_id','spkstartworkingdate','spkendtworkingdate'])
+            ->first();
 
         // kirim ke view
         return view('pages.bast.createbast', [
             'term'     => $term,
             'term_eid' => $termHash,
+            'po'       => $po, // ✅ tambahan
         ]);
     }
 

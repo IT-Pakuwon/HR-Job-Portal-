@@ -469,7 +469,7 @@
                 // gunakan hash id jika tersedia
                 if (row.ponbr_eid) {
                     const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" target="_blank" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
                 }
                 return text;
             }
@@ -478,7 +478,7 @@
                 const text = row.sppbjktid ?? '';
                 if (row.sppb_route && row.sppb_eid) {
                     const url = `/${row.sppb_route}/${encodeURIComponent(row.sppb_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" target="_blank" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
                 }
                 return text;
             }

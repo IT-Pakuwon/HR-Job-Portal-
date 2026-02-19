@@ -39,14 +39,14 @@
                             <div>
                                 <span class="{{ $labelClass }}">Start Date:</span>
                                 <span class="{{ $valueClass }}">
-                                    {{ \Carbon\Carbon::parse($term->start_date)->format('Y-m-d') }}
+                                    {{ $po?->spkstartworkingdate ? \Carbon\Carbon::parse($po->spkstartworkingdate)->format('Y-m-d') : '-' }}
                                 </span>
                             </div>
 
                             <div>
                                 <span class="{{ $labelClass }}">End Date:</span>
                                 <span class="{{ $valueClass }}">
-                                    {{ \Carbon\Carbon::parse($term->end_date)->format('Y-m-d') }}
+                                    {{ $po?->spkendtworkingdate ? \Carbon\Carbon::parse($po->spkendtworkingdate)->format('Y-m-d') : '-' }}
                                 </span>
                             </div>
 
@@ -82,8 +82,28 @@
                                 <span class="{{ $labelClass }}">Terms Name:</span>
                                 <span class="{{ $valueClass }}">{{ $term->terms_name }}</span>
                             </div>
+                            @php
+                                $progressPct = is_numeric($term->progress_pct ?? null)
+                                    ? rtrim(rtrim(number_format((float)$term->progress_pct, 3, '.', ''), '0'), '.')
+                                    : ($term->progress_pct ?? '');
+
+                                $paymentPct = is_numeric($term->payment_pct ?? null)
+                                    ? rtrim(rtrim(number_format((float)$term->payment_pct, 3, '.', ''), '0'), '.')
+                                    : ($term->payment_pct ?? '');
+                            @endphp
 
                             <div>
+                                <span class="{{ $labelClass }}">Progress :</span>
+                                <span class="{{ $valueClass }}">{{ $progressPct }}%</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Payment :</span>
+                                <span class="{{ $valueClass }}">{{ $paymentPct }}%</span>
+                            </div>
+
+
+                            {{-- <div>
                                 <span class="{{ $labelClass }}">Progress %:</span>
                                 <span class="{{ $valueClass }}">{{ $term->progress_pct }}%</span>
                             </div>
@@ -91,7 +111,7 @@
                             <div>
                                 <span class="{{ $labelClass }}">Payment %:</span>
                                 <span class="{{ $valueClass }}">{{ $term->payment_pct }}%</span>
-                            </div>
+                            </div> --}}
 
                         </div>
 
@@ -629,6 +649,7 @@
 
         });
     </script>
+    
 
 
 

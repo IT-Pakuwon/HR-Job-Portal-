@@ -93,23 +93,65 @@ class BastListController extends Controller
 
         if ($scope === 'bastjobs') {
             // Sumber list “jobs” dari TrPOterm
+            // $base = TrPOterm::query()
+            //     ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
+            //     ->when(!empty($deptList), fn($q) => $q->whereIn('department_id', $deptList))
+            //     ->where('flag_bast', true)
+            //     ->whereNull('bastid')
+            //     ->select([
+            //         'id', 'ponbr', 'cpny_id', 'vendorname', 'created_by',
+            //         'terms_name', 'progress_pct', 'payment_pct',
+            //         DB::raw("'HOLD' as status") // <= status dummy utk jobs
+            //     ]);
             $base = TrPOterm::query()
-                ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-                ->when(!empty($deptList), fn($q) => $q->whereIn('department_id', $deptList))
-                ->where('flag_bast', true)
-                ->whereNull('bastid')
+                ->from('tr_po_term as t') // sesuaikan kalau table name TrPOterm beda
+                ->when(!empty($cpnyList), fn($q) => $q->whereIn('t.cpny_id', $cpnyList))
+                ->when(!empty($deptList), fn($q) => $q->whereIn('t.department_id', $deptList))
+                ->where('t.flag_bast', true)
+                ->whereNull('t.bastid')
+                ->leftJoin('tr_po as p', function ($j) {
+                    $j->on('p.ponbr', '=', 't.ponbr')
+                    ->on('p.cpny_id', '=', 't.cpny_id'); // penting untuk multi company
+                })
                 ->select([
-                    'id', 'ponbr', 'cpny_id', 'vendorname', 'created_by',
-                    'terms_name', 'progress_pct', 'payment_pct',
-                    DB::raw("'HOLD' as status") // <= status dummy utk jobs
+                    't.id',
+                    't.ponbr',
+                    't.cpny_id',
+                    't.vendorname',
+                    't.created_by',
+                    't.terms_name',
+                    't.progress_pct',
+                    't.payment_pct',
+
+                    // ✅ ambil dari TrPO
+                    'p.spkstartworkingdate',
+                    'p.spkendtworkingdate',
+
+                    DB::raw("'HOLD' as status"),
                 ]);
 
 
+
+            // $orderColumns = [
+            //     0=>'ponbr', 1=>'ponbr', 2=>'cpny_id', 3=>'vendorname',
+            //     4=>'terms_name', 5=>'progress_pct', 6=>'payment_pct', 7=>'created_by',
+            //     8=>'status',
+            // ];
             $orderColumns = [
-                0=>'ponbr', 1=>'ponbr', 2=>'cpny_id', 3=>'vendorname',
-                4=>'terms_name', 5=>'progress_pct', 6=>'payment_pct', 7=>'created_by',
-                8=>'status',
+                0=>'ponbr',       // dtr-control (abaikan)
+                1=>'ponbr',       // action (abaikan)
+                2=>'ponbr',
+                3=>'cpny_id',
+                4=>'vendorname',
+                5=>'spkstartworkingdate',
+                6=>'spkendtworkingdate',
+                7=>'terms_name',
+                8=>'progress_pct',
+                9=>'payment_pct',
+                10=>'created_by',
+                11=>'status',
             ];
+
 
 
             if ($search !== '') {
@@ -175,19 +217,38 @@ class BastListController extends Controller
         $poIdMap = [];
         $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
         if (!empty($ponbrsForMap)) {
+            // $poIdMap = TrPo::whereIn('ponbr', $ponbrsForMap)
+            //     ->pluck('id', 'ponbr')
+            //     ->toArray();
             $poIdMap = TrPo::whereIn('ponbr', $ponbrsForMap)
+                ->when(!empty($cpnyList), fn($q) => $q->where('cpny_id', $cpnyList))
                 ->pluck('id', 'ponbr')
                 ->toArray();
+
         }
 
         $rows->transform(function ($r) use ($scope, $poIdMap) {
             if ($scope === 'bastjobs') {
-                // Hash untuk ID dari table TrPOterm (id term)
+                // // Hash untuk ID dari table TrPOterm (id term)
+                // $r->term_eid = Hashids::encode((string) $r->id);
+
+                // // tetap mapping PO untuk link show PO
+                // $poId = $poIdMap[$r->ponbr] ?? null;
+                // $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
                 $r->term_eid = Hashids::encode((string) $r->id);
 
-                // tetap mapping PO untuk link show PO
+                // PO link mapping (tetap)
                 $poId = $poIdMap[$r->ponbr] ?? null;
                 $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
+
+                // ✅ format tanggal spk
+                $r->spkstartworkingdate_fmt = $r->spkstartworkingdate
+                    ? Carbon::parse($r->spkstartworkingdate)->format('Y-m-d')
+                    : null;
+
+                $r->spkendtworkingdate_fmt = $r->spkendtworkingdate
+                    ? Carbon::parse($r->spkendtworkingdate)->format('Y-m-d')
+                    : null;
             } else {
                 $r->bastdate_fmt = $r->bastdate
                     ? Carbon::parse($r->bastdate)->format('Y-m-d')

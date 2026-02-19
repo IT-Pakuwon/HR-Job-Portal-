@@ -653,7 +653,18 @@ class ApprovalController extends Controller
         $list = $this->normalizeApproverList($stepToCheck->aprv_username);
         $canPerform = in_array($username, $list, true);
 
-        return response()->json(['canPerformAction' => $canPerform]);
+        // return response()->json(['canPerformAction' => $canPerform]);
+        return response()->json([
+            'canPerformAction' => $canPerform,
+            'aprv_leveling'    => $stepToCheck->aprv_leveling,  // <-- penting
+            'active' => [
+                'id'            => $stepToCheck->id ?? null,
+                'aprv_username' => $stepToCheck->aprv_username,
+                'doctype'       => $stepToCheck->aprv_doctype,
+                'status'        => $stepToCheck->status,
+            ],
+        ]);
+
     }
 
     protected function ensureActiveStep(string $refnbr, string $doctype): ?TrApproval

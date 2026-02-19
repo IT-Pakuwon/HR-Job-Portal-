@@ -151,6 +151,8 @@
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPK Start</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPK End</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Terms</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Progress %</th>
                                 <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Payment %</th>
@@ -190,6 +192,18 @@
                         },
                         {
                             data: 'vendorname'
+                        },
+                        {
+                            data: 'spkstartworkingdate_fmt',
+                            defaultContent: '',
+                            className: 'text-left',
+                            render: (_v, _t, row) => row.spkstartworkingdate_fmt ?? ''
+                        },
+                        {
+                            data: 'spkendtworkingdate_fmt',
+                            defaultContent: '',
+                            className: 'text-left',
+                            render: (_v, _t, row) => row.spkendtworkingdate_fmt ?? ''
                         },
                         {
                             data: 'terms_name'
@@ -375,7 +389,7 @@
                 const text = row.ponbr ?? '';
                 if (row.ponbr_eid) {
                     const url = `/showpo/${encodeURIComponent(row.ponbr_eid)}`;
-                    return `<a href="${url}" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
+                    return `<a href="${url}" target="_blank" class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">${text}</a>`;
                 }
                 return text;
             }

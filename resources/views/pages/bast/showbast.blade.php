@@ -1011,6 +1011,7 @@
                 const resp = await $.getJSON(
                     `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=${encodeURIComponent(doctype)}`
                 );
+                
 
                 if (!resp || !resp.canPerformAction) {
                     toastr.error("You are not authorized to approve this BAST.");
@@ -1068,7 +1069,7 @@
                     closeOrRedirect("/bastlist");
                 })
                 .fail((xhr) => {
-                    toastr.error(xhr.responseJSON?.message || 'Approve failed');
+                    // toastr.error(xhr.responseJSON?.message || 'Approve failed');
                 });
         });
     </script>
