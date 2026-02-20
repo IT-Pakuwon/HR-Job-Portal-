@@ -108,6 +108,8 @@ use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TrainingRegistrationController;
+
 
 
 use Illuminate\Support\Facades\File;
@@ -1370,7 +1372,18 @@ Route::post('/logout', function () {
         Route::get('/{id}', [MasterTrainingController::class, 'show'])
             ->name('mastertraining.show');
 
+        Route::get('/mastertraining/{id}/edit', [MasterTrainingController::class, 'edit']) ->name('mastertraining.edit');
+
+        Route::put('/mastertraining/{id}', [MasterTrainingController::class, 'update'])
+            ->name('mastertraining.update');
+
     });
+
+    Route::get('/training-events', [TrainingRegistrationController::class, 'index'])
+    ->name('training');
+
+    Route::post('/training-events/{id}/register', [TrainingRegistrationController::class, 'register'])
+        ->name('training.register');
 
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
