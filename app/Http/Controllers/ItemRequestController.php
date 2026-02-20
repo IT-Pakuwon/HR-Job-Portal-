@@ -90,10 +90,12 @@ class ItemRequestController extends Controller
             1 => 'ir.irdate',
             2 => 'ir.cpny_id',
             3 => 'ir.department_id',
-            4 => 'ir.inventory_descr_req',
-            5 => 'ir.pic_item_req',
-            6 => 'ir.status',
+            4 => 'ir.inventory_type',          // ✅ tambah ini
+            5 => 'ir.inventory_descr_req',
+            6 => 'ir.pic_item_req',
+            7 => 'ir.status',
         ];
+
 
         $orderIdx = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
@@ -114,39 +116,43 @@ class ItemRequestController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('ir.irid',                 'ilike', "%{$search}%")
-                ->orWhere('ir.cpny_id',            'ilike', "%{$search}%")
-                ->orWhere('ir.department_id',      'ilike', "%{$search}%")
-                ->orWhere('ir.inventory_descr_req','ilike', "%{$search}%")
-                ->orWhere('ir.inventoryid',        'ilike', "%{$search}%")
-                ->orWhere('ir.pic_item_req',       'ilike', "%{$search}%")
-                ->orWhere('ir.pic_completed_item_req','ilike', "%{$search}%")
-                ->orWhere('ir.status',             'ilike', "%{$search}%")
-                ->orWhere('ir.created_by',         'ilike', "%{$search}%");
+                $q->where('ir.irid', 'ilike', "%{$search}%")
+                ->orWhere('ir.cpny_id', 'ilike', "%{$search}%")
+                ->orWhere('ir.department_id', 'ilike', "%{$search}%")
+                ->orWhere('ir.inventory_type', 'ilike', "%{$search}%") // ✅ tambah
+                ->orWhere('ir.inventory_descr_req', 'ilike', "%{$search}%")
+                ->orWhere('ir.inventoryid', 'ilike', "%{$search}%")
+                ->orWhere('ir.pic_item_req', 'ilike', "%{$search}%")
+                ->orWhere('ir.pic_completed_item_req', 'ilike', "%{$search}%")
+                ->orWhere('ir.status', 'ilike', "%{$search}%")
+                ->orWhere('ir.created_by', 'ilike', "%{$search}%");
             });
         }
+
 
         // Total setelah search
         $recordsFiltered = (clone $base)->count();
 
         $data = $base->select([
-                'ir.id',
-                'ir.irid',
-                'ir.irdate',
-                'ir.cpny_id',
-                'ir.department_id',
-                'ir.inventory_descr_req',
-                'ir.inventoryid',
-                'ir.pic_item_req',
-                'ir.pic_completed_item_req',
-                'ir.status',
-                'ir.created_by',
-            ])
-            ->orderBy($orderCol, $orderDir)
-            ->orderBy('ir.irid', 'desc')
-            ->skip($start)
-            ->take($length)
-            ->get();
+            'ir.id',
+            'ir.irid',
+            'ir.irdate',
+            'ir.cpny_id',
+            'ir.department_id',
+            'ir.inventory_type',            // ✅ tambah ini
+            'ir.inventory_descr_req',
+            'ir.inventoryid',
+            'ir.pic_item_req',
+            'ir.pic_completed_item_req',
+            'ir.status',
+            'ir.created_by',
+        ])
+        ->orderBy($orderCol, $orderDir)
+        ->orderBy('ir.irid', 'desc')
+        ->skip($start)
+        ->take($length)
+        ->get();
+
 
         // Add encrypted ID
         $data->transform(function ($row) {
@@ -218,33 +224,6 @@ class ItemRequestController extends Controller
 
         DB::beginTransaction();
         try {
-
-            /* =========================
-            * Generate IRID (Autonumber)
-            * ========================= */           
-
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $seq = 1;
-            // } else {
-            //     $seq = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $seq]);
-            // }
-
-            // $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $seq);
-
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -275,15 +254,16 @@ class ItemRequestController extends Controller
             // =========================
             // CTX approval
             // =========================
-            $invType = strtoupper(trim($request->inventory_type)); // STOCK | NONSTOCK
+            $invType = strtoupper(trim((string)$request->inventory_type)); // STOCK | NONSTOCK
+
+            // ✅ kalau user input aneh, amankan
+            if (!in_array($invType, ['STOCK', 'NONSTOCK'], true)) {
+                throw new \RuntimeException("Invalid inventory_type: {$invType}");
+            }
 
             $ctx = [
                 'ignore_nominal' => true,
-                // pilih jalur approval berdasarkan inventory_type
-                // pastikan string ini sesuai yang ada di MsApproval (condition)
-                'approval_conditions' => [
-                    $invType === 'STOCK' ? 'STOCK' : 'NONSTOCK'
-                ],
+                'inventory_type' => $invType, // <-- dipakai checker STOCK/NONSTOCK
             ];
 
             // Generate TrApproval

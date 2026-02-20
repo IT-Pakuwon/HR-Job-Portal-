@@ -103,6 +103,7 @@
                                 Company</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
+                            <th class="w-32 px-6 py-2 font-medium">Inventory Type</th>
                             <th
                                 class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 Description</th>
@@ -188,9 +189,8 @@
                     }
                 },
 
-                order: [
-                    [0, 'desc']
-                ],
+                order: [[1, 'desc']], 
+
                 columns: [{
                         data: null,
                         defaultContent: ''
@@ -240,6 +240,12 @@
                         data: 'department_id',
                         className: 'text-center whitespace-normal break-words'
                     },
+                    {
+                        data: 'inventory_type',
+                        defaultContent: '-',
+                        className: 'text-left whitespace-normal break-words'
+                    },
+
                     {
                         data: 'inventory_descr_req',
                         defaultContent: '-',

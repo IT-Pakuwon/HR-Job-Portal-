@@ -10,147 +10,18 @@ use App\Models\TrReceipt;
 use App\Models\TrReceiptdetail;
 use App\Models\TrKontrak;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
-class AcumVmsStagingUiController extends Controller
+class AcumVmsStagingController extends Controller
 {
-    /**
-     * Halaman setting + tombol execute.
-     * GET /staging/acumvms?app=ACUMVMS
-     */
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) return redirect()->route('login');
-
-        $appId = (string)($request->query('app', 'ACUMVMS'));
-
-        $setting = SysStagingSetting::query()
-            ->where('id_application', $appId)
-            ->first();
-
-        // status lock (running?)
-        $running = $this->isRunning();
-
-        return view('pages.integration.acumvms_staging', [
-            'appId'   => $appId,
-            'setting' => $setting,
-            'running' => $running,
-        ]);
-    }
-
-    /**
-     * Save window last_update & next_update dari form.
-     * POST /staging/acumvms/save
-     */
-    public function saveWindow(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) return redirect()->route('login');
-
-        $appId = (string)($request->input('app', 'ACUMVMS'));
-
-        $request->validate([
-            'app'        => ['required', 'string', 'max:50'],
-            'last_update'=> ['required', 'date'],
-            'next_update'=> ['required', 'date', 'after_or_equal:last_update'],
-            'interval'   => ['nullable', 'integer', 'min:1'], // minutes
-            'status'     => ['nullable', 'in:A,I'],
-        ]);
-
-        $setting = SysStagingSetting::query()
-            ->where('id_application', $appId)
-            ->first();
-
-        if (!$setting) {
-            // kalau mau auto-create, bisa dibuat di sini; untuk sekarang return error
-            return back()->with('error', "Setting sys_staging_setting untuk {$appId} tidak ditemukan.");
-        }
-
-        $setting->last_update = Carbon::parse($request->input('last_update'));
-        $setting->next_update = Carbon::parse($request->input('next_update'));
-
-        if ($request->filled('interval')) {
-            $setting->interval = (int)$request->input('interval');
-        }
-
-        if ($request->filled('status')) {
-            $setting->status = $request->input('status');
-        }
-
-        $setting->lastupdate_user = $user->username ?? 'SYSTEM';
-        $setting->lastupdate_datetime = now();
-        $setting->save();
-
-        return back()->with('success', 'Window berhasil disimpan.');
-    }
-
-    /**
-     * Tombol Run Now dari UI (manual).
-     * POST /staging/acumvms/run
-     */
-    public function runNow(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) return redirect()->route('login');
-
-        $appId = (string)($request->input('app', 'ACUMVMS'));
-
-        $res = $this->run($appId);
-
-        // UI biasa enaknya balik JSON (kalau kamu pakai ajax) ATAU redirect with flash
-        if ($request->expectsJson()) {
-            return response()->json($res, $res['ok'] ? 200 : 409);
-        }
-
-        if ($res['ok']) {
-            return back()->with('success', $res['message'] ?? 'Staging sukses.')
-                         ->with('result', $res['data'] ?? null);
-        }
-
-        return back()->with('error', $res['message'] ?? 'Staging gagal.');
-    }
-
-    /**
-     * Endpoint untuk cek status running (buat polling UI).
-     * GET /staging/acumvms/status
-     */
-    public function status()
-    {
-        return response()->json([
-            'running' => $this->isRunning(),
-        ]);
-    }
-
-    /**
-     * Helper cek lock sedang aktif atau tidak.
-     */
-    private function isRunning(): bool
-    {
-        // Cara aman: coba ambil lock dengan ttl kecil
-        $lock = Cache::lock('acumvms_staging_lock', 1);
-        $got = $lock->get();
-
-        if ($got) {
-            $lock->release();
-            return false;
-        }
-        return true;
-    }
-
-    // =====================================================================
-    // RUNNER (INI LOGIKA STAGING YANG DULU ADA DI AcumVmsStagingController)
-    // =====================================================================
     public function run(string $appId = 'ACUMVMS'): array
     {
         // =========================
-        // LOCK (ANTI DOUBLE CRON/UI)
+        // LOCK (ANTI DOUBLE CRON)
         // =========================
-        $lock = Cache::lock('acumvms_staging_lock', 7200); // 2 jam (sesuaikan)
+        $lock = Cache::lock('acumvms_staging_lock', 1800);
         if (!$lock->get()) {
             return ['ok' => false, 'message' => 'Staging masih berjalan'];
         }
@@ -189,7 +60,7 @@ class AcumVmsStagingUiController extends Controller
             $poHeaders = TrPO::query()
                 ->where(function ($q) use ($from, $to) {
                     $q->whereBetween('submitdate', [$from, $to])
-                      ->orWhereBetween('updated_at', [$from, $to]);
+                    ->orWhereBetween('updated_at', [$from, $to]);
                 })
                 ->select(['id', 'ponbr', 'cpny_id'])
                 ->get();
@@ -201,57 +72,58 @@ class AcumVmsStagingUiController extends Controller
             // =========================
             // 3) STAGING PO
             // =========================
-            if (!empty($poHeaderIds)) {
-                TrPO::query()
-                    ->whereIn('id', $poHeaderIds)
-                    ->select([
-                        'id',
-                        'ponbr','podate','cpny_id','vendorid','vendorname',
-                        'potype','user_peminta',
-                        'totalamt','taxcodeid','taxamt','grandtotalamt',
-                        'status','created_by','created_at'
-                    ])
-                    ->orderBy('id')
-                    ->chunkById(500, function ($rows) use (&$result) {
-                        $payload = [];
+            TrPO::query()
+                ->whereIn('id', $poHeaderIds)
+                ->select([
+                    'id',
+                    'ponbr','podate','cpny_id','vendorid','vendorname',
+                    'potype','user_peminta',
+                    'totalamt','taxcodeid','taxamt','grandtotalamt',
+                    'status','created_by','created_at'
+                ])
+                ->orderBy('id')
+                ->chunkById(500, function ($rows) use (&$result) {
+                    $payload = [];
 
-                        foreach ($rows as $po) {
-                            $potype = strtoupper(trim((string) $po->potype));
+                    foreach ($rows as $po) {
 
-                            if ($potype === 'PO') {
-                                $materialService = 'Purchase Material';
-                            } elseif ($potype === 'SPK') {
-                                $materialService = 'Purchase Service';
-                            } else {
-                                $materialService = $po->potype;
-                            }
+                        $potype = strtoupper(trim((string) $po->potype));
 
-                            $payload[] = [
-                                'ponbr'            => $po->ponbr,
-                                'cpny_id'          => $po->cpny_id,
-                                'podate'           => $po->podate,
-                                'vendor_id'        => $po->vendorid,
-                                'vendorname'       => $po->vendorname,
-                                'purchaser'        => $po->user_peminta,
-                                'material_service' => $materialService,
-                                'totalamt'         => $po->totalamt,
-                                'taxcodeid'        => $po->taxcodeid,
-                                'taxamt'           => $po->taxamt,
-                                'grandtotalamt'    => $po->grandtotalamt,
-                                'status'           => $po->status,
-                                'created_by'       => $po->created_by,
-                                'created_at'       => $po->created_at,
-                            ];
+                        if ($potype === 'PO') {
+                            $materialService = 'Purchase Material';
+                        } elseif ($potype === 'SPK') {
+                            $materialService = 'Purchase Service';
+                        } else {
+                            $materialService = $po->potype; // fallback
                         }
 
-                        $this->upsertMysql7('staging_po', $payload, ['ponbr','cpny_id'], [
-                            'podate','vendor_id','vendorname','purchaser','material_service',
-                            'totalamt','taxcodeid','taxamt','grandtotalamt','status'
-                        ]);
 
-                        $result['po'] += count($payload);
-                    });
-            }
+                        $payload[] = [
+                            'ponbr'            => $po->ponbr,
+                            'cpny_id'          => $po->cpny_id,
+                            'podate'           => $po->podate,
+                            'vendor_id'        => $po->vendorid,
+                            'vendorname'       => $po->vendorname,
+                            'purchaser'        => $po->user_peminta,
+                            'material_service' => $materialService,
+                            'totalamt'         => $po->totalamt,
+                            'taxcodeid'        => $po->taxcodeid,
+                            'taxamt'           => $po->taxamt,
+                            'grandtotalamt'    => $po->grandtotalamt,
+                            'status'           => $po->status,
+                            'created_by'       => $po->created_by,
+                            'created_at'       => $po->created_at,
+                        ];
+                    }
+
+                    $this->upsertMysql7('staging_po', $payload, ['ponbr','cpny_id'], [
+                        'podate','vendor_id','vendorname','purchaser','material_service',
+                        'totalamt','taxcodeid','taxamt','grandtotalamt','status'
+                    ]);
+
+                    $result['po'] += count($payload);
+                });
+
 
             // =========================
             // 4) STAGING PO DETAIL
@@ -319,40 +191,38 @@ class AcumVmsStagingUiController extends Controller
             $receiptNbrList = $receiptHeaders->pluck('receiptnbr')->unique()->values()->all();
             $receiptCpnyMap = $receiptHeaders->pluck('cpny_id', 'receiptnbr')->all();
 
-            if (!empty($receiptNbrList)) {
-                TrReceipt::query()
-                    ->whereIn('receiptnbr', $receiptNbrList)
-                    ->select([
-                        'id','receiptnbr','receiptdate','receipttype',
-                        'cpny_id','ponbr','status','created_by','created_at'
-                    ])
-                    ->orderBy('id')
-                    ->chunkById(500, function ($rows) use (&$result) {
+            TrReceipt::query()
+                ->whereIn('receiptnbr', $receiptNbrList)
+                ->select([
+                    'id','receiptnbr','receiptdate','receipttype',
+                    'cpny_id','ponbr','status','created_by','created_at'
+                ])
+                ->orderBy('id')
+                ->chunkById(500, function ($rows) use (&$result) {
 
-                        $payload = [];
-                        foreach ($rows as $r) {
-                            $payload[] = [
-                                'receiptnbr'  => $r->receiptnbr,
-                                'cpny_id'     => $r->cpny_id,
-                                'receiptdate' => $r->receiptdate,
-                                'receipttype' => $r->receipttype,
-                                'ponbr'       => $r->ponbr,
-                                'status'      => $r->status,
-                                'created_by'  => $r->created_by,
-                                'created_at'  => $r->created_at,
-                            ];
-                        }
+                    $payload = [];
+                    foreach ($rows as $r) {
+                        $payload[] = [
+                            'receiptnbr'  => $r->receiptnbr,
+                            'cpny_id'     => $r->cpny_id,
+                            'receiptdate' => $r->receiptdate,
+                            'receipttype' => $r->receipttype,
+                            'ponbr'       => $r->ponbr,
+                            'status'      => $r->status,
+                            'created_by'  => $r->created_by,
+                            'created_at'  => $r->created_at,
+                        ];
+                    }
 
-                        $this->upsertMysql7(
-                            'staging_receipt',
-                            $payload,
-                            ['receiptnbr','cpny_id'],
-                            ['receiptdate','receipttype','ponbr','status']
-                        );
+                    $this->upsertMysql7(
+                        'staging_receipt',
+                        $payload,
+                        ['receiptnbr','cpny_id'],
+                        ['receiptdate','receipttype','ponbr','status']
+                    );
 
-                        $result['receipt'] += count($payload);
-                    });
-            }
+                    $result['receipt'] += count($payload);
+                });
 
             // =========================
             // 6) STAGING RECEIPT DETAIL
@@ -405,12 +275,12 @@ class AcumVmsStagingUiController extends Controller
             }
 
             // =========================
-            // 6B) STAGING KONTRAK
+            // 6B) STAGING KONTRAK (TrKontrak -> staging_kontrak)
             // =========================
             TrKontrak::query()
                 ->where(function ($q) use ($from, $to) {
                     $q->whereBetween('submitdate', [$from, $to])
-                      ->orWhereBetween('updated_at', [$from, $to]);
+                    ->orWhereBetween('updated_at', [$from, $to]);
                 })
                 ->select([
                     'kontrakid','kontrakdate','cpny_id','csid','sppbjktid','department_id',
@@ -426,13 +296,16 @@ class AcumVmsStagingUiController extends Controller
 
                     foreach ($rows as $k) {
                         $payload[] = [
+                            // unique key
                             'kontrakid'       => $k->kontrakid,
                             'cpny_id'         => $k->cpny_id,
+
+                            // data sesuai staging_kontrak
                             'kontrakdate'     => $k->kontrakdate,
                             'csid'            => $k->csid,
                             'sppbjktid'       => $k->sppbjktid,
                             'department_id'   => $k->department_id,
-                            'vendor_id'       => $k->vendorid,
+                            'vendor_id'       => $k->vendorid,      // mapping vendor_id <- vendorid
                             'vendorname'      => $k->vendorname,
                             'purchaser'       => $k->purchaser,
                             'user_approval'   => $k->user_approval,
@@ -449,6 +322,7 @@ class AcumVmsStagingUiController extends Controller
                         ];
                     }
 
+                    // UNIQUE KEY disarankan: (kontrakid, cpny_id)
                     $this->upsertMysql7(
                         'staging_kontrak',
                         $payload,
@@ -465,14 +339,13 @@ class AcumVmsStagingUiController extends Controller
                     $result['kontrak'] += count($payload);
                 });
 
+
             // =========================
-            // 7) UPDATE STAGING SETTING (BENAR)
+            // 7) UPDATE STAGING SETTING
             // =========================
-            // last_update = "to" yang baru diproses
-            // next_update = to + interval minutes
-            $intervalMin = (int)($setting->interval ?? 1440); // default 1 hari
-            $setting->last_update = $to;
-            $setting->next_update = $to->copy()->addMinutes($intervalMin);
+        
+            $setting->last_update = Carbon::parse($setting->last_update)->addDay();
+            $setting->next_update = Carbon::parse($setting->next_update)->addDay();
             $setting->lastupdate_user = 'SYSTEM';
             $setting->lastupdate_datetime = now();
             $setting->save();

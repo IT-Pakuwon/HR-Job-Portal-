@@ -101,6 +101,7 @@ use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\MappingPoERPController;
+use App\Http\Controllers\Staging\AcumVmsStagingUiController;
 
 
 use App\Http\Controllers\GoogleCalendarController;
@@ -1309,6 +1310,21 @@ Route::post('/logout', function () {
     Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
     Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
     Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
+
+    Route::middleware(['auth'])->group(function () {
+        // halaman setting + tombol run
+        Route::get('/integration/acumvms-staging', [AcumVmsStagingUiController::class, 'index'])
+            ->name('integration.acumvms_staging.index');
+        // simpan window last_update / next_update
+        Route::post('/integration/acumvms-staging/save', [AcumVmsStagingUiController::class, 'saveWindow'])
+            ->name('integration.acumvms_staging.save');
+        // run manual (bisa submit normal / ajax)
+        Route::post('/integration/acumvms-staging/run', [AcumVmsStagingUiController::class, 'runNow'])
+            ->name('integration.acumvms_staging.run');
+        // status lock (polling)
+        Route::get('/integration/acumvms-staging/status', [AcumVmsStagingUiController::class, 'status'])
+            ->name('integration.acumvms_staging.status');
+    });
 
 
 // User must be logged in to START OAuth

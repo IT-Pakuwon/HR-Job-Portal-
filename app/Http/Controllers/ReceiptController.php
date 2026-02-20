@@ -30,6 +30,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use App\Http\Controllers\Traits\HasAutonbr;
 use setasign\Fpdi\Fpdi;
+use setasign\Fpdf\Fpdf;
 
 class ReceiptController extends Controller
 {
