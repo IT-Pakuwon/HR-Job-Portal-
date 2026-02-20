@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class AcumVmsStagingUiController extends Controller
+class AcumVmsStagingController extends Controller
 {
     /**
      * Halaman setting + tombol execute.
@@ -36,7 +36,7 @@ class AcumVmsStagingUiController extends Controller
         // status lock (running?)
         $running = $this->isRunning();
 
-        return view('pages.integration.acumvms_staging', [
+        return view('pages.integration.acumvms', [
             'appId'   => $appId,
             'setting' => $setting,
             'running' => $running,
@@ -470,10 +470,18 @@ class AcumVmsStagingUiController extends Controller
             // =========================
             // last_update = "to" yang baru diproses
             // next_update = to + interval minutes
-            $intervalMin = (int)($setting->interval ?? 1440); // default 1 hari
-            $setting->last_update = $to;
-            $setting->next_update = $to->copy()->addMinutes($intervalMin);
-            $setting->lastupdate_user = 'SYSTEM';
+            // $intervalMin = (int)($setting->interval ?? 1440); // default 1 hari
+            // $setting->last_update = $to;
+            // $setting->next_update = $to->copy()->addMinutes($intervalMin);
+            // $setting->lastupdate_user = 'SYSTEM';
+            // $setting->lastupdate_datetime = now();
+            // $setting->save();
+            $nextDay = Carbon::parse($to)->addDay()->startOfDay(); // D+1 00:00:00
+
+            $setting->last_update = $nextDay->copy()->setTime(0, 1, 0);   // D+1 00:01:00
+            $setting->next_update = $nextDay->copy()->setTime(23, 59, 0); // D+1 23:59:00
+
+            $setting->lastupdate_user = $user->username ?? 'SYSTEM'; // lebih bagus siapa yang run
             $setting->lastupdate_datetime = now();
             $setting->save();
 

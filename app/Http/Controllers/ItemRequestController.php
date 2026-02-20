@@ -195,8 +195,159 @@ class ItemRequestController extends Controller
 
         return view('pages.itemrequest.createitemreq', compact('usercpny','usercpny2','userdept','userdept2','akses_stock'));
     }
-       
+
     public function storeItemReq(Request $request)
+    {
+        $request->validate([
+            'cpny_id'               => 'required|string',
+            'department_id'         => 'required|string',
+            'inventory_type'        => 'required|string', // <-- pastikan ada validasi
+            'inventory_descr_req'   => 'required|string|min:5',
+            'attachments.*'         => 'nullable|file|max:10240',
+        ]);
+
+        $user = $request->user();
+        $username = $user->username ?? 'system';
+
+        $dt    = now();
+        $year  = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $doctype = 'SR';
+
+        $cpny_id = $request->cpny_id;
+        $department_id = $request->department_id;
+
+        $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+
+        // validasi setup approval exist
+        $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
+
+        DB::beginTransaction();
+        try {
+            // autonbr
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'Item Request'
+            );
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string)$year, 2) . $month;   // YYMM
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            // insert header
+            $itemReq = new TrItemRequest();
+            $itemReq->irid                  = $docid;
+            $itemReq->irdate                = $dt->toDateString();
+            $itemReq->cpny_id               = $cpny_id;
+            $itemReq->department_id         = $department_id;
+            $itemReq->inventory_type        = $request->inventory_type;
+            $itemReq->inventory_descr_req   = $request->inventory_descr_req;
+            $itemReq->pic_item_req          = $username;
+            $itemReq->status                = 'P';
+            $itemReq->created_by            = $username;
+            $itemReq->save();
+
+            // =========================
+            // CTX approval (FIXED)
+            // =========================
+            $invType = strtoupper(trim((string)$request->inventory_type)); // STOCK | NONSTOCK
+
+            // ✅ kalau user input aneh, amankan
+            if (!in_array($invType, ['STOCK', 'NONSTOCK'], true)) {
+                throw new \RuntimeException("Invalid inventory_type: {$invType}");
+            }
+
+            /**
+             * IMPORTANT:
+             * - JANGAN kirim approval_conditions "NONSTOCK" karena fallback "contains"
+             *   bisa bikin STOCK ikut match (nonstock mengandung stock).
+             * - Kirim inventory_type saja, dan pastikan ApprovalController punya
+             *   checker khusus untuk condition STOCK/NONSTOCK.
+             */
+            $ctx = [
+                'ignore_nominal' => true,
+                'inventory_type' => $invType, // <-- dipakai checker STOCK/NONSTOCK
+            ];
+
+            // Generate TrApproval
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $docid,
+                $doctype,
+                $cpny_id,
+                $department_id,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // simpan hint approver pertama (opsional)
+            if ($firstApprovalUsernames) {
+                $itemReq->completed_by = $firstApprovalUsernames;
+                $itemReq->completed_at = $dt;
+                $itemReq->save();
+            }
+
+            // upload attachments (optional)
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $docid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $request->cpny_id,
+                    'departementid' => $request->department_id,
+                    'base_folder'   => 'att-item-request',
+                    'created_by'    => $username,
+                ];
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploader->uploadInternal($meta, (array)$request->file('attachments'));
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Failed to upload attachment',
+                        'error'   => $e->getMessage(),
+                    ], 500);
+                }
+            }
+
+            $eid = Hashids::encode($itemReq->id);
+
+            $approvalCtl->notifyFirstApprover(
+                $docid,
+                $doctype,
+                $itemReq->status,
+                'Item Request',
+                url('/showitemreq/' . $eid),
+                [
+                    'info'      => $request->inventory_descr_req,
+                    'createdby' => $itemReq->created_by,
+                    'date'      => $dt->toDateTimeString(),
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Item Request created successfully',
+                'irid'    => $docid,
+                'eid'     => $eid,
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'message' => 'Failed to create Item Request',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+       
+    public function storeItemReq_zzzz(Request $request)
     {
         // dd($request->all());
         $request->validate([
@@ -224,6 +375,33 @@ class ItemRequestController extends Controller
 
         DB::beginTransaction();
         try {
+
+            /* =========================
+            * Generate IRID (Autonumber)
+            * ========================= */           
+
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->first();
+
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year'    => $year,
+            //         'month'   => $month,
+            //         'status'  => 'A',
+            //         'number'  => 1,
+            //     ]);
+            //     $seq = 1;
+            // } else {
+            //     $seq = $autonbr->number + 1;
+            //     $autonbr->update(['number' => $seq]);
+            // }
+
+            // $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $seq);
+
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -254,16 +432,15 @@ class ItemRequestController extends Controller
             // =========================
             // CTX approval
             // =========================
-            $invType = strtoupper(trim((string)$request->inventory_type)); // STOCK | NONSTOCK
-
-            // ✅ kalau user input aneh, amankan
-            if (!in_array($invType, ['STOCK', 'NONSTOCK'], true)) {
-                throw new \RuntimeException("Invalid inventory_type: {$invType}");
-            }
+            $invType = strtoupper(trim($request->inventory_type)); // STOCK | NONSTOCK
 
             $ctx = [
                 'ignore_nominal' => true,
-                'inventory_type' => $invType, // <-- dipakai checker STOCK/NONSTOCK
+                // pilih jalur approval berdasarkan inventory_type
+                // pastikan string ini sesuai yang ada di MsApproval (condition)
+                'approval_conditions' => [
+                    $invType === 'STOCK' ? 'STOCK' : 'NONSTOCK'
+                ],
             ];
 
             // Generate TrApproval
@@ -425,11 +602,12 @@ class ItemRequestController extends Controller
 
 
 
-    public function updateItemReq(Request $request, $hash)
+   public function updateItemReq(Request $request, $hash)
     {
         $request->validate([
             'cpny_id'               => 'required|string',
             'department_id'         => 'required|string',
+            'inventory_type'        => 'required|string',   // ✅ samakan dengan store
             'inventory_descr_req'   => 'required|string|min:5',
             'attachments.*'         => 'nullable|file|max:10240',
         ]);
@@ -444,13 +622,12 @@ class ItemRequestController extends Controller
 
         DB::beginTransaction();
         try {
-
             $itemReq = TrItemRequest::lockForUpdate()->findOrFail($id);
 
-            /* =========================
-            * APPROVAL STATUS CHECK
-            * ========================= */
-            if (in_array($itemReq->status, ['C', 'A'])) {
+            // =========================
+            // APPROVAL STATUS CHECK
+            // =========================
+            if (in_array($itemReq->status, ['C', 'A'], true)) {
                 return response()->json([
                     'message' => 'Item Request sudah selesai / approved dan tidak bisa diedit.'
                 ], 422);
@@ -459,43 +636,45 @@ class ItemRequestController extends Controller
             $cpny_id       = $request->cpny_id;
             $department_id = $request->department_id;
 
-            /* =========================
-            * UPDATE HEADER
-            * ========================= */
+            // =========================
+            // UPDATE HEADER
+            // =========================
             $itemReq->cpny_id             = $cpny_id;
             $itemReq->department_id       = $department_id;
             $itemReq->inventory_type      = $request->inventory_type;
             $itemReq->inventory_descr_req = $request->inventory_descr_req;
-            $itemReq->status              = 'P';          // balik ke On Progress
+            $itemReq->status              = 'P';
             $itemReq->updated_by          = $username;
             $itemReq->save();
 
-            /* =========================
-            * RE-GENERATE APPROVAL
-            * ========================= */
+            // =========================
+            // RE-GENERATE APPROVAL
+            // =========================
             $approvalCtl = app(ApprovalController::class);
 
-            // 1️⃣ hapus approval lama
-            TrApproval::where('refnbr', $itemReq->irid)->delete();
+            // 1) hapus approval lama
+            // TrApproval::where('refnbr', $itemReq->irid)
+            //     ->where('aprv_doctype', $doctype) // ✅ lebih aman
+            //     ->delete();
 
-            // 2️⃣ load rule approval
+            // 2) load rule approval
             $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
 
             // =========================
-            // CTX approval
+            // CTX approval (FIXED seperti store)
             // =========================
-            $invType = strtoupper(trim($request->inventory_type)); // STOCK | NONSTOCK
+            $invType = strtoupper(trim((string)$request->inventory_type)); // STOCK | NONSTOCK
+
+            if (!in_array($invType, ['STOCK', 'NONSTOCK'], true)) {
+                throw new \RuntimeException("Invalid inventory_type: {$invType}");
+            }
 
             $ctx = [
                 'ignore_nominal' => true,
-                // pilih jalur approval berdasarkan inventory_type
-                // pastikan string ini sesuai yang ada di MsApproval (condition)
-                'approval_conditions' => [
-                    $invType === 'STOCK' ? 'STOCK' : 'NONSTOCK'
-                ],
+                'inventory_type' => $invType, // ✅ dipakai checker stock/nonstock
             ];
 
-            // 3️⃣ generate approval baru
+            // 3) generate approval baru
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $itemReq->irid,
                 $doctype,
@@ -513,9 +692,9 @@ class ItemRequestController extends Controller
                 $itemReq->save();
             }
 
-            /* =========================
-            * UPLOAD ATTACHMENTS (optional)
-            * ========================= */
+            // =========================
+            // UPLOAD ATTACHMENTS (optional)
+            // =========================
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $itemReq->irid,
@@ -527,18 +706,18 @@ class ItemRequestController extends Controller
                 ];
 
                 $uploader = app(TrAttachmentController::class);
-                $uploader->uploadInternal($meta, (array) $request->file('attachments'));
+                $uploader->uploadInternal($meta, (array)$request->file('attachments'));
             }
 
-            /* =========================
-            * NOTIFY FIRST APPROVER
-            * ========================= */
+            // =========================
+            // NOTIFY FIRST APPROVER
+            // =========================
             $eid = Hashids::encode($itemReq->id);
 
             $approvalCtl->notifyFirstApprover(
                 $itemReq->irid,
                 $doctype,
-                $itemReq->status,          // P
+                $itemReq->status, // P
                 'Item Request',
                 url('/showitemreq/' . $eid),
                 [

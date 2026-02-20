@@ -403,6 +403,14 @@
                                                 IFCA Integration
                                             </a>
                                         </li>
+                                        <li>
+                                            <a href="{{ route('integration.acumvms.index') }}"
+                                                class="{{ Request::segment(1) === 'acumvms' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                ACUM VMS Integration
+                                            </a>
+                                        </li>
+                                        
+
 
                                     </ul>
                                 </li>

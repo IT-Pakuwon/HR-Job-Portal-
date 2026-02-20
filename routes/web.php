@@ -101,7 +101,7 @@ use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\MappingPoERPController;
-use App\Http\Controllers\Staging\AcumVmsStagingUiController;
+use App\Http\Controllers\Integration\AcumVmsStagingController;
 
 
 use App\Http\Controllers\GoogleCalendarController;
@@ -1313,17 +1313,17 @@ Route::post('/logout', function () {
 
     Route::middleware(['auth'])->group(function () {
         // halaman setting + tombol run
-        Route::get('/integration/acumvms-staging', [AcumVmsStagingUiController::class, 'index'])
-            ->name('integration.acumvms_staging.index');
+        Route::get('/integration/acumvms-staging', [AcumVmsStagingController::class, 'index'])
+            ->name('integration.acumvms.index');
         // simpan window last_update / next_update
-        Route::post('/integration/acumvms-staging/save', [AcumVmsStagingUiController::class, 'saveWindow'])
-            ->name('integration.acumvms_staging.save');
+        Route::post('/integration/acumvms-staging/save', [AcumVmsStagingController::class, 'saveWindow'])
+            ->name('integration.acumvms.save');
         // run manual (bisa submit normal / ajax)
-        Route::post('/integration/acumvms-staging/run', [AcumVmsStagingUiController::class, 'runNow'])
-            ->name('integration.acumvms_staging.run');
+        Route::post('/integration/acumvms-staging/run', [AcumVmsStagingController::class, 'runNow'])
+            ->name('integration.acumvms.run');
         // status lock (polling)
-        Route::get('/integration/acumvms-staging/status', [AcumVmsStagingUiController::class, 'status'])
-            ->name('integration.acumvms_staging.status');
+        Route::get('/integration/acumvms-staging/status', [AcumVmsStagingController::class, 'status'])
+            ->name('integration.acumvms.status');
     });
 
 

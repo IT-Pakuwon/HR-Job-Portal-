@@ -178,6 +178,9 @@ class ApprovalController extends Controller
             'komputer'     => [$this, 'checkKomputer'],
             'fixed asset'  => [$this, 'checkFixedAsset'],           
             'nominal'      => [$this, 'checkNominal'],
+
+            'stock'        => [$this, 'checkStockNonStock'],
+            'nonstock'     => [$this, 'checkStockNonStock'],
         ];
         $key = $this->normalizeCondition($cond);
         return $map[$key] ?? null;
@@ -685,5 +688,12 @@ class ApprovalController extends Controller
         }
 
         return $firstPending;
+    }
+
+    protected function checkStockNonStock(MsApproval $rule, array $ctx): bool
+    {
+        $docType  = strtoupper(trim((string)($ctx['inventory_type'] ?? '')));   // STOCK|NONSTOCK
+        $ruleCond = strtoupper(trim((string)($rule->aprv_condition ?? '')));    // STOCK|NONSTOCK
+        return $docType !== '' && $ruleCond !== '' && $docType === $ruleCond;
     }
 }
