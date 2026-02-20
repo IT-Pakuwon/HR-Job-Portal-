@@ -106,6 +106,7 @@ use App\Http\Controllers\Integration\AcumVmsStagingController;
 
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\GoogleCalendarApiController;
+use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\TaskController;
 
 
