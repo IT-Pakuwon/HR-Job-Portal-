@@ -918,8 +918,9 @@
                             <tr>
                                 <th class="w-[60px] px-4 py-2">No</th>
                                 <th class="w-[140px] px-4 py-2">Inventory ID</th>
-                                <th class="min-w-[260px] px-4 py-2">Description</th>
+                                <th class="min-w-[160px] px-4 py-2">Description</th>
                                 <th class="min-w-[260px] px-4 py-2">PO Note</th>
+                                <th class="w-[240px] px-4 py-2 text-right"> Budget Department</th>
                                 <th class="w-[110px] px-4 py-2 text-right">Qty</th>
                                 <th class="w-[90px] px-4 py-2">UoM</th>
                                 <th class="w-[140px] px-4 py-2 text-right">Unit Cost</th>
@@ -937,6 +938,14 @@
                                     <td class="whitespace-normal break-words px-4 py-2">{{ $item->inventory_descr }}
                                     </td>
                                     <td class="whitespace-normal break-words px-4 py-2">{{ $item->ponote_detail }}
+                                    </td>
+                                    <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
+                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}
+                                        <br>
+                                        <strong>
+                                            Business Unit : {{ $item->budget_business_unit_id }}
+                                        </strong>
+
                                     </td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->qty) }}</td>
                                     <td class="px-4 py-2">{{ $item->uom }}</td>
@@ -1299,7 +1308,7 @@
                                 let timeAgo = dayjs(comment.created_at).fromNow();
                                 commentList.append(`
                                         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
-                                            <p class=" text-sm  font-semibold">${comment.username} 
+                                            <p class=" text-sm  font-semibold">${comment.username}
                                                 <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                             </p>
                                             <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -1630,7 +1639,7 @@
                 rows.forEach(at => {
                     const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
                     const actionTd = isHold ?
-                        `<td class="p-3 text-center">                            
+                        `<td class="p-3 text-center">
                             <button type="button"
                                 class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
                                 data-id="${at.id}">🗑️

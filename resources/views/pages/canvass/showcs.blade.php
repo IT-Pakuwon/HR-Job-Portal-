@@ -201,7 +201,7 @@
                                 $bqLink =
                                     '<a href="' .
                                     e($bqUrl) .
-                                    '" 
+                                    '"
                                                 target="_blank"
                                                 class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
                                     e($cs->bqid) .
@@ -506,6 +506,10 @@
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             {{ $row->budget_department_fin_id ?? '-' }} -
                                                             {{ $row->budget_account_id ?? '-' }}
+                                                            <br>
+                                                            <strong>
+                                                                Business Unit : {{ $row->budget_business_unit_id }}
+                                                            </strong>
                                                         </td>
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
@@ -1019,7 +1023,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -1087,7 +1091,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -1469,16 +1473,16 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
                                 <td class="px-3 py-2">${r.podate ?? ''}</td>
                                 <td class="px-3 py-2">${r.csid ?? ''}</td>
-                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>               
+                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>
                                 <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
                                 <td class="px-3 py-2">${r.purchaser ?? ''}</td>
                             </tr>

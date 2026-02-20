@@ -3,7 +3,7 @@
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
             <div class="flex gap-3">
-                {{-- <button id="approveBtn" 
+                {{-- <button id="approveBtn"
                     {{ $sppj->bqid ? '' : 'disabled' }}
                     class="inline-flex items-center gap-1 rounded-md px-3 py-2  text-sm  font-medium
                         {{ $sppj->bqid ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500'
@@ -405,11 +405,11 @@
             </div>
 
             {{-- Bottom card (SPPJ Detail Table + Button BQ) --}}
-           @php
-                $bqId   = $sppj->bqid ?? '';
-                $bqIdx  = $bq->eid ?? '';      // existing kamu
+            @php
+                $bqId = $sppj->bqid ?? '';
+                $bqIdx = $bq->eid ?? ''; // existing kamu
                 $sppjId = $sppj->id ?? '';
-                $hasBq  = filled($bqId);
+                $hasBq = filled($bqId);
 
                 $bqtype = $sppj->bqtype ?? ''; // 'Jasa' | 'Kontrak' | dll
             @endphp
@@ -417,12 +417,12 @@
             @php
                 // default (Jasa / lainnya)
                 $urlCreate = url('/createbqsppj/' . $sppjId);
-                $urlShow   = url('/showbqsppjs/' . $bqIdx);
+                $urlShow = url('/showbqsppjs/' . $bqIdx);
 
                 // khusus kontrak
                 if ($bqtype === 'Kontrak') {
                     $urlCreate = url('/createbqkontrak/' . $sppjId);
-                    $urlShow   = url('/showbqkontrak/' . $bqIdx);
+                    $urlShow = url('/showbqkontrak/' . $bqIdx);
                 }
             @endphp
 
@@ -437,10 +437,9 @@
                     <div class="flex items-center gap-3">
                         <a href="{{ $hasBq ? $urlShow : $urlCreate }}"
                             class="{{ $hasBq
-                                    ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
-                                    : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
-                            }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
-                                {{ $hasBq ? $bqId : 'Create BQ' }}
+                                ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
+                                : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
+                            {{ $hasBq ? $bqId : 'Create BQ' }}
                         </a>
                         <button id="btnEditCoa"
                             class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -488,7 +487,12 @@
                                     <td class="px-4 py-2">{{ optional($item->location)->location_name }} -
                                         {{ optional($item->subLocation)->sub_location_name }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
-                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
+                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}
+                                        <br>
+                                        <strong>
+                                            Business Unit : {{ $item->budget_business_unit_id }}
+                                        </strong>
+                                    </td>
                                     <td class="px-4 py-2">
                                         {{ number_format($item->ordered, 2, ',', '.') }}</td>
                                     <td class="px-4 py-2"> {{ number_format($item->rejectordered, 2, ',', '.') }}
@@ -569,7 +573,7 @@
                                             </td>
                                             {{-- <td>
                                                 <select class="coa-select w-full"
-                                                        data-row-id="{{ $row->id }}">                                               
+                                                        data-row-id="{{ $row->id }}">
                                                 </select>
                                             </td> --}}
 
@@ -838,7 +842,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -906,7 +910,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 

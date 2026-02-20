@@ -2,10 +2,8 @@
 
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
-
-
             <div class="flex gap-3">
-                {{-- <button id="approveBtn" 
+                {{-- <button id="approveBtn"
                     {{ $sppt->bqid ? '' : 'disabled' }}
                     class="inline-flex items-center gap-1 rounded-md px-3 py-2  text-sm  font-medium
                         {{ $sppt->bqid ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500'
@@ -485,7 +483,12 @@
                                     <td class="px-4 py-2">{{ optional($item->location)->location_name }} -
                                         {{ optional($item->subLocation)->sub_location_name }}</td>
                                     <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
-                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}</td>
+                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}
+                                        <br>
+                                        <strong>
+                                            Business Unit : {{ $item->budget_business_unit_id }}
+                                        </strong>
+                                    </td>
                                     <td class="px-4 py-2">
                                         {{ number_format($item->ordered, 2, ',', '.') }}</td>
                                     <td class="px-4 py-2"> {{ number_format($item->rejectordered, 2, ',', '.') }}
@@ -566,7 +569,7 @@
                                             </td>
                                             {{-- <td>
                                                 <select class="coa-select w-full"
-                                                        data-row-id="{{ $row->id }}">                                               
+                                                        data-row-id="{{ $row->id }}">
                                                 </select>
                                             </td> --}}
 
@@ -837,7 +840,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -905,7 +908,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 

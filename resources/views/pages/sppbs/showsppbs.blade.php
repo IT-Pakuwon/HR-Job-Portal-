@@ -2,8 +2,6 @@
 
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
-
-
             <div class="flex gap-3">
                 <button id="approveBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
@@ -424,6 +422,11 @@
                                         {{ $item->budget_department_fin_id }} -
                                         {{ $item->budget_account_id }} -
                                         {{ $item->budget_activity_descr }}
+                                        <br>
+                                        <strong>
+                                            Business Unit : {{ $item->budget_business_unit_id }}
+                                        </strong>
+
                                     </td>
 
                                     <td class="px-4 py-2">
@@ -512,7 +515,7 @@
                                         </td>
                                         {{-- <td>
                                             <select class="coa-select w-full"
-                                                    data-row-id="{{ $row->id }}">                                               
+                                                    data-row-id="{{ $row->id }}">
                                             </select>
                                         </td> --}}
 
@@ -703,7 +706,7 @@
 
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let sppbid = "{{ $sppb->sppbid }}"; // Ambil Task ID dari modal        
+            let sppbid = "{{ $sppb->sppbid }}"; // Ambil Task ID dari modal
             approveSPPB(sppbid);
         });
 
@@ -781,7 +784,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -849,7 +852,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
