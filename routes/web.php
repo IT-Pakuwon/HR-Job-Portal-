@@ -614,8 +614,8 @@ Route::post('/logout', function () {
         Route::post('/bqsppj/{bq}/import', [SppjController::class, 'importEdit'])->name('bqsppj.import.edit');
         Route::put('/sppjs/{hash}/cancel', [SppjController::class, 'cancelSppj'])->name('sppjs.cancel');
 
-        Route::get('/editbqkontrak/{id}', [SppjController::class, 'editBqKontrak'])->name('bqkontrak.edit');
-        Route::put('/bqkontrak/{id}', [SppjController::class, 'updateBqKontrak'])->name('bqkontrak.update');
+        Route::get('/editbqkontrak/{eid}', [SppjController::class, 'editBqKontrak'])->name('bqkontrak.edit');
+        Route::put('/bqkontrak/{eid}', [SppjController::class, 'updateBqKontrak'])->name('bqkontrak.update');
 
         Route::get('/bqkontrak/{eid}/categories', [SppjController::class, 'listKontrakCategories'])->name('bqkontrak.categories');
         Route::post('/bqkontrak/{eid}/pick-category', [SppjController::class, 'pickKontrakCategory'])->name('bqkontrak.pickCategory');

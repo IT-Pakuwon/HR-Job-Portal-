@@ -117,8 +117,8 @@
 
                 {{-- Save --}}
                 <div class="mt-6 flex justify-end gap-2">
-                    <button type="submit"
-                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                    <button type="submit" id="btnSave"
+                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed">
                         Save
                     </button>
                 </div>
@@ -216,25 +216,25 @@
                 // ✅ sync hidden category (biar selalu ikut)
                 const cat = (document.getElementById('kontrakcategory_hidden')?.value || '').trim();
 
-                if (!cat) {
-                    e.preventDefault();
-                    alert('Category kontrak belum dipilih.');
-                    return;
-                }
+                // if (!cat) {
+                //     e.preventDefault();
+                //     alert('Category kontrak belum dipilih.');
+                //     return;
+                // }
 
                 // ✅ minimal 1 qty > 0 dari input yg ada di form
-                const qtyInputs = form.querySelectorAll('input[name^="qty["]');
-                let hasQty = false;
-                qtyInputs.forEach(inp => {
-                    const v = parseFloat(inp.value || '0');
-                    if (!isNaN(v) && v > 0) hasQty = true;
-                });
+                // const qtyInputs = form.querySelectorAll('input[name^="qty["]');
+                // let hasQty = false;
+                // qtyInputs.forEach(inp => {
+                //     const v = parseFloat(inp.value || '0');
+                //     if (!isNaN(v) && v > 0) hasQty = true;
+                // });
 
-                if (!hasQty) {
-                    e.preventDefault();
-                    alert('Qty masih 0 semua. Isi minimal 1 item.');
-                    return;
-                }
+                // if (!hasQty) {
+                //     e.preventDefault();
+                //     alert('Qty masih 0 semua. Isi minimal 1 item.');
+                //     return;
+                // }
 
                 // ✅ show loading + disable button biar ga double submit
                 const btn = form.querySelector('button[type="submit"]');
@@ -256,209 +256,289 @@
 
 
     {{-- JS --}}
-    <script>
-        const sppjId = @json($sppj->id);
-        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+   <script>
+    const sppjId = @json($sppj->id);
+    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        let catPage = 1;
-        let catTotal = 0;
-        let catPerPage = 10;
-        let catSearch = '';
-        let catTotalPages = 1;
-        let catLoading = false;
+    // ===== State & UI Helpers =====
+    const $tempHidden = () => document.getElementById('temp_id_hidden');
+    const $catHidden  = () => document.getElementById('kontrakcategory_hidden');
+    const $catInput   = () => document.getElementById('kontrakcategory');
+    const $btnSave    = () => document.getElementById('btnSave');
 
-        function openModal() {
-            document.getElementById('categoryModal').classList.remove('hidden');
-            catPage = 1;
-            loadCategories();
-            setTimeout(() => document.getElementById('categorySearch')?.focus(), 50);
-        }
+    function setSaveEnabled(on) {
+        const btn = $btnSave();
+        if (!btn) return;
+        btn.disabled = !on;
+    }
 
-        function closeModal() {
-            document.getElementById('categoryModal').classList.add('hidden');
-        }
+    // default: kalau belum ada tempRows (first load), disable save
+    document.addEventListener('DOMContentLoaded', () => {
+        const hasTemp = !!($tempHidden()?.value || '').trim();
+        setSaveEnabled(hasTemp);
+    });
 
-        function setLoadingRow() {
-            document.getElementById('categoryTbody').innerHTML = `
+    // ===== Modal paging =====
+    let catPage = 1;
+    let catTotal = 0;
+    let catPerPage = 10;
+    let catSearch = '';
+    let catTotalPages = 1;
+    let catLoading = false;
+
+    function openModal() {
+        document.getElementById('categoryModal').classList.remove('hidden');
+        catPage = 1;
+        loadCategories();
+        setTimeout(() => document.getElementById('categorySearch')?.focus(), 50);
+    }
+
+    function closeModal() {
+        document.getElementById('categoryModal').classList.add('hidden');
+    }
+
+    function setLoadingRow() {
+        document.getElementById('categoryTbody').innerHTML = `
+            <tr>
+                <td colspan="3" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td>
+            </tr>`;
+    }
+
+    function renderCategoryRows(rows) {
+        const tbody = document.getElementById('categoryTbody');
+
+        if (!rows || rows.length === 0) {
+            tbody.innerHTML = `
                 <tr>
-                    <td colspan="3" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td>
+                    <td colspan="3" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">No data</td>
                 </tr>`;
+            return;
         }
 
-        function renderCategoryRows(rows) {
-            const tbody = document.getElementById('categoryTbody');
+        tbody.innerHTML = rows.map(r => `
+            <tr class="dark:text-gray-100">
+                <td class="px-3 py-2">${r.kontrakcategory ?? ''}</td>
+                <td class="px-3 py-2">${r.kontrakcategory_descr ?? ''}</td>
+                <td class="px-3 py-2 text-center">
+                    <button type="button"
+                        class="btn-choose rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                        data-category="${r.kontrakcategory}">
+                        Choose
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
 
-            if (!rows || rows.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="3" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">No data</td>
-                    </tr>`;
-                return;
-            }
+    function renderCategoryMeta(meta) {
+        catPage = meta.page;
+        catPerPage = meta.per_page;
+        catTotal = meta.total;
+        catTotalPages = meta.total_pages || 1;
 
-            tbody.innerHTML = rows.map(r => `
-                <tr class="dark:text-gray-100">
-                    <td class="px-3 py-2">${r.kontrakcategory ?? ''}</td>
-                    <td class="px-3 py-2">${r.kontrakcategory_descr ?? ''}</td>
-                    <td class="px-3 py-2 text-center">
-                        <button type="button"
-                            class="btn-choose rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
-                            data-category="${r.kontrakcategory}">
-                            Choose
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+        const shown = Math.min(catPerPage, Math.max(catTotal - ((catPage - 1) * catPerPage), 0));
 
-        function renderCategoryMeta(meta) {
-            catPage = meta.page;
-            catPerPage = meta.per_page;
-            catTotal = meta.total;
-            catTotalPages = meta.total_pages || 1;
+        document.getElementById('categoryInfo').textContent =
+            `Showing ${shown} of ${catTotal} items`;
 
-            const shown = Math.min(catPerPage, Math.max(catTotal - ((catPage - 1) * catPerPage), 0));
+        document.getElementById('btnPrevCat').disabled = (catPage <= 1) || catLoading;
+        document.getElementById('btnNextCat').disabled = (catPage >= catTotalPages) || catLoading;
+    }
 
-            document.getElementById('categoryInfo').textContent =
-                `Showing ${shown} of ${catTotal} items`;
+    async function loadCategories() {
+        if (catLoading) return;
+        catLoading = true;
 
-            const btnPrev = document.getElementById('btnPrevCat');
-            const btnNext = document.getElementById('btnNextCat');
-
-            btnPrev.disabled = (catPage <= 1) || catLoading;
-            btnNext.disabled = (catPage >= catTotalPages) || catLoading;
-        }
-
-        async function loadCategories() {
-            if (catLoading) return;
-            catLoading = true;
-
-            setLoadingRow();
-            renderCategoryMeta({
-                page: catPage,
-                per_page: catPerPage,
-                total: catTotal,
-                total_pages: catTotalPages
-            });
-
-            const url = `/createbqkontrak/${sppjId}/categories?search=${encodeURIComponent(catSearch)}&page=${catPage}`;
-            const res = await fetch(url);
-            const json = await res.json();
-
-            if (!json.ok) {
-                renderCategoryRows([]);
-                catLoading = false; // pindah ke sini dulu
-                renderCategoryMeta({
-                    page: 1,
-                    per_page: 10,
-                    total: 0,
-                    total_pages: 1
-                });
-                return;
-            }
-
-            renderCategoryRows(json.data);
-
-            catLoading = false; // ✅ set false dulu
-            renderCategoryMeta(json.meta); // ✅ baru update tombol
-        }
-
-
-        // Debounce search
-        let searchTimer = null;
-        document.getElementById('categorySearch').addEventListener('input', (e) => {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                catSearch = e.target.value.trim();
-                catPage = 1;
-                loadCategories();
-            }, 300);
+        setLoadingRow();
+        renderCategoryMeta({
+            page: catPage,
+            per_page: catPerPage,
+            total: catTotal,
+            total_pages: catTotalPages
         });
 
-        document.getElementById('btnCategoryRefresh').addEventListener('click', () => {
+        const url = `/createbqkontrak/${sppjId}/categories?search=${encodeURIComponent(catSearch)}&page=${catPage}`;
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (!json.ok) {
+            renderCategoryRows([]);
+            catLoading = false;
+            renderCategoryMeta({
+                page: 1,
+                per_page: 10,
+                total: 0,
+                total_pages: 1
+            });
+            return;
+        }
+
+        renderCategoryRows(json.data);
+
+        catLoading = false;
+        renderCategoryMeta(json.meta);
+    }
+
+    // Debounce search
+    let searchTimer = null;
+    document.getElementById('categorySearch').addEventListener('input', (e) => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            catSearch = e.target.value.trim();
             catPage = 1;
             loadCategories();
-        });
+        }, 300);
+    });
 
-        document.getElementById('btnPrevCat').addEventListener('click', () => {
-            if (catPage > 1) {
-                catPage--;
-                loadCategories();
-            }
-        });
+    document.getElementById('btnCategoryRefresh').addEventListener('click', () => {
+        catPage = 1;
+        loadCategories();
+    });
 
-        document.getElementById('btnNextCat').addEventListener('click', () => {
-            if (catPage < catTotalPages) {
-                catPage++;
-                loadCategories();
-            }
-        });
+    document.getElementById('btnPrevCat').addEventListener('click', () => {
+        if (catPage > 1) {
+            catPage--;
+            loadCategories();
+        }
+    });
 
-        document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('btnNextCat').addEventListener('click', () => {
+        if (catPage < catTotalPages) {
+            catPage++;
+            loadCategories();
+        }
+    });
 
-        // tombol buka modal (punya kamu: btnPickCategory)
-        document.getElementById('btnPickCategory').addEventListener('click', openModal);
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('btnPickCategory').addEventListener('click', openModal);
 
-        function renderDetailRows(rows) {
-            const tbody = document.getElementById('detailTbody');
-            if (!rows || rows.length === 0) {
-                tbody.innerHTML =
-                    `<tr><td colspan="7" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">Belum ada detail.</td></tr>`;
-                return;
-            }
+    // ===== render detail =====
+    function renderDetailRows(rows) {
+        const tbody = document.getElementById('detailTbody');
+        if (!rows || rows.length === 0) {
+            tbody.innerHTML =
+                `<tr><td colspan="7" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">Belum ada detail.</td></tr>`;
+            return;
+        }
 
-            tbody.innerHTML = rows.map(r => `
-                <tr class="dark:text-gray-100">
+        tbody.innerHTML = rows.map(r => `
+            <tr class="dark:text-gray-100">
                 <td class="px-3 py-2">${r.bq_line_no ?? ''}</td>
                 <td class="px-3 py-2">${r.kontrak_bq_type ?? ''}</td>
                 <td class="px-3 py-2">${r.kontrak_bq_id ?? ''}</td>
                 <td class="px-3 py-2">${r.bq_descr ?? ''}</td>
                 <td class="px-3 py-2">
                     <input type="number" min="0" step="0.01"
-                    name="qty[${r.temp_id}]"
-                    value="${parseFloat(r.qty ?? 0)}"
-                    class="qty-input w-28 rounded-md border px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" />
+                        name="qty[${r.id}]"
+                        value="${parseFloat(r.qty ?? 0)}"
+                        class="qty-input w-28 rounded-md border px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" />
                 </td>
                 <td class="px-3 py-2">${r.uom ?? ''}</td>
                 <td class="px-3 py-2">${r.kontrak_duration_qty ?? ''}</td>
-                </tr>
-            `).join('');
+            </tr>
+        `).join('');
+    }
+
+    // ===== Choose category (IMPORTANT FIX) =====
+    document.getElementById('categoryTbody').addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-choose');
+        if (!btn) return;
+
+        // disable save while loading new detail
+        setSaveEnabled(false);
+
+        const category = btn.getAttribute('data-category') || '';
+
+        // set category input + hidden
+        $catInput().value = category;
+        $catHidden().value = category;
+
+        // current temp_id (if any)
+        const currentTempId = ($tempHidden().value || '').trim();
+
+        const res = await fetch(`/createbqkontrak/${sppjId}/pick-category`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: JSON.stringify({
+                kontrakcategory: category,
+                temp_id: currentTempId
+            })
+        });
+
+        const text = await res.text();
+        let json;
+        try {
+            json = JSON.parse(text);
+        } catch (err) {
+            console.error('Non-JSON response:', text);
+            alert('Server error (response bukan JSON). Cek laravel.log');
+            setSaveEnabled(false);
+            return;
         }
 
+        if (!res.ok || !json.ok) {
+            alert(json.message || 'Gagal ambil data kontrak BQ');
+            setSaveEnabled(false);
+            return;
+        }
 
+        // ✅ MUST set temp_id from server (ini yg bikin save gagal kalau kosong)
+        if (json.temp_id) {
+            $tempHidden().value = json.temp_id;
+        }
 
-        // klik Choose (tetap pakai flow pickCategory kamu)
-        document.getElementById('categoryTbody').addEventListener('click', async (e) => {
-            const btn = e.target.closest('.btn-choose');
-            if (!btn) return;
+        renderDetailRows(json.data || []);
+        closeModal();
 
-            const category = btn.getAttribute('data-category');
-            document.getElementById('kontrakcategory').value = category;
-            document.getElementById('kontrakcategory_hidden').value = category;
+        // enable save only when we have temp_id + rows
+        const okEnable = !!($tempHidden().value || '').trim() && Array.isArray(json.data) && json.data.length > 0;
+        setSaveEnabled(okEnable);
+    });
 
-            const res = await fetch(`/createbqkontrak/${sppjId}/pick-category`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrf
-                },
-                body: JSON.stringify({
-                    kontrakcategory: category
-                })
-            });
+    // ===== Submit guard (prevent submit if temp_id empty) =====
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('saveForm');
+        if (!form) return;
 
-            const json = await res.json();
-            if (!json.ok) {
-                alert(json.message || 'Gagal ambil data kontrak BQ');
+        form.addEventListener('submit', (e) => {
+            const tempId = ($tempHidden()?.value || '').trim();
+            const cat = ($catHidden()?.value || '').trim();
+
+            // kalau user belum pick category / belum ada temp rows
+            if (!tempId) {
+                e.preventDefault();
+                alert('Detail Kontrak masih kosong. Pilih Category dulu.');
                 return;
             }
 
-            // render detail (fungsi kamu yang sudah ada)
-            renderDetailRows(json.data);
+            // optional: kalau category kosong tapi temp_id ada (harusnya tidak terjadi)
+            if (!cat) {
+                e.preventDefault();
+                alert('Category kontrak belum dipilih.');
+                return;
+            }
 
-            closeModal();
+            const btn = $btnSave();
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                btn.textContent = 'Saving...';
+            }
+
+            // show loading spinner if you want
+            const el = document.getElementById('loadingSpinnerContainer');
+            if (el) el.style.display = 'block';
         });
-    </script>
+
+        window.addEventListener('pageshow', () => {
+            const el = document.getElementById('loadingSpinnerContainer');
+            if (el) el.style.display = 'none';
+        });
+    });
+</script>
 
 
 

@@ -28,8 +28,57 @@ class BQCSController extends Controller
     }
 
 
-    /** Tampilkan form Create BQ, sumbernya dari CS yang sudah ada */
     public function createFromCS($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        $cs = TrCS::on('pgsql')->where('id', $id)->firstOrFail();
+
+        // ambil vendor dari header CS (vendor1..6)
+        $vendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $vidCol = "vendorid{$i}";
+            $vnmCol = "vendorname{$i}";
+            if (!filled($cs->{$vidCol}) && !filled($cs->{$vnmCol})) continue;
+
+            $vendors[] = [
+                'idx'  => $i,
+                'id'   => $cs->{$vidCol},
+                'name' => $cs->{$vnmCol},
+                'addr' => $cs->{"vendoralamat{$i}"} ?? null,
+                'cp'   => $cs->{"vendorcp{$i}"} ?? null,
+                'telp' => $cs->{"vendortelp{$i}"} ?? null,
+                'top'  => $cs->{"vendortop{$i}"} ?? null,
+            ];
+        }
+
+        // detail sumber BQ: dari tr_bq_detail sesuai bqid di CS
+        $bqid = $cs->bqid;
+        $bqDetails = BqDetail::on('pgsql')
+            ->where('bqid', $bqid)
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
+        // ✅ pilih view berdasarkan bqtype
+        $bqtype = strtolower(trim((string) $cs->bqtype));
+        $view = ($bqtype === 'kontrak')
+            ? 'pages.canvass.createbqcskontrak'
+            : 'pages.canvass.createbqcs';
+
+        return view($view, [
+            'cs'        => $cs,
+            'vendors'   => $vendors,
+            'bqDetails' => $bqDetails,
+        ]);
+    }
+
+    /** Tampilkan form Create BQ, sumbernya dari CS yang sudah ada */
+    public function createFromCS_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -190,6 +239,99 @@ class BQCSController extends Controller
     }
 
     public function editBQCS($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        // 1) Ambil header BQ
+        $bq = TrBQCS::on('pgsql')->findOrFail($id);
+
+        // 2) Ambil CS (vendor master untuk BQ ini)
+        $cs = TrCS::on('pgsql')
+            ->where('bqid', $bq->bqid)
+            ->where('csid', $bq->csid)
+            ->first();
+
+        abort_if(!$cs, 404, 'CS untuk BQ ini tidak ditemukan (bqid & csid tidak cocok).');
+
+        // --- siapkan array vendor dari CS (1..6) ---
+        $csVendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $csVendors[$i] = [
+                'id'   => $cs->{"vendorid{$i}"} ?? null,
+                'name' => $cs->{"vendorname{$i}"} ?? null,
+                'addr' => $cs->{"vendoralamat{$i}"} ?? null,
+                'cp'   => $cs->{"vendorcp{$i}"} ?? null,
+                'telp' => $cs->{"vendortelp{$i}"} ?? null,
+                'top'  => $cs->{"vendortop{$i}"} ?? null,
+            ];
+        }
+
+        // 3) Sinkron vendor CS → BQ header & detail (transaksi)
+        DB::connection('pgsql')->transaction(function () use ($bq, $csVendors) {
+            $now  = now();
+            $user = Auth::user();
+            $u    = $user->username ?? 'system';
+
+            // 3a) Update header BQ: vendorid1..6 mengikuti CS
+            for ($i = 1; $i <= 6; $i++) {
+                $bq->{"vendorid{$i}"} = $csVendors[$i]['id'];
+            }
+            $bq->updated_by = $u;
+            $bq->updated_at = $now;
+            $bq->save();
+
+            // 3b) Update semua detail BQ: vendorid1..6 mengikuti CS
+            TrBQCSDetail::on('pgsql')
+                ->where('bqid', $bq->bqid)
+                ->update([
+                    'vendorid1' => $csVendors[1]['id'],
+                    'vendorid2' => $csVendors[2]['id'],
+                    'vendorid3' => $csVendors[3]['id'],
+                    'vendorid4' => $csVendors[4]['id'],
+                    'vendorid5' => $csVendors[5]['id'],
+                    'vendorid6' => $csVendors[6]['id'],
+                ]);
+        });
+
+        // 4) Ambil ulang detail setelah sinkron
+        $details = TrBQCSDetail::on('pgsql')
+            ->where('bqid', $bq->bqid)
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
+        // 5) Vendor untuk tampilan: selalu dari CS (biar name/addr/cp/telp/top tampil)
+        $vendors = [];
+        for ($i = 1; $i <= 6; $i++) {
+            $vid = $csVendors[$i]['id'];
+            $vnm = $csVendors[$i]['name'];
+
+            if (!filled($vid) && !filled($vnm)) continue;
+
+            $vendors[] = [
+                'idx'  => $i,
+                'id'   => $vid,
+                'name' => $vnm,
+                'addr' => $csVendors[$i]['addr'],
+                'cp'   => $csVendors[$i]['cp'],
+                'telp' => $csVendors[$i]['telp'],
+                'top'  => $csVendors[$i]['top'],
+            ];
+        }
+
+        $hash_id = $hash;
+        $cs_eid  = Hashids::encode($cs->id);
+
+        // ✅ pilih view berdasarkan bqtype di CS
+        $view = (strcasecmp((string)($cs->bqtype ?? ''), 'Kontrak') === 0)
+            ? 'pages.canvass.editbqcskontrak'
+            : 'pages.canvass.editbqcs';
+
+        return view($view, compact('bq', 'details', 'vendors', 'hash_id', 'cs', 'cs_eid'));
+    }
+
+    public function editBQCS_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);

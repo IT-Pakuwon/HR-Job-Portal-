@@ -1,11 +1,14 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <div class="max-w-9xl mx-auto p-2">
         <div class="rounded-xl bg-white p-5 shadow-sm dark:bg-gray-800">
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h1 class="text-lg font-extrabold text-gray-800 dark:text-white">Edit BQ Kontrak</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">Bisa ganti Category → isi Qty → Update</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-300">
+                        Default: update Qty langsung. Kalau ganti Category → tabel ambil dari TEMP.
+                    </p>
                 </div>
             </div>
 
@@ -16,8 +19,7 @@
                 </div>
             @endif
             @if (session('success'))
-                <div
-                    class="mt-3 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-200">
+                <div class="mt-3 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-200">
                     {{ session('success') }}
                 </div>
             @endif
@@ -44,26 +46,38 @@
                 </div>
             </div>
 
-            {{-- Category picker (modal sama seperti create) --}}
+            {{-- Category picker --}}
             <div class="mt-6">
                 <label class="text-xs text-gray-500 dark:text-gray-300">Category Kontrak</label>
                 <div class="mt-1 flex items-center gap-2">
                     <input id="kontrakcategory" type="text" readonly
                         class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                        value="{{ $tempRows->first()->kontrakcategory ?? '' }}"
-                        placeholder="Klik 🔍 untuk pilih category">
+                        value="{{ $currentCategory ?? '' }}"
+                        placeholder="Klik 🔍 untuk pilih category (optional)">
                     <button id="btnPickCategory" type="button"
                         class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
                         🔍 Pilih
                     </button>
                 </div>
+
+                <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span class="font-semibold">Mode:</span>
+                    <span id="modeBadge"
+                        class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                        Update Qty (Direct)
+                    </span>
+                </div>
             </div>
 
             <form id="updateForm" method="POST" action="{{ route('bqkontrak.update', $eid) }}">
                 @csrf
+                @method('PUT')
+
                 <input type="hidden" name="temp_id" id="temp_id_hidden" value="{{ $tempId }}">
-                <input type="hidden" name="kontrakcategory" id="kontrakcategory_hidden"
-                    value="{{ $tempRows->first()->kontrakcategory ?? '' }}">
+                <input type="hidden" name="kontrakcategory" id="kontrakcategory_hidden" value="{{ $currentCategory ?? '' }}">
+
+                {{-- flag mode: 0=direct update BqDetail, 1=replace from temp --}}
+                <input type="hidden" name="use_temp" id="use_temp_hidden" value="0">
 
                 <div class="mt-6 overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -73,30 +87,35 @@
                                 <th class="px-3 py-2 text-left">Type</th>
                                 <th class="px-3 py-2 text-left">ID</th>
                                 <th class="px-3 py-2 text-left">Description</th>
-                                <th class="px-3 py-2 text-left">qty</th>
-                                <th class="px-3 py-2 text-left">uom</th>
+                                <th class="px-3 py-2 text-left">Qty</th>
+                                <th class="px-3 py-2 text-left">UOM</th>
                                 <th class="px-3 py-2 text-left">Duration (Bulan)</th>
                             </tr>
                         </thead>
+
+                        {{-- DEFAULT: pakai BqDetail (direct update) --}}
                         <tbody id="detailTbody" class="divide-y dark:divide-gray-700">
-                            @forelse($tempRows as $r)
-                                <tr class="dark:text-gray-100">
-                                    <td class="px-3 py-2">{{ $r->bq_line_no }}</td>
-                                    <td class="px-3 py-2">{{ $r->kontrak_bq_type }}</td>
-                                    <td class="px-3 py-2">{{ $r->kontrak_bq_id }}</td>
-                                    <td class="px-3 py-2">{{ $r->bq_descr }}</td>
+                            @forelse($details as $d)
+                                <tr class="dark:text-gray-100"
+                                    data-mode="direct"
+                                    data-id="{{ $d->id }}">
+                                    <td class="px-3 py-2">{{ $d->bq_line_no }}</td>
+                                    <td class="px-3 py-2">{{ $d->kontrak_bq_type }}</td>
+                                    <td class="px-3 py-2">{{ $d->kontrak_bq_id }}</td>
+                                    <td class="px-3 py-2">{{ $d->bq_descr }}</td>
                                     <td class="px-3 py-2">
+                                        {{-- IMPORTANT: id = BqDetail.id --}}
                                         <input type="number" min="0" step="0.01"
-                                            name="qty[{{ $r->id }}]" value="{{ (float) $r->qty }}"
+                                            name="qty[{{ $d->id }}]" value="{{ (float) $d->qty }}"
                                             class="qty-input w-28 rounded-md border px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" />
                                     </td>
-                                    <td class="px-3 py-2">{{ $r->uom }}</td>
-                                    <td class="px-3 py-2">{{ $r->kontrak_duration_qty }}</td>
+                                    <td class="px-3 py-2">{{ $d->uom }}</td>
+                                    <td class="px-3 py-2">{{ $d->kontrak_duration_qty }}</td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="7" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
-                                        Belum ada detail.
+                                        Belum ada detail Kontrak.
                                     </td>
                                 </tr>
                             @endforelse
@@ -109,7 +128,8 @@
                         class="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
                         Back
                     </a>
-                    <button type="submit"
+
+                    <button type="submit" id="btnSubmitUpdate"
                         class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
                         Update
                     </button>
@@ -118,12 +138,11 @@
         </div>
     </div>
 
-    {{-- Modal Select Category (copy dari create kamu) --}}
+    {{-- Modal Select Category --}}
     <div id="categoryModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/40"></div>
 
-        <div
-            class="absolute left-1/2 top-1/2 w-[95%] max-w-5xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-lg dark:bg-gray-800">
+        <div class="absolute left-1/2 top-1/2 w-[95%] max-w-5xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-lg dark:bg-gray-800">
             <div class="flex items-center justify-between border-b px-5 py-3 dark:border-gray-700">
                 <div class="text-sm font-bold text-gray-800 dark:text-gray-100">Select Kontrak Category</div>
                 <button id="btnCloseModal"
@@ -172,40 +191,57 @@
         </div>
     </div>
 
-    {{-- Loading overlay --}}
-    <div id="loadingSpinnerContainer">
+    {{-- Loading overlay (optional UI kamu) --}}
+    <div id="loadingSpinnerContainer" style="display:none;">
         <div class="loading-card">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Updating<span
-                    class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span></div>
+            <div class="loading-text">
+                Updating<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
         </div>
     </div>
 
     <script>
         const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const eid = @json($eid);
+        const originalCategory = @json($currentCategory ?? '');
 
         // ====== Loading on submit ======
         function showLoading() {
-            document.getElementById('loadingSpinnerContainer').style.display = 'block';
+            const el = document.getElementById('loadingSpinnerContainer');
+            if (el) el.style.display = 'block';
+        }
+        function hideLoading() {
+            const el = document.getElementById('loadingSpinnerContainer');
+            if (el) el.style.display = 'none';
         }
 
-        function hideLoading() {
-            document.getElementById('loadingSpinnerContainer').style.display = 'none';
+        function setMode(useTemp) {
+            // 0 direct, 1 temp
+            document.getElementById('use_temp_hidden').value = useTemp ? '1' : '0';
+
+            const badge = document.getElementById('modeBadge');
+            if (!badge) return;
+
+            if (useTemp) {
+                badge.textContent = 'Ganti Category (TEMP)';
+                badge.className =
+                    'inline-flex items-center rounded-md bg-indigo-100 px-2 py-1 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200';
+            } else {
+                badge.textContent = 'Update Qty (Direct)';
+                badge.className =
+                    'inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-100';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // default mode direct
+            setMode(false);
+
             const form = document.getElementById('updateForm');
             if (!form) return;
 
             form.addEventListener('submit', (e) => {
-                const cat = (document.getElementById('kontrakcategory_hidden')?.value || '').trim();
-                if (!cat) {
-                    e.preventDefault();
-                    alert('Category kontrak belum dipilih.');
-                    return;
-                }
-
                 const qtyInputs = form.querySelectorAll('input[name^="qty["]');
                 let hasQty = false;
                 qtyInputs.forEach(inp => {
@@ -218,13 +254,12 @@
                     return;
                 }
 
-                const btn = form.querySelector('button[type="submit"]');
+                const btn = document.getElementById('btnSubmitUpdate');
                 if (btn) {
                     btn.disabled = true;
                     btn.classList.add('opacity-70', 'cursor-not-allowed');
                     btn.textContent = 'Updating...';
                 }
-
                 showLoading();
             });
 
@@ -232,12 +267,7 @@
         });
 
         // ====== Modal category logic ======
-        let catPage = 1,
-            catTotal = 0,
-            catPerPage = 10,
-            catSearch = '',
-            catTotalPages = 1,
-            catLoading = false;
+        let catPage = 1, catTotal = 0, catPerPage = 10, catSearch = '', catTotalPages = 1, catLoading = false;
 
         function openModal() {
             document.getElementById('categoryModal').classList.remove('hidden');
@@ -245,11 +275,9 @@
             loadCategories();
             setTimeout(() => document.getElementById('categorySearch')?.focus(), 50);
         }
-
         function closeModal() {
             document.getElementById('categoryModal').classList.add('hidden');
         }
-
         function setLoadingRow() {
             document.getElementById('categoryTbody').innerHTML =
                 `<tr><td colspan="3" class="px-3 py-8 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>`;
@@ -267,7 +295,8 @@
                     <td class="px-3 py-2">${r.kontrakcategory ?? ''}</td>
                     <td class="px-3 py-2">${r.kontrakcategory_descr ?? ''}</td>
                     <td class="px-3 py-2 text-center">
-                        <button type="button" class="btn-choose rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                        <button type="button"
+                            class="btn-choose rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
                             data-category="${r.kontrakcategory}">
                             Choose
                         </button>
@@ -291,12 +320,7 @@
             if (catLoading) return;
             catLoading = true;
             setLoadingRow();
-            renderCategoryMeta({
-                page: catPage,
-                per_page: catPerPage,
-                total: catTotal,
-                total_pages: catTotalPages
-            });
+            renderCategoryMeta({ page: catPage, per_page: catPerPage, total: catTotal, total_pages: catTotalPages });
 
             const url = `/bqkontrak/${eid}/categories?search=${encodeURIComponent(catSearch)}&page=${catPage}`;
             const res = await fetch(url);
@@ -305,14 +329,10 @@
             if (!json.ok) {
                 renderCategoryRows([]);
                 catLoading = false;
-                renderCategoryMeta({
-                    page: 1,
-                    per_page: 10,
-                    total: 0,
-                    total_pages: 1
-                });
+                renderCategoryMeta({ page: 1, per_page: 10, total: 0, total_pages: 1 });
                 return;
             }
+
             renderCategoryRows(json.data);
             catLoading = false;
             renderCategoryMeta(json.meta);
@@ -333,21 +353,16 @@
             loadCategories();
         });
         document.getElementById('btnPrevCat').addEventListener('click', () => {
-            if (catPage > 1) {
-                catPage--;
-                loadCategories();
-            }
+            if (catPage > 1) { catPage--; loadCategories(); }
         });
         document.getElementById('btnNextCat').addEventListener('click', () => {
-            if (catPage < catTotalPages) {
-                catPage++;
-                loadCategories();
-            }
+            if (catPage < catTotalPages) { catPage++; loadCategories(); }
         });
         document.getElementById('btnCloseModal').addEventListener('click', closeModal);
         document.getElementById('btnPickCategory').addEventListener('click', openModal);
 
-        function renderDetailRows(rows) {
+        // Render detail rows dari TEMP (mode category)
+        function renderTempDetailRows(rows) {
             const tbody = document.getElementById('detailTbody');
             if (!rows || rows.length === 0) {
                 tbody.innerHTML =
@@ -356,7 +371,7 @@
             }
 
             tbody.innerHTML = rows.map(r => `
-                <tr class="dark:text-gray-100">
+                <tr class="dark:text-gray-100" data-mode="temp" data-id="${r.id}">
                     <td class="px-3 py-2">${r.bq_line_no ?? ''}</td>
                     <td class="px-3 py-2">${r.kontrak_bq_type ?? ''}</td>
                     <td class="px-3 py-2">${r.kontrak_bq_id ?? ''}</td>
@@ -373,16 +388,25 @@
             `).join('');
         }
 
-        // click choose category
+        // click choose category -> pick-category (POST) -> render TEMP rows
         document.getElementById('categoryTbody').addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-choose');
             if (!btn) return;
 
-            const category = btn.getAttribute('data-category');
+            const category = btn.getAttribute('data-category') || '';
+
+            // set category input + hidden
             document.getElementById('kontrakcategory').value = category;
             document.getElementById('kontrakcategory_hidden').value = category;
 
+            // mode temp (karena user memilih category)
+            setMode(true);
+
             const tempId = document.getElementById('temp_id_hidden').value;
+
+            // disable button to avoid double click
+            btn.disabled = true;
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
 
             const res = await fetch(`/bqkontrak/${eid}/pick-category`, {
                 method: 'POST',
@@ -390,13 +414,9 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrf
                 },
-                body: JSON.stringify({
-                    kontrakcategory: category,
-                    temp_id: tempId
-                })
+                body: JSON.stringify({ kontrakcategory: category, temp_id: tempId })
             });
 
-            // ✅ aman: coba parse json, kalau gagal tampilkan response text
             const text = await res.text();
             let json = null;
 
@@ -405,17 +425,20 @@
             } catch (err) {
                 console.error('Non-JSON response:', text);
                 alert('Server error (response bukan JSON). Cek laravel.log / console.');
+                btn.disabled = false;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
                 return;
             }
 
             if (!res.ok || !json.ok) {
                 alert(json.message || `Gagal pick category (HTTP ${res.status})`);
+                btn.disabled = false;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
                 return;
             }
 
-            renderDetailRows(json.data);
+            renderTempDetailRows(json.data);
             closeModal();
-
         });
     </script>
 </x-app-layout>

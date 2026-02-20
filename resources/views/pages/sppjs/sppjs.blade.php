@@ -119,6 +119,9 @@
                             <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Department
                             </th>
+                            <th scope="col" class="w-24 px-6 py-2 font-medium">
+                                Bq Type
+                            </th>
                             <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Request Type
                             </th>
@@ -860,6 +863,7 @@
                         data: 'department_id',
                         className: 'text-center whitespace-normal break-words'
                     },
+                    { data: 'bqtype', defaultContent: '-', className: 'text-center w-24' },
                     {
                         data: 'requesttype_name',
                         defaultContent: '-',

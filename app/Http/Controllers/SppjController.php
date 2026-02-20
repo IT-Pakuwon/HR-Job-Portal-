@@ -127,9 +127,10 @@ class SppjController extends Controller
             1 => 'sppj.sppjdate',
             2 => 'sppj.cpny_id',
             3 => 'sppj.department_id',
-            4 => 'rt.requesttype_name',
-            5 => 'sppj.keperluan',
-            6 => 'sppj.status',
+            4 => 'sppj.bqtype',             
+            5 => 'rt.requesttype_name',
+            6 => 'sppj.keperluan',
+            7 => 'sppj.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
@@ -154,6 +155,7 @@ class SppjController extends Controller
                 $q->where('sppj.sppjid',           'ilike', "%{$search}%")
                 ->orWhere('sppj.cpny_id',       'ilike', "%{$search}%")
                 ->orWhere('sppj.department_id', 'ilike', "%{$search}%")
+                ->orWhere('sppj.bqtype',        'ilike', "%{$search}%")
                 ->orWhere('rt.requesttype_name','ilike', "%{$search}%")
                 ->orWhere('sppj.keperluan',     'ilike', "%{$search}%")
                 ->orWhere('sppj.status',        'ilike', "%{$search}%");
@@ -171,6 +173,7 @@ class SppjController extends Controller
                     'sppj.requesttypeid',
                     'rt.requesttype_name',
                     'sppj.keperluan',
+                    'sppj.bqtype',
                     'sppj.status',
                     'sppj.created_by'
                 )
@@ -3466,13 +3469,17 @@ class SppjController extends Controller
             ->orderBy('bq_line_no')
             ->get();
 
-        return response()->json(['ok' => true, 'data' => $tempRows]);
+        // return response()->json(['ok' => true, 'data' => $tempRows]);
+        return response()->json([
+                'ok' => true,
+                'temp_id' => $tempId,
+                'data' => $tempRows
+            ]);
     }
 
     
     public function saveBqKontrak(Request $request, string $sppjId)
     {
-        // dd($request->all());
         $user = Auth::user();
         abort_unless($user, 401);
 
@@ -3481,27 +3488,27 @@ class SppjController extends Controller
             ->where('id', $sppjId)
             ->firstOrFail();
 
-        // ✅ 1) Update qty temp dari request (tanpa endpoint lain)
         $tempId = $request->input('temp_id');
-        $qtyMap = $request->input('qty', []); // [temp_id => qty]
+        $qtyMap = $request->input('qty', []);
         if (!is_array($qtyMap)) $qtyMap = [];
 
-       
+        // ✅ Update qty ke temp (boleh 0)
         foreach ($qtyMap as $rowId => $qty) {
             BqDetailTemp::query()
                 ->where('temp_id', $tempId)
-                ->where('id', (int)$rowId)          // ✅ pakai id
+                ->where('id', (int)$rowId)
                 ->where('sppjtid', $sppj->id)
                 ->where('created_by', $user->username)
                 ->update([
-                    'qty' => (float)$qty,
+                    'qty' => (float)$qty, // boleh 0
                     'updated_by' => $user->username,
                     'updated_at' => now(),
                 ]);
         }
 
-        // ✅ ambil tempRows setelah update qty
+        // ✅ Ambil tempRows berdasarkan temp_id (lebih aman)
         $tempRows = BqDetailTemp::query()
+            ->where('temp_id', $tempId)
             ->where('sppjtid', $sppj->id)
             ->where('created_by', $user->username)
             ->orderBy('bq_line_no')
@@ -3511,9 +3518,7 @@ class SppjController extends Controller
             return back()->withInput()->with('error', 'Detail Kontrak masih kosong. Pilih Category dulu.');
         }
 
-        if ($tempRows->where('qty', '>', 0)->count() === 0) {
-            return back()->withInput()->with('error', 'Qty masih 0 semua. Isi minimal 1 item.');
-        }
+        // ❌ VALIDASI QTY DIHAPUS (sekarang qty boleh 0)
 
         if ($tempRows->whereNotNull('kontrakcategory')->count() === 0) {
             return back()->withInput()->with('error', 'Category belum terpilih atau data temp invalid.');
@@ -3523,10 +3528,10 @@ class SppjController extends Controller
 
         DB::transaction(function () use ($user, $sppj, $tempRows, &$bq) {
 
-            // 1) Insert header BQ
+            // 1️⃣ Insert header BQ
             $bq = Bq::create([
                 'bqid' => null,
-                'sppjtid' => $sppj->sppjid, // ✅ harus id integer
+                'sppjtid' => $sppj->sppjid,
                 'cpny_id' => $sppj->cpny_id,
                 'bq_type' => 'Kontrak',
                 'grand_total_est_material_price' => 0,
@@ -3538,17 +3543,17 @@ class SppjController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // 2) Generate bqid
-            $doctype  = 'BQ';
-            $dt        = Carbon::now();
-            $year      = (int) $dt->year;
-            $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+            // 2️⃣ Generate BQID
+            $doctype = 'BQ';
+            $dt = Carbon::now();
+            $year = (int) $dt->year;
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
             $auto = $this->nextAutonbr($doctype, $year, $month, $user->username, 'BQ');
             $urutan = (int) ($auto['next'] ?? 1);
 
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $bqid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            $tglbln = substr((string)$year, 2) . $month; // YYMM
+            $bqid = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             $bq->update([
                 'bqid' => $bqid,
@@ -3556,16 +3561,16 @@ class SppjController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // 3) Insert detail
+            // 3️⃣ Insert detail (qty boleh 0)
             foreach ($tempRows as $t) {
                 BqDetail::create([
                     'bqid' => $bqid,
-                    'sppjtid' => $sppj->sppjid,   // ✅ id
-                    'bq_no' => $t->bq_line_no,         // ✅ bqid
+                    'sppjtid' => $sppj->sppjid,
+                    'bq_no' => $t->bq_line_no,
 
                     'bq_line_no' => $t->bq_line_no,
                     'bq_descr' => $t->bq_descr,
-                    'qty' => $t->qty,
+                    'qty' => (float)$t->qty, // boleh 0
                     'uom' => $t->uom,
 
                     'est_material_price' => 0,
@@ -3587,7 +3592,7 @@ class SppjController extends Controller
                 ]);
             }
 
-            // 4) Update SPPJ
+            // 4️⃣ Update SPPJ
             TrSPPJ::query()
                 ->where('id', $sppj->id)
                 ->update([
@@ -3597,9 +3602,9 @@ class SppjController extends Controller
                     'updated_at' => now(),
                 ]);
 
-            // 5) Clear temp
+            // 5️⃣ Clear temp
             BqDetailTemp::query()
-                ->where('sppjtid', $sppj->id)
+                ->where('temp_id', $tempRows->first()->temp_id)
                 ->where('created_by', $user->username)
                 ->delete();
         });
@@ -3670,6 +3675,46 @@ class SppjController extends Controller
     }
 
     public function editBqKontrak(string $eid)
+    {
+        $user = Auth::user();
+        abort_unless($user, 401);
+
+        $dec = Hashids::decode($eid);
+        abort_if(empty($dec), 404);
+        $bqPk = (int) $dec[0];
+
+        $bq = Bq::query()->where('id', $bqPk)->firstOrFail();
+
+        // temp_id utk sesi edit ini (dipakai kalau user ganti category)
+        $tempId = (string) \Illuminate\Support\Str::uuid();
+
+        // ✅ DEFAULT: tampilkan detail asli (untuk update qty langsung ke BqDetail)
+        $details = BqDetail::query()
+            ->where('bqid', $bq->bqid)
+            ->where('bqtype', 'Kontrak') // optional, kalau memang semua detail kontrak
+            ->orderBy('bq_line_no')
+            ->get();
+
+        // category existing (buat isi textbox category di view)
+        $currentCategory = optional($details->first())->kontrakcategory ?? '';
+
+        // (optional) bersihkan temp lama user utk bqid ini
+        BqDetailTemp::query()
+            ->where('bqid', $bq->bqid)
+            ->where('created_by', $user->username)
+            ->delete();
+
+        // ✅ view kamu butuh ini semua
+        return view('pages.sppjs.editbqkontrak', compact(
+            'bq',
+            'details',
+            'currentCategory',
+            'eid',
+            'tempId'
+        ));
+    }
+
+    public function editBqKontrak_xxx(string $eid)
     {
         
         $user = Auth::user();
@@ -3782,6 +3827,117 @@ class SppjController extends Controller
             if (empty($dec)) {
                 return response()->json(['ok' => false, 'message' => 'EID tidak valid'], 404);
             }
+            $bqPk = (int) $dec[0];
+
+            $bq = Bq::query()->where('id', $bqPk)->first();
+            if (!$bq) {
+                return response()->json(['ok' => false, 'message' => 'BQ tidak ditemukan'], 404);
+            }
+
+            // ✅ MASTER KONTRAK (field benar)
+            $masterRows = MsKontrakBQ::query()
+                ->where('status', 'A')
+                ->where('kontrakcategory', $category)
+                ->orderBy('kontrak_bq_line_no')
+                ->get();
+
+            if ($masterRows->isEmpty()) {
+                return response()->json(['ok' => false, 'message' => 'Master detail kosong'], 422);
+            }
+
+            DB::transaction(function () use ($user, $bq, $tempId, $category, $masterRows) {
+
+                // ✅ clear temp untuk session edit ini saja
+                BqDetailTemp::query()
+                    ->where('temp_id', $tempId)
+                    ->where('bqid', $bq->bqid)
+                    ->where('created_by', $user->username)
+                    ->delete();
+
+                foreach ($masterRows as $m) {
+                    BqDetailTemp::create([
+                        'temp_id' => $tempId,
+                        'bqid' => $bq->bqid,
+                        'sppjtid' => $bq->sppjtid,
+                        'bq_no' => $m->kontrak_bq_line_no, // optional
+
+                        // ✅ INI KUNCINYA: mapping dari MsKontrakBQ yang benar
+                        'bq_line_no' => $m->kontrak_bq_line_no,
+                        'bq_descr'   => $m->kontrak_bq_descr,
+                        'uom'        => $m->kontrak_bq_uom,
+                        'qty'        => 0,
+
+                        'bqtype' => 'Kontrak',
+                        'kontrakcategory' => $category,
+                        'kontrak_bq_id' => $m->kontrak_bq_id,
+                        'kontrak_bq_type' => $m->kontrak_bq_type,
+                        'kontrak_duration_qty' => $m->kontrak_duration_qty,
+
+                        'status' => 'A',
+                        'created_by' => $user->username,
+                        'created_at' => now(),
+                        'updated_by' => $user->username,
+                        'updated_at' => now(),
+                    ]);
+                }
+            });
+
+            $tempRows = BqDetailTemp::query()
+                ->where('temp_id', $tempId)
+                ->where('bqid', $bq->bqid)
+                ->where('created_by', $user->username)
+                ->orderBy('bq_line_no')
+                ->get([
+                    'id',
+                    'bq_line_no',
+                    'bq_descr',
+                    'qty',
+                    'uom',
+                    'kontrak_bq_id',
+                    'kontrak_bq_type',
+                    'kontrak_duration_qty',
+                    'kontrakcategory',
+                ]);
+
+            // return response()->json(['ok' => true, 'data' => $tempRows]);
+            return response()->json([
+                'ok' => true,
+                'temp_id' => $tempId,
+                'data' => $tempRows
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('pickKontrakCategory error', [
+                'eid' => $eid,
+                'payload' => $request->all(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Server error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function pickKontrakCategory_xxx(Request $request, string $eid)
+    {
+        try {
+            $user = Auth::user();
+            abort_unless($user, 401);
+
+            $category = trim((string) $request->input('kontrakcategory', ''));
+            $tempId   = trim((string) $request->input('temp_id', ''));
+
+            if ($category === '' || $tempId === '') {
+                return response()->json(['ok' => false, 'message' => 'Category/temp_id wajib'], 422);
+            }
+
+            $dec = Hashids::decode($eid);
+            if (empty($dec)) {
+                return response()->json(['ok' => false, 'message' => 'EID tidak valid'], 404);
+            }
             $bqPk = (int)$dec[0];
 
             $bq = Bq::query()->where('id', $bqPk)->first();
@@ -3854,84 +4010,199 @@ class SppjController extends Controller
             ], 500);
         }
     }
-
-
-    public function pickKontrakCategory_xxx(Request $request, string $eid)
+    
+    
+    public function updateBqKontrak(Request $request, string $eid)
     {
         $user = Auth::user();
         abort_unless($user, 401);
 
-        $category = trim((string) $request->input('kontrakcategory', ''));
-        $tempId   = trim((string) $request->input('temp_id', ''));
+        $tempId      = trim((string) $request->input('temp_id', ''));
+        $newCategory = trim((string) $request->input('kontrakcategory', ''));
 
-        if ($category === '' || $tempId === '') {
-            return response()->json(['ok' => false, 'message' => 'Category/temp_id wajib'], 422);
-        }
+        $qtyMap = $request->input('qty', []);
+        if (!is_array($qtyMap)) $qtyMap = [];
 
+        // decode eid -> pk
         $dec = Hashids::decode($eid);
         abort_if(empty($dec), 404);
-        $bqPk = (int)$dec[0];
+        $bqPk = (int) $dec[0];
 
         $bq = Bq::query()->where('id', $bqPk)->firstOrFail();
 
-        // ambil master detail berdasarkan category
-        $masterRows = MsKontrakBQ::query()   // <-- ganti sesuai master detail kamu
-            ->where('kontrakcategory', $category)
+        // Ambil category existing dari BqDetail (kontrak) sebagai pembanding
+        $currentCategory = (string) (BqDetail::query()
+            ->where('bqid', $bq->bqid)
+            ->where('bqtype', 'Kontrak')
+            ->value('kontrakcategory') ?? '');
+
+        // ==============
+        // Tentukan MODE
+        // ==============
+        // Kalau kontrakcategory berubah -> MODE B (pakai temp replace)
+        // Kalau sama / kosong -> MODE A (langsung update qty bq_detail)
+        $categoryChanged = ($newCategory !== '' && $currentCategory !== '' && $newCategory !== $currentCategory);
+
+        // kalau currentCategory kosong (misal data lama belum ada) tapi user pilih category,
+        // ini kita anggap butuh replace dari temp
+        if ($currentCategory === '' && $newCategory !== '') {
+            $categoryChanged = true;
+        }
+
+        // =========================
+        // MODE A: hanya update qty
+        // =========================
+        if (!$categoryChanged) {
+            // Validasi minimal ada qty > 0
+            $hasQty = false;
+            foreach ($qtyMap as $v) {
+                $n = (float) $v;
+                if ($n > 0) { $hasQty = true; break; }
+            }
+            if (!$hasQty) {
+                return back()->withInput()->with('error', 'Qty masih 0 semua. Isi minimal 1 item.');
+            }
+
+            DB::transaction(function () use ($qtyMap, $user, $bq) {
+                foreach ($qtyMap as $detailId => $qty) {
+                    BqDetail::query()
+                        ->where('bqid', $bq->bqid)
+                        ->where('bqtype', 'Kontrak')
+                        ->where('id', (int) $detailId)   // ← DI MODE A key harus id bq_detail
+                        ->update([
+                            'qty'        => (float) $qty,
+                            'updated_by' => $user->username,
+                            'updated_at' => now(),
+                        ]);
+                }
+
+                Bq::query()->where('id', $bq->id)->update([
+                    'updated_by' => $user->username,
+                    'updated_at' => now(),
+                ]);
+            });
+
+            return redirect()
+                ->route('bqkontrak.show', $eid)
+                ->with('success', 'Qty Kontrak berhasil diupdate');
+        }
+
+        // =========================================
+        // MODE B: category berubah -> pakai TEMP
+        // =========================================
+        if ($tempId === '') {
+            return back()->withInput()->with('error', 'Temp ID tidak ditemukan. Silakan pilih category kembali.');
+        }
+
+        // 1) update qty ke temp sesuai input (key qty = id temp)
+        foreach ($qtyMap as $rowId => $qty) {
+            BqDetailTemp::query()
+                ->where('temp_id', $tempId)
+                ->where('id', (int) $rowId)
+                ->where('bqid', $bq->bqid)
+                ->where('created_by', $user->username)
+                ->update([
+                    'qty'        => (float) $qty,
+                    'updated_by' => $user->username,
+                    'updated_at' => now(),
+                ]);
+        }
+
+        // 2) ambil temp rows
+        $tempRows = BqDetailTemp::query()
+            ->where('temp_id', $tempId)
+            ->where('bqid', $bq->bqid)
+            ->where('created_by', $user->username)
             ->orderBy('bq_line_no')
             ->get();
 
-        if ($masterRows->isEmpty()) {
-            return response()->json(['ok' => false, 'message' => 'Detail master untuk category ini kosong'], 422);
+        if ($tempRows->isEmpty()) {
+            return back()->withInput()->with('error', 'Detail Kontrak masih kosong. Pilih Category dulu.');
         }
 
-        DB::transaction(function () use ($user, $bq, $tempId, $category, $masterRows) {
-            // hapus temp lama utk sesi ini
+        if ($tempRows->where('qty', '>', 0)->count() === 0) {
+            return back()->withInput()->with('error', 'Qty masih 0 semua. Isi minimal 1 item.');
+        }
+
+        // (opsional tapi aman) pastikan kontrakcategory temp sesuai pilihan terbaru
+        if ($newCategory !== '') {
             BqDetailTemp::query()
                 ->where('temp_id', $tempId)
+                ->where('bqid', $bq->bqid)
                 ->where('created_by', $user->username)
+                ->update([
+                    'kontrakcategory' => $newCategory,
+                    'updated_by'      => $user->username,
+                    'updated_at'      => now(),
+                ]);
+
+            // refresh rows
+            $tempRows = BqDetailTemp::query()
+                ->where('temp_id', $tempId)
+                ->where('bqid', $bq->bqid)
+                ->where('created_by', $user->username)
+                ->orderBy('bq_line_no')
+                ->get();
+        }
+
+        DB::transaction(function () use ($user, $bq, $tempRows, $tempId) {
+
+            // delete detail lama (HANYA KONTRAK, jangan delete semua bq detail)
+            BqDetail::query()
+                ->where('bqid', $bq->bqid)
+                ->where('bqtype', 'Kontrak')
                 ->delete();
 
-            // insert temp baru
-            foreach ($masterRows as $m) {
-                BqDetailTemp::create([
-                    'temp_id' => $tempId,
-                    'bqid' => $bq->bqid,
-                    'sppjtid' => $bq->sppjtid,
+            // insert detail baru dari temp
+            foreach ($tempRows as $t) {
+                BqDetail::create([
+                    'bqid'        => $bq->bqid,
+                    'sppjtid'     => $bq->sppjtid,
+                    'bq_no'       => $t->bq_line_no,
+                    'bq_line_no'  => $t->bq_line_no,
+                    'bq_descr'    => $t->bq_descr,
+                    'qty'         => (float) $t->qty,
+                    'uom'         => $t->uom,
 
-                    'bq_line_no' => $m->bq_line_no,
-                    'bq_descr' => $m->bq_descr,
-                    'qty' => 0,
-                    'uom' => $m->uom,
+                    'est_material_price'        => 0,
+                    'total_est_material_price'  => 0,
+                    'est_jasa_price'            => 0,
+                    'total_est_jasa_price'      => 0,
 
-                    'bqtype' => 'Kontrak',
-                    'kontrakcategory' => $category,
-                    'kontrak_bq_id' => $m->kontrak_bq_id,
-                    'kontrak_bq_type' => $m->kontrak_bq_type,
-                    'kontrak_duration_qty' => $m->kontrak_duration_qty,
+                    'bqtype'               => 'Kontrak',
+                    'kontrakcategory'      => $t->kontrakcategory,
+                    'kontrak_bq_id'        => $t->kontrak_bq_id,
+                    'kontrak_bq_type'      => $t->kontrak_bq_type,
+                    'kontrak_duration_qty' => $t->kontrak_duration_qty,
 
-                    'status' => 'A',
+                    'status'     => 'P',
                     'created_by' => $user->username,
                     'created_at' => now(),
                     'updated_by' => $user->username,
                     'updated_at' => now(),
                 ]);
             }
+
+            // update header
+            Bq::query()->where('id', $bq->id)->update([
+                'updated_by' => $user->username,
+                'updated_at' => now(),
+            ]);
+
+            // clear temp sesi ini
+            BqDetailTemp::query()
+                ->where('temp_id', $tempId)
+                ->where('bqid', $bq->bqid)
+                ->where('created_by', $user->username)
+                ->delete();
         });
 
-        $tempRows = BqDetailTemp::query()
-            ->where('temp_id', $tempId)
-            ->where('created_by', $user->username)
-            ->orderBy('bq_line_no')
-            ->get();
-
-        return response()->json([
-            'ok' => true,
-            'data' => $tempRows
-        ]);
+        return redirect()
+            ->route('bqkontrak.show', $eid)
+            ->with('success', 'BQ Kontrak berhasil diupdate');
     }
 
-
-    public function updateBqKontrak(Request $request, string $eid)
+    public function updateBqKontrak_xxx(Request $request, string $eid)
     {
         $user = Auth::user();
         abort_unless($user, 401);
