@@ -2,7 +2,7 @@ APP_NAME="Pakuwon System"
 APP_ENV=local
 APP_KEY=base64:T0J8G2B5jpkmNDhVffWtTNeCJknWDZmrT9ok0twlcXo=
 APP_DEBUG=true
-APP_URL=http://localhost:8000
+APP_URL=http://localhost
 
 LOG_CHANNEL=stack
 LOG_DEPRECATIONS_CHANNEL=null
@@ -18,7 +18,7 @@ LOG_LEVEL=debug
 DB_CONNECTION=mysql
 DB_HOST=192.168.0.31
 DB_PORT=3306
-DB_DATABASE=das_voucher
+DB_DATABASE=iamsys_test
 DB_USERNAME=user_it
 DB_PASSWORD="Pakuwon2022#"
 
@@ -55,6 +55,11 @@ DB_PGSQL_DATABASE_2=db_iamsystem_test
 DB_PGSQL_USERNAME_2=userdw
 DB_PGSQL_PASSWORD_2="Usr@PkwDw#1"
 
+DB_PGSQL_HOST_4=10.10.11.11
+DB_PGSQL_PORT_4=5432
+DB_PGSQL_DATABASE_4=db_staging_app
+DB_PGSQL_USERNAME_4=userdw
+DB_PGSQL_PASSWORD_4="Usr@PkwDw#1"
 
 DB_HOST_5=192.168.0.39
 DB_PORT_5=1433
@@ -62,7 +67,7 @@ DB_DATABASE_5=StagingAcum
 DB_USERNAME_5=sa
 DB_PASSWORD_5="Solomon2019"
 DB1_ENCRYPT=true
-DB1_TRUST_SERVER_CERTIFICATE=true
+DB1_TRUST_SERVER_CERTIFICATE=true   
 
 DB_HOST_6=10.10.10.3
 DB_PORT_6=1433
@@ -72,24 +77,6 @@ DB_PASSWORD_6="gc-db-sa-it24#"
 DB2_ENCRYPT=true
 DB2_TRUST_SERVER_CERTIFICATE=true
 
-DB_CONNECTION_7=mysql
-DB_HOST_7=18.138.27.202
-DB_PORT_7=3306
-DB_DATABASE_7=vms_demo
-DB_USERNAME_7=vmspkwuser
-DB_PASSWORD_7="P@kuwon2020vms"
-
-DB_PGSQL_HOST_3=10.10.11.11
-DB_PGSQL_PORT_3=5432
-DB_PGSQL_DATABASE_3=db_career_app_test
-DB_PGSQL_USERNAME_3=userdw
-DB_PGSQL_PASSWORD_3="Usr@PkwDw#1"
-
-DB_PGSQL_HOST_4=10.10.11.11
-DB_PGSQL_PORT_4=5432
-DB_PGSQL_DATABASE_4=db_staging_app
-DB_PGSQL_USERNAME_4=userdw
-DB_PGSQL_PASSWORD_4="Usr@PkwDw#1"
 
 # DB_CONNECTION=pgsql
 # DB_HOST=127.0.0.1
@@ -158,7 +145,7 @@ RECAPTCHA_SECRET_KEY=6LeHF-QqAAAAACtci1GqnzlaiqXidTLAQuyeKioV
 
 GCS_PROJECT_ID=ifca-pkwjakarta
 GCS_BUCKET=pkwjkt-attachment
-GCS_KEY_FILE=storage/app/gcs/ifca-pkwjakarta-8eed89a47843.json
-# GCS_PATH_PREFIX=att-job-career
-GCS_API_URI=https://storage.googleapis.com
+GCS_KEY_FILE=storage/app/gcs/ifca-pkwjakarta-8eed89a47843.json   
+# GCS_PATH_PREFIX=att-job-career         
+GCS_API_URI=https://storage.googleapis.com     
 

@@ -140,7 +140,7 @@
         el.textContent = '';
     }
 
-    // ✅ badge class (P-SOLOMON beda warna, optional)
+    // badge class
     function getStatusBadgeClassPO(stage, it = '') {
         if (stage === 'H') return 'bg-gray-200 text-gray-800';
         if (stage === 'D') return 'bg-blue-200 text-blue-800';
@@ -170,6 +170,11 @@
         syncChkAllStatePO();
     });
 
+    // =========================
+    // Opsi A:
+    // - renderRowsPO tidak pakai "poBusy" untuk menentukan disabled
+    // - saat busy, kita disable semua row checkbox via setBusyPO()
+    // =========================
     function renderRowsPO(rows) {
         poTotal.textContent = rows.length;
 
@@ -182,17 +187,14 @@
         }
 
         poTbody.innerHTML = rows.map(r => {
-            const stage = r.stage_status ?? 'H';
-            const it = String(r.integration_type ?? '').toUpperCase(); // IFCA / SOLOMON / ...
-            const stageLabel = r.stage_label ?? stage;
+            const stage = (r.stage_status ?? 'H');
+            const it = String(r.integration_type ?? '').trim().toUpperCase(); // ✅ trim biar aman
+            const stageLabel = (r.stage_label ?? stage);
 
-            // ✅ disable:
-            // - D/C: disabled
-            // - P-SOLOMON: disabled
-            // - busy: disabled
+            // disable rules (tanpa poBusy)
             const disableByStage = (stage === 'C' || stage === 'D');
             const disablePSolomon = (stage === 'P' && it !== 'IFCA');
-            const disabled = poBusy || disableByStage || disablePSolomon;
+            const disabled = disableByStage || disablePSolomon;
 
             const trClass = (disableByStage || disablePSolomon) ? 'bg-gray-50 text-gray-400' : 'hover:bg-gray-50';
             const checkboxClass = (disableByStage || disablePSolomon) ? 'opacity-40 cursor-not-allowed' : '';
@@ -234,6 +236,11 @@
             });
         });
 
+        // kalau sedang busy, pastikan semua row checkbox tetap off
+        if (poBusy) {
+            poTbody.querySelectorAll('.poRowChk').forEach(chk => chk.disabled = true);
+        }
+
         syncChkAllStatePO();
     }
 
@@ -272,6 +279,29 @@
             }
         });
 
+        // ✅ Opsi A (FIX): saat busy => disable semua
+        // saat tidak busy => hitung ulang disabled sesuai rule stage (JANGAN restore dari cache)
+        const rowChks = poTbody.querySelectorAll('.poRowChk');
+        rowChks.forEach(chk => {
+            if (isBusy) {
+                chk.disabled = true;
+                return;
+            }
+
+            const stage = String(chk.dataset.stage ?? '').toUpperCase();
+            const it    = String(chk.dataset.it ?? '').trim().toUpperCase();
+
+            const disableByStage   = (stage === 'C' || stage === 'D');
+            const disablePSolomon  = (stage === 'P' && it !== 'IFCA');
+
+            chk.disabled = disableByStage || disablePSolomon;
+            // kalau jadi disabled, sekalian uncheck biar tidak “nyangkut”
+            if (chk.disabled) chk.checked = false;
+        });
+
+        // update check-all state
+        syncChkAllStatePO();
+
         if (isBusy) {
             btnLoadPO.dataset._txt = btnLoadPO.textContent;
             btnProcessPO.dataset._txt = btnProcessPO.textContent;
@@ -282,6 +312,71 @@
             if (btnProcessPO.dataset._txt) btnProcessPO.textContent = btnProcessPO.dataset._txt;
         }
     }
+
+    // function setBusyPO_Old(isBusy, title = 'Processing...', sub = 'Mohon tunggu, jangan klik menu/tab.') {
+    //     poBusy = isBusy;
+
+    //     if (isBusy) {
+    //         poBusyTitle.textContent = title;
+    //         poBusySub.textContent = sub;
+    //         poBusyOverlay.classList.remove('hidden');
+    //         document.body.style.overflow = 'hidden';
+    //     } else {
+    //         poBusyOverlay.classList.add('hidden');
+    //         document.body.style.overflow = '';
+    //     }
+
+    //     poFrom.disabled = isBusy;
+    //     poTo.disabled = isBusy;
+    //     btnLoadPO.disabled = isBusy;
+    //     btnProcessPO.disabled = isBusy;
+    //     poChkAll.disabled = isBusy;
+
+    //     // disable tab/menu (optional)
+    //     const tabs = getTabEls();
+    //     tabs.forEach(el => {
+    //         if (isBusy) {
+    //             if (el.dataset._po_prev_pointer == null) el.dataset._po_prev_pointer = el.style.pointerEvents || '';
+    //             if (el.dataset._po_prev_opacity == null) el.dataset._po_prev_opacity = el.style.opacity || '';
+    //             el.style.pointerEvents = 'none';
+    //             el.style.opacity = '0.6';
+    //         } else {
+    //             el.style.pointerEvents = el.dataset._po_prev_pointer ?? '';
+    //             el.style.opacity = el.dataset._po_prev_opacity ?? '';
+    //             delete el.dataset._po_prev_pointer;
+    //             delete el.dataset._po_prev_opacity;
+    //         }
+    //     });
+
+    //     // ✅ Opsi A: disable/enable row checkbox saat busy
+    //     poTbody.querySelectorAll('.poRowChk').forEach(chk => {
+    //         if (isBusy) {
+    //             chk.dataset._prev_disabled = chk.disabled ? '1' : '0';
+    //             chk.disabled = true;
+    //         } else {
+    //             const prev = chk.dataset._prev_disabled;
+    //             delete chk.dataset._prev_disabled;
+
+    //             // kalau sebelumnya memang disabled karena rule (D/C/P-SOLOMON), biarin disabled
+    //             if (prev === '1') {
+    //                 chk.disabled = true;
+    //             } else {
+    //                 chk.disabled = false;
+    //             }
+    //         }
+    //     });
+    //     syncChkAllStatePO();
+
+    //     if (isBusy) {
+    //         btnLoadPO.dataset._txt = btnLoadPO.textContent;
+    //         btnProcessPO.dataset._txt = btnProcessPO.textContent;
+    //         btnLoadPO.textContent = 'Loading...';
+    //         btnProcessPO.textContent = 'Processing...';
+    //     } else {
+    //         if (btnLoadPO.dataset._txt) btnLoadPO.textContent = btnLoadPO.dataset._txt;
+    //         if (btnProcessPO.dataset._txt) btnProcessPO.textContent = btnProcessPO.dataset._txt;
+    //     }
+    // }
 
     async function loadPO() {
         hideInfoPO(poInfo);
@@ -315,10 +410,10 @@
             const rows = json.data || [];
             renderRowsPO(rows);
 
-            // ✅ Ready hanya H dan P-IFCA
+            // Ready hanya H dan P-IFCA
             const readyCount = rows.filter(x => {
                 const st = x.stage_status ?? 'H';
-                const it = String(x.integration_type ?? '').toUpperCase();
+                const it = String(x.integration_type ?? '').trim().toUpperCase();
                 return st === 'H' || (st === 'P' && it === 'IFCA');
             }).length;
 
@@ -355,7 +450,7 @@
 
         hideInfoPO(poInfo);
 
-        // ✅ hanya H atau P-IFCA yg boleh diproses
+        // hanya H atau P-IFCA yg boleh diproses
         const ids = Array.from(poTbody.querySelectorAll('.poRowChk:checked'))
             .filter(chk => chk.dataset.stage === 'H' || (chk.dataset.stage === 'P' && chk.dataset.it === 'IFCA'))
             .map(chk => chk.value);

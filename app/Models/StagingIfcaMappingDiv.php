@@ -12,7 +12,7 @@ class StagingIfcaMappingDiv  extends Model
     protected $table = "staging_ifca_mapping_div";
     protected $primaryKey = 'id';
     protected $fillable = [
-        'entity_cd', 'div_cd', 'dept_cd',
+        'business_unit_id', 'div_cd', 'dept_cd',
         'status', 'created_by', 'created_at', 'updated_by', 'updated_at',
         ];
 }
