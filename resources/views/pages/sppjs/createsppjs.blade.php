@@ -380,7 +380,7 @@
                                 <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Request Type ID</th>
+                                            {{-- <th class="border p-2">Request Type ID</th> --}}
                                             <th class="border p-2">Name</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -2295,7 +2295,8 @@
             // Load WO dari API
             function loadWo() {
                 $woTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
-                $.getJSON("{{ route('wos.ajax.completed-wo') }}", {
+                // $.getJSON("{{ route('wos.ajax.completed-wo') }}", {
+                $.getJSON("{{ route('wos.ajax.index') }}", {
                         cpnyid: woState.cpnyid,
                         deptid: woState.deptid,
                         perpost: woState.perpost,
@@ -2456,10 +2457,10 @@
                         const rowsArr = list.map(item => {
                             const id = item.requesttypeid ?? item.id ?? '';
                             const name = item.requesttype_name ?? item.name ?? id;
-
+                                // td class="border p-2">${id}</td>
                             return `
                             <tr>
-                                <td class="border p-2">${id}</td>
+                                
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
                                 <td class="border p-2 text-center">
                                     <button type="button"
