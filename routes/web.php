@@ -101,6 +101,8 @@ use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\Integration\IFCAAPIGRNController;
+use App\Http\Controllers\Integration\IFCAAPIBASTController;
+
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
 
@@ -1426,9 +1428,12 @@ Route::post('/logout', function () {
             Route::post('process', [IFCAAPIGRNController::class, 'process'])->name('process');
         });
 
+        // ✅ module: BAST API endpoints
+        Route::prefix('ifcaintegration/bast')->name('ifcaintegration.bast.')->group(function () {
+            Route::get('list', [IFCAAPIBASTController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIBASTController::class, 'process'])->name('process');
+        });
+
 
     });
-
-
-
 });

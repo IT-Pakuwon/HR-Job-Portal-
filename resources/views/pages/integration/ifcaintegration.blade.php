@@ -31,7 +31,7 @@
                     </button>
                     <button type="button" data-tab="tab-bast"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
-                        BAST (soon)
+                        BAST
                     </button>
                     <button type="button" data-tab="tab-sttb-return"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -78,8 +78,12 @@
                     @include('pages.integration.ifcaapigrn')
                 </div>
 
+                {{-- TAB: BAST --}}
+                <div id="tab-bast" class="hidden">
+                    @include('pages.integration.ifcaapibast')
+                </div>
+
                 {{-- Placeholder tabs --}}
-                <div id="tab-bast" class="hidden text-sm text-gray-500">BAST tab (soon)</div>
                 <div id="tab-sttb-return" class="hidden text-sm text-gray-500">STTB Return tab (soon)</div>
                 <div id="tab-issue" class="hidden text-sm text-gray-500">Issue tab (soon)</div>
                 <div id="tab-receipt" class="hidden text-sm text-gray-500">Receipt tab (soon)</div>
