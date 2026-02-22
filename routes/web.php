@@ -100,6 +100,7 @@ use App\Http\Controllers\Integration\IFCAAPINonStockController;
 use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
+use App\Http\Controllers\Integration\IFCAAPIGRNController;
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
 
@@ -1418,6 +1419,13 @@ Route::post('/logout', function () {
             Route::get('list', [IFCAAPIPOController::class, 'list'])->name('list');
             Route::post('process', [IFCAAPIPOController::class, 'process'])->name('process');
         });
+
+        // ✅ module: GRN API endpoints
+        Route::prefix('ifcaintegration/grn')->name('ifcaintegration.grn.')->group(function () {
+            Route::get('list', [IFCAAPIGRNController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIGRNController::class, 'process'])->name('process');
+        });
+
 
     });
 

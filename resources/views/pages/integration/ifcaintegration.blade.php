@@ -27,7 +27,7 @@
                     </button>
                     <button type="button" data-tab="tab-sttb"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
-                        STTB (soon)
+                        GRN
                     </button>
                     <button type="button" data-tab="tab-bast"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -73,8 +73,12 @@
                     @include('pages.integration.ifcaapipo')
                 </div>
 
+                {{-- TAB: GRN --}}
+                <div id="tab-sttb" class="hidden">
+                    @include('pages.integration.ifcaapigrn')
+                </div>
+
                 {{-- Placeholder tabs --}}
-                <div id="tab-sttb" class="hidden text-sm text-gray-500">STTB tab (soon)</div>
                 <div id="tab-bast" class="hidden text-sm text-gray-500">BAST tab (soon)</div>
                 <div id="tab-sttb-return" class="hidden text-sm text-gray-500">STTB Return tab (soon)</div>
                 <div id="tab-issue" class="hidden text-sm text-gray-500">Issue tab (soon)</div>
@@ -89,7 +93,7 @@
         // Tabs
         const emptyState = document.getElementById('emptyState');
         const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb']
+        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb', 'tab-bast']
             .map(id => document.getElementById(id));
 
         tabButtons.forEach(btn => {
