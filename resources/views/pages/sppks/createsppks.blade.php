@@ -464,7 +464,7 @@
                                 <table class="w-full text-left text-sm">
                                     <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
                                         <tr>
-                                            <th class="border p-2">Request Type ID</th>
+                                            {{-- <th class="border p-2">Request Type ID</th> --}}
                                             <th class="border p-2">Name</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -2366,16 +2366,7 @@
                 doctype: DOCTYPE,
             };
 
-            // function openRtModal() {
-            //     $rtDoc.text(rtState.doctype || '-');
-            //     $('#rtSearch').val('');
-            //     rtState.search = '';
-            //     rtState.page = 1;
-
-            //     $rtModal.removeClass('hidden').addClass('flex');
-            //     loadRequestTypes();
-            //     setTimeout(() => $('#rtSearch').trigger('focus'), 0);
-            // }
+           
             function openRtModal() {
                 $rtDoc.text(rtState.doctype || '-');
                 $('#rtSearch').val('');
@@ -2459,7 +2450,7 @@
 
                             return `
                             <tr>
-                                <td class="border p-2">${id}</td>
+                               
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
                                 <td class="border p-2 text-center">
                                     <button type="button"

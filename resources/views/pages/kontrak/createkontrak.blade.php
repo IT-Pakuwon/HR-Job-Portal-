@@ -289,24 +289,43 @@
 
                                 {{-- Kontrak Category --}}
                                 <div>
-                                    <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak
-                                        Category</label>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Kontrak Category
+                                    </label>
+
                                     @if ($isHold)
                                         <select id="kontrakcategory" name="kontrakcategory"
                                             class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             <option value="">Select</option>
-                                            <option value="Maintenance"
-                                                {{ ($kontrak->kontrakcategory ?? '') === 'Maintenance' ? 'selected' : '' }}>
-                                                Maintenance</option>
-                                            <option value="Pengadaan"
-                                                {{ ($kontrak->kontrakcategory ?? '') === 'Pengadaan' ? 'selected' : '' }}>
-                                                Pengadaan</option>
+
+                                            @foreach(($kontrakCategories ?? []) as $cat)
+                                                @php
+                                                    $code = is_array($cat) ? ($cat['kontrakcategory'] ?? '') : ($cat->kontrakcategory ?? '');
+                                                    $desc = is_array($cat) ? ($cat['kontrakcategory_descr'] ?? '') : ($cat->kontrakcategory_descr ?? '');
+                                                    $label = trim($desc) !== '' ? ($code.' - '.$desc) : $code;
+                                                    $selected = ((string)($kontrak->kontrakcategory ?? '') === (string)$code) ? 'selected' : '';
+                                                @endphp
+
+                                                <option value="{{ $code }}" {{ $selected }}>
+                                                    {{ $label }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                     @else
+                                        @php
+                                            // tampilkan label (kode - descr) saat readonly (optional)
+                                            $map = collect($kontrakCategories ?? [])->mapWithKeys(function($c){
+                                                $code = is_array($c) ? ($c['kontrakcategory'] ?? '') : ($c->kontrakcategory ?? '');
+                                                $desc = is_array($c) ? ($c['kontrakcategory_descr'] ?? '') : ($c->kontrakcategory_descr ?? '');
+                                                $label = trim($desc) !== '' ? ($code.' - '.$desc) : $code;
+                                                return [$code => $label];
+                                            });
+                                            $readonlyText = $map->get($kontrak->kontrakcategory, $kontrak->kontrakcategory ?? '-');
+                                        @endphp
+
                                         <div
                                             class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                            {{ $kontrak->kontrakcategory ?? '-' }}
+                                            {{ $readonlyText }}
                                         </div>
                                     @endif
                                 </div>
@@ -332,7 +351,7 @@
                                 </div>
 
                                 {{-- User Approval --}}
-                                <div>
+                                {{-- <div>
                                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">User
                                         Approval</label>
 
@@ -361,7 +380,7 @@
                                             {{ $kontrak->user_approval ?? '-' }}
                                         </div>
                                     @endif
-                                </div>
+                                </div> --}}
                             </div>
 
                             {{-- ROW 3: Start Date + End Date --}}
@@ -414,116 +433,7 @@
                                 @endif
                             </div>
                         </form>
-                    </div>
-
-                    {{-- Tabs: Attachment + Comments (Informasi Kontrak sudah dihilangkan) --}}
-                    <div x-data="{ activeTab: 'attachment' }"
-                        class="flex flex-1 flex-col border-t border-gray-200 dark:border-gray-700">
-                        <header
-                            class="flex items-center rounded-t-none border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                            <nav class="flex flex-grow">
-                                <button @click="activeTab = 'attachment'"
-                                    :class="activeTab === 'attachment'
-                                        ?
-                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium">
-                                    Attachment
-                                </button>
-                                <button @click="activeTab = 'comments'"
-                                    :class="activeTab === 'comments'
-                                        ?
-                                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
-                                        'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium">
-                                    Comments
-                                </button>
-                            </nav>
-                        </header>
-
-                        {{-- Attachment tab --}}
-                        <div x-show="activeTab === 'attachment'" class="flex h-full flex-1 flex-col transition-all">
-                            <div class="flex-1 overflow-auto rounded-lg">
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                            @if ($isHold)
-                                                <th class="p-3 text-center font-semibold">Action</th>
-                                            @endif
-                                        </tr>
-                                    </thead>
-                                    <tbody id="kontrakAttachmentTbody"></tbody>
-                                </table>
-                            </div>
-
-                            @if ($isHold)
-                                <form id="kontrakAttachmentUploadForm" enctype="multipart/form-data"
-                                    class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
-                                    @csrf
-                                    <input type="hidden" name="cpnyid" value="{{ $kontrak->cpny_id }}">
-                                    <input type="hidden" name="departementid"
-                                        value="{{ $kontrak->department_id }}">
-
-                                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-                                        <div class="flex-1">
-                                            <label for="kontrakAttachFiles"
-                                                class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                Upload Attachment
-                                            </label>
-                                            <div class="flex items-center gap-3">
-                                                <input type="file" id="kontrakAttachFiles" name="attachments[]"
-                                                    multiple
-                                                    class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                <button type="button" id="btnUploadKontrakAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white hover:bg-indigo-700">
-                                                    Upload
-                                                </button>
-                                                <button type="button" id="btnResetKontrakAttachment"
-                                                    class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                    Reset
-                                                </button>
-                                            </div>
-                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Max 10 files, PDF
-                                                / Image preferred.</p>
-                                        </div>
-                                    </div>
-
-                                    <div id="kontrakUploadProgress" class="mt-4 hidden">
-                                        <div
-                                            class="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                                            <div id="kontrakUploadBar"
-                                                class="h-2 w-0 rounded-full bg-indigo-600 transition-all duration-300 ease-out dark:bg-indigo-500">
-                                            </div>
-                                        </div>
-                                        <p id="kontrakUploadPct"
-                                            class="mt-1 text-sm text-gray-600 dark:text-gray-300">0%</p>
-                                    </div>
-                                </form>
-                            @endif
-                        </div>
-
-                        {{-- Comments tab --}}
-                        <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
-                            <div class="flex h-full flex-col">
-                                <div id="commentList"
-                                    class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                    <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                </div>
-                                <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                    <input id="commentInput" type="text" placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
-                                    <button id="postCommentBtn" type="button"
-                                        class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 active:scale-95">
-                                        Post 🚀
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
+                    </div>                    
                 </div>
             </div>
         </div>
@@ -558,7 +468,14 @@
                 placeholder: 'Select User',
                 allowClear: true,
                 width: '100%',
-                dropdownParent: $('#kontrakForm'), // penting kalau di card / modal
+                dropdownParent: $('#kontrakForm'),
+            });
+
+            $('#kontrakcategory').select2({
+                placeholder: 'Select Category',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#kontrakForm'),
             });
         });
     </script>

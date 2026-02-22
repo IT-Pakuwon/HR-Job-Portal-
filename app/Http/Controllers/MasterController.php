@@ -1024,6 +1024,7 @@ class MasterController extends Controller
 
     public function CoaBudgetbyDept(Request $request)
     {
+        dd('by dept');
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
         $perpost = $request->get('perpost');
@@ -1241,6 +1242,7 @@ class MasterController extends Controller
 
     public function CoaBudgetWo(Request $request)
     {
+        // dd('by wo');
         // dd($request->all());
         $woid    = trim((string) $request->get('woid', ''));
         $cpnyid  = $request->get('cpnyid');
@@ -1272,6 +1274,7 @@ class MasterController extends Controller
                 'w.cpny_id',
                 'w.department_id',
                 'w.budget_perpost',
+                'w.worktypeid',
                 'w.budget_account_id',
                 'w.budget_activity_id',
                 'w.budget_activity_descr',       // dari WO (kalau ada)
@@ -1295,12 +1298,13 @@ class MasterController extends Controller
             'budget_use' => $wo->budget_use,
         ];
 
+        // dd("WO: ", $wo);
         $budgetUse = strtoupper(trim((string) ($wo->budget_use ?? '')));
 
         // =========================================================
         // 2) INTERNAL -> ambil dari TrWO (single row)
         // =========================================================
-        if ($budgetUse === 'INTERNAL') {
+        if ($budgetUse === 'Pemberi Kerja') {
             $row = (object) [
                 'account_id'        => $wo->budget_account_id,
                 'account_descr'     => $wo->account_descr,                 // ✅ dari ms_coa
@@ -1347,18 +1351,30 @@ class MasterController extends Controller
 
             $perpost = $wo->budget_perpost;    
            
-            $msdepartment = MsDepartment::query()
-                ->where('department_id', $wo->pic_department)  
-                ->where('status', 'A')          
-                ->first(['department_fin_id']);
+            // $msdepartment = MsDepartment::query()
+            //     ->where('department_id', $wo->pic_department)  
+            //     ->where('status', 'A')          
+            //     ->first(['department_fin_id']);
             
-            $deptFin = $msdepartment->department_fin_id;
+            // $deptFin = $msdepartment->department_fin_id;
+            $deptFinList = MsWorktypeDept::query()
+                ->where('worktypeid', $wo->worktypeid)
+                ->where('status', 'A')
+                ->pluck('department_id')   // ambil langsung array
+                ->toArray();
+            // dd("deptFinList: ", $deptFinList);    
            
             // Header budget harus completed
+            // $budget = Budget::query()
+            //     ->where('status', 'C')
+            //     ->where('cpny_id', $cpnyid)
+            //     ->where('department_fin_id', $deptFin)
+            //     ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+            //     ->first();
             $budget = Budget::query()
                 ->where('status', 'C')
                 ->where('cpny_id', $cpnyid)
-                ->where('department_fin_id', $deptFin)
+                ->whereIn('department_fin_id', $deptFinList)   // ✅ berubah jadi whereIn
                 ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
                 ->first();
 
@@ -1369,7 +1385,8 @@ class MasterController extends Controller
                     'total'    => 0,
                     'page'     => $page,
                     'per_page' => $perPage,
-                    'message'  => "Budget belum Completed Approval untuk Company {$cpnyid}, DeptFin {$deptFin}, Perpost {$perpost}.",
+                    // 'message'  => "Budget belum Completed Approval untuk Company {$cpnyid}, DeptFin {$deptFin}, Perpost {$perpost}.",
+                    'message'  => "Mapping Worktype {$wo->worktypeid} ke Department tidak ditemukan.",
                 ]);
             }
 
@@ -1383,9 +1400,10 @@ class MasterController extends Controller
                     $j->on('a.activity_id', '=', 'b.activity_id')
                     ->on('a.cpny_id', '=', 'b.cpny_id');
                 })
-                ->where('b.budget_id', $budget->budget_id)
+                // ->where('b.budget_id', $budget->budget_id)
                 ->where('b.cpny_id', $cpnyid)
-                ->where('b.department_fin_id', $deptFin)
+                // ->where('b.department_fin_id', $deptFin)
+                ->whereIn('department_fin_id', $deptFinList)
                 ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
 
             if ($search !== '') {
@@ -1910,7 +1928,7 @@ class MasterController extends Controller
 
     public function getWoComplated(Request $request)
     {
-        $status        = $request->input('status', 'C');
+        // $status        = $request->input('status', 'C');
         $worktypeid    = trim($request->input('worktypeid', ''));
         $subworktypeid = trim($request->input('subworktypeid', ''));
         $departmentid  = trim($request->input('departmentid', ''));
@@ -1929,10 +1947,11 @@ class MasterController extends Controller
                 'location_id',       // ✅ tambah
                 'sub_location_id',   // ✅ tambah
             ])
-            ->where('flag_sppbjkt', true)
-            ->where('status', $status)
-            ->where('status_pekerjaan', 'P')
-            ->where('pic_department', $departmentid);
+            ->whereIn('status', ['C','P']);
+            // ->where('flag_sppbjkt', true)
+            // ->where('status', $status)
+            // ->where('status_pekerjaan', 'P')
+            // ->where('pic_department', $departmentid);
 
         if ($worktypeid !== '') {
             $query->where('worktypeid', $worktypeid);
@@ -2198,20 +2217,31 @@ class MasterController extends Controller
         // ✅ tambah: ambil BU dari request
         $businessUnitId = trim((string) $request->get('business_unit_id', ''));
 
-        // ✅ tambah: cari BU aktif dan tentukan site filter dari ifca_entity_cd / solomon_cpny_id
+        // ✅ tambah: cari BU aktif dan tentukan site filter sesuai integration_type
         $siteFilter = null;
+
         if ($businessUnitId !== '') {
             $bu = BusinessUnit::query()
                 ->where('status', 'A')
                 ->where('business_unit_id', $businessUnitId)
-                // optional: kalau mau pastikan BU ini milik company yang sama
-                ->when($cpnyid !== '', function ($q) use ($cpnyid) {
-                    $q->where('cpny_id', $cpnyid);
-                })
-                ->first();
+                // optional: pastikan BU milik company sama
+                ->when($cpnyid !== '', fn ($q) => $q->where('cpny_id', $cpnyid))
+                ->first(['business_unit_id','cpny_id','integration_type','ifca_entity_cd','solomon_cpny_id']);
 
             if ($bu) {
-                $siteFilter = trim((string) ($bu->ifca_entity_cd ?: $bu->solomon_cpny_id));
+                $integrationType = strtoupper(trim((string) ($bu->integration_type ?? '')));
+
+                if ($integrationType === 'SOLOMON') {
+                    $siteFilter = trim((string) ($bu->solomon_cpny_id ?? ''));
+                } elseif ($integrationType === 'IFCA') {
+                    $siteFilter = trim((string) ($bu->ifca_entity_cd ?? ''));
+                } else {
+                    // fallback kalau integration_type null / value lain:
+                    // prefer IFCA entity kalau ada, else SOLOMON
+                    $siteFilter = trim((string) ($bu->ifca_entity_cd ?? ''));
+                    if ($siteFilter === '') $siteFilter = trim((string) ($bu->solomon_cpny_id ?? ''));
+                }
+
                 if ($siteFilter === '') $siteFilter = null;
             }
         }
@@ -2332,14 +2362,14 @@ class MasterController extends Controller
             foreach ($rows as $r) {
                 $key   = strtoupper(trim((string) $r->inventoryid));
                 $group = $ssGroups->get($key);
-
+          
                 if (!$group || $group->isEmpty()) {
                     $clone = clone $r;
                     $clone->stock  = null;
                     $clone->cost   = null;
 
-                    // ✅ selain GI, isi siteid dari BusinessUnit kalau ada
-                    $clone->siteid = (strtoupper(trim((string)$r->item_type)) !== 'GI') ? $siteFilter : null;
+                    // ✅ fallback: kalau GI pun isi siteid dari BU jika ada
+                    $clone->siteid = $siteFilter ?: null;
 
                     $expanded->push($clone);
                     continue;

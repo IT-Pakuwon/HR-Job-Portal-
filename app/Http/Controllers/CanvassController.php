@@ -826,27 +826,28 @@ class CanvassController extends Controller
             }
 
             // 11) ==== SELALU SUBMIT di sini (status = 'P') ====
+            if ($cs->bqtype !== 'Kontrak') {    
+                if (empty($prev_csid)) {
+                    // (a) Validasi submit server-side
+                    $this->validateSubmitServerSide($details);
 
-            if (empty($prev_csid)) {
-                // (a) Validasi submit server-side
-                $this->validateSubmitServerSide($details);
+                    // (b) Update ordered/openordered pada dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
+                    if (in_array($doc, $allowedDocs, true)) {
+                        $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+                    }
 
-                // (b) Update ordered/openordered pada dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
-                if (in_array($doc, $allowedDocs, true)) {
-                    $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+                    // (c) Reserve budget via SP (Submit)
+                    $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
+
+                } else {
+                    // Kalau prev_csid ADA → ini CS revisi
+                    // Update ordered/openordered ke TrPOReuse + header PO
+                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                    
+                    // Reserve budget via SP (Submit)
+                    $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
+
                 }
-
-                // (c) Reserve budget via SP (Submit)
-                $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
-
-            } else {
-                // Kalau prev_csid ADA → ini CS revisi
-                // Update ordered/openordered ke TrPOReuse + header PO
-                $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
-                
-                // Reserve budget via SP (Submit)
-                $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
-
             }
 
             // (d) Set status header & detail = Pending, set submitdate
@@ -1799,30 +1800,7 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
             }
 
-            // for ($slot = 1; $slot <= 6; $slot++) {
-            //     $v = $vendors[$slot-1] ?? null;
-
-            //     $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
-            //     $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
-            //     $safeSet($cs, $csTable, "vendoralamat{$slot}",  $v['vendoralamat'] ?? null);
-            //     $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
-            //     $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
-            //     $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
-            //     $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
-
-            //     $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
-            //     $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
-            //     $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
-            //     $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
-            //     $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
-            //     $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
-
-            //     // reset kolom selected
-            //     $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
-            //     $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
-            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
-            // }
-
+     
             if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
                 $cs->updated_by = $username;
             }
@@ -1869,10 +1847,7 @@ class CanvassController extends Controller
                 $det->base_multiplier = isset($src->base_multiplier) ? $round2($src->base_multiplier) : null;
                 $det->base_qty        = isset($src->base_qty)        ? $round2($src->base_qty)        : null;
                 $det->base_uom        = $src->base_uom ?? null;
-
-                // $det->inventory_last_price = isset($d['inventory_last_price'])
-                //     ? $round2($d['inventory_last_price'])
-                //     : (isset($src->inventory_last_price) ? $round2($src->inventory_last_price) : 0);
+  
                 $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? 0;
                 $det->csnote_detail        = $d['csnote_detail'] ?? ($src->note ?? null);
 
@@ -1959,22 +1934,24 @@ class CanvassController extends Controller
             }
 
             if ($action === 'submit') {
+                if ($cs->bqtype !== 'Kontrak') {
 
-                if (empty($prev_csid)) {
-                    // CS AWAL → flow lama
+                    if (empty($prev_csid)) {
+                        // CS AWAL → flow lama
 
-                    // (a) Validasi submit server-side
-                    $this->validateSubmitServerSide($details);
+                        // (a) Validasi submit server-side
+                        $this->validateSubmitServerSide($details);
 
-                    // (b) Update ordered/openordered pada dokumen sumber
-                    $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+                        // (b) Update ordered/openordered pada dokumen sumber
+                        $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
 
-                    // (c) Reserve budget via SP (Submit)
-                    $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
+                        // (c) Reserve budget via SP (Submit)
+                        $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
 
-                } else {
-                    // CS REVISI → update ke TrPOReuse (dan header PO) saja
-                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                    } else {
+                        // CS REVISI → update ke TrPOReuse (dan header PO) saja
+                        $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                    }
                 }
 
                 // (d) Set status header & detail = Pending, set submitdate

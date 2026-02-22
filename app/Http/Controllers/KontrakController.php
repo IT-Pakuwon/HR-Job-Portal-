@@ -18,6 +18,10 @@ use App\Models\TrSPPJ;
 use App\Models\TrSPPK;
 use App\Models\TrSPPT;
 use App\Models\SysUserRole;
+use Illuminate\Validation\Rule;
+use App\Models\MsKontrakCategory;
+use App\Models\TrBQCSDetail;
+use App\Models\MsVendor;
 
 class KontrakController extends Controller
 {
@@ -310,6 +314,8 @@ class KontrakController extends Controller
             ->orderBy('username')
             ->get();
 
+        $kontrakCategories = $this->getKontrakCategories();
+
         return view('pages.kontrak.createkontrak', [
             'kontrak'    => $kontrak,
             'attachment' => $attachment,
@@ -317,6 +323,7 @@ class KontrakController extends Controller
             'sppbUrl'    => $sppbUrl,
             'csUrl'      => $csUrl,
             'users'      => $users,
+            'kontrakCategories' => $kontrakCategories,
         ]);
     }
 
@@ -421,6 +428,56 @@ class KontrakController extends Controller
             ->orderBy('username')
             ->get();
 
+        $kontrakCategories = $this->getKontrakCategories();
+
+        // ===== Detail Kontrak (TrBQCSDetail) =====
+        $detailQ = TrBQCSDetail::query();
+
+        // Paling aman: filter by bqid + csid kalau tersedia
+        if (!empty($kontrak->bqid)) {
+            $detailQ->where('bqid', $kontrak->bqid);
+        }
+
+        if (!empty($kontrak->csid)) {
+            $detailQ->where('csid', $kontrak->csid);
+        }
+
+        // Fallback kalau ternyata kontrak tidak punya bqid/csid
+        // (sesuaikan jika di data kamu relasinya pakai kontrak_bq_id)
+        if (empty($kontrak->bqid) && empty($kontrak->csid)) {
+            $detailQ->where('kontrak_bq_id', $kontrak->kontrakid);
+        }
+
+        $details = $detailQ
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
+        // ===== Kumpulkan semua vendorid dari detail =====
+        $vendorIds = collect($details)
+            ->flatMap(function ($d) {
+                return [
+                    $d->vendorid1,
+                    $d->vendorid2,
+                    $d->vendorid3,
+                    $d->vendorid4,
+                    $d->vendorid5,
+                    $d->vendorid6,
+                ];
+            })
+            ->filter() // buang null / kosong
+            ->unique()
+            ->values();
+
+        // ===== Ambil nama vendor sekali query =====
+        $vendorMap = [];
+        if ($vendorIds->isNotEmpty()) {
+            $vendorMap = MsVendor::query()
+                ->whereIn('vendor_id', $vendorIds)
+                ->pluck('vendor_name', 'vendor_id')
+                ->toArray();
+}
+
         return view('pages.kontrak.showkontrak', [
             'kontrak'    => $kontrak,
             'attachment' => $attachment,
@@ -428,6 +485,9 @@ class KontrakController extends Controller
             'sppbUrl'    => $sppbUrl,
             'csUrl'      => $csUrl,
             'users'      => $users,
+            'kontrakCategories' => $kontrakCategories,
+            'details'    => $details,
+            'vendorMap'  => $vendorMap,
         ]);
     }
 
@@ -456,15 +516,29 @@ class KontrakController extends Controller
 
         $v = Validator::make($request->all(), [
             'kontraktype'     => 'required|in:New,Adjustment',
-            'kontrakcategory' => 'required|in:Maintenance,Pengadaan',
+            'kontrakcategory' => [
+                'required',
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) {
+                    $ok = MsKontrakCategory::query()
+                        ->where('status', 'A')
+                        ->where('kontrakcategory', $value)
+                        ->exists();
+
+                    if (!$ok) {
+                        $fail('Kontrak Category tidak valid / tidak aktif.');
+                    }
+                },
+            ],
             'kontrakdate'     => 'required|date',
             'startdate'       => 'required|date',
-            'enddate'         => 'required|date|after_or_equal:startdate',
-            'user_approval'   => 'required|string|max:100', // ⬅️ tambah ini
+            'enddate'         => 'required|date|after_or_equal:startdate',           
             'kontraknote'     => 'nullable|string|max:5000',
         ], [
             'enddate.after_or_equal' => 'End Date harus >= Start Date.',
             'user_approval.required' => 'User Approval wajib dipilih.',
+            'kontrakcategory.exists' => 'Kontrak Category tidak valid / tidak aktif.',
         ]);
 
         if ($v->fails()) {
@@ -482,7 +556,7 @@ class KontrakController extends Controller
         $kontrak->kontrakdate     = $request->kontrakdate;
         $kontrak->startdate       = $request->startdate;
         $kontrak->enddate         = $request->enddate;
-        $kontrak->user_approval   = $request->user_approval; // ⬅️ simpan ini
+        // $kontrak->user_approval   = $request->user_approval; // ⬅️ simpan ini
         $kontrak->kontaknote      = $request->kontraknote;
 
         $kontrak->submitdate      = $now;
@@ -525,6 +599,14 @@ class KontrakController extends Controller
 
         // redirect ke halaman create/edit
         return redirect()->to('/createkontrak/' . $eid);
+    }
+
+    private function getKontrakCategories()
+    {
+        return MsKontrakCategory::query()
+            ->where('status', 'A') // kalau status aktif kamu beda, ganti di sini
+            ->orderBy('kontrakcategory')
+            ->get(['kontrakcategory', 'kontrakcategory_descr']);
     }
 
 
