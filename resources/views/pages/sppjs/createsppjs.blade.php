@@ -2,7 +2,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="sppjForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                <form id="sppjForm" class="flex flex-col gap-4" enctype="multipart/form-data" novalidate>
                     @csrf
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
 
@@ -606,7 +606,7 @@
 
 
                     {{-- ===== Attachment ===== --}}
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                    {{-- <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
@@ -662,6 +662,144 @@
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
                                             stroke="currentColor" stroke-width="4">
                                         </circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div> --}}
+                    {{-- ===== Attachment ===== --}}
+                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                        <details class="group" open>
+                            <summary
+                                class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                <span class="req">Attachments</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                            </summary>
+
+                            <div class="flex flex-col pt-6 gap-4">
+
+                                {{-- ======================
+                                    MODE: JASA
+                                    ====================== --}}
+                                <div id="attachmentModeJasa" class="">
+                                    <div class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                                        Upload Dokumen (Jasa) <span class="text-red-600">*</span>
+                                    </div>
+
+                                    <div id="attachmentsContainer">
+                                        <div class="attachment-row flex items-center gap-2">
+                                            <input type="file" name="attachments[]"
+                                                class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700
+                                                    file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
+                                                    dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                            <button type="button"
+                                                class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" id="addAttachment"
+                                        class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Add Attachment
+                                    </button>
+                                </div>
+
+                                {{-- ======================
+                                    MODE: KONTRAK
+                                    ====================== --}}
+                                <div id="attachmentModeKontrak" class="hidden">
+                                    <div class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                        Upload Dokumen Kontrak<span class="text-red-600">*</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        Dokumen yang bertanda <span class="text-red-600 font-semibold">Mandatory</span> wajib diupload.
+                                    </div>
+
+                                    <div class="mt-3 space-y-3">
+                                        @php
+                                            $kontrakDocs = $kontrakDocs ?? collect();
+                                        @endphp
+
+                                        @foreach ($kontrakDocs as $doc)
+                                            @php
+                                                $docId = $doc->kontrakdocument_id;
+                                                $required = (bool) $doc->kontrakdocument_required;
+                                                $label = $doc->kontrakdocument_descr ?: ('Doc ' . $docId);
+                                            @endphp
+
+                                            <div class="kontrak-doc-row rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+                                                data-docid="{{ $docId }}"
+                                                data-required="{{ $required ? 1 : 0 }}">
+                                                <div class="flex items-start justify-between gap-3">
+                                                    <div class="min-w-0">
+                                                        <div class="flex items-center gap-2">
+                                                            <div class="font-semibold text-gray-800 dark:text-gray-100 truncate">
+                                                                {{ $doc->kontrakdocument_order }}. {{ $label }}
+                                                            </div>
+
+                                                            @if ($required)
+                                                                <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-200">
+                                                                    Mandatory
+                                                                </span>
+                                                            @else
+                                                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                                                    Optional
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mt-3 flex items-center gap-2">
+                                                    <input
+                                                        type="file"
+                                                        name="kontrak_attachments[{{ $docId }}]"
+                                                        class="kontrakFileInput flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700
+                                                            file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
+                                                            dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600"
+                                                        {{ $required ? 'required' : '' }}
+                                                    >
+                                                </div>
+
+                                                {{-- tempat error message js (optional) --}}
+                                            </div>
+                                        @endforeach
+
+                                        @if ($kontrakDocs->isEmpty())
+                                            <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/40 dark:bg-yellow-900/20 dark:text-yellow-200">
+                                                Tidak ada master dokumen kontrak (MsKontrakDocument) yang aktif.
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                            </div>
+                        </details>
+
+                        <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                            <button id="backBtn" onclick="history.back()"
+                                class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Back</span>
+                            </button>
+
+                            <div class="flex justify-start md:justify-end">
+                                <button type="submit" id="submitBtn"
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <span id="btnText">Submit Approval</span>
+                                    <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
@@ -891,26 +1029,90 @@
                 // =========================
                 // Attachment validation
                 // =========================
-                let attachmentOk = false;
+                // let attachmentOk = false;
 
-                $('#attachmentsContainer input[type="file"]').each(function() {
-                    if (this.files && this.files.length > 0) {
-                        attachmentOk = true;
-                        return false; // stop loop
+                // $('#attachmentsContainer input[type="file"]').each(function() {
+                //     if (this.files && this.files.length > 0) {
+                //         attachmentOk = true;
+                //         return false; // stop loop
+                //     }
+                // });
+
+                // if (!attachmentOk) {
+                //     toastr.error('Minimal 1 attachment wajib diupload.');
+
+                //     const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                //     $firstFile.addClass('is-invalid');
+
+                //     $('html,body').animate({
+                //         scrollTop: $firstFile.offset().top - 120
+                //     }, 300);
+
+                //     return;
+                // }
+
+                // =========================
+                // Attachment validation (by BQ Type)
+                // =========================
+                const bqTypeVal = ($('#bqtype').val() || '').trim();
+
+                if (bqTypeVal === 'Kontrak') {
+                    let kontrakOk = true;
+                    let $firstInvalid = null;
+
+                    // cek semua doc mandatory
+                    $('#attachmentModeKontrak .kontrak-doc-row').each(function () {
+                        const $row = $(this);
+                        const required = String($row.data('required')) === '1';
+                        if (!required) return;
+
+                        const $file = $row.find('input[type="file"].kontrakFileInput');
+                        const hasFile = ($file[0] && $file[0].files && $file[0].files.length > 0);
+
+                        if (!hasFile) {
+                            kontrakOk = false;
+
+                            $file.addClass('is-invalid').attr('aria-invalid', 'true');
+                            if ($file.next('.error-feedback').length === 0) {
+                                $file.after('<small class="error-feedback">Dokumen ini wajib diupload.</small>');
+                            }
+
+                            if (!$firstInvalid) $firstInvalid = $file;
+                        }
+                    });
+
+                    if (!kontrakOk) {
+                        toastr.error('Mohon upload semua dokumen kontrak yang mandatory.');
+                        if ($firstInvalid && $firstInvalid.length) {
+                            $('html,body').animate({ scrollTop: $firstInvalid.offset().top - 120 }, 300);
+                            $firstInvalid.trigger('focus');
+                        }
+                        return;
                     }
-                });
 
-                if (!attachmentOk) {
-                    toastr.error('Minimal 1 attachment wajib diupload.');
+                } else {
+                    // default: Jasa => minimal 1 file
+                    let jasaOk = false;
 
-                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
-                    $firstFile.addClass('is-invalid');
+                    $('#attachmentsContainer input[type="file"]').each(function () {
+                        if (this.files && this.files.length > 0) {
+                            jasaOk = true;
+                            return false;
+                        }
+                    });
 
-                    $('html,body').animate({
-                        scrollTop: $firstFile.offset().top - 120
-                    }, 300);
+                    if (!jasaOk) {
+                        toastr.error('Minimal 1 attachment wajib diupload.');
 
-                    return;
+                        const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                        $firstFile.addClass('is-invalid');
+
+                        $('html,body').animate({
+                            scrollTop: $firstFile.offset().top - 120
+                        }, 300);
+
+                        return;
+                    }
                 }
 
                 // =========================
@@ -2823,6 +3025,70 @@
                 prevCpny = $cpny.val();
                 prevBu = $bu.val();
             }, 300);
+        });
+    </script>
+
+    <script>
+        $(function () {
+            const $bqtype = $('#bqtype');
+            const $modeJasa = $('#attachmentModeJasa');
+            const $modeKontrak = $('#attachmentModeKontrak');
+
+            function setKontrakInputsEnabled(enabled) {
+            const $inputs = $modeKontrak.find('input.kontrakFileInput[type="file"]');
+
+            if (enabled) {
+                $inputs.prop('disabled', false);
+
+                // restore required sesuai master (data-required)
+                $modeKontrak.find('.kontrak-doc-row').each(function () {
+                const required = String($(this).data('required')) === '1';
+                $(this).find('input.kontrakFileInput').prop('required', required);
+                });
+
+            } else {
+                // disable + remove required agar tidak kena validasi native
+                $inputs.prop('disabled', true).prop('required', false);
+
+                // bersihkan error UI
+                $inputs.removeClass('is-invalid').removeAttr('aria-invalid');
+                $modeKontrak.find('.error-feedback').remove();
+            }
+            }
+
+            function setJasaInputsEnabled(enabled) {
+            const $inputs = $('#attachmentsContainer').find('input[type="file"][name="attachments[]"]');
+            $inputs.prop('disabled', !enabled);
+
+            if (!enabled) {
+                $inputs.removeClass('is-invalid').removeAttr('aria-invalid');
+                $('#attachmentsContainer').find('.error-feedback').remove();
+            }
+            }
+
+            function applyAttachmentMode() {
+            const v = ($bqtype.val() || '').trim();
+
+            if (v === 'Kontrak') {
+                $modeJasa.addClass('hidden');
+                $modeKontrak.removeClass('hidden');
+
+                setJasaInputsEnabled(false);
+                setKontrakInputsEnabled(true);
+            } else {
+                // default Jasa / kosong
+                $modeKontrak.addClass('hidden');
+                $modeJasa.removeClass('hidden');
+
+                setKontrakInputsEnabled(false);
+                setJasaInputsEnabled(true);
+            }
+            }
+
+            $bqtype.on('change', applyAttachmentMode);
+
+            // initial
+            applyAttachmentMode();
         });
     </script>
 

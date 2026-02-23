@@ -1024,7 +1024,7 @@ class MasterController extends Controller
 
     public function CoaBudgetbyDept(Request $request)
     {
-        dd('by dept');
+        // dd('by dept');
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
         $perpost = $request->get('perpost');

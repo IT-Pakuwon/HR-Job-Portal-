@@ -164,6 +164,7 @@ class BastController extends Controller
                 'department_id' => $term->department_id,
                 'user_peminta'  => $term->user_peminta,
                 'keperluan'     => $term->keperluan,
+                'order_term'    => $term->order_term,
                 'terms_id'      => $term->terms_id,
                 'topid'         => $term->topid,
                 'progress_pct'  => $term->progress_pct,

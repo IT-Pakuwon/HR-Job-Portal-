@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\MsKontrakDocument; 
 
 class TrAttachmentController extends Controller
 {
@@ -146,7 +147,11 @@ class TrAttachmentController extends Controller
             $query->where('cpny_id', $cpnyId);
         }
 
-        $rows = $query->orderBy('created_at', 'desc')->get();
+        // $rows = $query->orderBy('created_at', 'desc')->get();
+        $rows = $query
+            ->orderBy('id', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         // Signed URL
         $config = config('filesystems.disks.gcs');
@@ -213,5 +218,131 @@ class TrAttachmentController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    public function uploadInternalKontrak(array $meta, array $filesWithDoc): array
+    {
+        foreach (['refnbr','doctype','base_folder','created_by'] as $k) {
+            if (empty($meta[$k])) {
+                throw new \InvalidArgumentException("Missing required meta: {$k}");
+            }
+        }
+
+        $year       = now()->year;
+        $yearFolder = rtrim($meta['base_folder'], '/')."/{$year}";
+
+        // --- Ambil config GCS
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        // --- Inisialisasi GCS
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $result = ['folder' => $yearFolder, 'items' => []];
+
+        // mapping kontrakdocument_id -> kontrakdocument_descr
+        // (kalau sudah kamu supply dari meta, pakai itu. Kalau belum, kita build dari DB)
+        $docMap = $meta['kontrak_doc_map'] ?? [];
+
+        // auto build map jika kosong
+        if (empty($docMap)) {
+            $ids = collect($filesWithDoc)
+                ->pluck('kontrakdocument_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($ids)) {
+                $docMap = MsKontrakDocument::query()
+                    ->whereIn('kontrakdocument_id', $ids)
+                    ->pluck('kontrakdocument_descr', 'kontrakdocument_id')
+                    ->toArray();
+            }
+        }
+
+        foreach ($filesWithDoc as $row) {
+            $file = $row['file'] ?? null;
+            $kontrakDocId = $row['kontrakdocument_id'] ?? null;
+
+            if (!$file instanceof UploadedFile || !$file->isValid()) {
+                continue;
+            }
+
+            $originalName = str_replace(['%','\\','/'], '', $file->getClientOriginalName());
+            $randomPrefix = md5(random_int(1, 99999999));
+            $ext          = $file->getClientOriginalExtension();
+            $filename     = $randomPrefix . '.' . $ext;
+            $gcsPath      = "{$yearFolder}/{$filename}";
+
+            // ✅ ambil label dari master kontrak document
+            $attachmentLabel = null;
+            if ($kontrakDocId !== null && $kontrakDocId !== '') {
+                $attachmentLabel = $docMap[$kontrakDocId] ?? null;
+            }
+            // fallback kalau mapping tidak ketemu
+            if (!$attachmentLabel) {
+                $attachmentLabel = pathinfo($originalName, PATHINFO_FILENAME);
+            }
+
+            try {
+                $bucket->upload(
+                    fopen($file->getPathname(), 'r'),
+                    [
+                        'name'          => $gcsPath,
+                        'predefinedAcl' => 'private',
+                        'metadata'      => [
+                            'contentType' => $file->getMimeType(),
+                            'metadata'    => [
+                                'original-name' => $originalName,
+                                'kontrakdocument-id' => (string) $kontrakDocId,
+                            ],
+                        ],
+                    ]
+                );
+
+                Log::info("Upload attachment kontrak sukses", ['gcsPath' => $gcsPath]);
+
+                $rowDb = TrAttachment::create([
+                    'refnbr'           => $meta['refnbr'],
+                    'doctype'          => $meta['doctype'],
+                    'attachment_date'  => Carbon::now(),
+                    'cpny_id'          => $meta['cpny_id']        ?? null,
+                    'department_id'    => $meta['department_id']  ?? null,
+                    'attachment_name'  => $attachmentLabel, // 🔥 dari MsKontrakDocument
+                    'folder'           => $yearFolder,
+                    'filename'         => $filename,
+                    'filesize'         => $file->getSize(),
+                    'extention'        => $ext,
+                    'status'           => 'A',
+                    'created_by'       => $meta['created_by'],
+
+                    // kalau kamu punya kolom ini di tr_attachment, bagus banget diisi:
+                    // 'kontrakdocument_id' => $kontrakDocId,
+                ]);
+
+                $result['items'][] = [
+                    'gcsPath'  => $gcsPath,
+                    'id'       => $rowDb->id,
+                    'filename' => $filename,
+                    'kontrakdocument_id' => $kontrakDocId,
+                ];
+            } catch (\Throwable $e) {
+                Log::error("Upload attachment kontrak gagal", [
+                    'gcsPath' => $gcsPath,
+                    'error' => $e->getMessage()
+                ]);
+                throw $e;
+            }
+        }
+
+        return $result;
     }
 }

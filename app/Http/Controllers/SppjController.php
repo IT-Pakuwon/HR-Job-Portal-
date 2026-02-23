@@ -42,6 +42,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\BusinessUnit;
 use App\Models\MsKontrakBQ;
 use App\Models\MsKontrakCategory;
+use App\Models\MsKontrakDocument;
 
 
 class SppjController extends Controller
@@ -214,9 +215,15 @@ class SppjController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();                     
+            ->first();        
+            
+        $kontrakDocs = MsKontrakDocument::query()
+        ->where('status', 'A')
+        ->where('kontrakcategory', 'Kontrak')
+        ->orderBy('kontrakdocument_order')
+        ->get();
        
-        return view('pages.sppjs.createsppjs', compact('usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.sppjs.createsppjs', compact('usercpny','usercpny2','userdept','userdept2', 'kontrakDocs'));
     }
 
     
@@ -293,22 +300,7 @@ class SppjController extends Controller
                 // kalau 1 titik, biarkan sebagai decimal
             }
             return is_numeric($s) ? (float)$s : null;
-        };
-
-
-        // // pastikan line approval ada
-        // $approvalCount = M_approval::where([
-        //     ['status', '=', 'A'],
-        //     ['aprvcpnyid', '=', $request->cpnyid],
-        //     ['aprvdeptid', '=', $request->departementid],
-        //     ['aprvdoctype', '=', $doctype],
-        // ])->count();
-
-        // if ($approvalCount === 0) {
-        //     return response()->json([
-        //         'message' => 'Approval line belum di-setup, Please contact IT!',
-        //     ], 422);
-        // }
+        };      
 
          // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
@@ -318,31 +310,7 @@ class SppjController extends Controller
 
         DB::beginTransaction();
         try {
-            // === generate autonbr & docid (lock) ===
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr($year, 2) . $month;               // YYMM
-            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            // $sppjNo = $docid;                                   // atau 'SPPJ-'.$docid
-
+            // === generate autonbr & docid (lock) ===         
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -389,24 +357,7 @@ class SppjController extends Controller
             $rowCount = max(count($inventoryIds), count($qtys));
 
             // ===== default site fallback (ambil sekali per header cpny) =====
-            $defaultSiteId = null;
-            // try {
-            //     $defaultSiteId = MsSite::query()
-            //         ->where('cpny_id', $request->cpnyid)
-            //         ->where(function($q){
-            //             $q->where('site_default', true)
-            //             ->orWhere('site_default', 'true')
-            //             ->orWhere('site_default', 1)
-            //             ->orWhere('site_default', '1');
-            //         })
-            //         ->value('siteid'); // langsung ambil siteid saja
-            // } catch (\Throwable $e) {
-            //     // optional: log saja, jangan hentikan proses
-            //     \Log::warning('Failed to get default site', [
-            //         'cpnyid' => $request->cpnyid,
-            //         'err' => $e->getMessage(),
-            //     ]);
-            // }
+            $defaultSiteId = null;         
            
             $buSiteCache = [];
 
@@ -437,9 +388,7 @@ class SppjController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
-                // $siteFromForm = trim((string)($siteids[$i] ?? ''));
-                // $finalSiteId  = $siteFromForm !== '' ? $siteFromForm : $defaultSiteId;
-
+    
                 // ============================
                 // SiteID dari Business Unit
                 // ============================
@@ -522,36 +471,7 @@ class SppjController extends Controller
             $header->totalopenordered = $totalQty;
             $header->save();
 
-            // // === 4) copy line approval (M_approval -> T_approval) ===
-            // $approvals = M_approval::where([
-            //     ['status', '=', 'A'],
-            //     ['aprvcpnyid', '=', $request->cpnyid],
-            //     ['aprvdeptid', '=', $request->departementid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->get();
-
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $docid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_user'   => $username,
-            //     ]);
-            // }
-
-            // $firstApprovalUsernames = optional($approvals->first())->aprvusername; // bisa comma-separated
-            // if ($firstApprovalUsernames) {
-            //     $header->completed_by = $firstApprovalUsernames;
-            //     $header->completed_at = $dt; // atau Carbon::now()
-            //     $header->save();
-            // }
+            // // === 4) copy line approval (M_approval -> T_approval) ===           
 
              // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
@@ -599,45 +519,86 @@ class SppjController extends Controller
             }
 
             // === 5) attachments (opsional) ===
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-                    
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }          
+           
             
-           if ($request->hasFile('attachments')) {
+        //    if ($request->hasFile('attachments')) {
+        //         $meta = [
+        //             'refnbr'        => $docid,
+        //             'doctype'       => $doctype,
+        //             'cpnyid'        => $request->input('cpnyid'),
+        //             'departementid' => $request->input('departementid'),                    
+        //             'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+        //             'created_by'    => $user->username,
+        //         ];
+
+        //         $files = (array) $request->file('attachments');
+
+        //         try {
+        //             $uploader = app(TrAttachmentController::class);
+        //             $uploadResult = $uploader->uploadInternal($meta, $files);
+        //             // tidak return di sini!
+        //         } catch (\Throwable $e) {
+        //             \DB::rollBack();
+        //             return response()->json([
+        //                 'message' => 'Failed to create PJ',
+        //                 'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+        //             ], 500);
+        //         }
+        //     } else {
+        //         $uploadResult = null; // tidak ada attachment
+        //     }
+
+        // === 5) attachments ===
+        $uploadResult = null;
+
+        $bqtype = trim((string)$request->input('bqtype'));
+
+        if ($bqtype === 'Kontrak') {
+
+            $kontrakFiles = (array) $request->file('kontrak_attachments', []);
+
+            $docs = MsKontrakDocument::query()
+                ->where('status', 'A')
+                ->where('kontrakcategory', 'Kontrak')
+                ->orderBy('kontrakdocument_order')
+                ->get(['kontrakdocument_id', 'kontrakdocument_descr', 'kontrakdocument_required']);
+
+            $docMap = $docs->pluck('kontrakdocument_descr', 'kontrakdocument_id')->toArray();
+
+            $filesWithDoc = [];
+            foreach ($kontrakFiles as $docId => $file) {
+                if ($file instanceof \Illuminate\Http\UploadedFile) {
+                    $filesWithDoc[] = [
+                        'kontrakdocument_id' => (string) $docId,  // ✅ FIX KEY
+                        'file' => $file
+                    ];
+                }
+            }
+
+            if (!empty($filesWithDoc)) {
+                $meta = [
+                    'refnbr'        => $docid,
+                    'doctype'       => $doctype,
+                    'cpny_id'       => $request->input('cpnyid'),         // ✅ FIX META KEY
+                    'department_id' => $request->input('departementid'),  // ✅ FIX META KEY
+                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by'    => $user->username,
+
+                    'kontrak_doc_map' => $docMap,
+                ];
+
+                $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
+                $uploadResult = $uploader->uploadInternalKontrak($meta, $filesWithDoc);
+            }
+
+        }  else {
+            // Jasa (default)
+            if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),                    
+                    'departementid' => $request->input('departementid'),
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
@@ -645,19 +606,17 @@ class SppjController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-                    $uploader = app(TrAttachmentController::class);
+                    $uploader = app(\App\Http\Controllers\TrAttachmentController::class);
                     $uploadResult = $uploader->uploadInternal($meta, $files);
-                    // tidak return di sini!
                 } catch (\Throwable $e) {
                     \DB::rollBack();
                     return response()->json([
                         'message' => 'Failed to create PJ',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error'   => 'Gagal upload attachment jasa: '.$e->getMessage(),
                     ], 500);
                 }
-            } else {
-                $uploadResult = null; // tidak ada attachment
             }
+        }
 
             $eid = Hashids::encode($header->id);
 
