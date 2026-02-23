@@ -1383,10 +1383,18 @@ Route::post('/logout', function () {
     });
 
     Route::get('/training-events', [TrainingRegistrationController::class, 'index'])
-    ->name('training');
+        ->name('training');
 
-    Route::post('/training-events/{id}/register', [TrainingRegistrationController::class, 'register'])
-        ->name('training.register');
+    Route::get('/training/{id}/register',
+        [TrainingRegistrationController::class, 'showRegisterForm']
+    )->name('training.register.form');
+
+    Route::post('/training/{id}/register',
+        [TrainingRegistrationController::class, 'register']
+    )->name('training.register');
+
+
+
 
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');

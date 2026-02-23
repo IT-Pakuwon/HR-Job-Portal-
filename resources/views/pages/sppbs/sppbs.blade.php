@@ -1,24 +1,4 @@
 <x-app-layout>
-    <style>
-        .track-tab {
-            padding: .4rem .75rem;
-            border-radius: .5rem;
-            font-size: .875rem;
-            font-weight: 600;
-            color: #4b5563;
-            white-space: nowrap;
-        }
-
-        .track-tab:hover {
-            background: rgba(0, 0, 0, .05);
-        }
-
-        .track-tab.active {
-            background: rgba(79, 70, 229, .12);
-            color: #4338ca;
-        }
-    </style>
-
     @php
         $currentPage = Route::currentRouteName() == 'sppbs' ? 'HR' : '';
     @endphp
@@ -402,8 +382,8 @@
 
     <script>
         /* =========================================================
-                                                TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-                                                ========================================================= */
+                                                    TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                                    ========================================================= */
 
         (function() {
             // ---------- Modal open/close ----------
@@ -561,7 +541,7 @@
                     ${header.vendorname !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>` : ''}
                     ${header.keperluan !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>` : ''}
 
-                                 
+
                 </div>
             </div>`;
             }

@@ -109,7 +109,20 @@
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
+
                             {{ $po->ponbr }}
+
+                            @if ($po->potype === 'PO')
+                                <span
+                                    class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+                                    PO
+                                </span>
+                            @elseif($po->potype === 'SPK')
+                                <span
+                                    class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+                                    SPK
+                                </span>
+                            @endif
                         </h1>
 
                         @php
@@ -404,24 +417,41 @@
                                     {{-- ====== TYPE: PO (Only Delivery Date) ====== --}}
                                     @if ($isPO)
                                         <div
-                                            class="rounded-lg border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                            class="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-5 shadow-sm dark:border-gray-700 dark:from-gray-800 dark:to-gray-900">
+
+                                            <!-- Delivery Date -->
                                             <div class="flex items-center justify-between">
                                                 <label for="podeliverydate"
-                                                    class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    class="text-sm font-medium tracking-wide text-gray-600 dark:text-gray-400">
                                                     Delivery Date
                                                 </label>
 
                                                 @if ($readOnlyDelivery)
                                                     <p
-                                                        class="flex-1 border-b border-gray-200 pb-1 text-right text-sm text-gray-900 dark:border-gray-700 dark:text-gray-100">
+                                                        class="border-b border-gray-300 pb-1 text-sm font-semibold text-gray-900 dark:border-gray-600 dark:text-gray-100">
                                                         {{ optional($po->podeliverydate)->format('d M Y') ?? '-' }}
                                                     </p>
                                                 @else
                                                     <input type="date" name="podeliverydate" id="podeliverydate"
                                                         value="{{ old('podeliverydate', optional($po->podeliverydate)->format('Y-m-d')) }}"
-                                                        class="max-w-xs flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
+                                                        class="max-w-xs rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-indigo-400" />
                                                 @endif
                                             </div>
+
+                                            <!-- Divider -->
+                                            <div class="my-4 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                            <!-- Term of Payment -->
+
+                                            <div class="flex items-center justify-between">
+                                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Term of Payment
+                                                </label>
+                                                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                                    {{ $poTerms->top_name ?? '-' }}
+                                                </span>
+                                            </div>
+
                                         </div>
                                     @else
                                         {{-- ====== TYPE: SPK or Other ====== --}}
@@ -776,6 +806,21 @@
                                                                     </p>
                                                                 </div>
 
+                                                            </div>
+                                                            {{-- Divider --}}
+
+                                                            <div class="border-t border-gray-100 dark:border-gray-700">
+                                                            </div>
+
+                                                            <div class="flex items-center justify-between">
+                                                                <label
+                                                                    class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                                    Term of Payment
+                                                                </label>
+                                                                <span
+                                                                    class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                                                    {{ $poTerms->top_name ?? '-' }}
+                                                                </span>
                                                             </div>
 
                                                         </div>

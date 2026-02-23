@@ -20,7 +20,7 @@ use App\Models\TrCS;
 use Vinkla\Hashids\Facades\Hashids;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 use Mail;
-use Barryvdh\DomPDF\Facade\Pdf; 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\TrAttachmentController;
 use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
@@ -62,6 +62,10 @@ class PoController extends Controller
             ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')
             ->get();
+
+        $poTerms = MsTop::where('top_type', $po->potype)
+        ->where('topid', $po->vendortop)
+        ->first();
 
         // -------- Ambil lampiran dari tr_attachment & buat Signed URL --------
         $rows = TrAttachment::where('refnbr', $po->ponbr)
@@ -184,14 +188,15 @@ class PoController extends Controller
             'po'          => $po,
             'podetail'    => $podetail,
             'attachment'  => $attachment,   // <- sudah dalam format siap pakai
-            'hash'        => $hash, 
+            'hash'        => $hash,
             'eid_ponbr'   => $eid_ponbr,
-            'sppbUrl'     => $sppbUrl,   
-            'csUrl'       => $csUrl,     
+            'sppbUrl'     => $sppbUrl,
+            'csUrl'       => $csUrl,
             'hasReceiptCompleted' => $hasReceiptCompleted,
             'poHistory'   => $poHistory,
             'hash'        => $hash,
             'holidayDates'          => $holidayDates,
+             'poTerms'     => $poTerms,
         ]);
     }
 
@@ -199,7 +204,7 @@ class PoController extends Controller
     {
         // dd($req->all());
         $po = TrPO::where('ponbr', $ponbr)
-            ->where('cpny_id', $req->input('cpny_id'))    
+            ->where('cpny_id', $req->input('cpny_id'))
             ->firstOrFail();
 
         if ($po->status !== 'H') {
@@ -317,7 +322,7 @@ class PoController extends Controller
                     $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '')."Cara Pembayaran: {$pm}");
                 }
             }
-        
+
             // 1. Cek Detail PO ada sebelum Used Budget
             $detailCount = TrPODetail::where('ponbr', $po->ponbr)
                 ->where('budget_cpny_id', $po->cpny_id)
@@ -325,10 +330,10 @@ class PoController extends Controller
             if ($detailCount <= 0) {
                 throw new \Exception("PO Detail kosong. Tidak bisa proses budget untuk PO {$po->ponbr}");
             }
-                       
+
 
             // ✅ INSERT/UPDATE last price
-            if ($po->potype == 'PO'){    
+            if ($po->potype == 'PO'){
                 $this->insertPoLastPrice($po);
             }
 
@@ -347,9 +352,9 @@ class PoController extends Controller
             // 5. Update status ke Purchase Order
             $po->status = 'P';
             $po->send_email = false; // reset flag email
-            $po->save();        
-           
-    
+            $po->save();
+
+
 
         });
 
@@ -379,10 +384,10 @@ class PoController extends Controller
         $po->updated_by = Auth::user()->username ?? 'system';
         $po->updated_at = Carbon::now();
 
-        // simpan reason ke ponote (append) 
+        // simpan reason ke ponote (append)
         $stamp = Carbon::now();
         $who   = Auth::user()->username ?? 'user';
-        $reasonLine = "CANCEL REUSE: ".$data['reason'];       
+        $reasonLine = "CANCEL REUSE: ".$data['reason'];
         $po->reuse = true;
         $po->reuse_at = $stamp;
         $po->save();
@@ -419,7 +424,7 @@ class PoController extends Controller
 
         // $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
         $po = TrPO::findOrFail($id);
-       
+
 
         $data = $req->validate([
             'reason' => ['required','string']
@@ -432,7 +437,7 @@ class PoController extends Controller
         // simpan reason ke ponote (append)
         $stamp = Carbon::now()->format('d/m/Y H:i');
         $who   = Auth::user()->username ?? 'user';
-        $reasonLine = "CANCEL: ".$data['reason'];       
+        $reasonLine = "CANCEL: ".$data['reason'];
         $po->save();
 
         $fakeReq = new \Illuminate\Http\Request([
@@ -455,7 +460,7 @@ class PoController extends Controller
         ]);
     }
 
-    
+
 
     public function uploadAttachments_xxx(Request $request, $poid)
     {
@@ -629,8 +634,8 @@ class PoController extends Controller
             ], 500);
         }
     }
-   
-    
+
+
     Public function listAttachment($hash)
     {
         $decoded = Hashids::decode($hash);
@@ -694,7 +699,7 @@ class PoController extends Controller
             'attachments' => $attachments,
         ]);
     }
-    
+
 
     public function removeAttachment($id)
     {
@@ -735,7 +740,7 @@ class PoController extends Controller
 
         $poTerms = MsTop::where('top_type', $po->potype)
             ->where('topid', $po->vendortop)
-            ->first();   
+            ->first();
 
         // Amount
         $dpp   = (float) ($po->totalamt ?? 0);
@@ -750,7 +755,7 @@ class PoController extends Controller
         $data = [
             'po'        => $po,
             'podetail'  => $podetail,
-            'poTerms'   => $poTerms, 
+            'poTerms'   => $poTerms,
             'dpp'       => $dpp,
             'ppn'       => $ppn,
             'grand'     => $grand,
@@ -800,7 +805,7 @@ class PoController extends Controller
         $basename = ($potype === 'PO') ? 'PO' : 'SPK';
         return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
     }
-    
+
     public function printSpkBq(string $hash)
     {
         $ids = Hashids::decode($hash);
@@ -865,7 +870,7 @@ class PoController extends Controller
                 'bq'               => $bq,
                 'details'          => $details,
                 'vendors'          => $vendors,
-                'businessUnit'  => $businessUnit,                 
+                'businessUnit'  => $businessUnit,
                 'now'              => Carbon::now(),
             ])
             ->setPaper('A4', 'portrait')
@@ -880,7 +885,7 @@ class PoController extends Controller
         $poId = $ids[0];
 
         $po = TrPO::findOrFail($poId);
-      
+
         abort_if(strtoupper((string) $po->potype) !== 'SPK', 403);
 
         abort_if(empty($po->csid), 404);
@@ -924,9 +929,9 @@ class PoController extends Controller
             ->stream("BQ_SPK_{$po->ponbr}.pdf", ['Attachment' => false]);
     }
 
-  
 
-    
+
+
     private function terbilang($angka): string
     {
         if (is_string($angka)) {
@@ -956,7 +961,7 @@ class PoController extends Controller
         return ($isMinus ? 'minus ' : '').$hasil;
     }
 
-  
+
 
     private function extractBodyHtml(string $fullHtml): string
     {
@@ -982,7 +987,7 @@ class PoController extends Controller
         $ponbr = Hashids::decode($hash)[0] ?? null;
         abort_if(!$ponbr, 404);
 
-        $cpnyId = $request->query('cpny_id'); 
+        $cpnyId = $request->query('cpny_id');
 
         $po = TrPO::where('ponbr', $ponbr)
             ->where('cpny_id', $cpnyId)
@@ -995,7 +1000,7 @@ class PoController extends Controller
 
         // $fromEmail = $user->notification_email;
         $fromEmail = $user->email;
-        
+
         $purchaser = ucwords(strtolower($user->name));
 
         // $emailto   = MsVendor::where('vendor_id', $po->vendorid)->value('email');
@@ -1037,11 +1042,11 @@ class PoController extends Controller
     }
 
 
-    
+
 
     public function sendNowPO(Request $req, string $ponbr)
     {
-       
+
         $authUser = Auth::user();
         $stamp = Carbon::now();
 
@@ -1127,7 +1132,7 @@ class PoController extends Controller
 
         // // merge + unique
         // $cc  = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest)));
-        
+
         // CC dari request (kalau ada)
         $ccFromRequest = $norm($data['cc'] ?? []);
 
@@ -1481,9 +1486,9 @@ class PoController extends Controller
         ]);
     }
 
-      
-   
-    public function sendNowPO_tanpa_cc(Request $req, string $ponbr) 
+
+
+    public function sendNowPO_tanpa_cc(Request $req, string $ponbr)
     {
         $authUser = Auth::user();
 
@@ -1652,7 +1657,7 @@ class PoController extends Controller
             return;
         }
 
-        $bq = Bq::where('sppjtid', $po->sppbjktid)                 
+        $bq = Bq::where('sppjtid', $po->sppbjktid)
             ->first();
 
         $username = Auth::user()->username ?? 'system';
@@ -1690,7 +1695,7 @@ class PoController extends Controller
 
                 // ===== Nominal =====
                 'poamount'      => $poTotal,
-                'bastamount'    => $bastAmount,   
+                'bastamount'    => $bastAmount,
                 'penalty'       => 0,
                 'dayslate'      => 0,
                 'realizeamount' => 0,
@@ -1763,7 +1768,7 @@ class PoController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $rfcaid  = $doctype . $tglbln . sprintf("%04d", $urutan);    
+            $rfcaid  = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             // Nominal: pakai data dari term PO
             $poAmount    = $term->poamount ?? ($po->grandtotalamt ?? 0);
@@ -1798,14 +1803,14 @@ class PoController extends Controller
                 'prev_rfca_amount'  => 0,
                 'add_rfca_amount'   => 0,
 
-                'required_date'   => $now->copy()->addDays(9),   
+                'required_date'   => $now->copy()->addDays(9),
                 'calr_date'       => null,
 
-                'status'          => 'A',    
-                'rfca_type'       => '', 
+                'status'          => 'A',
+                'rfca_type'       => '',
                 'rfca_step_order' => null,
                 'rfca_step_id'    => null,
-                'status_rfca'     => null,   
+                'status_rfca'     => null,
 
                 'created_by'      => $username,
                 'updated_by'      => $username,
@@ -1946,7 +1951,7 @@ class PoController extends Controller
     }
 
 
- 
+
 
     private function insertPoLastPrice(TrPO $po): void
     {
