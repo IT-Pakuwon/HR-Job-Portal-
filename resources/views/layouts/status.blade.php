@@ -775,4 +775,14 @@
             background-size: 16px;
             padding-right: 32px;
         }
+
+        #applicantsTable td {
+            white-space: normal !important;
+            word-break: break-word;
+        }
+
+
+        #applicantsTable th {
+            white-space: normal !important;
+        }
     </style>

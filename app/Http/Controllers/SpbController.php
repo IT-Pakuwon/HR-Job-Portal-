@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -40,7 +40,7 @@ class SpbController extends Controller
 
     public function index()
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -89,12 +89,12 @@ class SpbController extends Controller
             ->whereRaw('(COALESCE(totalissueqty,0) > 0 OR COALESCE(totalsppbqty,0) > 0 OR COALESCE(sppbid, \'\') <> \'\')')
             ->count();
 
-    
+
         return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed','tracking'));
     }
 
 
-   
+
     public function json(Request $request)
     {
         $user = Auth::user();
@@ -216,7 +216,7 @@ class SpbController extends Controller
         $base = \App\Models\TrIssue::from('tr_issue as iss')
             ->join('tr_spb as spb', 'spb.spbid', '=', 'iss.spbid')
             // join SPPB by sppbid (kalau tidak selalu ada, pakai leftJoin)
-            ->leftJoin('tr_sppb as sppb', 'sppb.sppbid', '=', 'spb.sppbid')           
+            ->leftJoin('tr_sppb as sppb', 'sppb.sppbid', '=', 'spb.sppbid')
             ->whereIn('spb.cpny_id', $cpnyIds)
             ->whereIn('spb.department_id', $deptIds);
 
@@ -384,10 +384,10 @@ class SpbController extends Controller
 
 
 
-      
+
     public function createSpb()
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -399,12 +399,12 @@ class SpbController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();                     
-       
+            ->first();
+
         return view('pages.spbs.createspbs', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
-        
+
     public function storeSpb(Request $request)
     {
         // dd($request->all());
@@ -421,7 +421,7 @@ class SpbController extends Controller
         $qtys           = (array) $request->input('qty', []);
         $uoms           = (array) $request->input('stock_unit',   $request->input('uom', []));
         $notes          = (array) $request->input('note', []);
-        $siteids        = (array) $request->input('siteid', []); 
+        $siteids        = (array) $request->input('siteid', []);
 
         // stock dan harga per unit dari form
         $stockQtys      = (array) $request->input('stock_qty', []);   // dari screenshot
@@ -452,13 +452,13 @@ class SpbController extends Controller
             $hasComma = strpos($s, ',') !== false;
             $hasDot   = strpos($s, '.') !== false;
             if ($hasComma && $hasDot) {
-                $lastComma = strrpos($s, ','); 
+                $lastComma = strrpos($s, ',');
                 $lastDot   = strrpos($s, '.');
-                if ($lastComma > $lastDot) { 
-                    $s = str_replace('.', '', $s); 
-                    $s = str_replace(',', '.', $s); 
-                } else { 
-                    $s = str_replace(',', '', $s); 
+                if ($lastComma > $lastDot) {
+                    $s = str_replace('.', '', $s);
+                    $s = str_replace(',', '.', $s);
+                } else {
+                    $s = str_replace(',', '', $s);
                 }
             } elseif ($hasComma) {
                 $s = str_replace(',', '.', $s);
@@ -514,7 +514,7 @@ class SpbController extends Controller
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            
+
 
             // === Guard minimal 1 detail valid & validasi lokasi per baris ===
             $rowCount = max(count($inventoryIds), count($qtys));
@@ -597,9 +597,9 @@ class SpbController extends Controller
                 $baseUom        = $purchaseUnits[$i] ?? null;
                 $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? '')));
                 $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;
-                if ($rate <= 0) { 
-                    $rate = 1.0; 
-                    $typeMultiplier = ''; 
+                if ($rate <= 0) {
+                    $rate = 1.0;
+                    $typeMultiplier = '';
                 }
                 $baseQty = $qty;
                 if ($typeMultiplier === 'M') {
@@ -632,7 +632,7 @@ class SpbController extends Controller
                 $detail->base_qty                   = $baseQty;
                 $detail->base_uom                   = $baseUom;
 
-                // biaya (kalau suatu saat ada harga di form)               
+                // biaya (kalau suatu saat ada harga di form)
                 $detail->unitcost                   = $unitCost;
                 $detail->totalcost                  = $lineTotalCost;
 
@@ -649,12 +649,12 @@ class SpbController extends Controller
                 $detail->budget_department_fin_id   = $deptFinIds[$i]      ?? null;
                 $detail->budget_account_id          = $coaIds[$i]          ?? null;
                 $detail->budget_activity_id         = $activityIds[$i]     ?? null;
-                $detail->budget_activity_descr      = $actDescrs[$i] ?? null; 
+                $detail->budget_activity_descr      = $actDescrs[$i] ?? null;
 
                 // stok & qty turunannya di model baru
                 $detail->reason_code                = null;
                 $detail->stock_qty                  = $stockQty;
-                $detail->base_stock_qty             = $stockQty; 
+                $detail->base_stock_qty             = $stockQty;
 
                 $detail->issue_qty                  = 0;
                 $detail->base_issue_qty             = 0;
@@ -673,7 +673,7 @@ class SpbController extends Controller
                 $detail->status                     = 'P';
                 $detail->created_by                 = $username;
                 $detail->save();
-                
+
                 $totalQty       += $qty;
                 $grandTotalCost += $lineTotalCost;
             }
@@ -760,15 +760,15 @@ class SpbController extends Controller
 
 
 
-   
+
     public function editSpb($hash)
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
-        
+
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
@@ -906,7 +906,7 @@ class SpbController extends Controller
         $coaIds         = array_values($request->input('coa_id', []));
         $itemTypes      = array_values($request->input('item_type', []));
         $itemCats       = array_values($request->input('item_category', []));
-        $siteids       = array_values($request->input('siteid', []));       
+        $siteids       = array_values($request->input('siteid', []));
         // UoM konversi
         $purchaseUnits  = array_values($request->input('purchase_unit', []));
         $uomMultDivs    = array_values($request->input('uom_unitmultdiv', []));
@@ -1030,7 +1030,7 @@ class SpbController extends Controller
                 'updated_by'        => $username,
             ])->save();
 
-            
+
 
             // === Approval generate ===
             $worktypeid = strtoupper(trim((string)($request->worktypeid ?? '')));
@@ -1083,7 +1083,7 @@ class SpbController extends Controller
                 }
             }
 
- 
+
 
             $eid = Hashids::encode($header->id);
 
@@ -1119,8 +1119,8 @@ class SpbController extends Controller
         }
     }
 
-   
-     
+
+
 
     public function showSpb($hash)
     {
@@ -1192,6 +1192,7 @@ class SpbController extends Controller
                 'budget_department_fin_id',
                 'budget_account_id',
                 'budget_activity_descr',
+                'budget_business_unit_id',
                 'created_by',
                 'created_at',
                 'updated_by',
@@ -1217,7 +1218,7 @@ class SpbController extends Controller
             ->orderBy('spb_no', 'ASC')
             ->get();
 
-       
+
         // --- Attachments (GCS signed URL) ---
         $rows = TrAttachment::where('refnbr', $spb->spbid)
             ->where('status', 'A')
@@ -1314,7 +1315,7 @@ class SpbController extends Controller
                         'info'     => $spb->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
             },
@@ -1388,7 +1389,7 @@ class SpbController extends Controller
                         'info'     => $spb->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
 
@@ -1468,8 +1469,8 @@ class SpbController extends Controller
 
         return response()->json(['success'=>true,'message'=>'SPB revised successfully']);
     }
-    
-   
+
+
     // public function approveSpb(Request $request, $docid)
     // {
     //     $now  = Carbon::now();
@@ -1489,7 +1490,7 @@ class SpbController extends Controller
     //     $tApproval = T_approval::where('docid', $spb->spbid)
     //         ->where('status', 'P')
     //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
+    //         ->whereNotNull('aprvdatebefore')
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
 
@@ -1534,17 +1535,17 @@ class SpbController extends Controller
     //             $spb->completed_at = $now;
     //             $spb->save();
 
-    //             $spbdetail = TrSPBdetail::where('spbid', $spb->spbid)                
+    //             $spbdetail = TrSPBdetail::where('spbid', $spb->spbid)
     //                 ->get();
 
     //             foreach ($spbdetail as $d) {
-    //                 $d->status = 'C'; 
+    //                 $d->status = 'C';
     //                 $d->save();
     //             }
 
     //             // Kirim email ke requester (creator)
     //             $status        = 'C';
-    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';                
+    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
     //             $data = [
     //                 'docid'     => $spb->spbid,
@@ -1638,7 +1639,7 @@ class SpbController extends Controller
     //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
     //     }
     // }
-    
+
     // public function rejectSpb(Request $request, $docid)
     // {
     //     $now  = Carbon::now();
@@ -1658,7 +1659,7 @@ class SpbController extends Controller
     //     $tApproval = T_approval::where('docid', $spb->spbid)
     //         ->where('status', 'P')
     //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
+    //         ->whereNotNull('aprvdatebefore')
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
 
@@ -1764,7 +1765,7 @@ class SpbController extends Controller
     //         ->where('spbid', $docid)
     //         ->first();
     //     $fullname = data_get($spb, 'creator.name') ?: $spb->created_by;
-            
+
     //     if (!$spb) {
     //         return response()->json(['success' => false, 'message' => 'SPB not found'], 404);
     //     }
@@ -1868,7 +1869,7 @@ class SpbController extends Controller
 
     //     return response()->json(['success' => true, 'message' => 'SPB revised successfully']);
     // }
-    
+
 
     // public function checkApproval($id, $action)
     // {
@@ -1877,7 +1878,7 @@ class SpbController extends Controller
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
     //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
-    //                 ->where('status', 'P');                 
+    //                 ->where('status', 'P');
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
     //     if (in_array($action, ['reject', 'revise','approve'])) {
@@ -2047,7 +2048,7 @@ class SpbController extends Controller
 
         $approve_count = $approval->count();
 
-        // Company (handle null)       
+        // Company (handle null)
         $company = MsCompany::where('cpny_id', $spb->cpny_id)->first();
 
         // Mapping status dokumen
@@ -2109,7 +2110,7 @@ class SpbController extends Controller
 
 
 
-    
+
 
 
 

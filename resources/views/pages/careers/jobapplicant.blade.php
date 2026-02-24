@@ -380,12 +380,14 @@
                 {
                     index: 3,
                     type: 'text',
-                    placeholder: 'Full Name'
+                    placeholder: 'Full Name',
+                    className: 'whitespace-normal break-words'
                 },
                 {
                     index: 4,
                     type: 'text',
-                    placeholder: 'Education'
+                    placeholder: 'Education',
+                    className: 'whitespace-normal break-words'
                 },
                 {
                     index: 5,
@@ -405,7 +407,8 @@
                 {
                     index: 8,
                     type: 'text',
-                    placeholder: 'Company'
+                    placeholder: 'Company',
+                    className: 'whitespace-normal break-words'
                 },
                 {
                     index: 9,
@@ -428,7 +431,7 @@
                 if (col.type === 'select') {
                     $el = $(`
         <select id="filterStep"
-            class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm 
+            class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm
                    focus:border-blue-500 focus:ring-1 focus:ring-blue-500 truncate text-ellipsis">
             <option value="">All Step</option >
         </select>
@@ -451,7 +454,7 @@
                 } else {
                     $el = $(`
             <input type="text"
-                 class="w-full rounded-md border border-gray-200 px-3 py-2  text-sm 
+                 class="w-full rounded-md border border-gray-200 px-3 py-2  text-sm
                focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 placeholder="Search ${col.placeholder}">
         `);
