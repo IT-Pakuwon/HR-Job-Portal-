@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -37,25 +37,29 @@ class WoController extends Controller
     use HasAutonbr;
     public function index()
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
 
+        // Company multi
         if (is_string($user->cpny_id)) {
             $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
         } else {
             $cpnyIds = (array) $user->cpny_id;
         }
 
-        // department_id juga bisa multi, tapi di debug sudah "IT"
+        // Department multi
         if (is_string($user->department_id)) {
             $deptIds = array_map('trim', explode(',', $user->department_id));
         } else {
             $deptIds = (array) $user->department_id;
         }
 
+        // ===============================
+        // APPROVAL STATUS (existing)
+        // ===============================
         $all = TrWO::whereIn('cpny_id', $cpnyIds)
                 ->whereIn('department_id', $deptIds)
                 ->count();
@@ -79,12 +83,48 @@ class WoController extends Controller
                 ->whereIn('cpny_id', $cpnyIds)
                 ->whereIn('department_id', $deptIds)
                 ->count();
-    
-        return view('pages.wos.wos', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+
+        // ===============================
+        // 🔥 JOB STATUS (NEW)
+        // ===============================
+
+        $jobOnProgress = TrWO::where('status_pekerjaan', 'P')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        $jobCancel = TrWO::where('status_pekerjaan', 'X')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        $jobCompleted = TrWO::where('status_pekerjaan', 'C')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        $jobHold = TrWO::where('status_pekerjaan', 'H')
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds)
+                ->count();
+
+        return view('pages.wos.wos', compact(
+            'all',
+            'onProgress',
+            'reject',
+            'revise',
+            'completed',
+
+            // 👇 new variables
+            'jobOnProgress',
+            'jobCancel',
+            'jobCompleted',
+            'jobHold'
+        ));
     }
 
 
-    
+
     public function json(Request $request)
     {
         $user = Auth::user();
@@ -188,8 +228,8 @@ class WoController extends Controller
 
 
     public function createWo()
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -201,13 +241,13 @@ class WoController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();                     
-       
+            ->first();
+
         return view('pages.wos.createwos', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
-    
-    
+
+
     public function storeWo(Request $request)
     {
         // dd($request->all());
@@ -313,10 +353,10 @@ class WoController extends Controller
             ], 422);
         }
         $validated = $validator->validated();
-        
+
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
-        $approvalCtl = app(ApprovalController::class);       
+        $approvalCtl = app(ApprovalController::class);
         // Pastikan line approval ada (validasi awal)
         $approvalCtl->loadLines($doctype, $validated['cpnyid'], $validated['departementid']);
 
@@ -355,7 +395,7 @@ class WoController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);            
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             // === header ===
             $wo = new TrWO();
@@ -501,15 +541,15 @@ class WoController extends Controller
     }
 
 
-   
+
     public function editWo($hash)
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
-        
+
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
@@ -755,7 +795,7 @@ class WoController extends Controller
 
             $wo->save();
 
-           
+
             // ===== Generate TrApproval (WO) - SAMA seperti create =====
             $wotype     = strtoupper(trim((string)($validated['wotype'] ?? '')));
             $worktypeid = strtoupper(trim((string)($validated['worktypeid'] ?? '')));
@@ -850,7 +890,7 @@ class WoController extends Controller
         }
     }
 
-   
+
     public function removeAttachment($id)
     {
         try {
@@ -925,7 +965,7 @@ class WoController extends Controller
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
 
-            return (object) [                
+            return (object) [
                 'display_name' => $r->attachment_name,         // nama yang enak dibaca
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
@@ -981,7 +1021,7 @@ class WoController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)->first();
 
         return view('pages.wos.showwos', compact(
-            'wo',        
+            'wo',
             'attachments',
             'hash',
             'canUpload',
@@ -994,7 +1034,7 @@ class WoController extends Controller
         ));
     }
 
-    
+
 
     public function approveWo(Request $request, $docid)
     {
@@ -1021,7 +1061,7 @@ class WoController extends Controller
                 $wo->completed_by = $wo->completed_by ?: auth()->user()->username;
                 $wo->completed_at = $now;
                 $wo->save();
-                
+
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
                     'WO',
@@ -1035,7 +1075,7 @@ class WoController extends Controller
                         'info'     => $wo->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
             },
@@ -1093,7 +1133,7 @@ class WoController extends Controller
                 $wo->completed_at = $now;
                 $wo->save();
 
-                
+
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
                     'WO',
@@ -1107,7 +1147,7 @@ class WoController extends Controller
                         'info'     => $wo->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
 
@@ -1149,7 +1189,7 @@ class WoController extends Controller
                 $wo->completed_at = $now;
                 $wo->save();
 
-               
+
                 // === Email ke requester ===
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
@@ -1184,7 +1224,7 @@ class WoController extends Controller
         }
 
         return response()->json(['success'=>true,'message'=>'WO revised successfully']);
-    }  
+    }
 
     // public function approveWo(Request $request, $docid)
     // {
@@ -1205,7 +1245,7 @@ class WoController extends Controller
     //     $tApproval = T_approval::where('docid', $wo->woid)
     //         ->where('status', 'P')
     //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
+    //         ->whereNotNull('aprvdatebefore')
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
 
@@ -1250,10 +1290,10 @@ class WoController extends Controller
     //             $wo->completed_at = $now;
     //             $wo->save();
 
-             
+
     //             // Kirim email ke requester (creator)
     //             $status        = 'C';
-    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';                
+    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
     //             $data = [
     //                 'docid'     => $wo->woid,
@@ -1347,7 +1387,7 @@ class WoController extends Controller
     //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
     //     }
     // }
-    
+
     // public function rejectWo(Request $request, $docid)
     // {
     //     $now  = Carbon::now();
@@ -1367,7 +1407,7 @@ class WoController extends Controller
     //     $tApproval = T_approval::where('docid', $wo->woid)
     //         ->where('status', 'P')
     //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
+    //         ->whereNotNull('aprvdatebefore')
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
 
@@ -1473,7 +1513,7 @@ class WoController extends Controller
     //         ->where('woid', $docid)
     //         ->first();
     //     $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
-            
+
     //     if (!$wo) {
     //         return response()->json(['success' => false, 'message' => 'WO not found'], 404);
     //     }
@@ -1577,7 +1617,7 @@ class WoController extends Controller
 
     //     return response()->json(['success' => true, 'message' => 'WO revised successfully']);
     // }
-    
+
 
     // public function checkApproval($id, $action)
     // {
@@ -1586,7 +1626,7 @@ class WoController extends Controller
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
     //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
-    //                 ->where('status', 'P');                 
+    //                 ->where('status', 'P');
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
     //     if (in_array($action, ['reject', 'revise','approve'])) {
@@ -1727,7 +1767,7 @@ class WoController extends Controller
 
         // $approval = TrApproval::query()
         //     ->where('refnbr', $wo->woid)          // dulu: docid
-        //     ->where('status', '<>', 'X')           
+        //     ->where('status', '<>', 'X')
         //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
         //     ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
         //     ->get();
@@ -1780,7 +1820,7 @@ class WoController extends Controller
             'docid'               => $wo->woid,
             'department_id'       => $wo->department_id,
             'cpnyname'            => optional($company)->cpny_name,
-            'cpnyid'              => $wo->cpny_id,           
+            'cpnyid'              => $wo->cpny_id,
             'created_by_username' => $wo->created_by,
             'created_by_name'     => ucwords(strtolower(optional($wo->creator)->name)),
             'created_at_fmt'      => optional($wo->created_at)->format('d F Y'),
@@ -1788,7 +1828,7 @@ class WoController extends Controller
             'wodate'              => \Carbon\Carbon::parse($wo->wodate)->format('d F Y'),
             'keperluan'           => $wo->keperluan,
             'status_doc'          => $status_doc,
-            'budget_use'          => $wo->budget_use,    
+            'budget_use'          => $wo->budget_use,
             // info tambahan yang sering dipakai di template
             'wotype'              => $wo->wotype,                      // disimpan string category_name
             'worequest'           => $wo->worequest,                   // disimpan string category_name
@@ -1797,7 +1837,7 @@ class WoController extends Controller
             'location_name'       => optional($wo->location)->location_name,
             'sub_location_name'   => optional($wo->sublocation)->sub_location_name,
             'picrequester'        => $wo->picrequester,
-            'biaya_wo'            => number_format($wo->biaya_wo, 0, ',', '.'),            
+            'biaya_wo'            => number_format($wo->biaya_wo, 0, ',', '.'),
         ];
 
         $pdf = \PDF::loadView($view, array_merge($data, [
@@ -1859,7 +1899,7 @@ class WoController extends Controller
     }
 
 
-    
+
     public function jsonJobs(Request $request)
     {
         $user = Auth::user();
@@ -1992,7 +2032,7 @@ class WoController extends Controller
         // set pic_wo & pic_department (server-side agar aman)
         $wo->pic_wo = $user->username;
         // $wo->pic_department = $user->departmentid ?? $user->department_id ?? $wo->pic_department;
-        $wo->pic_department = '';       
+        $wo->pic_department = '';
         $wo->save();
 
         return response()->json(['success' => true]);
@@ -2001,7 +2041,7 @@ class WoController extends Controller
     // POST /wo/{woid}/job-status
     public function updateJobStatus(Request $req, $woid)
     {
-        
+
         $req->validate([
             'status_pekerjaan' => 'required|in:P,X,C',
             'pic_wo_comment'   => 'nullable|string',
@@ -2051,6 +2091,6 @@ class WoController extends Controller
 
 
 
-    
+
 
 }

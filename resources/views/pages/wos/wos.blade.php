@@ -114,6 +114,9 @@
                                 Description</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Status</th>
+                            <th>
+                                WO Status
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
@@ -455,6 +458,40 @@
                                 'D': {
                                     t: 'Revise',
                                     c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
+                                },
+                                'P': {
+                                    t: 'On Progress',
+                                    c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
+                                },
+                                'C': {
+                                    t: 'Completed',
+                                    c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                },
+                                'X': {
+                                    t: 'Cancel',
+                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                },
+                                'R': {
+                                    t: 'Rejected',
+                                    c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                },
+                            };
+                            const it = map[data] || {
+                                t: data || '-',
+                                c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                            };
+                            return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
+                        }
+                    },
+                    {
+                        data: 'status_pekerjaan', // ini dok-status; kalau mau ganti ke job status tinggal pakai 'status_pekerjaan'
+                        className: 'text-left',
+                        render: function(data, type, row) {
+                            // map dok-status (boleh dibiarkan)
+                            const map = {
+                                'H': {
+                                    t: 'Hold',
+                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
                                 },
                                 'P': {
                                     t: 'On Progress',

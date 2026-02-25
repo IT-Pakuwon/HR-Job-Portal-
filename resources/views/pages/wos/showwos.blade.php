@@ -447,109 +447,115 @@
 
             @if ($canProcess)
                 <div id="jobProcessBox"
-                    class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    class="rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 dark:border-gray-700 dark:bg-gray-800">
 
-                    {{-- Header --}}
+                    {{-- HEADER --}}
                     <div
-                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                        <div>
-                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
-                                🛠 Process Work Order
-                            </h2>
+                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 px-6 py-5 dark:border-gray-700">
+
+                        {{-- LEFT SIDE --}}
+                        <div class="flex flex-col gap-2">
+
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                                    🛠 Process Work Order
+                                </h2>
+
+                                <span id="jobStatusBadge"
+                                    class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 transition-all duration-300 dark:bg-gray-700 dark:text-gray-300">
+                                    Draft
+                                </span>
+                            </div>
+
                             <p class="text-sm text-gray-500 dark:text-gray-400">
                                 Update status, department and notes.
                             </p>
+
                         </div>
 
+                        {{-- RIGHT SIDE BUTTON --}}
                         <button id="btnJobProcess"
                             class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                             data-mode="{{ $isPicWo ? 'save' : 'process' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-                            </svg>
-                            <span>{{ $isPicWo ? 'Save Changes' : 'Process' }}</span>
+
+                            <span>
+                                {{ $isPicWo ? 'Save' : 'Process' }}
+                            </span>
                         </button>
+
                     </div>
 
-                    {{-- Form --}}
-                    <div id="jobForm" class="{{ $isPicWo ? '' : 'hidden' }} space-y-6 p-6">
+                    {{-- FORM --}}
+                    <div id="jobForm"
+                        class="{{ $isPicWo ? '' : 'hidden' }} space-y-6 p-6 transition-all duration-300">
 
-                        {{-- Status & Flag --}}
-                        <div class="space-y-4">
+                        {{-- STATUS --}}
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                Status Pekerjaan
+                            </label>
 
-                            {{-- Status --}}
-                            <div>
-                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                    Status Pekerjaan
-                                </label>
+                            <select id="jobStatusSelect"
+                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
 
-                                <select id="jobStatusSelect"
-                                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-0">
-                                    <option value="">Pilih Status</option>
-                                    <option value="P">On Progress</option>
-                                    <option value="X">Cancel Jobs</option>
-                                    <option value="C">Completed</option>
-                                </select>
-                            </div>
+                                <option value="">Pilih Status</option>
+                                <option value="P">🟡 On Progress</option>
+                                <option value="X">🔴 Cancel Jobs</option>
+                                <option value="C">🟢 Completed</option>
 
-                            {{-- Checkbox --}}
-                            <div class="flex justify-between space-y-2">
+                            </select>
+                        </div>
 
-                                <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    Please check if needed:
-                                </p>
+                        {{-- CHECKBOX --}}
+                        <div class="flex items-center justify-between">
 
-                                <label class="inline-flex items-center gap-3">
-                                    <input type="checkbox"
-                                        class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        SPB / SPPBJKT
-                                    </span>
-                                </label>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Please check if needed:
+                            </p>
 
-                            </div>
+                            <label class="inline-flex items-center gap-3">
+                                <input type="checkbox" id="flagSppbJkt"
+                                    class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500">
+
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    SPB / SPPBJKT
+                                </span>
+                            </label>
 
                         </div>
 
-                        {{-- Department --}}
+                        {{-- DEPARTMENT --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                                 Department
                             </label>
-                            <select name="pic_department" id="pic_department" {{ $isPicWo ? '' : 'disabled' }}
+
+                            <select name="pic_department" id="pic_department"
                                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+
                                 @foreach ($userdept as $p)
                                     <option value="{{ $p->department_id }}"
                                         {{ $p->department_id == $wo->pic_department ? 'selected' : '' }}>
                                         {{ $p->department_id }}
                                     </option>
                                 @endforeach
+
                             </select>
                         </div>
 
-                        {{-- Comment --}}
+                        {{-- COMMENT --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                                 Comment
                             </label>
-                            <textarea id="jobComment" rows="4" {{ $isPicWo ? '' : 'disabled' }}
+
+                            <textarea id="jobComment" rows="4"
                                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                 placeholder="Tuliskan catatan untuk pekerjaan ini...">{{ $wo->pic_wo_comment }}</textarea>
                         </div>
+
                     </div>
 
-                    {{-- Read-only Info Card (Non PIC but still can see header) --}}
-                    @if (!$isPicWo)
-                        <div class="p-6 text-sm text-gray-600 dark:text-gray-300">
-                            <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-700">
-                                <div class="flex justify-between">
-                                    <span class="font-medium">PIC</span>
-                                    <span>{{ $wo->pic_wo ?: '-' }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                 </div>
             @else
                 {{-- READ ONLY MODE --}}
@@ -1194,21 +1200,42 @@
 
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
         }
+
+        function lockJobFormAfterSave() {
+            $select.prop("disabled", true);
+            $comment.prop("disabled", true);
+            $flag.prop("disabled", true);
+            $dept.prop("disabled", true);
+
+            $btn.attr("data-mode", "edit")
+                .removeClass("bg-indigo-600 hover:bg-indigo-700")
+                .addClass("bg-yellow-500 hover:bg-yellow-600")
+                .find("span").text("Edit");
+
+            toastr.success("Saved. Click Edit to modify again.");
+        }
+
+        function unlockJobFormForEdit() {
+            $select.prop("disabled", false);
+            $comment.prop("disabled", false);
+            $flag.prop("disabled", false);
+            $dept.prop("disabled", false);
+
+            $btn.attr("data-mode", "save")
+                .removeClass("bg-yellow-500 hover:bg-yellow-600")
+                .addClass("bg-indigo-600 hover:bg-indigo-700")
+                .find("span").text("Save");
+        }
     </script>
 
     <script>
         $(function() {
-            // pastikan tombol ada
-            $("#btnJobProcess").removeClass("hidden").show();
 
-            // ==== nilai dari Blade (aman) ====
             const woid = "{{ $wo->woid }}";
             const csrf = "{{ csrf_token() }}";
 
             const isPicWo = {{ $isPicWo ? 'true' : 'false' }};
             const initialJobStatus = @json($wo->status_pekerjaan ?? '');
-            const initialComment = @json($wo->pic_wo_comment ?? '');
-            const initialFlagRaw = @json($wo->flag_sppbjkt ?? null);
 
             const $spinner = $("#loadingSpinnerContainer");
             const $btn = $("#btnJobProcess");
@@ -1217,87 +1244,134 @@
             const $comment = $("#jobComment");
             const $flag = $("#flagSppbJkt");
             const $dept = $("#pic_department");
+            const $badge = $("#jobStatusBadge");
 
-            // normalisasi checkbox
-            const flagUpper = (initialFlagRaw === null || initialFlagRaw === undefined) ? '' : String(
-                initialFlagRaw).toUpperCase();
-            const initialFlag = (initialFlagRaw === true || initialFlagRaw === 1 || initialFlagRaw === '1' ||
-                flagUpper === 'Y' || flagUpper === 'TRUE');
-            $flag.prop("checked", !!initialFlag);
+            /* =====================================
+               UI STATE CONTROLLER
+            ===================================== */
 
-            console.log("[JOB INIT]", {
-                isPicWo,
-                initialJobStatus,
-                initialComment,
-                initialFlagRaw
-            });
+            function setButtonMode(mode) {
 
-            // ==== initial state ====
-            if (isPicWo) {
-                $form.removeClass("hidden");
-                $btn.attr("data-mode", "save").find("span").text("Save");
+                const baseClass =
+                    "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold shadow-md transition-all duration-200";
 
-                // enable input
+                $btn.removeClass().addClass(baseClass).prop("disabled", false);
+
+                if (mode === "process") {
+                    $btn.addClass("bg-indigo-600 hover:bg-indigo-700 text-white");
+                    $btn.find("span").text("Process");
+
+                    $badge.removeClass().addClass(
+                        "inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600"
+                    ).text("Draft");
+                }
+
+                if (mode === "save") {
+                    $btn.addClass("bg-green-600 hover:bg-green-700 text-white");
+                    $btn.find("span").text("Save");
+
+                    $badge.removeClass().addClass(
+                        "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-600"
+                    ).text("Editing");
+                }
+
+                if (mode === "edit") {
+                    $btn.addClass("bg-yellow-500 hover:bg-yellow-600 text-white");
+                    $btn.find("span").text("Edit");
+
+                    $badge.removeClass().addClass(
+                        "inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-600"
+                    ).text("Saved");
+                }
+
+                if (mode === "locked") {
+
+                    $btn.addClass("bg-gray-400 cursor-not-allowed text-white")
+                        .prop("disabled", true);
+
+                    $btn.find("span").text("Locked");
+
+                    // Badge depends on status
+                    if ($select.val() === "X" || initialJobStatus === "X") {
+                        $badge.removeClass().addClass(
+                            "inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white"
+                        ).text("Cancelled");
+                    } else {
+                        $badge.removeClass().addClass(
+                            "inline-flex items-center rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white"
+                        ).text("Completed");
+                    }
+                }
+
+                $btn.attr("data-mode", mode);
+            }
+
+            function lockForm() {
+                $select.prop("disabled", true);
+                $comment.prop("disabled", true);
+                $flag.prop("disabled", true);
+                $dept.prop("disabled", true);
+            }
+
+            function unlockForm() {
                 $select.prop("disabled", false);
                 $comment.prop("disabled", false);
                 $flag.prop("disabled", false);
                 $dept.prop("disabled", false);
-
-                if (initialJobStatus) $select.val(initialJobStatus);
-                if (initialComment) $comment.val(initialComment);
-            } else {
-                $form.addClass("hidden");
-                $btn.attr("data-mode", "process").find("span").text("Process");
             }
 
-            // hindari double binding kalau script ke-load ulang
+            /* =====================================
+               INITIAL STATE
+            ===================================== */
+
+            if (initialJobStatus) {
+                $select.val(initialJobStatus);
+            }
+            if (initialJobStatus === 'C' || initialJobStatus === 'X') {
+                lockForm();
+                setButtonMode("locked");
+
+            } else if (isPicWo) {
+                lockForm();
+                setButtonMode("edit");
+
+            } else {
+                lockForm();
+                setButtonMode("process");
+            }
+
+            /* =====================================
+               BUTTON CLICK HANDLER
+            ===================================== */
+
             $btn.off("click.jobprocess").on("click.jobprocess", function() {
+
                 const mode = $btn.attr("data-mode");
 
+                // ===== PROCESS =====
                 if (mode === "process") {
-                    $spinner.fadeIn();
+                    unlockForm();
+                    setButtonMode("save");
+                    return;
+                }
 
-                    $.ajax({
-                        url: "/wo/" + encodeURIComponent(woid) + "/process",
-                        type: "POST",
-                        data: {
-                            _token: csrf
-                        },
-                        success: function(res) {
-                            if (!res || !res.success) {
-                                toastr.error((res && res.message) ? res.message :
-                                    "Failed to start process.");
-                                return;
-                            }
+                // ===== EDIT =====
+                if (mode === "edit") {
+                    unlockForm();
+                    setButtonMode("save");
+                    return;
+                }
 
-                            $form.removeClass("hidden");
-                            $select.prop("disabled", false);
-                            $comment.prop("disabled", false);
-                            $flag.prop("disabled", false);
-                            $dept.prop("disabled", false);
+                // ===== SAVE =====
+                if (mode === "save") {
 
-                            $btn.attr("data-mode", "save").find("span").text("Save");
-                            toastr.success("WO is now being processed.");
-                        },
-                        error: function(xhr) {
-                            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr
-                                .responseJSON.message : "Failed to process WO.";
-                            toastr.error(msg);
-                        },
-                        complete: function() {
-                            $spinner.fadeOut();
-                        }
-                    });
-
-                } else {
                     const jobStatus = ($select.val() || "").trim();
                     const comment = ($comment.val() || "").trim();
                     const flagVal = $flag.is(":checked") ? 1 : 0;
                     const departmentVal = ($dept.val() || "").trim();
 
                     if (!jobStatus) {
-                        toastr.warning("Silakan pilih Status Pekerjaan terlebih dahulu.");
-                        $select.focus();
+                        toastr.warning("Please select Status first.");
                         return;
                     }
 
@@ -1314,26 +1388,39 @@
                             flag_sppbjkt: flagVal
                         },
                         success: function(res) {
+
                             if (!res || !res.success) {
-                                toastr.error((res && res.message) ? res.message :
-                                    "Failed to save job status.");
+                                toastr.error(res?.message || "Failed to save.");
                                 return;
                             }
-                            toastr.success("Job status saved.");
+
+                            // LOCK if Completed or Cancelled
+                            if (jobStatus === 'C' || jobStatus === 'X') {
+                                lockForm();
+                                setButtonMode("locked");
+                                toastr.success("WO is now locked.");
+                                return;
+                            }
+
+                            // Normal Save
+                            lockForm();
+                            setButtonMode("edit");
+                            toastr.success("Saved successfully.");
                         },
                         error: function(xhr) {
-                            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr
-                                .responseJSON.message : "Failed to save job status.";
-                            toastr.error(msg);
+                            toastr.error(xhr.responseJSON?.message || "Save failed.");
                         },
                         complete: function() {
                             $spinner.fadeOut();
                         }
                     });
                 }
+
             });
+
         });
     </script>
+
     <script>
         function closeOrRedirect(fallbackUrl = '/wos') {
             // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)

@@ -15,7 +15,7 @@
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🕒</div>
 
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">On Hold</p>
+                        <p class="break-words text-sm font-medium">WO List</p>
                     </div>
 
                     <p class="shrink-0 text-base font-extrabold">{{ $wojobs }}</p>
@@ -84,7 +84,7 @@
         </div>
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">WO Jobs</h1>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">WO Jobs List</h1>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
