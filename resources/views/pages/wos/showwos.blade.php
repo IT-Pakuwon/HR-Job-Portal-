@@ -608,7 +608,7 @@
                                     <input type="checkbox" disabled
                                         class="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 dark:border-gray-500"
                                         @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
-                                    SPPBJKT
+                                    SPB/SPPBJKT
                                 </div>
                             </div>
                         </div>
