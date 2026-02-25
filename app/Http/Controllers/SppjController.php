@@ -43,6 +43,9 @@ use App\Models\BusinessUnit;
 use App\Models\MsKontrakBQ;
 use App\Models\MsKontrakCategory;
 use App\Models\MsKontrakDocument;
+use App\Models\Userbusinessunit;
+use App\Models\Budget;
+use App\Models\SysUserRole;
 
 
 class SppjController extends Controller
@@ -1321,8 +1324,34 @@ class SppjController extends Controller
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $sppj->created_by === $loginUsername;
+        $akses_cc = SysUserRole::where('username', $user->username)
+            ->where('role_id','COSTCTRLACCESS')
+            ->first();
+
        
-        return view('pages.sppjs.showsppjs', compact('sppj','attachments','sppjdetail','bq','hash','canUpload'));
+        $userCpny = Usercpny::query()
+        ->where('username',$user->username)->where('status','A')
+        ->pluck('cpny_id')->values();
+
+        $userBu = Userbusinessunit::query()
+        ->where('username',$user->username)->where('status','A')
+        ->get(['cpny_id','business_unit_id']);
+
+        $userCpnyIds = Usercpny::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('cpny_id');
+
+        $userDeptFin = Budget::query()
+            ->whereIn('cpny_id', $userCpnyIds)
+            ->where('status', 'C')
+            ->whereNotNull('department_fin_id')
+            ->select('department_fin_id')
+            ->distinct()
+            ->orderBy('department_fin_id')
+            ->get();
+       
+        return view('pages.sppjs.showsppjs', compact('sppj','attachments','sppjdetail','bq','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
     }
 
       

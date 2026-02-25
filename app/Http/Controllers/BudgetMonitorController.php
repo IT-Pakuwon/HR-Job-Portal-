@@ -309,10 +309,16 @@ class BudgetMonitorController extends Controller
         $rows = $q->orderBy('account_id')->orderBy('activity_id')->get();
 
         $totals = [
-            'totalbudget'     => (float) $rows->sum('totalbudget'),
-            'totalbudget_add' => (float) $rows->sum('totalbudget_add'),
-            'total_reserve'   => (float) $rows->sum('total_reserve'),
-            'total_used'      => (float) $rows->sum('total_used'),
+            'totalbudget'       => (float) $rows->sum('totalbudget'),
+            'totalbudget_add'   => (float) $rows->sum('totalbudget_add'),
+            'total_reserve'     => (float) $rows->sum('total_reserve'),
+            'total_used'        => (float) $rows->sum('total_used'),
+            'total_remaining'   => (float) $rows->sum(function($r) {
+                return (float) ($r->totalbudget ?? 0)
+                    + (float) ($r->totalbudget_add ?? 0)
+                    - (float) ($r->total_reserve ?? 0)
+                    - (float) ($r->total_used ?? 0);
+            }),
         ];
 
         return response()->json([

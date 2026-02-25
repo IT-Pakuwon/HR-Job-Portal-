@@ -31,6 +31,9 @@ use App\Models\TrApproval;
 use App\Models\TrIssue;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\SysUserRole;
+use App\Models\Userbusinessunit;
+use App\Models\Budget;
+
 
 
 
@@ -1270,8 +1273,31 @@ class SpbController extends Controller
             ->where('role_id','COSTCTRLACCESS')
             ->first();
 
+       
+        $userCpny = Usercpny::query()
+        ->where('username',$user->username)->where('status','A')
+        ->pluck('cpny_id')->values();
+
+        $userBu = Userbusinessunit::query()
+        ->where('username',$user->username)->where('status','A')
+        ->get(['cpny_id','business_unit_id']);
+
+        $userCpnyIds = Usercpny::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('cpny_id');
+
+        $userDeptFin = Budget::query()
+            ->whereIn('cpny_id', $userCpnyIds)
+            ->where('status', 'C')
+            ->whereNotNull('department_fin_id')
+            ->select('department_fin_id')
+            ->distinct()
+            ->orderBy('department_fin_id')
+            ->get();
+
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'attachments', 'spbdetail', 'hash','canUpload','akses_cc'));
+        return view('pages.spbs.showspbs', compact('spb', 'attachments', 'spbdetail', 'hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
     }
 
 

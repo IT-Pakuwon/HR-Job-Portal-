@@ -159,6 +159,7 @@ class WoController extends Controller
             5 => 'wo.worequest',
             6 => 'wo.keperluan',
             7 => 'wo.status',
+            8 => 'wo.status_pekerjaan',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
@@ -186,7 +187,8 @@ class WoController extends Controller
                 ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
                 ->orWhere('wo.worequest',     'ilike', "%{$search}%")
                 ->orWhere('wo.keperluan',     'ilike', "%{$search}%")
-                ->orWhere('wo.status',        'ilike', "%{$search}%");
+                ->orWhere('wo.status',        'ilike', "%{$search}%")
+                ->orWhere('wo.status_pekerjaan', 'ilike', "%{$search}%");
             });
         }
 
@@ -202,6 +204,7 @@ class WoController extends Controller
                     'wo.worequest',
                     'wo.keperluan',
                     'wo.status',
+                    'wo.status_pekerjaan',
                     'wo.created_by'
                 )
                 ->orderBy($orderCol, $orderDir)

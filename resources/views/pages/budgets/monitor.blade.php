@@ -59,6 +59,7 @@
                                 <th class="w-32 px-6 py-2 font-medium">Additional</th>
                                 <th class="w-32 px-6 py-2 font-medium">Reserved</th>
                                 <th class="w-32 px-6 py-2 font-medium">Used</th>
+                                <th class="w-32 px-6 py-2 font-medium">Remaining</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -66,7 +67,7 @@
                 </div>
 
                 <div class="border-t border-gray-200 bg-gray-50 px-4 py-4 dark:border-gray-700 dark:bg-gray-900">
-                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
                             <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Budget</div>
                             <div id="mTotBudg" class="mt-1 text-xs font-extrabold text-gray-900 dark:text-white">Rp. 0</div>
@@ -82,6 +83,12 @@
                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
                             <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Used</div>
                             <div id="mTotUsed" class="mt-1 text-xs font-extrabold text-red-600">Rp. 0</div>
+                        </div>
+
+                        <!-- ✅ NEW -->
+                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Remaining</div>
+                            <div id="mTotRem" class="mt-1 text-xs font-extrabold text-emerald-600">Rp. 0</div>
                         </div>
                     </div>
                 </div>
@@ -181,6 +188,7 @@
                         $('#mTotAddi').text(fmtID(tot.totalbudget_add));
                         $('#mTotRese').text(fmtID(tot.total_reserve));
                         $('#mTotUsed').text(fmtID(tot.total_used));
+                        $('#mTotRem').text(fmtID(tot.total_remaining));
                         return json.data || [];
                     }
                 },
@@ -198,6 +206,17 @@
                     { data: 'totalbudget_add', className: 'text-right', render: d => fmtID(d) },
                     { data: 'total_reserve', className: 'text-right', render: d => fmtID(d) },
                     { data: 'total_used', className: 'text-right', render: d => fmtID(d) },
+                    {
+                        data: null,
+                        className: 'text-right',
+                        render: function(d, t, row) {
+                            const bud  = Number(row.totalbudget || 0);
+                            const add  = Number(row.totalbudget_add || 0);
+                            const rese = Number(row.total_reserve || 0);
+                            const used = Number(row.total_used || 0);
+                            return fmtID(bud + add - rese - used);
+                        }
+                    },
                 ]
             });
 

@@ -36,6 +36,9 @@ use App\Models\TrPOdetail;
 use App\Models\TrBast;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\BusinessUnit;
+use App\Models\Userbusinessunit;
+use App\Models\Budget;
+use App\Models\SysUserRole;
 
 class SppkController extends Controller
 {
@@ -1310,18 +1313,8 @@ class SppkController extends Controller
         ])
         ->where('sppkid', $sppk->sppkid)
         ->orderby('sppk_no', 'ASC')
-        ->get();
-        
-        // $approval = T_approval::where('docid', $sppk->sppkid)
-        //     ->where('status','<>','X')      
-        //     ->orderBy('created_at')
-        //     ->orderBy('aprvid')      
-        //     ->get();
-       
-        // $attachment = Attachment::where('docid', $sppk->sppkid)    
-        //     ->where('status','A')        
-        //     ->get();     
-        
+        ->get();        
+               
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $sppk->sppkid)
             ->where('status', 'A')
@@ -1371,9 +1364,35 @@ class SppkController extends Controller
         });
 
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $sppk->created_by === $loginUsername;        
+        $canUpload     = $sppk->created_by === $loginUsername;   
+        $akses_cc = SysUserRole::where('username', $user->username)
+            ->where('role_id','COSTCTRLACCESS')
+            ->first();
+
        
-        return view('pages.sppks.showsppks', compact('sppk','attachments','sppkdetail','hash','canUpload'));
+        $userCpny = Usercpny::query()
+        ->where('username',$user->username)->where('status','A')
+        ->pluck('cpny_id')->values();
+
+        $userBu = Userbusinessunit::query()
+        ->where('username',$user->username)->where('status','A')
+        ->get(['cpny_id','business_unit_id']);
+
+        $userCpnyIds = Usercpny::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('cpny_id');
+
+        $userDeptFin = Budget::query()
+            ->whereIn('cpny_id', $userCpnyIds)
+            ->where('status', 'C')
+            ->whereNotNull('department_fin_id')
+            ->select('department_fin_id')
+            ->distinct()
+            ->orderBy('department_fin_id')
+            ->get();     
+       
+        return view('pages.sppks.showsppks', compact('sppk','attachments','sppkdetail','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
     }
 
     public function approveSppk(Request $request, $docid)

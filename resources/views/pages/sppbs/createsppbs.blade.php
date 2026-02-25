@@ -603,6 +603,8 @@
                                         <tr>
                                             <th class="border p-2">WO ID</th>
                                             <th class="border p-2">WO Date</th>
+                                            <th class="border p-2">Department</th>
+                                            <th class="border p-2">Budget Use</th>
                                             <th class="border p-2">Created By</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
                                         </tr>
@@ -1876,28 +1878,43 @@
 
             // Load COA from API
             function loadCoa() {
-                // $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
-                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
-                $.getJSON("{{ route('coa.byDept') }}", {
-                        cpnyid: coaState.cpnyid,
-                        deptid: coaState.deptid,
-                        perpost: coaState.perpost,
-                        business_unit_id: coaState.business_unit_id,
-                        search: coaState.search,
-                        page: coaState.page,
-                        per_page: coaState.per_page
-                    })
-                    .done(function(res) {
-                        if (res.message) {
-                            if (window.toastr) {
-                                toastr.warning(res.message);
-                            } else {
-                                alert(res.message);
-                            }
-                        }
 
+                $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
+
+                const woid = ($('#woid').val() || '').trim();
+
+                // Simpan ke state (opsional tapi rapi)
+                coaState.woid = woid;
+
+                // ===============================
+                // 🔥 Simple ternary version
+                // ===============================
+                const url = coaState.woid
+                    ? "{{ route('coa.byWo') }}"
+                    : "{{ route('coa.byDept') }}";
+
+                // Parameter dasar
+                let params = {
+                    search: coaState.search,
+                    page: coaState.page,
+                    per_page: coaState.per_page
+                };
+
+                // Tambah parameter sesuai mode
+                if (coaState.woid) {
+                    params.woid = coaState.woid;
+                } else {
+                    params.cpnyid = coaState.cpnyid;
+                    params.deptid = coaState.deptid;
+                    params.perpost = coaState.perpost;
+                    params.business_unit_id = coaState.business_unit_id;
+                }
+
+                $.getJSON(url, params)
+                    .done(function(res) {
 
                         const rows = (res.data || []).map(item => {
+
                             const id = item.account_id ?? '';
                             const actId = item.activity_id ?? '';
                             const buId = item.business_unit_id ?? '';
@@ -1906,49 +1923,46 @@
                             const available = formatNumber(item.availablebudget) ?? '';
                             const used = formatNumber(item.usedbudget) ?? '';
                             const remaining = formatNumber(item.remaining) ?? '';
-                            const label = id;
                             const accDescr = item.account_descr ?? '';
                             const act_Descr = item.act_descr ?? '';
 
                             return `
-                    <tr>
-                    <td class="border p-2">${id}</td>
-                    <td class="border p-2">${accDescr}</td>
-                    <td class="border p-2">${act_Descr}</td>
-                    <td class="border p-2">${actDescr}</td>
-                    <td class="border p-2">
-                        <div class="font-semibold">${remaining}</div>
-                        <div class=" text-sm  opacity-70">Available : ${available}</div>
-                        <div class=" text-sm  opacity-70">Used: ${used}</div>
-                    </td>
-                    <td class="border p-2 text-center">
-                        <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${id}"
-                        data-activity_id="${actId}"
-                        data-business_unit_id="${buId}"
-                        data-department_fin_id="${deptFinId}"
-                        data-activity_descr="${actDescr}"
-                        data-label="${$('<div>').text(label).html()}">
-                        Choose
-                        </button>
-                    </td>
-                    </tr>
-                `;
+                                <tr>
+                                    <td class="border p-2">${id}</td>
+                                    <td class="border p-2">${accDescr}</td>
+                                    <td class="border p-2">${act_Descr}</td>
+                                    <td class="border p-2">${actDescr}</td>
+                                    <td class="border p-2">
+                                        <div class="font-semibold">${remaining}</div>
+                                        <div class="text-sm opacity-70">Available : ${available}</div>
+                                        <div class="text-sm opacity-70">Used: ${used}</div>
+                                    </td>
+                                    <td class="border p-2 text-center">
+                                        <button type="button"
+                                            class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
+                                            data-id="${id}"
+                                            data-activity_id="${actId}"
+                                            data-business_unit_id="${buId}"
+                                            data-department_fin_id="${deptFinId}"
+                                            data-activity_descr="${actDescr}"
+                                            data-label="${$('<div>').text(id).html()}">
+                                            Choose
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
                         }).join('');
 
-
-                        $coaTbody.html(rows || '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
                         coaState.total = res.total || 0;
-                        $coaCount.text(`Showing ${rows ? (res.data.length) : 0} of ${coaState.total} items`);
+                        $coaCount.text(`Showing ${(res.data || []).length} of ${coaState.total} items`);
 
                         const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
                         $('#coaPrev').prop('disabled', coaState.page <= 1);
                         $('#coaNext').prop('disabled', coaState.page >= maxPage);
                     })
                     .fail(function() {
-                        $coaTbody.html(
-                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                        );
+                        $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -2406,7 +2420,7 @@
 
             // Load WO dari API
             function loadWo() {
-                $woTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $woTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
                 // $.getJSON("{{ route('wos.ajax.completed-wo') }}", {
                 $.getJSON("{{ route('wos.ajax.index') }}", {
                         cpnyid: woState.cpnyid,
@@ -2420,12 +2434,16 @@
                         const rowsArr = (res.data || []).map(item => {
                             const woid = item.woid ?? '';
                             const wodate = item.wodate ?? '';
+                            const department_id = item.department_id ?? '';
+                            const budget_use = item.budget_use ?? item.budgetuse ?? '';
                             const created_by = item.created_by ?? '';
 
                             return `
                                 <tr>
                                     <td class="border p-2">${woid}</td>
                                     <td class="border p-2">${wodate}</td>
+                                    <td class="border p-2">${department_id}</td>
+                                    <td class="border p-2">${budget_use}</td>
                                     <td class="border p-2">${created_by}</td>
                                     <td class="border p-2 text-center">
                                         <button type="button"
@@ -2440,7 +2458,7 @@
 
                         const rowsHtml = rowsArr.join('');
                         $woTbody.html(rowsHtml ||
-                            '<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                            '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
 
                         woState.total = res.total || 0;
                         const showing = rowsArr.length;
@@ -2452,7 +2470,7 @@
                     })
                     .fail(function() {
                         $woTbody.html(
-                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
                         );
                         $woCount.text('');
                         $('#woPrev, #woNext').prop('disabled', true);

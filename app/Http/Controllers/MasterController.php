@@ -774,6 +774,7 @@ class MasterController extends Controller
 
     public function CoaBudget(Request $request)
     {
+        // dd('by deptid');
         // dd($request->all());
         $user = Auth::user();
 
@@ -1238,9 +1239,225 @@ class MasterController extends Controller
             'per_page' => $perPage,
         ]);
     }
-
-
+    
     public function CoaBudgetWo(Request $request)
+    {
+        $woid    = trim((string) $request->get('woid', ''));
+        $search  = trim((string) $request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        if ($woid === '') {
+            return response()->json(['message' => 'WOID is required.'], 422);
+        }
+
+        // =========================================================
+        // 1) Ambil WO + join COA + join Activity (buat descr)
+        // =========================================================
+        $wo = TrWO::query()
+            ->from('tr_wo as w')
+            ->leftJoin('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'w.budget_account_id')
+                ->on('c.cpny_id', '=', 'w.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'w.budget_activity_id')
+                ->on('a.cpny_id', '=', 'w.cpny_id');
+            })
+            ->where('w.woid', $woid)
+            ->first([
+                'w.woid',
+                'w.cpny_id',
+                'w.department_id',
+                'w.pic_department',
+                'w.worktypeid',
+                'w.budget_perpost',
+                'w.budget_use',
+
+                'w.budget_account_id',
+                'w.budget_activity_id',
+                'w.budget_activity_descr',
+                'w.budget_business_unit_id',
+                'w.budget_department_fin_id',
+
+                'c.account_descr as account_descr',
+                'a.activity_descr as act_descr',
+            ]);
+
+        if (!$wo) {
+            return response()->json(['message' => 'WO not found.'], 404);
+        }
+
+        $meta = [
+            'woid'       => $wo->woid,
+            'cpnyid'     => $wo->cpny_id,
+            'deptid'     => $wo->department_id,
+            'perpost'    => $wo->budget_perpost,
+            'budget_use' => $wo->budget_use,
+        ];
+
+        $budgetUse = strtoupper(trim((string) ($wo->budget_use ?? '')));
+
+        // =========================================================
+        // 2) PEMBERI KERJA -> ambil dari TrWO (single row)
+        // =========================================================
+        if ($budgetUse === 'PEMBERI KERJA') {
+
+            $row = (object) [
+                'account_id'        => $wo->budget_account_id,
+                'account_descr'     => $wo->account_descr,
+                'activity_id'       => $wo->budget_activity_id,
+                'activity_descr'    => $wo->budget_activity_descr,
+                'act_descr'         => $wo->act_descr,
+                'business_unit_id'  => $wo->budget_business_unit_id,
+                'department_fin_id' => $wo->budget_department_fin_id,
+
+                // ✅ samakan output budget seperti CoaBudget()
+                'totalbudget'      => 0,
+                'totalbudget_add'  => 0,
+                'total_reserve'    => 0,
+                'total_used'       => 0,
+                'availablebudget'  => 0,
+                'usedbudget'       => 0,
+                'remaining'        => 0,
+            ];
+
+            // search sederhana untuk 1 row
+            if ($search !== '') {
+                $haystack = implode(' ', array_map('strval', [
+                    $row->account_id,
+                    $row->account_descr,
+                    $row->activity_id,
+                    $row->activity_descr,
+                    $row->act_descr,
+                    $row->business_unit_id,
+                    $row->department_fin_id,
+                ]));
+
+                if (stripos($haystack, $search) === false) {
+                    return response()->json([
+                        'meta'     => $meta,
+                        'data'     => [],
+                        'total'    => 0,
+                        'page'     => $page,
+                        'per_page' => $perPage,
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [$row],
+                'total'    => 1,
+                'page'     => 1,
+                'per_page' => $perPage,
+            ]);
+        }
+
+        // =========================================================
+        // 3) Selain PEMBERI KERJA -> Ambil dari ms_budget (mapping worktype -> dept)
+        // =========================================================
+        $perpost = $wo->budget_perpost;
+
+        $deptFinList = MsWorktypeDept::query()
+            ->where('worktypeid', $wo->worktypeid)
+            ->where('status', 'A')
+            ->pluck('department_id')
+            ->toArray();
+
+        if (empty($deptFinList)) {
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'message'  => "Mapping Worktype {$wo->worktypeid} ke Department tidak ditemukan.",
+            ]);
+        }
+
+        // ✅ cek budget header (minimal ada 1 yang completed)
+        $budgetExists = Budget::query()
+            ->where('status', 'C')
+            ->where('cpny_id', $wo->cpny_id)
+            ->whereIn('department_fin_id', $deptFinList)
+            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+            ->exists();
+
+        if (!$budgetExists) {
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'message'  => "Budget belum tersedia/Completed untuk Company {$wo->cpny_id}, Worktype {$wo->worktypeid}, Perpost {$perpost}.",
+            ]);
+        }
+
+        $q = BudgetDetail::query()
+            ->from('ms_budget as b')
+            ->join('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'b.account_id')
+                ->on('c.cpny_id', '=', 'b.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'b.activity_id')
+                ->on('a.cpny_id', '=', 'b.cpny_id');
+            })
+            ->where('b.cpny_id', $wo->cpny_id)
+            ->whereIn('b.department_fin_id', $deptFinList)
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+
+        if ($search !== '') {
+            $q->where(function ($w) use ($search) {
+                $w->where('b.account_id', 'ilike', "%{$search}%")
+                ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                ->orWhere('b.activity_id', 'ilike', "%{$search}%")
+                ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
+                ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
+                ->orWhereRaw(
+                    "(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?",
+                    ["%{$search}%"]
+                );
+            });
+        }
+
+        $total = (clone $q)->count();
+
+        $rows = $q->orderBy('a.activity_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'b.account_id',
+                'c.account_descr',
+                'b.activity_id',
+                'b.activity_descr as activity_descr',
+                'a.activity_descr as act_descr',
+                'b.business_unit_id',
+                'b.department_fin_id',
+
+                // ✅ samakan kolom budget seperti CoaBudget()
+                DB::raw("COALESCE(b.totalbudget,0)      as totalbudget"),
+                DB::raw("COALESCE(b.totalbudget_add,0)  as totalbudget_add"),
+                DB::raw("COALESCE(b.total_reserve,0)    as total_reserve"),
+                DB::raw("COALESCE(b.total_used,0)       as total_used"),
+                DB::raw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) as availablebudget"),
+                DB::raw("(COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))   as usedbudget"),
+                DB::raw("((COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) - (COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))) as remaining"),
+            ]);
+
+        return response()->json([
+            'meta'     => $meta,
+            'data'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+
+    public function CoaBudgetWo_zzz(Request $request)
     {
         // dd('by wo');
         // dd($request->all());
@@ -1304,7 +1521,8 @@ class MasterController extends Controller
         // =========================================================
         // 2) INTERNAL -> ambil dari TrWO (single row)
         // =========================================================
-        if ($budgetUse === 'Pemberi Kerja') {
+        // dd("budgetUse: ", $budgetUse);
+        if ($budgetUse === 'PEMBERI KERJA') {
             $row = (object) [
                 'account_id'        => $wo->budget_account_id,
                 'account_descr'     => $wo->account_descr,                 // ✅ dari ms_coa
@@ -1355,7 +1573,7 @@ class MasterController extends Controller
             //     ->where('department_id', $wo->pic_department)  
             //     ->where('status', 'A')          
             //     ->first(['department_fin_id']);
-            
+            // dd($wo->worktypeid);
             // $deptFin = $msdepartment->department_fin_id;
             $deptFinList = MsWorktypeDept::query()
                 ->where('worktypeid', $wo->worktypeid)
@@ -1373,10 +1591,11 @@ class MasterController extends Controller
             //     ->first();
             $budget = Budget::query()
                 ->where('status', 'C')
-                ->where('cpny_id', $cpnyid)
+                ->where('cpny_id', $wo->cpny_id)
                 ->whereIn('department_fin_id', $deptFinList)   // ✅ berubah jadi whereIn
                 ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-                ->first();
+                ->get();
+                // dd("Budget: ", $budget);
 
             if (!$budget) {
                 return response()->json([
@@ -1401,7 +1620,7 @@ class MasterController extends Controller
                     ->on('a.cpny_id', '=', 'b.cpny_id');
                 })
                 // ->where('b.budget_id', $budget->budget_id)
-                ->where('b.cpny_id', $cpnyid)
+                ->where('b.cpny_id', $wo->cpny_id)
                 // ->where('b.department_fin_id', $deptFin)
                 ->whereIn('department_fin_id', $deptFinList)
                 ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
@@ -1928,10 +2147,11 @@ class MasterController extends Controller
 
     public function getWoComplated(Request $request)
     {
-        // $status        = $request->input('status', 'C');
+        // dd($request->all());
         $worktypeid    = trim($request->input('worktypeid', ''));
         $subworktypeid = trim($request->input('subworktypeid', ''));
         $departmentid  = trim($request->input('departmentid', ''));
+        $cpnyid  = trim($request->input('cpnyid', ''));
         $search        = trim($request->input('search', ''));
         $page          = max((int) $request->input('page', 1), 1);
         $perPage       = min(max((int) $request->input('per_page', 10), 1), 100);
@@ -1940,18 +2160,16 @@ class MasterController extends Controller
             ->select([
                 'woid',
                 'wodate',
+                'budget_use',       // ✅ tambah ini
                 'created_by',
                 'department_id',
                 'worktypeid',
                 'keperluan',
-                'location_id',       // ✅ tambah
-                'sub_location_id',   // ✅ tambah
+                'location_id',
+                'sub_location_id',
             ])
+            ->where('cpny_id', $cpnyid)
             ->whereIn('status', ['C','P']);
-            // ->where('flag_sppbjkt', true)
-            // ->where('status', $status)
-            // ->where('status_pekerjaan', 'P')
-            // ->where('pic_department', $departmentid);
 
         if ($worktypeid !== '') {
             $query->where('worktypeid', $worktypeid);
@@ -1966,7 +2184,8 @@ class MasterController extends Controller
                 ->orWhere('created_by', 'ILIKE', "%{$search}%")
                 ->orWhere('department_id', 'ILIKE', "%{$search}%")
                 ->orWhereRaw("CAST(wodate AS TEXT) ILIKE ?", ["%{$search}%"])
-                ->orWhere('keperluan', 'ILIKE', "%{$search}%");
+                ->orWhere('keperluan', 'ILIKE', "%{$search}%")
+                ->orWhere('budget_use', 'ILIKE', "%{$search}%"); // ✅ optional biar bisa search
             });
         }
 
@@ -2088,6 +2307,149 @@ class MasterController extends Controller
     }
 
     public function updateCoa(Request $request)
+    {
+        $rows    = $request->input('rows', []);
+        $docType = strtolower($request->input('doc_type', ''));
+
+        if (!is_array($rows) || empty($rows)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No rows data provided.',
+            ], 422);
+        }
+
+        $modelMap = [
+            'pb' => TrSPPBdetail::class,
+            'pj' => TrSPPJdetail::class,
+            'pk' => TrSPPKdetail::class,
+            'pt' => TrSPPTdetail::class,
+            'rb' => TrSPBdetail::class,
+        ];
+
+        if (!isset($modelMap[$docType])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid document type.',
+            ], 422);
+        }
+
+        $detailModel = $modelMap[$docType];
+
+        $user     = Auth::user();
+        $username = $user->username ?? 'system';
+
+        try {
+            DB::transaction(function () use ($rows, $username, $detailModel) {
+
+                foreach ($rows as $row) {
+                    $id  = $row['id'] ?? null;
+                    if (!$id) continue;
+
+                    $detail = $detailModel::find($id);
+                    if (!$detail) continue;
+
+                    // input dari picker
+                    $acc           = isset($row['budget_account_id']) ? trim((string)$row['budget_account_id']) : null;
+                    $activityDescr = isset($row['budget_activity_descr']) ? trim((string)$row['budget_activity_descr']) : null;
+                    $pickedActId   = isset($row['budget_activity_id']) ? trim((string)$row['budget_activity_id']) : null;
+                    $pickedBuId    = isset($row['budget_business_unit_id']) ? trim((string)$row['budget_business_unit_id']) : null;
+                    $pickedDeptFin = isset($row['budget_department_fin_id']) ? trim((string)$row['budget_department_fin_id']) : null;
+
+                    // ambil cpny/perpost dari row existing (tetap)
+                    $cpnyId   = $detail->budget_cpny_id ?? $detail->cpny_id ?? null;
+                    $perpost  = $detail->budget_perpost ?? $detail->perpost ?? null;
+
+                    // deptFin & BU: kalau dikirim dari picker, pakai itu; kalau tidak, fallback existing
+                    $deptFinId = $pickedDeptFin ?: (
+                        $detail->budget_department_fin_id
+                        ?? $detail->department_fin_id
+                        ?? $detail->budget_depatment_fin_id
+                        ?? null
+                    );
+
+                    $buId = $pickedBuId ?: ($detail->budget_business_unit_id ?? null);
+
+                    // =========================
+                    // UPDATE FIELD UTAMA
+                    // =========================
+                    if (!empty($acc)) {
+                        $detail->budget_account_id = $acc;
+                    }
+                    if (!empty($buId)) {
+                        $detail->budget_business_unit_id = $buId;
+                    }
+                    if (!empty($deptFinId)) {
+                        $detail->budget_department_fin_id = $deptFinId;
+                    }
+
+                    // =========================
+                    // CARI BudgetDetail YANG TEPAT
+                    // KUNCI UTAMA: activity_descr (karena activity_id tidak unik)
+                    // =========================
+                    $bd = null;
+
+                    if (!empty($acc) && !empty($cpnyId) && !empty($deptFinId) && !empty($perpost) && !empty($activityDescr)) {
+
+                        $bdQuery = BudgetDetail::query()
+                            ->where('cpny_id', $cpnyId)
+                            ->where('department_fin_id', $deptFinId)
+                            ->where('perpost', $perpost)
+                            ->where('account_id', $acc);
+
+                        if (!empty($buId)) {
+                            $bdQuery->where('business_unit_id', $buId);
+                        }
+
+                        // ✅ DISAMBIGUASI:
+                        // - activity_id boleh sama → JANGAN pakai sendirian
+                        // - activity_descr dipakai untuk pilih baris yang benar
+                        if (!empty($pickedActId)) {
+                            $bdQuery->where('activity_id', $pickedActId);
+                        }
+
+                        // PostgreSQL case-insensitive exact match
+                        $bdQuery->whereRaw('lower(activity_descr) = lower(?)', [$activityDescr]);
+
+                        $bd = $bdQuery->first();
+                    }
+
+                    // =========================
+                    // SET activity hasil akhir
+                    // =========================
+                    if ($bd) {
+                        // pakai yang valid dari budget_detail
+                        $detail->budget_activity_id    = $bd->activity_id;
+                        $detail->budget_activity_descr = $bd->activity_descr;
+                    } else {
+                        // fallback: simpan pilihan user apa adanya (tetap konsisten dengan yg dipilih)
+                        if (!empty($pickedActId)) {
+                            $detail->budget_activity_id = $pickedActId;
+                        }
+                        if (!empty($activityDescr)) {
+                            $detail->budget_activity_descr = $activityDescr;
+                        }
+                    }
+
+                    $detail->updated_by = $username;
+                    $detail->updated_at = now();
+                    $detail->save();
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'COA updated successfully.',
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update COA: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateCoa_xxx(Request $request)
     {        
         $rows     = $request->input('rows', []);
         $docType  = strtolower($request->input('doc_type', '')); // sppb/sppj/sppk/sppt/spb/cs dll

@@ -365,15 +365,17 @@
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                     <h2 class="text-base font-semibold">📝 SPPK Detail</h2>
                     {{-- Button Edit COA --}}
-                    <button id="btnEditCoa"
-                        class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                        </svg>
-                        Edit COA
-                    </button>
+                     @if ($akses_cc)
+                        <button id="btnEditCoa"
+                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                            </svg>
+                            Edit COA
+                        </button>
+                    @endif
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
@@ -427,98 +429,229 @@
                 </div>
             </div>
 
-            {{-- Modal Edit COA --}}
-            <div id="editCoaModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-                <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
-                    {{-- Header modal --}}
-                    <div
-                        class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                            Edit COA
-                        </h3>
-                        <button id="btnCloseEditCoa"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">
-                            ✕
-                        </button>
-                    </div>
+              {{-- Modal Edit COA --}}
+                <div id="editCoaModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+                    <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
+                        {{-- Header modal --}}
+                        <div
+                            class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                Edit COA
+                            </h3>
+                            <button id="btnCloseEditCoa"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">
+                                ✕
+                            </button>
+                        </div>
 
-                    {{-- Body modal: table --}}
-                    <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
-                        <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
-                            <thead
-                                class="bg-gray-100 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                <tr>
-                                    <th class="w-64 px-3 py-2 text-left">
-                                        Inventory Descr / Note
-                                    </th>
-                                    <th class="w-24 px-3 py-2 text-center">
-                                        Qty / UOM
-                                    </th>
-                                    <th class="w-32 px-3 py-2 text-left">
-                                        Activity Descr
-                                    </th>
-                                    <th class="w-40 px-3 py-2 text-left">
-                                        Change COA - Activity Descr
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="editCoaTableBody">
-                                @foreach ($sppkdetail as $row)
-                                    <tr data-row-id="{{ $row->id }}" data-cpny="{{ $row->budget_cpny_id }}"
-                                        data-dept="{{ $row->budget_department_fin_id }}"
-                                        data-perpost="{{ $row->budget_perpost }}">
-
-                                        <td>{{ $row->inventory_descr }}<br>
-                                            <span class="text-sm text-gray-500">Note : {{ $row->note }}</span><br>
-                                            <span class="text-sm text-gray-500">Location :
-                                                {{ optional($row->location)->location_name }} -
-                                                {{ optional($row->subLocation)->sub_location_name }}</span>
-                                        </td>
-
-                                        <td class="text-center">
-                                            {{ number_format($row->qty, 2, ',', '.') }} <br>
-                                            <span class="text-sm text-gray-500">{{ $row->uom }}</span>
-                                        </td>
-
-                                        <td>{{ $row->budget_activity_descr }}</td>
-
-                                        <td>
-                                            <select class="coa-select w-full" data-row-id="{{ $row->id }}">
-                                                @if ($row->budget_account_id)
-                                                    <option value="{{ $row->budget_account_id }}" selected>
-                                                        {{ $row->budget_account_id }} -
-                                                        {{ $row->budget_activity_descr }}
-                                                    </option>
-                                                @endif
-                                            </select>
-                                        </td>
-                                        {{-- <td>
-                                                <select class="coa-select w-full"
-                                                        data-row-id="{{ $row->id }}">
-                                                </select>
-                                            </td> --}}
-
+                        {{-- Body modal: table --}}
+                        <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
+                            <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
+                                <thead
+                                    class="bg-gray-100 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    <tr>
+                                        <th class="w-64 px-3 py-2 text-left">
+                                            Inventory Descr / Note
+                                        </th>
+                                        <th class="w-24 px-3 py-2 text-center">
+                                            Qty / UOM
+                                        </th>
+                                        <th class="w-32 px-3 py-2 text-left">
+                                            Activity Descr
+                                        </th>
+                                        <th class="w-40 px-3 py-2 text-left">
+                                            Change COA - Activity Descr
+                                        </th>
                                     </tr>
-                                @endforeach
-                            </tbody>
+                                </thead>
+                                <tbody id="editCoaTableBody">
+                                    @foreach ($sppkdetail as $row)
+                                        <tr
+                                            data-row-id="{{ $row->id }}"
+                                            data-cpny="{{ $row->budget_cpny_id }}"
+                                            data-bu="{{ $row->budget_business_unit_id }}"
+                                            data-deptfin="{{ $row->budget_department_fin_id }}"
+                                            data-dept="{{ $row->budget_department_fin_id }}"
+                                            data-perpost="{{ $row->budget_perpost }}"
+                                            >
 
-                        </table>
-                    </div>
+                                            <td>{{ $row->inventory_descr }}<br>
+                                                <span class="text-sm text-gray-500">Note : {{ $row->note }}</span><br>
+                                                <span class="text-sm text-gray-500">Location :
+                                                    {{ optional($row->location)->location_name }} -
+                                                    {{ optional($row->subLocation)->sub_location_name }}</span>
+                                            </td>
 
-                    {{-- Footer modal --}}
-                    <div
-                        class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
-                        <button id="btnCancelEditCoa"
-                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                            Cancel
-                        </button>
-                        <button id="btnSaveEditCoa"
-                            class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            Save
-                        </button>
+                                            <td class="text-center">
+                                                {{ number_format($row->qty, 2, ',', '.') }} <br>
+                                                <span class="text-sm text-gray-500">{{ $row->uom }}</span>
+                                            </td>
+
+                                            <td>{{ $row->budget_activity_descr }}</td>
+
+                                            {{-- <td>
+                                                <select class="coa-select w-full" data-row-id="{{ $row->id }}">
+                                                    @if ($row->budget_account_id)
+                                                        <option value="{{ $row->budget_account_id }}" selected>
+                                                            {{ $row->budget_account_id }} -
+                                                            {{ $row->budget_activity_descr }}
+                                                        </option>
+                                                    @endif
+                                                </select>
+                                            </td>                                       --}}
+                                            <td class="space-y-2">
+                                                <div class="flex items-center justify-between gap-2">
+                                                    <div class="text-xs text-gray-600 dark:text-gray-300">
+                                                        <div>
+                                                            <span class="font-semibold">Selected:</span>
+                                                            <span class="picked-coa-text">
+                                                                @if ($row->budget_account_id)
+                                                                    {{ $row->budget_account_id }} - {{ $row->budget_activity_descr }}
+                                                                @else
+                                                                    -
+                                                                @endif
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <button type="button"
+                                                        class="btnPickCoa inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                                                        data-row-id="{{ $row->id }}">
+                                                        Pick COA
+                                                    </button>
+                                                </div>
+
+                                                {{-- nilai baru hasil pick (untuk payload save) --}}
+                                                <input type="hidden" class="picked_account_id" value="">
+                                                <input type="hidden" class="picked_activity_descr" value="">
+
+                                                {{-- optional: simpan juga activity_id kalau butuh --}}
+                                                <input type="hidden" class="picked_activity_id" value="">
+                                                <input type="hidden" class="picked_business_unit_id" value="">
+                                                <input type="hidden" class="picked_department_fin_id" value="">
+                                            </td>
+
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+
+                            </table>
+                        </div>
+
+                        {{-- Footer modal --}}
+                        <div
+                            class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+                            <button id="btnCancelEditCoa"
+                                class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                Cancel
+                            </button>
+                            <button id="btnSaveEditCoa"
+                                class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                Save
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                {{-- Modal COA Picker --}}
+                <div id="coaPickerModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50">
+                    <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Pick COA</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-300">
+                                    Filter: Company, Business Unit, Dept Fin → lalu pilih COA.
+                                </p>
+                            </div>
+                            <button id="btnCloseCoaPicker"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">✕</button>
+                        </div>
+
+                        {{-- Filters --}}
+                        <div class="grid grid-cols-1 gap-3 border-b border-gray-200 p-4 sm:grid-cols-4 dark:border-gray-700">
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Company</label>
+                                <select id="fCpny" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                                    <option value="">-- pilih --</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Business Unit</label>
+                                <select id="fBu" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                                    <option value="">-- pilih --</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Department Fin</label>
+                                <select id="fDeptFin" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                                    <option value="">-- pilih --</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Search</label>
+                                <input id="fSearch" type="text" placeholder="account / activity..."
+                                    class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700" />
+                            </div>
+
+                            <div class="sm:col-span-4 flex items-center justify-between gap-2">
+                                <div class="text-xs text-gray-500 dark:text-gray-300">
+                                    <span id="coaPickerInfo">0 rows</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button id="btnCoaPickerApply"
+                                        class="rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
+                                        Apply
+                                    </button>
+                                    <button id="btnCoaPickerReset"
+                                        class="rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Table --}}
+                        <div class="max-h-[60vh] overflow-y-auto p-4">
+                            <table class="w-full text-sm">
+                                <thead class="sticky top-0 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                    <tr>
+                                        <th class="p-2 text-left">Account</th>
+                                        <th class="p-2 text-left">Account Descr</th>
+                                        <th class="p-2 text-left">Activity</th>
+                                        <th class="p-2 text-left">Activity Descr</th>
+                                        <th class="p-2 text-left">BU</th>
+                                        <th class="p-2 text-left">DeptFin</th>
+                                        <th class="p-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="coaPickerTbody">
+                                    <tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Footer paging --}}
+                        <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+                            <div class="text-xs text-gray-500 dark:text-gray-300">
+                                Page: <span id="coaPickerPage">1</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="coaPickerPrev"
+                                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    Prev
+                                </button>
+                                <button id="coaPickerNext"
+                                    class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
         </div>
     </div>
@@ -878,35 +1011,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    {{-- <script>
-        function checkApproval(sppkid, action) {
-            console.log(sppkid, '-', action);
-            $.ajax({
-                url: `/sppk/${sppkid}/check-approval/${action}`,
-                type: "GET",
-                success: function(response) {
-                    if (response.canPerformAction) {
-                        // Jika user bisa melakukan aksi, tampilkan modal atau langsung proses approval
-                        if (action === "reject") {
-                            $("#rejectReason").val(""); // Reset alasan reject
-                            $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                        } else if (action === "revise") {
-                            $("#reviseReason").val(""); // Reset alasan revise
-                            $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                            // } else if (action === "approve") {
-                            //     approveSPPK(sppkid); // Jika approve, langsung jalankan proses approval
-                        }
-                    } else {
-                        // Jika user tidak boleh melakukan aksi, tampilkan popup toastr
-                        toastr.error("You are not authorized to " + action + " this sppk.");
-                    }
-                },
-                error: function() {
-                    toastr.error("Error checking approval status.");
-                }
-            });
-        }
-    </script> --}}
+   
 
     <script>
         function checkApproval(sppkid, action) {
@@ -1110,6 +1215,20 @@
         }
     </script>
 
+    
+    <script>
+        function closeOrRedirect(fallbackUrl = '/sppks') {
+            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
+            window.close();
+
+            // fallback kalau browser blok close
+            setTimeout(() => {
+                // kalau masih belum tertutup, redirect saja
+                window.location.href = fallbackUrl;
+            }, 300);
+        }
+    </script>
+
     <script>
         $(function() {
             const $modal = $('#editCoaModal');
@@ -1249,25 +1368,22 @@
                 $('#editCoaTableBody tr').each(function() {
                     const $tr = $(this);
                     const rowId = $tr.data('row-id');
-                    const $select = $tr.find('.coa-select');
 
-                    // Data terpilih dari Select2
-                    const selected = $select.select2('data')[0] || null;
-                    console.log('[Edit COA] row', rowId, 'selected =>', selected); // DEBUG
+                    const accountId     = $tr.find('.picked_account_id').val();
+                    const activityDescr = $tr.find('.picked_activity_descr').val();
+                    const activityId    = $tr.find('.picked_activity_id').val();
+                    const buid          = $tr.find('.picked_business_unit_id').val();
+                    const deptFin       = $tr.find('.picked_department_fin_id').val();
 
-                    // Kalau user tidak pilih apa-apa untuk row ini, SKIP (biarkan pakai COA lama)
-                    if (!selected || !selected.account_id) {
-                        console.log('[Edit COA] row', rowId, 'SKIP (tidak ada pilihan baru)');
-                        return; // lanjut ke row berikutnya
-                    }
-
-                    const accountId = selected.account_id; // dari BudgetDetail
-                    const activityDescr = selected.activity_descr; // dari BudgetDetail
+                    if (!accountId) return; // belum pick, skip
 
                     payload.push({
                         id: rowId,
                         budget_account_id: accountId,
                         budget_activity_descr: activityDescr,
+                        budget_activity_id: activityId,
+                        budget_business_unit_id: buid,
+                        budget_department_fin_id: deptFin,
                     });
                 });
 
@@ -1279,7 +1395,7 @@
                 }
 
                 $.ajax({
-                    url: "{{ route('coa.update', $sppb->sppbid ?? ($sppb->id ?? null)) }}",
+                    url: "{{ route('coa.update', $sppk->sppkid ?? ($sppk->id ?? null)) }}",
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
@@ -1305,19 +1421,253 @@
             });
 
         });
+    </script>   
+
+    <script>
+        window.userAccess = {
+            cpny: @json($userCpny ?? []),
+            bu: @json($userBu ?? []),
+            deptFin: @json($userDeptFin ?? []),
+        };
     </script>
 
     <script>
-        function closeOrRedirect(fallbackUrl = '/sppks') {
-            // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
-            window.close();
+        $(function () {
+            const $editModal  = $('#editCoaModal');
+            const $picker     = $('#coaPickerModal');
 
-            // fallback kalau browser blok close
-            setTimeout(() => {
-                // kalau masih belum tertutup, redirect saja
-                window.location.href = fallbackUrl;
-            }, 300);
-        }
+            // endpoint list COA (fungsi editCoaBudget)
+            const pickUrl = "{{ route('editcoa.byDept') }}";
+
+            let pickerState = {
+                rowId: null,
+                page: 1,
+                per_page: 10,
+                total: 0,
+            };
+
+            function openPicker(rowId){
+                pickerState.rowId = rowId;
+                pickerState.page = 1;
+
+                // cari row yang diklik
+                const $tr = $('#editCoaTableBody tr').filter(function(){
+                    return $(this).data('row-id') == rowId;
+                });
+
+                const rowCpny   = ($tr.data('cpny') || '').toString();
+                const rowBu     = ($tr.data('bu') || '').toString();
+                const rowDeptFi = ($tr.data('deptfin') || $tr.data('dept') || '').toString();
+
+                $picker.removeClass('hidden').addClass('flex');
+
+                // isi dropdown dari akses user
+                fillAccessDropdowns();
+
+                // ✅ prefill Company
+                if (rowCpny) {
+                    $('#fCpny').val(rowCpny);
+                    refilterBuAndDept(); // penting: supaya BU list sesuai company
+                }
+
+                // ✅ prefill BU (setelah refilter)
+                if (rowBu) {
+                    $('#fBu').val(rowBu);
+                }
+
+                // ✅ optional: prefill DeptFin juga biar makin cepat
+                if (rowDeptFi) {
+                    $('#fDeptFin').val(rowDeptFi);
+                }
+
+                // reset table/info
+                $('#coaPickerTbody').html('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Klik Apply untuk load</td></tr>');
+                $('#coaPickerInfo').text('0 rows');
+                $('#coaPickerPage').text('1');
+
+                // ✅ kalau mau auto-load langsung tanpa klik Apply, uncomment:
+                // loadPickerData();
+            }
+
+            function closePicker(){
+                $picker.addClass('hidden').removeClass('flex');
+                pickerState.rowId = null;
+            }
+
+            function fillAccessDropdowns(){
+                const acc = window.userAccess || {cpny:[], bu:[], deptFin:[]};
+
+                const $cpny = $('#fCpny').empty().append('<option value="">-- pilih --</option>');
+                (acc.cpny || []).forEach(c => $cpny.append(`<option value="${c}">${c}</option>`));
+
+                // BU dan DeptFin akan di-refilter saat cpny berubah
+                refilterBuAndDept();
+            }
+
+            function refilterBuAndDept(){
+                const acc = window.userAccess || {cpny:[], bu:[], deptFin:[]};
+                const cpnySelected = $('#fCpny').val();
+
+                // BU by cpny
+                const $bu = $('#fBu').empty().append('<option value="">-- pilih --</option>');
+                (acc.bu || [])
+                    .filter(x => !cpnySelected || x.cpny_id === cpnySelected)
+                    .forEach(x => $bu.append(`<option value="${x.business_unit_id}">${x.business_unit_id}</option>`));
+
+                // DeptFin (tidak tergantung cpny di modelmu, jadi tampilkan semua uniq)
+                const uniqDeptFin = new Set();
+                (acc.deptFin || []).forEach(x => { if (x.department_fin_id) uniqDeptFin.add(x.department_fin_id); });
+
+                const $df = $('#fDeptFin').empty().append('<option value="">-- pilih --</option>');
+                Array.from(uniqDeptFin).sort().forEach(v => $df.append(`<option value="${v}">${v}</option>`));
+            }
+
+            function renderPickerRows(rows){
+                const $tb = $('#coaPickerTbody').empty();
+                if (!rows || !rows.length){
+                    $tb.append('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">No data</td></tr>');
+                    return;
+                }
+
+                rows.forEach(r => {
+                    $tb.append(`
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                            <td class="p-2">${escapeHtml(r.account_id ?? '')}</td>
+                            <td class="p-2">${escapeHtml(r.account_descr ?? '')}</td>
+                            <td class="p-2">${escapeHtml(r.activity_id ?? '')}</td>
+                            <td class="p-2">${escapeHtml(r.activity_descr ?? '')}</td>
+                            <td class="p-2">${escapeHtml(r.business_unit_id ?? '')}</td>
+                            <td class="p-2">${escapeHtml(r.department_fin_id ?? '')}</td>
+                            <td class="p-2 text-right">
+                                <button type="button"
+                                    class="btnPickThis rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                                    data-account="${escapeAttr(r.account_id ?? '')}"
+                                    data-activity_descr="${escapeAttr(r.activity_descr ?? '')}"
+                                    data-activity_id="${escapeAttr(r.activity_id ?? '')}"
+                                    data-bu="${escapeAttr(r.business_unit_id ?? '')}"          
+                                    data-deptfin="${escapeAttr(r.department_fin_id ?? '')}">   
+                                    Pilih
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+
+            function loadPickerData(){
+                const cpnyid  = $('#fCpny').val();
+                const buid    = $('#fBu').val();
+                const deptFin = $('#fDeptFin').val();
+                const search  = $('#fSearch').val();
+
+                if (!cpnyid || !deptFin || !buid){
+                    toastr.warning('Company, Business Unit, dan Department Fin wajib dipilih.');
+                    return;
+                }
+
+                $.ajax({
+                    url: pickUrl,
+                    method: 'GET',
+                    dataType: 'json',
+                    data: {
+                        cpnyid: cpnyid,
+                        deptid: deptFin,          // dept_fin_id (sesuai fungsi kamu)
+                        business_unit_id: buid,   // ✅ tambahkan ini di backend (lihat catatan bawah)
+                        search: search || '',
+                        page: pickerState.page,
+                        per_page: pickerState.per_page
+                    },
+                    success: function(res){
+                        pickerState.total = res.total || 0;
+                        $('#coaPickerInfo').text(`${pickerState.total} rows`);
+                        $('#coaPickerPage').text(pickerState.page);
+
+                        renderPickerRows(res.data || []);
+
+                        // paging enable/disable
+                        const more = (pickerState.page * (res.per_page || pickerState.per_page)) < (res.total || 0);
+                        $('#coaPickerNext').prop('disabled', !more);
+                        $('#coaPickerPrev').prop('disabled', pickerState.page <= 1);
+                    },
+                    error: function(xhr){
+                        toastr.error(xhr.responseJSON?.message || 'Failed to load COA.');
+                    }
+                });
+            }
+
+            // helpers
+            function escapeHtml(s){ return $('<div>').text(s ?? '').html(); }
+            function escapeAttr(s){ return String(s ?? '').replace(/"/g, '&quot;'); }
+
+            // ===== events =====
+            $(document).on('click', '.btnPickCoa', function(){
+                const rowId = $(this).data('row-id');
+                openPicker(rowId);
+            });
+
+            $(document).on('click', '#btnCloseCoaPicker', closePicker);
+
+            $(document).on('change', '#fCpny', function(){
+                refilterBuAndDept();
+            });
+
+            $(document).on('click', '#btnCoaPickerApply', function(){
+                pickerState.page = 1;
+                loadPickerData();
+            });
+
+            $(document).on('click', '#btnCoaPickerReset', function(){
+                $('#fCpny').val('');
+                $('#fBu').val('');
+                $('#fDeptFin').val('');
+                $('#fSearch').val('');
+                $('#coaPickerTbody').html('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>');
+                $('#coaPickerInfo').text('0 rows');
+                pickerState.page = 1;
+                $('#coaPickerPage').text('1');
+            });
+
+            $(document).on('click', '#coaPickerPrev', function(){
+                if (pickerState.page > 1){
+                    pickerState.page--;
+                    loadPickerData();
+                }
+            });
+
+            $(document).on('click', '#coaPickerNext', function(){
+                pickerState.page++;
+                loadPickerData();
+            });
+
+            // pilih COA -> set ke row edit
+            $(document).on('click', '.btnPickThis', function(){
+                const accountId     = $(this).data('account');
+                const activityDescr = $(this).data('activity_descr');
+                const activityId    = $(this).data('activity_id');
+
+                const buid          = $(this).data('bu');       // ✅ tambah
+                const deptFin       = $(this).data('deptfin');  // ✅ tambah
+
+                if (!pickerState.rowId) return;
+
+                const $tr = $('#editCoaTableBody tr').filter(function(){
+                    return $(this).data('row-id') == pickerState.rowId;
+                });
+
+                $tr.find('.picked_account_id').val(accountId);
+                $tr.find('.picked_activity_descr').val(activityDescr);
+                $tr.find('.picked_activity_id').val(activityId);
+
+                // ✅ set juga BU + DeptFin
+                $tr.find('.picked_business_unit_id').val(buid);
+                $tr.find('.picked_department_fin_id').val(deptFin);
+
+                $tr.find('.picked-coa-text').text(`${accountId} - ${activityDescr}`);
+
+                closePicker();
+            });
+
+        });
     </script>
 
 

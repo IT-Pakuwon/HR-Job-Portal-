@@ -39,6 +39,8 @@ use App\Models\TrReceipt;
 use App\Models\TrReceiptdetail;
 use App\Models\VTrackingSppbFlow;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\Userbusinessunit;
+use App\Models\Budget;
 
 
 class SppbController extends Controller
@@ -1235,18 +1237,8 @@ class SppbController extends Controller
         ])
         ->where('sppbid', $sppb->sppbid)
         ->orderby('sppb_no', 'ASC')
-        ->get();
-        
-        // $approval = T_approval::where('docid', $sppb->sppbid)
-        //     ->where('status','<>','X')      
-        //     ->orderBy('created_at')
-        //     ->orderBy('aprvid')      
-        //     ->get();
-       
-        // $attachment = Attachment::where('docid', $sppb->sppbid)    
-        //     ->where('status','A')        
-        //     ->get();    
-        
+        ->get();       
+              
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $sppb->sppbid)
             ->where('status', 'A')
@@ -1301,7 +1293,30 @@ class SppbController extends Controller
             ->where('role_id','COSTCTRLACCESS')
             ->first();
 
-        return view('pages.sppbs.showsppbs', compact('sppb','attachments','sppbdetail','hash','canUpload','akses_cc'));
+       
+        $userCpny = Usercpny::query()
+        ->where('username',$user->username)->where('status','A')
+        ->pluck('cpny_id')->values();
+
+        $userBu = Userbusinessunit::query()
+        ->where('username',$user->username)->where('status','A')
+        ->get(['cpny_id','business_unit_id']);
+
+        $userCpnyIds = Usercpny::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('cpny_id');
+
+        $userDeptFin = Budget::query()
+            ->whereIn('cpny_id', $userCpnyIds)
+            ->where('status', 'C')
+            ->whereNotNull('department_fin_id')
+            ->select('department_fin_id')
+            ->distinct()
+            ->orderBy('department_fin_id')
+            ->get();
+       
+        return view('pages.sppbs.showsppbs', compact('sppb','attachments','sppbdetail','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
     }
       
     public function approveSppb(Request $request, $docid)

@@ -290,30 +290,7 @@ class IMBudgetController extends Controller
         $approvalCtl->loadLines($doctype, $cpnyid, $departementid);
 
         DB::beginTransaction();
-        try {
-            // === autonbr & docid ===
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr($year, 2) . $month;   // YYMM
-            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+        try {         
 
             $auto = $this->nextAutonbr(
                 $doctype,
@@ -342,9 +319,7 @@ class IMBudgetController extends Controller
             $header->total_budget_requested   = 0;
             $header->status                   = 'H';
             $header->created_by               = $username;
-            $header->save();
-
-            
+            $header->save();            
 
             // === 2) AGREGASI DETAIL CS → GROUPING (amount_expense)
             $rowAmount = function ($d) use ($toFloat) : float {
@@ -422,12 +397,7 @@ class IMBudgetController extends Controller
                     ->when($deptfin, fn($q) => $q->where('department_fin_id', $deptfin))
                     ->when($account, fn($q) => $q->where('account_id', $account))
                     ->when($actdescr, fn($q) => $q->where('activity_descr', $actdescr))
-                    ->when($activity,fn($q) => $q->where('activity_id', $activity));
-
-                // $actdescr = trim((string)($actdescr ?? ''));
-                // if ($actdescr !== '') {
-                //     $q->where('activity_descr', $actdescr);
-                // }
+                    ->when($activity,fn($q) => $q->where('activity_id', $activity));               
 
                 $row = $q->first();
                 if (!$row) return 0.0;
@@ -510,42 +480,7 @@ class IMBudgetController extends Controller
             $header->total_budget_needed    = $sumNeeded;
             $header->save();
 
-
-            // === 5) Generate TrApproval NORMAL via ApprovalController ===
-            // $ctx = ['ignore_nominal' => true];
-
-            // [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-            //     $docid,
-            //     $doctype,
-            //     $cpnyid,
-            //     $departementid,
-            //     $username,
-            //     $ctx,
-            //     $dt
-            // );
-
-            // if ($firstApprovalUsernames) {
-            //     $header->completed_by = $firstApprovalUsernames;
-            //     $header->completed_at = $dt;
-            //     $header->save();
-            // }
-
-            $eid = Hashids::encode($header->id);
-            // === 6) Notifikasi approver pertama
-            // if ($linesCount > 0) {
-            //     $approvalCtl->notifyFirstApprover(
-            //         $docid,
-            //         $doctype,
-            //         $header->status,
-            //         'IMBudget',
-            //         url('/showimbudgets/' . $eid),
-            //         [
-            //             'info'      => $imbudgetnote,
-            //             'createdby' => $header->created_by,
-            //             'date'      => $dt->toDateTimeString(),
-            //         ]
-            //     );
-            // }
+            $eid = Hashids::encode($header->id);          
 
             $status     = $header->status;
             $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed','H'=>'On Hold','X'=>'Cancelled'];

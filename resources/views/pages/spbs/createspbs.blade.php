@@ -613,6 +613,7 @@
                                             <th class="border p-2">WO ID</th>
                                             <th class="border p-2">WO Date</th>
                                             <th class="border p-2">Department</th>
+                                            <th class="border p-2">Budget Use</th>
                                             <th class="border p-2">Worktype</th>
                                             <th class="border p-2">Created By</th>
                                             <th class="w-24 border p-2 text-center">Action</th>
@@ -1522,26 +1523,47 @@
                         const data = res.data || [];
                         coaState.total = Number(res.total || 0);
 
-                        const rows = data.map(item => `
+                        const rows = data.map(item => {
+                            const accId   = item.account_id ?? '';
+                            const accDesc = item.account_descr ?? '';
+                            const actDescrShort = item.act_descr ?? '';
+                            const actDescr = item.activity_descr ?? '';
+
+                            const available = formatNumber(item.availablebudget ?? item.available_budget ?? 0);
+                            const used      = formatNumber(item.usedbudget ?? item.used_budget ?? 0);
+
+                            // remaining bisa beda nama antar endpoint
+                            const remainingVal = item.remaining ?? item.remainingbudget ?? item.remaining_budget ?? item.totalbudget ?? 0;
+                            const remaining = formatNumber(remainingVal);
+
+                            return `
                                 <tr>
-                                    <td class="border p-2">${esc(item.account_id)}</td>
-                                    <td class="border p-2">${esc(item.account_descr)}</td>
-                                    <td class="border p-2">${esc(item.act_descr)}</td>
-                                    <td class="border p-2">${esc(item.activity_descr)}</td>
-                                    <td class="border p-2">${formatNumber(item.totalbudget)}</td>
+                                    <td class="border p-2">${esc(accId)}</td>
+                                    <td class="border p-2">${esc(accDesc)}</td>
+                                    <td class="border p-2">${esc(actDescrShort)}</td>
+                                    <td class="border p-2">${esc(actDescr)}</td>
+
+                                    <!-- ✅ Remaining / Available / Used -->
+                                    <td class="border p-2">
+                                        <div class="font-semibold">${remaining}</div>
+                                        <div class="text-sm opacity-70">Available : ${available}</div>
+                                        <div class="text-sm opacity-70">Used : ${used}</div>
+                                    </td>
+
                                     <td class="border p-2 text-center">
                                         <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                                            data-id="${esc(item.account_id)}"
+                                            data-id="${esc(accId)}"
                                             data-activity_id="${esc(item.activity_id)}"
                                             data-business_unit_id="${esc(item.business_unit_id)}"
                                             data-department_fin_id="${esc(item.department_fin_id)}"
                                             data-activity_descr="${esc(item.activity_descr)}"
-                                            data-label="${esc(item.account_id)}">
+                                            data-label="${esc(accId)}">
                                             Choose
                                         </button>
                                     </td>
                                 </tr>
-                            `).join('');
+                            `;
+                        }).join('');
 
                         $coaTbody.html(rows || '<tr><td colspan="6" class="p-3 text-center">No data</td></tr>');
                         $coaCount.text(`Showing ${data.length} of ${coaState.total} items`);
@@ -1551,9 +1573,7 @@
                         $('#coaNext').prop('disabled', coaState.page >= maxPage);
                     })
                     .fail(function() {
-                        $coaTbody.html(
-                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                        );
+                        $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -1872,31 +1892,63 @@
 
     <script>
         $(function() {
-            const $woModal = $('#woModal');
-            const $woTbody = $('#woTableBody');
-            const $woCount = $('#woCount');
-            const $woWtBadge = $('#woWtBadge'); // baru
-            const $woSwtBadge = $('#woSwtBadge'); // baru
+            const $woModal    = $('#woModal');
+            const $woTbody    = $('#woTableBody');
+            const $woCount    = $('#woCount');
+            const $woWtBadge  = $('#woWtBadge');
+            const $woSwtBadge = $('#woSwtBadge');
 
             let woState = {
                 search: '',
                 page: 1,
                 per_page: 10,
                 total: 0,
+
+                // filter WO
                 status: 'C',
-                worktypeid: null, // ganti: pakai worktypeid
-                subworktypeid: null, // ganti: pakai subworktypeid
+                worktypeid: '',
+                subworktypeid: '',
+
+                // ✅ WAJIB ADA ISI (dikirim ke backend)
+                cpnyid: '',
+                deptid: '',
+                perpost: '',
             };
 
-            function readJenisPekerjaanFromHeader() {
-                woState.worktypeid = $('#worktypeid').val() || '';
-                woState.subworktypeid = $('#subworktypeid').val() || '';
+            // ✅ ambil semua filter dari header (company/department/perpost + jenis pekerjaan)
+            function readWoFiltersFromHeader() {
+                woState.worktypeid    = ($('#worktypeid').val() || '').trim();
+                woState.subworktypeid = ($('#subworktypeid').val() || '').trim();
+
+                woState.cpnyid  = ($('select[name="cpnyid"]').val() || '').trim();
+                woState.deptid  = ($('select[name="departementid"]').val() || '').trim();
+                woState.perpost = ($('#perpost').val() || '').trim();
+
                 $woWtBadge.text(woState.worktypeid || '-');
                 $woSwtBadge.text(woState.subworktypeid || '-');
             }
 
             function openWoModal() {
-                readJenisPekerjaanFromHeader();
+                readWoFiltersFromHeader();
+
+                // optional guard biar ga request kosong
+                if (!woState.worktypeid || !woState.subworktypeid) {
+                    toastr.warning('Pilih Jenis Pekerjaan (Worktype & Subworktype) dulu.');
+                    return;
+                }
+                if (!woState.cpnyid) {
+                    toastr.warning('Pilih Company dulu.');
+                    return;
+                }
+                if (!woState.deptid) {
+                    toastr.warning('Pilih Department dulu.');
+                    return;
+                }
+                if (!woState.perpost) {
+                    toastr.warning('Pilih Perpost dulu.');
+                    return;
+                }
+
                 $woModal.removeClass('hidden').addClass('flex');
                 loadWo();
             }
@@ -1933,70 +1985,78 @@
                 }
             });
             $('#woNext').on('click', function() {
-                const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
+                const maxPage = Math.ceil((woState.total || 0) / (woState.per_page || 10)) || 1;
                 if (woState.page < maxPage) {
                     woState.page++;
                     loadWo();
                 }
             });
 
-            // === Load WO list (status='C'), FILTER by worktypeid & subworktypeid ===
             function loadWo() {
-                $woTbody.html('<tr><td colspan="5" class="p-3 text-center">Loading...</td></tr>');
+                // ✅ pastikan setiap load ambil ulang cpny/dept/perpost (kalau user ubah header tanpa tutup modal)
+                readWoFiltersFromHeader();
 
-                $.getJSON(
-                        `/wos/ajax/wos`, {
-                            status: woState.status, // 'C'
-                            worktypeid: woState.worktypeid || '', // <<— kirim worktypeid
-                            subworktypeid: woState.subworktypeid || '', // <<— kirim subworktypeid
-                            departmentid: ($('select[name="departementid"]').val() || '').trim(),
-                            search: woState.search,
-                            page: woState.page,
-                            per_page: woState.per_page
-                        }
-                    )
+                $woTbody.html('<tr><td colspan="7" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('wos.ajax.index') }}", {
+                        status: woState.status,
+                        worktypeid: woState.worktypeid,
+                        subworktypeid: woState.subworktypeid,
+
+                        // ini filter department WO (yang kamu sudah pakai)
+                        departmentid: (woState.deptid || ''),
+
+                        search: woState.search,
+                        page: woState.page,
+                        per_page: woState.per_page,
+
+                        // ✅ ini yang kamu minta: ikut dikirim dan ADA ISINYA
+                        cpnyid: woState.cpnyid,
+                        deptid: woState.deptid,
+                        perpost: woState.perpost,
+                    })
                     .done(function(res) {
-                        // Expected: { data: [{ woid, wodate, created_by, departement_id }], total, page, per_page }
-                        const rows = (res.data || []).map(it => {
-                        const woid = it.woid || '';
-                        const wodate = it.wodate || '';
-                        const created_by = it.created_by || '';
-                        const dept = it.departement_id || it.department_id || '';
-                        const worktype = it.worktypeid || '';
+                        const rowsHtml = (res.data || []).map(it => {
+                            const woid       = it.woid || '';
+                            const wodate     = it.wodate || '';
+                            const dept       = it.departement_id || it.department_id || '';
+                            const budget_use = it.budget_use || it.budgetuse || '';
+                            const worktype   = it.worktypeid || '';
+                            const created_by = it.created_by || '';
+                            const keperluan  = it.keperluan || it.work_description || it.description || '';
 
-                        // ✅ ambil keperluan/desc dari backend (sesuaikan key yang kamu kirim)
-                        const keperluan = it.keperluan || it.work_description || it.description || '';
+                            return `
+                                <tr>
+                                    <td class="border p-2">${woid}</td>
+                                    <td class="border p-2">${wodate}</td>
+                                    <td class="border p-2">${dept}</td>
+                                    <td class="border p-2 text-center">${budget_use}</td>
+                                    <td class="border p-2">${worktype}</td>
+                                    <td class="border p-2">${created_by}</td>
+                                    <td class="border p-2 text-center">
+                                        <button type="button"
+                                            class="chooseWo rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-woid="${$('<div>').text(woid).html()}"
+                                            data-keperluan="${$('<div>').text(keperluan).html()}">
+                                            Choose
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
 
-                        return `
-                            <tr>
-                                <td class="border p-2">${woid}</td>
-                                <td class="border p-2">${wodate}</td>
-                                <td class="border p-2">${dept}</td>
-                                <td class="border p-2">${worktype}</td>
-                                <td class="border p-2">${created_by}</td>
-                                <td class="border p-2 text-center">
-                                    <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
-                                        data-woid="${$('<div>').text(woid).html()}"
-                                        data-keperluan="${$('<div>').text(keperluan).html()}">
-                                        Choose
-                                    </button>
-                                </td>
-                            </tr>`;
-                    }).join('');
+                        $woTbody.html(rowsHtml || '<tr><td colspan="7" class="p-3 text-center">No data</td></tr>');
 
-
-                        $woTbody.html(rows || '<tr><td colspan="5" class="p-3 text-center">No data</td></tr>');
                         woState.total = res.total || 0;
-                        $woCount.text(`Showing ${rows ? (res.data.length) : 0} of ${woState.total} items`);
+                        const showing = (res.data || []).length;
+                        $woCount.text(`Showing ${showing} of ${woState.total} items`);
 
-                        const maxPage = Math.ceil((woState.total || 0) / woState.per_page) || 1;
-                        $('#woPrev').prop('disabled', woState.page <= 1);
-                        $('#woNext').prop('disabled', woState.page >= maxPage);
+                        const maxPage = Math.ceil((woState.total || 0) / (woState.per_page || 10)) || 1;
+                        $('#woPrev').prop('disabled', (woState.page || 1) <= 1);
+                        $('#woNext').prop('disabled', (woState.page || 1) >= maxPage);
                     })
                     .fail(function() {
-                        $woTbody.html(
-                            '<tr><td colspan="5" class="p-3 text-center text-red-600">Failed to load</td></tr>'
-                        );
+                        $woTbody.html('<tr><td colspan="7" class="p-3 text-center text-red-600">Failed to load</td></tr>');
                         $woCount.text('');
                         $('#woPrev, #woNext').prop('disabled', true);
                     });
@@ -2006,22 +2066,22 @@
             $(document).on('click', '.chooseWo', function() {
                 const woid = $(this).data('woid') || '';
                 const kep  = $(this).data('keperluan') || '';
+                const budgetUse = $(this).data('budget_use') || '';
+
+                if (budgetUse) {
+                    $('#budget_use').val(budgetUse).trigger('change');
+                }
 
                 $('#woid').val(woid).removeClass('is-invalid').next('.error-feedback').remove();
 
-                // ✅ auto isi keperluan
-                if (kep) {
-                    $('#keperluan').val(kep).trigger('input'); // trigger supaya error clear kalau ada
-                }
+                if (kep) $('#keperluan').val(kep).trigger('input');
 
                 closeWoModal();
             });
 
-
-            // jika user mengganti Jenis Pekerjaan dan modal WO sedang terbuka → refresh
-            $('#saveJenisPekerjaan').on('click', function() {
+            // kalau header berubah saat modal WO terbuka → refresh list
+            $('select[name="cpnyid"], select[name="departementid"], #perpost, #worktypeid, #subworktypeid').on('change', function() {
                 if ($woModal.is(':visible')) {
-                    readJenisPekerjaanFromHeader();
                     woState.page = 1;
                     loadWo();
                 }
