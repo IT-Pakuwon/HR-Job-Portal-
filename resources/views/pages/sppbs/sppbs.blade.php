@@ -304,70 +304,6 @@
         }
     </script>
 
-    {{-- <script>
-        // Scroll controls
-        (function() {
-            const scroller = document.getElementById('tlList');
-            document.getElementById('tlPrev')?.addEventListener('click', () =>
-                scroller.scrollBy({
-                    left: -300,
-                    behavior: 'smooth'
-                })
-            );
-            document.getElementById('tlNext')?.addEventListener('click', () =>
-                scroller.scrollBy({
-                    left: 300,
-                    behavior: 'smooth'
-                })
-            );
-        })();
-
-        // Open/Close modal
-        function openTrackingModal(docText) {
-            document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-            const modal = document.getElementById('trackingModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeTrackingModal() {
-            const modal = document.getElementById('trackingModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-        document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
-        document.getElementById('trackingModal').addEventListener('click', (e) => {
-            if (e.target.id === 'trackingModal') closeTrackingModal();
-        });
-
-
-        $(document).on('click', '.tracking-btn', function() {
-            const id = $(this).data('id');
-            const doc = $(this).data('doc') || '';
-
-            // Tampilkan modal dulu
-            openTrackingModal(doc);
-
-            $.ajax({
-                url: `/sppbs/${id}/tracking`,
-                method: 'GET',
-                dataType: 'json',
-                success: function(res) {
-                    // langsung pakai struktur dari controller
-                    renderTimeline(res.steps || []);
-                },
-                error: function(xhr) {
-                    renderTimeline([{
-                        title: 'Tracking',
-                        status: 'R',
-                        status_label: 'Failed to load tracking',
-                        by: xhr?.status ? `HTTP ${xhr.status}` : '',
-                        at: ''
-                    }]);
-                }
-            });
-        });
-    </script> --}}
     <script>
         function fmt2(val) {
             if (val === null || val === undefined || val === '') return '0.00';
@@ -509,43 +445,89 @@
                     if (el) el.innerHTML = '';
                 });
             }
-
-
-
+       
             function renderHeader(boxId, header, title) {
                 const box = document.getElementById(boxId);
                 if (!box) return;
 
                 if (!header) {
                     box.innerHTML = `
-                <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
-                ${esc(title)} not created yet.
-                </div>`;
+                        <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
+                            ${esc(title)} not created yet.
+                        </div>`;
                     return;
                 }
 
+                // ✅ HARUS DI DALAM renderHeader (biar scope benar)
+                const la = header.last_approval || null;
+
+                let lastApprovalHtml = '';
+                if (la) {
+                    const st = String(la.status || '').toUpperCase();
+                    const stText = st === 'P' ? 'Pending Approval' : (st === 'A' ? 'Approved' : st);
+
+                    const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
+                    const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null)
+                        ? `Lvl ${esc(la.aprv_leveling)}`
+                        : '';
+                    const dtb = la.date_before ? esc(la.date_before) : '';
+                    const dta = la.date_after ? esc(la.date_after) : '';
+
+                    lastApprovalHtml = `
+                        <div class="sm:col-span-2 mt-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-700/40 dark:bg-indigo-900/20">
+                            <div class="flex items-center justify-between">
+                                <div class="font-semibold text-indigo-700 dark:text-indigo-300">Last Approval</div>
+                                <div class="text-xs text-indigo-700/80 dark:text-indigo-300/80">
+                                    ${esc(stText)} ${lvl ? `• ${lvl}` : ''}
+                                </div>
+                            </div>
+                            <div class="mt-1 text-gray-700 dark:text-gray-200">
+                                <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
+                                ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
+                                ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
                 box.innerHTML = `
-            <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <div class="text-sm font-semibold text-gray-800 dark:text-white">${esc(title)} : ${esc(header.doc)}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-300">${esc(header.date || '')}</div>
+                    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-800 dark:text-white">
+                                    ${esc(title)} : ${esc(header.doc)}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-300">${esc(header.date || '')}</div>
+                            </div>
+                            ${statusLabel(header.status)}
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                            <div><span class="text-gray-500">Company:</span>
+                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
+                            </div>
+                            <div><span class="text-gray-500">Department:</span>
+                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
+                            </div>
+
+                            ${header.vendorname !== undefined
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
+                                : ''
+                            }
+
+                            ${header.keperluan !== undefined
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
+                                : ''
+                            }
+                        </div>
+
+                        ${lastApprovalHtml}
                     </div>
-                    ${statusLabel(header.status)}
-                </div>
-
-                <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                    <div><span class="text-gray-500">Company:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span></div>
-                    <div><span class="text-gray-500">Department:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span></div>
-
-                    ${header.vendorname !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>` : ''}
-                    ${header.keperluan !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>` : ''}
-
-
-                </div>
-            </div>`;
+                `;
             }
-
+          
             // ---------- Detail renderers ----------
             function renderDetailSppb(rows) {
                 if (!Array.isArray(rows) || rows.length === 0)
@@ -587,9 +569,7 @@
                 <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
                 <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
                 <td class="px-3 py-2">${esc(r.uom)}</td>
-
-                <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.vendorprice_selected)}</td>
+                <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>               
                 </tr>
             `).join('');
 
@@ -602,8 +582,7 @@
                         <th class="px-3 py-2 text-left">Description</th>
                         <th class="px-3 py-2 text-right">Qty</th>
                         <th class="px-3 py-2 text-left">UOM</th>
-                        <th class="px-3 py-2 text-left">Selected Vendor</th>
-                        <th class="px-3 py-2 text-right">Selected Price</th>
+                        <th class="px-3 py-2 text-left">Selected Vendor</th>                        
                     </tr>
                     </thead>
                     <tbody>${trs}</tbody>
@@ -620,9 +599,7 @@
                 <td class="px-3 py-2">${esc(r.inventoryid)}</td>
                 <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
                 <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
-                <td class="px-3 py-2">${esc(r.uom)}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.unitcost)}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.totalcost)}</td>
+                <td class="px-3 py-2">${esc(r.uom)}</td>                             
             </tr>`).join('');
                 return `
             <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
@@ -632,9 +609,7 @@
                     <th class="px-3 py-2 text-left">Inventory</th>
                     <th class="px-3 py-2 text-left">Description</th>
                     <th class="px-3 py-2 text-right">Qty</th>
-                    <th class="px-3 py-2 text-left">UOM</th>
-                    <th class="px-3 py-2 text-right">Unit Cost</th>
-                    <th class="px-3 py-2 text-right">Total</th>
+                    <th class="px-3 py-2 text-left">UOM</th>                    
                     </tr>
                 </thead>
                 <tbody>${trs}</tbody>

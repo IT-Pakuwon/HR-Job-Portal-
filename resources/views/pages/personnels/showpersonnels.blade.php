@@ -393,7 +393,7 @@
                                                 {{ $ap->aprv_name }}
                                             </td>
                                             <td class="p-3 text-left text-gray-700 dark:text-gray-300">
-                                                {{ $ap->aprv_datebefore ?: '-' }}
+                                                {{ $ap->aprv_dateafter ?: '-' }}
                                             </td>
                                             <td class="p-3 text-left">
                                                 @php

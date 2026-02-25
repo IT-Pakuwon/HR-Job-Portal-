@@ -826,7 +826,7 @@ class CanvassController extends Controller
             }
 
             // 11) ==== SELALU SUBMIT di sini (status = 'P') ====
-            if ($cs->bqtype !== 'Kontrak') {    
+              
                 if (empty($prev_csid)) {
                     // (a) Validasi submit server-side
                     $this->validateSubmitServerSide($details);
@@ -835,20 +835,22 @@ class CanvassController extends Controller
                     if (in_array($doc, $allowedDocs, true)) {
                         $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
                     }
-
-                    // (c) Reserve budget via SP (Submit)
-                    $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
+                    if ($cs->bqtype !== 'Kontrak') {
+                        // (c) Reserve budget via SP (Submit)
+                        $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
+                    }
 
                 } else {
-                    // Kalau prev_csid ADA → ini CS revisi
-                    // Update ordered/openordered ke TrPOReuse + header PO
-                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
-                    
-                    // Reserve budget via SP (Submit)
-                    $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
+                        // Update ordered/openordered ke TrPOReuse + header PO
+                        $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);  
+
+                    if ($cs->bqtype !== 'Kontrak') {     
+                        // Reserve budget via SP (Submit)
+                        $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
+                    }
 
                 }
-            }
+            
 
             // (d) Set status header & detail = Pending, set submitdate
             $cs->status = 'P';
@@ -1933,26 +1935,27 @@ class CanvassController extends Controller
                 $action = 'save';
             }
 
-            if ($action === 'submit') {
-                if ($cs->bqtype !== 'Kontrak') {
+            if ($action === 'submit') {              
 
-                    if (empty($prev_csid)) {
-                        // CS AWAL → flow lama
+                if (empty($prev_csid)) {
+                    // CS AWAL → flow lama
 
-                        // (a) Validasi submit server-side
-                        $this->validateSubmitServerSide($details);
+                    // (a) Validasi submit server-side
+                    $this->validateSubmitServerSide($details);
 
-                        // (b) Update ordered/openordered pada dokumen sumber
-                        $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
+                    // (b) Update ordered/openordered pada dokumen sumber
+                    $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndex, $cpnyId);
 
+                    if ($cs->bqtype !== 'Kontrak') {                       
                         // (c) Reserve budget via SP (Submit)
                         $this->reserveBudget('CS', $cs->csid, 'Submit', $username);
-
-                    } else {
-                        // CS REVISI → update ke TrPOReuse (dan header PO) saja
-                        $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
                     }
+
+                } else {
+                    // CS REVISI → update ke TrPOReuse (dan header PO) saja
+                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
                 }
+                
 
                 // (d) Set status header & detail = Pending, set submitdate
                 $cs->status = 'P';
@@ -2563,8 +2566,10 @@ class CanvassController extends Controller
            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username) {
                 \DB::connection('pgsql')->beginTransaction();
                 try {
-                    // 1) Reserve budget via SP (Reject)
-                    $this->reserveBudget('CS', $cs->csid, 'Reject', $username);
+                    if ($cs->bqtype !== 'Kontrak') {
+                        // 1) Reserve budget via SP (Reject)
+                        $this->reserveBudget('CS', $cs->csid, 'Reject', $username);
+                    }
 
                     // ✅ 2) Update rejectordered di dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
                     $this->updateRejectOrderedOnSource($cs, auth()->user()->username);
@@ -2654,8 +2659,10 @@ class CanvassController extends Controller
             function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username) {
                 \DB::connection('pgsql')->beginTransaction();
                 try {
-                    // 1) Reserve budget via SP (Revise)
-                    $this->reserveBudget('CS', $cs->csid, 'Revise', $username);
+                    if ($cs->bqtype !== 'Kontrak') {
+                        // 1) Reserve budget via SP (Revise)
+                        $this->reserveBudget('CS', $cs->csid, 'Revise', $username);
+                    }
 
 
                     // ✅ 2) rollback ordered/openordered ke dokumen sumber

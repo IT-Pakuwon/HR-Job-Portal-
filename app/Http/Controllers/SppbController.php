@@ -2027,6 +2027,10 @@ class SppbController extends Controller
         $receiptHeader = $selReceiptNo ? TrReceipt::where('receiptnbr',$selReceiptNo)->whereNull('deleted_at')->first() : null;
         $receiptDetails = $selReceiptNo ? TrReceiptdetail::where('receiptnbr',$selReceiptNo)->whereNull('deleted_at')->orderBy('id')->get() : collect();
 
+        $lastApprSppb    = $this->getLastApprovalInfo($sppbNo);
+        $lastApprCs      = $selCsNo ? $this->getLastApprovalInfo($selCsNo) : null;
+        $lastApprReceipt = $selReceiptNo ? $this->getLastApprovalInfo($selReceiptNo) : null;
+
         return response()->json([
             'doc' => $sppbNo,
 
@@ -2073,6 +2077,7 @@ class SppbController extends Controller
                     'completed_by' => $sppb->completed_by,
                     'completed_at' => $fmt($sppb->completed_at),
                     'is_approved' => $approved($sppb),
+                    'last_approval' => $lastApprSppb,
                 ],
                 'details' => $sppbDetails,
             ],
@@ -2088,6 +2093,7 @@ class SppbController extends Controller
                     'completed_by'=>$csHeader->completed_by,
                     'completed_at'=>$fmt($csHeader->completed_at),
                     'is_approved'=>$approved($csHeader),
+                    'last_approval' => $lastApprCs,
                 ] : null,
                 'details' => $csDetails,
             ],
@@ -2102,7 +2108,7 @@ class SppbController extends Controller
                     'status'=>$poHeader->status,
                     'completed_by'=>$poHeader->completed_by,
                     'completed_at'=>$fmt($poHeader->completed_at),
-                    'is_approved'=>$approved($poHeader),
+                    'is_approved'=>$approved($poHeader),                    
                 ] : null,
                 'details' => $poDetails,
             ],
@@ -2118,6 +2124,7 @@ class SppbController extends Controller
                     'completed_by'=>$receiptHeader->completed_by,
                     'completed_at'=>$fmt($receiptHeader->completed_at),
                     'is_approved'=>$approved($receiptHeader),
+                    'last_approval' => $lastApprReceipt,
                 ] : null,
                 'details' => $receiptDetails,
             ],
@@ -2141,45 +2148,192 @@ class SppbController extends Controller
         $fmt = fn($dt) => $dt ? \Carbon\Carbon::parse($dt)->format('Y-m-d H:i') : null;
         $approved = fn($h) => $h ? (!empty($h->completed_by) || !empty($h->completed_at)) : false;
 
+        // ===== helper: ambil last approval per doc =====
+        $getLastApproval = function(string $refnbr) use ($fmt) {
+            $q = TrApproval::query()->where('refnbr', $refnbr);
+
+            // 1) cari yang masih pending tapi sudah mulai proses (datebefore not null)
+            $pending = (clone $q)
+                ->where('status', 'P')
+                ->whereNotNull('aprv_datebefore')
+                ->orderByDesc('aprv_leveling')
+                ->orderByDesc('created_at')
+                ->first();
+
+            $row = $pending;
+
+            // 2) kalau tidak ada, ambil yang sudah approve
+            if (!$row) {
+                $row = (clone $q)
+                    ->where('status', 'A')
+                    ->orderByDesc('aprv_leveling')
+                    ->orderByDesc('created_at')
+                    ->first();
+            }
+
+            if (!$row) return null;
+
+            return [
+                'refnbr'        => $row->refnbr,
+                'aprv_leveling' => $row->aprv_leveling,
+                'status'        => $row->status,
+                'username'      => $row->aprv_username,
+                'name'          => $row->aprv_name,
+                'date_before'   => $fmt($row->aprv_datebefore),
+                'date_after'    => $fmt($row->aprv_dateafter),
+                'type'          => $row->aprv_type,
+                'condition'     => $row->aprv_condition,
+            ];
+        };
+
         if ($type === 'cs') {
-            $h = TrCS::where('csid',$doc)->where('sppbjktid',$sppbNo)->whereNull('deleted_at')->first();
-            $d = $h ? TrCSdetail::where('csid',$doc)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+            $h = TrCS::where('csid', $doc)
+                ->where('sppbjktid', $sppbNo)
+                ->whereNull('deleted_at')
+                ->first();
+
+            $d = $h ? TrCSdetail::where('csid', $doc)
+                ->whereNull('deleted_at')
+                ->orderBy('id')->get() : collect();
+            // $tbl = (new TrCSdetail)->getTable();
+
+            // $d = $h ? TrCSdetail::query()
+            //     ->leftJoin('ms_vendor as v', 'v.vendor_id', '=', $tbl.'.vendor_id_selected') // ⬅ kolom sesuaikan
+            //     ->where($tbl.'.csid', $doc)
+            //     ->whereNull($tbl.'.deleted_at')
+            //     ->select([
+            //         $tbl.'.*',
+            //         'v.vendor_name as vendorname_selected'
+            //     ])
+            //     ->orderBy($tbl.'.id')
+            //     ->get()
+            // : collect();
+            // $d = $h ? TrCSdetail::where('csid',$doc)
+            //     ->whereNull('deleted_at')
+            //     ->orderBy('id')
+            //     ->get()
+            //     ->map(function($row){
+            //         $vendor = \App\Models\MsVendor::where('vendor_id', $row->vendor_id_selected)->first();
+            //         $row->vendorname_selected = $vendor->vendor_name ?? null;
+            //         return $row;
+            //     })
+            // : collect();
+
             return response()->json([
                 'header' => $h ? [
-                    'doc'=>$h->csid,'date'=>$fmt($h->csdate),'cpny_id'=>$h->cpny_id,'department_id'=>$h->department_id,
-                    'keperluan'=>$h->keperluan,'status'=>$h->status,'completed_by'=>$h->completed_by,'completed_at'=>$fmt($h->completed_at),
-                    'is_approved'=>$approved($h),
+                    'doc'          => $h->csid,
+                    'date'         => $fmt($h->csdate),
+                    'cpny_id'       => $h->cpny_id,
+                    'department_id' => $h->department_id,
+                    'keperluan'     => $h->keperluan,
+                    'status'        => $h->status,
+                    'completed_by'  => $h->completed_by,
+                    'completed_at'  => $fmt($h->completed_at),
+                    'is_approved'   => $approved($h),
+
+                    // ✅ tambah ini
+                    'last_approval' => $getLastApproval($h->csid),
                 ] : null,
                 'details' => $d
             ]);
         }
 
         if ($type === 'po') {
-            $h = TrPO::where('ponbr',$doc)->where('sppbjktid',$sppbNo)->whereNull('deleted_at')->first();
-            $d = $h ? TrPOdetail::where('ponbr',$doc)
-            ->where('budget_cpny_id', $h->cpny_id)
-            ->whereNull('deleted_at')->orderBy('id')->get() : collect();
+            $h = TrPO::where('ponbr', $doc)
+                ->where('sppbjktid', $sppbNo)
+                ->whereNull('deleted_at')
+                ->first();
+
+            $d = $h ? TrPOdetail::where('ponbr', $doc)
+                ->where('budget_cpny_id', $h->cpny_id)
+                ->whereNull('deleted_at')
+                ->orderBy('id')->get() : collect();
+
             return response()->json([
                 'header' => $h ? [
-                    'doc'=>$h->ponbr,'date'=>$fmt($h->podate),'cpny_id'=>$h->cpny_id,'department_id'=>$h->department_id,
-                    'vendorname'=>$h->vendorname,'status'=>$h->status,'completed_by'=>$h->completed_by,'completed_at'=>$fmt($h->completed_at),
-                    'is_approved'=>$approved($h),
+                    'doc'          => $h->ponbr,
+                    'date'         => $fmt($h->podate),
+                    'cpny_id'       => $h->cpny_id,
+                    'department_id' => $h->department_id,
+                    'vendorname'    => $h->vendorname,
+                    'status'        => $h->status,
+                    'completed_by'  => $h->completed_by,
+                    'completed_at'  => $fmt($h->completed_at),
+                    'is_approved'   => $approved($h),
+
+                    // ✅ tambah ini
+                    'last_approval' => $getLastApproval($h->ponbr),
                 ] : null,
                 'details' => $d
             ]);
         }
 
         // receipt
-        $h = TrReceipt::where('receiptnbr',$doc)->where('sppbjktid',$sppbNo)->whereNull('deleted_at')->first();
-        $d = $h ? TrReceiptdetail::where('receiptnbr',$doc)->whereNull('deleted_at')->orderBy('id')->get() : collect();
+        $h = TrReceipt::where('receiptnbr', $doc)
+            ->where('sppbjktid', $sppbNo)
+            ->whereNull('deleted_at')
+            ->first();
+
+        $d = $h ? TrReceiptdetail::where('receiptnbr', $doc)
+            ->whereNull('deleted_at')
+            ->orderBy('id')->get() : collect();
+
         return response()->json([
             'header' => $h ? [
-                'doc'=>$h->receiptnbr,'date'=>$fmt($h->receiptdate),'cpny_id'=>$h->cpny_id,'department_id'=>$h->department_id,
-                'vendorname'=>$h->vendorname,'status'=>$h->status,'completed_by'=>$h->completed_by,'completed_at'=>$fmt($h->completed_at),
-                'is_approved'=>$approved($h),
+                'doc'          => $h->receiptnbr,
+                'date'         => $fmt($h->receiptdate),
+                'cpny_id'       => $h->cpny_id,
+                'department_id' => $h->department_id,
+                'vendorname'    => $h->vendorname,
+                'status'        => $h->status,
+                'completed_by'  => $h->completed_by,
+                'completed_at'  => $fmt($h->completed_at),
+                'is_approved'   => $approved($h),
+
+                // ✅ tambah ini
+                'last_approval' => $getLastApproval($h->receiptnbr),
             ] : null,
             'details' => $d
         ]);
+    }
+
+    private function getLastApprovalInfo(string $refnbr): ?array
+    {
+        $refnbr = trim((string)$refnbr);
+        if ($refnbr === '') return null;
+
+        // 1) PRIORITY: status P & aprv_datebefore not null
+        $row = TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->orderByDesc('aprv_leveling')
+            ->orderByDesc('id')
+            ->first();
+
+        // 2) FALLBACK: status A (approved)
+        if (!$row) {
+            $row = TrApproval::query()
+                ->where('refnbr', $refnbr)
+                ->where('status', 'A')
+                ->orderByDesc('aprv_leveling')
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        if (!$row) return null;
+
+        // Note: field "created_by" kamu ada di fillable, tapi juga ada aprv_username & aprv_name
+        return [
+            'status'        => $row->status,                 // P / A
+            'aprv_leveling' => $row->aprv_leveling,
+            'username'      => $row->aprv_username ?? $row->created_by,
+            'name'          => $row->aprv_name,
+            'date_before'   => $row->aprv_datebefore,
+            'date_after'    => $row->aprv_dateafter,
+            'doctype'       => $row->aprv_doctype,
+            'condition'     => $row->aprv_condition,
+        ];
     }
 
 
