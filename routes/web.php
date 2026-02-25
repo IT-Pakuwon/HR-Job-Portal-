@@ -1392,7 +1392,8 @@ Route::post('/logout', function () {
     Route::post('/training/{id}/register',
         [TrainingRegistrationController::class, 'register']
     )->name('training.register');
-
+    Route::get('/training', [TrainingRegistrationController::class, 'index'])
+        ->name('training.list');
 
 
 

@@ -2,8 +2,6 @@
 
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
-
-
             <div class="flex gap-3">
                 <button id="approveBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
@@ -448,136 +446,182 @@
 
 
             @if ($canProcess)
-                <div id="jobProcessBox" class="border-b border-gray-200 px-6 py-2 dark:border-gray-700">
+                <div id="jobProcessBox"
+                    class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
-                    <button id="btnJobProcess"
-                        class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        data-mode="{{ $isPicWo ? 'save' : 'process' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
-                        </svg>
-                        <span>{{ $isPicWo ? 'Save' : 'Process' }}</span>
-                    </button>
-
-                    {{-- ✅ FORM harus SELALU ada, tapi hidden+disabled kalau bukan PIC --}}
-                    <div id="jobForm" class="{{ $isPicWo ? '' : 'hidden' }} mt-4">
-                        <div class="mb-3">
-                            <div class="flex items-end gap-4">
-                                <div class="flex-1">
-                                    <label for="jobStatusSelect"
-                                        class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                        Status Pekerjaan
-                                    </label>
-                                    <select id="jobStatusSelect" {{ $isPicWo ? '' : 'disabled' }}
-                                        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                        <option value="">pilih </option>
-                                        <option value="P" @selected($wo->status_pekerjaan === 'P')>On Progress</option>
-                                        <option value="X" @selected($wo->status_pekerjaan === 'X')>Cancel Jobs</option>
-                                        <option value="C" @selected($wo->status_pekerjaan === 'C')>Completed</option>
-                                    </select>
-                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                        P = On Progress, X = Cancel Jobs, C = Completed
-                                    </p>
-                                </div>
-
-                                <label
-                                    class="{{ $isPicWo ? '' : 'opacity-60' }} mb-1 inline-flex select-none items-center gap-2">
-                                    <input type="checkbox" id="flagSppbJkt" {{ $isPicWo ? '' : 'disabled' }}
-                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-500"
-                                        @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
-                                    <span class="text-sm text-gray-700 dark:text-gray-200">SPB/SPPBJKT</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="flex items-end gap-4">
-                                <div class="flex-1">
-                                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                        Department
-                                    </label>
-                                    <select name="pic_department" id="pic_department"
-                                        {{ $isPicWo ? '' : 'disabled' }}
-                                        class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        @foreach ($userdept as $p)
-                                            <option value="{{ $p->department_id }}"
-                                                {{ $p->department_id == $wo->pic_department ? 'selected' : '' }}>
-                                                {{ $p->department_id }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
+                    {{-- Header --}}
+                    <div
+                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                         <div>
-                            <label for="jobComment"
-                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
-                            <textarea id="jobComment" rows="3" {{ $isPicWo ? '' : 'disabled' }}
-                                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                            <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                                🛠 Process Work Order
+                            </h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Update status, department and notes.
+                            </p>
+                        </div>
+
+                        <button id="btnJobProcess"
+                            class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            data-mode="{{ $isPicWo ? 'save' : 'process' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+                            </svg>
+                            <span>{{ $isPicWo ? 'Save Changes' : 'Process' }}</span>
+                        </button>
+                    </div>
+
+                    {{-- Form --}}
+                    <div id="jobForm" class="{{ $isPicWo ? '' : 'hidden' }} space-y-6 p-6">
+
+                        {{-- Status & Flag --}}
+                        <div class="space-y-4">
+
+                            {{-- Status --}}
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    Status Pekerjaan
+                                </label>
+
+                                <select id="jobStatusSelect"
+                                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-0">
+                                    <option value="">Pilih Status</option>
+                                    <option value="P">On Progress</option>
+                                    <option value="X">Cancel Jobs</option>
+                                    <option value="C">Completed</option>
+                                </select>
+                            </div>
+
+                            {{-- Checkbox --}}
+                            <div class="flex justify-between space-y-2">
+
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    Please check if needed:
+                                </p>
+
+                                <label class="inline-flex items-center gap-3">
+                                    <input type="checkbox"
+                                        class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        SPB / SPPBJKT
+                                    </span>
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                        {{-- Department --}}
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                Department
+                            </label>
+                            <select name="pic_department" id="pic_department" {{ $isPicWo ? '' : 'disabled' }}
+                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                @foreach ($userdept as $p)
+                                    <option value="{{ $p->department_id }}"
+                                        {{ $p->department_id == $wo->pic_department ? 'selected' : '' }}>
+                                        {{ $p->department_id }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Comment --}}
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                Comment
+                            </label>
+                            <textarea id="jobComment" rows="4" {{ $isPicWo ? '' : 'disabled' }}
+                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                 placeholder="Tuliskan catatan untuk pekerjaan ini...">{{ $wo->pic_wo_comment }}</textarea>
                         </div>
                     </div>
 
-                    {{-- ✅ READ-ONLY CARD untuk info PIC (opsional) --}}
+                    {{-- Read-only Info Card (Non PIC but still can see header) --}}
                     @if (!$isPicWo)
-                        <div class="mt-4 flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
-                            <header
-                                class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                <h2 class="text-base font-semibold">📝 WO Detail</h2>
-                                <h2 class="text-base font-medium">PIC : {{ $wo->pic_wo ?: '-' }}</h2>
-                            </header>
+                        <div class="p-6 text-sm text-gray-600 dark:text-gray-300">
+                            <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-700">
+                                <div class="flex justify-between">
+                                    <span class="font-medium">PIC</span>
+                                    <span>{{ $wo->pic_wo ?: '-' }}</span>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>
             @else
-                {{-- ===== READ-ONLY (bukan PIC) ===== --}}
-                <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <header
-                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                        <h2 class="text-base font-semibold">📝 WO Detail</h2>
-                        <h2 class="text-base font-medium"> PIC :
-                            {{ $wo->pic_wo ?: '-' }}
+                {{-- READ ONLY MODE --}}
+                <div
+                    class="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+
+                    <div
+                        class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                            📝 WO Detail
                         </h2>
-                    </header>
-                    <div class="flex flex-col gap-4 p-4">
-                        <div class="flex items-end gap-4">
-                            <div class="flex-1">
-                                <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                    Status Pekerjaan
+                        <span class="text-sm font-medium text-gray-500 dark:text-gray-300">
+                            PIC: {{ $wo->pic_wo ?: '-' }}
+                        </span>
+                    </div>
+
+                    <div class="space-y-6 p-6">
+
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    Status
                                 </label>
-                                <input type="text" readonly
-                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                                    value="@switch($wo->status_pekerjaan)
-                                                @case('P') On Progress @break
-                                                @case('X') Cancel Jobs @break
-                                                @case('C') Completed @break
-                                                @default -
-                                            @endswitch">
-                            </div>
-                            <div class="flex-1">
-                                <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                    Department
-                                </label>
-                                <input type="text" readonly
-                                    class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                                    value="{{ $wo->pic_department ?? '-' }}">
+                                <div class="rounded-xl bg-gray-50 px-4 py-2.5 text-sm dark:bg-gray-700">
+                                    @switch($wo->status_pekerjaan)
+                                        @case('P')
+                                            🟡 On Progress
+                                        @break
+
+                                        @case('X')
+                                            🔴 Cancel Jobs
+                                        @break
+
+                                        @case('C')
+                                            🟢 Completed
+                                        @break
+
+                                        @default
+                                            -
+                                    @endswitch
+                                </div>
                             </div>
 
-                            <label class="mb-1 inline-flex select-none items-center gap-2 opacity-60">
-                                <input type="checkbox" disabled
-                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 dark:border-gray-500"
-                                    @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
-                                <span class="text-sm text-gray-700 dark:text-gray-200">SPPB JKT</span>
-                            </label>
+                            <div>
+                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    Department
+                                </label>
+                                <div class="rounded-xl bg-gray-50 px-4 py-2.5 text-sm dark:bg-gray-700">
+                                    {{ $wo->pic_department ?? '-' }}
+                                </div>
+                            </div>
+
+                            <div class="flex items-end">
+                                <div class="rounded-xl bg-gray-50 px-4 py-2.5 text-sm dark:bg-gray-700">
+                                    <input type="checkbox" disabled
+                                        class="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 dark:border-gray-500"
+                                        @checked(in_array(Str::upper((string) $wo->flag_sppbjkt), ['1', 'Y', 'TRUE'])) />
+                                    SPPBJKT
+                                </div>
+                            </div>
                         </div>
+
                         <div>
-                            <label
-                                class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">Comment</label>
-                            <textarea rows="3" readonly
-                                class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $wo->pic_wo_comment }}</textarea>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                Comment
+                            </label>
+                            <div class="rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-gray-700">
+                                {{ $wo->pic_wo_comment ?: '-' }}
+                            </div>
                         </div>
+
                     </div>
                 </div>
             @endif
@@ -738,7 +782,7 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let woid = "{{ $wo->woid }}"; // Ambil Task ID dari modal        
+            let woid = "{{ $wo->woid }}"; // Ambil Task ID dari modal
             approveWO(woid);
         });
 
@@ -816,7 +860,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -884,7 +928,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
