@@ -38,6 +38,8 @@ use App\Models\TrSPPJ;
 use App\Models\TrSPPK;
 use App\Models\TrSPPT;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\TrWO;
+use App\Models\TrSPB;
 
 class IMBudgetController extends Controller
 {
@@ -485,22 +487,102 @@ class IMBudgetController extends Controller
             $status     = $header->status;
             $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed','H'=>'On Hold','X'=>'Cancelled'];
 
+            // $data = [
+            //     'docid'     => $docid,
+            //     'cpnyid'    => $header->cpny_id,
+            //     'deptname'  => $header->department_id,
+            //     'date'      => $header->imbudgetdate,
+            //     'name'      => $header->user_peminta,
+            //     'createdby' => 'system',
+            //     'info'      => 'Request IM Budget Department '.$header->department_id,
+            //     'status'    => $status,
+            //     'docname'   => 'IM Budget',
+            //     'url'       => url('/editimbudgets/' . $eid),
+            // ];
+
+            // $approvers = array_filter(array_map('trim', explode(',', (string)$header->user_peminta)));
+            // $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('notification_email');
+
+            // foreach ($emails as $email) {
+            //     \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
+            //         $message->to($email)
+            //             ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' IM Budget')
+            //             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+            //     });
+            // }
+
+            // === Tentukan penerima email ===
+            $isFilled = fn($v) => trim((string)$v) !== '';
+
+            $recipientUsernames = [];
+            $mailName = (string) $header->user_peminta;   // default utk body email
+            $mailInfo = 'Request IM Budget Department ' . $header->department_id;
+
+            $woid  = strtoupper(trim((string)($cs->woid ?? '')));
+            $spbid = strtoupper(trim((string)($cs->spbid ?? '')));
+
+            if ($woid !== '') {
+
+                $wo = TrWO::query()
+                    ->select('woid','created_by')
+                    ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
+                    ->first();
+
+                if ($wo && $isFilled($wo->created_by)) {
+                    $recipientUsernames = [trim((string)$wo->created_by)];
+                    $mailName = trim((string)$wo->created_by);
+                    $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$header->department_id}";
+                }
+
+            } elseif ($spbid !== '') {
+
+                $spb = TrSPB::query()
+                    ->select('spbid','created_by')
+                    ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
+                    ->first();
+
+                if ($spb && $isFilled($spb->created_by)) {
+                    $recipientUsernames = [trim((string)$spb->created_by)];
+                    $mailName = trim((string)$spb->created_by);
+                    $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$header->department_id}";
+                }
+
+            }
+
+            // fallback kalau WO/SPB tidak ketemu / created_by kosong
+            if (empty($recipientUsernames)) {
+                $recipientUsernames = array_values(array_filter(array_map(
+                    fn($x) => trim((string)$x),
+                    explode(',', (string)$header->user_peminta)
+                )));
+                $mailName = (string) $header->user_peminta;
+                $mailInfo = 'Request IM Budget Department ' . $header->department_id;
+            }
+
+            // ==== buat body email SETELAH target ketemu ====
             $data = [
                 'docid'     => $docid,
                 'cpnyid'    => $header->cpny_id,
                 'deptname'  => $header->department_id,
                 'date'      => $header->imbudgetdate,
-                'name'      => $header->user_peminta,
-                'createdby' => 'system',
-                'info'      => 'Request IM Budget Department '.$header->department_id,
+                'name'      => $mailName,              // ✅ dinamis
+                'createdby' => $username,              // bisa pakai username biar jelas
+                'info'      => $mailInfo,              // ✅ dinamis
                 'status'    => $status,
                 'docname'   => 'IM Budget',
                 'url'       => url('/editimbudgets/' . $eid),
             ];
 
-            $approvers = array_filter(array_map('trim', explode(',', (string)$header->user_peminta)));
-            $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('notification_email');
+            // ambil email user aktif
+            $emails = User::query()
+                ->whereIn('username', $recipientUsernames)
+                ->where('status', 'A')
+                ->pluck('notification_email')
+                ->filter(fn($e) => trim((string)$e) !== '')
+                ->unique()
+                ->values();
 
+            // kirim
             foreach ($emails as $email) {
                 \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
                     $message->to($email)

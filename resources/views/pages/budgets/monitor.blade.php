@@ -8,7 +8,7 @@
                 <select id="fYear" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                     @foreach ($years as $y)
-                        <option value="{{ $y }}">{{ $y }}</option>
+                        <option value="{{ $y }}" {{ ($y == ($defaultYear ?? '')) ? 'selected' : '' }}>{{ $y }}</option>
                     @endforeach
                 </select>
             </div>
@@ -18,7 +18,7 @@
                 <select id="fCompany" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                     @foreach ($companies as $c)
-                        <option value="{{ $c }}">{{ $c }}</option>
+                        <option value="{{ $c }}" {{ ($c == ($defaultCpny ?? '')) ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach
                 </select>
             </div>
@@ -132,7 +132,7 @@
         </div>
     </div>
 
-    <script>
+    {{-- <script>
         function fmtID(n) {
             return 'Rp. ' + Number(n || 0).toLocaleString('id-ID');
         }
@@ -250,6 +250,170 @@
             $('#fYear').on('change', reloadBoth);
             $('#fCompany').on('change', function(){ loadBU(); reloadBoth(); });
             $('#fBU').on('change', function(){ loadDept(); reloadBoth(); });
+            $('#fDept').on('change', reloadBoth);
+        });
+    </script> --}}
+    <script>
+        function fmtID(n) {
+            return 'Rp. ' + Number(n || 0).toLocaleString('id-ID');
+        }
+
+        function buildParams() {
+            return {
+                year: $('#fYear').val(),
+                cpny_id: $('#fCompany').val(),
+                business_unit_id: $('#fBU').val(),
+                department_fin_id: $('#fDept').val(),
+            };
+        }
+
+        function reloadBoth() {
+            if (masterTable) masterTable.ajax.reload(null, true);
+            if (trxTable) trxTable.ajax.reload(null, true);
+        }
+
+        function loadBU(selectedBU = '') {
+            const cpny = $('#fCompany').val();
+            $('#fBU').html(`<option value="">Select</option>`);
+            $('#fDept').html(`<option value="">Select</option>`);
+
+            if (!cpny) return;
+
+            $.get("{{ route('budgetmonitor.options.businessUnits') }}", { cpny_id: cpny }, function(res) {
+                (res.data || []).forEach(r => {
+                    const sel = (String(r.business_unit_id) === String(selectedBU)) ? 'selected' : '';
+                    $('#fBU').append(`<option value="${r.business_unit_id}" ${sel}>${r.business_unit_id}</option>`);
+                });
+            });
+        }
+
+        function loadDept(selectedDept = '') {
+            const cpny = $('#fCompany').val();
+            const bu = $('#fBU').val();
+            $('#fDept').html(`<option value="">Select</option>`);
+
+            if (!cpny || !bu) return;
+
+            $.get("{{ route('budgetmonitor.options.departments') }}", { cpny_id: cpny, business_unit_id: bu }, function(res) {
+                (res.data || []).forEach(r => {
+                    const sel = (String(r.department_fin_id) === String(selectedDept)) ? 'selected' : '';
+                    $('#fDept').append(`<option value="${r.department_fin_id}" ${sel}>${r.department_fin_id}</option>`);
+                });
+            });
+        }
+
+        let masterTable, trxTable;
+
+        $(document).ready(function() {
+            masterTable = $('#tblMaster').DataTable({
+                ajax: {
+                    url: "{{ route('budgetmonitor.master.json') }}",
+                    data: function(d) {
+                        // ✅ selalu kirim filter terbaru
+                        return Object.assign(d, buildParams());
+                    },
+                    dataSrc: function(json) {
+                        const tot = json.totals || {};
+                        $('#mTotBudg').text(fmtID(tot.totalbudget));
+                        $('#mTotAddi').text(fmtID(tot.totalbudget_add));
+                        $('#mTotRese').text(fmtID(tot.total_reserve));
+                        $('#mTotUsed').text(fmtID(tot.total_used));
+                        $('#mTotRem').text(fmtID(tot.total_remaining));
+                        return json.data || [];
+                    }
+                },
+                processing: true,
+                serverSide: false,
+                responsive: { details: { type: 'column', target: 0 } },
+                columnDefs: [{ targets: 0, width: '28px', className: 'dtr-control', orderable: false }],
+                order: [[1,'asc']],
+                columns: [
+                    { data: null, defaultContent: '' },
+                    { data: 'account_id' },
+                    { data: 'activity_id' },
+                    { data: 'activity_descr' },
+                    { data: 'totalbudget', className: 'text-right', render: d => fmtID(d) },
+                    { data: 'totalbudget_add', className: 'text-right', render: d => fmtID(d) },
+                    { data: 'total_reserve', className: 'text-right', render: d => fmtID(d) },
+                    { data: 'total_used', className: 'text-right', render: d => fmtID(d) },
+                    {
+                        data: null,
+                        className: 'text-right',
+                        render: function(d, t, row) {
+                            const bud  = Number(row.totalbudget || 0);
+                            const add  = Number(row.totalbudget_add || 0);
+                            const rese = Number(row.total_reserve || 0);
+                            const used = Number(row.total_used || 0);
+                            return fmtID(bud + add - rese - used);
+                        }
+                    },
+                ]
+            });
+
+            trxTable = $('#tblTrx').DataTable({
+                ajax: {
+                    url: "{{ route('budgetmonitor.trx.json') }}",
+                    data: function(d) {
+                        // ✅ selalu kirim filter terbaru
+                        return Object.assign(d, buildParams());
+                    },
+                    dataSrc: function(json) {
+                        const tot = json.totals || {};
+                        $('#tTotAmount').text(fmtID(tot.budget_amount));
+                        return json.data || [];
+                    }
+                },
+                processing: true,
+                serverSide: false,
+                responsive: { details: { type: 'column', target: 0 } },
+                columnDefs: [{ targets: 0, width: '28px', className: 'dtr-control', orderable: false }],
+                order: [[2,'desc']],
+                columns: [
+                    { data: null, defaultContent: '' },
+                    { data: 'refnbr' },
+                    { data: 'submitdate' },
+                    { data: 'account_id' },
+                    { data: 'activity_id' },
+                    { data: 'activity_descr' },
+                    { data: 'budget_flow' },
+                    { data: 'transaction_source' },
+                    { data: 'budget_amount', className: 'text-right', render: d => fmtID(d) },
+                ]
+            });
+
+            // ✅ init default dropdown dari controller
+            const defCpny = @json($defaultCpny ?? '');
+            const defBU   = @json($defaultBU ?? '');
+            const defDept = @json($defaultDept ?? '');
+
+            if (defCpny) {
+                $('#fCompany').val(defCpny);
+                loadBU(defBU);
+                // dept harus nunggu BU ke-set, jadi delay kecil / chain di on change:
+                setTimeout(() => {
+                    if (defBU) $('#fBU').val(defBU);
+                    loadDept(defDept);
+                    setTimeout(() => {
+                        if (defDept) $('#fDept').val(defDept);
+                        reloadBoth();
+                    }, 200);
+                }, 200);
+            } else {
+                reloadBoth();
+            }
+
+            $('#fYear').on('change', reloadBoth);
+
+            $('#fCompany').on('change', function(){
+                loadBU('');
+                reloadBoth();
+            });
+
+            $('#fBU').on('change', function(){
+                loadDept('');
+                reloadBoth();
+            });
+
             $('#fDept').on('change', reloadBoth);
         });
     </script>

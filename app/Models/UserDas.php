@@ -9,6 +9,12 @@ class UserDas extends Model
 {
     protected $connection = 'mysql2';
     protected $table = "users";   
-    protected $fillable = ['username', 'name'];
+    protected $fillable = [
+        'name',
+        'username',
+        'email',
+        'password',
+        'role', 
+    ];
     
 }

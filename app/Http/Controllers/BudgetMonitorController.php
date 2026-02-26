@@ -163,8 +163,7 @@ class BudgetMonitorController extends Controller
 
         // Tahun list (ms_budget.perpost dan tr_budget.perpost_year)
         $yearsFromBudget = BudgetDetail::query()
-            ->selectRaw("DISTINCT LEFT(perpost::text, 4) AS year")
-            ->where('status', 'Ç')
+            ->selectRaw("DISTINCT LEFT(perpost::text, 4) AS year")            
             ->whereNotNull('perpost')
             ->orderBy('year', 'desc')
             ->pluck('year')
@@ -183,8 +182,7 @@ class BudgetMonitorController extends Controller
 
         // Companies (dropdown) - apply policy
         $companiesQ = BudgetDetail::query()
-            ->select('cpny_id')
-            ->where('status', 'Ç')
+            ->select('cpny_id')           
             ->whereNotNull('cpny_id');
 
         $companiesQ = $this->applyUserAccessFilters($companiesQ, $policy, $request, false);
@@ -230,8 +228,7 @@ class BudgetMonitorController extends Controller
         $policy = $this->getAccessPolicy($user);
 
         $q = BudgetDetail::query()
-            ->select('cpny_id')
-            ->where('status', 'Ç')
+            ->select('cpny_id')            
             ->whereNotNull('cpny_id');
 
         $q = $this->applyUserAccessFilters($q, $policy, $request, false);
@@ -249,8 +246,7 @@ class BudgetMonitorController extends Controller
         $policy = $this->getAccessPolicy($user);
 
         $q = BudgetDetail::query()
-            ->select('business_unit_id')
-            ->where('status', 'Ç')
+            ->select('business_unit_id')            
             ->whereNotNull('business_unit_id');
 
         // apply policy hard limit + also allow cpny filter (intersect)
@@ -272,8 +268,7 @@ class BudgetMonitorController extends Controller
         $policy = $this->getAccessPolicy($user);
 
         $q = BudgetDetail::query()
-            ->select('department_fin_id')
-            ->where('status', 'Ç')
+            ->select('department_fin_id')            
             ->whereNotNull('department_fin_id');
 
         $q = $this->applyUserAccessFilters($q, $policy, $request, true);
@@ -303,7 +298,8 @@ class BudgetMonitorController extends Controller
                 'totalbudget_add',
                 'total_reserve',
                 'total_used',
-            ]);
+            ])
+            ->where('status', 'C');   // ✅ TAMBAHKAN INI
 
         if ($request->filled('year')) {
             $q->whereRaw("LEFT(perpost::text, 4) = ?", [$request->year]);
@@ -311,7 +307,9 @@ class BudgetMonitorController extends Controller
 
         $q = $this->applyUserAccessFilters($q, $policy, $request, true);
 
-        $rows = $q->orderBy('account_id')->orderBy('activity_id')->get();
+        $rows = $q->orderBy('account_id')
+                ->orderBy('activity_id')
+                ->get();
 
         $totals = [
             'totalbudget'       => (float) $rows->sum('totalbudget'),
