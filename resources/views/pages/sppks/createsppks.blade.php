@@ -1047,7 +1047,7 @@
                 </td>
 
                 <td class="border p-3 text-center">
-                <input type="text" name="qty[]" 
+                <input type="text" name="qty[]"
                         class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                         placeholder="0,00">
                 </td>
@@ -1059,7 +1059,7 @@
                         <input type="hidden" name="uom_to_unit[]"        class="uomToField">
                         <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
                         <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
-                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" 
+                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="-" readonly>
                         <button type="button"
                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -1076,7 +1076,7 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="location_id[]"     class="locationIdField">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"  name="location_combo_display[]" 
+                        <input type="text"  name="location_combo_display[]"
                             class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="Select location & sub location..." readonly>
                         <button type="button"
@@ -1084,13 +1084,13 @@
                                 title="Lookup">🔎</button>
                     </div>
                 </td>
-             
+
                 <td class="p-3 border">
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">           
-                        <input type="hidden" name="activity_descr[]"  class="actDescrField">           
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">
                         <input type="hidden" name="coa_id[]" class="coaIdField">
                         <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
@@ -1204,9 +1204,9 @@
                     <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                         data-id="${item.inventoryid}"
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
-                        data-stock_unit="${item.stock_unit || ''}"                        
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"        
-                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"  
+                        data-stock_unit="${item.stock_unit || ''}"
+                        data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"
                         data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
                         Choose
@@ -2366,7 +2366,7 @@
                 doctype: DOCTYPE,
             };
 
-           
+
             function openRtModal() {
                 $rtDoc.text(rtState.doctype || '-');
                 $('#rtSearch').val('');
@@ -2450,7 +2450,7 @@
 
                             return `
                             <tr>
-                               
+
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
                                 <td class="border p-2 text-center">
                                     <button type="button"
@@ -2851,7 +2851,7 @@
                     title: `Ubah ${type}?`,
                     html: `
                 <div style="text-align:left">
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
+                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:
                 </div>
             `,
                     showCancelButton: true,

@@ -8,8 +8,26 @@
 
             <div class="mb-8">
                 <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400">
-                    Manual
+                    User Support Manual
                 </h2>
+            </div>
+
+            @php
+                $isFaqActive = request()->segment(2) === 'faq';
+            @endphp
+
+            {{-- FAQ MENU --}}
+            <div class="mb-6 border-b border-gray-200 pb-4 dark:border-gray-800">
+
+                <a href="{{ route('manual', ['faq']) }}"
+                    class="{{ $isFaqActive
+                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-medium'
+                        : 'text-gray-700 hover:bg-gray-200/60 dark:text-gray-300 dark:hover:bg-gray-800' }} flex items-center rounded-lg px-3 py-2 text-sm transition-all duration-150">
+
+                    FAQ
+
+                </a>
+
             </div>
 
             @foreach ($rootMenus as $rootMenu)
@@ -120,26 +138,36 @@
                     $childSlug = request()->segment(4);
                 @endphp
 
-                {{-- LEVEL 3 (purchasing/request-budget/budget) --}}
-                @if ($rootSlug && $parentSlug && $childSlug && view()->exists("manual.$rootSlug.$parentSlug.$childSlug"))
+                {{-- LEVEL 1 (Single Page seperti FAQ) --}}
+                @if ($rootSlug && !$parentSlug && view()->exists("manual.$rootSlug"))
                     <div class="prose prose-gray dark:prose-invert max-w-none">
+                        @include("manual.$rootSlug")
+                    </div>
+                    {{-- LEVEL 3 (purchasing/request-budget/budget) --}}
+                @elseif ($rootSlug && $parentSlug && $childSlug && view()->exists("manual.$rootSlug.$parentSlug.$childSlug"))
+                    <div
+                        class="prose prose-sm dark:prose-invert prose-headings:font-semibold prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300 max-w-none">
                         @include("manual.$rootSlug.$parentSlug.$childSlug")
                     </div>
 
                     {{-- LEVEL 2 (purchasing/request-budget) --}}
                 @elseif ($rootSlug && $parentSlug && view()->exists("manual.$rootSlug.$parentSlug"))
-                    <div class="prose prose-gray dark:prose-invert max-w-none">
+                    <div
+                        class="prose prose-sm dark:prose-invert prose-headings:font-semibold prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-gray-300 max-w-none">
                         @include("manual.$rootSlug.$parentSlug")
                     </div>
 
                     {{-- DEFAULT --}}
                 @else
-                    <div class="mt-32 text-center text-gray-400">
-                        <h2 class="text-xl font-semibold tracking-tight">
-                            Welcome to Manual
+                    <div class="mt-32 text-center text-gray-400 dark:text-gray-500">
+                        <h2 class="text-xl font-semibold tracking-tight text-gray-700 dark:text-gray-200">
+                            Page Under Construction
                         </h2>
                         <p class="mt-2 text-sm">
-                            Select a page from the sidebar.
+                            This section is currently being developed and will be available soon.
+                        </p>
+                        <p class="mt-1 text-xs opacity-70">
+                            Estimated release: March 2026
                         </p>
                     </div>
                 @endif

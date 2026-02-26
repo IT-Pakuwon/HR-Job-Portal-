@@ -156,4 +156,48 @@
         color: #9ca3af;
         /* gray-400 */
     }
+
+    .faq-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 1.2rem;
+        transition: all 0.2s ease;
+    }
+
+    .faq-card:hover {
+        border-color: #d1d5db;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    .dark .faq-card {
+        background: #111827;
+        border: 1px solid #1f2937;
+    }
+
+    .dark .faq-card:hover {
+        border-color: #374151;
+    }
+
+    .faq-question {
+        width: 100%;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #111827;
+    }
+
+    .dark .faq-question {
+        color: #f9fafb;
+    }
+
+    .faq-answer {
+        margin-top: 1rem;
+        font-size: 0.875rem;
+        color: #4b5563;
+    }
+
+    .dark .faq-answer {
+        color: #9ca3af;
+    }
 </style>
