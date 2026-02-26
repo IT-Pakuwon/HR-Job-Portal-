@@ -132,11 +132,13 @@
                      </ul>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/import-form.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 1.1 – Import Budget Form
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/import-form.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 1.1 – Import Budget Form
+                             </figcaption>
+                         </figure>
                      </div>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -180,11 +182,13 @@
                      </ul>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/preview.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 1.2 – Budget Preview Table
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/preview.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 1.2 – Budget Preview Table
+                             </figcaption>
+                         </figure>
                      </div>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -217,11 +221,13 @@
 
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/attachment.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 1.3 – Attachment Section
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/attachment.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 1.3 – Attachment Section
+                             </figcaption>
+                         </figure>
                      </div>
 
                      <div class="manual-note manual-warning">
@@ -294,11 +300,13 @@
                      </p>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/revise.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 2.1 – List Revised Budgets (Revise Status Filter)
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/revise.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 2.1 – List Revised Budgets (Revise Status Filter)
+                             </figcaption>
+                         </figure>
                      </div>
 
                      <!-- ================= EDIT IMPORT FORM ================= -->
@@ -326,11 +334,14 @@
                      </ul>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/edit-import-form.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 2.1 – Edit Budget Import Form
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/edit-import-form.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 2.1 – Edit Budget Import Form
+                             </figcaption>
+                         </figure>
+
                      </div>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -373,11 +384,13 @@
                      </ul>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/edit-preview-table.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 2.2 – Budget Details Table (Edit Mode)
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/edit-preview-table.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 2.2 – Budget Details Table (Edit Mode)
+                             </figcaption>
+                         </figure>
                      </div>
 
                      <!-- ================= ATTACHMENT MANAGEMENT ================= -->
@@ -398,11 +411,13 @@
                      </p>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/edit-attachments.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 2.3 – Attachment Section (Edit Budget)
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/edit-attachments.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 2.3 – Attachment Section (Edit Budget)
+                             </figcaption>
+                         </figure>
                      </div>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -488,11 +503,14 @@
                      </ul>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/button.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 3.1 – Approval Action Buttons
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/button.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 3.1 – Approval Action Buttons
+                             </figcaption>
+                         </figure>
+
                      </div>
 
                      <!-- ================= BUDGET SUMMARY CARD ================= -->
@@ -522,11 +540,14 @@
                      </ul>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/summary.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 3.2 – Budget Summary Card
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/summary.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 3.2 – Budget Summary Card
+                             </figcaption>
+                         </figure>
+
                      </div>
 
                      <!-- ================= ATTACHMENT / APPROVAL / COMMENTS TABS ================= -->
@@ -594,11 +615,13 @@
                      </ul>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/budget/detail-budget.png') }}"
-                             class="rounded-lg border shadow dark:border-gray-800">
-                         <p class="mt-2 text-center text-xs text-gray-500">
-                             Figure 3.4 – Budget Detail Table
-                         </p>
+                         <figure class="manual-figure">
+                             <img src="{{ asset('images/manual/budget/detail-budget.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <figcaption class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 3.4 – Budget Detail Table
+                             </figcaption>
+                         </figure>
                      </div>
 
                      <!-- ================= VIEW CONTROLS ================= -->

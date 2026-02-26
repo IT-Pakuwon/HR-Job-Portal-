@@ -23,9 +23,9 @@
                             <p class="text-sm text-gray-500 dark:text-gray-400">
                                 {{ Auth::user()->departmentid }}
                             </p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                            {{-- <p class="text-sm text-gray-500 dark:text-gray-400">
                                 {{ $talenta->branch }}
-                            </p>
+                            </p> --}}
 
                             <div class="mt-4 flex justify-center gap-2">
                                 {{-- <button class="px-3 py-1  text-sm  bg-blue-500 text-white rounded">Follow</button> --}}
@@ -87,20 +87,20 @@
                             <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                 <div><strong>Full Name:</strong> {{ Auth::user()->name }}</div>
                                 <div><strong>Email:</strong> {{ Auth::user()->email }}</div>
-                                <div><strong>Position:</strong> {{ $talenta->job_position }}</div>
+                                {{-- <div><strong>Position:</strong> {{ $talenta->job_position }}</div>
                                 <div><strong>Mobile:</strong> {{ $talenta->mobile_phone }}</div>
-                                <div class="sm:col-span-2"><strong>Address:</strong> {{ $talenta->current_address }}
-                                </div>
+                                <div class="sm:col-span-2"><strong>Address:</strong> {{ $talenta->current_address }} --}}
                             </div>
-                            {{-- <div class="mt-4">
+                        </div>
+                        {{-- <div class="mt-4">
                                 <a href="{{ route('profile.show') }}"
                                     class="bg-green-600 text-white px-4 py-2 rounded  text-sm  hover:bg-green-700">Edit</a>
                             </div> --}}
-                        </div>
+                    </div>
 
-                        <!-- Project Status -->
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            {{-- @foreach (['Web Design', 'Website Markup', 'One Page', 'Mobile Template'] as $project)
+                    <!-- Project Status -->
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {{-- @foreach (['Web Design', 'Website Markup', 'One Page', 'Mobile Template'] as $project)
                                 <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                                     <div class=" text-sm  text-gray-600 dark:text-gray-300 mb-2">
                                         <span class="italic text-blue-600">assignment</span> {{ $project }}
@@ -110,11 +110,11 @@
                                     </div>
                                 </div>
                             @endforeach --}}
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

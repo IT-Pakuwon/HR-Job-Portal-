@@ -109,4 +109,51 @@
     .manual-note strong {
         font-weight: 600;
     }
+
+    /* ===============================
+   Manual Figure (Global Standard)
+================================= */
+
+    .manual-figure {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* Image Styling */
+    .manual-figure img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.75rem;
+        /* rounded-xl */
+        border: 1px solid #e5e7eb;
+        /* gray-200 */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Caption Styling */
+    .manual-figure figcaption {
+        margin-top: 0.75rem;
+        font-size: 0.75rem;
+        /* text-xs */
+        color: #6b7280;
+        /* gray-500 */
+    }
+
+    /* ===============================
+   Dark Mode Support
+================================= */
+
+    .dark .manual-figure img {
+        border: 1px solid #1f2937;
+        /* gray-800 */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .dark .manual-figure figcaption {
+        color: #9ca3af;
+        /* gray-400 */
+    }
 </style>
