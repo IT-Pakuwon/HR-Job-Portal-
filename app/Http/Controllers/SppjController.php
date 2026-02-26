@@ -46,6 +46,7 @@ use App\Models\MsKontrakDocument;
 use App\Models\Userbusinessunit;
 use App\Models\Budget;
 use App\Models\SysUserRole;
+use App\Models\TrWO;
 
 
 class SppjController extends Controller
@@ -1261,59 +1262,63 @@ class SppjController extends Controller
         ->where('sppjid', $sppj->sppjid)
         ->orderby('sppj_no', 'ASC')
         ->get();       
-       
-       
-        // $attachment = Attachment::where('docid', $sppj->sppjid)    
-        //     ->where('status','A')        
-        //     ->get();    
+             
+      
 
         // ---------- ambil lampiran dari tr_attachment ----------
-        $rows = TrAttachment::where('refnbr', $sppj->sppjid)
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // $rows = TrAttachment::where('refnbr', $sppj->sppjid)
+        //     ->where('status', 'A')
+        //     ->orderBy('created_at', 'desc')
+        //     ->get();
 
-        // siapkan Signed URL dari GCS
-        $config = config('filesystems.disks.gcs');
-        $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-            $keyFilePath = base_path($keyFilePath);
+        // // siapkan Signed URL dari GCS
+        // $config = config('filesystems.disks.gcs');
+        // $keyFilePath = $config['key_file'];
+        // if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        //     $keyFilePath = base_path($keyFilePath);
+        // }
+
+        // $storage = new StorageClient([
+        //     'projectId'   => $config['project_id'],
+        //     'keyFilePath' => $keyFilePath,
+        // ]);
+        // $bucket = $storage->bucket($config['bucket']);
+
+        // // map jadi data siap pakai di view
+        // $attachments = $rows->map(function ($r) use ($bucket) {
+        //     $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
+        //     $object     = $bucket->object($objectPath);
+
+        //     // Signed URL 10 menit
+        //     $signedUrl = null;
+        //     try {
+        //         $signedUrl = $object->signedUrl(
+        //             new \DateTimeImmutable('+10 minutes'),
+        //             ['version' => 'v4']
+        //         );
+        //     } catch (\Throwable $e) {
+        //         // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
+        //         \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+        //     }
+
+        //     return (object) [                
+        //         'display_name' => $r->attachment_name,         // nama yang enak dibaca
+        //         'created_by'   => $r->created_by,
+        //         'created_at'   => $r->created_at,
+        //         'url'          => $signedUrl,                  // bisa null jika gagal
+        //         'folder'       => $r->folder,
+        //         'filename'     => $r->filename,
+        //         'extention'    => $r->extention,
+        //         'size'         => $r->filesize,
+        //     ];
+        // });
+
+        $attachmentPJ = $this->mapAttachmentsToSignedUrl($sppj->sppjid);
+
+        $attachmentWO = collect();
+        if (!empty($sppj->woid)) {
+            $attachmentWO = $this->mapAttachmentsToSignedUrl($sppj->woid);
         }
-
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
-
-        // map jadi data siap pakai di view
-        $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
-            $object     = $bucket->object($objectPath);
-
-            // Signed URL 10 menit
-            $signedUrl = null;
-            try {
-                $signedUrl = $object->signedUrl(
-                    new \DateTimeImmutable('+10 minutes'),
-                    ['version' => 'v4']
-                );
-            } catch (\Throwable $e) {
-                // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-            }
-
-            return (object) [                
-                'display_name' => $r->attachment_name,         // nama yang enak dibaca
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,                  // bisa null jika gagal
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
-            ];
-        });
             
         $bq = Bq::where('bqid', $sppj->bqid)   
             ->first();            
@@ -1350,12 +1355,73 @@ class SppjController extends Controller
             ->distinct()
             ->orderBy('department_fin_id')
             ->get();
+
+        $woData = null;
+        $woHash = null;
+
+        if (!empty($sppj->woid)) {
+
+            $woData = TrWO::select('id','woid','keperluan')
+                ->where('woid', $sppj->woid)
+                ->first();
+
+            if ($woData) {
+                $woHash = Hashids::encode($woData->id);
+            }
+        }
        
-        return view('pages.sppjs.showsppjs', compact('sppj','attachments','sppjdetail','bq','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
+        return view('pages.sppjs.showsppjs', compact('sppj','attachmentPJ','attachmentWO','sppjdetail','bq','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'
+        ));
+    }
+
+    private function mapAttachmentsToSignedUrl($refnbr)
+    {
+        $rows = TrAttachment::where('refnbr', $refnbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new \Google\Cloud\Storage\StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        return $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object)[
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
     }
 
       
-  public function approveSppj(Request $request, $docid)
+    public function approveSppj(Request $request, $docid)
     {
         $user    = $request->user();
         $doctype = 'PJ';

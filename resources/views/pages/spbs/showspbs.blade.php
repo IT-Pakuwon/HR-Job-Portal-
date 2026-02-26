@@ -131,6 +131,23 @@
                                 </div>
                             @endforeach
 
+                            @if(!empty($woData))
+                                <div class="flex items-start gap-2 p-2 col-span-2">
+                                    <x-heroicon-o-wrench-screwdriver class="h-5 w-5 text-gray-400 mt-0.5" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">WO</span>
+
+                                    <div class="flex flex-col">
+                                        <a href="{{ url('/showwos/'.$woHash) }}" target="_blank"
+                                        class="text-indigo-600 font-semibold hover:underline">
+                                            {{ $woData->woid }}
+                                        </a>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $woData->keperluan }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
+
                             {{-- JENIS PEKERJAAN --}}
                             <div class="col-span-2 grid gap-3 sm:grid-cols-2">
                                 <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
@@ -233,6 +250,7 @@
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
+                                            <th class="p-3 text-left font-semibold">Doc Type</th>
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
@@ -979,7 +997,7 @@
         }
     </script>
 
-    <script>
+    {{-- <script>
         $(function() {
             const listUrl = @json(route('attachments.list', ['doctype' => 'RB', 'refnbr' => $spb->spbid]));
             const uploadUrl = @json(route('attachments.upload', ['doctype' => 'RB', 'refnbr' => $spb->spbid]));
@@ -1074,6 +1092,148 @@
             $('#btnResetSpbAttachment').on('click', function() {
                 $('#spbAttachFiles').val('');
             });
+        });
+    </script> --}}
+    <script>
+        $(function() {
+
+            const listUrlRB   = @json(route('attachments.list', ['doctype'=>'RB', 'refnbr'=>$spb->spbid]));
+            const uploadUrlRB = @json(route('attachments.upload', ['doctype'=>'RB', 'refnbr'=>$spb->spbid]));
+
+            const pbStatic = (@json($attachmentRB ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'RB'
+            }));
+
+            const woStatic = (@json($attachmentWO ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'WO'
+            }));
+
+            function renderAll(rowsRB, rowsWO){
+                const merged = [...(rowsRB||[]), ...(rowsWO||[])];
+                const $tb = $('#spbAttachmentTbody').empty();
+
+                if(!merged.length){
+                    $tb.append(`<tr>
+                        <td colspan="4" class="p-4 text-center italic text-gray-500">
+                            No attachments found.
+                        </td>
+                    </tr>`);
+                    return;
+                }
+
+                merged.forEach(at => {
+                    const fileName = at.display_name || at.name || '(no name)';
+                    const dateStr  = at.created_at 
+                        ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') 
+                        : '-';
+
+                    const linkHtml = at.url
+                        ? `<a href="${at.url}" target="_blank"
+                                class="font-medium text-indigo-600 hover:underline">
+                                📎 ${fileName}
+                        </a>`
+                        : `<span class="font-medium text-gray-700">
+                                📎 ${fileName}
+                        </span>
+                        <span class="ml-2 text-sm text-red-500">
+                                (link unavailable)
+                        </span>`;
+
+                    $tb.append(`
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="px-3 py-2">${linkHtml}</td>
+                            <td class="px-3 py-2">${at.type || '-'}</td>
+                            <td class="px-3 py-2">${at.created_by || '-'}</td>
+                            <td class="px-3 py-2">${dateStr}</td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // ================================
+            // INITIAL RENDER (RB + WO)
+            // ================================
+            renderAll(pbStatic, woStatic);
+
+
+            // ================================
+            // REFRESH RB FROM API
+            // ================================
+            function refreshRBAttachments(){
+                $.get(listUrlRB)
+                    .done(res=>{
+                        if(!res.success){
+                            toastr.error(res.message || 'Failed to load attachments.');
+                            return;
+                        }
+
+                        const pbFromApi = (res.attachments || []).map(a => ({
+                            ...a,
+                            type: 'RB'
+                        }));
+
+                        renderAll(pbFromApi, woStatic);
+                    })
+                    .fail(()=>{
+                        toastr.error('Failed to load attachments.');
+                    });
+            }
+
+
+            // ================================
+            // UPLOAD HANDLER (RB ONLY)
+            // ================================
+            $('#btnUploadSppbAttachment').on('click', function(){
+
+                const $form = $('#spbAttachmentUploadForm')[0];
+                const files = $('#spbAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
+                }
+
+                const fd = new FormData($form);
+
+                $.ajax({
+                    url: uploadUrlRB,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res){
+
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+
+                        toastr.success('Upload success.');
+                        $('#spbAttachFiles').val('');
+
+                        // 🔥 Refresh dari API supaya signed URL baru
+                        refreshRBAttachments();
+                    },
+                    error: function(xhr){
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSpbAttachment').on('click', function(){
+                $('#spbAttachFiles').val('');
+            });
+
         });
     </script>
 

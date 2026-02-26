@@ -164,6 +164,7 @@ class BudgetMonitorController extends Controller
         // Tahun list (ms_budget.perpost dan tr_budget.perpost_year)
         $yearsFromBudget = BudgetDetail::query()
             ->selectRaw("DISTINCT LEFT(perpost::text, 4) AS year")
+            ->where('status', 'Ç')
             ->whereNotNull('perpost')
             ->orderBy('year', 'desc')
             ->pluck('year')
@@ -183,6 +184,7 @@ class BudgetMonitorController extends Controller
         // Companies (dropdown) - apply policy
         $companiesQ = BudgetDetail::query()
             ->select('cpny_id')
+            ->where('status', 'Ç')
             ->whereNotNull('cpny_id');
 
         $companiesQ = $this->applyUserAccessFilters($companiesQ, $policy, $request, false);
@@ -229,6 +231,7 @@ class BudgetMonitorController extends Controller
 
         $q = BudgetDetail::query()
             ->select('cpny_id')
+            ->where('status', 'Ç')
             ->whereNotNull('cpny_id');
 
         $q = $this->applyUserAccessFilters($q, $policy, $request, false);
@@ -247,6 +250,7 @@ class BudgetMonitorController extends Controller
 
         $q = BudgetDetail::query()
             ->select('business_unit_id')
+            ->where('status', 'Ç')
             ->whereNotNull('business_unit_id');
 
         // apply policy hard limit + also allow cpny filter (intersect)
@@ -269,6 +273,7 @@ class BudgetMonitorController extends Controller
 
         $q = BudgetDetail::query()
             ->select('department_fin_id')
+            ->where('status', 'Ç')
             ->whereNotNull('department_fin_id');
 
         $q = $this->applyUserAccessFilters($q, $policy, $request, true);

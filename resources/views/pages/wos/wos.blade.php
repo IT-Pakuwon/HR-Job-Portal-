@@ -107,9 +107,11 @@
                             <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
                             <th class="w-32 px-6 py-2 font-medium">
-                                Work Type</th> <!-- << -->
+                                Work Type </th> <!-- << -->
                             <th class="w-32 px-6 py-2 font-medium">
                                 WO Request</th>
+                            <th class="w-32 px-6 py-2 font-medium">
+                                Budget Use</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Description</th>
                             <th class="w-32 px-6 py-2 font-medium">
@@ -444,6 +446,11 @@
                     }, // << kolom baru
                     {
                         data: 'worequest',
+                        defaultContent: '-',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'budget_use',
                         defaultContent: '-',
                         className: 'text-left'
                     },

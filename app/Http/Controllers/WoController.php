@@ -160,6 +160,8 @@ class WoController extends Controller
             6 => 'wo.keperluan',
             7 => 'wo.status',
             8 => 'wo.status_pekerjaan',
+            9 => 'wo.budget_use',
+            10 => 'wo.subworktypeid',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
@@ -188,7 +190,9 @@ class WoController extends Controller
                 ->orWhere('wo.worequest',     'ilike', "%{$search}%")
                 ->orWhere('wo.keperluan',     'ilike', "%{$search}%")
                 ->orWhere('wo.status',        'ilike', "%{$search}%")
-                ->orWhere('wo.status_pekerjaan', 'ilike', "%{$search}%");
+                ->orWhere('wo.status_pekerjaan', 'ilike', "%{$search}%")
+                ->orWhere('wo.budget_use',     'ilike', "%{$search}%")
+                ->orWhere('wo.subworktypeid',  'ilike', "%{$search}%");
             });
         }
 
@@ -205,6 +209,8 @@ class WoController extends Controller
                     'wo.keperluan',
                     'wo.status',
                     'wo.status_pekerjaan',
+                    'wo.budget_use',
+                    'wo.subworktypeid',
                     'wo.created_by'
                 )
                 ->orderBy($orderCol, $orderDir)
@@ -226,9 +232,6 @@ class WoController extends Controller
             'data'            => $data,
         ]);
     }
-
-
-
 
     public function createWo()
     {

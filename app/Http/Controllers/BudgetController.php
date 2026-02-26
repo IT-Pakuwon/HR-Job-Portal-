@@ -683,7 +683,7 @@ class BudgetController extends Controller
                         ->select('business_unit_id','business_unit_name')
                         ->get();
 
-        $departements  = MsDepartment::select('deptname')->get();
+        $departements  = MsDepartment::select('department_id','department_name')->get();
         
         $budget_detail = BudgetDetail::where('budget_id', $budget->budget_id) 
             ->get();

@@ -33,7 +33,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\SysUserRole;
 use App\Models\Userbusinessunit;
 use App\Models\Budget;
-
+use App\Models\TrWO;
 
 
 
@@ -1163,14 +1163,7 @@ class SpbController extends Controller
             'creator:username,name',
         ])->where('spbid', $spbid)->firstOrFail();
 
-        // --- Detail + relasi lokasi ---
-        // $spbdetail = TrSPBdetail::with([
-        //     'location:location_id,location_name',
-        //     'subLocation:sub_location_id,sub_location_name',
-        // ])
-        // ->where('spbid', $spb->spbid)
-        // ->orderby('spb_no', 'ASC')
-        // ->get();
+    
         $spbdetail = TrSPBdetail::query()
             ->with([
                 'location:location_id,location_name',
@@ -1223,49 +1216,57 @@ class SpbController extends Controller
 
 
         // --- Attachments (GCS signed URL) ---
-        $rows = TrAttachment::where('refnbr', $spb->spbid)
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // $rows = TrAttachment::where('refnbr', $spb->spbid)
+        //     ->where('status', 'A')
+        //     ->orderBy('created_at', 'desc')
+        //     ->get();
 
-        $config = config('filesystems.disks.gcs');
-        $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
-            $keyFilePath = base_path($keyFilePath);
+        // $config = config('filesystems.disks.gcs');
+        // $keyFilePath = $config['key_file'];
+        // if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+        //     $keyFilePath = base_path($keyFilePath);
+        // }
+
+        // $storage = new StorageClient([
+        //     'projectId'   => $config['project_id'],
+        //     'keyFilePath' => $keyFilePath,
+        // ]);
+        // $bucket = $storage->bucket($config['bucket']);
+
+        // $attachments = $rows->map(function ($r) use ($bucket) {
+        //     $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+        //     $object     = $bucket->object($objectPath);
+
+        //     $signedUrl = null;
+        //     try {
+        //         $signedUrl = $object->signedUrl(
+        //             new \DateTimeImmutable('+10 minutes'),
+        //             ['version' => 'v4']
+        //         );
+        //     } catch (\Throwable $e) {
+        //         \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+        //     }
+
+        //     return (object) [
+        //         'display_name' => $r->attachment_name,
+        //         'created_by'   => $r->created_by,
+        //         'created_at'   => $r->created_at,
+        //         'url'          => $signedUrl,
+        //         'folder'       => $r->folder,
+        //         'filename'     => $r->filename,
+        //         'extention'    => $r->extention,
+        //         'size'         => $r->filesize,
+        //     ];
+        // });
+
+        $attachmentRB = $this->mapAttachmentsToSignedUrl($spb->spbid);
+
+        $attachmentWO = collect();
+        if (!empty($spb->woid)) {
+            $attachmentWO = $this->mapAttachmentsToSignedUrl($spb->woid);
         }
-
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
-
-        $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
-
-            $signedUrl = null;
-            try {
-                $signedUrl = $object->signedUrl(
-                    new \DateTimeImmutable('+10 minutes'),
-                    ['version' => 'v4']
-                );
-            } catch (\Throwable $e) {
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-            }
-
-            return (object) [
-                'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
-            ];
-        });
-
+            
+  
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $spb->created_by === $loginUsername;
 
@@ -1296,8 +1297,68 @@ class SpbController extends Controller
             ->orderBy('department_fin_id')
             ->get();
 
+        $woData = null;
+        $woHash = null;
+
+        if (!empty($spb->woid)) {
+
+            $woData = TrWO::select('id','woid','keperluan')
+                ->where('woid', $spb->woid)
+                ->first();
+
+            if ($woData) {
+                $woHash = Hashids::encode($woData->id);
+            }
+        }
+
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'attachments', 'spbdetail', 'hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
+        return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'));
+    }
+
+    private function mapAttachmentsToSignedUrl($refnbr)
+    {
+        $rows = TrAttachment::where('refnbr', $refnbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new \Google\Cloud\Storage\StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        return $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object)[
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
     }
 
 

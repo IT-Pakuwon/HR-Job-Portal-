@@ -111,7 +111,7 @@
                                         'value' => ucwords(strtolower(optional($sppb->creator)->name)),
                                     ],
                                 ];
-                            @endphp
+                            @endphp                            
 
                             {{-- Top fields --}}
                             @foreach ($fields as $f)
@@ -123,6 +123,23 @@
                                     <span class="{{ $value }}">{{ $f['value'] }}</span>
                                 </div>
                             @endforeach
+
+                             @if(!empty($woData))
+                                <div class="flex items-start gap-2 p-2 col-span-2">
+                                    <x-heroicon-o-wrench-screwdriver class="h-5 w-5 text-gray-400 mt-0.5" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">WO</span>
+
+                                    <div class="flex flex-col">
+                                        <a href="{{ url('/showwos/'.$woHash) }}" target="_blank"
+                                        class="text-indigo-600 font-semibold hover:underline">
+                                            {{ $woData->woid }}
+                                        </a>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $woData->keperluan }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
 
                             {{-- Request Type + Purpose (same card style as your system) --}}
                             <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
@@ -203,51 +220,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="approval-table-body">
-                                    </tbody>
-
-                                    {{-- <tbody>
-                                        @foreach ($approval as $ap)
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="px-3 py-2">{{ $ap->aprvid }}</td>
-                                                <td class="px-3 py-2">{{ $ap->name }}</td>
-                                                <td class="px-3 py-2">
-                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                                </td>
-                                                <td class="px-3 py-2">
-                                                    @php
-                                                        $statusText = '';
-                                                        $statusClass = '';
-                                                        switch ($ap->status) {
-                                                            case 'P':
-                                                                $statusText = 'Waiting Approval';
-                                                                $statusClass = 'bg-yellow-500 text-white';
-                                                                break;
-                                                            case 'A':
-                                                                $statusText = 'Approved';
-                                                                $statusClass = 'bg-green-500 text-white';
-                                                                break;
-                                                            case 'R':
-                                                                $statusText = 'Rejected';
-                                                                $statusClass = 'bg-red-500 text-white';
-                                                                break;
-                                                            case 'D':
-                                                                $statusText = 'Revise';
-                                                                $statusClass = 'bg-blue-500 text-white';
-                                                                break;
-                                                            default:
-                                                                $statusText = 'Unknown';
-                                                                $statusClass = 'bg-gray-500 text-white';
-                                                        }
-                                                    @endphp
-                                                    <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1  text-sm  font-semibold">
-                                                        {{ $statusText }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody> --}}
+                                    </tbody>                                    
                                 </table>
                             </div>
                             {{-- Attachment tab --}}
@@ -256,35 +229,11 @@
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
+                                            <th class="p-3 text-left font-semibold">Doc Type</th>
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
-                                    </thead>
-                                    {{-- <tbody>
-                                        @forelse ($attachments as $at)
-                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="px-3 py-2">
-                                                    @if ($at->url)
-                                                        <a href="{{ $at->url }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->display_name }}
-                                                        </a>
-                                                    @else
-                                                        <span class="text-gray-700 dark:text-gray-300">📎 {{ $at->display_name }}</span>
-                                                        <span class="ml-2  text-sm  text-red-500">(link unavailable)</span>
-                                                    @endif
-                                                </td>
-                                                <td class="px-3 py-2">{{ $at->created_by }}</td>
-                                                <td class="px-3 py-2">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody> --}}
+                                    </thead>                                    
                                     <tbody id="sppbAttachmentTbody"></tbody>
 
                                 </table>
@@ -1060,7 +1009,7 @@
         }
     </script>
 
-    <script>
+    {{-- <script>
         $(function() {
             const listUrl = @json(route('attachments.list', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
             const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid]));
@@ -1155,6 +1104,149 @@
             $('#btnResetSppbAttachment').on('click', function() {
                 $('#sppbAttachFiles').val('');
             });
+        });
+    </script> --}}
+
+    <script>
+        $(function() {
+
+            const listUrlPB   = @json(route('attachments.list', ['doctype'=>'PB', 'refnbr'=>$sppb->sppbid]));
+            const uploadUrlPB = @json(route('attachments.upload', ['doctype'=>'PB', 'refnbr'=>$sppb->sppbid]));
+
+            const pbStatic = (@json($attachmentPB ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'PB'
+            }));
+
+            const woStatic = (@json($attachmentWO ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'WO'
+            }));
+
+            function renderAll(rowsPB, rowsWO){
+                const merged = [...(rowsPB||[]), ...(rowsWO||[])];
+                const $tb = $('#sppbAttachmentTbody').empty();
+
+                if(!merged.length){
+                    $tb.append(`<tr>
+                        <td colspan="4" class="p-4 text-center italic text-gray-500">
+                            No attachments found.
+                        </td>
+                    </tr>`);
+                    return;
+                }
+
+                merged.forEach(at => {
+                    const fileName = at.display_name || at.name || '(no name)';
+                    const dateStr  = at.created_at 
+                        ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') 
+                        : '-';
+
+                    const linkHtml = at.url
+                        ? `<a href="${at.url}" target="_blank"
+                                class="font-medium text-indigo-600 hover:underline">
+                                📎 ${fileName}
+                        </a>`
+                        : `<span class="font-medium text-gray-700">
+                                📎 ${fileName}
+                        </span>
+                        <span class="ml-2 text-sm text-red-500">
+                                (link unavailable)
+                        </span>`;
+
+                    $tb.append(`
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="px-3 py-2">${linkHtml}</td>
+                            <td class="px-3 py-2">${at.type || '-'}</td>
+                            <td class="px-3 py-2">${at.created_by || '-'}</td>
+                            <td class="px-3 py-2">${dateStr}</td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // ================================
+            // INITIAL RENDER (PB + WO)
+            // ================================
+            renderAll(pbStatic, woStatic);
+
+
+            // ================================
+            // REFRESH PB FROM API
+            // ================================
+            function refreshPBAttachments(){
+                $.get(listUrlPB)
+                    .done(res=>{
+                        if(!res.success){
+                            toastr.error(res.message || 'Failed to load attachments.');
+                            return;
+                        }
+
+                        const pbFromApi = (res.attachments || []).map(a => ({
+                            ...a,
+                            type: 'PB'
+                        }));
+
+                        renderAll(pbFromApi, woStatic);
+                    })
+                    .fail(()=>{
+                        toastr.error('Failed to load attachments.');
+                    });
+            }
+
+
+            // ================================
+            // UPLOAD HANDLER (PB ONLY)
+            // ================================
+            $('#btnUploadSppbAttachment').on('click', function(){
+
+                const $form = $('#sppbAttachmentUploadForm')[0];
+                const files = $('#sppbAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
+                }
+
+                const fd = new FormData($form);
+
+                $.ajax({
+                    url: uploadUrlPB,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res){
+
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+
+                        toastr.success('Upload success.');
+                        $('#sppbAttachFiles').val('');
+
+                        // 🔥 Refresh dari API supaya signed URL baru
+                        refreshPBAttachments();
+                    },
+                    error: function(xhr){
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSppbAttachment').on('click', function(){
+                $('#sppbAttachFiles').val('');
+            });
+
         });
     </script>
 
@@ -1685,12 +1777,7 @@
             });
 
         });
-        </script>
-
-
-
-
-
+    </script>
 
 
 </x-app-layout>

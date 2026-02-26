@@ -149,6 +149,23 @@
                                 </div>
                             @endforeach
 
+                             @if(!empty($woData))
+                                <div class="flex items-start gap-2 p-2 col-span-2">
+                                    <x-heroicon-o-wrench-screwdriver class="h-5 w-5 text-gray-400 mt-0.5" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">WO</span>
+
+                                    <div class="flex flex-col">
+                                        <a href="{{ url('/showwos/'.$woHash) }}" target="_blank"
+                                        class="text-indigo-600 font-semibold hover:underline">
+                                            {{ $woData->woid }}
+                                        </a>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $woData->keperluan }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
+
                             {{-- Request Type + Purpose --}}
                             <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
 
@@ -286,6 +303,7 @@
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
+                                            <th class="p-3 text-left font-semibold">Doc Type</th>
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
@@ -1094,7 +1112,7 @@
     </script>
 
 
-    <script>
+    {{-- <script>
         $(function() {
             const listUrl = @json(route('attachments.list', ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
             const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
@@ -1189,6 +1207,149 @@
             $('#btnResetSppbAttachment').on('click', function() {
                 $('#sppjAttachFiles').val('');
             });
+        });
+    </script> --}}
+
+    <script>
+        $(function() {
+
+            const listUrlPJ   = @json(route('attachments.list', ['doctype'=>'PJ', 'refnbr'=>$sppj->sppjid]));
+            const uploadUrlPJ = @json(route('attachments.upload', ['doctype'=>'PJ', 'refnbr'=>$sppj->sppjid]));
+
+            const pbStatic = (@json($attachmentPJ ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'PJ'
+            }));
+
+            const woStatic = (@json($attachmentWO ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'WO'
+            }));
+
+            function renderAll(rowsPJ, rowsWO){
+                const merged = [...(rowsPJ||[]), ...(rowsWO||[])];
+                const $tb = $('#sppjAttachmentTbody').empty();
+
+                if(!merged.length){
+                    $tb.append(`<tr>
+                        <td colspan="4" class="p-4 text-center italic text-gray-500">
+                            No attachments found.
+                        </td>
+                    </tr>`);
+                    return;
+                }
+
+                merged.forEach(at => {
+                    const fileName = at.display_name || at.name || '(no name)';
+                    const dateStr  = at.created_at 
+                        ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') 
+                        : '-';
+
+                    const linkHtml = at.url
+                        ? `<a href="${at.url}" target="_blank"
+                                class="font-medium text-indigo-600 hover:underline">
+                                📎 ${fileName}
+                        </a>`
+                        : `<span class="font-medium text-gray-700">
+                                📎 ${fileName}
+                        </span>
+                        <span class="ml-2 text-sm text-red-500">
+                                (link unavailable)
+                        </span>`;
+
+                    $tb.append(`
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="px-3 py-2">${linkHtml}</td>
+                            <td class="px-3 py-2">${at.type || '-'}</td>
+                            <td class="px-3 py-2">${at.created_by || '-'}</td>
+                            <td class="px-3 py-2">${dateStr}</td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // ================================
+            // INITIAL RENDER (PJ + WO)
+            // ================================
+            renderAll(pbStatic, woStatic);
+
+
+            // ================================
+            // REFRESH PJ FROM API
+            // ================================
+            function refreshPJAttachments(){
+                $.get(listUrlPJ)
+                    .done(res=>{
+                        if(!res.success){
+                            toastr.error(res.message || 'Failed to load attachments.');
+                            return;
+                        }
+
+                        const pbFromApi = (res.attachments || []).map(a => ({
+                            ...a,
+                            type: 'PJ'
+                        }));
+
+                        renderAll(pbFromApi, woStatic);
+                    })
+                    .fail(()=>{
+                        toastr.error('Failed to load attachments.');
+                    });
+            }
+
+
+            // ================================
+            // UPLOAD HANDLER (PJ ONLY)
+            // ================================
+            $('#btnUploadSppbAttachment').on('click', function(){
+
+                const $form = $('#sppjAttachmentUploadForm')[0];
+                const files = $('#sppjAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
+                }
+
+                const fd = new FormData($form);
+
+                $.ajax({
+                    url: uploadUrlPJ,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res){
+
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+
+                        toastr.success('Upload success.');
+                        $('#sppjAttachFiles').val('');
+
+                        // 🔥 Refresh dari API supaya signed URL baru
+                        refreshPJAttachments();
+                    },
+                    error: function(xhr){
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSppjAttachment').on('click', function(){
+                $('#sppjAttachFiles').val('');
+            });
+
         });
     </script>
 
@@ -1450,7 +1611,7 @@
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        doc_type: DOC_TYPE, // info dokumen (PB / SPPB / dll)
+                        doc_type: DOC_TYPE, // info dokumen (PJ / SPPJ / dll)
                         rows: payload
                     },
                     success: function(res) {

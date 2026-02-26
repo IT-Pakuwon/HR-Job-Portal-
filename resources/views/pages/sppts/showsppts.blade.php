@@ -2,33 +2,7 @@
 
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
-            <div class="flex gap-3">
-                {{-- <button id="approveBtn"
-                    {{ $sppt->bqid ? '' : 'disabled' }}
-                    class="inline-flex items-center gap-1 rounded-md px-3 py-2  text-sm  font-medium
-                        {{ $sppt->bqid ? 'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500'
-                                        : 'bg-green-100 text-green-700 opacity-50 cursor-not-allowed' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                    </svg>
-                    Approve
-                </button> --}}
-                {{-- @if (!$sppt->bqid)
-                    <span class="inline-block" title="Please Create BQ !">
-                        <button id="approveBtn" disabled
-                            class="inline-flex cursor-not-allowed items-center gap-1 rounded-md bg-green-100 px-3 py-2  text-sm  font-medium text-green-700 opacity-50"
-                            aria-disabled="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                            </svg>
-                            Approve
-                        </button>
-                    </span>
-                @else --}}
+            <div class="flex gap-3">                
                 <button id="approveBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -194,6 +168,23 @@
                                 </span>
                             </div>
 
+                            @if(!empty($woData))
+                                <div class="flex items-start gap-2 p-2 col-span-2">
+                                    <x-heroicon-o-wrench-screwdriver class="h-5 w-5 text-gray-400 mt-0.5" />
+                                    <span class="min-w-32 max-w-32 text-gray-500">WO</span>
+
+                                    <div class="flex flex-col">
+                                        <a href="{{ url('/showwos/'.$woHash) }}" target="_blank"
+                                        class="text-indigo-600 font-semibold hover:underline">
+                                            {{ $woData->woid }}
+                                        </a>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $woData->keperluan }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
                                 {{-- Request Type --}}
                                 <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
@@ -269,50 +260,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="approval-table-body">
-                                    </tbody>
-                                    {{-- <tbody>
-                                        @foreach ($approval as $ap)
-                                            <tr
-                                                class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="px-3 py-2">{{ $ap->aprvid }}</td>
-                                                <td class="px-3 py-2">{{ $ap->name }}</td>
-                                                <td class="px-3 py-2">
-                                                    {{ \Carbon\Carbon::parse($ap->aprvdatebefore)->format('d M Y') }}
-                                                </td>
-                                                <td class="px-3 py-2">
-                                                    @php
-                                                        $statusText = '';
-                                                        $statusClass = '';
-                                                        switch ($ap->status) {
-                                                            case 'P':
-                                                                $statusText = 'Waiting Approval';
-                                                                $statusClass = 'bg-yellow-500 text-white';
-                                                                break;
-                                                            case 'A':
-                                                                $statusText = 'Approved';
-                                                                $statusClass = 'bg-green-500 text-white';
-                                                                break;
-                                                            case 'R':
-                                                                $statusText = 'Rejected';
-                                                                $statusClass = 'bg-red-500 text-white';
-                                                                break;
-                                                            case 'D':
-                                                                $statusText = 'Revise';
-                                                                $statusClass = 'bg-blue-500 text-white';
-                                                                break;
-                                                            default:
-                                                                $statusText = 'Unknown';
-                                                                $statusClass = 'bg-gray-500 text-white';
-                                                        }
-                                                    @endphp
-                                                    <span
-                                                        class="{{ $statusClass }} inline-block rounded-full px-3 py-1  text-sm  font-semibold">
-                                                        {{ $statusText }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody> --}}
+                                    </tbody>                                    
                                 </table>
                             </div>
 
@@ -322,35 +270,12 @@
                                     <thead class="text-gray-600 dark:text-gray-300">
                                         <tr class="border-b border-gray-200 dark:border-gray-700">
                                             <th class="p-3 text-left font-semibold">Filename</th>
+                                            <th class="p-3 text-left font-semibold">Doc Type</th>
                                             <th class="p-3 text-left font-semibold">Created By</th>
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    {{-- <tbody>
-                                        @forelse ($attachments as $at)
-                                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                                                <td class="px-3 py-2">
-                                                    @if ($at->url)
-                                                        <a href="{{ $at->url }}" target="_blank"
-                                                        class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
-                                                            📎 {{ $at->display_name }}
-                                                        </a>
-                                                    @else
-                                                        <span class="text-gray-700 dark:text-gray-300">📎 {{ $at->display_name }}</span>
-                                                        <span class="ml-2  text-sm  text-red-500">(link unavailable)</span>
-                                                    @endif
-                                                </td>
-                                                <td class="px-3 py-2">{{ $at->created_by }}</td>
-                                                <td class="px-3 py-2">{{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                                                    No attachments found.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody> --}}
+                                    
                                     <tbody id="spptAttachmentTbody"></tbody>
                                 </table>
                                 @if ($canUpload)
@@ -1159,7 +1084,7 @@
 
 
 
-    <script>
+    {{-- <script>
         $(function() {
             const listUrl = @json(route('attachments.list', ['doctype' => 'PT', 'refnbr' => $sppt->spptid]));
             const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PT', 'refnbr' => $sppt->spptid]));
@@ -1255,6 +1180,149 @@
                 $('#spptAttachFiles').val('');
             });
         });
+    </script> --}}
+
+    <script>
+        $(function() {
+
+            const listUrlPT   = @json(route('attachments.list', ['doctype'=>'PT', 'refnbr'=>$sppt->spptid]));
+            const uploadUrlPT = @json(route('attachments.upload', ['doctype'=>'PT', 'refnbr'=>$sppt->spptid]));
+
+            const pbStatic = (@json($attachmentPT ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'PT'
+            }));
+
+            const woStatic = (@json($attachmentWO ?? [])).map(a => ({
+                name: a.display_name,
+                display_name: a.display_name,
+                created_by: a.created_by,
+                created_at: a.created_at,
+                url: a.url,
+                type: 'WO'
+            }));
+
+            function renderAll(rowsPT, rowsWO){
+                const merged = [...(rowsPT||[]), ...(rowsWO||[])];
+                const $tb = $('#spptAttachmentTbody').empty();
+
+                if(!merged.length){
+                    $tb.append(`<tr>
+                        <td colspan="4" class="p-4 text-center italic text-gray-500">
+                            No attachments found.
+                        </td>
+                    </tr>`);
+                    return;
+                }
+
+                merged.forEach(at => {
+                    const fileName = at.display_name || at.name || '(no name)';
+                    const dateStr  = at.created_at 
+                        ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') 
+                        : '-';
+
+                    const linkHtml = at.url
+                        ? `<a href="${at.url}" target="_blank"
+                                class="font-medium text-indigo-600 hover:underline">
+                                📎 ${fileName}
+                        </a>`
+                        : `<span class="font-medium text-gray-700">
+                                📎 ${fileName}
+                        </span>
+                        <span class="ml-2 text-sm text-red-500">
+                                (link unavailable)
+                        </span>`;
+
+                    $tb.append(`
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="px-3 py-2">${linkHtml}</td>
+                            <td class="px-3 py-2">${at.type || '-'}</td>
+                            <td class="px-3 py-2">${at.created_by || '-'}</td>
+                            <td class="px-3 py-2">${dateStr}</td>
+                        </tr>
+                    `);
+                });
+            }
+
+            // ================================
+            // INITIAL RENDER (PT + WO)
+            // ================================
+            renderAll(pbStatic, woStatic);
+
+
+            // ================================
+            // REFRESH PT FROM API
+            // ================================
+            function refreshPTAttachments(){
+                $.get(listUrlPT)
+                    .done(res=>{
+                        if(!res.success){
+                            toastr.error(res.message || 'Failed to load attachments.');
+                            return;
+                        }
+
+                        const pbFromApi = (res.attachments || []).map(a => ({
+                            ...a,
+                            type: 'PT'
+                        }));
+
+                        renderAll(pbFromApi, woStatic);
+                    })
+                    .fail(()=>{
+                        toastr.error('Failed to load attachments.');
+                    });
+            }
+
+
+            // ================================
+            // UPLOAD HANDLER (PT ONLY)
+            // ================================
+            $('#btnUploadSppbAttachment').on('click', function(){
+
+                const $form = $('#spptAttachmentUploadForm')[0];
+                const files = $('#spptAttachFiles')[0].files;
+
+                if (!files || !files.length) {
+                    toastr.warning('Please choose at least one file.');
+                    return;
+                }
+
+                const fd = new FormData($form);
+
+                $.ajax({
+                    url: uploadUrlPT,
+                    method: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res){
+
+                        if (!res || !res.success) {
+                            toastr.error(res?.message || 'Upload failed.');
+                            return;
+                        }
+
+                        toastr.success('Upload success.');
+                        $('#spptAttachFiles').val('');
+
+                        // 🔥 Refresh dari API supaya signed URL baru
+                        refreshPTAttachments();
+                    },
+                    error: function(xhr){
+                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    }
+                });
+            });
+
+            $('#btnResetSpptAttachment').on('click', function(){
+                $('#spptAttachFiles').val('');
+            });
+
+        });
     </script>
 
     <script>
@@ -1281,8 +1349,8 @@
                                 <td class="px-3 py-2">${row.aprv_leveling}</td>
                                 <td class="px-3 py-2">${row.aprv_name}</td>
                                 <td class="px-3 py-2">
-    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
-</td>
+                                    ${row.aprv_dateafter ? dayjs(row.aprv_dateafter).format('DD MMM YYYY HH:mm:ss') : ''}
+                                </td>
                                 <td class="px-3 py-2">${statusLabel}</td>
                             </tr>
                         `;
@@ -1345,7 +1413,7 @@
         }
     </script>
 
-        <script>
+    <script>
         $(function() {
             const $modal = $('#editCoaModal');
             const DOC_TYPE = "PT";
@@ -1515,7 +1583,7 @@
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        doc_type: DOC_TYPE, // info dokumen (PB / SPPB / dll)
+                        doc_type: DOC_TYPE, // info dokumen (PT / SPPT / dll)
                         rows: payload
                     },
                     success: function(res) {
