@@ -26,11 +26,11 @@
             <div class="text-xs italic text-gray-500 dark:text-gray-400">Administrator</div>
         </div>
         <ul>
-            <li>
+            {{-- <li>
                 <a class="flex items-center px-3 py-1 text-xs font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
                     href="{{ route('profile.showx') }}" @click="open = false" @focus="open = true"
                     @focusout="open = false">Settings</a>
-            </li>
+            </li> --}}
             <li>
                 <form method="POST" action="{{ route('logout') }}" x-data>
                     @csrf

@@ -13,6 +13,7 @@
     @include('layouts.status')
     @include('layouts.calendar')
     @include('layouts.sidebar')
+    @include('layouts.manual')
 
 
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/Logo Pakuwon.png') }}">
@@ -93,7 +94,12 @@
 </head>
 
 <body class="font-inter bg-gray-100 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400"
-    x-data="{ sidebarOpen: false }">
+    x-data="{
+        sidebarOpen: false,
+        manualOpen: false,
+        activeModule: null,
+        activeMenu: null
+    }">
 
 
     <!-- HEADER -->
