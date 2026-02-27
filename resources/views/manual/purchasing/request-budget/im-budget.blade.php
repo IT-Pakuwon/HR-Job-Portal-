@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-     
+
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-     
+
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -184,7 +184,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/edit/header.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/header.png') }}">
                                  <figcaption>
                                      Figure 1.1 – IM Budget Header Section
                                  </figcaption>
@@ -245,7 +245,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/edit/detail-table.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/detail-table.png') }}">
                                  <figcaption>
                                      Figure 1.2 – IM Budget Detail Table
                                  </figcaption>
@@ -284,7 +284,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/edit/attachments.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/attachments.png') }}">
                                  <figcaption>
                                      Figure 1.3 – IM Budget Attachment Section
                                  </figcaption>
@@ -435,7 +435,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/list/status-cards.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/status-cards.png') }}">
                                  <figcaption>
                                      Figure 2.1 – IM Budget Status Cards
                                  </figcaption>
@@ -506,7 +506,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/list/data-table.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/data-table.png') }}">
                                  <figcaption>
                                      Figure 2.2 – IM Budget Data Table
                                  </figcaption>
@@ -553,16 +553,6 @@
                                  dan tidak dapat diubah oleh pengguna.
                              </span>
                          </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/list/tracking-modal.png') }}">
-                                 <figcaption>
-                                     Figure 2.3 – IM Budget Tracking Modal
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
                  </div>
              </div>
@@ -617,7 +607,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/show/overview.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/overview.png') }}">
                                  <figcaption>
                                      Figure 3.1 – Show IM Budget Page Overview
                                  </figcaption>
@@ -662,7 +652,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/show/approval-actions.png') }}">
+                                 <img src="{{ asset('images/manual/budget/button.png') }}">
                                  <figcaption>
                                      Figure 3.2 – Approval Action Buttons
                                  </figcaption>
@@ -712,7 +702,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/show/header-info.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/header-info.png') }}">
                                  <figcaption>
                                      Figure 3.3 – IM Budget Header Information
                                  </figcaption>
@@ -757,7 +747,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/show/tabs-section.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/approval-actions.png') }}">
                                  <figcaption>
                                      Figure 3.4 – Attachment, Approval & Comments Tabs
                                  </figcaption>
@@ -809,7 +799,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/imbudget/show/detail-table.png') }}">
+                                 <img src="{{ asset('images/manual/imbudget/detail-table-.png') }}">
                                  <figcaption>
                                      Figure 3.5 – IM Budget Detail Table
                                  </figcaption>
