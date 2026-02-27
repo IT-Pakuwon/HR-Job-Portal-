@@ -19,7 +19,7 @@ class SyncUsersDasToPg extends Command
         $chunk = (int) $this->option('chunk') ?: 500;
         $since = $this->option('since'); // optional
 
-        $q = UserDas::query()->select(['name','username','email','password','updated_at']);
+        $q = UserDas::query()->select(['name','username','email','password','updated_at','role']);
 
         // kalau mau incremental berdasarkan updated_at
         if ($since) {
@@ -41,6 +41,8 @@ class SyncUsersDasToPg extends Command
                           'name'     => $src->name,
                           'email'    => $src->email,
                           'password' => $src->password, // hash ikut dari mysql
+                          'notification_email' => $src->email, // default notification_email sama dengan email
+                          'user_role' => $src->role, // map role langsung
                       ]
                   );
 

@@ -11,6 +11,7 @@ use App\Models\ViewtrPurch;
 use App\Models\Agenda;
 use App\Models\News;
 use App\Models\Users_talenta;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +26,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        $talenta = Users_talenta::where('employee_id', $user->npk)->first();
+        $talenta = User::where('username', $user->username)->first();
         return view('profile.show', compact('talenta'));
     }
 
