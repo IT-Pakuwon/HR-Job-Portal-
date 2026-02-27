@@ -118,6 +118,7 @@
                     pada list dashboard.</p>
             </div>
         </div>
+
         {{-- 8 --}}
         <div class="faq-card">
             <button @click="open === 8 ? open = null : open = 8" class="faq-question">
@@ -172,7 +173,9 @@
                     ditentukan.
                 </p>
             </div>
-        </div> {{-- 11 --}}
+        </div>
+
+        {{-- 11 --}}
         <div class="faq-card">
             <button @click="open === 11 ? open = null : open = 11" class="faq-question">
                 11. BQ SPPJ atau SPPT dibuat di mana?
