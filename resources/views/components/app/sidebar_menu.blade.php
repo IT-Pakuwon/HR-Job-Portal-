@@ -409,7 +409,12 @@
                                                 ACUM VMS Integration
                                             </a>
                                         </li>
-                                        
+                                        <li>
+                                            <a href="{{ route('user_sync.index') }}"
+                                                class="{{ Request::segment(1) === 'user_sync' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                User Sync
+                                            </a>
+                                        </li>
 
 
                                     </ul>

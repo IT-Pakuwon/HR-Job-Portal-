@@ -1,309 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>PT. ELITE PRIMA HUTAMA – BUDGET 2025</title>
+    <title>{{ $cpnyname }} – {{ $doc_type }} {{ $perpost }}</title>
+
     <style>
-        @page {
-            size: A3 landscape;
-            margin: 15mm;
-        }
+        @page { size: A3 landscape; margin: 15mm; }
+        body { font-family: Arial, sans-serif; font-size: 10px; margin: 0; color:#000; }
 
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            color: #000;
-            margin: 0;
-        }
+        h2 { text-align: center; font-size: 18px; font-weight: bold; margin: 0; }
+        .subtitle { text-align: center; font-size: 13px; margin: 2px 0 12px 0; }
 
-        h2 {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 0;
-        }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; word-wrap: break-word; }
+        th, td { border: 1px solid #000; padding: 4px 3px; vertical-align: middle; }
+        th { background: #f2f2f2; font-weight: bold; text-align: center; }
 
-        .subtitle {
-            text-align: center;
-            font-size: 13px;
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            word-wrap: break-word;
-        }
-
-        th,
-        td {
-            border: 1px solid #000;
-            padding: 6px 4px;
-            vertical-align: middle;
-        }
-
-        th {
-            background: #f2f2f2;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        td.text-right {
-            text-align: right;
-        }
-
-        td.text-center {
-            text-align: center;
-        }
-
-
-        .total-row {
-            background: #dcdcdc86;
-            font-weight: bold;
-        }
-
-        tr,
-        th,
-        td {
-            box-sizing: border-box;
-        }
-
-        .page-break {
-            page-break-before: always;
-        }
+        .total-row { background: #e9e9e9; font-weight: bold; }
+        .page-break { page-break-before: always; }
     </style>
 </head>
-
 <body>
 
-    <!-- ==================== PAGE 1 : OPEX ==================== -->
-    <h2>PT. ELITE PRIMA HUTAMA</h2>
-    <p class="subtitle">OPEX EPH - BUDGET 2025</p>
+@php
+    $fmt = function($v, $d=0){
+        $n = is_numeric($v) ? (float)$v : 0;
+        return number_format($n, $d, '.', ',');
+    };
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%">Account</th>
-                <th style="width: 5%">Activity ID</th>
-                <th style="width: 8%">Description</th>
-                <th style="width: 8%">Detail</th>
-                <th style="width: 4%">Qty</th>
-                <th style="width: 8%">Unit Price</th>
-                <th style="width: 8%">Total Budget</th>
-                <th style="width: 5%">January</th>
-                <th style="width: 5%">February</th>
-                <th style="width: 5%">March</th>
-                <th style="width: 5%">April</th>
-                <th style="width: 5%">May</th>
-                <th style="width: 5%">June</th>
-                <th style="width: 5%">July</th>
-                <th style="width: 5%">August</th>
-                <th style="width: 5%">September</th>
-                <th style="width: 5%">October</th>
-                <th style="width: 5%">November</th>
-                <th style="width: 5%">December</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="text-center">62010400</td>
-                <td class="text-center">OTH000001</td>
-                <td>Langganan Cloud GCP</td>
-                <td>Google Cloud</td>
-                <td class="text-center">12.000</td>
-                <td class="text-right">10,000,000.00</td>
-                <td class="text-right">120,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-            </tr>
-            <tr>
-                <td class="text-center">62010400</td>
-                <td class="text-center">OTH000002</td>
-                <td>Power BI</td>
-                <td>Data Analyst Power BI</td>
-                <td class="text-center">1.000</td>
-                <td class="text-right">4,000,000.00</td>
-                <td class="text-right">4,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">4,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-            </tr>
-            <tr>
-                <td class="text-center">62010400</td>
-                <td class="text-center">OTH000003</td>
-                <td>Maintenance Server</td>
-                <td>1 Tahun 4x</td>
-                <td class="text-center">4.000</td>
-                <td class="text-right">10,000,000.00</td>
-                <td class="text-right">40,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">10,000,000</td>
-            </tr>
+    $rows = collect($detail ?? []);
 
-            <tr class="total-row">
-                <td colspan="6" class="text-right">TOTAL OPEX</td>
-                <td class="text-right">164,000,000</td>
-                <td class="text-right">20,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">24,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">20,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">20,000,000</td>
-            </tr>
-        </tbody>
-    </table>
+    // ✅ sesuai model BudgetDetail kamu
+    $map = [
+        'group'  => 'activity_type',      // OPEX / CAPEX
+        'account'=> 'account_id',
+        'activity'=> 'activity_id',
+        'descr'  => 'activity_descr',
+        'detail' => 'activity_detail',
+        'qty'    => 'qty_budget',
+        'price'  => 'unit_price_budget',
+        'total'  => 'totalbudget',
 
-    <div class="page-break"></div>
-    <h2>PT. ELITE PRIMA HUTAMA</h2>
-    <p class="subtitle">CAPEX EPH - BUDGET 2025</p>
+        'jan'=>'period01_budget','feb'=>'period02_budget','mar'=>'period03_budget','apr'=>'period04_budget',
+        'may'=>'period05_budget','jun'=>'period06_budget','jul'=>'period07_budget','aug'=>'period08_budget',
+        'sep'=>'period09_budget','oct'=>'period10_budget','nov'=>'period11_budget','dec'=>'period12_budget',
+    ];
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%">Account</th>
-                <th style="width: 5%">Activity ID</th>
-                <th style="width: 8%">Description</th>
-                <th style="width: 8%">Detail</th>
-                <th style="width: 4%">Qty</th>
-                <th style="width: 8%">Unit Price</th>
-                <th style="width: 8%">Total Budget</th>
-                <th style="width: 5%">January</th>
-                <th style="width: 5%">February</th>
-                <th style="width: 5%">March</th>
-                <th style="width: 5%">April</th>
-                <th style="width: 5%">May</th>
-                <th style="width: 5%">June</th>
-                <th style="width: 5%">July</th>
-                <th style="width: 5%">August</th>
-                <th style="width: 5%">September</th>
-                <th style="width: 5%">October</th>
-                <th style="width: 5%">November</th>
-                <th style="width: 5%">December</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="text-center">62010400</td>
-                <td class="text-center">OTH000001</td>
-                <td>Langganan Cloud GCP</td>
-                <td>Google Cloud</td>
-                <td class="text-center">12.000</td>
-                <td class="text-right">10,000,000.00</td>
-                <td class="text-right">120,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-            </tr>
-            <tr>
-                <td class="text-center">62010400</td>
-                <td class="text-center">OTH000002</td>
-                <td>Power BI</td>
-                <td>Data Analyst Power BI</td>
-                <td class="text-center">1.000</td>
-                <td class="text-right">4,000,000.00</td>
-                <td class="text-right">4,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">4,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-            </tr>
-            <tr>
-                <td class="text-center">62010400</td>
-                <td class="text-center">OTH000003</td>
-                <td>Maintenance Server</td>
-                <td>1 Tahun 4x</td>
-                <td class="text-center">4.000</td>
-                <td class="text-right">10,000,000.00</td>
-                <td class="text-right">40,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">0</td>
-                <td class="text-right">10,000,000</td>
-            </tr>
+    $opex  = $rows->filter(fn($r) => strtoupper(trim((string) data_get($r, $map['group']))) === 'OPEX');
+    $capex = $rows->filter(fn($r) => strtoupper(trim((string) data_get($r, $map['group']))) === 'CAPEX');
 
-            <!-- ✅ ONE TOTAL ROW ONLY -->
-            <tr class="total-row">
-                <td colspan="6" class="text-right">TOTAL CAPEX</td>
-                <td class="text-right">164,000,000</td>
-                <td class="text-right">20,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">24,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">20,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">10,000,000</td>
-                <td class="text-right">20,000,000</td>
-            </tr>
-        </tbody>
-    </table>
+    // fallback jika activity_type kosong semua
+    if ($opex->isEmpty() && $capex->isEmpty()) {
+        $opex = $rows;
+        $capex = collect();
+    }
+@endphp
+
+{{-- ===================== OPEX ===================== --}}
+<h2>{{ $cpnyname }}</h2>
+<p class="subtitle">OPEX - {{ $doc_type }} {{ $perpost }}</p>
+
+@include('pages.budgets.partials_budget',[
+    'rows' => $opex,
+    'map'  => $map,
+    'fmt'  => $fmt,
+    'totalLabel' => 'TOTAL OPEX'
+])
+
+<div class="page-break"></div>
+
+{{-- ===================== CAPEX ===================== --}}
+<h2>{{ $cpnyname }}</h2>
+<p class="subtitle">CAPEX - {{ $doc_type }} {{ $perpost }}</p>
+
+@include('pages.budgets.partials_budget',[
+    'rows' => $capex,
+    'map'  => $map,
+    'fmt'  => $fmt,
+    'totalLabel' => 'TOTAL CAPEX'
+])
 
 </body>
-
 </html>

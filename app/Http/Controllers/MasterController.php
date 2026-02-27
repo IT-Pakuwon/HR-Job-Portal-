@@ -40,7 +40,7 @@ use App\Models\ViewInventoryAW;
 use App\Models\ViewInventoryEPH;
 use App\Models\ViewInventoryO8;
 use App\Models\ViewInventoryPSA;
-use App\Models\ViewInventoryGPS;
+use App\Models\ViewInventoryGPSIfca;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 use App\Models\TrSPPBdetail;
@@ -279,7 +279,7 @@ class MasterController extends Controller
             case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
             case 'O8':  $model = \App\Models\ViewInventoryO8::class;  break;
             case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
-            case 'GPS': $model = \App\Models\ViewInventoryGPS::class; break;
+            case 'GPS': $model = \App\Models\ViewInventoryGPSIfca::class; break;
             default:
                 return response()->json([
                     'message' => "Unknown cpnyid: {$cpnyid}",
@@ -456,7 +456,7 @@ class MasterController extends Controller
                 $model = \App\Models\ViewInventoryPSA::class;
                 break;
             case 'GPS':
-                $model = \App\Models\ViewInventoryGPS::class;
+                $model = \App\Models\ViewInventoryGPSIfca::class;
                 break;
             default:
                 return response()->json([
@@ -2699,7 +2699,7 @@ class MasterController extends Controller
             case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
             case 'O8':  $model = \App\Models\ViewInventoryO8::class; break;
             case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
-            case 'GPS': $model = \App\Models\ViewInventoryGPS::class; break;
+            case 'GPS': $model = \App\Models\ViewInventoryGPSIfca::class; break;
             default:    $model = null; break;
         }
 
@@ -2741,7 +2741,6 @@ class MasterController extends Controller
                     $expanded->push($clone);
                     continue;
                 }
-
 
                 foreach ($group as $ss) {
                     $clone = clone $r;
@@ -2890,7 +2889,7 @@ class MasterController extends Controller
                 $model = \App\Models\ViewInventoryPSA::class;
                 break;
             case 'GPS':
-                $model = \App\Models\ViewInventoryGPS::class;
+                $model = \App\Models\ViewInventoryGPSIfca::class;
                 break;
             default:
                 // kalau cpnyid kosong → skip stok/cost (boleh)

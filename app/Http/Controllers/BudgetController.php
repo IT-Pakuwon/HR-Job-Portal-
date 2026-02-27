@@ -34,6 +34,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Http\Controllers\Traits\HasAutonbr;
 
 
+
 class BudgetController extends Controller
 {
     use HasAutonbr;
@@ -157,14 +158,48 @@ class BudgetController extends Controller
 
         return $q->exists();
     }
-   
+
     public function createBudget()
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        // ambil daftar company yg user boleh
+        $userCpnyIds = Usercpny::where('username', $user->username)
+            ->where('status', 'A') // kalau ada kolom status
+            ->pluck('cpny_id')
+            ->map(fn($x) => strtoupper(trim($x)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // company dropdown hanya dari akses user
+        $companies = MsCompany::select('cpny_id','cpny_name')
+            ->where('status', 'A')
+            ->when(!empty($userCpnyIds), fn($q) => $q->whereIn('cpny_id', $userCpnyIds))
+            ->orderBy('cpny_name')
+            ->get();
+
+        $temp_id = session('import_temp_id');
+
+        $tempData = [];
+        if ($temp_id) {
+            $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
+        }
+
+        return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id'));
+    }
+   
+    public function createBudget_xxx()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
         $user = request()->user();
      
         $companies = MsCompany::select('cpny_id','cpny_name')->where('status','A')->get();
+
+        $usercpny = Usercpny::where('username', $user->username)->pluck('cpny_id')->toArray();
        
         $temp_id = session('import_temp_id'); // ambil dari session
 
@@ -174,7 +209,7 @@ class BudgetController extends Controller
         }
 
        
-        return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id'));
+        return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id','usercpny'));
     }
    
   
@@ -673,10 +708,29 @@ class BudgetController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
         $budget = Budget::findOrFail($id);
 
-        $companies     = MsCompany::select('cpny_id', 'cpny_name')
-                        ->where('status','A')->get();
+        $userCpnyIds = Usercpny::where('username', $user->username)
+        ->where('status', 'A') // kalau ada kolom status
+        ->pluck('cpny_id')
+        ->map(fn($x) => strtoupper(trim($x)))
+        ->filter()
+        ->unique()
+        ->values()
+        ->toArray();
+
+        // company dropdown hanya dari akses user
+        $companies = MsCompany::select('cpny_id','cpny_name')
+            ->where('status', 'A')
+            ->when(!empty($userCpnyIds), fn($q) => $q->whereIn('cpny_id', $userCpnyIds))
+            ->orderBy('cpny_name')
+            ->get();
+
+        // $companies     = MsCompany::select('cpny_id', 'cpny_name')
+        //                 ->where('status','A')->get();
 
         // business‑unit untuk company yg sedang diedit
         $businessUnits = BusinessUnit::where('cpny_id', $budget->cpny_id)
@@ -1580,22 +1634,8 @@ class BudgetController extends Controller
 
         // Detail baris BDGET
         $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
-            ->get();
-
-        // Approval list (non-cancelled)
-        // $approval = T_approval::where('docid', $budget->budget_id)
-        //     ->where('status', '<>', 'X')
-        //     ->orderBy('aprvid')
-        //     ->orderBy('created_at')
-        //     ->get();
-
-        // $approval = TrApproval::query()
-        //     ->where('refnbr', $budget->budget_id)          // dulu: docid
-        //     ->where('status', '<>', 'X')           
-        //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-        //     ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
-        //     ->get();
-
+            ->get();      
+        
         $refnbr    = $budget->budget_id;
         $apprTable = (new TrApproval)->getTable(); // "tr_approval"
 
@@ -1644,13 +1684,12 @@ class BudgetController extends Controller
 
         $data = [
             'title'               => 'Budget Report',
-            'doc_type'            => 'BDGET',
+            'doc_type'            => 'BUDGET',
             'docid'               => $budget->budget_id,
             'department_id'       => $budget->department_id,
-            'cpnyname'            => optional($company)->cpny_name,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
-            // identitas & tanggal
+            'cpnyname'            => $company->cpny_name,
+            'perpost'             => $budget->perpost,
+           
             'created_by_username' => $budget->created_by,
             'created_by_name'     => ucwords(strtolower(optional($budget->creator)->name)),
             'created_at_fmt'      => optional($budget->created_at)->format('d F Y'),

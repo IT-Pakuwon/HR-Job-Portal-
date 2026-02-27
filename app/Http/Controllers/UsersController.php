@@ -17,6 +17,7 @@ use App\Models\SysUserRole;
 use App\Models\BusinessUnit;
 use App\Models\MsDivision;
 use App\Models\Userdivision;
+use App\Models\UserDas;
 
 class UsersController extends Controller
 {
@@ -329,6 +330,63 @@ class UsersController extends Controller
     }
 
     public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $authUser = Auth::user();
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        if (!Hash::check($request->current_password, $authUser->password)) {
+            return response()->json(['message' => 'Current password does not match'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $newHash = Hash::make($request->password);
+
+            // 1) update password di sistem utama (pgsql2 ms_user)
+            $authUser->password = $newHash;
+            $authUser->updated_by = $authUser->username ?? $authUser->name ?? 'system';
+            $authUser->updated_at = now();
+            $authUser->save();
+
+            // 2) update password di DAS (mysql2 users)
+            //    prioritas match by email, fallback by username
+            $das = UserDas::query()
+                ->where('username', $authUser->username)
+                ->first();
+
+            if (!$das && !empty($authUser->username)) {
+                $das = UserDas::query()
+                    ->where('username', $authUser->username)
+                    ->first();
+            }
+
+            // kalau user DAS wajib ada, gunakan throw supaya rollback
+            if (!$das) {
+                throw new \Exception('UserDas tidak ditemukan (email/username tidak match).');
+            }
+
+            $das->password = $newHash;
+            $das->save();
+
+            DB::commit();
+            return response()->json(['message' => 'Password updated successfully']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal update password (sinkronisasi ke DAS gagal).',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updatePassword_xxx(Request $request)
     {
         $request->validate([
             'current_password' => ['required'],

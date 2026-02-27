@@ -95,7 +95,7 @@ use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\SelfRegisterApplicantController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\UserSyncController;
-
+use App\Http\Controllers\InventoryUserController;
 
 // INTEGRATION
 use App\Http\Controllers\Integration\IFCAIntegrationController;
@@ -1283,6 +1283,9 @@ Route::post('/logout', function () {
     Route::get('/inventories/{id}/edit', [InventoryController::class, 'edit'])->name('inventories.edit');
     Route::put('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
     Route::put('/inventories/{id}/toggle-status', [InventoryController::class, 'toggleStatus'])->name('inventories.toggle-status');
+
+    Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
+    Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');
 
 
 
