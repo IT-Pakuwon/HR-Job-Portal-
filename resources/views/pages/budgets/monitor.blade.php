@@ -8,7 +8,8 @@
                 <select id="fYear" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                     @foreach ($years as $y)
-                        <option value="{{ $y }}" {{ ($y == ($defaultYear ?? '')) ? 'selected' : '' }}>{{ $y }}</option>
+                        <option value="{{ $y }}" {{ $y == ($defaultYear ?? '') ? 'selected' : '' }}>
+                            {{ $y }}</option>
                     @endforeach
                 </select>
             </div>
@@ -18,7 +19,8 @@
                 <select id="fCompany" class="mt-1 w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:text-white">
                     <option value="">Select</option>
                     @foreach ($companies as $c)
-                        <option value="{{ $c }}" {{ ($c == ($defaultCpny ?? '')) ? 'selected' : '' }}>{{ $c }}</option>
+                        <option value="{{ $c }}" {{ $c == ($defaultCpny ?? '') ? 'selected' : '' }}>
+                            {{ $c }}</option>
                     @endforeach
                 </select>
             </div>
@@ -407,10 +409,13 @@
 
             if (!cpny) return;
 
-            $.get("{{ route('budgetmonitor.options.businessUnits') }}", { cpny_id: cpny }, function(res) {
+            $.get("{{ route('budgetmonitor.options.businessUnits') }}", {
+                cpny_id: cpny
+            }, function(res) {
                 (res.data || []).forEach(r => {
                     const sel = (String(r.business_unit_id) === String(selectedBU)) ? 'selected' : '';
-                    $('#fBU').append(`<option value="${r.business_unit_id}" ${sel}>${r.business_unit_id}</option>`);
+                    $('#fBU').append(
+                        `<option value="${r.business_unit_id}" ${sel}>${r.business_unit_id}</option>`);
                 });
             });
         }
@@ -422,10 +427,14 @@
 
             if (!cpny || !bu) return;
 
-            $.get("{{ route('budgetmonitor.options.departments') }}", { cpny_id: cpny, business_unit_id: bu }, function(res) {
+            $.get("{{ route('budgetmonitor.options.departments') }}", {
+                cpny_id: cpny,
+                business_unit_id: bu
+            }, function(res) {
                 (res.data || []).forEach(r => {
                     const sel = (String(r.department_fin_id) === String(selectedDept)) ? 'selected' : '';
-                    $('#fDept').append(`<option value="${r.department_fin_id}" ${sel}>${r.department_fin_id}</option>`);
+                    $('#fDept').append(
+                        `<option value="${r.department_fin_id}" ${sel}>${r.department_fin_id}</option>`);
                 });
             });
         }
@@ -452,27 +461,95 @@
                 },
                 processing: true,
                 serverSide: false,
-                responsive: { details: { type: 'column', target: 0 } },
-                columnDefs: [{ targets: 0, width: '28px', className: 'dtr-control', orderable: false }],
-                order: [[1,'asc']],
-                columns: [
-                    { data: null, defaultContent: '' },
-                    { data: 'account_id' },
-                    { data: 'activity_id' },
-                    { data: 'activity_descr' },
-                    { data: 'totalbudget', className: 'text-right', render: d => fmtID(d) },
-                    { data: 'totalbudget_add', className: 'text-right', render: d => fmtID(d) },
-                    { data: 'total_reserve', className: 'text-right', render: d => fmtID(d) },
-                    { data: 'total_used', className: 'text-right', render: d => fmtID(d) },
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+                columnDefs: [{
+                    targets: 0,
+                    width: '28px',
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+                order: [
+                    [1, 'asc']
+                ],
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    },
+                    {
+                        data: 'account_id'
+                    },
+                    {
+                        data: 'activity_id'
+                    },
+                    {
+                        data: 'activity_descr'
+                    },
+                    {
+                        data: 'totalbudget',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
+                    {
+                        data: 'totalbudget_add',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
+                    {
+                        data: 'total_reserve',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
+                    {
+                        data: 'total_used',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
                     {
                         data: null,
                         className: 'text-right',
-                        render: function(d, t, row) {
-                            const bud  = Number(row.totalbudget || 0);
-                            const add  = Number(row.totalbudget_add || 0);
+                        render: function(data, type, row) {
+
+                            const bud = Number(row.totalbudget || 0);
+                            const add = Number(row.totalbudget_add || 0);
                             const rese = Number(row.total_reserve || 0);
                             const used = Number(row.total_used || 0);
-                            return fmtID(bud + add - rese - used);
+
+                            const remaining = bud + add - rese - used;
+
+                            if (type === 'display') {
+                                return fmtID(remaining); // show formatted
+                            }
+
+                            return remaining; // return numeric for sorting
                         }
                     },
                 ]
@@ -493,25 +570,65 @@
                 },
                 processing: true,
                 serverSide: false,
-                responsive: { details: { type: 'column', target: 0 } },
-                columnDefs: [{ targets: 0, width: '28px', className: 'dtr-control', orderable: false }],
-                order: [[2,'desc']],
-                columns: [
-                    { data: null, defaultContent: '' },
-                    { data: 'refnbr' },
-                    { data: 'submitdate' },
-                    { data: 'account_id' },
-                    { data: 'activity_id' },
-                    { data: 'activity_descr' },
-                    { data: 'budget_flow' },
-                    { data: 'transaction_source' },
-                    { data: 'budget_amount', className: 'text-right', render: d => fmtID(d) },
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+                columnDefs: [{
+                    targets: 0,
+                    width: '28px',
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+                order: [
+                    [2, 'desc']
+                ],
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    },
+                    {
+                        data: 'refnbr'
+                    },
+                    {
+                        data: 'submitdate'
+                    },
+                    {
+                        data: 'account_id'
+                    },
+                    {
+                        data: 'activity_id'
+                    },
+                    {
+                        data: 'activity_descr'
+                    },
+                    {
+                        data: 'budget_flow'
+                    },
+                    {
+                        data: 'transaction_source'
+                    },
+                    {
+                        data: 'budget_amount',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+
+                            if (type === 'display') {
+                                return fmtID(val); // show Rp format
+                            }
+
+                            return val; // use number for sorting & filtering
+                        }
+                    },
                 ]
             });
 
             // ✅ init default dropdown dari controller
             const defCpny = @json($defaultCpny ?? '');
-            const defBU   = @json($defaultBU ?? '');
+            const defBU = @json($defaultBU ?? '');
             const defDept = @json($defaultDept ?? '');
 
             if (defCpny) {
@@ -532,12 +649,12 @@
 
             $('#fYear').on('change', reloadBoth);
 
-            $('#fCompany').on('change', function(){
+            $('#fCompany').on('change', function() {
                 loadBU('');
                 reloadBoth();
             });
 
-            $('#fBU').on('change', function(){
+            $('#fBU').on('change', function() {
                 loadDept('');
                 reloadBoth();
             });

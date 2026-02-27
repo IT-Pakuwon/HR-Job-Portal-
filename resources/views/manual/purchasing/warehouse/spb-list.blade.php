@@ -237,8 +237,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">1. Overview</span>
-                             <span x-show="lang==='id'">1. Gambaran Umum</span>
+                             <span x-show="lang==='en'">2.1 Overview</span>
+                             <span x-show="lang==='id'">2.1 Gambaran Umum</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -272,8 +272,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">2. Header Information</span>
-                             <span x-show="lang==='id'">2. Informasi Header</span>
+                             <span x-show="lang==='en'">2.2 Header Information</span>
+                             <span x-show="lang==='id'">2.2 Informasi Header</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -312,8 +312,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">3. SPPB Detail</span>
-                             <span x-show="lang==='id'">3. Detail SPPB</span>
+                             <span x-show="lang==='en'">2.3 SPPB Detail</span>
+                             <span x-show="lang==='id'">2.3 Detail SPPB</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -354,8 +354,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">4. Attachments</span>
-                             <span x-show="lang==='id'">4. Lampiran</span>
+                             <span x-show="lang==='en'">2.4 Attachments</span>
+                             <span x-show="lang==='id'">2.4 Lampiran</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -386,8 +386,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">5. Submit & Cancel</span>
-                             <span x-show="lang==='id'">5. Submit & Cancel</span>
+                             <span x-show="lang==='en'">2.5 Submit & Cancel</span>
+                             <span x-show="lang==='id'">2.5 Submit & Cancel</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -426,8 +426,8 @@
                      class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
 
                      <span>
-                         <span x-show="lang==='en'">3. List WO</span>
-                         <span x-show="lang==='id'">3. Daftar WO</span>
+                         <span x-show="lang==='en'">3. List SPB</span>
+                         <span x-show="lang==='id'">3. Daftar SPB</span>
 
                      </span>
 
@@ -439,8 +439,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">2.1 Overview</span>
-                             <span x-show="lang==='id'">2.1 Gambaran Umum</span>
+                             <span x-show="lang==='en'">3.1 Overview</span>
+                             <span x-show="lang==='id'">3.1 Gambaran Umum</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -462,8 +462,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">2.2 Status Cards</span>
-                             <span x-show="lang==='id'">2.2 Kartu Status</span>
+                             <span x-show="lang==='en'">3.2 Status Cards</span>
+                             <span x-show="lang==='id'">3.2 Kartu Status</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -512,8 +512,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">2.3 SPB Table</span>
-                             <span x-show="lang==='id'">2.3 Tabel SPB</span>
+                             <span x-show="lang==='en'">3.3 SPB Table</span>
+                             <span x-show="lang==='id'">3.3 Tabel SPB</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -546,8 +546,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">2.4 SPB Tracking Modal</span>
-                             <span x-show="lang==='id'">2.4 Modal Tracking SPB</span>
+                             <span x-show="lang==='en'">3.4 SPB Tracking Modal</span>
+                             <span x-show="lang==='id'">3.4 Modal Tracking SPB</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -587,8 +587,8 @@
                      class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
 
                      <span>
-                         <span x-show="lang==='en'">4. Show WO Details</span>
-                         <span x-show="lang==='id'">4. Tampilkan Detail WO</span>
+                         <span x-show="lang==='en'">4. Show SPB Details</span>
+                         <span x-show="lang==='id'">4. Tampilkan Detail SPB</span>
 
                      </span>
 
