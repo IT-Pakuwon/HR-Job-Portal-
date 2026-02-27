@@ -32,99 +32,68 @@
 
             @foreach ($rootMenus as $rootMenu)
                 @php
-                    $rootSlug = \Illuminate\Support\Str::slug($rootMenu->menu_name);
+                    $rootSlug = \Illuminate\Support\Str::slug($rootMenu->menu_slug ?? $rootMenu->menu_name);
                     $isRootActive = request()->segment(2) === $rootSlug;
                 @endphp
 
-                <div class="mb-6" x-data="{ openRoot: {{ $isRootActive ? 'true' : 'false' }} }">
+                <div class="mb-4" x-data="{ openRoot: {{ $isRootActive ? 'true' : 'false' }} }">
 
                     <!-- ROOT -->
                     <button @click="openRoot = !openRoot"
-                        class="{{ $isRootActive ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300' }} group flex w-full items-center justify-between text-sm font-semibold tracking-tight">
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700">
 
-                        <span class="transition group-hover:translate-x-0.5">
-                            {{ $rootMenu->menu_name }}
-                        </span>
-
-                        <svg class="h-4 w-4 opacity-60 transition-transform duration-200 ease-out"
-                            :class="openRoot ? 'rotate-90' : ''" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        <span>{{ $rootMenu->menu_name }}</span>
+                        <svg class="h-4 w-4 transition-transform" :class="{ 'rotate-180': openRoot }" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
 
-                    <!-- CHILD LEVEL -->
-                    <div x-show="openRoot" x-collapse
-                        class="mt-3 space-y-1 border-l border-gray-200 pl-3 dark:border-gray-800">
+                    <!-- CHILD -->
+                    <div x-show="openRoot" x-transition class="mt-2 space-y-1 pl-4">
 
                         @foreach ($rootMenu->children as $parentMenu)
                             @php
-                                $parentSlug = \Illuminate\Support\Str::slug($parentMenu->menu_name);
+                                $parentSlug = \Illuminate\Support\Str::slug(
+                                    $parentMenu->menu_slug ?? $parentMenu->menu_name,
+                                );
                                 $isParentActive = request()->segment(3) === $parentSlug;
-                                $hasChildren = $parentMenu->children->count() > 0;
                             @endphp
 
                             <div x-data="{ openParent: {{ $isParentActive ? 'true' : 'false' }} }">
 
-                                @if ($hasChildren)
-                                    <!-- LEVEL 2 DROPDOWN -->
-                                    <button @click="openParent = !openParent"
-                                        class="{{ $isParentActive
-                                            ? 'bg-gray-200/70 dark:bg-gray-800 text-gray-900 dark:text-white'
-                                            : 'text-gray-600 hover:bg-gray-200/60 dark:text-gray-400 dark:hover:bg-gray-800' }} group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-all duration-150">
+                                <button @click="openParent = !openParent"
+                                    class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
 
-                                        <span class="truncate">
-                                            {{ $parentMenu->menu_name }}
-                                        </span>
+                                    <span>{{ $parentMenu->menu_name }}</span>
+                                </button>
 
-                                        <svg class="h-4 w-4 transition-transform duration-200"
-                                            :class="openParent ? 'rotate-90' : ''" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
+                                <!-- SUB CHILD -->
+                                <div x-show="openParent" x-transition class="mt-1 space-y-1 pl-4">
 
-                                    <!-- LEVEL 3 -->
-                                    <div x-show="openParent" x-collapse class="mt-1 space-y-1 pl-4">
+                                    @foreach ($parentMenu->children as $childMenu)
+                                        @php
+                                            $childSlug = \Illuminate\Support\Str::slug(
+                                                $childMenu->menu_slug ?? $childMenu->menu_name,
+                                            );
+                                            $isActive = request()->segment(4) === $childSlug;
+                                        @endphp
 
-                                        @foreach ($parentMenu->children as $childMenu)
-                                            @php
-                                                $childSlug = \Illuminate\Support\Str::slug($childMenu->menu_name);
-                                                $isActive = request()->segment(4) === $childSlug;
-                                            @endphp
+                                        <a href="{{ route('manual', [$rootSlug, $parentSlug, $childSlug]) }}"
+                                            class="{{ $isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} block rounded-md px-3 py-2 text-sm">
 
-                                            <a href="{{ route('manual', [$rootSlug, $parentSlug, $childSlug]) }}"
-                                                class="{{ $isActive
-                                                    ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-medium'
-                                                    : 'text-gray-600 hover:bg-gray-200/60 dark:text-gray-400 dark:hover:bg-gray-800' }} block rounded-md px-3 py-1.5 text-sm transition-all">
+                                            {{ $childMenu->menu_name }}
+                                        </a>
+                                    @endforeach
 
-                                                {{ $childMenu->menu_name }}
-
-                                            </a>
-                                        @endforeach
-
-                                    </div>
-                                @else
-                                    <!-- DIRECT LINK -->
-                                    <a href="{{ route('manual', [$rootSlug, $parentSlug]) }}"
-                                        class="{{ $isParentActive
-                                            ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-medium'
-                                            : 'text-gray-600 hover:bg-gray-200/60 dark:text-gray-400 dark:hover:bg-gray-800' }} block rounded-lg px-3 py-2 text-sm transition-all">
-
-                                        {{ $parentMenu->menu_name }}
-
-                                    </a>
-                                @endif
-
+                                </div>
                             </div>
                         @endforeach
 
                     </div>
-
                 </div>
             @endforeach
-
+            dd($allowedIds);
         </aside>
 
         <!-- ================= CONTENT ================= -->

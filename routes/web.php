@@ -1402,86 +1402,91 @@ Route::post('/logout', function () {
         ->name('training.list');
 
 
-    Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent = null, $child = null) {
+Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent = null, $child = null) {
 
-        $user = Auth::user();
-        if (!$user) return redirect()->route('login');
+    $user = Auth::user();
+    if (!$user) return redirect()->route('login');
 
-        $roleId = $user->user_role;
+    /*
+    |--------------------------------------------------------------------------
+    | 1️⃣ Ambil menu id yang boleh diakses role
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | 1️⃣ Ambil menu yang role punya akses
-        |--------------------------------------------------------------------------
-        */
+    $allowedIds = SysRoleMenu::where('role_id', $user->user_role)
+        ->where('status', 'A')
+        ->pluck('menu_id')
+        ->toArray();
 
-        $roleMenus = SysRoleMenu::where('role_id', $roleId)
-            ->where('status', 'A')
-            ->pluck('menu_id')
-            ->toArray();
+    if (empty($allowedIds)) {
+        return view('manual.layout', [
+            'rootMenus' => collect(),
+            'root' => $root,
+            'parent' => $parent,
+            'child' => $child,
+        ]);
+    }
 
-        if (empty($roleMenus)) {
-            return view('manual.layout', [
-                'rootMenus' => collect(),
-                'root' => $root,
-                'parent' => $parent,
-                'child' => $child,
-            ]);
+    /*
+    |--------------------------------------------------------------------------
+    | 2️⃣ Tambahkan parent chain supaya root tetap muncul
+    |--------------------------------------------------------------------------
+    */
+
+    $allMenus = SysMenu::where('status', 'A')->get()->keyBy('menu_id');
+
+    foreach ($allowedIds as $id) {
+
+        $menu = $allMenus->get($id);
+
+        while ($menu && $menu->parent_menu_id) {
+            $allowedIds[] = $menu->parent_menu_id;
+            $menu = $allMenus->get($menu->parent_menu_id);
         }
+    }
 
-        /*
-        |--------------------------------------------------------------------------
-        | 2️⃣ Ambil parent chain (biar root ikut tampil)
-        |--------------------------------------------------------------------------
-        */
+    $allowedIds = array_unique($allowedIds);
 
-        $allAllowedIds = $roleMenus;
+    /*
+    |--------------------------------------------------------------------------
+    | 3️⃣ Load tree sesuai allowed ids
+    |--------------------------------------------------------------------------
+    */
 
-        $menus = SysMenu::whereIn('menu_id', $roleMenus)->get();
+    $rootMenus = SysMenu::whereNull('parent_menu_id')
+        ->whereIn('menu_id', $allowedIds)
+        ->where('status', 'A')
+        ->with(['children' => function ($q) use ($allowedIds) {
 
-        foreach ($menus as $menu) {
+            $q->whereIn('menu_id', $allowedIds)
+              ->where('status', 'A')
+              ->with(['children' => function ($qq) use ($allowedIds) {
+                  $qq->whereIn('menu_id', $allowedIds)
+                     ->where('status', 'A');
+              }]);
 
-            if ($menu->parent_menu_id) {
-                $allAllowedIds[] = $menu->parent_menu_id;
+        }])
+        ->orderBy('menu_sort_order')
+        ->get();
 
-                $parent = SysMenu::where('menu_id', $menu->parent_menu_id)->first();
+    /*
+    |--------------------------------------------------------------------------
+    | 4️⃣ Block direct URL access
+    |--------------------------------------------------------------------------
+    */
 
-                if ($parent && $parent->parent_menu_id) {
-                    $allAllowedIds[] = $parent->parent_menu_id;
-                }
-            }
+    if ($child) {
+
+        $selected = SysMenu::where('menu_slug', $child)->first();
+
+        if (!$selected || !in_array($selected->menu_id, $allowedIds)) {
+            abort(403);
         }
+    }
 
-        $allAllowedIds = array_unique($allAllowedIds);
+    return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
 
-        /*
-        |--------------------------------------------------------------------------
-        | 3️⃣ Load tree hanya sesuai allowed ids
-        |--------------------------------------------------------------------------
-        */
-
-        $rootMenus = SysMenu::whereNull('parent_menu_id')
-            ->whereIn('menu_id', $allAllowedIds)
-            ->where('status', 'A')
-            ->with(['children' => function ($q) use ($allAllowedIds) {
-
-                $q->whereIn('menu_id', $allAllowedIds)
-                ->where('status', 'A')
-                ->with(['children' => function ($qq) use ($allAllowedIds) {
-
-                    $qq->whereIn('menu_id', $allAllowedIds)
-                        ->where('status', 'A');
-
-                }]);
-
-            }])
-            ->orderBy('menu_sort_order')
-            ->get();
-
-        return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
-
-    })->name('manual');
-
+})->middleware('auth')->name('manual');
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
     // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');

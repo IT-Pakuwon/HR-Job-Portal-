@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-     
+
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-     
+
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -119,7 +119,7 @@
                          </p>
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/create/header.png') }}"
+                             <img src="{{ asset('images/manual/sppb/preview.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
                              <p class="mt-2 text-center text-xs text-gray-500">
                                  Figure 1.1 – Create SPPB Header Section
@@ -192,14 +192,14 @@
                                  karena data yang terhubung akan mengikuti referensi WO tersebut.
                              </span>
                          </div>
-
+                         {{--
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <img src="{{ asset('images/manual/sppb/create/emergency-wo.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
                              <p class="mt-2 text-center text-xs text-gray-500">
                                  Figure 1.2 – Emergency Flag and WO Selection
                              </p>
-                         </div>
+                         </div> --}}
 
                      </section>
                      {{-- ================= 1.3 DETAIL TABLE ================= --}}
@@ -222,7 +222,7 @@
                          </p>
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/create/detail-table.png') }}"
+                             <img src="{{ asset('images/manual/sppb/detail-table.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
                              <p class="mt-2 text-center text-xs text-gray-500">
                                  Figure 1.3 – SPPB Detail Table
@@ -282,14 +282,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/create/attachment.png') }}"
-                                 class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
-                                 Figure 1.4 – Attachment Section
-                             </p>
-                         </div>
-
                      </section>
 
                      {{-- ================= 1.5 SUBMIT ================= --}}
@@ -310,14 +302,6 @@
                                  untuk mengirim SPPB ke proses approval.
                              </span>
                          </p>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/create/submit.png') }}"
-                                 class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
-                                 Figure 1.5 – Submit Approval Button
-                             </p>
-                         </div>
 
                          <div class="manual-note manual-info">
                              <span x-show="lang==='en'">
@@ -378,6 +362,14 @@
                          </span>
                      </div>
 
+                     <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                         <img src="{{ asset('images/manual/edit-list.png') }}"
+                             class="rounded-lg border shadow dark:border-gray-800">
+                         <p class="mt-2 text-center text-xs text-gray-500">
+                             Figure 2.1 – Revise SPPB Section
+                         </p>
+                     </div>
+
 
                      <section class="space-y-4">
 
@@ -409,7 +401,7 @@
                          </div>
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/edit/header.png') }}"
+                             <img src="{{ asset('images/manual/sppb/edit-header.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
                              <p class="mt-2 text-center text-xs text-gray-500">
                                  Figure 2.1 – Edit SPPB Header Section
@@ -447,7 +439,7 @@
                          </div>
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/edit/detail.png') }}"
+                             <img src="{{ asset('images/manual/sppb/edit-detail.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
                              <p class="mt-2 text-center text-xs text-gray-500">
                                  Figure 2.2 – Edit SPPB Detail Table
@@ -486,7 +478,7 @@
                          </div>
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/edit/attachment.png') }}"
+                             <img src="{{ asset('images/manual/sppb/edit-attachment.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
                              <p class="mt-2 text-center text-xs text-gray-500">
                                  Figure 2.3 – Edit Attachments Section
@@ -558,6 +550,15 @@
                              serta melakukan tracking progres dokumen.
                          </span>
                      </p>
+
+                     <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                         <img src="{{ asset('images/manual/sppb/list.png') }}"
+                             class="rounded-lg border shadow dark:border-gray-800">
+                         <p class="mt-2 text-center text-xs text-gray-500">
+                             Figure 2.3 – Edit Attachments Section
+                         </p>
+                     </div>
+
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -585,14 +586,6 @@
                                  Pengguna dapat mengklik kartu status untuk melakukan
                                  filter daftar berdasarkan status yang dipilih.
                              </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/list/status-cards.png') }}"
-                                 class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
-                                 Figure 3.1 – Status Summary Cards
-                             </p>
                          </div>
 
                      </section>
@@ -627,14 +620,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/list/table.png') }}"
-                                 class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
-                                 Figure 3.2 – SPPB List Table
-                             </p>
-                         </div>
-
                      </section>
                      <section class="space-y-4">
 
@@ -654,14 +639,6 @@
                                  mengklik tombol "Create" yang berada di bagian kanan atas halaman.
                              </span>
                          </p>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/list/create-button.png') }}"
-                                 class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
-                                 Figure 3.3 – Create SPPB Button
-                             </p>
-                         </div>
 
                      </section>
                      <section class="space-y-4">
@@ -706,14 +683,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/list/tracking-modal.png') }}"
-                                 class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
-                                 Figure 3.4 – Tracking Detail Modal
-                             </p>
-                         </div>
-
                      </section>
                  </div>
              </div>
@@ -747,6 +716,14 @@
                              termasuk data header, detail item, lampiran, progres approval, dan komentar.
                          </span>
                      </p>
+
+                     <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                         <img src="{{ asset('images/manual/sppb/show.png') }}"
+                             class="rounded-lg border shadow dark:border-gray-800">
+                         <p class="mt-2 text-center text-xs text-gray-500">
+                             Figure 4.1 – Show SPPB Details
+                         </p>
+                     </div>
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -772,14 +749,6 @@
                              <span x-show="lang==='id'">
                                  Aksi Reject dan Revise wajib mengisi alasan sebelum dikonfirmasi.
                              </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <img src="{{ asset('images/manual/sppb/show/approval-buttons.png') }}"
-                                 class="rounded-lg border shadow dark:border-gray-800">
-                             <p class="mt-2 text-center text-xs text-gray-500">
-                                 Figure 4.1 – Approval Action Buttons
-                             </p>
                          </div>
 
                      </section>
