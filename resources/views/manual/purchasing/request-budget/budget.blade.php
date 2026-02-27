@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-     
+
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-     
+
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -109,8 +109,8 @@
 
                      <!-- ================= IMPORT FORM ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Import Budget Form</span>
-                         <span x-show="lang==='id'">Form Import Budget</span>
+                         <span x-show="lang==='en'">1.1 Import Budget Form</span>
+                         <span x-show="lang==='id'">1.1 Form Import Budget</span>
                      </h3>
                      <p class="text-gray-600 dark:text-gray-400">
                          <span x-show="lang==='en'">
@@ -156,8 +156,8 @@
 
                      <!-- ================= PREVIEW SECTION ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Preview Budget Data</span>
-                         <span x-show="lang==='id'">Preview Data Budget</span>
+                         <span x-show="lang==='en'">1.2 Preview Budget Data</span>
+                         <span x-show="lang==='id'">1.2 Preview Data Budget</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -204,8 +204,8 @@
 
                      <!-- ================= ATTACHMENT & SUBMIT ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Attachments & Submission</span>
-                         <span x-show="lang==='id'">Lampiran & Pengajuan</span>
+                         <span x-show="lang==='en'">1.3 Attachments & Submission</span>
+                         <span x-show="lang==='id'">1.3 Lampiran & Pengajuan</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -311,8 +311,8 @@
 
                      <!-- ================= EDIT IMPORT FORM ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Edit Import Form</span>
-                         <span x-show="lang==='id'">Form Edit Import</span>
+                         <span x-show="lang==='en'">2.1 Edit Import Form</span>
+                         <span x-show="lang==='id'">2.1 Form Edit Import</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -357,8 +357,8 @@
 
                      <!-- ================= EDIT PREVIEW TABLE ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Budget Details Table</span>
-                         <span x-show="lang==='id'">Tabel Detail Budget</span>
+                         <span x-show="lang==='en'">2.2 Budget Details Table</span>
+                         <span x-show="lang==='id'">2.2 Tabel Detail Budget</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -382,7 +382,7 @@
                          <li>Total Budget</li>
                          <li>Monthly Period Budget (01 – 12)</li>
                      </ul>
-
+                     {{--
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                          <figure class="manual-figure">
                              <img src="{{ asset('images/manual/budget/edit-preview-table.png') }}"
@@ -391,12 +391,12 @@
                                  Figure 2.2 – Budget Details Table (Edit Mode)
                              </figcaption>
                          </figure>
-                     </div>
+                     </div> --}}
 
                      <!-- ================= ATTACHMENT MANAGEMENT ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Attachment Management</span>
-                         <span x-show="lang==='id'">Pengelolaan Lampiran</span>
+                         <span x-show="lang==='en'">2.3 Attachment Management</span>
+                         <span x-show="lang==='id'">2.3 Pengelolaan Lampiran</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -410,7 +410,7 @@
                          </span>
                      </p>
 
-                     <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                     {{-- <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                          <figure class="manual-figure">
                              <img src="{{ asset('images/manual/budget/edit-attachments.png') }}"
                                  class="rounded-lg border shadow dark:border-gray-800">
@@ -418,7 +418,7 @@
                                  Figure 2.3 – Attachment Section (Edit Budget)
                              </figcaption>
                          </figure>
-                     </div>
+                     </div> --}}
 
                      <p class="text-gray-600 dark:text-gray-400">
                          <span x-show="lang==='en'">
@@ -433,8 +433,8 @@
 
                      <!-- ================= SUBMIT APPROVAL ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Submit Edited Budget</span>
-                         <span x-show="lang==='id'">Submit Budget Revisi</span>
+                         <span x-show="lang==='en'">2.4 Submit Edited Budget</span>
+                         <span x-show="lang==='id'">2.4 Submit Budget Revisi</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -483,8 +483,8 @@
 
                      <!-- ================= HEADER & ACTION BUTTONS ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Approval Actions</span>
-                         <span x-show="lang==='id'">Aksi Approval</span>
+                         <span x-show="lang==='en'">3.1 Approval Actions</span>
+                         <span x-show="lang==='id'">3.1 Aksi Approval</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -515,8 +515,8 @@
 
                      <!-- ================= BUDGET SUMMARY CARD ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Budget Summary Information</span>
-                         <span x-show="lang==='id'">Informasi Ringkasan Budget</span>
+                         <span x-show="lang==='en'">3.2 Budget Summary Information</span>
+                         <span x-show="lang==='id'">3.2 Informasi Ringkasan Budget</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -552,8 +552,8 @@
 
                      <!-- ================= ATTACHMENT / APPROVAL / COMMENTS TABS ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Tabs Section</span>
-                         <span x-show="lang==='id'">Bagian Tab</span>
+                         <span x-show="lang==='en'">3.3 Tabs Section</span>
+                         <span x-show="lang==='id'">3.3 Bagian Tab</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -592,8 +592,8 @@
 
                      <!-- ================= BUDGET DETAIL TABLE ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">Budget Detail Table</span>
-                         <span x-show="lang==='id'">Tabel Detail Budget</span>
+                         <span x-show="lang==='en'">3.4 Budget Detail Table</span>
+                         <span x-show="lang==='id'">3.4 Tabel Detail Budget</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
@@ -626,8 +626,8 @@
 
                      <!-- ================= VIEW CONTROLS ================= -->
                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                         <span x-show="lang==='en'">View Controls</span>
-                         <span x-show="lang==='id'">Kontrol Tampilan</span>
+                         <span x-show="lang==='en'">3.5 View Controls</span>
+                         <span x-show="lang==='id'">3.5 Kontrol Tampilan</span>
                      </h3>
 
                      <p class="text-gray-600 dark:text-gray-400">
