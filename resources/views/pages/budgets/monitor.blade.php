@@ -69,25 +69,31 @@
                 <div class="border-t border-gray-200 bg-gray-50 px-4 py-4 dark:border-gray-700 dark:bg-gray-900">
                     <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Budget</div>
-                            <div id="mTotBudg" class="mt-1 text-xs font-extrabold text-gray-900 dark:text-white">Rp. 0</div>
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Budget
+                            </div>
+                            <div id="mTotBudg" class="mt-1 text-xs font-extrabold text-gray-900 dark:text-white">Rp. 0
+                            </div>
                         </div>
                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Additional</div>
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total
+                                Additional</div>
                             <div id="mTotAddi" class="mt-1 text-xs font-extrabold text-blue-600">Rp. 0</div>
                         </div>
                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Reserved</div>
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Reserved
+                            </div>
                             <div id="mTotRese" class="mt-1 text-xs font-extrabold text-amber-600">Rp. 0</div>
                         </div>
                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Used</div>
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Used
+                            </div>
                             <div id="mTotUsed" class="mt-1 text-xs font-extrabold text-red-600">Rp. 0</div>
                         </div>
 
                         <!-- ✅ NEW -->
                         <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Remaining</div>
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total
+                                Remaining</div>
                             <div id="mTotRem" class="mt-1 text-xs font-extrabold text-emerald-600">Rp. 0</div>
                         </div>
                     </div>
@@ -122,7 +128,8 @@
                 <div class="border-t border-gray-200 bg-gray-50 px-4 py-4 dark:border-gray-700 dark:bg-gray-900">
                     <div class="flex justify-end">
                         <div class="rounded-lg bg-white px-4 py-3 shadow-sm dark:bg-gray-800">
-                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Amount</div>
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Amount
+                            </div>
                             <div id="tTotAmount" class="mt-1 text-xs font-extrabold text-indigo-600">Rp. 0</div>
                         </div>
                     </div>
@@ -157,9 +164,12 @@
             $('#fBU').html(`<option value="">Select</option>`);
             $('#fDept').html(`<option value="">Select</option>`);
 
-            $.get("{{ route('budgetmonitor.options.businessUnits') }}", { cpny_id: cpny }, function(res) {
+            $.get("{{ route('budgetmonitor.options.businessUnits') }}", {
+                cpny_id: cpny
+            }, function(res) {
                 (res.data || []).forEach(r => {
-                    $('#fBU').append(`<option value="${r.business_unit_id}">${r.business_unit_id}</option>`);
+                    $('#fBU').append(
+                        `<option value="${r.business_unit_id}">${r.business_unit_id}</option>`);
                 });
             });
         }
@@ -169,9 +179,13 @@
             const bu = $('#fBU').val();
             $('#fDept').html(`<option value="">Select</option>`);
 
-            $.get("{{ route('budgetmonitor.options.departments') }}", { cpny_id: cpny, business_unit_id: bu }, function(res) {
+            $.get("{{ route('budgetmonitor.options.departments') }}", {
+                cpny_id: cpny,
+                business_unit_id: bu
+            }, function(res) {
                 (res.data || []).forEach(r => {
-                    $('#fDept').append(`<option value="${r.department_fin_id}">${r.department_fin_id}</option>`);
+                    $('#fDept').append(
+                        `<option value="${r.department_fin_id}">${r.department_fin_id}</option>`);
                 });
             });
         }
@@ -194,27 +208,95 @@
                 },
                 processing: true,
                 serverSide: false,
-                responsive: { details: { type: 'column', target: 0 } },
-                columnDefs: [{ targets: 0, width: '28px', className: 'dtr-control', orderable: false }],
-                order: [[1,'asc']],
-                columns: [
-                    { data: null, defaultContent: '' },
-                    { data: 'account_id' },
-                    { data: 'activity_id' },
-                    { data: 'activity_descr' },
-                    { data: 'totalbudget', className: 'text-right', render: d => fmtID(d) },
-                    { data: 'totalbudget_add', className: 'text-right', render: d => fmtID(d) },
-                    { data: 'total_reserve', className: 'text-right', render: d => fmtID(d) },
-                    { data: 'total_used', className: 'text-right', render: d => fmtID(d) },
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+                columnDefs: [{
+                    targets: 0,
+                    width: '28px',
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+                order: [
+                    [1, 'asc']
+                ],
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    },
+                    {
+                        data: 'account_id'
+                    },
+                    {
+                        data: 'activity_id'
+                    },
+                    {
+                        data: 'activity_descr'
+                    },
+                    {
+                        data: 'totalbudget',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
+                    {
+                        data: 'totalbudget_add',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
+                    {
+                        data: 'total_reserve',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
+                    {
+                        data: 'total_used',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+                            if (type === 'display') {
+                                return fmtID(val);
+                            }
+                            return val;
+                        }
+                    },
                     {
                         data: null,
                         className: 'text-right',
-                        render: function(d, t, row) {
-                            const bud  = Number(row.totalbudget || 0);
-                            const add  = Number(row.totalbudget_add || 0);
+                        render: function(data, type, row) {
+
+                            const bud = Number(row.totalbudget || 0);
+                            const add = Number(row.totalbudget_add || 0);
                             const rese = Number(row.total_reserve || 0);
                             const used = Number(row.total_used || 0);
-                            return fmtID(bud + add - rese - used);
+
+                            const remaining = bud + add - rese - used;
+
+                            if (type === 'display') {
+                                return fmtID(remaining); // show formatted
+                            }
+
+                            return remaining; // return numeric for sorting
                         }
                     },
                 ]
@@ -231,25 +313,71 @@
                 },
                 processing: true,
                 serverSide: false,
-                responsive: { details: { type: 'column', target: 0 } },
-                columnDefs: [{ targets: 0, width: '28px', className: 'dtr-control', orderable: false }],
-                order: [[2,'desc']],
-                columns: [
-                    { data: null, defaultContent: '' },
-                    { data: 'refnbr' },
-                    { data: 'submitdate' },
-                    { data: 'account_id' },
-                    { data: 'activity_id' },
-                    { data: 'activity_descr' },
-                    { data: 'budget_flow' },
-                    { data: 'transaction_source' },
-                    { data: 'budget_amount', className: 'text-right', render: d => fmtID(d) },
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+                columnDefs: [{
+                    targets: 0,
+                    width: '28px',
+                    className: 'dtr-control',
+                    orderable: false
+                }],
+                order: [
+                    [2, 'desc']
+                ],
+                columns: [{
+                        data: null,
+                        defaultContent: ''
+                    },
+                    {
+                        data: 'refnbr'
+                    },
+                    {
+                        data: 'submitdate'
+                    },
+                    {
+                        data: 'account_id'
+                    },
+                    {
+                        data: 'activity_id'
+                    },
+                    {
+                        data: 'activity_descr'
+                    },
+                    {
+                        data: 'budget_flow'
+                    },
+                    {
+                        data: 'transaction_source'
+                    },
+                    {
+                        data: 'budget_amount',
+                        className: 'text-right',
+                        render: function(data, type) {
+                            const val = Number(data || 0);
+
+                            if (type === 'display') {
+                                return fmtID(val); // show Rp format
+                            }
+
+                            return val; // use number for sorting & filtering
+                        }
+                    },
                 ]
             });
 
             $('#fYear').on('change', reloadBoth);
-            $('#fCompany').on('change', function(){ loadBU(); reloadBoth(); });
-            $('#fBU').on('change', function(){ loadDept(); reloadBoth(); });
+            $('#fCompany').on('change', function() {
+                loadBU();
+                reloadBoth();
+            });
+            $('#fBU').on('change', function() {
+                loadDept();
+                reloadBoth();
+            });
             $('#fDept').on('change', reloadBoth);
         });
     </script>

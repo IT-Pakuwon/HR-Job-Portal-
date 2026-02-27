@@ -458,8 +458,8 @@
                      class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
 
                      <span>
-                         <span x-show="lang==='en'">3. Non Stock Job</span>
-                         <span x-show="lang==='id'">3. Job Non Stock</span>
+                         <span x-show="lang==='en'">3. Show Item Request</span>
+                         <span x-show="lang==='id'">3. Tampilan Permintaan Barang</span>
 
                      </span>
 
@@ -470,8 +470,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">5.1 Item Request Detail Overview</span>
-                             <span x-show="lang==='id'">5.1 Gambaran Detail Item Request</span>
+                             <span x-show="lang==='en'">3.1 Item Request Detail Overview</span>
+                             <span x-show="lang==='id'">3.1 Gambaran Detail Item Request</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -502,7 +502,7 @@
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/overview.png') }}">
                                  <figcaption>
-                                     Figure 5.1 – Item Request Detail Page
+                                     Figure 3.1 – Item Request Detail Page
                                  </figcaption>
                              </figure>
                          </div>
@@ -511,8 +511,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">5.1 Item Request Detail Overview</span>
-                             <span x-show="lang==='id'">5.1 Gambaran Detail Item Request</span>
+                             <span x-show="lang==='en'">3.1 Item Request Detail Overview</span>
+                             <span x-show="lang==='id'">3.1 Gambaran Detail Item Request</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -543,7 +543,7 @@
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/overview.png') }}">
                                  <figcaption>
-                                     Figure 5.1 – Item Request Detail Page
+                                     Figure 3.1 – Item Request Detail Page
                                  </figcaption>
                              </figure>
                          </div>
@@ -552,8 +552,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">5.2 Item Request Information</span>
-                             <span x-show="lang==='id'">5.2 Informasi Item Request</span>
+                             <span x-show="lang==='en'">3.2 Item Request Information</span>
+                             <span x-show="lang==='id'">3.2 Informasi Item Request</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -586,7 +586,7 @@
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/info-card.png') }}">
                                  <figcaption>
-                                     Figure 5.2 – Item Request Information Card
+                                     Figure 3.2 – Item Request Information Card
                                  </figcaption>
                              </figure>
                          </div>
@@ -595,8 +595,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">5.3 Approval Actions</span>
-                             <span x-show="lang==='id'">5.3 Aksi Approval</span>
+                             <span x-show="lang==='en'">3.3 Approval Actions</span>
+                             <span x-show="lang==='id'">3.3 Aksi Approval</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -636,7 +636,7 @@
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/action-buttons.png') }}">
                                  <figcaption>
-                                     Figure 5.3 – Approval Action Buttons
+                                     Figure 3.3 – Approval Action Buttons
                                  </figcaption>
                              </figure>
                          </div>
@@ -645,8 +645,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">5.4 Attachment Management</span>
-                             <span x-show="lang==='id'">5.4 Manajemen Lampiran</span>
+                             <span x-show="lang==='en'">3.4 Attachment Management</span>
+                             <span x-show="lang==='id'">3.4 Manajemen Lampiran</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -686,7 +686,7 @@
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/attachment-tab.png') }}">
                                  <figcaption>
-                                     Figure 5.4 – Attachment Tab
+                                     Figure 3.4 – Attachment Tab
                                  </figcaption>
                              </figure>
                          </div>
@@ -695,8 +695,8 @@
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">5.5 Approval History & Comments</span>
-                             <span x-show="lang==='id'">5.5 Riwayat Approval & Komentar</span>
+                             <span x-show="lang==='en'">3.5 Approval History & Comments</span>
+                             <span x-show="lang==='id'">3.5 Riwayat Approval & Komentar</span>
                          </h3>
 
                          <p class="text-gray-600 dark:text-gray-400">
@@ -733,7 +733,7 @@
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/approval-comments.png') }}">
                                  <figcaption>
-                                     Figure 5.5 – Approval & Comments Tab
+                                     Figure 3.5 – Approval & Comments Tab
                                  </figcaption>
                              </figure>
                          </div>
