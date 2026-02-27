@@ -118,6 +118,151 @@
                     pada list dashboard.</p>
             </div>
         </div>
+        {{-- 8 --}}
+        <div class="faq-card">
+            <button @click="open === 8 ? open = null : open = 8" class="faq-question">
+                8. Jika budget yang sudah di-submit salah, bolehkah import ulang file yang sama?
+            </button>
+            <div x-show="open === 8" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    Do not re-import the same budget file after submission, as the system will process it again
+                    and may cause duplicate data. Please revise the existing data instead.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Jangan meng-import ulang file budget yang sama setelah di-submit,
+                    karena sistem akan memproses ulang dan menyebabkan data menjadi double.
+                    Silakan lakukan revisi pada data yang sudah ada.
+                </p>
+            </div>
+        </div>
+
+        {{-- 9 --}}
+        <div class="faq-card">
+            <button @click="open === 9 ? open = null : open = 9" class="faq-question">
+                9. Jika ada penambahan row budget baru, apakah harus import semua data lagi?
+            </button>
+            <div x-show="open === 9" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    If existing rows (e.g., 1–10) have already been updated and there are additional rows (e.g., 11–12),
+                    please import only the newly added rows.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Jika baris sebelumnya (misalnya 1–10) sudah diperbarui dan terdapat penambahan baris baru
+                    (misalnya 11–12), maka harap hanya meng-import baris yang baru ditambahkan saja.
+                </p>
+            </div>
+        </div>
+
+        {{-- 10 --}}
+        <div class="faq-card">
+            <button @click="open === 10 ? open = null : open = 10" class="faq-question">
+                10. Mengapa file budget tidak dapat di-import?
+            </button>
+            <div x-show="open === 10" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    Import may fail if the Excel template format or field type has been modified.
+                    Please use a new system-provided template and do not change the predefined column formats.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Proses import dapat gagal jika format template Excel atau tipe field telah diubah.
+                    Silakan gunakan template baru yang disediakan sistem dan jangan mengubah format kolom yang telah
+                    ditentukan.
+                </p>
+            </div>
+        </div> {{-- 11 --}}
+        <div class="faq-card">
+            <button @click="open === 11 ? open = null : open = 11" class="faq-question">
+                11. BQ SPPJ atau SPPT dibuat di mana?
+            </button>
+            <div x-show="open === 11" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    BQ for SPPJ or SPPT can only be created after the SPPJ/SPPT has been submitted.
+                    Approval Level 1 cannot approve the document if the BQ has not been created.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    BQ untuk SPPJ atau SPPT dapat dibuat setelah SPPJ/SPPT di-submit.
+                    Approval Level 1 tidak dapat melakukan approval apabila BQ belum dibuat.
+                </p>
+            </div>
+        </div>
+
+        {{-- 12 --}}
+        <div class="faq-card">
+            <button @click="open === 12 ? open = null : open = 12" class="faq-question">
+                12. Apakah CS bisa di-approve jika budget kurang?
+            </button>
+            <div x-show="open === 12" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    CS cannot be fully approved if the budget is insufficient.
+                    Approval Level 2 will not be able to approve the transaction.
+                    An IM Budget must be created if approval is still required.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    CS tidak dapat di-approve secara penuh jika budget tidak mencukupi.
+                    Approval Level 2 tidak dapat melakukan approval.
+                    Jika tetap ingin diproses, maka harus membuat IM Budget terlebih dahulu.
+                </p>
+            </div>
+        </div>
+
+        {{-- 13 --}}
+        <div class="faq-card">
+            <button @click="open === 13 ? open = null : open = 13" class="faq-question">
+                13. Apakah BQ bisa di-edit?
+            </button>
+            <div x-show="open === 13" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    BQ can be edited only while it is still in "Waiting Approval" status.
+                    Once the approval process has started, the BQ can no longer be modified.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    BQ dapat di-edit selama masih dalam status "Waiting Approval".
+                    Jika proses approval sudah berjalan, maka BQ tidak dapat diubah kembali.
+                </p>
+            </div>
+        </div>
+
+        {{-- 14 --}}
+        <div class="faq-card">
+            <button @click="open === 14 ? open = null : open = 14" class="faq-question">
+                14. Apakah attachment bisa dihapus setelah di-upload?
+            </button>
+            <div x-show="open === 14" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    Currently, attachments cannot be deleted after being uploaded.
+                    Please contact the IT team for further assistance.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Saat ini attachment belum dapat dihapus setelah di-upload.
+                    Mohon menghubungi tim IT untuk bantuan lebih lanjut.
+                </p>
+            </div>
+        </div>
+
+        {{-- 15 --}}
+        <div class="faq-card">
+            <button @click="open === 15 ? open = null : open = 15" class="faq-question">
+                15. Jika membuat PRF namun belum ada approval?
+            </button>
+            <div x-show="open === 15" x-collapse class="faq-answer">
+                <p><strong>EN:</strong>
+                    Please coordinate with HR to confirm the approval line.
+                    Once confirmed, IT will configure the approval setup in the system.
+                </p>
+
+                <p class="mt-2"><strong>ID:</strong>
+                    Harap menghubungi HR untuk memastikan line approval terlebih dahulu.
+                    Setelah dikonfirmasi, IT akan melakukan pengaturan approval di sistem.
+                </p>
+            </div>
+        </div>
 
     </div>
 </div>
