@@ -94,6 +94,7 @@ use App\Http\Controllers\BudgetMonitorController;
 use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\SelfRegisterApplicantController;
 use App\Http\Controllers\KontrakController;
+use App\Http\Controllers\UserSyncController;
 
 
 // INTEGRATION
@@ -1333,6 +1334,9 @@ Route::post('/logout', function () {
         Route::get('/integration/acumvms-staging/status', [AcumVmsStagingController::class, 'status'])
             ->name('integration.acumvms.status');
     });
+
+    Route::get('/user-sync', [UserSyncController::class, 'index'])->name('user_sync.index');
+    Route::post('/user-sync/run', [UserSyncController::class, 'run'])->name('user_sync.run');
 
 
     // User must be logged in to START OAuth

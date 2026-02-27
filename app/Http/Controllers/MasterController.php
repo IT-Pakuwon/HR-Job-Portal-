@@ -862,6 +862,7 @@ class MasterController extends Controller
                 $j->on('a.activity_id', '=', 'b.activity_id')
                 ->on('a.cpny_id', '=', 'b.cpny_id');
             })
+            ->where('b.status', 'C')
             ->where('b.cpny_id', $cpnyid)
             ->where('b.department_fin_id', $msdepartment->department_fin_id)
             ->where('b.business_unit_id', $businessUnitId)
@@ -970,6 +971,7 @@ class MasterController extends Controller
                 ->on('a.cpny_id', '=', 'b.cpny_id');
             })
             // ->where('b.budget_id', $budget->budget_id)
+            ->where('b.status', 'C')
             ->where('b.cpny_id', $cpnyid)
             ->where('b.department_fin_id', $msdepartment->department_fin_id)
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
@@ -1199,6 +1201,7 @@ class MasterController extends Controller
                 ->on('a.cpny_id', '=', 'b.cpny_id');
             })
             // ->where('b.budget_id', $budget->budget_id)
+            ->where('b.status', 'C')
             ->where('b.cpny_id', $cpnyid)
             ->where('b.department_fin_id', $deptFinId)
             ->when(!empty($businessUnitIds), fn ($qq) =>
@@ -1405,6 +1408,7 @@ class MasterController extends Controller
                 $j->on('a.activity_id', '=', 'b.activity_id')
                 ->on('a.cpny_id', '=', 'b.cpny_id');
             })
+            ->where('b.status', 'C')
             ->where('b.cpny_id', $wo->cpny_id)
             ->whereIn('b.department_fin_id', $deptFinList)
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
@@ -1620,6 +1624,7 @@ class MasterController extends Controller
                     ->on('a.cpny_id', '=', 'b.cpny_id');
                 })
                 // ->where('b.budget_id', $budget->budget_id)
+                ->where('b.status', 'C')
                 ->where('b.cpny_id', $wo->cpny_id)
                 // ->where('b.department_fin_id', $deptFin)
                 ->whereIn('department_fin_id', $deptFinList)
