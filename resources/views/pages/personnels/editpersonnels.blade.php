@@ -16,7 +16,7 @@
                             </h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label

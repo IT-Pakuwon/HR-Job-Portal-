@@ -309,8 +309,8 @@
 
     <script>
         /* =========================
-                                        MODAL open/close + tabs
-                                        ========================= */
+                                                MODAL open/close + tabs
+                                                ========================= */
         function openTrackingModal(docText) {
             document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
             const modal = document.getElementById('trackingModal');
@@ -859,7 +859,8 @@
                         className: 'text-left'
                     },
                     {
-                        data: 'keperluan'
+                        data: 'keperluan',
+                        className: 'text-left'
                     },
 
                     {

@@ -240,7 +240,7 @@
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
                             </select>
-                            
+
                         </div> --}}
 
                         {{-- 8) purchase_unit --}}
@@ -253,7 +253,7 @@
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
                             </select>
-                            
+
                         </div> --}}
                         <div id="stockUnitWrap">
                             <label>Stock Unit</label>
@@ -915,7 +915,7 @@
                     closeInvModal();
                 });
 
-                // Edit  
+                // Edit
                 $(document).on('click', '.editInventoryBtn', function() {
                     const id = $(this).data('id');
 
@@ -1349,7 +1349,7 @@
                 // PASTIKAN loadItemTypes() DIPANGGIL SAAT MODAL DIBUKA
                 // =========================
 
-                // ADD button (punyamu sekarang belum manggil loadItemTypes)        
+                // ADD button (punyamu sekarang belum manggil loadItemTypes)
                 $('#addInventoryBtn').on('click', function() {
                     $('#inventoryModalTitle').text('Add Inventory');
                     $('#inventoryForm')[0].reset();

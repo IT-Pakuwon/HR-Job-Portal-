@@ -305,8 +305,8 @@
 
     <script>
         /* =========================
-                                            MODAL open/close + tabs
-                                            ========================= */
+                                                        MODAL open/close + tabs
+                                                        ========================= */
         function openTrackingModal(docText) {
             document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
             document.getElementById('trackingModal').classList.remove('hidden');
@@ -417,7 +417,7 @@
         /* =========================
         render header box
         ========================= */
-        
+
         function renderHeader(boxId, header, title) {
             const box = document.getElementById(boxId);
             if (!box) return;
@@ -439,9 +439,9 @@
                 const stText = (st === 'P') ? 'Pending Approval' : (st === 'A') ? 'Approved' : (st || '-');
 
                 const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
-                const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null && la.aprv_leveling !== '')
-                    ? `Lvl ${esc(la.aprv_leveling)}`
-                    : '';
+                const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null && la.aprv_leveling !== '') ?
+                    `Lvl ${esc(la.aprv_leveling)}` :
+                    '';
 
                 const dtb = la.date_before ? esc(la.date_before) : '';
                 const dta = la.date_after ? esc(la.date_after) : '';
@@ -487,14 +487,14 @@
                         </div>
 
                         ${header.vendorname !== undefined ? `
-                            <div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
-                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span>
-                            </div>` : ''}
+                                        <div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                            <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span>
+                                        </div>` : ''}
 
                         ${header.keperluan !== undefined ? `
-                            <div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
-                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span>
-                            </div>` : ''}
+                                        <div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                            <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span>
+                                        </div>` : ''}
 
                         ${lastApprovalHtml}
                     </div>
@@ -544,7 +544,7 @@
             <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
             <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
             <td class="px-3 py-2">${esc(r.uom)}</td>
-            <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>            
+            <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>
             </tr>
         `).join('');
             return `
@@ -556,7 +556,7 @@
                     <th class="px-3 py-2 text-left">Description</th>
                     <th class="px-3 py-2 text-right">Qty</th>
                     <th class="px-3 py-2 text-left">UOM</th>
-                    <th class="px-3 py-2 text-left">Selected Vendor</th>                    
+                    <th class="px-3 py-2 text-left">Selected Vendor</th>
                 </tr>
                 </thead>
                 <tbody>${trs}</tbody>
@@ -571,7 +571,7 @@
             <td class="px-3 py-2">${esc(r.inventoryid)}</td>
             <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
             <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
-            <td class="px-3 py-2">${esc(r.uom)}</td>            
+            <td class="px-3 py-2">${esc(r.uom)}</td>
             </tr>
         `).join('');
             return `
@@ -582,7 +582,7 @@
                     <th class="px-3 py-2 text-left">Inventory</th>
                     <th class="px-3 py-2 text-left">Description</th>
                     <th class="px-3 py-2 text-right">Qty</th>
-                    <th class="px-3 py-2 text-left">UOM</th>                   
+                    <th class="px-3 py-2 text-left">UOM</th>
                 </tr>
                 </thead>
                 <tbody>${trs}</tbody>
@@ -907,14 +907,19 @@
                         data: 'department_id',
                         className: 'text-center whitespace-normal break-words'
                     },
-                    { data: 'bqtype', defaultContent: '-', className: 'text-center w-24' },
+                    {
+                        data: 'bqtype',
+                        defaultContent: '-',
+                        className: 'text-center w-24'
+                    },
                     {
                         data: 'requesttype_name',
                         defaultContent: '-',
                         className: 'text-left'
                     },
                     {
-                        data: 'keperluan'
+                        data: 'keperluan',
+                        className: 'text-left'
                     },
 
                     {

@@ -229,7 +229,7 @@
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
                             </select>
-                            
+
                         </div> --}}
 
                         {{-- 8) purchase_unit --}}
@@ -242,7 +242,7 @@
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
                                 @endforeach
                             </select>
-                            
+
                         </div> --}}
                         <div id="stockUnitWrap">
                             <label>Stock Unit</label>
@@ -475,123 +475,126 @@
             let pickInvTable = null;
 
             $(document).ready(function() {
-                // ===== STATE =====
-                let jobsFilter = 'jobs';
+                        // ===== STATE =====
+                        let jobsFilter = 'jobs';
 
-                const $jobsWrap = $('#jobsWrap');
-                const $invWrap = $('#invWrap');
-                const $jobsTitle = $('#jobsTitle');
+                        const $jobsWrap = $('#jobsWrap');
+                        const $invWrap = $('#invWrap');
+                        const $jobsTitle = $('#jobsTitle');
 
-                function setActive(el) {
-                    document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
-                    el.classList.add('active');
-                }
-
-                // =========================
-                // JOBS TABLE
-                // =========================
-                jobsTable = $('#stockJobsTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    deferRender: true,
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100, 250, -1],
-                        [10, 25, 50, 100, 250, 'All']
-                    ],
-                    responsive: {
-                        details: {
-                            type: 'column',
-                            target: 0 // 👈 this is REQUIRED
+                        function setActive(el) {
+                            document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+                            el.classList.add('active');
                         }
-                    },
 
-                    columnDefs: [{
-                        targets: 0,
-                        width: '28px',
-                        className: 'dtr-control',
-                        orderable: false
-                    }],
-
-                    dom: '<"dt-toolbar"l B f>rtip',
-                    buttons: [{
-                            extend: 'excelHtml5',
-                            text: '↓ Excel',
-                            title: 'List_Stock',
-                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                            exportOptions: {
-                                columns: ':visible',
-                                modifier: {
-                                    page: 'current'
+                        // =========================
+                        // JOBS TABLE
+                        // =========================
+                        jobsTable = $('#stockJobsTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            deferRender: true,
+                            pageLength: 10,
+                            lengthMenu: [
+                                [10, 25, 50, 100, 250, -1],
+                                [10, 25, 50, 100, 250, 'All']
+                            ],
+                            responsive: {
+                                details: {
+                                    type: 'column',
+                                    target: 0 // 👈 this is REQUIRED
                                 }
-                            }
-                        },
-                        {
-                            extend: 'csvHtml5',
-                            text: '↓ CSV',
-                            title: 'List_Stock',
-                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                            exportOptions: {
-                                columns: ':visible',
-                                modifier: {
-                                    page: 'current'
-                                }
-                            }
-                        }
-                    ],
-                    // 🔥 END ADD
-                    ajax: {
-                        url: "{{ route('stockjobs.json') }}",
-                        type: "GET",
-                        data: function(d) {
-                            d.source = 'jobs';
-                            d.filter = jobsFilter || 'all';
-                        }
-                    },
-                    order: [
-                        [1, 'desc']
-                    ],
-                    columns: [{
-                            data: null,
-                            width: '28px',
-                            className: 'dtr-control',
-                            orderable: false,
-                            searchable: false,
-                            defaultContent: ''
-                        },
-                        {
-                            data: 'irid',
-                            render: function(data, type, row) {
-                                const text = data || '-';
-                                const url = `/showitemreq/${row.eid}`;
-                                return `<a href="${url}" class="inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">${text}</a>`;
-                            }
-                        },
-                        {
-                            data: 'irdate'
-                        },
-                        {
-                            data: 'cpny_id',
-                            className: 'text-center'
-                        },
-                        {
-                            data: 'department_id',
-                            className: 'text-center whitespace-normal break-words'
-                        },
-                        {
-                            data: 'inventory_descr_req',
-                            defaultContent: '-'
-                        },
+                            },
 
-                        // Inventory ID + Kaca pembesar / Rollback
-                        {
-                            data: 'inventoryid',
-                            className: 'text-left',
-                            orderable: false,
-                            render: function(data, type, row) {
-                                // kalau kosong -> tampilkan tombol pick
-                                if (!data) {
-                                    return `
+                            columnDefs: [{
+                                targets: '_all',
+                                className: 'whitespace-normal break-words'
+                            }, {
+                                targets: 0,
+                                width: '28px',
+                                className: 'dtr-control',
+                                orderable: false
+                            }],
+
+                            dom: '<"dt-toolbar"l B f>rtip',
+                            buttons: [{
+                                    extend: 'excelHtml5',
+                                    text: '↓ Excel',
+                                    title: 'List_Stock',
+                                    className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'csvHtml5',
+                                    text: '↓ CSV',
+                                    title: 'List_Stock',
+                                    className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                }
+                            ],
+                            // 🔥 END ADD
+                            ajax: {
+                                url: "{{ route('stockjobs.json') }}",
+                                type: "GET",
+                                data: function(d) {
+                                    d.source = 'jobs';
+                                    d.filter = jobsFilter || 'all';
+                                }
+                            },
+                            order: [
+                                [1, 'desc']
+                            ],
+                            columns: [{
+                                    data: null,
+                                    width: '28px',
+                                    className: 'dtr-control',
+                                    orderable: false,
+                                    searchable: false,
+                                    defaultContent: ''
+                                },
+                                {
+                                    data: 'irid',
+                                    render: function(data, type, row) {
+                                        const text = data || '-';
+                                        const url = `/showitemreq/${row.eid}`;
+                                        return `<a href="${url}" class="inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">${text}</a>`;
+                                    }
+                                },
+                                {
+                                    data: 'irdate'
+                                },
+                                {
+                                    data: 'cpny_id',
+                                    className: 'text-center'
+                                },
+                                {
+                                    data: 'department_id',
+                                    className: 'text-center whitespace-normal break-words'
+                                },
+                                {
+                                    data: 'inventory_descr_req',
+                                    defaultContent: '-'
+                                },
+
+                                // Inventory ID + Kaca pembesar / Rollback
+                                {
+                                    data: 'inventoryid',
+                                    className: 'text-left',
+                                    orderable: false,
+                                    render: function(data, type, row) {
+                                        // kalau kosong -> tampilkan tombol pick
+                                        if (!data) {
+                                            return `
                                         <div class="flex items-center gap-2">
                                             <span class="text-gray-400"></span>
                                             <button type="button"
@@ -603,10 +606,10 @@
                                             </button>
                                         </div>
                                     `;
-                                }
+                                        }
 
-                                // kalau ada -> tampilkan rollback
-                                return `
+                                        // kalau ada -> tampilkan rollback
+                                        return `
                                     <div class="flex items-center gap-2">
                                         <span class="font-semibold">${data}</span>
                                         <button type="button"
@@ -617,109 +620,112 @@
                                         </button>
                                     </div>
                                 `;
-                            }
-                        },
-                        {
-                            data: 'created_by',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'is_done',
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            render: function(v) {
-                                return v ?
-                                    `<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">DONE</span>` :
-                                    `<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">JOB</span>`;
-                            }
-                        },
+                                    }
+                                },
+                                {
+                                    data: 'created_by',
+                                    defaultContent: '-'
+                                },
+                                {
+                                    data: 'is_done',
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-center',
+                                    render: function(v) {
+                                        return v ?
+                                            `<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">DONE</span>` :
+                                            `<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">JOB</span>`;
+                                    }
+                                },
 
 
-                    ],
-                });
+                            ],
+                        });
 
-                // =========================
-                // INVENTORY TABLE (CRUD list)
-                // =========================
-                invTable = $('#inventoryTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    deferRender: true,
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100, 250, -1],
-                        [10, 25, 50, 100, 250, 'All']
-                    ],
-                    responsive: {
-                        details: {
-                            type: 'column',
-                            target: 0 // 👈 this is REQUIRED
-                        }
-                    },
-
-                    columnDefs: [{
-                        targets: 0,
-                        width: '28px',
-                        className: 'dtr-control',
-                        orderable: false
-                    }],
-
-                    dom: '<"dt-toolbar"l B f>rtip',
-                    buttons: [{
-                            extend: 'excelHtml5',
-                            text: '↓ Excel',
-                            title: 'List_Inventory',
-                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                            exportOptions: {
-                                columns: ':visible',
-                                modifier: {
-                                    page: 'current'
+                        // =========================
+                        // INVENTORY TABLE (CRUD list)
+                        // =========================
+                        invTable = $('#inventoryTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            deferRender: true,
+                            pageLength: 10,
+                            lengthMenu: [
+                                [10, 25, 50, 100, 250, -1],
+                                [10, 25, 50, 100, 250, 'All']
+                            ],
+                            responsive: {
+                                details: {
+                                    type: 'column',
+                                    target: 0 // 👈 this is REQUIRED
                                 }
-                            }
-                        },
-                        {
-                            extend: 'csvHtml5',
-                            text: '↓ CSV',
-                            title: 'List_Inventory',
-                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                            exportOptions: {
-                                columns: ':visible',
-                                modifier: {
-                                    page: 'current'
+                            },
+
+                            columnDefs: [{
+                                targets: '_all',
+                                className: 'whitespace-normal break-words'
+                            }, {
+                                targets: 0,
+                                width: '28px',
+                                className: 'dtr-control',
+                                orderable: false
+                            }],
+
+                            dom: '<"dt-toolbar"l B f>rtip',
+                            buttons: [{
+                                    extend: 'excelHtml5',
+                                    text: '↓ Excel',
+                                    title: 'List_Inventory',
+                                    className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
+                                },
+                                {
+                                    extend: 'csvHtml5',
+                                    text: '↓ CSV',
+                                    title: 'List_Inventory',
+                                    className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                                    exportOptions: {
+                                        columns: ':visible',
+                                        modifier: {
+                                            page: 'current'
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    ],
-                    // 🔥 END ADD
-                    ajax: {
-                        url: "{{ route('stockjobs.json') }}",
-                        type: "GET",
-                        data: function(d) {
-                            d.source = 'inventory';
-                        }
-                    },
-                    order: [
-                        [1, 'asc']
-                    ],
-                    columns: [{
-                            data: null,
-                            width: '28px',
-                            className: 'dtr-control',
-                            orderable: false,
-                            searchable: false,
-                            defaultContent: ''
-                        },
-                        //{
-                        {
-                            data: 'id',
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                const checked = (String(row.status || '').toUpperCase() === 'A') ?
-                                    'checked' : '';
-                                return `
+                            ],
+                            // 🔥 END ADD
+                            ajax: {
+                                url: "{{ route('stockjobs.json') }}",
+                                type: "GET",
+                                data: function(d) {
+                                    d.source = 'inventory';
+                                }
+                            },
+                            order: [
+                                [1, 'asc']
+                            ],
+                            columns: [{
+                                    data: null,
+                                    width: '28px',
+                                    className: 'dtr-control',
+                                    orderable: false,
+                                    searchable: false,
+                                    defaultContent: ''
+                                },
+                                //{
+                                {
+                                    data: 'id',
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-center',
+                                    render: function(data, type, row) {
+                                        const checked = (String(row.status || '').toUpperCase() === 'A') ?
+                                            'checked' : '';
+                                        return `
                                     <div class="flex items-center justify-center gap-2">
                                         <label class="switch">
                                             <input type="checkbox" class="toggleInvStatus" data-id="${row.id}" ${checked}>
@@ -730,435 +736,441 @@
                                         </button>
                                     </div>
                                 `;
-                            }
-                        },
-                        {
-                            data: 'inventoryid'
-                        },
-                        {
-                            data: 'inventory_descr',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'item_sub_type',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'item_class',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'item_sub_class',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'stock_unit',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'status',
-                            className: 'text-center',
-                            render: function(s) {
-                                s = String(s || '').toUpperCase();
-                                return s === 'A' ?
-                                    '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>' :
-                                    '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>';
-                            }
-                        }
-                    ],
-                });
-
-                // =========================
-                // PICK INVENTORY TABLE (modal kaca pembesar)
-                // =========================
-                pickInvTable = $('#pickInventoryTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    deferRender: true,
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100, 250, -1],
-                        [10, 25, 50, 100, 250, 'All']
-                    ],
-                    // responsive: {
-                    //     details: {
-                    //         type: 'column',
-                    //         target: 0 // 👈 this is REQUIRED
-                    //     }
-                    // },
-
-                    // columnDefs: [{
-                    //     targets: 0,
-                    //     width: '28px',
-                    className: 'dtr-control',
-                    //     orderable: false
-                    // }],
-
-                    // dom: '<"dt-toolbar"l B f>rtip',
-                    // buttons: [{
-                    //         extend: 'excelHtml5',
-                    //         text: '↓ Excel',
-                    //         title: 'list_PickInventory',
-                    //         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                    //         exportOptions: {
-                    //             columns: ':visible',
-                    //             modifier: {
-                    //                 page: 'current'
-                    //             }
-                    //         }
-                    //     },
-                    //     {
-                    //         extend: 'csvHtml5',
-                    //         text: '↓ CSV',
-                    //         title: 'List_PickInventory',
-                    //         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                    //         exportOptions: {
-                    //             columns: ':visible',
-                    //             modifier: {
-                    //                 page: 'current'
-                    //             }
-                    //         }
-                    //     }
-                    // ],
-
-
-                    // 🔥 END ADD
-                    ajax: {
-                        url: "{{ route('stockjobs.inventory-pick.json') }}",
-                        type: "GET",
-                    },
-                    order: [
-                        [0, 'asc']
-                    ],
-                    columns: [{
-                            data: 'inventoryid'
-                        },
-                        {
-                            data: 'inventory_descr',
-                            defaultContent: '-'
-                        },
-                    ],
-                });
-
-                // default show jobs
-                $invWrap.addClass('hidden');
-                $jobsWrap.removeClass('hidden');
-
-                // =========================
-                // CARD CLICK
-                // =========================
-                $('.status-filter').on('click', function(e) {
-                    e.preventDefault();
-
-                    const f = $(this).data('filter') || 'all';
-                    setActive(this);
-
-                    if (f === 'inv') {
-                        $jobsWrap.addClass('hidden');
-                        $invWrap.removeClass('hidden');
-
-                        invTable.search('').order([
-                            [1, 'asc']
-                        ]).page(0).draw(false);
-                        invTable.ajax.reload(null, true);
-                        return;
-                    }
-
-                    $invWrap.addClass('hidden');
-                    $jobsWrap.removeClass('hidden');
-
-                    jobsFilter = f;
-
-                    const titleMap = {
-                        all: 'Stock Jobs (All)',
-                        jobs: 'Stock Jobs',
-                        done: 'Stock Done'
-                    };
-                    $jobsTitle.text(titleMap[jobsFilter] ?? 'Stock Jobs');
-
-                    jobsTable.search('').order([
-                        [1, 'desc']
-                    ]).page(0).draw(false);
-                    jobsTable.ajax.reload(null, true);
-                });
-
-                // =========================
-                // CRUD MODAL helpers
-                // =========================
-
-                window.openInvModal = function() {
-                    $('#inventoryModal').removeClass('hidden').addClass('flex');
-                };
-
-                window.closeInvModal = function() {
-                    $('#inventoryModal').addClass('hidden').removeClass('flex');
-                };
-
-
-                $('#addInventoryBtn').on('click', function() {
-                    $('#inventoryModalTitle').text('Add Inventory');
-                    $('#inventoryForm')[0].reset();
-                    $('#inv_id').val('');
-
-                    window.setAddMode(); // ✅ HIDE Inventory ID
-                    window.openInvModal();
-
-                    window.loadItemTypesPromise().then(function(res) {
-                        const gi = (res.data || []).find(x => String(x.text).toUpperCase() === 'GI');
-                        if (gi) $('#item_type').val(gi.id).trigger('change');
-                    });
-                });
-
-
-
-                $('#closeInventoryModal').on('click', function() {
-                    closeInvModal();
-                });
-
-                // Edit  
-                $(document).on('click', '.editInventoryBtn', function() {
-                    const id = $(this).data('id');
-
-                    $.get(`/invstock/${id}/edit`, function(i) {
-                        $('#inventoryModalTitle').text('Edit Inventory');
-                        $('#inventoryForm')[0].reset();
-
-                        // mode edit: lock semua kecuali descr
-                        window.setEditMode(true);
-
-                        // isi field biasa
-                        $('#inv_id').val(i.id);
-                        $('#inventoryid').val(i.inventoryid);
-
-                        // ✅ hanya ini yang editable
-                        $('#inventory_descr').val(i.inventory_descr);
-
-                        // tampilkan value dropdown sebagai “display only”
-                        // karena disabled, kita harus pastikan option ada
-                        function setSelectDisplay($el, valueTextOrId) {
-                            if (!valueTextOrId) {
-                                $el.empty().append(new Option('-', '', true, true));
-                                return;
-                            }
-                            // buat option dummy supaya tampil
-                            $el.empty().append(new Option(valueTextOrId, valueTextOrId, true, true));
-                        }
-
-                        setSelectDisplay($('#item_type'), i.item_type ?? '-');
-                        setSelectDisplay($('#item_sub_type'), i.item_sub_type ?? '-');
-                        setSelectDisplay($('#item_class'), i.item_class ?? '-');
-                        setSelectDisplay($('#item_sub_class'), i.item_sub_class ?? '-');
-
-                        // unit tampil
-                        setSelectDisplay($('#stock_unit'), i.stock_unit ?? '-');
-                        setSelectDisplay($('#purchase_unit'), i.purchase_unit ?? '-');
-
-                        window.openInvModal();
-
-                    }).fail(function(xhr) {
-                        console.error(xhr.responseText);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: 'Gagal load data inventory'
+                                    }
+                                },
+                                {
+                                    data: 'inventoryid'
+                                },
+                                {
+                                    data: 'inventory_descr',
+                                    defaultContent: '-'
+                                },
+                                {
+                                    data: 'item_sub_type',
+                                    defaultContent: '-'
+                                },
+                                {
+                                    data: 'item_class',
+                                    defaultContent: '-'
+                                },
+                                {
+                                    data: 'item_sub_class',
+                                    defaultContent: '-'
+                                },
+                                {
+                                    data: 'stock_unit',
+                                    defaultContent: '-'
+                                },
+                                {
+                                    data: 'status',
+                                    className: 'text-center',
+                                    render: function(s) {
+                                        s = String(s || '').toUpperCase();
+                                        return s === 'A' ?
+                                            '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>' :
+                                            '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>';
+                                    }
+                                }
+                            ],
                         });
-                    });
-                });
+
+                        // =========================
+                        // PICK INVENTORY TABLE (modal kaca pembesar)
+                        // =========================
+                        pickInvTable = $('#pickInventoryTable').DataTable({
+                                processing: true,
+                                serverSide: true,
+                                deferRender: true,
+                                pageLength: 10,
+                                lengthMenu: [
+                                    [10, 25, 50, 100, 250, -1],
+                                    [10, 25, 50, 100, 250, 'All']
+                                ],
+                                // responsive: {
+                                //     details: {
+                                //         type: 'column',
+                                //         target: 0 // 👈 this is REQUIRED
+                                //     }
+                                // },
+
+                                // columnDefs: [
+                                {
+                                    targets: '_all',
+                                    className: 'whitespace-normal break-words'
+                                },
+                                {
+                                    //     targets: 0,
+                                    //     width: '28px',
+                                    className: 'dtr-control',
+                                    //     orderable: false
+                                    // }],
+
+                                    // dom: '<"dt-toolbar"l B f>rtip',
+                                    // buttons: [{
+                                    //         extend: 'excelHtml5',
+                                    //         text: '↓ Excel',
+                                    //         title: 'list_PickInventory',
+                                    //         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                                    //         exportOptions: {
+                                    //             columns: ':visible',
+                                    //             modifier: {
+                                    //                 page: 'current'
+                                    //             }
+                                    //         }
+                                    //     },
+                                    //     {
+                                    //         extend: 'csvHtml5',
+                                    //         text: '↓ CSV',
+                                    //         title: 'List_PickInventory',
+                                    //         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                                    //         exportOptions: {
+                                    //             columns: ':visible',
+                                    //             modifier: {
+                                    //                 page: 'current'
+                                    //             }
+                                    //         }
+                                    //     }
+                                    // ],
 
 
-                // Toggle status
-                $(document).on('change', '.toggleInvStatus', function() {
-                    const id = $(this).data('id');
-                    const newStatus = $(this).is(':checked') ? 'A' : 'X';
+                                    // 🔥 END ADD
+                                    ajax: {
+                                        url: "{{ route('stockjobs.inventory-pick.json') }}",
+                                        type: "GET",
+                                    },
+                                    order: [
+                                        [0, 'asc']
+                                    ],
+                                    columns: [{
+                                            data: 'inventoryid'
+                                        },
+                                        {
+                                            data: 'inventory_descr',
+                                            defaultContent: '-'
+                                        },
+                                    ],
+                                });
 
-                    $.ajax({
-                        url: `/invstock/${id}/toggle-status`,
-                        type: 'PUT',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        data: {
-                            status: newStatus
-                        },
-                        success: function() {
-                            invTable.ajax.reload(null, false);
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: 'Update Status Sukses',
-                                timer: 1400,
-                                showConfirmButton: false
+                            // default show jobs
+                            $invWrap.addClass('hidden'); $jobsWrap.removeClass('hidden');
+
+                            // =========================
+                            // CARD CLICK
+                            // =========================
+                            $('.status-filter').on('click', function(e) {
+                                e.preventDefault();
+
+                                const f = $(this).data('filter') || 'all';
+                                setActive(this);
+
+                                if (f === 'inv') {
+                                    $jobsWrap.addClass('hidden');
+                                    $invWrap.removeClass('hidden');
+
+                                    invTable.search('').order([
+                                        [1, 'asc']
+                                    ]).page(0).draw(false);
+                                    invTable.ajax.reload(null, true);
+                                    return;
+                                }
+
+                                $invWrap.addClass('hidden');
+                                $jobsWrap.removeClass('hidden');
+
+                                jobsFilter = f;
+
+                                const titleMap = {
+                                    all: 'Stock Jobs (All)',
+                                    jobs: 'Stock Jobs',
+                                    done: 'Stock Done'
+                                };
+                                $jobsTitle.text(titleMap[jobsFilter] ?? 'Stock Jobs');
+
+                                jobsTable.search('').order([
+                                    [1, 'desc']
+                                ]).page(0).draw(false);
+                                jobsTable.ajax.reload(null, true);
                             });
-                        },
-                        error: function(xhr) {
-                            console.error(xhr.responseText);
-                            alert('Gagal update status inventory');
-                            invTable.ajax.reload(null, false);
-                        }
-                    });
-                });
 
-                // Submit create/update
-                $('#inventoryForm').on('submit', function(e) {
-                    e.preventDefault();
+                            // =========================
+                            // CRUD MODAL helpers
+                            // =========================
 
-                    const id = $('#inv_id').val();
-                    const url = id ? `/invstock/${id}` : "{{ route('invstock.store') }}";
+                            window.openInvModal = function() {
+                                $('#inventoryModal').removeClass('hidden').addClass('flex');
+                            };
 
-                    const formData = new FormData(document.getElementById('inventoryForm'));
-                    if (id) formData.append('_method', 'PUT');
+                            window.closeInvModal = function() {
+                                $('#inventoryModal').addClass('hidden').removeClass('flex');
+                            };
 
-                    $.ajax({
-                        url: url,
-                        type: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function() {
-                            closeInvModal();
-                            invTable.ajax.reload(null, false);
 
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: 'Data inventory berhasil disimpan',
-                                timer: 1400,
-                                showConfirmButton: false
+                            $('#addInventoryBtn').on('click', function() {
+                                $('#inventoryModalTitle').text('Add Inventory');
+                                $('#inventoryForm')[0].reset();
+                                $('#inv_id').val('');
+
+                                window.setAddMode(); // ✅ HIDE Inventory ID
+                                window.openInvModal();
+
+                                window.loadItemTypesPromise().then(function(res) {
+                                    const gi = (res.data || []).find(x => String(x.text).toUpperCase() ===
+                                    'GI');
+                                    if (gi) $('#item_type').val(gi.id).trigger('change');
+                                });
                             });
-                        },
-                        error: function(xhr) {
-                            console.error(xhr.responseText);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: 'Gagal menyimpan data inventory'
+
+
+
+                            $('#closeInventoryModal').on('click', function() {
+                                closeInvModal();
                             });
-                        }
 
-                    });
-                });
+                            // Edit
+                            $(document).on('click', '.editInventoryBtn', function() {
+                                const id = $(this).data('id');
 
-                // =========================
-                // PICK INVENTORY MODAL
-                // =========================
-                let pickedId = null; // prefer id
-                let pickedTrid = null; // fallback if needed
-                let pickedIrid = null;
+                                $.get(`/invstock/${id}/edit`, function(i) {
+                                    $('#inventoryModalTitle').text('Edit Inventory');
+                                    $('#inventoryForm')[0].reset();
 
-                function openPickInvModal() {
-                    $('#pickInventoryModal').removeClass('hidden').addClass('flex');
-                    pickInvTable.ajax.reload(null, true);
-                }
+                                    // mode edit: lock semua kecuali descr
+                                    window.setEditMode(true);
 
-                function closePickInvModal() {
-                    $('#pickInventoryModal').addClass('hidden').removeClass('flex');
-                    pickedId = null;
-                    pickedTrid = null;
-                    pickedIrid = null;
-                    $('#pick_irid').text('-');
-                }
+                                    // isi field biasa
+                                    $('#inv_id').val(i.id);
+                                    $('#inventoryid').val(i.inventoryid);
 
-                $('#closePickInventoryModal').on('click', function() {
-                    closePickInvModal();
-                });
+                                    // ✅ hanya ini yang editable
+                                    $('#inventory_descr').val(i.inventory_descr);
 
-                // Click kaca pembesar
-                $(document).on('click', '.btnPickInventory', function() {
-                    pickedId = $(this).data('id') || null;
-                    pickedTrid = $(this).data('trid') || null;
-                    pickedIrid = $(this).data('irid') || null;
+                                    // tampilkan value dropdown sebagai “display only”
+                                    // karena disabled, kita harus pastikan option ada
+                                    function setSelectDisplay($el, valueTextOrId) {
+                                        if (!valueTextOrId) {
+                                            $el.empty().append(new Option('-', '', true, true));
+                                            return;
+                                        }
+                                        // buat option dummy supaya tampil
+                                        $el.empty().append(new Option(valueTextOrId, valueTextOrId, true,
+                                        true));
+                                    }
 
-                    $('#pick_irid').text(pickedIrid || '-');
-                    openPickInvModal();
-                });
+                                    setSelectDisplay($('#item_type'), i.item_type ?? '-');
+                                    setSelectDisplay($('#item_sub_type'), i.item_sub_type ?? '-');
+                                    setSelectDisplay($('#item_class'), i.item_class ?? '-');
+                                    setSelectDisplay($('#item_sub_class'), i.item_sub_class ?? '-');
 
-                // Klik row inventory untuk pilih
-                $('#pickInventoryTable tbody').on('click', 'tr', function() {
-                    const row = pickInvTable.row(this).data();
-                    if (!row || !row.inventoryid) return;
+                                    // unit tampil
+                                    setSelectDisplay($('#stock_unit'), i.stock_unit ?? '-');
+                                    setSelectDisplay($('#purchase_unit'), i.purchase_unit ?? '-');
 
-                    // prefer id
-                    if (!pickedId && !pickedTrid) {
-                        alert('ID/TRID kosong, tidak bisa update.');
-                        return;
-                    }
+                                    window.openInvModal();
 
-                    $.ajax({
-                        url: "{{ route('stockjobs.set-inventory') }}",
-                        type: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        data: {
-                            id: pickedId,
-                            trid: pickedTrid,
-                            inventoryid: row.inventoryid
-                        },
-                        success: function() {
-                            closePickInvModal();
-                            if (jobsTable) jobsTable.ajax.reload(null, false);
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Stock Jobs Sukses',
-                                timer: 1200,
-                                showConfirmButton: false
+                                }).fail(function(xhr) {
+                                    console.error(xhr.responseText);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: 'Gagal load data inventory'
+                                    });
+                                });
                             });
-                        },
-                        error: function(xhr) {
-                            console.error(xhr.responseText);
-                            alert('Gagal update inventory ke item request');
-                        }
-                    });
-                });
 
 
-                $(document).on('click', '.btnRollback', function() {
-                    const eid = $(this).data('eid');
-                    if (!eid) return;
+                            // Toggle status
+                            $(document).on('change', '.toggleInvStatus', function() {
+                                const id = $(this).data('id');
+                                const newStatus = $(this).is(':checked') ? 'A' : 'X';
 
-                    Swal.fire({
-                        title: 'Rollback?',
-                        text: 'Inventory ID akan dikosongkan dan item balik ke Stock Jobs.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, rollback',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (!result.isConfirmed) return;
+                                $.ajax({
+                                    url: `/invstock/${id}/toggle-status`,
+                                    type: 'PUT',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    data: {
+                                        status: newStatus
+                                    },
+                                    success: function() {
+                                        invTable.ajax.reload(null, false);
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil',
+                                            text: 'Update Status Sukses',
+                                            timer: 1400,
+                                            showConfirmButton: false
+                                        });
+                                    },
+                                    error: function(xhr) {
+                                        console.error(xhr.responseText);
+                                        alert('Gagal update status inventory');
+                                        invTable.ajax.reload(null, false);
+                                    }
+                                });
+                            });
 
-                        $.ajax({
-                            url: `/stockjobs/${eid}/rollback`,
-                            type: 'PUT',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            success: function() {
-                                if (jobsTable) jobsTable.ajax.reload(null, false);
+                            // Submit create/update
+                            $('#inventoryForm').on('submit', function(e) {
+                                e.preventDefault();
+
+                                const id = $('#inv_id').val();
+                                const url = id ? `/invstock/${id}` : "{{ route('invstock.store') }}";
+
+                                const formData = new FormData(document.getElementById('inventoryForm'));
+                                if (id) formData.append('_method', 'PUT');
+
+                                $.ajax({
+                                    url: url,
+                                    type: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function() {
+                                        closeInvModal();
+                                        invTable.ajax.reload(null, false);
+
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil',
+                                            text: 'Data inventory berhasil disimpan',
+                                            timer: 1400,
+                                            showConfirmButton: false
+                                        });
+                                    },
+                                    error: function(xhr) {
+                                        console.error(xhr.responseText);
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Gagal',
+                                            text: 'Gagal menyimpan data inventory'
+                                        });
+                                    }
+
+                                });
+                            });
+
+                            // =========================
+                            // PICK INVENTORY MODAL
+                            // =========================
+                            let pickedId = null; // prefer id
+                            let pickedTrid = null; // fallback if needed
+                            let pickedIrid = null;
+
+                            function openPickInvModal() {
+                                $('#pickInventoryModal').removeClass('hidden').addClass('flex');
+                                pickInvTable.ajax.reload(null, true);
+                            }
+
+                            function closePickInvModal() {
+                                $('#pickInventoryModal').addClass('hidden').removeClass('flex');
+                                pickedId = null;
+                                pickedTrid = null;
+                                pickedIrid = null;
+                                $('#pick_irid').text('-');
+                            }
+
+                            $('#closePickInventoryModal').on('click', function() {
+                                closePickInvModal();
+                            });
+
+                            // Click kaca pembesar
+                            $(document).on('click', '.btnPickInventory', function() {
+                                pickedId = $(this).data('id') || null;
+                                pickedTrid = $(this).data('trid') || null;
+                                pickedIrid = $(this).data('irid') || null;
+
+                                $('#pick_irid').text(pickedIrid || '-');
+                                openPickInvModal();
+                            });
+
+                            // Klik row inventory untuk pilih
+                            $('#pickInventoryTable tbody').on('click', 'tr', function() {
+                                const row = pickInvTable.row(this).data();
+                                if (!row || !row.inventoryid) return;
+
+                                // prefer id
+                                if (!pickedId && !pickedTrid) {
+                                    alert('ID/TRID kosong, tidak bisa update.');
+                                    return;
+                                }
+
+                                $.ajax({
+                                    url: "{{ route('stockjobs.set-inventory') }}",
+                                    type: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    data: {
+                                        id: pickedId,
+                                        trid: pickedTrid,
+                                        inventoryid: row.inventoryid
+                                    },
+                                    success: function() {
+                                        closePickInvModal();
+                                        if (jobsTable) jobsTable.ajax.reload(null, false);
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Stock Jobs Sukses',
+                                            timer: 1200,
+                                            showConfirmButton: false
+                                        });
+                                    },
+                                    error: function(xhr) {
+                                        console.error(xhr.responseText);
+                                        alert('Gagal update inventory ke item request');
+                                    }
+                                });
+                            });
+
+
+                            $(document).on('click', '.btnRollback', function() {
+                                const eid = $(this).data('eid');
+                                if (!eid) return;
 
                                 Swal.fire({
-                                    icon: 'success',
-                                    title: 'Rollback sukses',
-                                    timer: 1200,
-                                    showConfirmButton: false
+                                    title: 'Rollback?',
+                                    text: 'Inventory ID akan dikosongkan dan item balik ke Stock Jobs.',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Ya, rollback',
+                                    cancelButtonText: 'Batal'
+                                }).then((result) => {
+                                    if (!result.isConfirmed) return;
+
+                                    $.ajax({
+                                        url: `/stockjobs/${eid}/rollback`,
+                                        type: 'PUT',
+                                        headers: {
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        success: function() {
+                                            if (jobsTable) jobsTable.ajax.reload(null, false);
+
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Rollback sukses',
+                                                timer: 1200,
+                                                showConfirmButton: false
+                                            });
+                                        },
+                                        error: function(xhr) {
+                                            console.error(xhr.responseText);
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Gagal',
+                                                text: 'Gagal rollback inventory id'
+                                            });
+                                        }
+                                    });
                                 });
-                            },
-                            error: function(xhr) {
-                                console.error(xhr.responseText);
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal',
-                                    text: 'Gagal rollback inventory id'
-                                });
-                            }
+                            });
+
+
                         });
-                    });
-                });
-
-
-            });
         </script>
 
         <script>
@@ -1347,7 +1359,7 @@
                 // PASTIKAN loadItemTypes() DIPANGGIL SAAT MODAL DIBUKA
                 // =========================
 
-                // ADD button (punyamu sekarang belum manggil loadItemTypes)        
+                // ADD button (punyamu sekarang belum manggil loadItemTypes)
                 $('#addInventoryBtn').on('click', function() {
                     $('#inventoryModalTitle').text('Add Inventory');
                     $('#inventoryForm')[0].reset();

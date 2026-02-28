@@ -10,7 +10,7 @@
                             </h2>
                             </h2>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
@@ -57,7 +57,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <label class="mt-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Note</label>
                             <textarea name="changerequest_note" id="changerequest_note"
                                 class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"

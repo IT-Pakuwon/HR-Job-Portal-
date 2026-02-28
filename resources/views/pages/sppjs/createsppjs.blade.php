@@ -181,7 +181,7 @@
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
-                                                    <th class="req w-[10%] border p-3">Coa</th>
+                                                    <th class="req w-[10%] border p-3">Bugdet</th>
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
@@ -277,7 +277,7 @@
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
                                                             <input type="text" name="coa[]"
                                                                 class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select COA..." readonly>
+                                                                placeholder="Select Budget..." readonly>
                                                             <button type="button"
                                                                 class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                 title="Lookup">🔎</button>
@@ -459,12 +459,12 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup COA ===== -->
+                    <!-- ===== Modal Lookup Budget ===== -->
                     <div id="coaModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Budget</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
@@ -676,26 +676,27 @@
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
                                 <span class="req">Attachments</span>
-                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
-                                <span class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
+                                    details &rarr;</span>
+                                <span
+                                    class="hidden text-sm font-medium text-gray-500 transition-all group-open:inline">Hide
+                                    details &darr;</span>
                             </summary>
 
-                            <div class="flex flex-col pt-6 gap-4">
+                            <div class="flex flex-col gap-4 pt-6">
 
                                 {{-- ======================
                                     MODE: JASA
                                     ====================== --}}
                                 <div id="attachmentModeJasa" class="">
-                                    <div class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                                    <div class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
                                         Upload Dokumen (Jasa) <span class="text-red-600">*</span>
                                     </div>
 
                                     <div id="attachmentsContainer">
                                         <div class="attachment-row flex items-center gap-2">
                                             <input type="file" name="attachments[]"
-                                                class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700
-                                                    file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
-                                                    dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                                                class="file: flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
                                             <button type="button"
                                                 class="removeAttachment hidden rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition-colors hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                                                 🗑️
@@ -705,7 +706,8 @@
 
                                     <button type="button" id="addAttachment"
                                         class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
                                                 clip-rule="evenodd" />
@@ -722,7 +724,8 @@
                                         Upload Dokumen Kontrak<span class="text-red-600">*</span>
                                     </div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400">
-                                        Dokumen yang bertanda <span class="text-red-600 font-semibold">Mandatory</span> wajib diupload.
+                                        Dokumen yang bertanda <span class="font-semibold text-red-600">Mandatory</span>
+                                        wajib diupload.
                                     </div>
 
                                     <div class="mt-3 space-y-3">
@@ -734,7 +737,7 @@
                                             @php
                                                 $docId = $doc->kontrakdocument_id;
                                                 $required = (bool) $doc->kontrakdocument_required;
-                                                $label = $doc->kontrakdocument_descr ?: ('Doc ' . $docId);
+                                                $label = $doc->kontrakdocument_descr ?: 'Doc ' . $docId;
                                             @endphp
 
                                             <div class="kontrak-doc-row rounded-lg border border-gray-200 p-3 dark:border-gray-700"
@@ -743,16 +746,19 @@
                                                 <div class="flex items-start justify-between gap-3">
                                                     <div class="min-w-0">
                                                         <div class="flex items-center gap-2">
-                                                            <div class="font-semibold text-gray-800 dark:text-gray-100 truncate">
+                                                            <div
+                                                                class="truncate font-semibold text-gray-800 dark:text-gray-100">
                                                                 {{ $doc->kontrakdocument_order }}. {{ $label }}
                                                             </div>
 
                                                             @if ($required)
-                                                                <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-200">
+                                                                <span
+                                                                    class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-200">
                                                                     Mandatory
                                                                 </span>
                                                             @else
-                                                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                                                <span
+                                                                    class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                                     Optional
                                                                 </span>
                                                             @endif
@@ -761,14 +767,10 @@
                                                 </div>
 
                                                 <div class="mt-3 flex items-center gap-2">
-                                                    <input
-                                                        type="file"
+                                                    <input type="file"
                                                         name="kontrak_attachments[{{ $docId }}]"
-                                                        class="kontrakFileInput flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700
-                                                            file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200
-                                                            dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600"
-                                                        {{ $required ? 'required' : '' }}
-                                                    >
+                                                        class="kontrakFileInput flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600"
+                                                        {{ $required ? 'required' : '' }}>
                                                 </div>
 
                                                 {{-- tempat error message js (optional) --}}
@@ -776,7 +778,8 @@
                                         @endforeach
 
                                         @if ($kontrakDocs->isEmpty())
-                                            <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/40 dark:bg-yellow-900/20 dark:text-yellow-200">
+                                            <div
+                                                class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/40 dark:bg-yellow-900/20 dark:text-yellow-200">
                                                 Tidak ada master dokumen kontrak (MsKontrakDocument) yang aktif.
                                             </div>
                                         @endif
@@ -786,11 +789,14 @@
                             </div>
                         </details>
 
-                        <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                        <div
+                            class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                             <button id="backBtn" onclick="history.back()"
                                 class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
                                 </svg>
                                 <span>Back</span>
                             </button>
@@ -801,7 +807,8 @@
                                     <span id="btnText">Submit Approval</span>
                                     <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
@@ -938,7 +945,7 @@
                         rowErr = true;
                     }
                     if (!coaId) {
-                        addError($coaN, 'Pilih COA.');
+                        addError($coaN, 'Pilih Budget.');
                         rowErr = true;
                     }
 
@@ -947,7 +954,7 @@
 
                 if (validRows === 0) {
                     toastr.error(
-                        'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, COA).'
+                        'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, Budget).'
                     );
                     return false;
                 }
@@ -1063,7 +1070,7 @@
                     let $firstInvalid = null;
 
                     // cek semua doc mandatory
-                    $('#attachmentModeKontrak .kontrak-doc-row').each(function () {
+                    $('#attachmentModeKontrak .kontrak-doc-row').each(function() {
                         const $row = $(this);
                         const required = String($row.data('required')) === '1';
                         if (!required) return;
@@ -1076,7 +1083,9 @@
 
                             $file.addClass('is-invalid').attr('aria-invalid', 'true');
                             if ($file.next('.error-feedback').length === 0) {
-                                $file.after('<small class="error-feedback">Dokumen ini wajib diupload.</small>');
+                                $file.after(
+                                    '<small class="error-feedback">Dokumen ini wajib diupload.</small>'
+                                );
                             }
 
                             if (!$firstInvalid) $firstInvalid = $file;
@@ -1086,7 +1095,9 @@
                     if (!kontrakOk) {
                         toastr.error('Mohon upload semua dokumen kontrak yang mandatory.');
                         if ($firstInvalid && $firstInvalid.length) {
-                            $('html,body').animate({ scrollTop: $firstInvalid.offset().top - 120 }, 300);
+                            $('html,body').animate({
+                                scrollTop: $firstInvalid.offset().top - 120
+                            }, 300);
                             $firstInvalid.trigger('focus');
                         }
                         return;
@@ -1096,7 +1107,7 @@
                     // default: Jasa => minimal 1 file
                     let jasaOk = false;
 
-                    $('#attachmentsContainer input[type="file"]').each(function () {
+                    $('#attachmentsContainer input[type="file"]').each(function() {
                         if (this.files && this.files.length > 0) {
                             jasaOk = true;
                             return false;
@@ -1216,7 +1227,7 @@
                 </td>
 
                 <td class="border p-3 text-center">
-                <input type="text" name="qty[]" 
+                <input type="text" name="qty[]"
                         class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                         placeholder="0,00">
                 </td>
@@ -1228,7 +1239,7 @@
                         <input type="hidden" name="uom_to_unit[]"        class="uomToField">
                         <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
                         <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
-                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" 
+                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="-" readonly>
                         <button type="button"
                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -1245,7 +1256,7 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="location_id[]"     class="locationIdField">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"  name="location_combo_display[]" 
+                        <input type="text"  name="location_combo_display[]"
                             class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="Select location & sub location..." readonly>
                         <button type="button"
@@ -1253,15 +1264,15 @@
                                 title="Lookup">🔎</button>
                     </div>
                 </td>
-             
+
                 <td class="p-3 border">
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">    
-                        <input type="hidden" name="activity_descr[]"  class="actDescrField">                  
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">
                         <input type="hidden" name="coa_id[]" class="coaIdField">
-                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
+                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select Budget..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                     </div>
                 </td>
@@ -1375,8 +1386,8 @@
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
                         data-stock_unit="${item.stock_unit || ''}"
                         data-account_id="${item.account_id || ''}"
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"     
-                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"    
+                        data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"
                         data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
                         Choose
@@ -1876,7 +1887,7 @@
 
     <script>
         $(function() {
-            // ===== COA modal state =====
+            // ===== Budget modal state =====
             const $coaModal = $('#coaModal');
             const $coaTbody = $('#coaTableBody');
             const $coaCount = $('#coaCount');
@@ -1970,7 +1981,7 @@
                 }
             });
 
-            // Load COA from API
+            // Load Budget from API
             function loadCoa() {
 
                 $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
@@ -1983,9 +1994,9 @@
                 // ===============================
                 // 🔥 Simple ternary version
                 // ===============================
-                const url = coaState.woid
-                    ? "{{ route('coa.byWo') }}"
-                    : "{{ route('coa.byDept') }}";
+                const url = coaState.woid ?
+                    "{{ route('coa.byWo') }}" :
+                    "{{ route('coa.byDept') }}";
 
                 // Parameter dasar
                 let params = {
@@ -2056,7 +2067,9 @@
                         $('#coaNext').prop('disabled', coaState.page >= maxPage);
                     })
                     .fail(function() {
-                        $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                        $coaTbody.html(
+                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -2681,10 +2694,10 @@
                         const rowsArr = list.map(item => {
                             const id = item.requesttypeid ?? item.id ?? '';
                             const name = item.requesttype_name ?? item.name ?? id;
-                                // td class="border p-2">${id}</td>
+                            // td class="border p-2">${id}</td>
                             return `
                             <tr>
-                                
+
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
                                 <td class="border p-2 text-center">
                                     <button type="button"
@@ -2937,7 +2950,7 @@
                     title: `Ubah ${type}?`,
                     html: `
                 <div style="text-align:left">
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
+                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:
                 </div>
             `,
                     showCancelButton: true,
@@ -3051,60 +3064,60 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             const $bqtype = $('#bqtype');
             const $modeJasa = $('#attachmentModeJasa');
             const $modeKontrak = $('#attachmentModeKontrak');
 
             function setKontrakInputsEnabled(enabled) {
-            const $inputs = $modeKontrak.find('input.kontrakFileInput[type="file"]');
+                const $inputs = $modeKontrak.find('input.kontrakFileInput[type="file"]');
 
-            if (enabled) {
-                $inputs.prop('disabled', false);
+                if (enabled) {
+                    $inputs.prop('disabled', false);
 
-                // restore required sesuai master (data-required)
-                $modeKontrak.find('.kontrak-doc-row').each(function () {
-                const required = String($(this).data('required')) === '1';
-                $(this).find('input.kontrakFileInput').prop('required', required);
-                });
+                    // restore required sesuai master (data-required)
+                    $modeKontrak.find('.kontrak-doc-row').each(function() {
+                        const required = String($(this).data('required')) === '1';
+                        $(this).find('input.kontrakFileInput').prop('required', required);
+                    });
 
-            } else {
-                // disable + remove required agar tidak kena validasi native
-                $inputs.prop('disabled', true).prop('required', false);
+                } else {
+                    // disable + remove required agar tidak kena validasi native
+                    $inputs.prop('disabled', true).prop('required', false);
 
-                // bersihkan error UI
-                $inputs.removeClass('is-invalid').removeAttr('aria-invalid');
-                $modeKontrak.find('.error-feedback').remove();
-            }
+                    // bersihkan error UI
+                    $inputs.removeClass('is-invalid').removeAttr('aria-invalid');
+                    $modeKontrak.find('.error-feedback').remove();
+                }
             }
 
             function setJasaInputsEnabled(enabled) {
-            const $inputs = $('#attachmentsContainer').find('input[type="file"][name="attachments[]"]');
-            $inputs.prop('disabled', !enabled);
+                const $inputs = $('#attachmentsContainer').find('input[type="file"][name="attachments[]"]');
+                $inputs.prop('disabled', !enabled);
 
-            if (!enabled) {
-                $inputs.removeClass('is-invalid').removeAttr('aria-invalid');
-                $('#attachmentsContainer').find('.error-feedback').remove();
-            }
+                if (!enabled) {
+                    $inputs.removeClass('is-invalid').removeAttr('aria-invalid');
+                    $('#attachmentsContainer').find('.error-feedback').remove();
+                }
             }
 
             function applyAttachmentMode() {
-            const v = ($bqtype.val() || '').trim();
+                const v = ($bqtype.val() || '').trim();
 
-            if (v === 'Kontrak') {
-                $modeJasa.addClass('hidden');
-                $modeKontrak.removeClass('hidden');
+                if (v === 'Kontrak') {
+                    $modeJasa.addClass('hidden');
+                    $modeKontrak.removeClass('hidden');
 
-                setJasaInputsEnabled(false);
-                setKontrakInputsEnabled(true);
-            } else {
-                // default Jasa / kosong
-                $modeKontrak.addClass('hidden');
-                $modeJasa.removeClass('hidden');
+                    setJasaInputsEnabled(false);
+                    setKontrakInputsEnabled(true);
+                } else {
+                    // default Jasa / kosong
+                    $modeKontrak.addClass('hidden');
+                    $modeJasa.removeClass('hidden');
 
-                setKontrakInputsEnabled(false);
-                setJasaInputsEnabled(true);
-            }
+                    setKontrakInputsEnabled(false);
+                    setJasaInputsEnabled(true);
+                }
             }
 
             $bqtype.on('change', applyAttachmentMode);

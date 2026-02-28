@@ -15,8 +15,7 @@
 
             <div class="flex items-center gap-2">
                 <label class="text-sm font-semibold text-gray-700 dark:text-white">Filter:</label>
-                <select id="typeFilter"
-                    class="rounded-lg border px-3 py-2 text-sm dark:bg-gray-700 dark:text-white">
+                <select id="typeFilter" class="rounded-lg border px-3 py-2 text-sm dark:bg-gray-700 dark:text-white">
                     <option value="">All</option>
                     <option value="STOCK">Stock (GI)</option>
                     <option value="NONSTOCK">NonStock (NS/SE)</option>
@@ -122,7 +121,7 @@
             let table = $('#inventoriesTable').DataTable({
                 ajax: {
                     url: "{{ route('inventories.json') }}",
-                    data: function(d){
+                    data: function(d) {
                         d.type_filter = $('#typeFilter').val(); // STOCK / NONSTOCK / ''
                     }
                 },
@@ -295,7 +294,7 @@
                 });
             });
 
-            $('#typeFilter').on('change', function () {
+            $('#typeFilter').on('change', function() {
                 table.ajax.reload();
             });
 

@@ -102,7 +102,7 @@
 
 
                     {{-- <div class="mb-3">
-                            <label class="block text-gray-700 dark:text-white">Parent Menu ID (optional)</label>                            
+                            <label class="block text-gray-700 dark:text-white">Parent Menu ID (optional)</label>
                             <select id="parent_menu_id" name="parent_menu_id"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
                                 <option value="">None </option>

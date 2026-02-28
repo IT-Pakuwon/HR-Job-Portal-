@@ -29,7 +29,6 @@
             color: #ef4444;
             font-size: 0.75rem;
         }
-
     </style>
 
 
@@ -131,7 +130,7 @@
                         </div>
 
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2 lg:col-span-4">
                                 <label for="keperluan"
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
@@ -169,7 +168,7 @@
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
-                                                    <th class="req w-[10%] border p-3">Coa</th>
+                                                    <th class="req w-[10%] border p-3">Bugdet</th>
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
@@ -236,11 +235,11 @@
                                                     {{-- SiteID --}}
                                                     {{-- <td class="border p-3 siteid-column hidden">
                                                         <div class="siteid-wrapper hidden">
-                                                            <select 
-                                                                name="siteid[]" 
+                                                            <select
+                                                                name="siteid[]"
                                                                 class="siteSelect w-40 rounded border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                                                 data-cpny-id="{{ $usercpny2->cpnyid ?? '' }}"
-                                                                data-current-site="{{ $d->siteid ?? '' }}" 
+                                                                data-current-site="{{ $d->siteid ?? '' }}"
                                                                 data-loaded="0"
                                                             >
                                                                 @if (!empty($d->siteid))
@@ -250,7 +249,7 @@
                                                                 @endif
                                                             </select>
                                                         </div>
-                                                        
+
                                                         <input type="hidden" name="siteid[]" class="siteid-hidden" value="">
                                                     </td> --}}
                                                     {{-- SiteID (otomatis dari Product, readonly) --}}
@@ -305,7 +304,7 @@
                                                                 class="actDescrField">
                                                             <input type="text" name="coa[]"
                                                                 class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select COA..." readonly>
+                                                                placeholder="Select Budget..." readonly>
                                                             <button type="button"
                                                                 class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                 title="Lookup">🔎</button>
@@ -453,7 +452,7 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Budget</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
@@ -812,7 +811,7 @@
                         rowErr = true;
                     }
                     if (!coaId) {
-                        addError($coaN, 'Pilih COA.');
+                        addError($coaN, 'Pilih Budget.');
                         rowErr = true;
                     }
 
@@ -821,7 +820,7 @@
 
                 if (validRows === 0) {
                     toastr.error(
-                        'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, COA).'
+                        'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, Budget).'
                     );
                     return false;
                 }
@@ -845,7 +844,7 @@
                 clearAllErrors(); // pastikan ini dipanggil
 
                 // ✅ VALIDASI JENIS PEKERJAAN
-                const wt  = ($('#worktypeid').val() || '').trim();
+                const wt = ($('#worktypeid').val() || '').trim();
                 const swt = ($('#subworktypeid').val() || '').trim();
 
                 if (!wt || !swt) {
@@ -990,7 +989,7 @@
                     <input type="hidden" name="item_category[]" class="prodItemCategoryField">
                     <input type="hidden" name="purchase_unit[]" class="purchaseUnitField">
                     <input type="hidden" name="inv_stock[]" class="invStockField">
-                    <input type="hidden" name="inv_cost[]"  class="invCostField">                    
+                    <input type="hidden" name="inv_cost[]"  class="invCostField">
                     <input type="hidden" name="stock_qty[]" class="prodItemStockField">
                     <input type="hidden" name="unitcost[]" class="prodItemCostField">
                     <input type="text" name="product_name[]" class="productNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select product..." readonly>
@@ -999,7 +998,7 @@
                 </td>
 
                 <td class="border p-3 text-center">
-                <input type="text" name="qty[]" 
+                <input type="text" name="qty[]"
                         class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                         placeholder="0,00">
                 </td>
@@ -1011,7 +1010,7 @@
                         <input type="hidden" name="uom_to_unit[]"        class="uomToField">
                         <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
                         <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
-                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" 
+                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="-" readonly>
                         <button type="button"
                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -1030,7 +1029,7 @@
                     </div>
                 </td>
 
-              
+
                 <td class="p-3 border">
                 <input type="text" name="note[]" placeholder="Note"
                         class="w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0">
@@ -1040,7 +1039,7 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="location_id[]"     class="locationIdField">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"  name="location_combo_display[]" 
+                        <input type="text"  name="location_combo_display[]"
                             class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="Select location & sub location..." readonly>
                         <button type="button"
@@ -1048,15 +1047,15 @@
                                 title="Lookup">🔎</button>
                     </div>
                 </td>
-             
+
                 <td class="p-3 border">
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">       
-                        <input type="hidden" name="activity_descr[]"  class="actDescrField">               
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">
                         <input type="hidden" name="coa_id[]" class="coaIdField">
-                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
+                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select Budget..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                     </div>
                 </td>
@@ -1097,7 +1096,7 @@
             const $invCount = $('#invCount');
 
             let invState = {
-                type: 'gi', // 'stock' 
+                type: 'gi', // 'stock'
                 search: '',
                 page: 1,
                 per_page: 10,
@@ -1126,7 +1125,7 @@
             $('.invTab').on('click', function() {
                 $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
                 $(this).addClass('border-indigo-600').removeClass('border-transparent');
-                invState.type = $(this).data('type'); // 'stock' 
+                invState.type = $(this).data('type'); // 'stock'
                 invState.page = 1;
                 loadInventory();
             });
@@ -1177,9 +1176,9 @@
                         <tr>
                             <td class="border p-2">${item.inventoryid}</td>
                             <td class="border p-2">${item.inventory_descr}</td>
-                            <td class="border p-2">${item.stock_unit || ''}</td>                    
+                            <td class="border p-2">${item.stock_unit || ''}</td>
                             <td class="border p-2">${item.siteid || ''}</td>
-                            <td class="border p-2">${formatNumber(item.stock)}</td>                          
+                            <td class="border p-2">${formatNumber(item.stock)}</td>
                             <td class="border p-2 text-center">
                             <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                                 data-id="${item.inventoryid}"
@@ -1189,8 +1188,8 @@
                                 data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                                 data-item_category="${$('<div>').text(item.item_category || '').html()}"
                                 data-siteid="${item.siteid ?? ''}"
-                                data-stock="${item.stock ?? ''}"                
-                                data-cost="${item.cost ?? ''}">                  
+                                data-stock="${item.stock ?? ''}"
+                                data-cost="${item.cost ?? ''}">
                                 Choose
                             </button>
                             </td>
@@ -1524,16 +1523,18 @@
                         coaState.total = Number(res.total || 0);
 
                         const rows = data.map(item => {
-                            const accId   = item.account_id ?? '';
+                            const accId = item.account_id ?? '';
                             const accDesc = item.account_descr ?? '';
                             const actDescrShort = item.act_descr ?? '';
                             const actDescr = item.activity_descr ?? '';
 
-                            const available = formatNumber(item.availablebudget ?? item.available_budget ?? 0);
-                            const used      = formatNumber(item.usedbudget ?? item.used_budget ?? 0);
+                            const available = formatNumber(item.availablebudget ?? item
+                                .available_budget ?? 0);
+                            const used = formatNumber(item.usedbudget ?? item.used_budget ?? 0);
 
                             // remaining bisa beda nama antar endpoint
-                            const remainingVal = item.remaining ?? item.remainingbudget ?? item.remaining_budget ?? item.totalbudget ?? 0;
+                            const remainingVal = item.remaining ?? item.remainingbudget ?? item
+                                .remaining_budget ?? item.totalbudget ?? 0;
                             const remaining = formatNumber(remainingVal);
 
                             return `
@@ -1573,7 +1574,9 @@
                         $('#coaNext').prop('disabled', coaState.page >= maxPage);
                     })
                     .fail(function() {
-                        $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                        $coaTbody.html(
+                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -1892,10 +1895,10 @@
 
     <script>
         $(function() {
-            const $woModal    = $('#woModal');
-            const $woTbody    = $('#woTableBody');
-            const $woCount    = $('#woCount');
-            const $woWtBadge  = $('#woWtBadge');
+            const $woModal = $('#woModal');
+            const $woTbody = $('#woTableBody');
+            const $woCount = $('#woCount');
+            const $woWtBadge = $('#woWtBadge');
             const $woSwtBadge = $('#woSwtBadge');
 
             let woState = {
@@ -1917,11 +1920,11 @@
 
             // ✅ ambil semua filter dari header (company/department/perpost + jenis pekerjaan)
             function readWoFiltersFromHeader() {
-                woState.worktypeid    = ($('#worktypeid').val() || '').trim();
+                woState.worktypeid = ($('#worktypeid').val() || '').trim();
                 woState.subworktypeid = ($('#subworktypeid').val() || '').trim();
 
-                woState.cpnyid  = ($('select[name="cpnyid"]').val() || '').trim();
-                woState.deptid  = ($('select[name="departementid"]').val() || '').trim();
+                woState.cpnyid = ($('select[name="cpnyid"]').val() || '').trim();
+                woState.deptid = ($('select[name="departementid"]').val() || '').trim();
                 woState.perpost = ($('#perpost').val() || '').trim();
 
                 $woWtBadge.text(woState.worktypeid || '-');
@@ -2017,13 +2020,14 @@
                     })
                     .done(function(res) {
                         const rowsHtml = (res.data || []).map(it => {
-                            const woid       = it.woid || '';
-                            const wodate     = it.wodate || '';
-                            const dept       = it.departement_id || it.department_id || '';
+                            const woid = it.woid || '';
+                            const wodate = it.wodate || '';
+                            const dept = it.departement_id || it.department_id || '';
                             const budget_use = it.budget_use || it.budgetuse || '';
-                            const worktype   = it.worktypeid || '';
+                            const worktype = it.worktypeid || '';
                             const created_by = it.created_by || '';
-                            const keperluan  = it.keperluan || it.work_description || it.description || '';
+                            const keperluan = it.keperluan || it.work_description || it.description ||
+                                '';
 
                             return `
                                 <tr>
@@ -2045,7 +2049,8 @@
                             `;
                         }).join('');
 
-                        $woTbody.html(rowsHtml || '<tr><td colspan="7" class="p-3 text-center">No data</td></tr>');
+                        $woTbody.html(rowsHtml ||
+                            '<tr><td colspan="7" class="p-3 text-center">No data</td></tr>');
 
                         woState.total = res.total || 0;
                         const showing = (res.data || []).length;
@@ -2056,7 +2061,9 @@
                         $('#woNext').prop('disabled', (woState.page || 1) >= maxPage);
                     })
                     .fail(function() {
-                        $woTbody.html('<tr><td colspan="7" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                        $woTbody.html(
+                            '<tr><td colspan="7" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
                         $woCount.text('');
                         $('#woPrev, #woNext').prop('disabled', true);
                     });
@@ -2065,7 +2072,7 @@
             // pilih WO → isi input
             $(document).on('click', '.chooseWo', function() {
                 const woid = $(this).data('woid') || '';
-                const kep  = $(this).data('keperluan') || '';
+                const kep = $(this).data('keperluan') || '';
                 const budgetUse = $(this).data('budget_use') || '';
 
                 if (budgetUse) {
@@ -2080,12 +2087,14 @@
             });
 
             // kalau header berubah saat modal WO terbuka → refresh list
-            $('select[name="cpnyid"], select[name="departementid"], #perpost, #worktypeid, #subworktypeid').on('change', function() {
-                if ($woModal.is(':visible')) {
-                    woState.page = 1;
-                    loadWo();
-                }
-            });
+            $('select[name="cpnyid"], select[name="departementid"], #perpost, #worktypeid, #subworktypeid').on(
+                'change',
+                function() {
+                    if ($woModal.is(':visible')) {
+                        woState.page = 1;
+                        loadWo();
+                    }
+                });
         });
     </script>
 
@@ -2542,7 +2551,7 @@
                 <li>Inventory, Qty, UoM</li>
                 <li>SiteID</li>
                 <li>Location & Sub Location</li>
-                <li>COA + Budget mapping</li>
+                <li>Budget + Budget mapping</li>
                 <li>WO</li>
                 </ul>
                 <div style="margin-top:10px;">Lanjut?</div>

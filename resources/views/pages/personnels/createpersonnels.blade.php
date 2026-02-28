@@ -12,7 +12,7 @@
                                 Requisition
                             </h2>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
@@ -804,10 +804,10 @@
                                 const subgradeId = emp.subgrade_id ?? '';
 
                                 $jobTitle.append(`
-                                    <option value="${emp.departement_id}" 
-                                            data-title-level="${emp.subgrade_name}" 
-                                            data-parent-id="${emp.parent_id}"        
-                                            data-subgrade-id="${subgradeId}">                                    
+                                    <option value="${emp.departement_id}"
+                                            data-title-level="${emp.subgrade_name}"
+                                            data-parent-id="${emp.parent_id}"
+                                            data-subgrade-id="${subgradeId}">
                                         ${emp.departement_name}-${emp.subgrade_name}
                                     </option>`);
                             });
@@ -868,7 +868,7 @@
                                     $tbody.append(`
                                         <tr>
                                             <td class="border p-2 text-center">${row.no_job_purpose}</td>
-                                            <td class="border p-2">${row.job_purpose}</td>                                           
+                                            <td class="border p-2">${row.job_purpose}</td>
                                             <input type="hidden" name="responsibilities[]" value="${row.job_purpose}">
                                         </tr>
                                     `);

@@ -234,7 +234,8 @@
                         className: 'text-left'
                     },
                     {
-                        data: 'keperluan'
+                        data: 'keperluan',
+                        className: 'text-left'
                     },
                     {
                         data: 'status_pekerjaan', // ini dok-status; kalau mau ganti ke job status tinggal pakai 'status_pekerjaan'

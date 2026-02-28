@@ -455,7 +455,8 @@
                         className: 'text-left'
                     },
                     {
-                        data: 'keperluan'
+                        data: 'keperluan',
+                        className: 'text-left'
                     },
                     {
                         data: 'status',

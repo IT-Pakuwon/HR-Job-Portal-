@@ -17,7 +17,7 @@
                             </h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Issue Nbr
                                     (Ref)</label>

@@ -263,7 +263,7 @@
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
-                                                    <th class="req w-[10%] border p-3">Coa</th>
+                                                    <th class="req w-[10%] border p-3">Bugdet</th>
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
@@ -368,7 +368,7 @@
                                                             <input type="hidden" name="coa_id[]" class="coaIdField">
                                                             <input type="text" name="coa[]"
                                                                 class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Select COA..." readonly>
+                                                                placeholder="Select Budget..." readonly>
                                                             <button type="button"
                                                                 class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                 title="Lookup">🔎</button>
@@ -611,12 +611,12 @@
                         </div>
                     </div>
 
-                    <!-- ===== Modal Lookup COA ===== -->
+                    <!-- ===== Modal Lookup Budget ===== -->
                     <div id="coaModal"
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between border-b pb-2">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Budget</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
@@ -939,7 +939,7 @@
                         rowErr = true;
                     }
                     if (!coaId) {
-                        addError($coaN, 'Pilih COA.');
+                        addError($coaN, 'Pilih Budget.');
                         rowErr = true;
                     }
 
@@ -948,7 +948,7 @@
 
                 if (validRows === 0) {
                     toastr.error(
-                        'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, COA).'
+                        'Minimal 1 baris detail harus lengkap (Product, Qty, UoM, Location, Sub Location, Budget).'
                     );
                     return false;
                 }
@@ -1117,7 +1117,7 @@
                 </td>
 
                 <td class="border p-3 text-center">
-                <input type="text" name="qty[]" 
+                <input type="text" name="qty[]"
                         class="qtyField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                         placeholder="0,00">
                 </td>
@@ -1129,7 +1129,7 @@
                         <input type="hidden" name="uom_to_unit[]"        class="uomToField">
                         <input type="hidden" name="uom_unitmultdiv[]"    class="uomMultDivField">
                         <input type="hidden" name="uom_unitrate[]"       class="uomRateField">
-                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" 
+                        <input type="text" name="stock_unit[]" class="stock_unitField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="-" readonly>
                         <button type="button"
                                 class="openUomModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -1146,7 +1146,7 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="location_id[]"     class="locationIdField">
                         <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                        <input type="text"  name="location_combo_display[]" 
+                        <input type="text"  name="location_combo_display[]"
                             class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="Select location & sub location..." readonly>
                         <button type="button"
@@ -1154,15 +1154,15 @@
                                 title="Lookup">🔎</button>
                     </div>
                 </td>
-             
+
                 <td class="p-3 border">
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="activity_id[]" class="activityIdField">
                         <input type="hidden" name="business_unit_id[]"   class="businessUnitIdField">
-                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">     
-                        <input type="hidden" name="activity_descr[]"  class="actDescrField">                 
+                        <input type="hidden" name="department_fin_id[]"  class="departmentFinIdField">
+                        <input type="hidden" name="activity_descr[]"  class="actDescrField">
                         <input type="hidden" name="coa_id[]" class="coaIdField">
-                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select COA..." readonly>
+                        <input type="text"   name="coa[]"    class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0" placeholder="Select Budget..." readonly>
                         <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700" title="Lookup">🔎</button>
                     </div>
                 </td>
@@ -1276,8 +1276,8 @@
                         data-name="${$('<div>').text(item.inventory_descr).html()}"
                         data-stock_unit="${item.stock_unit || ''}"
                         data-account_id="${item.account_id || ''}"
-                        data-item_type="${$('<div>').text(item.item_type || '').html()}"  
-                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"        
+                        data-item_type="${$('<div>').text(item.item_type || '').html()}"
+                        data-item_sub_type="${$('<div>').text(item.item_sub_type || '').html()}"
                         data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                         data-item_category="${$('<div>').text(item.item_category || '').html()}">
                         Choose
@@ -1338,7 +1338,7 @@
                     .remove();
 
 
-                // //opsional: auto-isi COA bila inventory bawa default account_id (seperti sebelumnya)
+                // //opsional: auto-isi Budget bila inventory bawa default account_id (seperti sebelumnya)
                 // if (account_id) {
                 //     currentRow.find('.coaIdField').val(account_id);
                 //     currentRow.find('.coaNameField').val(account_id);
@@ -1787,7 +1787,7 @@
 
     <script>
         $(function() {
-            // ===== COA modal state =====
+            // ===== Budget modal state =====
             const $coaModal = $('#coaModal');
             const $coaTbody = $('#coaTableBody');
             const $coaCount = $('#coaCount');
@@ -1881,7 +1881,7 @@
                 }
             });
 
-            // Load COA from API
+            // Load Budget from API
             function loadCoa() {
 
                 $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
@@ -1894,9 +1894,9 @@
                 // ===============================
                 // 🔥 Simple ternary version
                 // ===============================
-                const url = coaState.woid
-                    ? "{{ route('coa.byWo') }}"
-                    : "{{ route('coa.byDept') }}";
+                const url = coaState.woid ?
+                    "{{ route('coa.byWo') }}" :
+                    "{{ route('coa.byDept') }}";
 
                 // Parameter dasar
                 let params = {
@@ -1967,7 +1967,9 @@
                         $('#coaNext').prop('disabled', coaState.page >= maxPage);
                     })
                     .fail(function() {
-                        $coaTbody.html('<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>');
+                        $coaTbody.html(
+                            '<tr><td colspan="6" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
                         $coaCount.text('');
                         $('#coaPrev, #coaNext').prop('disabled', true);
                     });
@@ -2705,7 +2707,7 @@
 
                             return `
                             <tr>
-                                
+
                                 <td class="border p-2">${$('<div>').text(name).html()}</td>
                                 <td class="border p-2 text-center">
                                     <button type="button"
@@ -3072,7 +3074,7 @@
                     title: `Ubah ${type}?`,
                     html: `
                 <div style="text-align:left">
-                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:               
+                Mengubah <b>${type}</b> akan <b>mereset semua detail</b> yang sudah dipilih:
                 </div>
             `,
                     showCancelButton: true,

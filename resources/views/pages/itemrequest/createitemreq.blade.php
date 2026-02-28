@@ -9,7 +9,7 @@
                     <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Item Request</h2>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                     {{-- Company --}}
                     <div class="flex flex-col gap-2">

@@ -127,7 +127,7 @@
                 return `
                 <th></th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Rfca ID</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Rfca Date</th>                            
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Rfca Date</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>

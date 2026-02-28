@@ -1315,4 +1315,9 @@ Approval / Attachment / Comments tables
     button {
         white-space: nowrap;
     }
+
+    table.dataTable tbody td {
+        white-space: normal !important;
+        word-break: break-word;
+    }
 </style>

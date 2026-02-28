@@ -198,7 +198,7 @@
                                                     <th class="w-[15%] border p-3">Note</th>
                                                     <th class="req border p-3">Location</th>
                                                     {{-- <th class="req border p-3">Sub Location</th> --}}
-                                                    <th class="req w-[10%] border p-3">Coa</th>
+                                                    <th class="req w-[10%] border p-3">Bugdet</th>
                                                     <th class="w-16 border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
@@ -352,7 +352,7 @@
                                                                     value="{{ $d->budget_account_id }}">
                                                                 <input type="text" name="coa[]"
                                                                     class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                    placeholder="Select COA..." readonly
+                                                                    placeholder="Select Budget..." readonly
                                                                     value="{{ $d->budget_account_id }}">
                                                                 <button type="button"
                                                                     class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -454,7 +454,7 @@
                                                                     class="coaIdField">
                                                                 <input type="text" name="coa[]"
                                                                     class="coaNameField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                    placeholder="Select COA..." readonly>
+                                                                    placeholder="Select Budget..." readonly>
                                                                 <button type="button"
                                                                     class="openCoaModal rounded border border-gray-500 px-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                                                                     title="Lookup">🔎</button>
@@ -547,7 +547,7 @@
                         class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
                         <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
                             <div class="mb-3 flex items-center justify-between">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select COA</h3>
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Select Budget</h3>
                                 <button type="button" id="closeCoaModal"
                                     class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                             </div>
@@ -1046,7 +1046,7 @@
                         <div class="flex items-center gap-2">
                             <input type="hidden" name="location_id[]"     class="locationIdField">
                             <input type="hidden" name="sub_location_id[]" class="subLocationIdField">
-                            <input type="text"  name="location_combo_display[]" 
+                            <input type="text"  name="location_combo_display[]"
                                 class="locationDisplayField w-full border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                                 placeholder="Select location & sub location..." readonly>
                             <button type="button"
@@ -1060,7 +1060,7 @@
                             <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
                             <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
                             <input type="hidden" name="coa_id[]" class="coaIdField">
-                            <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2" placeholder="Select COA..." readonly>
+                            <input type="text" name="coa[]" class="coaNameField w-full border-none bg-transparent p-2" placeholder="Select Bugdet..." readonly>
                             <button type="button" class="openCoaModal rounded border border-gray-500 px-1 py-1">🔎</button>
                         </div>
                     </td>
@@ -1215,7 +1215,7 @@
 
                     // COA
                     if (($coaHidden.val() || '').trim() === '') {
-                        addDetailError($coaVis, 'COA wajib dipilih.');
+                        addDetailError($coaVis, 'Budget wajib dipilih.');
                         anyInvalid = true;
                     }
                 });
@@ -1312,7 +1312,7 @@
             const $invCount = $('#invCount');
 
             let invState = {
-                type: 'gi', // 'stock' 
+                type: 'gi', // 'stock'
                 search: '',
                 page: 1,
                 per_page: 10,
@@ -1341,7 +1341,7 @@
             $('.invTab').on('click', function() {
                 $('.invTab').removeClass('border-indigo-600').addClass('border-transparent');
                 $(this).addClass('border-indigo-600').removeClass('border-transparent');
-                invState.type = $(this).data('type'); // 'stock' 
+                invState.type = $(this).data('type'); // 'stock'
                 invState.page = 1;
                 loadInventory();
             });
@@ -1395,7 +1395,7 @@
                             <td class="border p-2">${item.stock_unit || ''}</td>
                     <td class="border p-2">${item.item_sub_type || ''} - ${item.item_category || ''}</td>
                             <td class="border p-2">${item.siteid || ''}</td>
-                            <td class="border p-2">${formatNumber(item.stock)}</td>                          
+                            <td class="border p-2">${formatNumber(item.stock)}</td>
                             <td class="border p-2 text-center">
                             <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                                 data-id="${item.inventoryid}"
@@ -1405,8 +1405,8 @@
                                 data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
                                 data-item_category="${$('<div>').text(item.item_category || '').html()}"
                                 data-siteid="${item.siteid ?? ''}"
-                                data-stock="${item.stock ?? ''}"                
-                                data-cost="${item.cost ?? ''}">                  
+                                data-stock="${item.stock ?? ''}"
+                                data-cost="${item.cost ?? ''}">
                                 Choose
                             </button>
                             </td>
@@ -2563,7 +2563,7 @@
                         const rows = (res.data || []).map(it => {
                             // pastikan aman untuk HTML
                             const woid = it.woid || '';
-                            const wodate = it.wodate ||  ''; 
+                            const wodate = it.wodate ||  '';
                             const created_by = it.created_by || '';
                             const dept = it.departement_id || it.department_id || '';
                             const worktype = it.worktypeid || '';
@@ -2573,7 +2573,7 @@
                     <td class="border p-2">${wodate}</td>
                     <td class="border p-2">${dept}</td>
                     <td class="border p-2">${worktype}</td>
-                    <td class="border p-2">${created_by}</td> 
+                    <td class="border p-2">${created_by}</td>
                     <td class="border p-2 text-center">
                     <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
                         data-woid="${$('<div>').text(woid).html()}">Choose</button>
@@ -2717,7 +2717,7 @@
                     <td class="border p-2">${wodate}</td>
                     <td class="border p-2">${dept}</td>
                     <td class="border p-2">${worktype}</td>
-                    <td class="border p-2">${created_by}</td>                    
+                    <td class="border p-2">${created_by}</td>
                     <td class="border p-2 text-center">
                     <button type="button" class="chooseWo rounded border px-2 py-1 hover:bg-gray-100"
                         data-woid="${$('<div>').text(woid).html()}">Choose</button>
@@ -3157,7 +3157,7 @@
                 <li>Inventory, Qty, UoM</li>
                 <li>SiteID</li>
                 <li>Location & Sub Location</li>
-                <li>COA + Budget mapping</li>
+                <li>Budget + Budget mapping</li>
                 <li>WO</li>
                 </ul>
                 <div style="margin-top:10px;">Lanjut?</div>

@@ -18,7 +18,7 @@
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create Issue</h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">SPB ID</label>
                                 <input type="text" value="{{ $spb->spbid }}" readonly
@@ -156,9 +156,7 @@
                                                             value="{{ $d->id }}">
                                                         <input type="text" name="qty_issue[{{ $d->id }}]"
                                                             class="qtyIssue w-28 rounded border border-gray-300 p-1 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                                                            inputmode="decimal"
-                                                            autocomplete="off"
-                                                            placeholder="0,00"
+                                                            inputmode="decimal" autocomplete="off" placeholder="0,00"
                                                             data-detail-id="{{ $d->id }}"
                                                             data-qty-original="{{ (float) $d->qty_original }}"
                                                             data-qty-open="{{ (float) $d->qty_sisa }}"
@@ -405,12 +403,12 @@
                     }
                 });
                 return ok;
-            }        
+            }
 
             function validateStockNotZero() {
                 let ok = true;
 
-                $('.qtyIssue').each(function () {
+                $('.qtyIssue').each(function() {
                     const $qty = $(this);
 
                     const stockUnit = parseFloat(String($qty.data('stock-unit') ?? '0')) || 0;

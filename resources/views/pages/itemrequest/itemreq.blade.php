@@ -189,7 +189,9 @@
                     }
                 },
 
-                order: [[1, 'desc']], 
+                order: [
+                    [1, 'desc']
+                ],
 
                 columns: [{
                         data: null,

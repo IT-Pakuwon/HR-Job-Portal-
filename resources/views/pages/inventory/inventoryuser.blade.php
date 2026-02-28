@@ -6,26 +6,26 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">📦 Inventory List</h1>                
+                <h1 class="text-base font-bold text-gray-800 dark:text-white">📦 Inventory List</h1>
             </div>
 
             <div class="flex items-center gap-2">
                 <span class="text-sm font-semibold text-gray-700 dark:text-white">Filter:</span>
 
                 <button type="button"
-                    class="typeFilterBtn bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold"
+                    class="typeFilterBtn rounded-lg bg-gray-300 px-4 py-2 text-sm font-semibold text-gray-800"
                     data-type="">
                     All
                 </button>
 
                 <button type="button"
-                    class="typeFilterBtn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold"
+                    class="typeFilterBtn rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700"
                     data-type="STOCK">
                     Stock
                 </button>
 
                 <button type="button"
-                    class="typeFilterBtn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold"
+                    class="typeFilterBtn rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700"
                     data-type="NONSTOCK">
                     NonStock
                 </button>
@@ -35,7 +35,7 @@
                 <table id="inventoriesTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
                         class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>                                                  
+                        <tr>
                             <th class="px-4 py-3 text-left">Inventory ID</th>
                             <th class="px-4 py-3 text-left">Description</th>
                             <th class="px-4 py-3 text-left">Item Type</th>
@@ -49,7 +49,7 @@
 
         </div>
 
-      
+
     </div>
     <script>
         $(document).ready(function() {
@@ -58,7 +58,7 @@
             let table = $('#inventoriesTable').DataTable({
                 ajax: {
                     url: "{{ route('inventories-user.json') }}",
-                    data: function(d){
+                    data: function(d) {
                         d.type_filter = currentFilter;
                     }
                 },
@@ -107,8 +107,7 @@
                         }
                     }
                 ],
-                columns: [
-                    {
+                columns: [{
                         data: 'inventoryid',
                         className: 'no-pointer'
                     },
@@ -136,9 +135,9 @@
                 ]
             });
 
-       
 
-            $('.typeFilterBtn').on('click', function () {
+
+            $('.typeFilterBtn').on('click', function() {
 
                 // ambil value filter
                 currentFilter = $(this).data('type');

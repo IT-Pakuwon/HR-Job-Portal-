@@ -562,9 +562,9 @@
                         data: 'csid',
                         className: 'text-left',
                         render: (v, _t, row) =>
-                            `<a href="/editcs/${row.eid}" 
-                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 
-                                    text-sm leading-tight font-semibold text-white rounded text-center 
+                            `<a href="/editcs/${row.eid}"
+                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5
+                                    text-sm leading-tight font-semibold text-white rounded text-center
                                     transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700">
                                 ${v}
                             </a>`
@@ -1036,7 +1036,7 @@
                 html: `
                     <div style="text-align:left;">
                         <p>Dokumen: <b>${doc}</b></p>
-                        <p>Aksi ini akan menandai <b>semua sisa (open qty)</b> sebagai <b>Completed</b>.</p>                       
+                        <p>Aksi ini akan menandai <b>semua sisa (open qty)</b> sebagai <b>Completed</b>.</p>
                         <p style="color:red; font-weight:bold;">Yakin ingin melanjutkan?</p>
                     </div>
                 `,
