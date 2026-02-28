@@ -21,7 +21,8 @@
                     <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}">
 
                     <!-- Create CS Header -->
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-6 rounded-2xl bg-white px-8 py-6 shadow-sm dark:bg-gray-900">
+
                         <!-- Header -->
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
@@ -33,115 +34,106 @@
                             </h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        @php
+                            $labelClass = 'font-semibold text-gray-800 dark:text-gray-200';
+                            $valueClass = 'text-gray-600 dark:text-gray-400';
+                        @endphp
 
-                            <!-- LEFT SIDE: auto grid of fields -->
-                            <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-3">
+                        <!-- ===================== -->
+                        <!-- ROW 1 : BASIC INFO    -->
+                        <!-- ===================== -->
+                        <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2 lg:grid-cols-3">
 
-                                <!-- SPPB/J/K/T -->
-                                <div>
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                        SPPB/J/K/T ID
-                                    </label>
-                                    @if (!empty($sourceShowUrl))
-                                        <a href="{{ $sourceShowUrl }}" target="_blank" rel="noopener noreferrer"
-                                            class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
-                                            {{ $docno }}
-                                        </a>
-                                    @else
-                                        <input type="text" value="{{ $docno }}" readonly
-                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                    @endif
-
-                                    {{-- <input type="text" value="{{ $docno }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
-                                </div>
-
-                                <!-- User -->
-                                <div>
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">User</label>
-                                    <input type="text"
-                                        value="{{ ucwords(strtolower(optional($header->creator)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- Company -->
-                                <div>
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Company</label>
-                                    <input type="text" value="{{ $header->cpny_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- Department -->
-                                <div>
-                                    <label
-                                        class="text-xs font-medium text-gray-600 dark:text-gray-400">Department</label>
-                                    <input type="text" value="{{ $header->department_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- Purchaser -->
-                                <div>
-                                    <label
-                                        class="text-xs font-medium text-gray-600 dark:text-gray-400">Purchaser</label>
-                                    <input type="text"
-                                        value="{{ ucwords(strtolower(optional($header->purchaser)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- BQ ID -->
-                                @if (in_array($doc, ['SPPJ', 'SPPT']))
-                                    <div>
-                                        <label class="text-xs font-medium text-gray-600 dark:text-gray-400">BQ
-                                            ID</label>
-                                        <input type="text" value="{{ $header->bqid }}" readonly
-                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                    </div>
+                            <div>
+                                <span class="{{ $labelClass }}">SPPB/J/K/T ID:</span>
+                                @if (!empty($sourceShowUrl))
+                                    <a href="{{ $sourceShowUrl }}" target="_blank"
+                                        class="ml-1 text-indigo-600 underline hover:text-indigo-800">
+                                        {{ $docno }}
+                                    </a>
+                                @else
+                                    <span class="{{ $valueClass }}">{{ $docno }}</span>
                                 @endif
+                            </div>
 
+                            <div>
+                                <span class="{{ $labelClass }}">User:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ ucwords(strtolower(optional($header->creator)->name)) }}
+                                </span>
+                            </div>
 
-                                <!-- Purpose -->
-                                {{-- <div>
-                                    <label
-                                        class="req text-xs font-medium text-gray-600 dark:text-gray-400">Purpose</label>
-                                    <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div> --}}
+                            <div>
+                                <span class="{{ $labelClass }}">Company:</span>
+                                <span class="{{ $valueClass }}">{{ $header->cpny_id }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Department:</span>
+                                <span class="{{ $valueClass }}">{{ $header->department_id }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Purchaser:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ ucwords(strtolower(optional($header->purchaser)->name)) }}
+                                </span>
+                            </div>
+
+                            @if (in_array($doc, ['SPPJ', 'SPPT']))
+                                <div>
+                                    <span class="{{ $labelClass }}">BQ ID:</span>
+                                    <span class="{{ $valueClass }}">{{ $header->bqid }}</span>
+                                </div>
+                            @endif
+
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="border-t border-gray-100 dark:border-gray-800"></div>
+
+                        <!-- ===================== -->
+                        <!-- ROW 2 : LEFT - RIGHT  -->
+                        <!-- ===================== -->
+                        <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
+
+                            <!-- LEFT SIDE -->
+                            <div class="flex flex-col gap-6">
 
                                 <!-- Vendor -->
                                 <div class="flex flex-col gap-2">
-                                    <label class="req text-xs font-medium text-gray-600 dark:text-gray-400">Select
-                                        Vendor</label>
+                                    <span class="{{ $labelClass }}">Vendor:</span>
+
                                     <select id="vendorSelect"
-                                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         <option value="">Select</option>
                                     </select>
 
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        Vendor can be selected more than once.
+                                    </span>
                                 </div>
+
+                                <!-- Purpose -->
+                                <div class="flex flex-col gap-2">
+                                    <span class="{{ $labelClass }}">Purpose:</span>
+
+                                    <div
+                                        class="{{ $valueClass }} whitespace-pre-line break-words rounded-md border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-800">
+                                        {{ $header->keperluan }}
+                                    </div>
+                                </div>
+
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <!-- RIGHT SIDE -->
+                            <div class="flex flex-col gap-2">
+                                <span class="{{ $labelClass }}">Note CS:</span>
 
-                                {{-- Purpose --}}
-                                <div class="flex flex-col">
-                                    <label class="req text-xs font-medium text-gray-600 dark:text-gray-400">
-                                        Purpose
-                                    </label>
-
-                                    <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="mt-1 h-32 w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                {{-- Note CS --}}
-                                <div class="flex flex-col">
-                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                        Note CS
-                                    </label>
-
-                                    <textarea name="csnote" id="csnote"
-                                        class="mt-1 h-32 w-full resize-none rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"></textarea>
-                                </div>
+                                <textarea name="csnote" id="csnote"
+                                    class="min-h-[220px] w-full rounded-md border border-gray-300 bg-white p-4 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"></textarea>
                             </div>
+
                         </div>
 
                     </div>
@@ -605,8 +597,8 @@
             function addHeader(id, v) {
                 const colWidth = '20rem';
                 const $th = $(`
-        <th id="th-vendor-${id}" 
-            class="relative border px-3 py-2 align-top 
+        <th id="th-vendor-${id}"
+            class="relative border px-3 py-2 align-top
                 w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
             data-vendor-id="${_.escape(v.id)}"
             data-vendor-code="${_.escape(v.vendor_id)}"
@@ -624,16 +616,16 @@
 
                         <!-- INFO ICON -->
                         <div class="relative group inline-block">
-                                    <div class="flex h-4 w-4 items-center justify-center 
+                                    <div class="flex h-4 w-4 items-center justify-center
                                                 rounded-full bg-gray-200 text-gray-700 text-[10px]
                                                 dark:bg-gray-700 dark:text-gray-200 cursor-default">
                                         i
                                     </div>
 
                             <!-- TOOLTIP -->
-                            <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
-                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs 
-                                        text-gray-200 shadow-lg opacity-0 invisible 
+                            <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2
+                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs
+                                        text-gray-200 shadow-lg opacity-0 invisible
                                         group-hover:opacity-100 group-hover:visible
                                         transition-opacity duration-200">
 
@@ -654,15 +646,15 @@
                     <!-- Payment Term -->
                     <div class="flex items-center gap-2 mt-2">
                         <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-                        <select name="cara_bayar_${id}" 
-                            class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-                                text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                        <select name="cara_bayar_${id}"
+                            class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1
+                                text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring
                                 focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                             ${TOPS_OPTIONS_HTML}
                         </select>
                     </div>
                     <!-- Vendor Note -->
-                    <div class="mt-2">                        
+                    <div class="mt-2">
                         <textarea
                             name="vendornote_${id}"
                             class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
@@ -675,7 +667,7 @@
 
                         <!-- Delete Button -->
                 <button type="button"
-                    class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center 
+                    class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center
                         rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700"
                     data-id="${id}">
                     ✕
@@ -685,7 +677,7 @@
                 $('#cvTable thead tr').append($th);
 
                 const $sumTd = $(`
-                    <td id="td-sum-${id}" 
+                    <td id="td-sum-${id}"
                         class="border px-3 py-2 text-xs align-top"
                         style="width:${colWidth}; max-width:${colWidth};">
 
@@ -702,10 +694,10 @@
     PPN
 </span>
 
-                                    <input type="number" 
+                                    <input type="number"
                                         class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
                                         value="11.00" step="0.01" min="0">
-                                    <button type="button" 
+                                    <button type="button"
                                         class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
                                         data-for="ppn" data-vendor="${id}" title="Pilih PPN">
                                         🔍
@@ -716,10 +708,10 @@
                                 <!-- PPh -->
                                 <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
                                     <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
-                                    <input type="number" 
+                                    <input type="number"
                                         class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
                                         value="0" step="0.01" min="0">
-                                    <button type="button" 
+                                    <button type="button"
                                         class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
                                         data-for="pph" data-vendor="${id}" title="Pilih PPh">
                                         🔍
@@ -753,7 +745,7 @@
                         type="text"
                         class="price-input  w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                         data-row="${rowIdx}" data-vendor="${id}"
-                        value="0" inputmode="decimal" autocomplete="off" placeholder="0"> 
+                        value="0" inputmode="decimal" autocomplete="off" placeholder="0">
                     `);
 
                     const $td = $(`
@@ -1134,7 +1126,7 @@
                 <td class="px-3 py-2 text-right">
                     <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
                             data-taxid="${r.taxid}" data-taxrate="${r.taxrate}">
-                    Choose  
+                    Choose
                     </button>
                 </td>
                 </tr>
@@ -1767,7 +1759,7 @@
     //                         <td class="px-3 py-2">${r.ponbr ?? ''}</td>
     //                         <td class="px-3 py-2">${r.podate ?? ''}</td>
     //                         <td class="px-3 py-2">${r.csid ?? ''}</td>
-    //                         <td class="px-3 py-2">${r.vendorname ?? ''}</td>                                
+    //                         <td class="px-3 py-2">${r.vendorname ?? ''}</td>
     //                         <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
     //                         <td class="px-3 py-2">${r.purchaser ?? ''}</td>
     //                     </tr>
@@ -1825,7 +1817,7 @@
                                 <td class="px-3 py-2">${r.ponbr ?? ''}</td>
                                 <td class="px-3 py-2">${r.podate ?? ''}</td>
                                 <td class="px-3 py-2">${r.csid ?? ''}</td>
-                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>                                
+                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>
                                 <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
                                 <td class="px-3 py-2">${r.purchaser ?? ''}</td>
                             </tr>

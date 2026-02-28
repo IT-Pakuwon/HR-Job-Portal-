@@ -14,154 +14,137 @@
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
 
                     <!-- Create CS Header -->
-                    <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                        <!-- Header -->
+                    <div class="flex w-full flex-col gap-4 rounded-2xl bg-white px-8 py-6 shadow-sm dark:bg-gray-900">
+
+                        <!-- HEADER -->
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white"><span
-                                    class="text-indigo-500">🆔</span>
-                                {{ $cs->csid }}</h2>
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
+                                <span class="text-indigo-500">🆔</span> {{ $cs->csid }}
+                            </h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        @php
+                            $labelClass = 'font-semibold text-gray-800 dark:text-gray-200';
+                            $valueClass = 'text-gray-600 dark:text-gray-400';
+                            $csidForBQ = $eid ?? null;
+                        @endphp
 
-                            <!-- LEFT SIDE: auto grid of fields -->
-                            <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-4">
+                        <!-- ========================= -->
+                        <!-- ROW 1 : BASIC INFO + BQ  -->
+                        <!-- ========================= -->
+                        <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2 lg:grid-cols-3">
 
-                                <!-- SPPB/J/K/T -->
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">SPPB/J/K/T
-                                        ID</label>
-                                    @if (!empty($sourceShowUrl))
-                                        <a href="{{ $sourceShowUrl }}" target="_blank" rel="noopener noreferrer"
-                                            class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
-                                            {{ $docno }}
-                                        </a>
-                                    @else
-                                        <input type="text" value="{{ $docno }}" readonly
-                                            class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                    @endif
-                                    {{-- <input type="text" value="{{ $docno }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
+                            <div>
+                                <span class="{{ $labelClass }}">SPPB/J/K/T ID:</span>
+                                <span class="{{ $valueClass }}">{{ $docno }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">User:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ ucwords(strtolower(optional($header->creator)->name)) }}
+                                </span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Company:</span>
+                                <span class="{{ $valueClass }}">{{ $header->cpny_id }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Department:</span>
+                                <span class="{{ $valueClass }}">{{ $header->department_id }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Purchaser:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ ucwords(strtolower(optional($header->purchaser)->name)) }}
+                                </span>
+                            </div>
+
+                            {{-- BQ ID + BUTTON SEBELAHNYA --}}
+                            @if (in_array($doc, ['SPPJ', 'SPPT']))
+                                <div class="flex items-center gap-4">
+
+                                    <div>
+                                        <span class="{{ $labelClass }}">BQ ID:</span>
+                                        <span class="{{ $valueClass }}">{{ $header->bqid ?? '-' }}</span>
+                                    </div>
+
+                                    {{-- BUTTON DI SEBELAH BQ --}}
+                                    <div>
+                                        @if ($bq && $bq_eid)
+                                            <a href="{{ route('bqcs.edit', $bq_eid) }}"
+                                                class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                                                Open BQ CS
+                                            </a>
+                                        @elseif ($csidForBQ)
+                                            <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
+                                                class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                                                Create BQ CS
+                                            </a>
+                                        @else
+                                            <button type="button"
+                                                class="cursor-not-allowed rounded-lg bg-gray-400 px-4 py-2 text-sm font-semibold text-white">
+                                                Create BQ CS
+                                            </button>
+                                        @endif
+                                    </div>
+
                                 </div>
+                            @endif
 
-                                <!-- User -->
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">User</label>
-                                    <input type="text"
-                                        value="{{ ucwords(strtolower(optional($header->creator)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
+                        </div>
 
-                                <!-- Company -->
-                                <div>
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Company</label>
-                                    <input type="text" value="{{ $header->cpny_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- Department -->
-                                <div>
-                                    <label
-                                        class="text-sm font-medium text-gray-600 dark:text-gray-400">Department</label>
-                                    <input type="text" value="{{ $header->department_id }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- Purchaser -->
-                                <div>
-                                    <label
-                                        class="text-sm font-medium text-gray-600 dark:text-gray-400">Purchaser</label>
-                                    <input type="text"
-                                        value="{{ ucwords(strtolower(optional($header->purchaser)->name)) }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div>
-
-                                <!-- BQ ID -->
-                                <div class="flex flex-row justify-between gap-2">
-                                    @if (in_array($doc, ['SPPJ', 'SPPT']))
-                                        <div class="flex-1">
-                                            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">BQ
-                                                ID</label>
-                                            @if (!empty($bqShowUrl) && !empty($header->bqid))
-                                                <a href="{{ $bqShowUrl }}" target="_blank" rel="noopener noreferrer"
-                                                    class="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-indigo-600 underline hover:text-indigo-800 dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-300">
-                                                    {{ $header->bqid }}
-                                                </a>
-                                            @else
-                                                <input type="text" value="{{ $header->bqid ?? '' }}" readonly
-                                                    class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                            @endif
-                                            {{-- <input type="text" value="{{ $header->bqid }}" readonly
-                                                class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" /> --}}
-                                        </div>
-
-                                        <div class="flex-1">
-                                            @php
-                                                // $eid = CS hash id (sudah dikirim dari controller)
-                                                $csidForBQ = $eid ?? null;
-                                            @endphp
-
-                                            {{-- Kondisi: jika BQ SUDAH ADA → tombol Open BQ, kalau BELUM → tombol Create BQ --}}
-                                            @if ($bq && $bq_eid)
-                                                <a href="{{ route('bqcs.edit', $bq_eid) }}"
-                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-700">
-                                                    Open BQ CS
-                                                </a>
-                                            @elseif ($csidForBQ)
-                                                <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
-                                                    class="mt-7 inline-flex w-full items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
-                                                    Create BQ CS
-                                                </a>
-                                            @else
-                                                <button type="button" title="Simpan CS dulu, baru buat BQ"
-                                                    class="mt-8 inline-flex w-full cursor-not-allowed items-center gap-2 rounded-lg bg-gray-400 px-4 py-2 text-center text-sm font-semibold text-white">
-                                                    Create BQ CS
-                                                </button>
-                                            @endif
-                                        </div>
-
-                                    @endif
-                                </div>
+                        <!-- Divider -->
+                        <div class="border-t border-gray-100 dark:border-gray-800"></div>
 
 
+                        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
 
-                                <!-- Purpose -->
-                                {{-- <div>
-                                    <label
-                                        class="req  text-sm  font-medium text-gray-600 dark:text-gray-400">Purpose</label>
-                                    <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="mt-1 w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2  text-sm  dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200" />
-                                </div> --}}
+                            <!-- ================= LEFT SIDE ================= -->
+                            <div class="flex flex-col gap-6">
 
-                                <!-- Vendor -->
-                                <div class="col-span-2 flex flex-col gap-2">
-                                    <label class="req text-sm font-medium text-gray-600 dark:text-gray-400">Select
-                                        Vendor</label>
+                                <!-- VENDOR -->
+                                <div class="flex flex-col gap-2">
+                                    <span class="{{ $labelClass }}">Vendor:</span>
+
                                     <select id="vendorSelect"
-                                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         <option value="">Select</option>
                                     </select>
 
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        Vendor can be selected more than once.
+                                    </span>
+                                </div>
+
+                                <!-- PURPOSE -->
+                                <div class="flex w-full flex-col gap-2">
+
+                                    <span class="{{ $labelClass }}">Purpose:</span>
+
+                                    <div class="{{ $valueClass }} whitespace-pre-line break-words">
+                                        {{ $header->keperluan }}
+                                    </div>
+
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4 md:col-span-1 md:grid-cols-2">
-                                <!-- RIGHT SIDE: NOTE -->
-                                <div>
-                                    <label
-                                        class="req text-sm font-medium text-gray-600 dark:text-gray-400">Purpose</label>
-                                    <input type="text" value="{{ $header->keperluan }}" readonly
-                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                                </div>
-                                <div class="flex flex-col">
-                                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Note CS</label>
-                                    <textarea name="csnote" id="csnote"
-                                        class="h-35 w-full rounded-md border border-gray-300 bg-white p-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">{{ $cs->csnote }}</textarea>
-                                </div>
+                            <!-- ================= RIGHT SIDE ================= -->
+                            <div class="flex flex-col gap-2">
+
+                                <span class="{{ $labelClass }}">Note CS:</span>
+
+                                <textarea name="csnote" id="csnote"
+                                    class="min-h-[180px] w-full rounded-md border border-gray-300 bg-white p-4 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">{{ $cs->csnote }}</textarea>
+
                             </div>
+
                         </div>
-                    </div>
 
+                    </div>
                     <!-- CS Detail -->
                     <div class="flex w-full flex-col rounded-xl bg-white shadow-md dark:bg-gray-800">
                         <div class="p-4">
@@ -747,16 +730,16 @@
 
                         <!-- INFO ICON -->
                         <div class="relative group inline-block cursor-default">
-                            <div class="flex h-4 w-4 items-center justify-center 
+                            <div class="flex h-4 w-4 items-center justify-center
                                     rounded-full bg-gray-200 text-gray-700 text-[10px]
                                     dark:bg-gray-700 dark:text-gray-200 cursor-default">
                                 i
                             </div>
 
                             <!-- TOOLTIP -->
-                            <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 
-                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3  text-sm  text-gray-200 
-                                        shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                            <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2
+                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3  text-sm  text-gray-200
+                                        shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible
                                         transition-opacity duration-200">
 
                                 <div class="font-semibold text-white mb-1">${v.vendor_name}</div>
@@ -777,15 +760,15 @@
                     <div class="flex items-center gap-2 mt-1">
                         <span class=" text-sm  font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
 
-                        <select name="cara_bayar_${idKey}" 
-                            class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 
-                                 text-sm  font-medium shadow-sm focus:border-indigo-500 focus:ring 
+                        <select name="cara_bayar_${idKey}"
+                            class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1
+                                 text-sm  font-medium shadow-sm focus:border-indigo-500 focus:ring
                                 focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                             ${TOPS_OPTIONS_HTML}
                         </select>
                     </div>
                     <!-- Vendor Note -->
-                    <div class="mt-2">                        
+                    <div class="mt-2">
                         <textarea
                             name="vendornote_${idKey}"
                             class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2  text-sm  text-gray-900 shadow-sm
@@ -2074,7 +2057,7 @@
                                 <td class="px-3 py-2">${r.ponbr ?? ''}</td>
                                 <td class="px-3 py-2">${r.podate ?? ''}</td>
                                 <td class="px-3 py-2">${r.csid ?? ''}</td>
-                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>                                
+                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>
                                 <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
                                 <td class="px-3 py-2">${r.purchaser ?? ''}</td>
                             </tr>

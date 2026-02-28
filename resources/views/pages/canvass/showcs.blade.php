@@ -240,7 +240,8 @@
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">Purpose</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        <p
+                                            class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {{ $srcHeader->keperluan }}
                                         </p>
                                     </div>
@@ -250,7 +251,8 @@
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">Note CS</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        <p
+                                            class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {{ $cs->csnote }}
                                         </p>
                                     </div>
@@ -1473,10 +1475,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
