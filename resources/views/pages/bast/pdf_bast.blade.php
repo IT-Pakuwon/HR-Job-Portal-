@@ -59,7 +59,8 @@
         /* Alignment label : value */
         .field-label {
             display: inline-block;
-            min-width: 100px; /* atur sesuai kebutuhan */
+            min-width: 100px;
+            /* atur sesuai kebutuhan */
         }
 
         .field-colon {
@@ -172,7 +173,7 @@
             <th>
                 <span class="field-label">Keterangan</span>
                 <span class="field-colon">:</span>
-                <span class="field-value">{{ $bast->keperluan }}</span>
+                <span class="field-value whitespace-pre-line break-words">{{ $bast->keperluan }}</span>
             </th>
         </tr>
 
@@ -352,4 +353,5 @@
         </tbody>
     </table>
 </body>
+
 </html>

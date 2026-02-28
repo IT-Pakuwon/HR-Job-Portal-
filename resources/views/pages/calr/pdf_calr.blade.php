@@ -178,8 +178,8 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Keperluan :</span>
-                    <span class="field-value-wrap">
-                       {{ $keperluan }}
+                    <span class="field-value-wrap whitespace-pre-line break-words">
+                        {{ $keperluan }}
                     </span>
                 </div>
             </th>
@@ -218,7 +218,7 @@
 
 
     <!-- EXPENSE TABLE -->
-   <table class="exp-table">
+    <table class="exp-table">
         <thead>
             <tr>
                 <th style="width:70%;">Description</th>

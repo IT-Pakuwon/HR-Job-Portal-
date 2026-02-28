@@ -326,8 +326,9 @@
                 @endforeach
                 <tr>
                     <td colspan="4" rowspan="2">
-                        <p><strong>Purpose/Project:</strong> {{ $po->keperluan }}</p>
-                        <p style="margin-top:10px;">
+                        <p class="whitespace-pre-line break-words"><strong>Purpose/Project:</strong>
+                            {{ $po->keperluan }}</p>
+                        <p class="whitespace-pre-line break-words" style="margin-top:10px;">
                             {{ $company->warehouse_note }}
                         </p>
                     </td>

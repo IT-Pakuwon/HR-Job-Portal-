@@ -189,7 +189,7 @@
         @endif
         <tr>
             <td class="meta-label">Keperluan</td>
-            <td colspan="3">{{ $keperluan }}</td>
+            <td colspan="3" class="whitespace-pre-line break-words">{{ $keperluan }}</td>
         </tr>
     </tbody>
 </table>

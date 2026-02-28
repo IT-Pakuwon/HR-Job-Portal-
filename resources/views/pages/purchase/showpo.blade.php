@@ -353,7 +353,8 @@
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">Purpose</p>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        <p
+                                            class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {{ $po->keperluan }}
                                         </p>
                                     </div>
@@ -980,9 +981,9 @@
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
-                                    <td class="whitespace-normal break-words px-4 py-2">{{ $item->inventory_descr }}
+                                    <td class="whitespace-preline break-words px-4 py-2">{{ $item->inventory_descr }}
                                     </td>
-                                    <td class="whitespace-normal break-words px-4 py-2">{{ $item->ponote_detail }}
+                                    <td class="whitespace-pre-line break-words px-4 py-2">{{ $item->ponote_detail }}
                                     </td>
                                     <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
                                         {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}

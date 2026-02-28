@@ -109,7 +109,7 @@
 
             <tr>
                 <td class="meta-label">Keperluan</td>
-                <td colspan="3" class="wrap">
+                <td colspan="3" class="whitespace-pre-line break-words">
                     {{ $keperluan }}
                 </td>
             </tr>

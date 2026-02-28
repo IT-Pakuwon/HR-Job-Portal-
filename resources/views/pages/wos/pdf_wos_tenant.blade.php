@@ -188,7 +188,7 @@
         <tr>
             <td>Info Pekerjaan</td>
             <td>:</td>
-            <td colspan="7">{{ $keperluan }}</td>
+            <td colspan="7" class="whitespace-pre-line break-words">{{ $keperluan }}</td>
         </tr>
     </table>
 

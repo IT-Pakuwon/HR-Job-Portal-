@@ -235,7 +235,7 @@
         <tr>
             <td style="width: 17%;">Info Pekerjaan</td>
             <td style="width: 2%;">:</td>
-            <td>{{ $keperluan }}</td>
+            <td class="whitespace-pre-line break-words">{{ $keperluan }}</td>
         </tr>
     </table>
 

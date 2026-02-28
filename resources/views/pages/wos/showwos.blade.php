@@ -208,7 +208,8 @@
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <span>Purpose</span>
                                 </div>
-                                <span class="font-medium text-gray-900 dark:text-gray-300">
+                                <span
+                                    class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300">
                                     {{ $wo->keperluan }}
                                 </span>
                             </div>

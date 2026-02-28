@@ -2,7 +2,7 @@
 
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
-            <div class="flex gap-3">                
+            <div class="flex gap-3">
                 <button id="approveBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -168,17 +168,18 @@
                                 </span>
                             </div>
 
-                            @if(!empty($woData))
-                                <div class="flex items-start gap-2 p-2 col-span-2">
-                                    <x-heroicon-o-wrench-screwdriver class="h-5 w-5 text-gray-400 mt-0.5" />
+                            @if (!empty($woData))
+                                <div class="col-span-2 flex items-start gap-2 p-2">
+                                    <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
                                     <span class="min-w-32 max-w-32 text-gray-500">WO</span>
 
                                     <div class="flex flex-col">
-                                        <a href="{{ url('/showwos/'.$woHash) }}" target="_blank"
-                                        class="text-indigo-600 font-semibold hover:underline">
+                                        <a href="{{ url('/showwos/' . $woHash) }}" target="_blank"
+                                            class="font-semibold text-indigo-600 hover:underline">
                                             {{ $woData->woid }}
                                         </a>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                        <span
+                                            class="whitespace-pre-line break-words text-sm text-gray-500 dark:text-gray-400">
                                             {{ $woData->keperluan }}
                                         </span>
                                     </div>
@@ -260,7 +261,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="approval-table-body">
-                                    </tbody>                                    
+                                    </tbody>
                                 </table>
                             </div>
 
@@ -275,7 +276,7 @@
                                             <th class="p-3 text-left font-semibold">Date</th>
                                         </tr>
                                     </thead>
-                                    
+
                                     <tbody id="spptAttachmentTbody"></tbody>
                                 </table>
                                 @if ($canUpload)
@@ -465,17 +466,15 @@
                                 </thead>
                                 <tbody id="editCoaTableBody">
                                     @foreach ($spptdetail as $row)
-                                        <tr
-                                            data-row-id="{{ $row->id }}"
-                                            data-cpny="{{ $row->budget_cpny_id }}"
+                                        <tr data-row-id="{{ $row->id }}" data-cpny="{{ $row->budget_cpny_id }}"
                                             data-bu="{{ $row->budget_business_unit_id }}"
                                             data-deptfin="{{ $row->budget_department_fin_id }}"
                                             data-dept="{{ $row->budget_department_fin_id }}"
-                                            data-perpost="{{ $row->budget_perpost }}"
-                                            >
+                                            data-perpost="{{ $row->budget_perpost }}">
 
                                             <td>{{ $row->inventory_descr }}<br>
-                                                <span class="text-sm text-gray-500">Note : {{ $row->note }}</span><br>
+                                                <span class="text-sm text-gray-500">Note :
+                                                    {{ $row->note }}</span><br>
                                                 <span class="text-sm text-gray-500">Location :
                                                     {{ optional($row->location)->location_name }} -
                                                     {{ optional($row->subLocation)->sub_location_name }}</span>
@@ -505,7 +504,8 @@
                                                             <span class="font-semibold">Selected:</span>
                                                             <span class="picked-coa-text">
                                                                 @if ($row->budget_account_id)
-                                                                    {{ $row->budget_account_id }} - {{ $row->budget_activity_descr }}
+                                                                    {{ $row->budget_account_id }} -
+                                                                    {{ $row->budget_activity_descr }}
                                                                 @else
                                                                     -
                                                                 @endif
@@ -527,7 +527,8 @@
                                                 {{-- optional: simpan juga activity_id kalau butuh --}}
                                                 <input type="hidden" class="picked_activity_id" value="">
                                                 <input type="hidden" class="picked_business_unit_id" value="">
-                                                <input type="hidden" class="picked_department_fin_id" value="">
+                                                <input type="hidden" class="picked_department_fin_id"
+                                                    value="">
                                             </td>
 
                                         </tr>
@@ -556,7 +557,8 @@
                 <div id="coaPickerModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50">
                     <div class="w-full max-w-6xl rounded-xl bg-white shadow-lg dark:bg-gray-800">
                         {{-- Header --}}
-                        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <div
+                            class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Pick COA</h3>
                                 <p class="text-xs text-gray-500 dark:text-gray-300">
@@ -568,35 +570,45 @@
                         </div>
 
                         {{-- Filters --}}
-                        <div class="grid grid-cols-1 gap-3 border-b border-gray-200 p-4 sm:grid-cols-4 dark:border-gray-700">
+                        <div
+                            class="grid grid-cols-1 gap-3 border-b border-gray-200 p-4 sm:grid-cols-4 dark:border-gray-700">
                             <div>
-                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Company</label>
-                                <select id="fCpny" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                                <label
+                                    class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Company</label>
+                                <select id="fCpny"
+                                    class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
                                     <option value="">-- pilih --</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Business Unit</label>
-                                <select id="fBu" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                                <label
+                                    class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Business
+                                    Unit</label>
+                                <select id="fBu"
+                                    class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
                                     <option value="">-- pilih --</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Department Fin</label>
-                                <select id="fDeptFin" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                                <label
+                                    class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Department
+                                    Fin</label>
+                                <select id="fDeptFin"
+                                    class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
                                     <option value="">-- pilih --</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Search</label>
+                                <label
+                                    class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Search</label>
                                 <input id="fSearch" type="text" placeholder="account / activity..."
                                     class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm dark:border-gray-600 dark:bg-gray-700" />
                             </div>
 
-                            <div class="sm:col-span-4 flex items-center justify-between gap-2">
+                            <div class="flex items-center justify-between gap-2 sm:col-span-4">
                                 <div class="text-xs text-gray-500 dark:text-gray-300">
                                     <span id="coaPickerInfo">0 rows</span>
                                 </div>
@@ -616,7 +628,8 @@
                         {{-- Table --}}
                         <div class="max-h-[60vh] overflow-y-auto p-4">
                             <table class="w-full text-sm">
-                                <thead class="sticky top-0 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                <thead
+                                    class="sticky top-0 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                     <tr>
                                         <th class="p-2 text-left">Account</th>
                                         <th class="p-2 text-left">Account Descr</th>
@@ -628,13 +641,17 @@
                                     </tr>
                                 </thead>
                                 <tbody id="coaPickerTbody">
-                                    <tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>
+                                    <tr>
+                                        <td colspan="7" class="p-4 text-center italic text-gray-500">Pilih filter
+                                            lalu Apply</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         {{-- Footer paging --}}
-                        <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <div
+                            class="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700">
                             <div class="text-xs text-gray-500 dark:text-gray-300">
                                 Page: <span id="coaPickerPage">1</span>
                             </div>
@@ -1185,8 +1202,8 @@
     <script>
         $(function() {
 
-            const listUrlPT   = @json(route('attachments.list', ['doctype'=>'PT', 'refnbr'=>$sppt->spptid]));
-            const uploadUrlPT = @json(route('attachments.upload', ['doctype'=>'PT', 'refnbr'=>$sppt->spptid]));
+            const listUrlPT = @json(route('attachments.list', ['doctype' => 'PT', 'refnbr' => $sppt->spptid]));
+            const uploadUrlPT = @json(route('attachments.upload', ['doctype' => 'PT', 'refnbr' => $sppt->spptid]));
 
             const pbStatic = (@json($attachmentPT ?? [])).map(a => ({
                 name: a.display_name,
@@ -1206,11 +1223,11 @@
                 type: 'WO'
             }));
 
-            function renderAll(rowsPT, rowsWO){
-                const merged = [...(rowsPT||[]), ...(rowsWO||[])];
+            function renderAll(rowsPT, rowsWO) {
+                const merged = [...(rowsPT || []), ...(rowsWO || [])];
                 const $tb = $('#spptAttachmentTbody').empty();
 
-                if(!merged.length){
+                if (!merged.length) {
                     $tb.append(`<tr>
                         <td colspan="4" class="p-4 text-center italic text-gray-500">
                             No attachments found.
@@ -1221,16 +1238,16 @@
 
                 merged.forEach(at => {
                     const fileName = at.display_name || at.name || '(no name)';
-                    const dateStr  = at.created_at 
-                        ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') 
-                        : '-';
+                    const dateStr = at.created_at ?
+                        dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
+                        '-';
 
-                    const linkHtml = at.url
-                        ? `<a href="${at.url}" target="_blank"
+                    const linkHtml = at.url ?
+                        `<a href="${at.url}" target="_blank"
                                 class="font-medium text-indigo-600 hover:underline">
                                 📎 ${fileName}
-                        </a>`
-                        : `<span class="font-medium text-gray-700">
+                        </a>` :
+                        `<span class="font-medium text-gray-700">
                                 📎 ${fileName}
                         </span>
                         <span class="ml-2 text-sm text-red-500">
@@ -1257,10 +1274,10 @@
             // ================================
             // REFRESH PT FROM API
             // ================================
-            function refreshPTAttachments(){
+            function refreshPTAttachments() {
                 $.get(listUrlPT)
-                    .done(res=>{
-                        if(!res.success){
+                    .done(res => {
+                        if (!res.success) {
                             toastr.error(res.message || 'Failed to load attachments.');
                             return;
                         }
@@ -1272,7 +1289,7 @@
 
                         renderAll(pbFromApi, woStatic);
                     })
-                    .fail(()=>{
+                    .fail(() => {
                         toastr.error('Failed to load attachments.');
                     });
             }
@@ -1281,7 +1298,7 @@
             // ================================
             // UPLOAD HANDLER (PT ONLY)
             // ================================
-            $('#btnUploadSppbAttachment').on('click', function(){
+            $('#btnUploadSppbAttachment').on('click', function() {
 
                 const $form = $('#spptAttachmentUploadForm')[0];
                 const files = $('#spptAttachFiles')[0].files;
@@ -1299,7 +1316,7 @@
                     data: fd,
                     processData: false,
                     contentType: false,
-                    success: function(res){
+                    success: function(res) {
 
                         if (!res || !res.success) {
                             toastr.error(res?.message || 'Upload failed.');
@@ -1312,13 +1329,13 @@
                         // 🔥 Refresh dari API supaya signed URL baru
                         refreshPTAttachments();
                     },
-                    error: function(xhr){
+                    error: function(xhr) {
                         toastr.error(xhr.responseJSON?.message || 'Upload failed.');
                     }
                 });
             });
 
-            $('#btnResetSpptAttachment').on('click', function(){
+            $('#btnResetSpptAttachment').on('click', function() {
                 $('#spptAttachFiles').val('');
             });
 
@@ -1399,7 +1416,7 @@
             return `<span class="${statusClass} inline-block rounded-full px-3 py-1  text-sm  font-semibold">${statusText}</span>`;
         }
     </script>
-   
+
     <script>
         function closeOrRedirect(fallbackUrl = '/sppts') {
             // coba tutup tab (berhasil kalau tab dibuka via window.open/target=_blank)
@@ -1553,11 +1570,11 @@
                     const $tr = $(this);
                     const rowId = $tr.data('row-id');
 
-                    const accountId     = $tr.find('.picked_account_id').val();
+                    const accountId = $tr.find('.picked_account_id').val();
                     const activityDescr = $tr.find('.picked_activity_descr').val();
-                    const activityId    = $tr.find('.picked_activity_id').val();
-                    const buid          = $tr.find('.picked_business_unit_id').val();
-                    const deptFin       = $tr.find('.picked_department_fin_id').val();
+                    const activityId = $tr.find('.picked_activity_id').val();
+                    const buid = $tr.find('.picked_business_unit_id').val();
+                    const deptFin = $tr.find('.picked_department_fin_id').val();
 
                     if (!accountId) return; // belum pick, skip
 
@@ -1605,7 +1622,7 @@
             });
 
         });
-    </script>   
+    </script>
 
     <script>
         window.userAccess = {
@@ -1616,9 +1633,9 @@
     </script>
 
     <script>
-        $(function () {
-            const $editModal  = $('#editCoaModal');
-            const $picker     = $('#coaPickerModal');
+        $(function() {
+            const $editModal = $('#editCoaModal');
+            const $picker = $('#coaPickerModal');
 
             // endpoint list COA (fungsi editCoaBudget)
             const pickUrl = "{{ route('editcoa.byDept') }}";
@@ -1630,17 +1647,17 @@
                 total: 0,
             };
 
-            function openPicker(rowId){
+            function openPicker(rowId) {
                 pickerState.rowId = rowId;
                 pickerState.page = 1;
 
                 // cari row yang diklik
-                const $tr = $('#editCoaTableBody tr').filter(function(){
+                const $tr = $('#editCoaTableBody tr').filter(function() {
                     return $(this).data('row-id') == rowId;
                 });
 
-                const rowCpny   = ($tr.data('cpny') || '').toString();
-                const rowBu     = ($tr.data('bu') || '').toString();
+                const rowCpny = ($tr.data('cpny') || '').toString();
+                const rowBu = ($tr.data('bu') || '').toString();
                 const rowDeptFi = ($tr.data('deptfin') || $tr.data('dept') || '').toString();
 
                 $picker.removeClass('hidden').addClass('flex');
@@ -1665,7 +1682,9 @@
                 }
 
                 // reset table/info
-                $('#coaPickerTbody').html('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Klik Apply untuk load</td></tr>');
+                $('#coaPickerTbody').html(
+                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Klik Apply untuk load</td></tr>'
+                    );
                 $('#coaPickerInfo').text('0 rows');
                 $('#coaPickerPage').text('1');
 
@@ -1673,13 +1692,17 @@
                 // loadPickerData();
             }
 
-            function closePicker(){
+            function closePicker() {
                 $picker.addClass('hidden').removeClass('flex');
                 pickerState.rowId = null;
             }
 
-            function fillAccessDropdowns(){
-                const acc = window.userAccess || {cpny:[], bu:[], deptFin:[]};
+            function fillAccessDropdowns() {
+                const acc = window.userAccess || {
+                    cpny: [],
+                    bu: [],
+                    deptFin: []
+                };
 
                 const $cpny = $('#fCpny').empty().append('<option value="">-- pilih --</option>');
                 (acc.cpny || []).forEach(c => $cpny.append(`<option value="${c}">${c}</option>`));
@@ -1688,28 +1711,36 @@
                 refilterBuAndDept();
             }
 
-            function refilterBuAndDept(){
-                const acc = window.userAccess || {cpny:[], bu:[], deptFin:[]};
+            function refilterBuAndDept() {
+                const acc = window.userAccess || {
+                    cpny: [],
+                    bu: [],
+                    deptFin: []
+                };
                 const cpnySelected = $('#fCpny').val();
 
                 // BU by cpny
                 const $bu = $('#fBu').empty().append('<option value="">-- pilih --</option>');
                 (acc.bu || [])
-                    .filter(x => !cpnySelected || x.cpny_id === cpnySelected)
-                    .forEach(x => $bu.append(`<option value="${x.business_unit_id}">${x.business_unit_id}</option>`));
+                .filter(x => !cpnySelected || x.cpny_id === cpnySelected)
+                    .forEach(x => $bu.append(
+                        `<option value="${x.business_unit_id}">${x.business_unit_id}</option>`));
 
                 // DeptFin (tidak tergantung cpny di modelmu, jadi tampilkan semua uniq)
                 const uniqDeptFin = new Set();
-                (acc.deptFin || []).forEach(x => { if (x.department_fin_id) uniqDeptFin.add(x.department_fin_id); });
+                (acc.deptFin || []).forEach(x => {
+                    if (x.department_fin_id) uniqDeptFin.add(x.department_fin_id);
+                });
 
                 const $df = $('#fDeptFin').empty().append('<option value="">-- pilih --</option>');
                 Array.from(uniqDeptFin).sort().forEach(v => $df.append(`<option value="${v}">${v}</option>`));
             }
 
-            function renderPickerRows(rows){
+            function renderPickerRows(rows) {
                 const $tb = $('#coaPickerTbody').empty();
-                if (!rows || !rows.length){
-                    $tb.append('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">No data</td></tr>');
+                if (!rows || !rows.length) {
+                    $tb.append(
+                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">No data</td></tr>');
                     return;
                 }
 
@@ -1728,8 +1759,8 @@
                                     data-account="${escapeAttr(r.account_id ?? '')}"
                                     data-activity_descr="${escapeAttr(r.activity_descr ?? '')}"
                                     data-activity_id="${escapeAttr(r.activity_id ?? '')}"
-                                    data-bu="${escapeAttr(r.business_unit_id ?? '')}"          
-                                    data-deptfin="${escapeAttr(r.department_fin_id ?? '')}">   
+                                    data-bu="${escapeAttr(r.business_unit_id ?? '')}"
+                                    data-deptfin="${escapeAttr(r.department_fin_id ?? '')}">
                                     Pilih
                                 </button>
                             </td>
@@ -1738,13 +1769,13 @@
                 });
             }
 
-            function loadPickerData(){
-                const cpnyid  = $('#fCpny').val();
-                const buid    = $('#fBu').val();
+            function loadPickerData() {
+                const cpnyid = $('#fCpny').val();
+                const buid = $('#fBu').val();
                 const deptFin = $('#fDeptFin').val();
-                const search  = $('#fSearch').val();
+                const search = $('#fSearch').val();
 
-                if (!cpnyid || !deptFin || !buid){
+                if (!cpnyid || !deptFin || !buid) {
                     toastr.warning('Company, Business Unit, dan Department Fin wajib dipilih.');
                     return;
                 }
@@ -1755,13 +1786,13 @@
                     dataType: 'json',
                     data: {
                         cpnyid: cpnyid,
-                        deptid: deptFin,          // dept_fin_id (sesuai fungsi kamu)
-                        business_unit_id: buid,   // ✅ tambahkan ini di backend (lihat catatan bawah)
+                        deptid: deptFin, // dept_fin_id (sesuai fungsi kamu)
+                        business_unit_id: buid, // ✅ tambahkan ini di backend (lihat catatan bawah)
                         search: search || '',
                         page: pickerState.page,
                         per_page: pickerState.per_page
                     },
-                    success: function(res){
+                    success: function(res) {
                         pickerState.total = res.total || 0;
                         $('#coaPickerInfo').text(`${pickerState.total} rows`);
                         $('#coaPickerPage').text(pickerState.page);
@@ -1769,72 +1800,80 @@
                         renderPickerRows(res.data || []);
 
                         // paging enable/disable
-                        const more = (pickerState.page * (res.per_page || pickerState.per_page)) < (res.total || 0);
+                        const more = (pickerState.page * (res.per_page || pickerState.per_page)) < (res
+                            .total || 0);
                         $('#coaPickerNext').prop('disabled', !more);
                         $('#coaPickerPrev').prop('disabled', pickerState.page <= 1);
                     },
-                    error: function(xhr){
+                    error: function(xhr) {
                         toastr.error(xhr.responseJSON?.message || 'Failed to load COA.');
                     }
                 });
             }
 
             // helpers
-            function escapeHtml(s){ return $('<div>').text(s ?? '').html(); }
-            function escapeAttr(s){ return String(s ?? '').replace(/"/g, '&quot;'); }
+            function escapeHtml(s) {
+                return $('<div>').text(s ?? '').html();
+            }
+
+            function escapeAttr(s) {
+                return String(s ?? '').replace(/"/g, '&quot;');
+            }
 
             // ===== events =====
-            $(document).on('click', '.btnPickCoa', function(){
+            $(document).on('click', '.btnPickCoa', function() {
                 const rowId = $(this).data('row-id');
                 openPicker(rowId);
             });
 
             $(document).on('click', '#btnCloseCoaPicker', closePicker);
 
-            $(document).on('change', '#fCpny', function(){
+            $(document).on('change', '#fCpny', function() {
                 refilterBuAndDept();
             });
 
-            $(document).on('click', '#btnCoaPickerApply', function(){
+            $(document).on('click', '#btnCoaPickerApply', function() {
                 pickerState.page = 1;
                 loadPickerData();
             });
 
-            $(document).on('click', '#btnCoaPickerReset', function(){
+            $(document).on('click', '#btnCoaPickerReset', function() {
                 $('#fCpny').val('');
                 $('#fBu').val('');
                 $('#fDeptFin').val('');
                 $('#fSearch').val('');
-                $('#coaPickerTbody').html('<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>');
+                $('#coaPickerTbody').html(
+                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>'
+                    );
                 $('#coaPickerInfo').text('0 rows');
                 pickerState.page = 1;
                 $('#coaPickerPage').text('1');
             });
 
-            $(document).on('click', '#coaPickerPrev', function(){
-                if (pickerState.page > 1){
+            $(document).on('click', '#coaPickerPrev', function() {
+                if (pickerState.page > 1) {
                     pickerState.page--;
                     loadPickerData();
                 }
             });
 
-            $(document).on('click', '#coaPickerNext', function(){
+            $(document).on('click', '#coaPickerNext', function() {
                 pickerState.page++;
                 loadPickerData();
             });
 
             // pilih COA -> set ke row edit
-            $(document).on('click', '.btnPickThis', function(){
-                const accountId     = $(this).data('account');
+            $(document).on('click', '.btnPickThis', function() {
+                const accountId = $(this).data('account');
                 const activityDescr = $(this).data('activity_descr');
-                const activityId    = $(this).data('activity_id');
+                const activityId = $(this).data('activity_id');
 
-                const buid          = $(this).data('bu');       // ✅ tambah
-                const deptFin       = $(this).data('deptfin');  // ✅ tambah
+                const buid = $(this).data('bu'); // ✅ tambah
+                const deptFin = $(this).data('deptfin'); // ✅ tambah
 
                 if (!pickerState.rowId) return;
 
-                const $tr = $('#editCoaTableBody tr').filter(function(){
+                const $tr = $('#editCoaTableBody tr').filter(function() {
                     return $(this).data('row-id') == pickerState.rowId;
                 });
 

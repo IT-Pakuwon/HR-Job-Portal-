@@ -59,13 +59,14 @@
             padding: 2px 0;
         }
 
-        /* nomor otomatis */      
+        /* nomor otomatis */
         .detail-table td.label {
             width: 25%;
             vertical-align: top;
             padding: 2px 0;
             position: relative;
-            padding-left: 20px; /* jarak setelah nomor */
+            padding-left: 20px;
+            /* jarak setelah nomor */
         }
 
         /* nomor otomatis 1., 2., dst */
@@ -77,7 +78,8 @@
 
         /* kolom titik dua */
         .detail-table td.colon {
-            width: 10px;          /* bikin sempit supaya dekat kiri */
+            width: 10px;
+            /* bikin sempit supaya dekat kiri */
             vertical-align: top;
         }
 
@@ -89,7 +91,8 @@
 
         /* baris sub label (Sub Lokasi Kerja) */
         .detail-table td.label.indent {
-            padding-left: 35px;   /* sedikit menjorok */
+            padding-left: 35px;
+            /* sedikit menjorok */
         }
 
         /* sub-baris di bawah label (Sub Lokasi dsb) */
@@ -101,7 +104,8 @@
         /* alignment "Label : Value" */
         .field-label {
             display: inline-block;
-            min-width: 90px;   /* atur sesuai selera */
+            min-width: 90px;
+            /* atur sesuai selera */
         }
 
         .field-colon {
@@ -226,7 +230,7 @@
 
         <tr class="item-row">
             <td class="label">Jenis Pekerjaan</td>
-            <td class="value">
+            <td class="value whitespace-pre-line break-words">
                 : {{ $bast->keperluan }}
             </td>
         </tr>

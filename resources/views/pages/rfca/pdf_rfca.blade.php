@@ -215,7 +215,7 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Keperluan :</span>
-                    <span class="field-value-wrap">{{ $keperluan }}</span>
+                    <span class="field-value-wrap whitespace-pre-line break-words">{{ $keperluan }}</span>
                 </div>
             </th>
 
