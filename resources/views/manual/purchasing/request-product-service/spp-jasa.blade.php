@@ -135,7 +135,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/create/header.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/create-header.png') }}">
                                  <figcaption>
                                      Figure 1.1 – SPPJ Header Information
                                  </figcaption>
@@ -171,7 +171,7 @@
                              </span>
                          </div>
 
-                         <!-- FIGURE -->
+                         {{-- <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/sppj/create/emergency-wo.png') }}">
@@ -179,7 +179,7 @@
                                      Figure 1.2 – Emergency Flag & WO Selection
                                  </figcaption>
                              </figure>
-                         </div>
+                         </div> --}}
 
                      </section>
 
@@ -215,7 +215,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/create/detail-table.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/create-detail.png') }}">
                                  <figcaption>
                                      Figure 1.3 – SPPJ Detail Entry Table
                                  </figcaption>
@@ -261,7 +261,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/create/attachment-mode.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/create-attachment.png') }}">
                                  <figcaption>
                                      Figure 1.4 – Attachment Section (Jasa & Kontrak Mode)
                                  </figcaption>
@@ -326,6 +326,8 @@
                      <span x-text="openSection==='s2' ? '−' : '+'"></span>
                  </button>
 
+
+
                  <div x-show="openSection==='s2'" x-transition class="space-y-6 px-6 pb-6">
 
                      <section class="space-y-4">
@@ -334,6 +336,8 @@
                              <span x-show="lang==='en'">2.1 Edit SPPJ Overview</span>
                              <span x-show="lang==='id'">2.1 Gambaran Edit SPPJ</span>
                          </h3>
+
+
 
                          <p class="text-gray-600 dark:text-gray-400">
                              <span x-show="lang==='en'">
@@ -346,6 +350,14 @@
                              </span>
                          </p>
 
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/sppj/edit-list.png') }}">
+                                 <figcaption>
+                                     Figure 2.1 – Edit SPPJ Page Overview
+                                 </figcaption>
+                             </figure>
+                         </div>
                          <div class="manual-note manual-warning">
                              <span x-show="lang==='en'">
                                  Editing is only allowed while the document status is Draft or Revise.
@@ -362,15 +374,6 @@
                              <span x-show="lang==='id'">
                                  Submit ulang dokumen akan mereset alur approval.
                              </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/edit/edit-overview.png') }}">
-                                 <figcaption>
-                                     Figure 2.1 – Edit SPPJ Page Overview
-                                 </figcaption>
-                             </figure>
                          </div>
 
                      </section>
@@ -407,7 +410,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/edit/header-edit.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/edit-header.png') }}">
                                  <figcaption>
                                      Figure 2.2 – Edit Header Fields
                                  </figcaption>
@@ -447,7 +450,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/edit/detail-edit.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/edit-detail.png') }}">
                                  <figcaption>
                                      Figure 2.3 – Edit SPPJ Detail Table
                                  </figcaption>
@@ -496,7 +499,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/edit/attachment-edit.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/edit-attachment.png') }}">
                                  <figcaption>
                                      Figure 2.4 – Edit Attachment Section
                                  </figcaption>
@@ -531,16 +534,6 @@
                                  Setelah disubmit, dokumen akan mengikuti alur approval
                                  dan tidak dapat diedit kecuali dikembalikan.
                              </span>
-                         </div>
-
-                         <!-- FIGURE -->
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/edit/submit-cancel.png') }}">
-                                 <figcaption>
-                                     Figure 2.5 – Submit & Cancel Actions
-                                 </figcaption>
-                             </figure>
                          </div>
 
                      </section>
@@ -603,7 +596,6 @@
                              <span x-show="lang==='id'">3.2 Ringkasan Status</span>
                          </h3>
 
-
                          <ul class="list-disc space-y-2 pl-6 text-gray-600 dark:text-gray-400">
                              <li>All</li>
                              <li>On Progress</li>
@@ -626,7 +618,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/list/status-overview.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/status-overview.png') }}">
                                  <figcaption>
                                      Figure 3.1 – SPPJ Status Overview Cards
                                  </figcaption>
@@ -686,7 +678,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/list/data-table.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/data-table.png') }}">
                                  <figcaption>
                                      Figure 3.2 – SPPJ Data Table
                                  </figcaption>
@@ -712,15 +704,6 @@
                              </span>
                          </p>
 
-                         <!-- FIGURE -->
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/list/create-button.png') }}">
-                                 <figcaption>
-                                     Figure 3.3 – Create SPPJ Button
-                                 </figcaption>
-                             </figure>
-                         </div>
 
                      </section>
                      <section class="space-y-4">
@@ -762,7 +745,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/list/tracking-modal.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/tracking-modal.png') }}">
                                  <figcaption>
                                      Figure 3.4 – SPPJ Tracking Modal
                                  </figcaption>
@@ -875,15 +858,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/approval-actions.png') }}">
-                                 <figcaption>
-                                     Figure 4.2 – Approval Action Buttons
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
                      <section class="space-y-4">
 
@@ -916,15 +890,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/header-info.png') }}">
-                                 <figcaption>
-                                     Figure 4.3 – Document Header Information
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
                      <section class="space-y-4">
 
@@ -953,15 +918,6 @@
                                  Lampiran dibatasi maksimal 10 file per upload.
                                  Format file PDF dan gambar direkomendasikan.
                              </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/attachment-approval-tabs.png') }}">
-                                 <figcaption>
-                                     Figure 4.4 – Attachment & Approval Tabs
-                                 </figcaption>
-                             </figure>
                          </div>
 
                      </section>
@@ -996,15 +952,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/detail-table.png') }}">
-                                 <figcaption>
-                                     Figure 4.5 – SPPJ Detail Table
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
 
                      <section class="space-y-4">
@@ -1035,16 +982,6 @@
                                  Company, Business Unit, Department Financial, dan Perpost.
                              </span>
                          </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/edit-coa-modal.png') }}">
-                                 <figcaption>
-                                     Figure 4.6 – Edit COA Modal
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
 
                      <section class="space-y-4">
@@ -1103,7 +1040,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/create-bq-button.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/bq-viewbutton.png') }}">
                                  <figcaption>
                                      Figure 4.7 – Create / View BQ Button
                                  </figcaption>
@@ -1133,60 +1070,6 @@
                  </button>
 
                  <div x-show="openSection==='s5'" x-transition class="space-y-6 px-6 pb-6">
-                     <section class="space-y-4">
-
-                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">4.1 Show SPPJ Overview</span>
-                             <span x-show="lang==='id'">4.1 Gambaran Show SPPJ</span>
-                         </h3>
-
-                         <p class="text-gray-600 dark:text-gray-400">
-                             <span x-show="lang==='en'">
-                                 The Show SPPJ page provides complete visibility of the document,
-                                 including header information, workflow status, item details,
-                                 attachments, and approval history.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Halaman Show SPPJ menampilkan informasi lengkap dokumen,
-                                 termasuk header, status workflow, detail item,
-                                 lampiran, serta riwayat approval.
-                             </span>
-                         </p>
-
-                         <div class="manual-note manual-info">
-                             <span x-show="lang==='en'">
-                                 This page is used for document monitoring, approval processing,
-                                 and audit tracking.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Halaman ini digunakan untuk monitoring dokumen,
-                                 proses approval, dan kebutuhan audit.
-                             </span>
-                         </div>
-
-                         <div class="manual-note manual-warning">
-                             <span x-show="lang==='en'">
-                                 Budget allocation and COA are locked based on the selected Business Unit.
-                                 Changes require authorized financial access.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Alokasi budget dan COA dikunci berdasarkan Business Unit yang dipilih.
-                                 Perubahan memerlukan otorisasi keuangan.
-                             </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/overview.png') }}">
-                                 <figcaption>
-                                     Figure 4.1 – Show SPPJ Overview Page
-                                 </figcaption>
-                             </figure>
-                         </div>
-
-                     </section>
-
-
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">

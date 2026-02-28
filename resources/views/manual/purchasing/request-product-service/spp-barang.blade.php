@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-
+     
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-
+     
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -363,7 +363,7 @@
                      </div>
 
                      <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                         <img src="{{ asset('images/manual/edit-list.png') }}"
+                         <img src="{{ asset('images/manual/sppb/edit-list.png') }}"
                              class="rounded-lg border shadow dark:border-gray-800">
                          <p class="mt-2 text-center text-xs text-gray-500">
                              Figure 2.1 – Revise SPPB Section

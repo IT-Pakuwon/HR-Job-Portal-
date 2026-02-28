@@ -116,9 +116,40 @@
             <li>Activity</li>
             <li>Description</li>
             <li>Budget</li>
-            <li>Additional</li>
-            <li>Reserved</li>
-            <li>Used</li>
+
+            <li>
+                <strong>Additional</strong><br>
+                <span x-show="lang==='en'">
+                    Additional budget allocation added after the original approval.
+                </span>
+                <span x-show="lang==='id'">
+                    Penambahan anggaran setelah persetujuan awal.
+                </span>
+            </li>
+
+            <li>
+                <strong>Reserved</strong><br>
+                <span x-show="lang==='en'">
+                    Budget amount that has been committed but not yet realized.
+                    Typically created when CS is issued.
+                </span>
+                <span x-show="lang==='id'">
+                    Nilai anggaran yang sudah dikomit namun belum direalisasikan.
+                    Biasanya terbentuk saat CS dibuat.
+                </span>
+            </li>
+
+            <li>
+                <strong>Used</strong><br>
+                <span x-show="lang==='en'">
+                    Actual realized expense amount.
+                    This reflects financial transactions that have been completed after PO/SPK Issued.
+                </span>
+                <span x-show="lang==='id'">
+                    Nilai biaya yang sudah direalisasikan.
+                    Mencerminkan transaksi keuangan yang telah selesai diproses saat PO/SPK dibuat.
+                </span>
+            </li>
         </ul>
 
         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">

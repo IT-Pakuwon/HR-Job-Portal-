@@ -37,7 +37,8 @@
 
                             <!-- ✅ Business Unit -->
                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business
+                                    Unit</label>
                                 <select name="business_unit_id" id="business_unit_id" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     <option value="" disabled selected>Loading...</option>
@@ -367,7 +368,7 @@
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
+                                <span class="req">Attachments</span>
                                 <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
@@ -597,8 +598,8 @@
             $('#activity_descr').val(prefill.activity_descr || '');
 
             // ===== tampilkan budget text di display (ACCOUNT_ID harus muncul) =====
-            const accountId = prefill.coa_id || prefill.account_id || '';          // <-- ini yg benar
-            const actDescr  = prefill.activity_descr || prefill.act_descr || '';   // deskripsi activity
+            const accountId = prefill.coa_id || prefill.account_id || ''; // <-- ini yg benar
+            const actDescr = prefill.activity_descr || prefill.act_descr || ''; // deskripsi activity
 
             if (prefill.coa_display) {
                 // kalau controller kasih string siap tampil (pastikan formatnya ACCOUNT_ID — ACTIVITY)
@@ -791,6 +792,24 @@
                 const $activityId = $('#activity_id');
 
                 let ok = true;
+
+                // =========================
+                // Attachment validation (same style as SPPB)
+                // =========================
+                let hasAttachment = false;
+
+                $('#attachmentsContainer input[type="file"]').each(function() {
+                    if (this.files && this.files.length > 0) {
+                        hasAttachment = true;
+                        return false;
+                    }
+                });
+
+                if (!hasAttachment) {
+                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                    addError($firstFile, 'Minimal 1 attachment wajib diupload.');
+                    ok = false;
+                }
                 if (!$cpny.val()) {
                     addError($cpny, 'Company wajib.');
                     ok = false;
@@ -903,6 +922,12 @@
                     else window.location.href = "/wos";
                 }
             });
+
+            $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
+                if (this.files.length > 0) {
+                    $(this).removeClass('is-invalid');
+                }
+            });
         });
     </script>
 
@@ -995,7 +1020,7 @@
                 $coaGroup.addClass('hidden');
 
                 // clear COA fields
-               $('#budget_display').val('');
+                $('#budget_display').val('');
                 $('#activity_id').val('');
                 $('#coa_business_unit_id').val('');
                 $('#department_fin_id').val('');
@@ -1022,7 +1047,7 @@
             const prefill = @json($prefill ?? []);
 
             const $cpny = $('#cpnyid');
-            const $bu   = $('#business_unit_id');
+            const $bu = $('#business_unit_id');
 
             function renderBuOptions(list, selected) {
                 let html = '<option value="" disabled>Select Business Unit</option>';
@@ -1043,7 +1068,9 @@
 
                 $bu.html('<option value="" disabled selected>Loading...</option>');
 
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
+                $.getJSON("{{ route('businessunits.byCpny') }}", {
+                        cpnyid
+                    })
                     .done(function(res) {
                         const list = res.data || [];
                         if (!list.length) {
@@ -1080,7 +1107,7 @@
     </script>
 
     <script>
-        $(function () {
+        $(function() {
             // pastikan element ada
             console.log('btnBudget:', $('#btnBudget').length, 'coaModal:', $('#coaModal').length);
 
@@ -1360,163 +1387,178 @@
         });
     </script> --}}
     <script>
-$(function () {
-    // ===== Prefill safe (tidak error kalau $prefill null) =====
-    const prefill = @json($prefill ?? []);
+        $(function() {
+            // ===== Prefill safe (tidak error kalau $prefill null) =====
+            const prefill = @json($prefill ?? []);
 
-    // ===== Elements =====
-    const $coaModal   = $('#coaModal');
-    const $coaTbody   = $('#coaTableBody');
-    const $coaCount   = $('#coaCount');
-    const $coaCpny    = $('#coaCpnyBadge');
-    const $coaDept    = $('#coaDeptBadge');
-    const $coaPerpost = $('#coaPerpostBadge');
-    const $btnBudget  = $('#btnBudget');
-    const $search     = $('#coaSearch');
+            // ===== Elements =====
+            const $coaModal = $('#coaModal');
+            const $coaTbody = $('#coaTableBody');
+            const $coaCount = $('#coaCount');
+            const $coaCpny = $('#coaCpnyBadge');
+            const $coaDept = $('#coaDeptBadge');
+            const $coaPerpost = $('#coaPerpostBadge');
+            const $btnBudget = $('#btnBudget');
+            const $search = $('#coaSearch');
 
-    // ===== State =====
-    let coaState = {
-        search: '',
-        page: 1,
-        per_page: 10,
-        total: 0,
-        cpnyid: null,
-        deptid: null,
-        perpost: null,
-        buid: null,
-    };
+            // ===== State =====
+            let coaState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                cpnyid: null,
+                deptid: null,
+                perpost: null,
+                buid: null,
+            };
 
-    function esc(s){ return $('<div>').text(s ?? '').html(); }
+            function esc(s) {
+                return $('<div>').text(s ?? '').html();
+            }
 
-    function formatNumber(n){
-        if (n === null || n === undefined || n === '') return '';
-        const x = Number(n);
-        if (isNaN(x)) return String(n);
-        return x.toLocaleString('id-ID');
-    }
+            function formatNumber(n) {
+                if (n === null || n === undefined || n === '') return '';
+                const x = Number(n);
+                if (isNaN(x)) return String(n);
+                return x.toLocaleString('id-ID');
+            }
 
-    function getHeader() {
-        return {
-            cpnyid: $('#cpnyid').val(),
-            deptid: $('#departementid').val(),
-            perpost: $('#perpost').val(),
-            buid: $('#business_unit_id').val(),
-        };
-    }
+            function getHeader() {
+                return {
+                    cpnyid: $('#cpnyid').val(),
+                    deptid: $('#departementid').val(),
+                    perpost: $('#perpost').val(),
+                    buid: $('#business_unit_id').val(),
+                };
+            }
 
-    function openCoaModal() {
-        const h = getHeader();
+            function openCoaModal() {
+                const h = getHeader();
 
-        if (!h.cpnyid) { toastr.warning('Pilih Company terlebih dahulu.'); return; }
-        if (!h.deptid) { toastr.warning('Pilih Department terlebih dahulu.'); return; }
-        if (!h.buid)   { toastr.warning('Pilih Business Unit terlebih dahulu.'); return; }
-        if (!h.perpost){ toastr.warning('Pilih Perpost terlebih dahulu.'); return; }
+                if (!h.cpnyid) {
+                    toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+                if (!h.deptid) {
+                    toastr.warning('Pilih Department terlebih dahulu.');
+                    return;
+                }
+                if (!h.buid) {
+                    toastr.warning('Pilih Business Unit terlebih dahulu.');
+                    return;
+                }
+                if (!h.perpost) {
+                    toastr.warning('Pilih Perpost terlebih dahulu.');
+                    return;
+                }
 
-        coaState.cpnyid  = h.cpnyid;
-        coaState.deptid  = h.deptid;
-        coaState.perpost = h.perpost;
-        coaState.buid    = h.buid;
-        coaState.page    = 1;
-        coaState.search  = '';
+                coaState.cpnyid = h.cpnyid;
+                coaState.deptid = h.deptid;
+                coaState.perpost = h.perpost;
+                coaState.buid = h.buid;
+                coaState.page = 1;
+                coaState.search = '';
 
-        $coaCpny.text(coaState.cpnyid);
-        $coaDept.text(coaState.deptid);
-        $coaPerpost.text(coaState.perpost);
-        $search.val('');
+                $coaCpny.text(coaState.cpnyid);
+                $coaDept.text(coaState.deptid);
+                $coaPerpost.text(coaState.perpost);
+                $search.val('');
 
-        $coaModal.removeClass('hidden').addClass('flex');
-        loadCoa();
-    }
+                $coaModal.removeClass('hidden').addClass('flex');
+                loadCoa();
+            }
 
-    function closeCoaModal() {
-        $coaModal.addClass('hidden').removeClass('flex');
-    }
+            function closeCoaModal() {
+                $coaModal.addClass('hidden').removeClass('flex');
+            }
 
-    // ===== Open/Close events =====
-    $btnBudget.off('click').on('click', openCoaModal);
-    $('#closeCoaModal').off('click').on('click', closeCoaModal);
+            // ===== Open/Close events =====
+            $btnBudget.off('click').on('click', openCoaModal);
+            $('#closeCoaModal').off('click').on('click', closeCoaModal);
 
-    $(document).off('keydown.coa').on('keydown.coa', function(e){
-        if (e.key === 'Escape' && $coaModal.is(':visible')) closeCoaModal();
-    });
+            $(document).off('keydown.coa').on('keydown.coa', function(e) {
+                if (e.key === 'Escape' && $coaModal.is(':visible')) closeCoaModal();
+            });
 
-    // ===== Search (debounce) + refresh =====
-    let t = null;
-    $search.off('input').on('input', function(){
-        clearTimeout(t);
-        t = setTimeout(function(){
-            coaState.search = $search.val().trim();
-            coaState.page = 1;
-            loadCoa();
-        }, 350);
-    });
+            // ===== Search (debounce) + refresh =====
+            let t = null;
+            $search.off('input').on('input', function() {
+                clearTimeout(t);
+                t = setTimeout(function() {
+                    coaState.search = $search.val().trim();
+                    coaState.page = 1;
+                    loadCoa();
+                }, 350);
+            });
 
-    $('#coaRefresh').off('click').on('click', function(){
-        $search.val('');
-        coaState.search = '';
-        coaState.page = 1;
-        loadCoa();
-    });
+            $('#coaRefresh').off('click').on('click', function() {
+                $search.val('');
+                coaState.search = '';
+                coaState.page = 1;
+                loadCoa();
+            });
 
-    // ===== Pagination =====
-    $('#coaPrev').off('click').on('click', function(){
-        if (coaState.page > 1) {
-            coaState.page--;
-            loadCoa();
-        }
-    });
+            // ===== Pagination =====
+            $('#coaPrev').off('click').on('click', function() {
+                if (coaState.page > 1) {
+                    coaState.page--;
+                    loadCoa();
+                }
+            });
 
-    $('#coaNext').off('click').on('click', function(){
-        const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
-        if (coaState.page < maxPage) {
-            coaState.page++;
-            loadCoa();
-        }
-    });
+            $('#coaNext').off('click').on('click', function() {
+                const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
+                if (coaState.page < maxPage) {
+                    coaState.page++;
+                    loadCoa();
+                }
+            });
 
-    // ===== Load COA =====
-    function loadCoa() {
-        $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
-        $coaCount.text('');
+            // ===== Load COA =====
+            function loadCoa() {
+                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">Loading...</td></tr>');
+                $coaCount.text('');
 
-        $.getJSON("{{ route('coa.byDeptWo') }}", {
-            cpnyid: coaState.cpnyid,
-            deptid: coaState.deptid,
-            perpost: coaState.perpost,
-            business_unit_id: coaState.buid, // ✅ kirim BU ke backend
-            search: coaState.search,
-            page: coaState.page,
-            per_page: coaState.per_page
-        })
-        .done(function(res){
-            const data  = res.data || [];
-            coaState.total = Number(res.total || 0);
+                $.getJSON("{{ route('coa.byDeptWo') }}", {
+                        cpnyid: coaState.cpnyid,
+                        deptid: coaState.deptid,
+                        perpost: coaState.perpost,
+                        business_unit_id: coaState.buid, // ✅ kirim BU ke backend
+                        search: coaState.search,
+                        page: coaState.page,
+                        per_page: coaState.per_page
+                    })
+                    .done(function(res) {
+                        const data = res.data || [];
+                        coaState.total = Number(res.total || 0);
 
-            if (!data.length) {
-                $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
-            } else {
-                const rowsHtml = data.map(item => {
-                    const accountId   = item.account_id ?? item.coa_id ?? '';
-                    const accountDesc = item.account_descr ?? '';
-                    const actId       = item.activity_id ?? '';
-                    const actDescr    = item.activity_descr ?? item.act_descr ?? '';
+                        if (!data.length) {
+                            $coaTbody.html('<tr><td colspan="4" class="p-3 text-center">No data</td></tr>');
+                        } else {
+                            const rowsHtml = data.map(item => {
+                                const accountId = item.account_id ?? item.coa_id ?? '';
+                                const accountDesc = item.account_descr ?? '';
+                                const actId = item.activity_id ?? '';
+                                const actDescr = item.activity_descr ?? item.act_descr ?? '';
 
-                    const buId        = item.business_unit_id ?? '';
-                    const deptFinId   = item.department_fin_id ?? '';
+                                const buId = item.business_unit_id ?? '';
+                                const deptFinId = item.department_fin_id ?? '';
 
-                    const available   = formatNumber(item.availablebudget ?? item.available_budget ?? '');
-                    const used        = formatNumber(item.usedbudget ?? item.used_budget ?? '');
-                    const remaining   = formatNumber(item.remaining ?? '');
+                                const available = formatNumber(item.availablebudget ?? item
+                                    .available_budget ?? '');
+                                const used = formatNumber(item.usedbudget ?? item.used_budget ?? '');
+                                const remaining = formatNumber(item.remaining ?? '');
 
-                    // label display di input: ACCOUNT_ID — ACCOUNT_DESCR — ACTIVITY_ID — ACTIVITY_DESCR
-                    const label = [
-                        accountId,
-                        accountDesc,
-                        actId,
-                        actDescr
-                    ].filter(Boolean).join(' — ');
+                                // label display di input: ACCOUNT_ID — ACCOUNT_DESCR — ACTIVITY_ID — ACTIVITY_DESCR
+                                const label = [
+                                    accountId,
+                                    accountDesc,
+                                    actId,
+                                    actDescr
+                                ].filter(Boolean).join(' — ');
 
-                    return `
+                                return `
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                             <td class="border p-2">${esc(accountId)}</td>
                             <td class="border p-2">${esc(actDescr)}</td>
@@ -1539,85 +1581,89 @@ $(function () {
                             </td>
                         </tr>
                     `;
-                }).join('');
+                            }).join('');
 
-                $coaTbody.html(rowsHtml);
+                            $coaTbody.html(rowsHtml);
+                        }
+
+                        const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
+                        $('#coaPrev').prop('disabled', coaState.page <= 1);
+                        $('#coaNext').prop('disabled', coaState.page >= maxPage);
+
+                        const shown = data.length;
+                        $coaCount.text(
+                            `Page ${coaState.page}/${maxPage} • Showing ${shown} of ${coaState.total} items`
+                        );
+                    })
+                    .fail(function(xhr) {
+                        console.error(xhr.responseText);
+                        $coaTbody.html(
+                            '<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+                        $coaCount.text('');
+                        $('#coaPrev, #coaNext').prop('disabled', true);
+                        toastr.error('Gagal load COA.');
+                    });
             }
 
-            const maxPage = Math.ceil((coaState.total || 0) / coaState.per_page) || 1;
-            $('#coaPrev').prop('disabled', coaState.page <= 1);
-            $('#coaNext').prop('disabled', coaState.page >= maxPage);
+            // ===== Choose COA =====
+            $(document).off('click.chooseCoa').on('click.chooseCoa', '.chooseCoa', function() {
+                const $btn = $(this);
 
-            const shown = data.length;
-            $coaCount.text(`Page ${coaState.page}/${maxPage} • Showing ${shown} of ${coaState.total} items`);
-        })
-        .fail(function(xhr){
-            console.error(xhr.responseText);
-            $coaTbody.html('<tr><td colspan="4" class="p-3 text-center text-red-600">Failed to load</td></tr>');
-            $coaCount.text('');
-            $('#coaPrev, #coaNext').prop('disabled', true);
-            toastr.error('Gagal load COA.');
+                const accountId = $btn.data('account_id') || '';
+                const actId = $btn.data('activity_id') || '';
+                const buId = $btn.data('business_unit_id') || '';
+                const deptFinId = $btn.data('department_fin_id') || '';
+                const actDescr = $btn.data('activity_descr') || '';
+                const label = $btn.data('label') || '';
+
+                // hidden fields (sesuai form kamu)
+                $('#coa_id').val(accountId);
+                $('#activity_id').val(actId);
+                $('#coa_business_unit_id').val(buId);
+                $('#department_fin_id').val(deptFinId);
+                $('#activity_descr').val(actDescr);
+
+                // display: pastikan ACCOUNT_ID tampil (bukan activity_id)
+                $('#budget_display').val(label);
+
+                // clear error
+                $('#budget_display').removeClass('is-invalid').next('.error-feedback').remove();
+
+                closeCoaModal();
+            });
+
+            // ===== Reset COA jika header berubah =====
+            function resetCoaFields() {
+                $('#budget_display').val('');
+                $('#coa_id').val('');
+                $('#activity_id').val('');
+                $('#activity_descr').val('');
+                $('#department_fin_id').val('');
+                $('#coa_business_unit_id').val('');
+            }
+
+            $('#cpnyid, #departementid, #business_unit_id, #perpost').on('change', function() {
+                resetCoaFields();
+
+                // kalau modal sedang terbuka, auto reload sesuai header baru
+                if ($coaModal.is(':visible')) {
+                    const h = getHeader();
+                    coaState.cpnyid = h.cpnyid;
+                    coaState.deptid = h.deptid;
+                    coaState.perpost = h.perpost;
+                    coaState.buid = h.buid;
+                    coaState.page = 1;
+                    loadCoa();
+                }
+            });
+
+            // ===== Prefill hidden aman (optional) =====
+            if (prefill && prefill.business_unit_id) {
+                $('#coa_business_unit_id').val(prefill.business_unit_id);
+            }
         });
-    }
-
-    // ===== Choose COA =====
-    $(document).off('click.chooseCoa').on('click.chooseCoa', '.chooseCoa', function(){
-        const $btn = $(this);
-
-        const accountId   = $btn.data('account_id') || '';
-        const actId       = $btn.data('activity_id') || '';
-        const buId        = $btn.data('business_unit_id') || '';
-        const deptFinId   = $btn.data('department_fin_id') || '';
-        const actDescr    = $btn.data('activity_descr') || '';
-        const label       = $btn.data('label') || '';
-
-        // hidden fields (sesuai form kamu)
-        $('#coa_id').val(accountId);
-        $('#activity_id').val(actId);
-        $('#coa_business_unit_id').val(buId);
-        $('#department_fin_id').val(deptFinId);
-        $('#activity_descr').val(actDescr);
-
-        // display: pastikan ACCOUNT_ID tampil (bukan activity_id)
-        $('#budget_display').val(label);
-
-        // clear error
-        $('#budget_display').removeClass('is-invalid').next('.error-feedback').remove();
-
-        closeCoaModal();
-    });
-
-    // ===== Reset COA jika header berubah =====
-    function resetCoaFields(){
-        $('#budget_display').val('');
-        $('#coa_id').val('');
-        $('#activity_id').val('');
-        $('#activity_descr').val('');
-        $('#department_fin_id').val('');
-        $('#coa_business_unit_id').val('');
-    }
-
-    $('#cpnyid, #departementid, #business_unit_id, #perpost').on('change', function(){
-        resetCoaFields();
-
-        // kalau modal sedang terbuka, auto reload sesuai header baru
-        if ($coaModal.is(':visible')) {
-            const h = getHeader();
-            coaState.cpnyid  = h.cpnyid;
-            coaState.deptid  = h.deptid;
-            coaState.perpost = h.perpost;
-            coaState.buid    = h.buid;
-            coaState.page    = 1;
-            loadCoa();
-        }
-    });
-
-    // ===== Prefill hidden aman (optional) =====
-    if (prefill && prefill.business_unit_id) {
-        $('#coa_business_unit_id').val(prefill.business_unit_id);
-    }
-});
-</script>
+    </script>
 
 
 

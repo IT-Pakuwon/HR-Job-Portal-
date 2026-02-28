@@ -93,7 +93,6 @@
                     </div>
                 </div>
             @endforeach
-            dd($allowedIds);
         </aside>
 
         <!-- ================= CONTENT ================= -->

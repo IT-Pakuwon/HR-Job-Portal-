@@ -3,10 +3,12 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\UserGoogle;
 use App\Models\SysMenu;
 use App\Models\SysRoleMenu;
+use App\Models\SysUserRole;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DataFeedController;
@@ -1408,11 +1410,14 @@ Route::post('/logout', function () {
 Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent = null, $child = null) {
 
     $user = Auth::user();
-    if (!$user) return redirect()->route('login');
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
 
     /*
     |--------------------------------------------------------------------------
-    | 1️⃣ Ambil menu id yang boleh diakses role
+    | 1️⃣ Get Allowed Menu IDs Based On User Role
     |--------------------------------------------------------------------------
     */
 
@@ -1432,18 +1437,24 @@ Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent
 
     /*
     |--------------------------------------------------------------------------
-    | 2️⃣ Tambahkan parent chain supaya root tetap muncul
+    | 2️⃣ Add Parent Chain (Ensure Root & Parent Visible)
     |--------------------------------------------------------------------------
     */
 
-    $allMenus = SysMenu::where('status', 'A')->get()->keyBy('menu_id');
+    $allMenus = SysMenu::where('status', 'A')
+        ->get()
+        ->keyBy('menu_id');
 
     foreach ($allowedIds as $id) {
 
         $menu = $allMenus->get($id);
 
         while ($menu && $menu->parent_menu_id) {
-            $allowedIds[] = $menu->parent_menu_id;
+
+            if (!in_array($menu->parent_menu_id, $allowedIds)) {
+                $allowedIds[] = $menu->parent_menu_id;
+            }
+
             $menu = $allMenus->get($menu->parent_menu_id);
         }
     }
@@ -1452,7 +1463,7 @@ Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent
 
     /*
     |--------------------------------------------------------------------------
-    | 3️⃣ Load tree sesuai allowed ids
+    | 3️⃣ Build Sidebar Tree Based On Allowed IDs
     |--------------------------------------------------------------------------
     */
 
@@ -1474,18 +1485,35 @@ Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent
 
     /*
     |--------------------------------------------------------------------------
-    | 4️⃣ Block direct URL access
+    | 4️⃣ Secure Direct URL Access (Root / Parent / Child)
     |--------------------------------------------------------------------------
     */
 
+    $currentMenu = null;
+
     if ($child) {
-
-        $selected = SysMenu::where('menu_slug', $child)->first();
-
-        if (!$selected || !in_array($selected->menu_id, $allowedIds)) {
-            abort(403);
-        }
+        $currentMenu = SysMenu::where('menu_slug', $child)
+            ->where('status', 'A')
+            ->first();
+    } elseif ($parent) {
+        $currentMenu = SysMenu::where('menu_slug', $parent)
+            ->where('status', 'A')
+            ->first();
+    } elseif ($root) {
+        $currentMenu = SysMenu::where('menu_slug', $root)
+            ->where('status', 'A')
+            ->first();
     }
+
+    if ($currentMenu && !in_array($currentMenu->menu_id, $allowedIds)) {
+        abort(403, 'Unauthorized manual access.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5️⃣ Return View
+    |--------------------------------------------------------------------------
+    */
 
     return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
 

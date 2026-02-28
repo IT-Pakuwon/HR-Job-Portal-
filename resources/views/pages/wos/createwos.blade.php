@@ -30,7 +30,7 @@
                                 </select>
                             </div>
 
-                             <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business
                                     Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
@@ -334,7 +334,7 @@
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
+                                <span class="req">Attachments</span>
                                 <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span
@@ -620,7 +620,27 @@
                 const $pic = $('#picrequester');
                 const $biaya = $('#biaya_wo');
 
+
+
                 let ok = true;
+
+                // =========================
+                // Attachment validation (same style as SPPB)
+                // =========================
+                let hasAttachment = false;
+
+                $('#attachmentsContainer input[type="file"]').each(function() {
+                    if (this.files && this.files.length > 0) {
+                        hasAttachment = true;
+                        return false;
+                    }
+                });
+
+                if (!hasAttachment) {
+                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                    addError($firstFile, 'Minimal 1 attachment wajib diupload.');
+                    ok = false;
+                }
                 if (!$cpny.val()) {
                     addError($cpny, 'Company wajib.');
                     ok = false;
@@ -716,6 +736,12 @@
                         $('#btnText').text('Submit Approval');
                         hideOverlay();
                     });
+            });
+
+            $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
+                if (this.files.length > 0) {
+                    $(this).removeClass('is-invalid');
+                }
             });
         });
     </script>
@@ -847,7 +873,10 @@
                     return;
                 }
 
-                if (!buid) { toastr.warning('Pilih Business Unit terlebih dahulu.'); return; }
+                if (!buid) {
+                    toastr.warning('Pilih Business Unit terlebih dahulu.');
+                    return;
+                }
 
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
@@ -999,16 +1028,17 @@
             });
 
             // Jika cpny/dept/perpost berubah saat modal terbuka → refresh
-            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change', function() {
-                if ($coaModal.is(':visible')) {
-                    coaState.cpnyid = $('select[name="cpnyid"]').val();
-                    coaState.deptid = $('select[name="departementid"]').val();
-                    coaState.perpost = $('#perpost').val();
-                    coaState.buid = $('#business_unit_id').val(); // ✅ NEW
-                    coaState.page = 1;
-                    loadCoa();
-                }
-            });
+            $('select[name="cpnyid"], select[name="departementid"], #perpost, #business_unit_id').on('change',
+                function() {
+                    if ($coaModal.is(':visible')) {
+                        coaState.cpnyid = $('select[name="cpnyid"]').val();
+                        coaState.deptid = $('select[name="departementid"]').val();
+                        coaState.perpost = $('#perpost').val();
+                        coaState.buid = $('#business_unit_id').val(); // ✅ NEW
+                        coaState.page = 1;
+                        loadCoa();
+                    }
+                });
 
         });
     </script>
@@ -1129,17 +1159,17 @@
         });
     </script>
 
-     <script>
+    <script>
         $(function() {
-            const $cpny = $('#cpnyid');              // ✅ sekarang ada
-            const $bu   = $('#business_unit_id');    // ✅ select BU
+            const $cpny = $('#cpnyid'); // ✅ sekarang ada
+            const $bu = $('#business_unit_id'); // ✅ select BU
 
             function renderBuOptions(list, selected) {
                 let html = '<option value="" disabled selected>Select Business Unit</option>';
                 (list || []).forEach(it => {
-                    const id   = it.business_unit_id ?? it.businessunit_id ?? '';
+                    const id = it.business_unit_id ?? it.businessunit_id ?? '';
                     const name = it.business_unit_name ?? it.businessunit_name ?? id;
-                    const sel  = (selected && String(selected) === String(id)) ? 'selected' : '';
+                    const sel = (selected && String(selected) === String(id)) ? 'selected' : '';
                     html += `<option value="${id}" ${sel}>${id} - ${$('<div>').text(name).html()}</option>`;
                 });
                 return html;
@@ -1153,7 +1183,9 @@
 
                 $bu.html('<option value="" disabled selected>Loading...</option>');
 
-                $.getJSON("{{ route('businessunits.byCpny') }}", { cpnyid })
+                $.getJSON("{{ route('businessunits.byCpny') }}", {
+                        cpnyid
+                    })
                     .done(function(res) {
                         const list = res.data || [];
                         if (!list.length) {
