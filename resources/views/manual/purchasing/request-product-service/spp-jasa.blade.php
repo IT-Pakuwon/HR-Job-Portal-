@@ -1210,7 +1210,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/create/kontrak-bq.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/bq-kontrak.png') }}">
                                  <figcaption>
                                      Figure 5.4 – Create BQ Kontrak Page
                                  </figcaption>
@@ -1249,7 +1249,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/create/category-modal.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/kontrak-category.png') }}">
                                  <figcaption>
                                      Figure 5.5 – Kontrak Category Selection Modal
                                  </figcaption>
@@ -1322,7 +1322,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/show/overview.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/bq-overview.png') }}">
                                  <figcaption>
                                      Figure 6.1 – Show BQ Page Overview
                                  </figcaption>
@@ -1360,15 +1360,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/show/header-info.png') }}">
-                                 <figcaption>
-                                     Figure 6.2 – BQ Header Information
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
                      <section class="space-y-4">
 
@@ -1404,15 +1395,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/show/photo-before.png') }}">
-                                 <figcaption>
-                                     Figure 6.3 – Photo Before & Attachment Section
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
                      <section class="space-y-4">
 
@@ -1441,111 +1423,6 @@
                                  Seluruh nilai perhitungan dihasilkan otomatis oleh sistem.
                                  Perubahan manual tidak diperbolehkan pada tahap ini.
                              </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/show/detail-table.png') }}">
-                                 <figcaption>
-                                     Figure 6.4 – BQ Detail Table
-                                 </figcaption>
-                             </figure>
-                         </div>
-
-                     </section>
-                     <section class="space-y-4">
-
-                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">6.5 Approval Actions</span>
-                             <span x-show="lang==='id'">6.5 Aksi Approval</span>
-                         </h3>
-
-                         <p class="text-gray-600 dark:text-gray-400">
-                             <span x-show="lang==='en'">
-                                 Authorized users may perform approval actions:
-                                 Approve, Revise, or Reject the BQ.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 User yang berwenang dapat melakukan aksi:
-                                 Approve, Revise, atau Reject BQ.
-                             </span>
-                         </p>
-
-                         <div class="manual-note manual-warning">
-                             <span x-show="lang==='en'">
-                                 Reject and Revise require a mandatory reason input.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Reject dan Revise wajib mengisi alasan.
-                             </span>
-                         </div>
-
-                         <div class="manual-note manual-warning">
-                             <span x-show="lang==='en'">
-                                 Once approved, BQ will proceed to the next workflow stage
-                                 (e.g., SPK generation).
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Setelah disetujui, BQ akan lanjut ke tahap workflow berikutnya
-                                 (misalnya pembuatan SPK).
-                             </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/show/approval-actions.png') }}">
-                                 <figcaption>
-                                     Figure 6.5 – Approval Action Buttons
-                                 </figcaption>
-                             </figure>
-                         </div>
-
-                     </section>
-                     <section class="space-y-4">
-
-                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">6.6 COA & Business Unit Control</span>
-                             <span x-show="lang==='id'">6.6 Kontrol COA & Business Unit</span>
-                         </h3>
-
-                         <p class="text-gray-600 dark:text-gray-400">
-                             <span x-show="lang==='en'">
-                                 COA selection must align with Company, Business Unit,
-                                 and Financial Department configuration.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Pemilihan COA harus sesuai dengan konfigurasi Company,
-                                 Business Unit, dan Department Finance.
-                             </span>
-                         </p>
-
-                         <div class="manual-note manual-warning">
-                             <span x-show="lang==='en'">
-                                 Budget is locked based on Business Unit.
-                                 Cross-unit modification is not permitted.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Budget dikunci berdasarkan Business Unit.
-                                 Perubahan lintas unit tidak diperbolehkan.
-                             </span>
-                         </div>
-
-                         <div class="manual-note manual-info">
-                             <span x-show="lang==='en'">
-                                 COA changes must be saved before final approval.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Perubahan COA harus disimpan sebelum approval final.
-                             </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/show/coa-picker.png') }}">
-                                 <figcaption>
-                                     Figure 6.6 – COA Picker Modal
-                                 </figcaption>
-                             </figure>
                          </div>
 
                      </section>

@@ -109,14 +109,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppk/create/overview.png') }}">
-                                 <figcaption>
-                                     Figure 1.1 – Create SPPK Page Overview
-                                 </figcaption>
-                             </figure>
-                         </div>
 
                      </section>
 
@@ -158,7 +150,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppk/create/header.png') }}">
+                                 <img src="{{ asset('images/manual/sppk/create-header.png') }}">
                                  <figcaption>
                                      Figure 1.2 – Header Information
                                  </figcaption>
@@ -196,16 +188,6 @@
                                  KM harus diisi sesuai kondisi kendaraan terakhir.
                              </span>
                          </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppk/create/vehicle.png') }}">
-                                 <figcaption>
-                                     Figure 1.3 – Vehicle Information Section
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
 
                      <!-- ===================================================== -->
@@ -238,14 +220,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppk/create/emergency.png') }}">
-                                 <figcaption>
-                                     Figure 1.4 – Emergency & Description
-                                 </figcaption>
-                             </figure>
-                         </div>
 
                      </section>
 
@@ -281,7 +255,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppk/create/detail.png') }}">
+                                 <img src="{{ asset('images/manual/sppk/create-detail.png') }}">
                                  <figcaption>
                                      Figure 1.5 – SPPK Detail Table
                                  </figcaption>
@@ -333,7 +307,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppk/create/submit.png') }}">
+                                 <img src="{{ asset('images/manual/sppk/create-attachement.png') }}">
                                  <figcaption>
                                      Figure 1.6 – Attachments & Submit
                                  </figcaption>
@@ -563,7 +537,14 @@
                                  dan melihat detail tracking dokumen.
                              </span>
                          </p>
-
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/sppk/list-sppk.png') }}">
+                                 <figcaption>
+                                     Figure 3.1 – List SPPK Page
+                                 </figcaption>
+                             </figure>
+                         </div>
                      </section>
                      <section class="space-y-4">
 
@@ -768,7 +749,14 @@
                                  status approval, dan aksi workflow.
                              </span>
                          </p>
-
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/sppk/create-attachement.png') }}">
+                                 <figcaption>
+                                     Figure 4.1 – SPPK Detail View
+                                 </figcaption>
+                             </figure>
+                         </div>
                      </section>
                      <section class="space-y-4">
 
