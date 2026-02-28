@@ -401,6 +401,14 @@
                                  Pemilihan Business Unit menentukan penguncian budget dan validasi COA.
                              </span>
                          </div>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/sppk/edit-header.png') }}">
+                                 <figcaption>
+                                     Figure 2.1 – Edit Header Fields
+                                 </figcaption>
+                             </figure>
+                         </div>
 
                      </section>
                      <section class="space-y-4">
@@ -468,8 +476,17 @@
                                  Perubahan pada detail SPPK akan mereset alur approval.
                              </span>
                          </div>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/sppk/edit-detail.png') }}">
+                                 <figcaption>
+                                     Figure 2.2 – Edit Detail Item
+                                 </figcaption>
+                             </figure>
+                         </div>
 
                      </section>
+
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -495,6 +512,14 @@
                              <span x-show="lang==='id'">
                                  Klik “Submit Approval” untuk memulai kembali alur approval.
                              </span>
+                         </div>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/sppk/edit-attachment.png') }}">
+                                 <figcaption>
+                                     Figure 2.3 – Edit Attachment
+                                 </figcaption>
+                             </figure>
                          </div>
 
                      </section>
@@ -751,7 +776,7 @@
                          </p>
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppk/create-attachement.png') }}">
+                                 <img src="{{ asset('images/manual/sppk/show.png') }}">
                                  <figcaption>
                                      Figure 4.1 – SPPK Detail View
                                  </figcaption>

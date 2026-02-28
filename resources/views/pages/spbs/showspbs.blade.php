@@ -141,8 +141,7 @@
                                             class="font-semibold text-indigo-600 hover:underline">
                                             {{ $woData->woid }}
                                         </a>
-                                        <span
-                                            class="whitespace-pre-line break-words text-sm text-gray-500 dark:text-gray-400">
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
                                             {{ $woData->keperluan }}
                                         </span>
                                     </div>

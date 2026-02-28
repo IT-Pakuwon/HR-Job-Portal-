@@ -683,6 +683,13 @@
                              </span>
                          </div>
 
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <img src="{{ asset('images/manual/sppb/tracking-modal.png') }}"
+                                 class="rounded-lg border shadow dark:border-gray-800">
+                             <p class="mt-2 text-center text-xs text-gray-500">
+                                 Figure 3.2 – Tracking Detail Modal
+                             </p>
+                         </div>
                      </section>
                  </div>
              </div>
@@ -815,6 +822,8 @@
                                  Maksimal 10 file per upload. Disarankan menggunakan format PDF atau gambar.
                              </span>
                          </div>
+
+
 
                      </section>
                      <section class="space-y-4">

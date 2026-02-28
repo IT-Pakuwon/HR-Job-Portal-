@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-
+     
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-
+     
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -67,14 +67,15 @@
 
                      <span>
                          <span x-show="lang==='en'">1. Create SPB</span>
-                         <span x-show="lang==='id'">1. Buat SPB</span>
+                         <span x-show="lang==='id'">1. Membuat SPB</span>
                      </span>
 
                      <span x-text="openSection==='s1' ? '−' : '+'"></span>
                  </button>
 
                  <div x-show="openSection==='s1'" x-transition class="space-y-6 px-6 pb-6">
-                     <!-- 1.1 Overview -->
+
+                     <!-- 1. Overview -->
                      <section class="space-y-4">
 
                          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -84,136 +85,206 @@
 
                          <p class="text-gray-600 dark:text-gray-400">
                              <span x-show="lang==='en'">
-                                 The SPB page allows users to create and monitor
-                                 Surat Perintah Bayar (SPB) documents.
-                                 Users can track document status, approval progress,
-                                 and execution flow from this page.
+                                 The Create SPB page allows users to submit a new
+                                 Surat Permintaan Barang (SPB) for material or inventory request.
+                                 The form consists of header information, detail items,
+                                 budget allocation, and attachments.
                              </span>
                              <span x-show="lang==='id'">
-                                 Halaman SPB digunakan untuk membuat dan memonitor
-                                 dokumen Surat Perintah Bayar (SPB).
-                                 User dapat melihat status dokumen, progres approval,
-                                 dan alur proses dari halaman ini.
-                             </span>
-                         </p>
-
-                     </section>
-
-                     <!-- 1.2 Status Cards -->
-                     <section class="space-y-4">
-
-                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">1.2 Status Cards</span>
-                             <span x-show="lang==='id'">1.2 Kartu Status</span>
-                         </h3>
-
-                         <p class="text-gray-600 dark:text-gray-400">
-                             <span x-show="lang==='en'">
-                                 Status cards summarize SPB documents based on workflow status.
-                                 Clicking a card will filter the table automatically.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Kartu status menampilkan ringkasan dokumen SPB
-                                 berdasarkan status workflow.
-                                 Klik pada kartu akan memfilter tabel secara otomatis.
-                             </span>
-                         </p>
-
-                         <ul class="list-disc space-y-1 pl-6 text-gray-600 dark:text-gray-400">
-                             <li><strong>All</strong> – Display all SPB documents</li>
-                             <li><strong>On Progress</strong> – Documents currently in approval</li>
-                             <li><strong>Reject</strong> – Documents rejected</li>
-                             <li><strong>Revise / Draft</strong> – Documents needing revision</li>
-                             <li><strong>Completed</strong> – Fully approved documents</li>
-                             <li><strong>SPB Tracking</strong> – View SPB process timeline</li>
-                         </ul>
-
-                         <div class="manual-note manual-warning">
-                             <span x-show="lang==='en'">
-                                 Status reflects approval workflow,
-                                 not payment completion status.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Status mencerminkan workflow approval,
-                                 bukan status pembayaran.
-                             </span>
-                         </div>
-
-                     </section>
-
-                     <!-- 1.3 Create SPB -->
-                     <section class="space-y-4">
-
-                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">1.3 Creating a New SPB</span>
-                             <span x-show="lang==='id'">1.3 Membuat SPB Baru</span>
-                         </h3>
-
-                         <p class="text-gray-600 dark:text-gray-400">
-                             <span x-show="lang==='en'">
-                                 To create a new SPB document, click the
-                                 <strong>Create</strong> button located at the top-right
-                                 of the page.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Untuk membuat dokumen SPB baru,
-                                 klik tombol <strong>Create</strong>
-                                 di bagian kanan atas halaman.
-                             </span>
-                         </p>
-
-                         <div class="manual-note manual-important">
-                             <span x-show="lang==='en'">
-                                 Ensure all required information such as Company,
-                                 Department, Budget, and supporting documents
-                                 are prepared before submission.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Pastikan seluruh informasi wajib seperti Company,
-                                 Department, Budget, dan dokumen pendukung
-                                 telah disiapkan sebelum submit.
-                             </span>
-                         </div>
-
-                     </section>
-
-                     <!-- 1.4 SPB Tracking -->
-                     <section class="space-y-4">
-
-                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                             <span x-show="lang==='en'">1.4 SPB Tracking</span>
-                             <span x-show="lang==='id'">1.4 Tracking SPB</span>
-                         </h3>
-
-                         <p class="text-gray-600 dark:text-gray-400">
-                             <span x-show="lang==='en'">
-                                 The SPB Tracking feature allows users to view
-                                 the document journey in timeline format,
-                                 including approval stages and progress updates.
-                             </span>
-                             <span x-show="lang==='id'">
-                                 Fitur SPB Tracking memungkinkan user melihat
-                                 perjalanan dokumen dalam bentuk timeline,
-                                 termasuk tahapan approval dan progres proses.
+                                 Halaman Create SPB digunakan untuk membuat dokumen
+                                 Surat Permintaan Barang (SPB) baru untuk kebutuhan
+                                 material atau inventory.
+                                 Form terdiri dari informasi header, detail item,
+                                 alokasi budget, serta lampiran.
                              </span>
                          </p>
 
                          <div class="manual-note manual-info">
                              <span x-show="lang==='en'">
-                                 Use the navigation buttons (Prev / Next)
-                                 to scroll through the timeline.
+                                 All required fields must be completed before submission.
                              </span>
                              <span x-show="lang==='id'">
-                                 Gunakan tombol navigasi (Prev / Next)
-                                 untuk melihat timeline secara berurutan.
+                                 Seluruh field wajib harus diisi sebelum submit.
                              </span>
                          </div>
 
                      </section>
 
+                     <!-- 2. Header Information -->
+                     <section class="space-y-4">
+
+                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                             <span x-show="lang==='en'">1.2 Header Information</span>
+                             <span x-show="lang==='id'">1.2 Informasi Header</span>
+                         </h3>
+
+                         <ul class="list-disc space-y-1 pl-6 text-gray-600 dark:text-gray-400">
+                             <li><strong>Company</strong> (Required)</li>
+                             <li><strong>Business Unit</strong> (Required)</li>
+                             <li><strong>Department</strong> (Required)</li>
+                             <li><strong>Jenis Pekerjaan</strong> (Worktype & Sub Worktype)</li>
+                             <li><strong>Perpost</strong> (Budget Year)</li>
+                             <li><strong>WO ID</strong> (If required by Worktype)</li>
+                             <li><strong>Description</strong></li>
+                         </ul>
+
+                         <div class="manual-note manual-warning">
+                             <span x-show="lang==='en'">
+                                 If Worktype requires WO, the WO ID must be selected.
+                                 WO must be in Completed (C) status.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 Jika Worktype mensyaratkan WO,
+                                 maka WO ID wajib dipilih.
+                                 WO harus berstatus Completed (C).
+                             </span>
+                         </div>
+
+                         <div class="manual-note manual-info">
+                             <span x-show="lang==='en'">
+                                 If WO ID is selected, description and attachments
+                                 may automatically follow the WO data.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 Jika WO ID dipilih, deskripsi dan lampiran
+                                 dapat otomatis mengikuti data WO.
+                             </span>
+                         </div>
+
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/spb/spb-header.png') }}">
+                                 <figcaption>
+                                     Figure 1.1 – SPB Header Fields
+                                 </figcaption>
+                             </figure>
+                         </div>
+
+
+                     </section>
+
+                     <!-- 3. SPB Detail -->
+                     <section class="space-y-4">
+
+                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                             <span x-show="lang==='en'">1.3 SPB Detail</span>
+                             <span x-show="lang==='id'">1.3 Detail SPB</span>
+                         </h3>
+
+                         <p class="text-gray-600 dark:text-gray-400">
+                             <span x-show="lang==='en'">
+                                 Users must input item details for each requested product.
+                                 At least one row is required.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 User harus mengisi detail item untuk setiap produk yang diminta.
+                                 Minimal satu baris item wajib diisi.
+                             </span>
+                         </p>
+
+                         <ul class="list-disc space-y-1 pl-6 text-gray-600 dark:text-gray-400">
+                             <li><strong>Product Name</strong> – Selected from Inventory lookup</li>
+                             <li><strong>Qty</strong> – Must be numeric and greater than 0</li>
+                             <li><strong>UoM</strong> – Selected from UoM lookup</li>
+                             <li><strong>Site ID</strong> – Auto-filled from product</li>
+                             <li><strong>Location & Sub Location</strong> – Required</li>
+                             <li><strong>COA (Budget)</strong> – Required</li>
+                             <li><strong>Note</strong> – Optional</li>
+                         </ul>
+
+                         <div class="manual-note manual-important">
+                             <span x-show="lang==='en'">
+                                 Budget validation is based on:
+                                 Available Budget = (Budget + Additional) − Reserved − Used.
+                                 If insufficient, IM Budget may be triggered.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 Validasi budget berdasarkan:
+                                 Sisa Anggaran = (Budget + Additional) − Reserved − Used.
+                                 Jika tidak mencukupi, IM Budget dapat dibuat.
+                             </span>
+                         </div>
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/spb/spb-detail.png') }}">
+                                 <figcaption>
+                                     Figure 1.2 – Create Details Fields
+                                 </figcaption>
+                             </figure>
+                         </div>
+
+                     </section>
+
+                     <!-- 4. Attachments -->
+                     <section class="space-y-4">
+
+                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                             <span x-show="lang==='en'">1.4 Attachments</span>
+                             <span x-show="lang==='id'">1.4 Lampiran</span>
+                         </h3>
+
+                         <p class="text-gray-600 dark:text-gray-400">
+                             <span x-show="lang==='en'">
+                                 Users may upload supporting documents.
+                                 Multiple files are allowed.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 User dapat mengunggah dokumen pendukung.
+                                 Diperbolehkan upload beberapa file.
+                             </span>
+                         </p>
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/spb/spb-attachment.png') }}">
+                                 <figcaption>
+                                     Figure 1.3 – SPB Attachment Fields
+                                 </figcaption>
+                             </figure>
+                         </div>
+
+                     </section>
+
+                     <!-- 5. Submission -->
+                     <section class="space-y-4">
+
+                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                             <span x-show="lang==='en'">1.5 Submit Process</span>
+                             <span x-show="lang==='id'">1.5 Proses Submit</span>
+                         </h3>
+
+                         <p class="text-gray-600 dark:text-gray-400">
+                             <span x-show="lang==='en'">
+                                 After completing all required fields,
+                                 click <strong>Submit Approval</strong> to send the SPB
+                                 to the approval workflow.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 Setelah seluruh field wajib diisi,
+                                 klik <strong>Submit Approval</strong>
+                                 untuk mengirim SPB ke proses approval.
+                             </span>
+                         </p>
+
+                         <div class="manual-note manual-important">
+                             <span x-show="lang==='en'">
+                                 Once submitted, the document enters the approval workflow.
+                                 Changes can only be made through Edit mode (before final approval).
+                             </span>
+                             <span x-show="lang==='id'">
+                                 Setelah disubmit, dokumen masuk ke alur approval.
+                                 Perubahan hanya dapat dilakukan melalui mode Edit
+                                 (sebelum approval final).
+                             </span>
+                         </div>
+
+                     </section>
 
                  </div>
              </div>
+
          </section>
 
          <!-- ================= SECTION 2 ================= -->
@@ -455,6 +526,15 @@
                                  User dapat memfilter, memonitor, dan melacak progres dokumen dari halaman ini.
                              </span>
                          </p>
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/spb/list.png') }}">
+                                 <figcaption>
+                                     Figure 3.1 – SPB List Page
+                                 </figcaption>
+                             </figure>
+                         </div>
 
                      </section>
 
@@ -623,6 +703,16 @@
                              <span x-show="lang==='id'">
                                  Aksi yang tersedia tergantung pada status dokumen dan role user.
                              </span>
+                         </div>
+
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/spb/overview.png') }}">
+                                 <figcaption>
+                                     Figure 4.11 – Edit Header Fields
+                                 </figcaption>
+                             </figure>
                          </div>
                      </section>
 

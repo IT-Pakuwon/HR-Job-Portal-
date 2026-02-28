@@ -104,14 +104,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/create/overview.png') }}">
-                                 <figcaption>
-                                     Figure 1.1 – Create Item Request Page Overview
-                                 </figcaption>
-                             </figure>
-                         </div>
 
                      </section>
                      <section class="space-y-4">
@@ -150,7 +142,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/create/header-fields.png') }}">
+                                 <img src="{{ asset('images/manual/itemreq/create-header.png') }}">
                                  <figcaption>
                                      Figure 1.2 – Item Request Header Fields
                                  </figcaption>
@@ -232,7 +224,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/create/attachments.png') }}">
+                                 <img src="{{ asset('images/manual/itemreq/create-attachment.png') }}">
                                  <figcaption>
                                      Figure 1.3 – Attachment Section
                                  </figcaption>
@@ -318,14 +310,6 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/edit/overview.png') }}">
-                                 <figcaption>
-                                     Figure 2.1 – Edit Item Request Page Overview
-                                 </figcaption>
-                             </figure>
-                         </div>
 
                      </section>
                      <section class="space-y-4">
@@ -357,7 +341,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/edit/overview.png') }}">
+                                 <img src="{{ asset('images/manual/itemreq/edit-header.png') }}">
                                  <figcaption>
                                      Figure 2.1 – Edit Item Request Page Overview
                                  </figcaption>
@@ -404,7 +388,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/edit/attachments-edit.png') }}">
+                                 <img src="{{ asset('images/manual/itemreq/edit-attachment.png') }}">
                                  <figcaption>
                                      Figure 2.3 – Manage Attachments Section
                                  </figcaption>
@@ -473,6 +457,14 @@
                              <span x-show="lang==='en'">3.1 Item Request Detail Overview</span>
                              <span x-show="lang==='id'">3.1 Gambaran Detail Item Request</span>
                          </h3>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/itemreq/list.png') }}">
+                                 <figcaption>
+                                     Figure 3.1 – Item Request List Page
+                                 </figcaption>
+                             </figure>
+                         </div>
 
                          <p class="text-gray-600 dark:text-gray-400">
                              <span x-show="lang==='en'">
@@ -496,15 +488,6 @@
                                  Halaman ini digunakan oleh approver untuk melakukan review dan menentukan
                                  apakah dokumen akan di-Approve, Revise, atau Reject.
                              </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/show/overview.png') }}">
-                                 <figcaption>
-                                     Figure 3.1 – Item Request Detail Page
-                                 </figcaption>
-                             </figure>
                          </div>
 
                      </section>
@@ -539,14 +522,23 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                         {{-- <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/overview.png') }}">
                                  <figcaption>
                                      Figure 3.1 – Item Request Detail Page
                                  </figcaption>
                              </figure>
+                         </div> --}}
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/itemreq/overview.png') }}">
+                                 <figcaption>
+                                     Figure 3.1 – Item Request Detail Page
+                                 </figcaption>
+                             </figure>
                          </div>
+
 
                      </section>
                      <section class="space-y-4">
@@ -582,14 +574,14 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                         {{-- <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/info-card.png') }}">
                                  <figcaption>
                                      Figure 3.2 – Item Request Information Card
                                  </figcaption>
                              </figure>
-                         </div>
+                         </div> --}}
 
                      </section>
                      <section class="space-y-4">
@@ -632,14 +624,14 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                         {{-- <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/action-buttons.png') }}">
                                  <figcaption>
                                      Figure 3.3 – Approval Action Buttons
                                  </figcaption>
                              </figure>
-                         </div>
+                         </div> --}}
 
                      </section>
                      <section class="space-y-4">
@@ -681,7 +673,7 @@
                                  lampiran wajib minimal 1 file.
                              </span>
                          </div>
-
+                         {{--
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/attachment-tab.png') }}">
@@ -689,7 +681,7 @@
                                      Figure 3.4 – Attachment Tab
                                  </figcaption>
                              </figure>
-                         </div>
+                         </div> --}}
 
                      </section>
                      <section class="space-y-4">
@@ -729,14 +721,14 @@
                              </span>
                          </div>
 
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                         {{-- <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
                                  <img src="{{ asset('images/manual/itemreq/show/approval-comments.png') }}">
                                  <figcaption>
                                      Figure 3.5 – Approval & Comments Tab
                                  </figcaption>
                              </figure>
-                         </div>
+                         </div> --}}
 
                      </section>
                  </div>

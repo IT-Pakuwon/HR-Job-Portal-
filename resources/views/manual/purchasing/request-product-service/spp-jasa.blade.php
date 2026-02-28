@@ -450,7 +450,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/edit-detail.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/edit-details.png') }}">
                                  <figcaption>
                                      Figure 2.3 – Edit SPPJ Detail Table
                                  </figcaption>
@@ -499,7 +499,7 @@
                          <!-- FIGURE -->
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/edit-attachment.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/edit-attachement.png') }}">
                                  <figcaption>
                                      Figure 2.4 – Edit Attachment Section
                                  </figcaption>
@@ -820,7 +820,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/sppj/show/overview.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/overview.png') }}">
                                  <figcaption>
                                      Figure 4.1 – Show SPPJ Overview Page
                                  </figcaption>
@@ -1112,7 +1112,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/create/import-bq.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/create-bq.png') }}">
                                  <figcaption>
                                      Figure 5.2 – Import BQ Excel Form
                                  </figcaption>
@@ -1160,7 +1160,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/bq/create/preview-photo.png') }}">
+                                 <img src="{{ asset('images/manual/sppj/bq-preview.png') }}">
                                  <figcaption>
                                      Figure 5.3 – BQ Preview & Photo Upload
                                  </figcaption>
