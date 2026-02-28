@@ -14,23 +14,31 @@ class InventoryController extends Controller
         return view('pages.inventory.inventory');
     }
 
-    public function json()
+    public function json(Request $request)
     {
-        $items = MsInventory::select([
-                'id',
-                'inventoryid',
-                'inventory_descr',
-                'item_type',
-                'item_sub_type',
-                'item_class',
-                'item_sub_class',
-                'item_category',
-                'stock_unit',
-                'purchase_unit',
-                'status',
-            ])
-            ->orderByDesc('id')
-            ->get();
+        $typeFilter = strtoupper(trim((string) $request->get('type_filter', ''))); // STOCK / NONSTOCK / ''
+
+        $q = MsInventory::query()->select([
+            'id',
+            'inventoryid',
+            'inventory_descr',
+            'item_type',
+            'item_sub_type',
+            'item_class',
+            'item_sub_class',
+            'item_category',
+            'stock_unit',
+            'purchase_unit',
+            'status',
+        ]);
+
+        if ($typeFilter === 'STOCK') {
+            $q->where('item_type', 'GI');
+        } elseif ($typeFilter === 'NONSTOCK') {
+            $q->whereIn('item_type', ['NS', 'SE']);
+        }
+
+        $items = $q->orderByDesc('id')->get();
 
         return response()->json(['data' => $items]);
     }

@@ -87,6 +87,9 @@
                             <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                 <div><strong>Full Name:</strong> {{ Auth::user()->name }}</div>
                                 <div><strong>Email:</strong> {{ Auth::user()->email }}</div>
+                                <div><strong>Company:</strong> {{ $talenta->cpny_id }}</div>
+                                <div><strong>Business Unit:</strong> {{ $talenta->business_unit_id }}</div>
+                                <div><strong>Department:</strong> {{ $talenta->department_id }}</div>
                                 {{-- <div><strong>Position:</strong> {{ $talenta->job_position }}</div>
                                 <div><strong>Mobile:</strong> {{ $talenta->mobile_phone }}</div>
                                 <div class="sm:col-span-2"><strong>Address:</strong> {{ $talenta->current_address }} --}}

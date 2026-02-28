@@ -13,6 +13,16 @@
                 </button>
             </div>
 
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-semibold text-gray-700 dark:text-white">Filter:</label>
+                <select id="typeFilter"
+                    class="rounded-lg border px-3 py-2 text-sm dark:bg-gray-700 dark:text-white">
+                    <option value="">All</option>
+                    <option value="STOCK">Stock (GI)</option>
+                    <option value="NONSTOCK">NonStock (NS/SE)</option>
+                </select>
+            </div>
+
             <div class="rounded-base relative overflow-x-auto">
                 <table id="inventoriesTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
@@ -110,7 +120,12 @@
     <script>
         $(document).ready(function() {
             let table = $('#inventoriesTable').DataTable({
-                ajax: "{{ route('inventories.json') }}",
+                ajax: {
+                    url: "{{ route('inventories.json') }}",
+                    data: function(d){
+                        d.type_filter = $('#typeFilter').val(); // STOCK / NONSTOCK / ''
+                    }
+                },
                 processing: true,
                 serverSide: false,
                 lengthMenu: [
@@ -278,6 +293,10 @@
                         alert('Gagal menyimpan data inventory');
                     }
                 });
+            });
+
+            $('#typeFilter').on('change', function () {
+                table.ajax.reload();
             });
 
             $('#closeInventoryModal').click(function() {

@@ -518,7 +518,7 @@ class SpbJobsController extends Controller
                 break;
 
             case 'GPS':
-                $model = \App\Models\ViewInventoryGPS::class;
+                $model = \App\Models\ViewInventoryGPSIfca::class;
                 break;
 
             default:
@@ -640,7 +640,7 @@ class SpbJobsController extends Controller
                 $model = \App\Models\ViewInventoryPSA::class;
                 break;
             case 'GPS':
-                $model = \App\Models\ViewInventoryGPS::class;
+                $model = \App\Models\ViewInventoryGPSIfca::class;
                 break;
             default:
                 $model = null;
