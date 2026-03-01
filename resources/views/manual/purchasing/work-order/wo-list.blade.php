@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-
+     
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-
+     
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -107,16 +107,6 @@
                                      WO harus melalui proses approval sebelum dapat diproses lebih lanjut.
                                  </span>
                              </div>
-
-                             <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                                 <figure class="manual-figure">
-                                     <img src="{{ asset('images/manual/wo/create-wo-form.png') }}">
-                                     <figcaption>
-                                         Figure 1.1 – Create WO Form
-                                     </figcaption>
-                                 </figure>
-                             </div>
-
                          </section>
 
                          <!-- 1.2 Basic Information -->
@@ -152,6 +142,16 @@
                                      Company dan Department akan otomatis terfilter sesuai dengan otorisasi user.
                                  </span>
                              </div>
+
+                             <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                                 <figure class="manual-figure">
+                                     <img src="{{ asset('images/manual/wo/create-header.png') }}">
+                                     <figcaption>
+                                         Figure 1.1 – Create WO Header Section
+                                     </figcaption>
+                                 </figure>
+                             </div>
+
 
                          </section>
 
@@ -251,6 +251,14 @@
                                      Maksimal 10 file diperbolehkan. Disarankan menggunakan format PDF atau gambar.
                                  </span>
                              </div>
+                             <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                                 <figure class="manual-figure">
+                                     <img src="{{ asset('images/manual/wo/create-attachment.png') }}">
+                                     <figcaption>
+                                         Figure 1.2 – Create WO Attachment Section
+                                     </figcaption>
+                                 </figure>
+                             </div>
 
                          </section>
 
@@ -338,16 +346,6 @@
                                  yang dapat dilakukan perubahan.
                              </span>
                          </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/wo/edit-wo-form.png') }}">
-                                 <figcaption>
-                                     Figure 2.1 – Edit WO Form
-                                 </figcaption>
-                             </figure>
-                         </div>
-
                      </section>
 
                      <!-- 2.2 Editable Fields -->
@@ -387,6 +385,14 @@
                                  Field Company umumnya tidak dapat diubah
                                  setelah WO dibuat.
                              </span>
+                         </div>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/wo/edit-header.png') }}">
+                                 <figcaption>
+                                     Figure 2.1 – Edit WO Header Section
+                                 </figcaption>
+                             </figure>
                          </div>
 
                      </section>
@@ -478,6 +484,14 @@
                                  Setelah dikirim ulang, WO akan mengikuti alur approval dari awal.
                              </span>
                          </div>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/wo/edit-attachment.png') }}">
+                                 <figcaption>
+                                     Figure 2.2 – Edit WO Attachment Section
+                                 </figcaption>
+                             </figure>
+                         </div>
 
 
                      </section>
@@ -535,7 +549,7 @@
 
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/wo/list-wo-overview.png') }}">
+                                 <img src="{{ asset('images/manual/wo/list.png') }}">
                                  <figcaption>
                                      Figure 3.1 – WO List Overview
                                  </figcaption>
@@ -619,15 +633,6 @@
                              <span x-show="lang==='id'">
                                  Tabel mendukung fitur pencarian, pengurutan, dan pagination.
                              </span>
-                         </div>
-
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/wo/list-wo-table.png') }}">
-                                 <figcaption>
-                                     Figure 3.2 – WO Data Table
-                                 </figcaption>
-                             </figure>
                          </div>
 
                      </section>
@@ -765,6 +770,14 @@
                                  Hanya PIC WO yang ditunjuk atau departemen terkait
                                  yang dapat memperbarui informasi proses pekerjaan.
                              </span>
+                         </div>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/wo/overview.png') }}">
+                                 <figcaption>
+                                     Figure 4.1 – Show WO Details Overview
+                                 </figcaption>
+                             </figure>
                          </div>
 
                      </section>
