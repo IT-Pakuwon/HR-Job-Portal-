@@ -3,23 +3,25 @@
         $currentPage = Route::currentRouteName() == 'inventories' ? 'Inventories' : '';
     @endphp
 
+    <style>
+        .dt-toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px;}
+        .dt-toolbar .dataTables_length,.dt-toolbar .dataTables_filter{display:flex;align-items:center;gap:8px;}
+        .dt-toolbar .dataTables_filter input{border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px;}
+        .dt-toolbar .dataTables_length select{border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px;}
+    </style>
+
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-bold text-gray-800 dark:text-white">📦 Inventory List</h1>
             </div>
 
+            {{-- FILTER BUTTONS (NO ALL) --}}
             <div class="flex items-center gap-2">
                 <span class="text-sm font-semibold text-gray-700 dark:text-white">Filter:</span>
 
                 <button type="button"
-                    class="typeFilterBtn rounded-lg bg-gray-300 px-4 py-2 text-sm font-semibold text-gray-800"
-                    data-type="">
-                    All
-                </button>
-
-                <button type="button"
-                    class="typeFilterBtn rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700"
+                    class="typeFilterBtn rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
                     data-type="STOCK">
                     Stock
                 </button>
@@ -31,15 +33,37 @@
                 </button>
             </div>
 
+            {{-- OPTIONAL: Filter cpny & BU (khusus Stock, tapi tetap tampil) --}}
+            <div class="flex flex-wrap items-center gap-3">
+                <select id="filter_cpny" class="rounded-lg border px-3 py-2">
+                    <option value="">Select Company</option>
+                    @foreach ($cpnyIds as $cpny)
+                        <option value="{{ $cpny }}">{{ $cpny }}</option>
+                    @endforeach
+                </select>
+
+                <select id="filter_bu" class="rounded-lg border px-3 py-2">
+                    <option value="">Select Business Unit</option>
+                    @foreach ($buList as $bu)
+                        <option value="{{ $bu->business_unit_id }}">{{ $bu->business_unit_id }}</option>
+                    @endforeach
+                </select>
+
+                <span id="hintStockOnly" class="hidden text-xs text-gray-500">
+                    Filter Company/BU hanya dipakai saat tab Stock.
+                </span>
+            </div>
+
             <div class="rounded-base relative overflow-x-auto">
                 <table id="inventoriesTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                         <tr>
                             <th class="px-4 py-3 text-left">Inventory ID</th>
                             <th class="px-4 py-3 text-left">Description</th>
                             <th class="px-4 py-3 text-left">Item Type</th>
                             <th class="px-4 py-3 text-left">Item Class</th>
+                            {{-- kolom stock tetap ada di DOM, nanti disembunyikan via JS saat NONSTOCK --}}
+                            <th class="px-4 py-3 text-left">Stock</th>
                             <th class="w-32 px-4 py-3 text-center">Status</th>
                         </tr>
                     </thead>
@@ -48,115 +72,103 @@
             </div>
 
         </div>
-
-
     </div>
+
     <script>
-        $(document).ready(function() {
-            let currentFilter = '';
+        $(document).ready(function () {
+            let currentFilter = 'STOCK'; // default STOCK (karena ALL dihapus)
+
+            const $cpny = $('#filter_cpny');
+            const $bu   = $('#filter_bu');
+
+            function isStockMode(){ return currentFilter === 'STOCK'; }
 
             let table = $('#inventoriesTable').DataTable({
                 ajax: {
                     url: "{{ route('inventories-user.json') }}",
-                    data: function(d) {
+                    data: function(d){
                         d.type_filter = currentFilter;
+
+                        // kirim cpny/bu hanya saat STOCK
+                        if (isStockMode()){
+                            d.cpny_id = $cpny.val();
+                            d.business_unit_id = $bu.val();
+                        } else {
+                            d.cpny_id = '';
+                            d.business_unit_id = '';
+                        }
                     }
                 },
                 processing: true,
                 serverSide: false,
-                lengthMenu: [
-                    [10, 25, 50, 100, 250, -1],
-                    [10, 25, 50, 100, 250, 'All']
+                lengthMenu: [[10,25,50,100,250,-1],[10,25,50,100,250,'All']],
+                dom: '<"dt-toolbar"lBf>rtip',
+                buttons: [
+                    { extend:'excelHtml5', text:'↓ Excel', title:'Inventory', className:'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700' },
+                    { extend:'csvHtml5',   text:'↓ CSV',   title:'Inventory', className:'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700' }
                 ],
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0 // 👈 this is REQUIRED
-                    }
-                },
+                columns: [
+                    { data:'inventoryid' },
+                    { data:'inventory_descr' },
+                    { data:'item_type' },
+                    { data:'item_class' },
 
-                columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                }],
-                dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
-                buttons: [{
-                        extend: 'excelHtml5',
-                        text: '↓ Excel',
-                        title: 'User',
-                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                        exportOptions: {
-                            columns: ':visible',
-                            modifier: {
-                                page: 'current'
-                            }
+                    // ✅ Stock column
+                    {
+                        data:'stock',
+                        render: function(v){
+                            if (v === null || v === undefined || v === '') return '-';
+                            const n = Number(v);
+                            if (Number.isNaN(n)) return v;
+                            return n.toLocaleString('id-ID');
                         }
                     },
+
                     {
-                        extend: 'csvHtml5',
-                        text: '↓ CSV',
-                        title: 'User',
-                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                        exportOptions: {
-                            columns: ':visible',
-                            modifier: {
-                                page: 'current'
-                            }
+                        data:'status',
+                        className:'text-center',
+                        render: function(s){
+                            return String(s||'').toUpperCase() === 'A'
+                                ? '<span class="w-full max-w-25 bg-green-300/30 text-green-600 pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>'
+                                : '<span class="w-full max-w-25 bg-red-300/30 text-red-600 pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
                         }
                     }
                 ],
-                columns: [{
-                        data: 'inventoryid',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'inventory_descr',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'item_type',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'item_class',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'status',
-                        className: 'no-pointer',
-                        render: function(data) {
-                            return data === 'A' ?
-                                '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
-                                '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
-                        }
-                    }
-                ]
+                initComplete: function(){
+                    applyStockColumnVisibility();
+                }
             });
 
+            function applyStockColumnVisibility(){
+                // index kolom stock = 4 (0-based)
+                const show = isStockMode();
+                table.column(4).visible(show);
 
+                // hint + disable filter cpny/bu kalau nonstock
+                $('#hintStockOnly').toggleClass('hidden', show);
+                $cpny.prop('disabled', !show);
+                $bu.prop('disabled', !show);
+            }
 
-            $('.typeFilterBtn').on('click', function() {
-
-                // ambil value filter
+            // tombol filter
+            $('.typeFilterBtn').on('click', function(){
                 currentFilter = $(this).data('type');
 
-                // reset semua button style
                 $('.typeFilterBtn')
                     .removeClass('bg-indigo-600 text-white')
                     .addClass('bg-gray-100 text-gray-700');
 
-                // aktifkan button yg diklik
                 $(this)
-                    .removeClass('bg-gray-100 text-gray-700 bg-gray-300')
+                    .removeClass('bg-gray-100 text-gray-700')
                     .addClass('bg-indigo-600 text-white');
 
+                applyStockColumnVisibility();
                 table.ajax.reload();
             });
 
-            $('#closeInventoryModal').click(function() {
-                $('#inventoryModal').addClass('hidden');
+            // reload kalau cpny/bu berubah (hanya relevan saat stock)
+            $('#filter_cpny, #filter_bu').on('change', function(){
+                if (isStockMode()) table.ajax.reload();
             });
         });
     </script>

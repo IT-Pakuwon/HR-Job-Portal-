@@ -2671,7 +2671,7 @@ class MasterController extends Controller
                 'item_type', 'item_category', 'purchase_unit',
                 'item_sub_type', 'item_class'
             ])
-            ->orderBy('inventory_descr')
+            ->orderBy('inventoryid', 'asc')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
             ->get();
