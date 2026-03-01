@@ -3,22 +3,20 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
-use App\Models\ViewStagingPO;
-use App\Models\StagingIfcaPoApprove;
+use App\Models\ViewStagingIssue;
+use App\Models\StagingIfcaIcStkIssue;
 use App\Models\BusinessUnit;
 use App\Models\DepartmentFin;
 use App\Models\MsCOA;
 use App\Models\MsIntegrationSetting;
 use App\Models\TrIntegrationLog;
-use App\Models\StagingIfcaMappingDiv;
-use App\Models\StagingIfcaMappingDivDept;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
-class IFCAAPIPOController extends Controller
+class IFCAAPIIssueController extends Controller
 {
     public function list(Request $request)
     {
@@ -36,16 +34,17 @@ class IFCAAPIPOController extends Controller
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
 
-        $srcRows = ViewStagingPO::query()
+        // mirror PO: group header from view, limit 100
+        $srcRows = ViewStagingIssue::query()
             ->select([
                 'cpny_id',
-                'order_no',
-                DB::raw('MIN(order_date) as order_date'),
-                DB::raw('MIN(supplier_cd) as supplier_cd'),
+                'issue_id',
+                DB::raw('MIN(issue_date) as issue_date'),
+                DB::raw('MIN(reference_no) as reference_no'),
             ])
-            ->whereBetween('order_date', [$fromDt, $toDt])
-            ->groupBy('cpny_id', 'order_no')
-            ->orderByDesc(DB::raw('MIN(order_date)'))
+            ->whereBetween('issue_date', [$fromDt, $toDt])
+            ->groupBy('cpny_id', 'issue_id')
+            ->orderByDesc(DB::raw('MIN(issue_date)'))
             ->limit(100)
             ->get();
 
@@ -54,15 +53,15 @@ class IFCAAPIPOController extends Controller
         }
 
         $keys = $srcRows
-            ->map(fn($r) => (string)$r->cpny_id . '||' . (string)$r->order_no)
+            ->map(fn($r) => (string)$r->cpny_id . '||' . (string)$r->issue_id)
             ->values()
             ->all();
 
-        // ✅ tambah MAX(integration_type)
-        $stagingAgg = StagingIfcaPoApprove::query()
+        // mirror PO: staging aggregate + MAX(integration_type)
+        $stagingAgg = StagingIfcaIcStkIssue::query()
             ->select([
                 'cpny_id',
-                'order_no',
+                'issue_id',
                 DB::raw('COUNT(*) as cnt'),
                 DB::raw("SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) as cnt_c"),
                 DB::raw("SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) as cnt_p"),
@@ -71,14 +70,15 @@ class IFCAAPIPOController extends Controller
                 DB::raw("MAX(process_note) as process_note"),
                 DB::raw("MAX(integration_type) as integration_type"),
             ])
-            ->whereIn(DB::raw("(cpny_id || '||' || order_no)"), $keys)
-            ->groupBy('cpny_id', 'order_no')
+            ->whereIn(DB::raw("(cpny_id || '||' || issue_id)"), $keys)
+            ->groupBy('cpny_id', 'issue_id')
             ->get()
-            ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->order_no);
+            ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->issue_id);
 
+        // mirror PO: read last integration log by refnbr (cpny||issue)
         $logRows = TrIntegrationLog::query()
             ->where('integration_id', 'IFCA')
-            ->where('setting_id', 'api.POApprove.url')
+            ->where('setting_id', 'api.StockIssue.url')
             ->whereIn('refnbr', $keys)
             ->orderByDesc('id')
             ->get(['refnbr', 'payload_response', 'created_at']);
@@ -106,8 +106,8 @@ class IFCAAPIPOController extends Controller
 
         $rows = $srcRows->map(function ($r) use ($stagingAgg, $logMap) {
             $cpny = (string)$r->cpny_id;
-            $ord  = (string)$r->order_no;
-            $key  = $cpny . '||' . $ord;
+            $iss  = (string)$r->issue_id;
+            $key  = $cpny . '||' . $iss;
 
             $st = $stagingAgg->get($key);
 
@@ -152,9 +152,9 @@ class IFCAAPIPOController extends Controller
             return [
                 'key' => $key,
                 'cpny_id' => $cpny,
-                'order_no' => $ord,
-                'order_date' => Carbon::parse($r->order_date)->format('Y-m-d H:i:s'),
-                'supplier_cd' => (string)($r->supplier_cd ?? ''),
+                'issue_id' => $iss,
+                'issue_date' => Carbon::parse($r->issue_date)->format('Y-m-d H:i:s'),
+                'reference_no' => (string)($r->reference_no ?? ''),
                 'stage_status' => $stage,
                 'stage_label'  => $stageLabel,
                 'integration_type' => $it,
@@ -172,56 +172,56 @@ class IFCAAPIPOController extends Controller
             'ids'   => ['required', 'array', 'min:1'],
             'ids.*' => ['string'],
         ]);
-    
+
         $user = $request->user();
         $username = $user->username ?? $user->name ?? 'system';
-    
+
         $pairs = [];
         foreach ($request->ids as $key) {
             $parts = explode('||', (string)$key, 2);
             if (count($parts) !== 2) continue;
-            $pairs[] = ['cpny_id' => $parts[0], 'order_no' => $parts[1], 'key' => $key];
+            $pairs[] = ['cpny_id' => $parts[0], 'issue_id' => $parts[1], 'key' => $key];
         }
         if (empty($pairs)) {
             return response()->json(['ok' => false, 'message' => 'Format ids tidak valid.'], 422);
         }
-    
+
         $keys = array_values(array_unique(array_map(fn($p) => (string)$p['key'], $pairs)));
-    
-        // ✅ tambah MAX(integration_type) supaya Step B bisa filter IFCA
-        $stMap = StagingIfcaPoApprove::query()
+
+        // mirror PO: stMap include MAX(integration_type) to filter IFCA in Step B
+        $stMap = StagingIfcaIcStkIssue::query()
             ->select([
                 'cpny_id',
-                'order_no',
+                'issue_id',
                 DB::raw('COUNT(*) as cnt'),
                 DB::raw("SUM(CASE WHEN status='C' THEN 1 ELSE 0 END) as cnt_c"),
                 DB::raw("SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) as cnt_p"),
                 DB::raw("SUM(CASE WHEN status='D' THEN 1 ELSE 0 END) as cnt_d"),
                 DB::raw("MAX(integration_type) as integration_type"),
             ])
-            ->whereIn(DB::raw("(cpny_id || '||' || order_no)"), $keys)
-            ->groupBy('cpny_id', 'order_no')
+            ->whereIn(DB::raw("(cpny_id || '||' || issue_id)"), $keys)
+            ->groupBy('cpny_id', 'issue_id')
             ->get()
-            ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->order_no);
-    
+            ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->issue_id);
+
         $insertedHtoD = 0;
         $sentOkPtoC   = 0;
         $sentFailP    = 0;
         $skippedD     = 0;
         $skippedC     = 0;
-    
+
         // ===== STEP A: H -> D (insert staging) =====
-        $stagingConn = (new StagingIfcaPoApprove)->getConnectionName();
+        $stagingConn = (new StagingIfcaIcStkIssue)->getConnectionName();
         DB::connection($stagingConn)->beginTransaction();
-    
+
         try {
             foreach ($pairs as $p) {
                 $cpny = (string)$p['cpny_id'];
-                $ord  = (string)$p['order_no'];
+                $iss  = (string)$p['issue_id'];
                 $key  = (string)$p['key'];
-    
+
                 $st = $stMap->get($key);
-    
+
                 $stage = 'H';
                 if ($st) {
                     $cnt  = (int)$st->cnt;
@@ -229,39 +229,41 @@ class IFCAAPIPOController extends Controller
                     else if ($cnt > 0 && (int)$st->cnt_p === $cnt) $stage = 'P';
                     else $stage = 'D';
                 }
-    
+
                 if ($stage !== 'H') {
                     continue;
                 }
-    
-                $lines = ViewStagingPO::query()
+
+                // get lines from view
+                $lines = ViewStagingIssue::query()
                     ->where('cpny_id', $cpny)
-                    ->where('order_no', $ord)
-                    ->orderBy('order_line')
+                    ->where('issue_id', $iss)
+                    ->orderBy('line_no')
                     ->get();
-    
+
                 if ($lines->isEmpty()) {
                     continue;
                 }
-    
+
+                // keys for mapping integration_type + entity/dept/acct (mirror PO)
                 $buKeys = $lines->map(fn($l) => (string)$l->budget_cpny_id.'||'.(string)$l->budget_business_unit_id)
                     ->filter(fn($k) => $k !== '||')
                     ->unique()
                     ->values()
                     ->all();
-    
+
                 $deptKeys = $lines->map(fn($l) => (string)$l->budget_cpny_id.'||'.(string)$l->budget_department_fin_id)
                     ->filter(fn($k) => $k !== '||')
                     ->unique()
                     ->values()
                     ->all();
-    
+
                 $coaKeys = $lines->map(fn($l) => (string)$l->budget_cpny_id.'||'.(string)$l->budget_account_id)
                     ->filter(fn($k) => $k !== '||')
                     ->unique()
                     ->values()
                     ->all();
-    
+
                 $buRows = BusinessUnit::query()
                     ->select([
                         'cpny_id','business_unit_id','ifca_entity_cd','solomon_cpny_id','solomon_allocation_cd','integration_type'
@@ -269,9 +271,9 @@ class IFCAAPIPOController extends Controller
                     ->where('status', 'A')
                     ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $buKeys)
                     ->get();
-    
+
                 $buMap = $buRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->business_unit_id);
-    
+
                 $deptRows = DepartmentFin::query()
                     ->select([
                         'cpny_id','department_fin_id','ifca_dept_cd','solomon_subaccount_dept'
@@ -279,9 +281,9 @@ class IFCAAPIPOController extends Controller
                     ->where('status', 'A')
                     ->whereIn(DB::raw("(cpny_id || '||' || department_fin_id)"), $deptKeys)
                     ->get();
-    
+
                 $deptMap = $deptRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->department_fin_id);
-    
+
                 $coaRows = MsCOA::query()
                     ->select([
                         'cpny_id','account_id','ifca_acct_cd','solomon_acct_cd'
@@ -289,140 +291,54 @@ class IFCAAPIPOController extends Controller
                     ->where('status', 'A')
                     ->whereIn(DB::raw("(cpny_id || '||' || account_id)"), $coaKeys)
                     ->get();
-    
+
                 $coaMap = $coaRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->account_id);
-        
-                // ==========================
-                // PREFETCH DIV MAP (IFCA)
-                // key: business_unit_id||dept_cd(IFCA)
-                // ==========================
-                $needDivKeys = [];
-                foreach ($lines as $l) {
-                    $buId = trim((string)($l->budget_business_unit_id ?? ''));
-                    if ($buId === '') continue;
 
-                    $mapCpnyX = (string)($l->budget_cpny_id ?? $cpny);
-                    $deptKeyX = $mapCpnyX.'||'.(string)$l->budget_department_fin_id;
-                    $dpX = $deptMap->get($deptKeyX);
+                /**
+                 * NOTE (sesuai request):
+                 * - TIDAK ADA PREFETCH DIV MAP (staging_ifca_mapping_div)
+                 * - TIDAK ADA PREFETCH OVERRIDE DIV+DEPT MAP (staging_ifca_mapping_div_dept)
+                 * div_cd akan diisi default "0000" untuk IFCA (kalau kosong).
+                 */
 
-                    $deptCdIfca = trim($this->s($dpX->ifca_dept_cd ?? '', 8));
-                    if ($deptCdIfca === '' || $deptCdIfca === 'ERR') continue;
-
-                    $needDivKeys[] = $buId.'||'.$deptCdIfca;
-                }
-                $needDivKeys = array_values(array_unique($needDivKeys));
-
-                $divMap = collect();
-                if (!empty($needDivKeys)) {
-                    $divMap = StagingIfcaMappingDiv::query()
-                        ->select(['business_unit_id','dept_cd','div_cd'])
-                        ->where('status', 'A')
-                        ->whereIn(DB::raw("(business_unit_id || '||' || dept_cd)"), $needDivKeys)
-                        ->get()
-                        ->keyBy(fn($r) => trim((string)$r->business_unit_id).'||'.trim((string)$r->dept_cd));
-                }
-        
-                 // ==========================
-                // PREFETCH OVERRIDE DIV+DEPT MAP (IFCA)
-                // table: staging_ifca_mapping_div_dept
-                // key: entity_cd||acct_type   (✅ sesuai request)
-                // ==========================
-                $needDivDeptKeys = [];
-                foreach ($lines as $l) {
-                    $mapCpnyX = (string)($l->budget_cpny_id ?? $cpny);
-
-                    $buKeyX  = $mapCpnyX.'||'.(string)$l->budget_business_unit_id;
-                    $buX = $buMap->get($buKeyX);
-
-                    $integrationTypeX = strtoupper((string)($buX->integration_type ?? ''));
-                    if ($integrationTypeX !== 'IFCA') continue;
-
-                    $entityCdX = trim($this->s($buX->ifca_entity_cd ?? '', 4));
-                    $acctTypeX = trim((string)($l->acct_type ?? ''));
-
-                    if ($entityCdX === '' || $entityCdX === 'ERR') continue;
-                    if ($acctTypeX === '') continue;
-
-                    $needDivDeptKeys[] = $entityCdX.'||'.$acctTypeX;
-                }
-                $needDivDeptKeys = array_values(array_unique($needDivDeptKeys));
-
-                $divDeptMap = collect();
-                if (!empty($needDivDeptKeys)) {
-                    // kalau ada lebih dari 1 row per key, kita prefer yang paling baru (id terbesar)
-                    $divDeptMap = StagingIfcaMappingDivDept::query()
-                        ->select(['id','entity_cd','acct_type','div_cd','dept_cd'])
-                        ->where('status', 'A')
-                        ->whereIn(DB::raw("(entity_cd || '||' || acct_type)"), $needDivDeptKeys)
-                        ->orderByDesc('id')
-                        ->get()
-                        ->keyBy(fn($r) => trim((string)$r->entity_cd).'||'.trim((string)$r->acct_type));
-                }
-    
-                // ==========================
-                // INSERT LINES
-                // ==========================
                 foreach ($lines as $ln) {
                     $mapCpny = (string)($ln->budget_cpny_id ?? $cpny);
-    
+
                     $buKey   = $mapCpny.'||'.(string)$ln->budget_business_unit_id;
                     $deptKey = $mapCpny.'||'.(string)$ln->budget_department_fin_id;
                     $coaKey  = $mapCpny.'||'.(string)$ln->budget_account_id;
-    
+
                     $bu  = $buMap->get($buKey);
                     $dp  = $deptMap->get($deptKey);
                     $coa = $coaMap->get($coaKey);
-    
+
                     $integrationType = strtoupper((string)($bu->integration_type ?? 'ERR'));
-    
+
                     $entityCd = $locationCd = '';
                     $acctCd = $divCd = $deptCd = '';
                     $solAcctCd = $solAlloc = $solSubDept = '';
-    
+
                     if ($integrationType === 'IFCA') {
                         $entityCd   = $this->s($bu->ifca_entity_cd ?? 'ERR', 4);
-                        $locationCd = $this->s($bu->ifca_entity_cd ?? 'ERR', 4);
-    
+                        $locationCd = $this->s($ln->ic_location ?? $bu->ifca_entity_cd ?? 'ERR', 4); // prefer view ic_location
+
                         $acctCd = $this->s($coa->ifca_acct_cd ?? 'ERR', 20);
                         $deptCd = $this->s($dp->ifca_dept_cd ?? 'ERR', 8);
-    
-                        // 1) default divCd dari staging_ifca_mapping_div (business_unit_id + deptCd)
-                        $buIdLine   = trim((string)($ln->budget_business_unit_id ?? ''));
-                        $deptCdKey1 = trim((string)$deptCd);
 
-                        if ($buIdLine !== '' && $deptCdKey1 !== '' && $deptCdKey1 !== 'ERR') {
-                            $mk = $buIdLine.'||'.$deptCdKey1;
-                            $mapped = $divMap->get($mk);
-                            if ($mapped) {
-                                $divCd = $this->s($mapped->div_cd ?? '', 20);
-                            }
-                        }
-    
-                        // 2) ✅ TIMPA div_cd & dept_cd dari staging_ifca_mapping_div_dept
-                        // match: entity_cd + acct_type (✅ sesuai request)
-                        $entityKey = trim((string)$entityCd);
-                        $acctTypeK = trim((string)($ln->acct_type ?? ''));
-
-                        if ($entityKey !== '' && $entityKey !== 'ERR' && $acctTypeK !== '') {
-                            $k2 = $entityKey.'||'.$acctTypeK;
-                            $ov = $divDeptMap->get($k2);
-
-                            if ($ov) {
-                                $divCd  = $this->s($ov->div_cd ?? $divCd, 20);
-                                $deptCd = $this->s($ov->dept_cd ?? $deptCd, 8);
-                            }
-                        }
+                        // NO mapping -> default div_cd
+                        $divCd = '0000';
+                        if ($deptCd === '' || $deptCd === 'ERR') $deptCd = '0000';
 
                         $solAcctCd = $solAlloc = $solSubDept = '';
                     }
                     elseif ($integrationType === 'SOLOMON') {
                         $entityCd   = $this->s($bu->solomon_cpny_id ?? 'ERR', 4);
                         $locationCd = $this->s($bu->solomon_cpny_id ?? 'ERR', 4);
-    
+
                         $solAcctCd  = $this->s($coa->solomon_acct_cd ?? 'ERR', 10);
                         $solAlloc   = $this->s($bu->solomon_allocation_cd ?? 'ERR', 10);
                         $solSubDept = $this->s($dp->solomon_subaccount_dept ?? 'ERR', 10);
-    
+
                         $acctCd = $divCd = $deptCd = '';
                     }
                     else {
@@ -434,74 +350,79 @@ class IFCAAPIPOController extends Controller
                         $solAcctCd  = 'ERR';
                         $solAlloc   = 'ERR';
                         $solSubDept = 'ERR';
+                        $divCd      = 'ERR';
                     }
-    
-                    StagingIfcaPoApprove::create([
+
+                    // trx_cd default from doc sample (2.5): 5301
+                    $trxCd = '5301';
+
+                    StagingIfcaIcStkIssue::create([
                         'cpny_id' => $cpny,
                         'entity_cd' => $entityCd,
-                        'order_no' => (string)$ln->order_no,
-                        'order_type' => (string)($ln->order_type ?? 'P'),
-                        'order_date' => $ln->order_date,
-                        'supplier_cd' => (string)$ln->supplier_cd,
-                        'remark' => (string)$ln->remark,
-                        'ref_no_spbjkt' => (string)$ln->ref_no_sppjkt,
-                        'ref_no_cs' => (string)$ln->ref_no_cs,
+
+                        'issue_id' => (string)$ln->issue_id,
+                        'issue_date' => $ln->issue_date,
+                        'issuehd_descs' => (string)$ln->issuehd_descs,
+                        'reference_no' => (string)$ln->reference_no,
+                        'spb_id' => (string)$ln->spb_id,
+                        'wo_id' => (string)$ln->wo_id,
+                        'ref_issue_id' => (string)$ln->ref_issue_id,
                         'department_id' => (string)$ln->department_id,
                         'user_peminta' => (string)$ln->user_peminta,
-                        'purchaser' => (string)$ln->purchaser,
-                        'topid' => (string)$ln->topid,
-                        'credit_terms' => (string)$ln->credit_terms,
-                        'currency_cd' => (string)$ln->currency_cd,
-                        'currency_rate' => (float)$ln->currency_rate,
+                        'keeper' => (string)$ln->keeper,
+
                         'total_record' => (int)$ln->total_record,
-                        'order_line' => (int)$ln->order_line,
+                        'line_no' => (int)$ln->line_no,
                         'item_cd' => (string)$ln->item_cd,
                         'item_remark' => (string)$ln->item_remark,
                         'uom' => (string)$ln->uom,
-                        'order_qty' => (float)$ln->order_qty,
-                        'item_cost' => (float)$ln->item_cost,
-                        'schedule_dt' => $ln->schedule_dt,
-                        'acct_type'   => $ln->acct_type,
-                        'location_cd' => $locationCd,
-    
+                        'issue_qty' => (float)$ln->issue_qty,
+
                         'budget_business_unit_id'  => (string)$ln->budget_business_unit_id,
                         'budget_department_fin_id' => (string)$ln->budget_department_fin_id,
                         'budget_account_id'        => (string)$ln->budget_account_id,
-    
+
                         'integration_type' => $this->s($integrationType, 20),
-    
-                        'acct_cd' => $acctCd,
+
+                        'ic_location' => $locationCd,
+                        'trx_cd' => $trxCd,
+
+                        // IFCA fields
                         'div_cd'  => $divCd,
                         'dept_cd' => $deptCd,
-    
+
+                        // Solomon fields
+                        'solomon_acct_cd'         => (string)$ln->reason_code,
                         'solomon_acct_cd'         => $solAcctCd,
                         'solomon_allocation_cd'   => $solAlloc,
                         'solomon_subaccount_dept' => $solSubDept,
-    
+
+                        // stage
                         'process_flag' => 'N',
                         'create_date' => now(),
                         'process_dt' => null,
                         'process_note' => null,
                         'status' => 'D',
+
                         'created_by' => $username,
                         'created_at' => now(),
                         'updated_by' => $username,
                         'updated_at' => now(),
                     ]);
-    
+
                     $insertedHtoD++;
                 }
             }
-    
+
             DB::connection($stagingConn)->commit();
         } catch (\Throwable $e) {
             DB::connection($stagingConn)->rollBack();
             return response()->json([
                 'ok' => false,
-                'message' => 'Gagal insert staging PO (H->D): ' . $e->getMessage(),
+                'message' => 'Gagal insert staging ISSUE (H->D): ' . $e->getMessage(),
             ], 500);
         }
-    
+
         // ===== STEP B: P -> C (send API) =====
         try {
             $token = $this->getIfcaToken($username);
@@ -512,14 +433,14 @@ class IFCAAPIPOController extends Controller
                 'inserted_H_to_D' => $insertedHtoD,
             ], 500);
         }
-    
+
         foreach ($pairs as $p) {
             $cpny = (string)$p['cpny_id'];
-            $ord  = (string)$p['order_no'];
+            $iss  = (string)$p['issue_id'];
             $key  = (string)$p['key'];
-    
+
             $st = $stMap->get($key);
-    
+
             $stage = 'H';
             $it    = '';
             if ($st) {
@@ -527,41 +448,41 @@ class IFCAAPIPOController extends Controller
                 $cntC = (int)$st->cnt_c;
                 $cntP = (int)$st->cnt_p;
                 $cntD = (int)$st->cnt_d;
-    
+
                 if ($cnt > 0 && $cntC === $cnt) $stage = 'C';
                 else if ($cnt > 0 && $cntP === $cnt) $stage = 'P';
                 else if ($cnt > 0 && $cntD === $cnt) $stage = 'D';
                 else $stage = 'D';
-    
+
                 $it = strtoupper(trim((string)($st->integration_type ?? '')));
             }
-    
+
             if ($stage === 'C') { $skippedC++; continue; }
             if ($stage === 'D') { $skippedD++; continue; }
-    
-            // ✅ FILTER WAJIB: hanya P + IFCA
+
+            // mirror PO: only P + IFCA
             if ($stage !== 'P' || $it !== 'IFCA') {
                 continue;
             }
-    
-            $lines = StagingIfcaPoApprove::query()
+
+            $lines = StagingIfcaIcStkIssue::query()
                 ->where('cpny_id', $cpny)
-                ->where('order_no', $ord)
+                ->where('issue_id', $iss)
                 ->where('status', 'P')
                 ->where('integration_type', 'IFCA')
-                ->orderBy('order_line')
+                ->orderBy('line_no')
                 ->get();
-    
+
             if ($lines->isEmpty()) {
                 continue;
             }
-    
-            $res = $this->sendPoApproveAPI($lines, $token, $username, $key);
-    
+
+            $res = $this->sendIcStockIssueAPI($lines, $token, $username, $key);
+
             if (!empty($res['ok'])) {
-                StagingIfcaPoApprove::query()
+                StagingIfcaIcStkIssue::query()
                     ->where('cpny_id', $cpny)
-                    ->where('order_no', $ord)
+                    ->where('issue_id', $iss)
                     ->where('status', 'P')
                     ->where('integration_type', 'IFCA')
                     ->update([
@@ -572,14 +493,14 @@ class IFCAAPIPOController extends Controller
                         'updated_by'   => $username,
                         'updated_at'   => now(),
                     ]);
-    
+
                 $sentOkPtoC++;
             } else {
                 $msg = substr((string)($res['response_body'] ?? 'ERROR'), 0, 255);
-    
-                StagingIfcaPoApprove::query()
+
+                StagingIfcaIcStkIssue::query()
                     ->where('cpny_id', $cpny)
-                    ->where('order_no', $ord)
+                    ->where('issue_id', $iss)
                     ->where('status', 'P')
                     ->where('integration_type', 'IFCA')
                     ->update([
@@ -588,11 +509,11 @@ class IFCAAPIPOController extends Controller
                         'updated_by'   => $username,
                         'updated_at'   => now(),
                     ]);
-    
+
                 $sentFailP++;
             }
         }
-    
+
         return response()->json([
             'ok' => true,
             'inserted_H_to_D' => $insertedHtoD,
@@ -602,10 +523,9 @@ class IFCAAPIPOController extends Controller
             'skipped_C' => $skippedC,
         ]);
     }
-    
 
     // ======================
-    // helper (copy style NonStock)
+    // helper (mirror PO)
     // ======================
     private function getIfcaSettingMap(): array
     {
@@ -706,43 +626,50 @@ class IFCAAPIPOController extends Controller
         return (string)$token;
     }
 
-    private function sendPoApproveAPI($lines, string $token, string $usernameForLog, string $refKey): array
+    /**
+     * 2.5 POST IC Stock Issue (doc)
+     * URL: api/acumatica/ic_stk_issue
+     * Body: [ { entity_cd, trx_cd, doc_no, doc_date, issuehd_descs, reference_no, ic_location, div_cd, dept_cd, total_record,
+     *          line_no, item_cd, item_add_remark, uom_cd, issue_qty, process_flag, create_date, process_dt, process_note } ]
+     */
+    private function sendIcStockIssueAPI($lines, string $token, string $usernameForLog, string $refKey): array
     {
-        $url = $this->buildUrl('api.POApprove.url');
-        if ($url === '') throw new \RuntimeException('Setting api.POApprove.url kosong');
+        $url = $this->buildUrl('api.StockIssue.url');
+        if ($url === '') throw new \RuntimeException('Setting api.StockIssue.url kosong');
 
-        $settingName = $this->getSettingName('api.POApprove.url', 'IFCA PO');
+        $settingName = $this->getSettingName('api.StockIssue.url', 'IFCA IC Stock Issue');
 
+        // Mirror PO: array payload of lines
         $payload = $lines->map(function ($r) {
+            $div = (string)($r->div_cd ?? '');
+            $dept = (string)($r->dept_cd ?? '');
+
+            // doc sample uses "0000" if not mapped
+            if (trim($div) === '') $div = '0000';
+            if (trim($dept) === '') $dept = '0000';
+
             return [
-                "entity_cd"    => (string)$r->entity_cd,
-                "order_no"     => (string)$r->order_no,
-                "order_type"   => (string)$r->order_type,
-                // ✅ format tanpa time: YYYY-MM-DD
-                "order_date"   => $r->order_date ? Carbon::parse($r->order_date)->format('Y-m-d') : "",
-                "supplier_cd"  => (string)$r->supplier_cd,
-                "remark"       => (string)$r->remark,
-                "ref_no_spbjkt"=> (string)$r->ref_no_spbjkt,
-                "ref_no_cs"    => (string)$r->ref_no_cs,
-                "credit_terms" => (string)$r->credit_terms,
-                "currency_cd"  => (string)$r->currency_cd,
-                "currency_rate"=> (float)$r->currency_rate,
-                "total_record" => (int)$r->total_record,
-                "order_line"   => (int)$r->order_line,
-                "item_cd"      => (string)$r->item_cd,
-                "item_remark"  => (string)$r->item_remark,
-                "uom"          => (string)$r->uom,
-                "order_qty"    => (float)$r->order_qty,
-                "item_cost"    => (float)$r->item_cost,
-                // ✅ format tanpa time: YYYY-MM-DD
-                "schedule_dt"  => $r->schedule_dt ? Carbon::parse($r->schedule_dt)->format('Y-m-d') : "",
-                "acct_type"    => (string)$r->acct_type,
-                "location_cd"  => (string)$r->location_cd,
-                "acct_cd"      => (string)$r->acct_cd,
-                "div_cd"       => (string)$r->div_cd,
-                "dept_cd"      => (string)$r->dept_cd,
-                "process_flag" => "N",
-                "create_date"  => Carbon::parse($r->create_date ?? now())->toISOString(),
+                "entity_cd"       => (string)$r->entity_cd,
+                "trx_cd"          => (string)($r->trx_cd ?? '5301'),
+                "doc_no"          => (string)$r->issue_id,
+                "doc_date"        => $r->issue_date ? Carbon::parse($r->issue_date)->toISOString() : "",
+                "issuehd_descs"   => (string)$r->issuehd_descs,
+                "reference_no"    => (string)$r->reference_no,
+                "ic_location"     => (string)$r->ic_location,
+                "div_cd"          => $div,
+                "dept_cd"         => $dept,
+                "total_record"    => (int)$r->total_record,
+                "line_no"         => (int)$r->line_no,
+                "item_cd"         => (string)$r->item_cd,
+                "item_add_remark" => (string)$r->item_remark,
+                "uom_cd"          => (string)$r->uom,
+                "issue_qty"       => (float)$r->issue_qty,
+
+                // doc example shows "Y"
+                "process_flag"    => "Y",
+                "create_date"     => Carbon::parse($r->create_date ?? now())->toISOString(),
+                "process_dt"      => Carbon::parse($r->process_dt ?? now())->toISOString(),
+                "process_note"    => $r->process_note,
             ];
         })->values()->all();
 
@@ -756,7 +683,7 @@ class IFCAAPIPOController extends Controller
             $body = $resp->body();
 
             $this->writeIntegrationLog([
-                'setting_id'       => 'api.POApprove.url',
+                'setting_id'       => 'api.StockIssue.url',
                 'setting_name'     => $settingName,
                 'refnbr'           => $refKey,
                 'payload'          => json_encode($payload),
@@ -772,9 +699,8 @@ class IFCAAPIPOController extends Controller
                 'response_body' => $body,
             ];
         } catch (\Throwable $e) {
-            // ✅ FIX BUG: refnbr pakai $refKey (bukan $refOrderNo)
             $this->writeIntegrationLog([
-                'setting_id'       => 'api.POApprove.url',
+                'setting_id'       => 'api.StockIssue.url',
                 'setting_name'     => $settingName,
                 'refnbr'           => $refKey,
                 'payload'          => json_encode($payload),

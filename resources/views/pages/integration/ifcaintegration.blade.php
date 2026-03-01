@@ -33,13 +33,14 @@
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
                         BAST
                     </button>
+                    <button type="button" data-tab="tab-issue"
+                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
+                        Issue
+                    </button>
+
                     <button type="button" data-tab="tab-sttb-return"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
                         STTB Return (soon)
-                    </button>
-                    <button type="button" data-tab="tab-issue"
-                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
-                        Issue (soon)
                     </button>
                     <button type="button" data-tab="tab-receipt"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -83,11 +84,13 @@
                     @include('pages.integration.ifcaapibast')
                 </div>
 
+                <div id="tab-issue" class="hidden">
+                    @include('pages.integration.ifcaapiissue')
+                </div>
+
                 {{-- Placeholder tabs --}}
                 <div id="tab-sttb-return" class="hidden text-sm text-gray-500">STTB Return tab (soon)</div>
-                <div id="tab-issue" class="hidden text-sm text-gray-500">Issue tab (soon)</div>
                 <div id="tab-receipt" class="hidden text-sm text-gray-500">Receipt tab (soon)</div>
-
 
             </div>
         </div>
@@ -97,7 +100,7 @@
         // Tabs
         const emptyState = document.getElementById('emptyState');
         const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb', 'tab-bast']
+        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb', 'tab-bast','tab-issue']
             .map(id => document.getElementById(id));
 
         tabButtons.forEach(btn => {

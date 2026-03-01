@@ -107,6 +107,7 @@ use App\Http\Controllers\Integration\IFCAAPISupplierController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\Integration\IFCAAPIGRNController;
 use App\Http\Controllers\Integration\IFCAAPIBASTController;
+use App\Http\Controllers\Integration\IFCAAPIIssueController;
 
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
@@ -1564,6 +1565,11 @@ Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent
             Route::post('process', [IFCAAPIBASTController::class, 'process'])->name('process');
         });
 
+        // ✅ module: ISSUE API endpoints
+        Route::prefix('ifcaintegration/issue')->name('ifcaintegration.issue.')->group(function () {
+            Route::get('list', [IFCAAPIIssueController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIIssueController::class, 'process'])->name('process');
+        });
 
     });
 });
