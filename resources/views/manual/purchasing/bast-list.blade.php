@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-
+     
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-
+     
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -149,6 +149,16 @@
                                  berdasarkan konfigurasi Term yang telah ditentukan.
                              </span>
                          </div>
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/bast/create-header.png') }}">
+                                 <figcaption>
+                                     Figure 1.1 – Create Header Fields
+                                 </figcaption>
+                             </figure>
+                         </div>
+
                      </section>
 
                      <!-- 1.3 Location Selection -->
@@ -191,6 +201,76 @@
                                  Pemilihan Location wajib dilakukan.
                                  BAST tidak dapat disubmit tanpa Location dan Sub Location yang valid.
                              </span>
+                         </div>
+
+                     </section>
+                     <!-- 2.4 Photo Before -->
+                     <section class="space-y-4">
+                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                             <span x-show="lang==='en'">1.4 Photo Before</span>
+                             <span x-show="lang==='id'">1.4 Foto Before</span>
+                         </h3>
+
+                         <p class="text-gray-600 dark:text-gray-400">
+                             <span x-show="lang==='en'">
+                                 Photo Before is retrieved from the related BQ (Bill of Quantity)
+                                 and cannot be modified in the Edit BAST page.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 Foto Before diambil dari BQ (Bill of Quantity) terkait
+                                 dan tidak dapat diubah pada halaman Edit BAST.
+                             </span>
+                         </p>
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/bast/create-before.png') }}">
+                                 <figcaption>
+                                     Figure 1.2 – Create Photo Before Fields
+                                 </figcaption>
+                             </figure>
+                         </div>
+                     </section>
+
+                     <!-- 2.4 Photo Before -->
+                     <section class="space-y-4">
+                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                             <span x-show="lang==='en'">1.5 Photo After</span>
+                             <span x-show="lang==='id'">1.5 Foto After</span>
+                         </h3>
+
+                         <p class="text-gray-600 dark:text-gray-400">
+                             <span x-show="lang==='en'">
+                                 Users may:
+                                 <ul class="mt-2 list-disc pl-6">
+                                     <li>Add new photos</li>
+                                 </ul>
+                             </span>
+                             <span x-show="lang==='id'">
+                                 User dapat:
+                                 <ul class="mt-2 list-disc pl-6">
+                                     <li>Menambahkan foto baru</li>
+                                 </ul>
+                             </span>
+                         </p>
+
+                         <div class="manual-note manual-info">
+                             <span x-show="lang==='en'">
+                                 Accepted formats: JPG/PNG with maximum 5 MB per file.
+                             </span>
+                             <span x-show="lang==='id'">
+                                 Format yang diterima: JPG/PNG dengan maksimum 5 MB per file.
+                             </span>
+                         </div>
+
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/bast/create-after.png') }}">
+                                 <figcaption>
+                                     Figure 1.3 – Create Photo After Fields
+                                 </figcaption>
+                             </figure>
                          </div>
                      </section>
 
@@ -453,6 +533,17 @@
                                  serta membuka dokumen BAST tertentu untuk ditinjau atau diproses.
                              </span>
                          </p>
+
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/bast/job-list.png') }}">
+                                 <figcaption>
+                                     Figure 3.1 – BAST List Page
+                                 </figcaption>
+                             </figure>
+                         </div>
+
                      </section>
 
                      <!-- 3.2 Status Summary Cards -->
@@ -539,6 +630,16 @@
                                  company, dan otorisasi department.
                              </span>
                          </div>
+
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/bast/list.png') }}">
+                                 <figcaption>
+                                     Figure 3.2 – BAST List Page
+                                 </figcaption>
+                             </figure>
+                         </div>
                      </section>
 
                      <!-- 3.4 Workflow Behavior -->
@@ -608,6 +709,15 @@
                                  penilaian vendor, dan dokumentasi foto.
                              </span>
                          </p>
+                         <!-- FIGURE -->
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/bast/overview.png') }}">
+                                 <figcaption>
+                                     Figure 4.1 – Show BAST Page Overview
+                                 </figcaption>
+                             </figure>
+                         </div>
                      </section>
 
                      <!-- 4.2 Status & Action Buttons -->
