@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-
+     
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-
+     
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -457,14 +457,6 @@
                              <span x-show="lang==='en'">3.1 Item Request Detail Overview</span>
                              <span x-show="lang==='id'">3.1 Gambaran Detail Item Request</span>
                          </h3>
-                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
-                             <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/itemreq/list.pn g') }}">
-                                 <figcaption>
-                                     Figure 3.1 – Item Request List Page
-                                 </figcaption>
-                             </figure>
-                         </div>
 
                          <p class="text-gray-600 dark:text-gray-400">
                              <span x-show="lang==='en'">

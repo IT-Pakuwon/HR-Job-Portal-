@@ -1,12 +1,12 @@
      <div x-data="{
          lang: localStorage.getItem('manual_lang') || 'id',
          openSection: 's1',
-
+     
          setLang(v) {
              this.lang = v;
              localStorage.setItem('manual_lang', v);
          },
-
+     
          toggle(section) {
              this.openSection = this.openSection === section ? null : section;
          }
@@ -199,6 +199,14 @@
                                  Status Pekerjaan mencerminkan progres operasional,
                                  bukan status workflow approval.
                              </span>
+                         </div>
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/wo/list-jobs.png') }}">
+                                 <figcaption>
+                                     Figure 1.2 – WO Jobs List Page
+                                 </figcaption>
+                             </figure>
                          </div>
 
 
@@ -404,7 +412,14 @@
                                  dan tidak dapat diubah kembali tanpa otorisasi.
                              </span>
                          </div>
-
+                         <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                             <figure class="manual-figure">
+                                 <img src="{{ asset('images/manual/wo/process-jobs.png') }}">
+                                 <figcaption>
+                                     Figure 1.2 – WO Jobs List Page
+                                 </figcaption>
+                             </figure>
+                         </div>
                      </section>
 
                  </div>

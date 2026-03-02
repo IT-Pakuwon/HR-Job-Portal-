@@ -467,9 +467,15 @@
                                     Draft
                                 </span>
                             </div>
-
                             <p class="text-sm text-gray-500 dark:text-gray-400">
                                 Update status, department and notes.
+                            </p>
+
+                            <p class="text-sm text-gray-600 dark:text-gray-300">
+                                PIC:
+                                <span class="font-semibold text-indigo-600 dark:text-indigo-400">
+                                    {{ $wo->pic_wo ?: '-' }}
+                                </span>
                             </p>
 
                         </div>
@@ -1351,6 +1357,7 @@
 
                 // ===== PROCESS =====
                 if (mode === "process") {
+                    $form.removeClass("hidden"); // 🔥 SHOW FORM
                     unlockForm();
                     setButtonMode("save");
                     return;
