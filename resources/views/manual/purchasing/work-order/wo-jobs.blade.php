@@ -414,7 +414,7 @@
                          </div>
                          <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
                              <figure class="manual-figure">
-                                 <img src="{{ asset('images/manual/wo/process-jobs.png') }}">
+                                 <img src="{{ asset('images/manual/wo/process.png') }}">
                                  <figcaption>
                                      Figure 1.2 – WO Jobs List Page
                                  </figcaption>
