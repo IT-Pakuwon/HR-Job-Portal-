@@ -108,6 +108,8 @@ use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\Integration\IFCAAPIGRNController;
 use App\Http\Controllers\Integration\IFCAAPIBASTController;
 use App\Http\Controllers\Integration\IFCAAPIIssueController;
+use App\Http\Controllers\Integration\SLAPIIssueController;
+
 
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
@@ -1571,5 +1573,11 @@ Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent
             Route::post('process', [IFCAAPIIssueController::class, 'process'])->name('process');
         });
 
+        // ✅ module: ISSUE API endpoints (Solomon)
+        Route::prefix('ifcaintegration/issuesolomon')->name('ifcaintegration.issuesolomon.')->group(function () {
+            Route::get('list', [SLAPIIssueController::class, 'list'])->name('list');
+            Route::post('process', [SLAPIIssueController::class, 'process'])->name('process');
+        });
+        
     });
 });

@@ -37,6 +37,11 @@
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
                         Issue
                     </button>
+                    
+                    <button type="button" data-tab="tab-issue-sl"
+                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
+                        Issue Solomon
+                    </button>
 
                     <button type="button" data-tab="tab-sttb-return"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
@@ -84,8 +89,14 @@
                     @include('pages.integration.ifcaapibast')
                 </div>
 
+                {{-- TAB: Issue --}}
                 <div id="tab-issue" class="hidden">
                     @include('pages.integration.ifcaapiissue')
+                </div>
+
+                {{-- TAB: Issue Solomon --}}
+                <div id="tab-issue-sl" class="hidden">
+                    @include('pages.integration.slapissue')
                 </div>
 
                 {{-- Placeholder tabs --}}
@@ -100,7 +111,7 @@
         // Tabs
         const emptyState = document.getElementById('emptyState');
         const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb', 'tab-bast','tab-issue']
+        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb', 'tab-bast','tab-issue','tab-issue-sl']
             .map(id => document.getElementById(id));
 
         tabButtons.forEach(btn => {
