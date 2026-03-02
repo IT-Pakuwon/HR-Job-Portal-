@@ -56,6 +56,11 @@
                                 <td>:</td>
                                 <td>{{ $spb->spbid }}</td>
                             </tr>
+                            <tr>
+                                <td>WO No</td>
+                                <td>:</td>
+                                <td>{{ $woid ?? '-' }}</td>
+                            </tr>
                         @endif
                         {{-- @if (!empty($iss->issuenote))
                             <tr>
@@ -63,7 +68,7 @@
                                 <td>:</td>
                                 <td>{{ $iss->issuenote }}</td>
                             </tr>
-                        @endif --}}
+                        @endif --}}\
                     </table>
                 </td>
 

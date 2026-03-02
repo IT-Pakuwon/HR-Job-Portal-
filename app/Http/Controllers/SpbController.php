@@ -1163,7 +1163,7 @@ class SpbController extends Controller
             'creator:username,name',
         ])->where('spbid', $spbid)->firstOrFail();
 
-    
+
         $spbdetail = TrSPBdetail::query()
             ->with([
                 'location:location_id,location_name',
@@ -1265,8 +1265,8 @@ class SpbController extends Controller
         if (!empty($spb->woid)) {
             $attachmentWO = $this->mapAttachmentsToSignedUrl($spb->woid);
         }
-            
-  
+
+
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $spb->created_by === $loginUsername;
 
@@ -1274,7 +1274,7 @@ class SpbController extends Controller
             ->where('role_id','COSTCTRLACCESS')
             ->first();
 
-       
+
         $userCpny = Usercpny::query()
         ->where('username',$user->username)->where('status','A')
         ->pluck('cpny_id')->values();
@@ -2165,6 +2165,7 @@ class SpbController extends Controller
             'cpnyname'            => optional($company)->cpny_name,
             'parent'              => optional($company)->parent,
             'project'             => optional($company)->project,
+            'woid'                => $spb->woid ?? '-',
             // identitas & tanggal
             'created_by_username' => $spb->created_by,
             'created_by_name'     => ucwords(strtolower(optional($spb->creator)->name)),

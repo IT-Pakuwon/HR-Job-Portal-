@@ -461,24 +461,21 @@
                 },
                 processing: true,
                 serverSide: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-                columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                }],
+                responsive: true,
+                // columnDefs: [{
+                //     targets: 0,
+                //     width: '28px',
+                //     className: 'dtr-control',
+                //     orderable: false
+                // }],
                 order: [
                     [1, 'asc']
                 ],
                 columns: [{
                         data: null,
-                        defaultContent: ''
+                        defaultContent: '',
+                        className: 'dtr-control',
+                        orderable: false
                     },
                     {
                         data: 'account_id'
@@ -570,12 +567,7 @@
                 },
                 processing: true,
                 serverSide: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
+                responsive: true,
                 columnDefs: [{
                     targets: 0,
                     width: '28px',
@@ -587,7 +579,9 @@
                 ],
                 columns: [{
                         data: null,
-                        defaultContent: ''
+                        defaultContent: '',
+                        className: 'dtr-control',
+                        orderable: false
                     },
                     {
                         data: 'refnbr'

@@ -172,6 +172,15 @@
         <tr>
             <td class="meta-label">{{ $doc_type }} No</td>
             <td>{{ $docid }}</td>
+
+            <td class="meta-label">WO No</td>
+            <td>{{ $woid ?? '-' }}</td>
+        </tr>
+
+        <tr>
+            <td class="meta-label">{{ $doc_type }} Date</td>
+            <td>{{ $spbdate }}</td>
+
             <td class="meta-label">Name</td>
             <td>{{ $created_by_name ?? $created_by_username }}</td>
         </tr>

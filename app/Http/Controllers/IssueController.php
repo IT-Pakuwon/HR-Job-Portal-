@@ -16,7 +16,7 @@ use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
-use Barryvdh\DomPDF\Facade\Pdf; 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\TrAttachmentController;
 use App\Models\TrAttachment;
 use Illuminate\Support\Str;
@@ -30,7 +30,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 class IssueController extends Controller
 {
     use HasAutonbr;
-        
+
     public function storeIssue(Request $request)
     {
         // dd($request->all());
@@ -107,7 +107,7 @@ class IssueController extends Controller
 
         // ===== Siapkan info untuk autonumber & header =====
         // $doctype = 'IS'; // untuk autonumber & approval workflow
-        
+
         // $year    = (int) $now->year;
         // $month   = (int) $now->month;
 
@@ -253,7 +253,7 @@ class IssueController extends Controller
                 $det->budget_business_unit_id     = $src->budget_business_unit_id ?? null;
                 $det->budget_department_fin_id    = $src->budget_department_fin_id ?? null;
                 $det->budget_account_id           = $src->budget_account_id ?? null;
-                $det->budget_activity_id          = $src->budget_activity_id ?? null;                   
+                $det->budget_activity_id          = $src->budget_activity_id ?? null;
                 $det->budget_activity_descr       = $src->budget_activity_descr ?? null;
 
                 // Issue / return fields
@@ -364,9 +364,9 @@ class IssueController extends Controller
         // ===== Detail Issue (berdasarkan issueid)
         $issdetail = TrIssuedetail::where('issueid', $iss->issueid)
             ->orderBy('issue_no')
-            ->get();               
+            ->get();
 
-             
+
         // ===== Link ke SPB (opsional) -> /showissue/{hash}
         $spbUrl = null;
         if (!empty($iss->spbid)) {
@@ -385,10 +385,10 @@ class IssueController extends Controller
 
         return view('pages.issue.showissue', [
             'iss'         => $iss,
-            'issdetail'   => $issdetail,           
+            'issdetail'   => $issdetail,
             'hash'        => $hash,
             'eid_issueid' => $eid_issueid,
-            'spbUrl'      => $spbUrl,            
+            'spbUrl'      => $spbUrl,
             'canUpload'      => $canUpload,
         ]);
     }
@@ -419,7 +419,7 @@ class IssueController extends Controller
             ->get();
 
         // Attachment untuk Issue (doctype IS, refnbr = issueid)
-        $rows = TrAttachment::where('refnbr', $iss->issueid)            
+        $rows = TrAttachment::where('refnbr', $iss->issueid)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -472,7 +472,7 @@ class IssueController extends Controller
         ]);
     }
 
-    public function updateIssue(Request $request, $hash) 
+    public function updateIssue(Request $request, $hash)
     {
         // dd($request->all());
         $now      = Carbon::now();
@@ -742,14 +742,14 @@ class IssueController extends Controller
         }, 3);
     }
 
-   
+
     public function uploadAttachments(Request $request, $spbid)
     {
         try {
             // $user = $request->user();
             $user = Auth::user();
             $username = $user ? $user->username : 'system';
-            
+
             $year = (int) ($request->input('year') ?? now()->year);
 
             $created = [];
@@ -809,7 +809,7 @@ class IssueController extends Controller
             ], 500);
         }
     }
-   
+
     public function listAttachment($spbid)
     {
         $rows = Attachment::where('docid', $spbid)
@@ -829,10 +829,10 @@ class IssueController extends Controller
 
         return response()->json(['success'=>true, 'attachments'=>$rows]);
     }
-    
 
-   
-    
+
+
+
     public function printIssue(string $hash, Request $request)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -849,6 +849,7 @@ class IssueController extends Controller
 
         // SPB terkait (opsional, untuk meta)
         $spb = TrSPB::where('spbid', $iss->spbid)->first();
+         $woid = optional($spb)->woid;
 
         // Detail issue (barang yang dikeluarkan)
         $issdetails = TrIssuedetail::where('issueid', $iss->issueid)
@@ -873,6 +874,7 @@ class IssueController extends Controller
         $data = [
             'iss'            => $iss,
             'spb'            => $spb,
+             'woid'           => $woid,
             'issdetails'     => $issdetails,
             'company'        => $company,
             'issuetypeLabel' => $issuetypeLabel,
@@ -985,7 +987,7 @@ class IssueController extends Controller
                 $issue->save();
             }
         );
-  
+
         if (!$result['ok']) {
             // sementara untuk debug
             return response()->json([
@@ -1440,7 +1442,7 @@ class IssueController extends Controller
 
 
 
-      
+
 
     /**
      * Helper kecil supaya bisa dipakai di closure di atas
@@ -1455,13 +1457,13 @@ class IssueController extends Controller
 
     public function createReturn_xxx(Request $request)
     {
-       
-        $id  = Hashids::decode($request->id)[0] ?? null;       
+
+        $id  = Hashids::decode($request->id)[0] ?? null;
         abort_if(!$id, 404);
 
         // Header issue asal (tipe bebas; kita cuma mau referensinya)
         $iss = TrIssue::findOrFail($id);
-        
+
         // Detail dari issue asal (yang qty_received-nya menjadi dasar perhitungan)
         $origDetails = TrIssuedetail::select([
             'id',
@@ -1679,7 +1681,7 @@ class IssueController extends Controller
             return back()->withErrors(['Minimal satu baris Qty Return > 0.'])->withInput();
         }
 
-        
+
         $now   = Carbon::now();
         // $year  = (int) $now->year;
         // $month = str_pad((string)$now->month, 2, '0', STR_PAD_LEFT);
@@ -1963,7 +1965,7 @@ class IssueController extends Controller
 
 
 
-    
+
 
 
 }
