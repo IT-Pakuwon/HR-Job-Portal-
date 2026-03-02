@@ -11,8 +11,7 @@
     </button>
 
     <div class="ml-auto flex items-center gap-3">
-
-        <a href="{{ route('manual') }}"
+        <a href="{{ route('manual', ['root' => 'faq']) }}"
             class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             title="Manual Book">
             <i class="fas fa-book text-lg"></i>

@@ -193,7 +193,16 @@
                     <figcaption>Figure 1.4 – Add Inventory Modal</figcaption>
                 </figure>
             </div>
+
+            <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+                <figure class="manual-figure">
+                    <img src="{{ asset('images/manual/nonstock/verview.png') }}">
+                    <figcaption>Figure 1.5 – Nonstock Overview</figcaption>
+                </figure>
+            </div>
         </section>
+
+
 
     </section>
 </div>

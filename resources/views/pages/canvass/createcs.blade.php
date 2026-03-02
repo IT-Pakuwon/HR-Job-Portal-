@@ -2,7 +2,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
-                <form id="csForm" class="flex flex-col gap-6" enctype="multipart/form-data">
+                <form id="csForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="doc" value="{{ $doc }}">
                     <input type="hidden" name="src_id" value="{{ $src_id }}">
@@ -21,11 +21,12 @@
                     <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}">
 
                     <!-- Create CS Header -->
-                    <div class="flex w-full flex-col gap-6 rounded-2xl bg-white px-8 py-6 shadow-sm dark:bg-gray-900">
+                    <div
+                        class="flex w-full flex-col gap-4 rounded-2xl bg-white px-8 py-6 text-xs shadow-sm dark:bg-gray-900">
 
                         <!-- Header -->
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
+                            <h2 class="font-bold text-gray-800 dark:text-white">
                                 @if ($doc === 'PO')
                                     Create CS Reuse for PO
                                 @else
@@ -98,28 +99,27 @@
                         <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
 
                             <!-- LEFT SIDE -->
-                            <div class="flex flex-col gap-6">
+                            <div class="flex flex-col gap-4">
 
                                 <!-- Vendor -->
                                 <div class="flex flex-col gap-2">
                                     <span class="{{ $labelClass }}">Vendor:</span>
 
                                     <select id="vendorSelect"
-                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                                         <option value="">Select</option>
                                     </select>
 
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="text-gray-500 dark:text-gray-400">
                                         Vendor can be selected more than once.
                                     </span>
                                 </div>
 
                                 <!-- Purpose -->
-                                <div class="flex flex-col gap-2">
+                                <div class="flex w-full flex-col gap-2">
                                     <span class="{{ $labelClass }}">Purpose:</span>
 
-                                    <div
-                                        class="{{ $valueClass }} whitespace-pre-line break-words rounded-md border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-800">
+                                    <div class="{{ $valueClass }} whitespace-pre-line break-words">
                                         {{ $header->keperluan }}
                                     </div>
                                 </div>
@@ -131,7 +131,7 @@
                                 <span class="{{ $labelClass }}">Note CS:</span>
 
                                 <textarea name="csnote" id="csnote"
-                                    class="min-h-[220px] w-full rounded-md border border-gray-300 bg-white p-4 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"></textarea>
+                                    class="min-h-[180px] w-full rounded-md border border-gray-300 bg-white p-4 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"></textarea>
                             </div>
 
                         </div>
@@ -142,7 +142,7 @@
                     <div class="flex w-full flex-col rounded-xl bg-white shadow-md dark:bg-gray-800">
                         <div class="p-4">
                             <div
-                                class="border-b border-gray-200 pb-4 text-sm font-bold text-gray-800 dark:border-gray-700 dark:text-white">
+                                class="border-b border-gray-200 pb-4 text-xs font-bold text-gray-800 dark:border-gray-700 dark:text-white">
                                 CS Detail
                             </div>
                             <div class="mt-4 overflow-x-auto">
@@ -214,10 +214,10 @@
                             class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                             <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                                 <div class="flex flex-col">
-                                    <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Last Price
+                                    <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Last Price
                                         History</h3>
                                     {{-- <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div> --}}
-                                    <h3 id="lpTitle" class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                    <h3 id="lpTitle" class="text-xs font-semibold text-gray-800 dark:text-gray-100">
                                     </h3>
                                 </div>
                                 <button type="button" id="lastPriceModalClose"
@@ -258,12 +258,12 @@
 
 
                     <!-- Attachments -->
-                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                         <!-- Existing Attachments -->
                         <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Attachments
+                                <h3 class="text-xs font-bold text-gray-800 dark:text-white">Attachments
                                     {{ $doc }}</h3>
                             </div>
 
@@ -315,7 +315,7 @@
                             <!-- Attachments Header -->
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
-                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">Attachments CS</h3>
+                                <h3 class="text-xs font-bold text-gray-800 dark:text-white">Attachments CS</h3>
                             </div>
 
                             <!-- Attachments Container -->
@@ -416,7 +416,7 @@
                 <div
                     class="absolute left-1/2 top-1/2 w-[90vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
-                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Pilih Pajak</h3>
+                        <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Pilih Pajak</h3>
                         <button id="taxModalClose"
                             class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
                     </div>

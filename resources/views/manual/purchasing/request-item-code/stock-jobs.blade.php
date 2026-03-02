@@ -211,6 +211,14 @@
             </div>
         </section>
 
+
+        <div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-900">
+            <figure class="manual-figure">
+                <img src="{{ asset('images/manual/stock/overview.png') }}">
+                <figcaption>Figure 1.5 – Stock Overview</figcaption>
+            </figure>
+        </div>
+
     </section>
 
 </div>
