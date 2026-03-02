@@ -209,9 +209,9 @@
         @forelse($detail as $i => $dt)
             <tr>
                 <td style="text-align:center;">{{ $i + 1 }}</td>
-                <td>( {{ $dt->inventoryid }} )
+                <td>{{ $dt->inventoryid }}
                 </td>
-                <td>{{ $dt->inventory_descr }} ( {{ $dt->inventoryid }} ) <br>
+                <td>{{ $dt->inventory_descr }} <br>
                     <span class="text-sm text-gray-500 dark:text-gray-400">
                         Note: {{ $dt->note }}
                     </span>

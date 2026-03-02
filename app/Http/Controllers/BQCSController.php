@@ -167,6 +167,7 @@ class BQCSController extends Controller
             // DETAIL: tr_bq_cs_detail
             $line = 0;
             foreach ($details as $row) {
+
                 $line++;
 
                 $bqNo   = $row['bq_no']       ?? null;
@@ -174,42 +175,55 @@ class BQCSController extends Controller
                 $descr  = $row['bq_descr']    ?? '';
                 $qty    = (float)($row['qty'] ?? 0);
                 $uom    = $row['uom']         ?? null;
+                $duration = (int)($row['kontrak_duration_qty'] ?? 0);
 
-                // ✅ source: 0=awal, 1=input user
                 $source = (int)($row['bq_source'] ?? 0);
                 if (!in_array($source, [0,1], true)) $source = 0;
 
                 $det = new TrBQCSDetail();
                 $det->setConnection('pgsql');
+
                 $det->bqid        = $request->bqid;
                 $det->csid        = $cs->csid;
                 $det->sppjtid     = $cs->sppbjktid;
                 $det->bq_no       = $bqNo;
                 $det->bq_line_no  = $bqLn;
                 $det->bq_descr    = $descr;
-                $det->bq_source   = $source;                         
+                $det->bq_source   = $source;
                 $det->bq_qty      = $source === 0 ? round($qty,2) : 0;
                 $det->qty         = round($qty,2);
                 $det->uom         = $uom;
+
+                // ✅ KONTRAK FIELD
+                $det->bqtype                 = 'Kontrak';
+                $det->kontrak_duration_qty   = $duration;
+
                 $det->status      = 'H';
                 $det->created_by  = $username;
                 $det->created_at  = $now;
 
-                // per vendor: isi price material & jasa + totalnya (qty * price)
-                for ($i=0; $i<min(count($row['vendor'] ?? []),6); $i++) {
-                    $vIdx      = $i+1;
+                // =========================
+                // PER VENDOR
+                // =========================
+                for ($i = 0; $i < min(count($row['vendor'] ?? []), 6); $i++) {
+
+                    $vIdx      = $i + 1;
                     $prodPrice = (float)($row['vendor'][$i]['product_price'] ?? 0);
-                    $jasaPrice = (float)($row['vendor'][$i]['jasa_price']    ?? 0);
+                    $jasaPrice = (float)($row['vendor'][$i]['jasa_price'] ?? 0);
 
-                    // $det->{"vendorid{$vIdx}"}                 = $vendors[$i]['id'] ?? null;
-                    $det->{"vendorid{$vIdx}"}                 = $this->cleanVendorId($vendors[$i]['id'] ?? null);
-                    $det->{"vendorproductprice{$vIdx}"}       = round($prodPrice, 2);
-                    $det->{"vendortotalproductprice{$vIdx}"}  = round($qty * $prodPrice, 2);
-                    $det->{"vendorjasaprice{$vIdx}"}          = round($jasaPrice, 2);
-                    $det->{"vendortotaljasaprice{$vIdx}"}     = round($qty * $jasaPrice, 2);
+                    // total = qty × price × duration
+                    $totalMat  = $qty * $prodPrice * $duration;
+                    $totalJasa = $qty * $jasaPrice * $duration;
 
-                    $sumMaterial[$vIdx] += $qty * $prodPrice;
-                    $sumJasa[$vIdx]     += $qty * $jasaPrice;
+                    $det->{"vendorid{$vIdx}"}                = $this->cleanVendorId($vendors[$i]['id'] ?? null);
+                    $det->{"vendorproductprice{$vIdx}"}      = round($prodPrice, 2);
+                    $det->{"vendortotalproductprice{$vIdx}"} = round($totalMat, 2);
+                    $det->{"vendorjasaprice{$vIdx}"}         = round($jasaPrice, 2);
+                    $det->{"vendortotaljasaprice{$vIdx}"}    = round($totalJasa, 2);
+
+                    // untuk update header nanti
+                    $sumMaterial[$vIdx] += $totalMat;
+                    $sumJasa[$vIdx]     += $totalJasa;
                 }
 
                 $det->save();
@@ -331,103 +345,15 @@ class BQCSController extends Controller
         return view($view, compact('bq', 'details', 'vendors', 'hash_id', 'cs', 'cs_eid'));
     }
 
-    public function editBQCS_xxx($hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        // 1) Ambil header BQ
-        $bq = TrBQCS::on('pgsql')->findOrFail($id);
-
-        // 2) Ambil CS (vendor master untuk BQ ini)
-        $cs = TrCS::on('pgsql')
-            ->where('bqid', $bq->bqid)
-            ->where('csid', $bq->csid)
-            ->first();
-
-        abort_if(!$cs, 404, 'CS untuk BQ ini tidak ditemukan (bqid & csid tidak cocok).');
-
-        // --- siapkan array vendor dari CS (1..6) ---
-        $csVendors = [];
-        for ($i = 1; $i <= 6; $i++) {
-            $csVendors[$i] = [
-                'id'   => $cs->{"vendorid{$i}"} ?? null,
-                'name' => $cs->{"vendorname{$i}"} ?? null,
-                'addr' => $cs->{"vendoralamat{$i}"} ?? null,
-                'cp'   => $cs->{"vendorcp{$i}"} ?? null,
-                'telp' => $cs->{"vendortelp{$i}"} ?? null,
-                'top'  => $cs->{"vendortop{$i}"} ?? null,
-            ];
-        }
-
-        // 3) SINKRONISASI vendor dari CS → BQ header & detail (transaksi)
-        DB::connection('pgsql')->transaction(function () use ($bq, $csVendors) {
-            $now  = Carbon::now();
-            $user = Auth::user();
-            $u    = isset($user) && isset($user->username) ? $user->username : 'system';
-
-            // 3a) Update header BQ: vendorid1..6 mengikuti CS (nama/alamat/cp/telp/top memang tidak ada di tabel BQ header)
-            for ($i = 1; $i <= 6; $i++) {
-                $bq->{"vendorid{$i}"} = $csVendors[$i]['id']; // bisa null kalau tak diisi
-            }
-            $bq->updated_by = $u;
-            $bq->updated_at = $now;
-            $bq->save();
-
-            // 3b) Update semua detail BQ: vendorid1..6 mengikuti CS
-            TrBQCSDetail::on('pgsql')
-                ->where('bqid', $bq->bqid)
-                ->update([
-                    'vendorid1' => $csVendors[1]['id'],
-                    'vendorid2' => $csVendors[2]['id'],
-                    'vendorid3' => $csVendors[3]['id'],
-                    'vendorid4' => $csVendors[4]['id'],
-                    'vendorid5' => $csVendors[5]['id'],
-                    'vendorid6' => $csVendors[6]['id'],
-                    // kolom harga/totals tidak diubah
-                ]);
-        });
-
-        // 4) Ambil ulang detail setelah sinkron (kalau perlu)
-        $details = TrBQCSDetail::on('pgsql')
-            ->where('bqid', $bq->bqid)
-            ->orderBy('bq_no')
-            ->orderBy('bq_line_no')
-            ->get();
-
-        // 5) Vendor untuk tampilan: SELALU dari CS supaya name/addr/cp/telp/top tampil
-        $vendors = [];
-        for ($i = 1; $i <= 6; $i++) {
-            $vid = $csVendors[$i]['id'];
-            $vnm = $csVendors[$i]['name'];
-            if (!filled($vid) && !filled($vnm)) continue;
-
-            $vendors[] = [
-                'idx'  => $i,
-                'id'   => $vid,
-                'name' => $vnm,
-                'addr' => $csVendors[$i]['addr'],
-                'cp'   => $csVendors[$i]['cp'],
-                'telp' => $csVendors[$i]['telp'],
-                'top'  => $csVendors[$i]['top'],
-            ];
-        }
-
-        $hash_id = $hash;
-        $cs_eid = Hashids::encode($cs->id);
-
-        return view('pages.canvass.editbqcs', compact('bq', 'details', 'vendors', 'hash_id','cs','cs_eid'));
-    }
-
+  
     public function updateBQCS(Request $request, $hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        // Validasi
         $request->validate([
-            'vendors' => 'required|string', // JSON ringkas vendor header: [{id,name}, ...] max 6
-            'details' => 'required|string', // JSON baris detail
+            'vendors' => 'required|string',
+            'details' => 'required|string',
         ]);
 
         $vendors  = json_decode($request->input('vendors'), true) ?: [];
@@ -447,7 +373,6 @@ class BQCSController extends Controller
                 $vid = $this->cleanVendorId($vendors[$i - 1]['id'] ?? null);
                 $hdr->{"vendorid{$i}"} = $vid;
 
-
                 $hdr->{"grandtotalmaterialvendor{$i}"} = null;
                 $hdr->{"grandtotaljasavendor{$i}"}     = null;
             }
@@ -459,7 +384,6 @@ class BQCSController extends Controller
                 ->where('bqid', $hdr->bqid)
                 ->get(['id','bq_no','bq_line_no','bq_source']);
 
-            // key payload: prefer id, fallback ke composite
             $payloadIds  = [];
             $payloadKeys = [];
 
@@ -473,6 +397,8 @@ class BQCSController extends Controller
                 $bqNo = (string)($row['bq_no'] ?? '');
                 $bqLn = (string)($row['bq_line_no'] ?? '');
                 $src  = (int)($row['bq_source'] ?? 0);
+                if (!in_array($src, [0,1], true)) $src = 0;
+
                 $payloadKeys[] = "{$bqNo}|{$bqLn}|{$src}";
             }
 
@@ -481,16 +407,13 @@ class BQCSController extends Controller
 
             $deleteIds = [];
             foreach ($existing as $ex) {
-                // hanya boleh delete source=1
                 if ((int)($ex->bq_source ?? 0) !== 1) continue;
 
-                // kalau payload pakai id
                 if (!empty($payloadIds)) {
                     if (!in_array((int)$ex->id, $payloadIds, true)) {
                         $deleteIds[] = (int)$ex->id;
                     }
                 } else {
-                    // fallback composite
                     $k = ((string)$ex->bq_no).'|'.((string)$ex->bq_line_no).'|'.((int)$ex->bq_source);
                     if (!in_array($k, $payloadKeys, true)) {
                         $deleteIds[] = (int)$ex->id;
@@ -506,7 +429,7 @@ class BQCSController extends Controller
             }
 
             // =========================
-            // 3) UPSERT detail + hitung ulang grand total header
+            // 3) UPSERT detail + hitung ulang grand total header (SAMA DGN STORE)
             // =========================
             $sumMaterial = array_fill(1, 6, 0.0);
             $sumJasa     = array_fill(1, 6, 0.0);
@@ -517,8 +440,8 @@ class BQCSController extends Controller
                 $bqNo = $row['bq_no'] ?? null;
                 $bqLn = $row['bq_line_no'] ?? null;
 
-                // default 0 kalau tidak dikirim
                 $src  = (int)($row['bq_source'] ?? 0);
+                if (!in_array($src, [0,1], true)) $src = 0;
 
                 // cari detail: prefer id
                 $det = null;
@@ -529,7 +452,7 @@ class BQCSController extends Controller
                         ->first();
                 }
 
-                // fallback: composite key (bqid + bq_no + bq_line_no + bq_source)
+                // fallback: composite
                 if (!$det) {
                     $det = TrBQCSDetail::on('pgsql')
                         ->where('bqid', $hdr->bqid)
@@ -539,7 +462,6 @@ class BQCSController extends Controller
                         ->first();
                 }
 
-                $isNew = false;
                 if (!$det) {
                     $det = new TrBQCSDetail();
                     $det->setConnection('pgsql');
@@ -554,24 +476,27 @@ class BQCSController extends Controller
                     $det->status     = 'H';
                     $det->created_by = $username;
                     $det->created_at = $now;
-
-                    $isNew = true;
                 }
 
                 // qty/uom/descr
-                $qty = (float)($row['qty'] ?? $det->qty ?? 0);
+                $qty      = (float)($row['qty'] ?? $det->qty ?? 0);
+                $uom      = $row['uom']      ?? $det->uom;
+                $descr    = $row['bq_descr'] ?? $det->bq_descr;
+                $duration = (int)($row['kontrak_duration_qty'] ?? $det->kontrak_duration_qty ?? 0);
 
-                $det->qty       = round($qty, 2);
-                $det->uom       = $row['uom']      ?? $det->uom;
-                $det->bq_descr  = $row['bq_descr'] ?? $det->bq_descr;
+                $det->qty      = round($qty, 2);
+                $det->uom      = $uom;
+                $det->bq_descr = $descr;
 
-                // bq_source & bq_qty rule:
-                // - source awal: bq_source=0, bq_qty = qty
-                // - input manual: bq_source=1, bq_qty = null (atau 0)
+                // ✅ kontrak field (samain store)
+                $det->bqtype               = 'Kontrak';
+                $det->kontrak_duration_qty = $duration;
+
+                // ✅ bq_source & bq_qty rule (samain store)
                 $det->bq_source = $src;
-                $det->bq_qty    = ($src === 0) ? round($qty, 2) : null;
+                $det->bq_qty    = ($src === 0) ? round($qty, 2) : 0;
 
-                // set ulang vendorid1..6 agar konsisten dg header + update price/totals
+                // set ulang vendorid1..6 + total pakai qty*price*duration (samain store)
                 for ($i = 1; $i <= 6; $i++) {
                     $det->{"vendorid{$i}"} = $this->cleanVendorId($vendors[$i - 1]['id'] ?? null);
 
@@ -588,13 +513,16 @@ class BQCSController extends Controller
                         }
                     }
 
-                    $det->{"vendorproductprice{$i}"}       = round($prodPrice, 2);
-                    $det->{"vendortotalproductprice{$i}"}  = round($qty * $prodPrice, 2);
-                    $det->{"vendorjasaprice{$i}"}          = round($jasaPrice, 2);
-                    $det->{"vendortotaljasaprice{$i}"}     = round($qty * $jasaPrice, 2);
+                    $totalMat  = $qty * $prodPrice * $duration;
+                    $totalJasa = $qty * $jasaPrice * $duration;
 
-                    $sumMaterial[$i] += ($qty * $prodPrice);
-                    $sumJasa[$i]     += ($qty * $jasaPrice);
+                    $det->{"vendorproductprice{$i}"}      = round($prodPrice, 2);
+                    $det->{"vendortotalproductprice{$i}"} = round($totalMat, 2);
+                    $det->{"vendorjasaprice{$i}"}         = round($jasaPrice, 2);
+                    $det->{"vendortotaljasaprice{$i}"}    = round($totalJasa, 2);
+
+                    $sumMaterial[$i] += $totalMat;
+                    $sumJasa[$i]     += $totalJasa;
                 }
 
                 $det->updated_by = $username;
@@ -603,7 +531,7 @@ class BQCSController extends Controller
             }
 
             // =========================
-            // 4) Update grand total header
+            // 4) Update grand total header (samain store)
             // =========================
             for ($i = 1; $i <= 6; $i++) {
                 if (!empty($hdr->{"vendorid{$i}"})) {

@@ -1261,57 +1261,7 @@ class SppjController extends Controller
         ])
         ->where('sppjid', $sppj->sppjid)
         ->orderby('sppj_no', 'ASC')
-        ->get();       
-             
-      
-
-        // ---------- ambil lampiran dari tr_attachment ----------
-        // $rows = TrAttachment::where('refnbr', $sppj->sppjid)
-        //     ->where('status', 'A')
-        //     ->orderBy('created_at', 'desc')
-        //     ->get();
-
-        // // siapkan Signed URL dari GCS
-        // $config = config('filesystems.disks.gcs');
-        // $keyFilePath = $config['key_file'];
-        // if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-        //     $keyFilePath = base_path($keyFilePath);
-        // }
-
-        // $storage = new StorageClient([
-        //     'projectId'   => $config['project_id'],
-        //     'keyFilePath' => $keyFilePath,
-        // ]);
-        // $bucket = $storage->bucket($config['bucket']);
-
-        // // map jadi data siap pakai di view
-        // $attachments = $rows->map(function ($r) use ($bucket) {
-        //     $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
-        //     $object     = $bucket->object($objectPath);
-
-        //     // Signed URL 10 menit
-        //     $signedUrl = null;
-        //     try {
-        //         $signedUrl = $object->signedUrl(
-        //             new \DateTimeImmutable('+10 minutes'),
-        //             ['version' => 'v4']
-        //         );
-        //     } catch (\Throwable $e) {
-        //         // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
-        //         \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-        //     }
-
-        //     return (object) [                
-        //         'display_name' => $r->attachment_name,         // nama yang enak dibaca
-        //         'created_by'   => $r->created_by,
-        //         'created_at'   => $r->created_at,
-        //         'url'          => $signedUrl,                  // bisa null jika gagal
-        //         'folder'       => $r->folder,
-        //         'filename'     => $r->filename,
-        //         'extention'    => $r->extention,
-        //         'size'         => $r->filesize,
-        //     ];
-        // });
+        ->get();  
 
         $attachmentPJ = $this->mapAttachmentsToSignedUrl($sppj->sppjid);
 
@@ -2196,50 +2146,51 @@ class SppjController extends Controller
     }
 
     public function showBQ($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
-
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
 
-        $bq = Bq::with([
-            'creator:username,name'
-        ])->findOrFail($id);     
+        $bq = Bq::with(['creator:username,name'])->findOrFail($id);
 
-        // ==============================
-        // CEK APPROVAL LEVEL 1
-        // ==============================
-        $isApprovalLevel1 = TrApproval::where('refnbr', $bq->sppjtid)
+        $loginUsername = $user->username ?? $user->name ?? null;
+
+        // 1) Cek approval level 1 masih exist & pending
+        $approvalLevel1Exists = TrApproval::where('refnbr', $bq->sppjtid)
             ->where('aprv_leveling', '1')
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
-            ->where(function ($q) use ($user) {
-                $u = $user->username;
+            ->exists();
 
-                $q->where('aprv_username', $u) 
-                    ->orWhere('aprv_username', 'ilike', $u . ',%')      
-                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%') 
-                    ->orWhere('aprv_username', 'ilike', '%,' . $u);     
+        // 2) Approver level 1 boleh edit
+        $canApproveEdit = TrApproval::where('refnbr', $bq->sppjtid)
+            ->where('aprv_leveling', '1')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->where(function ($q) use ($loginUsername) {
+                $u = $loginUsername;
+
+                $q->where('aprv_username', $u)
+                ->orWhere('aprv_username', 'ilike', $u . ',%')
+                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
+                ->orWhere('aprv_username', 'ilike', '%,' . $u);
             })
             ->exists();
 
-        // ==============================
-        // CEK CREATED BY
-        // ==============================
-        $isCreator = $bq->created_by === $user->username;
+        // 3) Creator boleh edit hanya jika approval level 1 MASIH EXIST
+        $isCreator = ($bq->created_by === $loginUsername);
+        $canCreatorEdit = $isCreator && $approvalLevel1Exists;
 
-        // ==============================
-        // FINAL CAN EDIT
-        // ==============================
-        $canEdit = $isApprovalLevel1 || $isCreator;
+        // 4) Final permission
+        $canEdit = $canApproveEdit || $canCreatorEdit;
 
-        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();      
-            
-        return view('pages.sppjs.showbqsppjs', compact('bq','bqdetail','canEdit','hash'));
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
+
+        return view('pages.sppjs.showbqsppjs', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
 
     public function editBQ($id)
@@ -3312,36 +3263,50 @@ class SppjController extends Controller
 
 
     public function showBqKontrak($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
-
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
 
-        $bq = Bq::with([
-            'creator:username,name'
-        ])->findOrFail($id);     
+        $bq = Bq::with(['creator:username,name'])->findOrFail($id);
 
-        $canEdit = TrApproval::where('refnbr', $bq->sppjtid)
+        $loginUsername = $user->username ?? $user->name ?? null;
+
+        // 1️⃣ Cek approval level 1 masih exist & pending
+        $approvalLevel1Exists = TrApproval::where('refnbr', $bq->sppjtid)
             ->where('aprv_leveling', '1')
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
-            ->where(function ($q) use ($user) {
-                $u = $user->username;
+            ->exists();
 
-                $q->where('aprv_username', $u) 
-                ->orWhere('aprv_username', 'ilike', $u . ',%')      
-                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%') 
-                ->orWhere('aprv_username', 'ilike', '%,' . $u);     
+        // 2️⃣ Approver level 1 boleh edit (rule lama)
+        $canApproveEdit = TrApproval::where('refnbr', $bq->sppjtid)
+            ->where('aprv_leveling', '1')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->where(function ($q) use ($loginUsername) {
+                $u = $loginUsername;
+
+                $q->where('aprv_username', $u)
+                ->orWhere('ilike', $u . ',%')
+                ->orWhere('ilike', '%,' . $u . ',%')
+                ->orWhere('ilike', '%,' . $u);
             })
             ->exists();
 
-        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();    
-    
+        // 3️⃣ Creator boleh edit hanya jika approval level 1 MASIH EXIST
+        $isCreator = ($bq->created_by === $loginUsername);
+        $canCreatorEdit = $isCreator && $approvalLevel1Exists;
+
+        // 4️⃣ Final permission
+        $canEdit = $canApproveEdit || $canCreatorEdit;
+
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
+
         return view('pages.sppjs.showbqkontrak', compact('bq','bqdetail','canEdit','hash'));
     }
 

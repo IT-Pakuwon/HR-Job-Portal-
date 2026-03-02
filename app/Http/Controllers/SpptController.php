@@ -2714,52 +2714,51 @@ class SpptController extends Controller
     }
 
     public function showBQ($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
-
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
 
-        $bq = Bq::with([
-            'creator:username,name'
-        ])->findOrFail($id);     
+        $bq = Bq::with(['creator:username,name'])->findOrFail($id);
 
-        // ==============================
-        // CEK APPROVAL LEVEL 1
-        // ==============================
-        $isApprovalLevel1 = TrApproval::where('refnbr', $bq->sppjtid)
+        $loginUsername = $user->username ?? $user->name ?? null;
+
+        // 1) Cek approval level 1 masih exist & pending
+        $approvalLevel1Exists = TrApproval::where('refnbr', $bq->sppjtid)
             ->where('aprv_leveling', '1')
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
-            ->where(function ($q) use ($user) {
-                $u = $user->username;
+            ->exists();
 
-                $q->where('aprv_username', $u) 
-                    ->orWhere('aprv_username', 'ilike', $u . ',%')      
-                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%') 
-                    ->orWhere('aprv_username', 'ilike', '%,' . $u);     
+        // 2) Approver level 1 boleh edit jika user termasuk approver
+        $canApproveEdit = TrApproval::where('refnbr', $bq->sppjtid)
+            ->where('aprv_leveling', '1')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->where(function ($q) use ($loginUsername) {
+                $u = $loginUsername;
+
+                $q->where('aprv_username', $u)
+                ->orWhere('aprv_username', 'ilike', $u . ',%')
+                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
+                ->orWhere('aprv_username', 'ilike', '%,' . $u);
             })
             ->exists();
-                // dd($isApprovalLevel1);
-        // ==============================
-        // CEK CREATED BY
-        // ==============================
-        $isCreator = $bq->created_by === $user->username;
 
-        // ==============================
-        // FINAL CAN EDIT
-        // ==============================
-        $canEdit = $isApprovalLevel1 || $isCreator;
+        // 3) Creator boleh edit hanya jika approval level 1 MASIH EXIST
+        $isCreator = ($bq->created_by === $loginUsername);
+        $canCreatorEdit = $isCreator && $approvalLevel1Exists;
 
-        // dd($canEdit);
+        // 4) Final
+        $canEdit = $canApproveEdit || $canCreatorEdit;
 
-        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();      
-            
-        return view('pages.sppts.showbqsppts', compact('bq','bqdetail','canEdit','hash'));
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
+
+        return view('pages.sppts.showbqsppts', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
 
     public function editBQ($id)

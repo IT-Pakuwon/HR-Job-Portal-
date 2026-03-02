@@ -231,9 +231,9 @@
                                 <th class="p-3 text-left font-semibold">Description</th>
                                 <th class="p-3 text-right font-semibold">Qty</th>
                                 <th class="p-3 text-left font-semibold">UOM</th>
-                                <th class="p-3 text-left font-semibold">Kontrak Category</th>
+                                {{-- <th class="p-3 text-left font-semibold">Kontrak Category</th> --}}
                                 <th class="p-3 text-right font-semibold">Duration Qty</th>
-                                <th class="p-3 text-left font-semibold">Vendors</th>
+                                <th class="p-3 text-left font-semibold">Price</th>
                             </tr>
                         </thead>
 
@@ -245,13 +245,11 @@
                                     for ($i=1; $i<=6; $i++) {
                                         $vid = $d->{'vendorid'.$i} ?? null;
 
-                                        // ❗ skip jika kosong / null
+                                        // tetap pakai vendorid hanya untuk cek slot aktif (biar tidak tampil slot kosong)
                                         if (empty($vid)) continue;
 
                                         $vendorSlots[] = [
                                             'no' => $i,
-                                            'vendorid' => $vid,
-                                            'vendorname' => $vendorMap[$vid] ?? $vid,
                                             'product' => $d->{'vendorproductprice'.$i} ?? null,
                                             'total_product' => $d->{'vendortotalproductprice'.$i} ?? null,
                                             'jasa' => $d->{'vendorjasaprice'.$i} ?? null,
@@ -264,14 +262,11 @@
                                     <td class="px-3 py-2 whitespace-nowrap">{{ $d->bq_no ?? '-' }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap">{{ $d->bq_line_no ?? '-' }}</td>
                                     <td class="px-3 py-2">
-                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ $d->bq_descr ?? '-' }}</div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                                            Source: {{ $d->bq_source ?? '-' }}
-                                        </div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ $d->bq_descr ?? '-' }}</div>                                       
                                     </td>
                                     <td class="px-3 py-2 text-right whitespace-nowrap">{{ $fmtNum($d->qty ?? $d->bq_qty) }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap">{{ $d->uom ?? '-' }}</td>
-                                    <td class="px-3 py-2 whitespace-nowrap">{{ $d->kontrakcategory ?? '-' }}</td>
+                                    {{-- <td class="px-3 py-2 whitespace-nowrap">{{ $d->kontrakcategory ?? '-' }}</td> --}}
                                     <td class="px-3 py-2 text-right whitespace-nowrap">{{ $fmtNum($d->kontrak_duration_qty) }}</td>
 
                                     <td class="px-3 py-2">
@@ -280,11 +275,7 @@
                                         @else
                                             <div class="space-y-2">
                                                 @foreach($vendorSlots as $v)
-                                                    <div class="rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">
-                                                        <div class="font-semibold text-gray-800 dark:text-gray-100">
-                                                            {{ $v['vendorname'] }}
-                                                            <span class="text-xs text-gray-500">({{ $v['vendorid'] }})</span>
-                                                        </div>
+                                                    <div class="rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">                                                 
 
                                                         <div class="mt-1 grid grid-cols-2 gap-2 text-xs text-gray-700 dark:text-gray-200">
                                                             @if(!empty($v['product']))

@@ -348,39 +348,7 @@
                                             {{ optional($kontrak->kontrakdate)->format('d M Y') ?? ($kontrak->kontrakdate ?? '-') }}
                                         </div>
                                     @endif
-                                </div>
-
-                                {{-- User Approval --}}
-                                {{-- <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">User
-                                        Approval</label>
-
-                                    @if ($isHold)
-                                        <select id="user_approval" name="user_approval"
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                            <option value="">Select User</option>
-
-                                            @foreach ($users ?? [] as $u)
-                                                @php
-                                                    $uname = is_array($u) ? $u['username'] ?? '' : $u->username ?? '';
-                                                    $name = is_array($u) ? $u['name'] ?? '' : $u->name ?? $uname;
-                                                    $selected =
-                                                        (string) ($kontrak->user_approval ?? '') === (string) $uname
-                                                            ? 'selected'
-                                                            : '';
-                                                @endphp
-                                                <option value="{{ $uname }}" {{ $selected }}>
-                                                    {{ $name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @else
-                                        <div
-                                            class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                            {{ $kontrak->user_approval ?? '-' }}
-                                        </div>
-                                    @endif
-                                </div> --}}
+                                </div>                              
                             </div>
 
                             {{-- ROW 3: Start Date + End Date --}}
@@ -435,6 +403,84 @@
                         </form>
                     </div>                    
                 </div>
+
+                {{-- ===================== DETAIL SECTION ===================== --}}
+<div class="rounded-xl bg-white dark:bg-gray-800 mt-6">
+    <header
+        class="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-700 rounded-t-xl">
+        <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <span
+                class="inline-flex items-center rounded-md bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">
+                DETAIL
+            </span>
+            TrBQCSDetail
+        </h2>
+    </header>
+
+    <div class="p-4 overflow-auto">
+        <table class="min-w-full text-sm">
+            <thead class="text-gray-600 dark:text-gray-300">
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                    <th class="p-3 text-left font-semibold">BQ No</th>
+                    <th class="p-3 text-left font-semibold">Line</th>
+                    <th class="p-3 text-left font-semibold">Description</th>
+                    <th class="p-3 text-right font-semibold">Qty</th>
+                    <th class="p-3 text-left font-semibold">UOM</th>
+                    <th class="p-3 text-left font-semibold">Category</th>
+                    <th class="p-3 text-right font-semibold">Duration</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @forelse(($details ?? []) as $d)
+                    <tr
+                        class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            {{ $d->bq_no ?? '-' }}
+                        </td>
+
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            {{ $d->bq_line_no ?? '-' }}
+                        </td>
+
+                        <td class="px-3 py-2">
+                            <div class="font-medium text-gray-900 dark:text-gray-100">
+                                {{ $d->bq_descr ?? '-' }}
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                Source: {{ $d->bq_source ?? '-' }}
+                            </div>
+                        </td>
+
+                        <td class="px-3 py-2 text-right whitespace-nowrap">
+                            {{ number_format((float)($d->qty ?? $d->bq_qty), 2, ',', '.') }}
+                        </td>
+
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            {{ $d->uom ?? '-' }}
+                        </td>
+
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            {{ $d->kontrakcategory ?? '-' }}
+                        </td>
+
+                        <td class="px-3 py-2 text-right whitespace-nowrap">
+                            {{ number_format((float)($d->kontrak_duration_qty ?? 0), 2, ',', '.') }}
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7"
+                            class="p-6 text-center italic text-gray-500 dark:text-gray-400">
+                            No detail found.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
             </div>
         </div>
     </div>

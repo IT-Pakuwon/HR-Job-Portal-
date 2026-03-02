@@ -316,6 +316,29 @@ class KontrakController extends Controller
 
         $kontrakCategories = $this->getKontrakCategories();
 
+         // ===== Detail Kontrak (TrBQCSDetail) =====
+        $detailQ = TrBQCSDetail::query();
+
+        // Paling aman: filter by bqid + csid kalau tersedia
+        if (!empty($kontrak->bqid)) {
+            $detailQ->where('bqid', $kontrak->bqid);
+        }
+
+        if (!empty($kontrak->csid)) {
+            $detailQ->where('csid', $kontrak->csid);
+        }
+
+        // Fallback kalau ternyata kontrak tidak punya bqid/csid
+        // (sesuaikan jika di data kamu relasinya pakai kontrak_bq_id)
+        if (empty($kontrak->bqid) && empty($kontrak->csid)) {
+            $detailQ->where('kontrak_bq_id', $kontrak->kontrakid);
+        }
+
+        $details = $detailQ
+            ->orderBy('bq_no')
+            ->orderBy('bq_line_no')
+            ->get();
+
         return view('pages.kontrak.createkontrak', [
             'kontrak'    => $kontrak,
             'attachment' => $attachment,
@@ -324,6 +347,7 @@ class KontrakController extends Controller
             'csUrl'      => $csUrl,
             'users'      => $users,
             'kontrakCategories' => $kontrakCategories,
+            'details'    => $details,
         ]);
     }
 
@@ -453,30 +477,30 @@ class KontrakController extends Controller
             ->orderBy('bq_line_no')
             ->get();
 
-        // ===== Kumpulkan semua vendorid dari detail =====
-        $vendorIds = collect($details)
-            ->flatMap(function ($d) {
-                return [
-                    $d->vendorid1,
-                    $d->vendorid2,
-                    $d->vendorid3,
-                    $d->vendorid4,
-                    $d->vendorid5,
-                    $d->vendorid6,
-                ];
-            })
-            ->filter() // buang null / kosong
-            ->unique()
-            ->values();
+        // // ===== Kumpulkan semua vendorid dari detail =====
+        // $vendorIds = collect($details)
+        //     ->flatMap(function ($d) {
+        //         return [
+        //             $d->vendorid1,
+        //             $d->vendorid2,
+        //             $d->vendorid3,
+        //             $d->vendorid4,
+        //             $d->vendorid5,
+        //             $d->vendorid6,
+        //         ];
+        //     })
+        //     ->filter() // buang null / kosong
+        //     ->unique()
+        //     ->values();
 
-        // ===== Ambil nama vendor sekali query =====
-        $vendorMap = [];
-        if ($vendorIds->isNotEmpty()) {
-            $vendorMap = MsVendor::query()
-                ->whereIn('vendor_id', $vendorIds)
-                ->pluck('vendor_name', 'vendor_id')
-                ->toArray();
-}
+        // // ===== Ambil nama vendor sekali query =====
+        // $vendorMap = [];
+        // if ($vendorIds->isNotEmpty()) {
+        //     $vendorMap = MsVendor::query()
+        //         ->whereIn('vendor_id', $vendorIds)
+        //         ->pluck('vendor_name', 'vendor_id')
+        //         ->toArray();
+        // }
 
         return view('pages.kontrak.showkontrak', [
             'kontrak'    => $kontrak,
@@ -487,7 +511,7 @@ class KontrakController extends Controller
             'users'      => $users,
             'kontrakCategories' => $kontrakCategories,
             'details'    => $details,
-            'vendorMap'  => $vendorMap,
+            // 'vendorMap'  => $vendorMap,
         ]);
     }
 
