@@ -179,6 +179,7 @@ class IssueController extends Controller
             $header->issuedate            = $now->toDateString();
             $header->issuetype            = 'IS'; // Issue
             $header->spbid                = $spbid;
+            $header->woid                 = $spb->woid ?? null;
             $header->cpny_id              = $spb->cpny_id ?? null;
             $header->department_id        = $spb->department_id ?? null;
             $header->user_peminta         = $spb->created_by ?? null;

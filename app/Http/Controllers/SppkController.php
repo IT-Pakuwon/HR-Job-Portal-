@@ -1584,430 +1584,7 @@ class SppkController extends Controller
         return response()->json(['success'=>true,'message'=>'SPPK revised successfully']);
     }
 
-
     
-    
-    // public function approveSppk(Request $request, $docid)
-    // {
-    //     $now  = Carbon::now();
-    //     $user = $request->user();
-
-    //     // $sppk = TrSPPK::where('sppkid', $docid)->first();
-    //     $sppk = TrSPPK::with('creator')
-    //         ->where('sppkid', $docid)
-    //         ->first();
-    //     $fullname = data_get($sppk, 'creator.name') ?: $sppk->created_by;
-
-    //     if (!$sppk) {
-    //         return response()->json(['success' => false, 'message' => 'SPPK not found'], 404);
-    //     }
-
-    //     // pastikan user memang approver aktif (status P) di doc ini
-    //     $tApproval = T_approval::where('docid', $sppk->sppkid)
-    //         ->where('status', 'P')
-    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
-    //         ->orderBy('aprvid', 'ASC')
-    //         ->first();
-
-    //     if (!$tApproval) {
-    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         // Set current approver -> Approved
-    //         $tApproval->status         = 'A';
-    //         $tApproval->aprvdateafter  = $now;
-    //         $tApproval->aprvusername   = $user->username;
-    //         $tApproval->name           = $user->name;
-    //         $tApproval->save();
-
-    //         // Update header informasi "terakhir diproses"
-    //         $sppk->completed_by = $user->username;
-    //         $sppk->completed_at = $now;
-    //         $sppk->save();
-
-    //         // Hitung sisa pending setelah approve ini
-    //         $pendingCount = T_approval::where('docid', $sppk->sppkid)
-    //             ->where('status', 'P')
-    //             ->count();
-
-    //         // Pemetaan judul sesuai status
-    //         $subjectMap = [
-    //             'P' => 'Waiting Approval',
-    //             'R' => 'Rejected Approval',
-    //             'D' => 'Revise Approval',
-    //             'A' => 'Approved',
-    //             'C' => 'Completed',
-    //         ];
-
-    //         $eid = Hashids::encode($sppk->id);
-
-    //         if ($pendingCount === 0) {
-    //             // Tidak ada approver lagi -> dokumen complete
-    //             $sppk->status       = 'C';
-    //             $sppk->completed_by = $user->username;
-    //             $sppk->completed_at = $now;
-    //             $sppk->save();
-
-    //             $sppkdetail = TrSPPKdetail::where('sppkid', $sppk->sppkid)                
-    //                 ->get();
-
-    //             foreach ($sppkdetail as $d) {
-    //                 $d->status = 'C'; 
-    //                 $d->save();
-    //             }
-
-    //             // Kirim email ke requester (creator)
-    //             $status        = 'C';
-    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-    //             $data = [
-    //                 'docid'     => $sppk->sppkid,
-    //                 'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
-    //                 'deptname'  => $sppk->department_id ?? $sppk->departementid ?? '',
-    //                 'date'      => $sppk->sppkdate,
-    //                 'fullname'  => $fullname,  // nama penerima di email
-    //                 'name'      => $fullname,  // fallback
-    //                 'createdby' => $fullname,
-    //                 'docname'   => 'SPPK',
-    //                 'info'      => $sppk->keperluan,
-    //                 'status'    => $status,
-    //                 'url'       => url('/showsppks/' . $eid),
-    //             ];
-
-    //             $recipients = User::where('username', $sppk->created_by)
-    //                 ->where('status', 'A')
-    //                 ->get();
-
-    //             foreach ($recipients as $rcp) {
-    //                 try {
-    //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                         $to = $rcp->notification_email ?? $rcp->email; // pakai field yang memang ada
-    //                         $message->to($to)
-    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
-    //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //                     });
-    //                 } catch (\Throwable $e) {
-    //                     Log::error('Failed sending SPPK completion email', ['error' => $e->getMessage()]);
-    //                 }
-    //             }
-    //         } else {
-    //             // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
-    //             $next = T_approval::where('docid', $sppk->sppkid)
-    //                 ->where('status', 'P')
-    //                 ->orderBy('aprvid', 'ASC')
-    //                 ->first();
-
-    //             if ($next) {
-    //                 // Stempel "datebefore" untuk approver berikutnya
-    //                 $next->aprvdatebefore = $now;
-    //                 $next->save();
-
-    //                 // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
-    //                 $status        = 'P';
-    //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-    //                 $data = [
-    //                     'docid'     => $next->docid,
-    //                     'cpnyid'    => $next->aprvcpnyid,
-    //                     'deptname'  => $next->aprvdeptid,
-    //                     'date'      => $next->aprvdatebefore,
-    //                     'fullname'  => $next->name,
-    //                     'name'      => $next->name,
-    //                     'createdby' => $sppk->created_by,
-    //                     'docname'   => 'SPPK',
-    //                     'info'      => $sppk->keperluan,
-    //                     'status'    => $status,
-    //                     'url'       => url('/showsppks/' . $eid),
-    //                 ];
-
-    //                 $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
-    //                 if (!empty($usernames)) {
-    //                     $recipients = User::whereIn('username', $usernames)
-    //                         ->where('status', 'A')
-    //                         ->get();
-
-    //                     foreach ($recipients as $rcp) {
-    //                         try {
-    //                             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                                 $to = $rcp->notification_email ?? $rcp->email;
-    //                                 $message->to($to)
-    //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
-    //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //                             });
-    //                         } catch (\Throwable $e) {
-    //                             Log::error('Failed sending SPPK waiting-approval email', ['error' => $e->getMessage()]);
-    //                         }
-    //                     }
-    //                 } else {
-    //                     Log::warning('Next approver has empty aprvusername list', ['docid' => $sppk->sppkid]);
-    //                 }
-    //             }
-    //         }
-
-    //         DB::commit();
-    //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Approve SPPK failed', ['error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
-    //     }
-    // }
-    
-    // public function rejectSppk(Request $request, $docid)
-    // {
-    //     $now  = Carbon::now();
-    //     $user = $request->user();
-
-    //     // $sppk = TrSPPK::where('sppkid', $docid)->first();
-    //     $sppk = TrSPPK::with('creator')
-    //         ->where('sppkid', $docid)
-    //         ->first();
-    //     $fullname = data_get($sppk, 'creator.name') ?: $sppk->created_by;
-
-    //     if (!$sppk) {
-    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-    //     }
-
-    //     // Validasi: user harus approver aktif (status P) pada dokumen ini
-    //     $tApproval = T_approval::where('docid', $sppk->sppkid)
-    //         ->where('status', 'P')
-    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
-    //         ->orderBy('aprvid', 'ASC')
-    //         ->first();
-
-    //     if (!$tApproval) {
-    //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         // Tandai approval saat ini sebagai Rejected
-    //         $tApproval->status        = 'R';
-    //         $tApproval->aprvdateafter = $now;
-    //         $tApproval->aprvusername  = $user->username; // catat siapa yang reject
-    //         $tApproval->name          = $user->name;
-    //         $tApproval->save();
-
-    //         // Update header SPPK
-    //         $sppk->status       = 'R';
-    //         $sppk->completed_by = $user->username;
-    //         $sppk->completed_at = $now;
-    //         $sppk->save();
-
-    //         // Batalkan semua approval yang masih pending
-    //         T_approval::where('docid', $sppk->sppkid)
-    //             ->where('status', 'P')
-    //             ->update(['status' => 'X']);
-
-    //         DB::commit();
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Reject SPPK failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
-    //     }
-
-    //     // === Kirim Email ke requester (creator) ===
-    //     $status = 'R'; // Rejected
-    //     $subjectMap = [
-    //         'P' => 'Waiting Approval',
-    //         'R' => 'Rejected Approval',
-    //         'D' => 'Revise Approval',
-    //         'A' => 'Approved',
-    //         'C' => 'Completed',
-    //     ];
-    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-    //     $eid = Hashids::encode($sppk->id);
-
-    //     $data = [
-    //         'docid'     => $sppk->sppkid,
-    //         'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
-    //         'deptname'  => $sppk->department_id ?? $sppk->departementid ?? '',
-    //         'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
-    //         'fullname'  => $fullname,               // view email kita pakai $fullname
-    //         'name'      => $fullname,               // fallback jika view pakai $name
-    //         'createdby' => $fullname,
-    //         'docname'   => 'SPPK',
-    //         'info'      => $sppk->keperluan,
-    //         'status'    => $status,
-    //         'url'       => url('/showsppks/' . $eid),
-    //     ];
-
-    //     $recipients = User::where('username', $sppk->created_by)
-    //         ->where('status', 'A')
-    //         ->get();
-
-    //     foreach ($recipients as $rcp) {
-    //         try {
-    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan field yang tersedia
-    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-    //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
-    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //             });
-    //         } catch (\Throwable $e) {
-    //             Log::error('Failed sending SPPK rejected email', [
-    //                 'docid' => $data['docid'],
-    //                 'to'    => $rcp->username,
-    //                 'error' => $e->getMessage()
-    //             ]);
-    //         }
-    //     }
-
-    //     // Simpan komentar penolakan (jika ada)
-    //     try {
-    //         app('App\Http\Controllers\SendCommentController')
-    //             ->sendmsg($sppk->id, 'PK', $request);
-    //     } catch (\Throwable $e) {
-    //         Log::warning('SendComment after reject failed', [
-    //             'docid' => $sppk->sppkid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     return response()->json(['success' => true, 'message' => 'SPPK rejected successfully']);
-    // }
-
-    // public function reviseSppk(Request $request, $docid)
-    // {
-    //     $now  = Carbon::now();
-    //     $user = $request->user();
-
-    //     // $sppk = TrSPPK::where('sppkid', $docid)->first();
-    //     $sppk = TrSPPK::with('creator')
-    //         ->where('sppkid', $docid)
-    //         ->first();
-    //     $fullname = data_get($sppk, 'creator.name') ?: $sppk->created_by;
-            
-    //     if (!$sppk) {
-    //         return response()->json(['success' => false, 'message' => 'SPPK not found'], 404);
-    //     }
-
-    //     // Pastikan user adalah approver aktif (status P) dokumen ini
-    //     $tApproval = T_approval::where('docid', $sppk->sppkid)
-    //         ->where('status', 'P')
-    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
-    //         ->orderBy('aprvid', 'ASC')
-    //         ->first();
-
-    //     if (!$tApproval) {
-    //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         // Tandai approval saat ini sebagai Revise (D)
-    //         $tApproval->status        = 'D';
-    //         $tApproval->aprvdateafter = $now;
-    //         $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
-    //         $tApproval->name          = $user->name;
-    //         $tApproval->save();
-
-    //         // Update header SPPK
-    //         $sppk->status       = 'D';
-    //         $sppk->completed_by = $user->username;        // mengikuti pola existing
-    //         $sppk->completed_at = $now;
-    //         $sppk->save();
-
-    //         // Batalkan approval lain yang masih pending
-    //         T_approval::where('docid', $sppk->sppkid)
-    //             ->where('status', 'P')
-    //             ->update(['status' => 'X']);
-
-    //         DB::commit();
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Revise SPPK failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
-    //     }
-
-    //     // === Kirim email ke requester (creator) ===
-    //     $status = 'D'; // Revise
-    //     $subjectMap = [
-    //         'P' => 'Waiting Approval',
-    //         'R' => 'Rejected Approval',
-    //         'D' => 'Revise Approval',
-    //         'A' => 'Approved',
-    //         'C' => 'Completed',
-    //     ];
-    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-    //     $eid = Hashids::encode($sppk->id);
-
-    //     $data = [
-    //         'docid'     => $sppk->sppkid,
-    //         'cpnyid'    => $sppk->cpny_id ?? $sppk->cpnyid ?? '',
-    //         'deptname'  => $sppk->department_id ?? $sppk->departementid ?? '',
-    //         'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
-    //         'fullname'  => $fullname,             // template email pakai $fullname
-    //         'name'      => $fullname,             // fallback jika view pakai $name
-    //         'createdby' => $fullname,
-    //         'docname'   => 'SPPK',
-    //         'info'      => $sppk->keperluan,
-    //         'status'    => $status,
-    //         'url'       => url('/showsppks/' . $eid),
-    //     ];
-
-    //     $recipients = User::where('username', $sppk->created_by)
-    //         ->where('status', 'A')
-    //         ->get();
-
-    //     foreach ($recipients as $rcp) {
-    //         try {
-    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
-    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-    //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPK')
-    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //             });
-    //         } catch (\Throwable $e) {
-    //             Log::error('Failed sending SPPK revise email', [
-    //                 'docid' => $data['docid'],
-    //                 'to'    => $rcp->username,
-    //                 'error' => $e->getMessage()
-    //             ]);
-    //         }
-    //     }
-
-    //     // Simpan komentar revisi (jika ada)
-    //     try {
-    //         app('App\Http\Controllers\SendCommentController')
-    //             ->sendmsg($sppk->id, 'PK', $request);
-    //     } catch (\Throwable $e) {
-    //         Log::warning('SendComment after revise failed', [
-    //             'docid' => $sppk->sppkid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     return response()->json(['success' => true, 'message' => 'SPPK revised successfully']);
-    // }
-    
-
-    // public function checkApproval($id, $action)
-    // {
-    //     $user = Auth::user(); // Ambil user yang login
-    //     // dd($action);
-    //     // Query dasar untuk pengecekan
-    //     $query = T_approval::where('docid', $id)
-    //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
-    //                 ->where('status', 'P');                 
-
-    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-    //     if (in_array($action, ['reject', 'revise','approve'])) {
-    //         $query->whereNotNull('aprvdatebefore');
-    //     }
-
-    //     // Cek apakah user bisa melakukan aksi
-    //     $canPerformAction = $query->exists();
-
-    //     return response()->json(['canPerformAction' => $canPerformAction]);
-    // }
 
     public function trackingDetail($hash)
     {
@@ -2031,7 +1608,7 @@ class SppkController extends Controller
 
         // ===== LIST CS (ALL) =====
         $csList = TrCS::query()
-            ->where('sppbjktid', $sppkNo) // relasi ke SPPK
+            ->where('sppbjktid', $sppkNo) // <-- relasi ke SPPK
             ->whereNull('deleted_at')
             ->orderBy('csdate', 'desc')
             ->get(['csid','csdate','status','completed_by','completed_at']);
@@ -2040,7 +1617,7 @@ class SppkController extends Controller
 
         // ===== LIST PO (ALL) =====
         $poList = TrPO::query()
-            ->where('sppbjktid', $sppkNo) // relasi ke SPPK
+            ->where('sppbjktid', $sppkNo) // <-- relasi ke SPPK
             ->whereNull('deleted_at')
             ->orderBy('podate', 'desc')
             ->get(['ponbr','podate','status','csid','completed_by','completed_at']);
@@ -2048,8 +1625,9 @@ class SppkController extends Controller
         $selPoNo = optional($poList->first())->ponbr;
 
         // ===== LIST BAST (ALL) =====
+        // ⚠️ asumsi: tr_bast.sppbjktid = sppkid
         $bastList = TrBast::query()
-            ->where('sppbjktid', $sppkNo) // relasi ke SPPK
+            ->where('sppbjktid', $sppkNo)
             ->whereNull('deleted_at')
             ->orderBy('bastdate', 'desc')
             ->get(['bastid','bastdate','status','ponbr','csid','completed_by','completed_at']);
@@ -2067,7 +1645,7 @@ class SppkController extends Controller
             : null;
 
         $csDetails = collect();
-        if ($selCsNo && $csHeader) {
+        if ($selCsNo) {
             $isTrue = function ($v) {
                 if (is_bool($v)) return $v;
                 $v = strtolower((string)$v);
@@ -2090,15 +1668,18 @@ class SppkController extends Controller
                 })
                 // ✅ map ke array supaya field tambahan pasti ikut ke JSON
                 ->map(function($d) use ($csHeader, $isTrue){
+
                     $vendorName  = null;
                     $vendorPrice = null;
 
-                    if ($isTrue($d->vendor1selected)) { $vendorName = $csHeader->vendorname1; $vendorPrice = $d->vendorprice1; }
-                    elseif ($isTrue($d->vendor2selected)) { $vendorName = $csHeader->vendorname2; $vendorPrice = $d->vendorprice2; }
-                    elseif ($isTrue($d->vendor3selected)) { $vendorName = $csHeader->vendorname3; $vendorPrice = $d->vendorprice3; }
-                    elseif ($isTrue($d->vendor4selected)) { $vendorName = $csHeader->vendorname4; $vendorPrice = $d->vendorprice4; }
-                    elseif ($isTrue($d->vendor5selected)) { $vendorName = $csHeader->vendorname5; $vendorPrice = $d->vendorprice5; }
-                    elseif ($isTrue($d->vendor6selected)) { $vendorName = $csHeader->vendorname6; $vendorPrice = $d->vendorprice6; }
+                    if ($csHeader) {
+                        if ($isTrue($d->vendor1selected)) { $vendorName = $csHeader->vendorname1; $vendorPrice = $d->vendorprice1; }
+                        elseif ($isTrue($d->vendor2selected)) { $vendorName = $csHeader->vendorname2; $vendorPrice = $d->vendorprice2; }
+                        elseif ($isTrue($d->vendor3selected)) { $vendorName = $csHeader->vendorname3; $vendorPrice = $d->vendorprice3; }
+                        elseif ($isTrue($d->vendor4selected)) { $vendorName = $csHeader->vendorname4; $vendorPrice = $d->vendorprice4; }
+                        elseif ($isTrue($d->vendor5selected)) { $vendorName = $csHeader->vendorname5; $vendorPrice = $d->vendorprice5; }
+                        elseif ($isTrue($d->vendor6selected)) { $vendorName = $csHeader->vendorname6; $vendorPrice = $d->vendorprice6; }
+                    }
 
                     return [
                         'id' => $d->id,
@@ -2106,8 +1687,11 @@ class SppkController extends Controller
                         'inventory_descr' => $d->inventory_descr,
                         'qty' => $d->qty,
                         'uom' => $d->uom,
+
+                        // ✅ tampilkan vendor selected (nama)
                         'vendorname_selected' => $vendorName,
                         'vendorprice_selected' => $vendorPrice,
+
                         'status' => $d->status,
                     ];
                 })
@@ -2127,10 +1711,14 @@ class SppkController extends Controller
             ->whereNull('deleted_at')->orderBy('id')->get()
             : collect();
 
-        // ---- BAST header only ----
+        // ---- BAST (header only, no detail) ----
         $bastHeader = $selBastNo
             ? TrBast::where('bastid', $selBastNo)->whereNull('deleted_at')->first()
             : null;
+
+        $lastApprSppj    = $this->getLastApprovalInfo($sppkNo);
+        $lastApprCs      = $selCsNo ? $this->getLastApprovalInfo($selCsNo) : null;
+        $lastApprBast    = $selBastNo ? $this->getLastApprovalInfo($selBastNo) : null;
 
         return response()->json([
             'doc' => $sppkNo,
@@ -2174,19 +1762,13 @@ class SppkController extends Controller
                     'cpny_id' => $sppk->cpny_id,
                     'department_id' => $sppk->department_id,
                     'keperluan' => $sppk->keperluan,
-
-                    // ✅ field khas SPPK
-                    'no_polisi' => $sppk->no_polisi,
-                    'namakendaraan' => $sppk->namakendaraan,
-                    'pemilikkendaraan' => $sppk->pemilikkendaraan,
-                    'km_kendaraan' => $sppk->km_kendaraan,
-
                     'status' => $sppk->status,
                     'created_by' => $sppk->created_by,
                     'created_at' => $fmt($sppk->created_at),
                     'completed_by' => $sppk->completed_by,
                     'completed_at' => $fmt($sppk->completed_at),
                     'is_approved' => $approved($sppk),
+                    'last_approval' => $lastApprSppj,
                 ],
                 'details' => $sppkDetails,
             ],
@@ -2202,6 +1784,7 @@ class SppkController extends Controller
                     'completed_by' => $csHeader->completed_by,
                     'completed_at' => $fmt($csHeader->completed_at),
                     'is_approved' => $approved($csHeader),
+                    'last_approval' => $lastApprCs,
                 ] : null,
                 'details' => $csDetails,
             ],
@@ -2232,9 +1815,10 @@ class SppkController extends Controller
                     'completed_by' => $bastHeader->completed_by,
                     'completed_at' => $fmt($bastHeader->completed_at),
                     'is_approved' => $approved($bastHeader),
+                    'last_approval' => $lastApprBast,
                 ] : null,
 
-                // ✅ extra info untuk "No detail BAST"
+                // ✅ tambahan info header buat isi "detail"
                 'extra' => $bastHeader ? [
                     'ponbr'          => $bastHeader->ponbr,
                     'csid'           => $bastHeader->csid,
@@ -2265,9 +1849,10 @@ class SppkController extends Controller
 
                 'details' => [],
             ],
+
         ]);
     }
-
+   
     public function trackingDetailItem($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -2347,6 +1932,7 @@ class SppkController extends Controller
                     'completed_by' => $h->completed_by,
                     'completed_at' => $fmt($h->completed_at),
                     'is_approved' => $approved($h),
+                    'last_approval' => $this->getLastApprovalInfo($h->csid),
                 ] : null,
                 'details' => $details,
             ]);
@@ -2397,6 +1983,7 @@ class SppkController extends Controller
                 'completed_by' => $h->completed_by,
                 'completed_at' => $fmt($h->completed_at),
                 'is_approved' => $approved($h),
+                'last_approval' => $this->getLastApprovalInfo($h->bastid),
             ] : null,
             'extra'  => $h ? [
                 'ponbr' => $h->ponbr,
@@ -2420,8 +2007,47 @@ class SppkController extends Controller
                 'days_penalty' => $h->days_penalty,
                 'rating_vendor' => $h->rating_vendor,
             ] : null,
-            'details' => [],
+            'details' => [], // BAST tidak ada detail
         ]);
+    }
+
+    private function getLastApprovalInfo(string $refnbr): ?array
+    {
+        $refnbr = trim((string)$refnbr);
+        if ($refnbr === '') return null;
+
+        // 1) PRIORITY: status P & aprv_datebefore not null
+        $row = TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->orderByDesc('aprv_leveling')
+            ->orderByDesc('id')
+            ->first();
+
+        // 2) FALLBACK: status A (approved)
+        if (!$row) {
+            $row = TrApproval::query()
+                ->where('refnbr', $refnbr)
+                ->where('status', 'A')
+                ->orderByDesc('aprv_leveling')
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        if (!$row) return null;
+
+        // Note: field "created_by" kamu ada di fillable, tapi juga ada aprv_username & aprv_name
+        return [
+            'status'        => $row->status,                 // P / A
+            'aprv_leveling' => $row->aprv_leveling,
+            'username'      => $row->aprv_username ?? $row->created_by,
+            'name'          => $row->aprv_name,
+            'date_before'   => $row->aprv_datebefore,
+            'date_after'    => $row->aprv_dateafter,
+            'doctype'       => $row->aprv_doctype,
+            'condition'     => $row->aprv_condition,
+        ];
     }
 
 

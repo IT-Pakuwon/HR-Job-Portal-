@@ -2210,7 +2210,10 @@ class SppjController extends Controller
             'creator:username,name'
         ])->findOrFail($id);     
 
-        $canEdit = TrApproval::where('refnbr', $bq->sppjtid)
+        // ==============================
+        // CEK APPROVAL LEVEL 1
+        // ==============================
+        $isApprovalLevel1 = TrApproval::where('refnbr', $bq->sppjtid)
             ->where('aprv_leveling', '1')
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
@@ -2218,16 +2221,24 @@ class SppjController extends Controller
                 $u = $user->username;
 
                 $q->where('aprv_username', $u) 
-                ->orWhere('aprv_username', 'ilike', $u . ',%')      
-                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%') 
-                ->orWhere('aprv_username', 'ilike', '%,' . $u);     
+                    ->orWhere('aprv_username', 'ilike', $u . ',%')      
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%') 
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u);     
             })
             ->exists();
 
+        // ==============================
+        // CEK CREATED BY
+        // ==============================
+        $isCreator = $bq->created_by === $user->username;
+
+        // ==============================
+        // FINAL CAN EDIT
+        // ==============================
+        $canEdit = $isApprovalLevel1 || $isCreator;
+
         $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();      
             
-     
-    
         return view('pages.sppjs.showbqsppjs', compact('bq','bqdetail','canEdit','hash'));
     }
 

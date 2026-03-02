@@ -2574,6 +2574,276 @@ class MasterController extends Controller
     public function InventoryListJoin(Request $request)
     {
         $type    = strtoupper($request->get('type', 'GI'));
+        $cpnyid  = strtoupper(trim((string) $request->get('cpnyid', '')));
+        $search  = trim((string) $request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        $deptId = $request->get('departementid'); // boleh null
+        $businessUnitId = trim((string) $request->get('business_unit_id', ''));
+
+        // =========================================================
+        // 1) Tentukan BU + integrationType + siteFilter + model view
+        // =========================================================
+        $siteFilter = null;
+        $integrationType = null; // SOLOMON / IFCA / null
+        $model = null;
+
+        if ($businessUnitId !== '') {
+            $bu = BusinessUnit::query()
+                ->where('status', 'A')
+                ->where('business_unit_id', $businessUnitId)
+                ->when($cpnyid !== '', fn($q) => $q->where('cpny_id', $cpnyid))
+                ->first(['business_unit_id','cpny_id','integration_type','ifca_entity_cd','solomon_cpny_id']);
+
+            if ($bu) {
+                $integrationType = strtoupper(trim((string)($bu->integration_type ?? '')));
+
+                if ($integrationType === 'SOLOMON') {
+                    $siteFilter = trim((string)($bu->solomon_cpny_id ?? ''));
+                } elseif ($integrationType === 'IFCA') {
+                    $siteFilter = trim((string)($bu->ifca_entity_cd ?? ''));
+                } else {
+                    $siteFilter = trim((string)($bu->ifca_entity_cd ?? ''));
+                    if ($siteFilter === '') $siteFilter = trim((string)($bu->solomon_cpny_id ?? ''));
+                }
+                if ($siteFilter === '') $siteFilter = null;
+
+                // pilih model view berdasarkan company + integrationType (MIRROR jsonInventory)
+                switch ($cpnyid) {
+                    case 'AW':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryAWIfca::class
+                            : \App\Models\ViewInventoryAW::class;
+                        break;
+
+                    case 'EP':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryEPHIfca::class
+                            : \App\Models\ViewInventoryEPH::class;
+                        break;
+
+                    case 'O8':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryO8Ifca::class
+                            : \App\Models\ViewInventoryO8::class;
+                        break;
+
+                    case 'PSA':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryPSAIfca::class
+                            : \App\Models\ViewInventoryPSA::class;
+                        break;
+
+                    case 'GPS':
+                        // GPS kamu memang IFCA saja
+                        $model = \App\Models\ViewInventoryGPSIfca::class;
+                        break;
+
+                    default:
+                        $model = null;
+                        break;
+                }
+            }
+        } else {
+            // kalau BU kosong, fallback lama: pakai view berdasarkan cpny saja (optional)
+            // kalau kamu mau strict: biarkan null supaya tidak query sqlserver
+            switch ($cpnyid) {
+                case 'AW':  $model = \App\Models\ViewInventoryAW::class; break;
+                case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
+                case 'O8':  $model = \App\Models\ViewInventoryO8::class; break;
+                case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
+                case 'GPS': $model = \App\Models\ViewInventoryGPSIfca::class; break;
+                default:    $model = null; break;
+            }
+        }
+
+        // =========================
+        // 2) Base query MsInventory (PG)
+        // =========================
+        $query = MsInventory::query()
+            ->select([
+                'inventoryid',
+                'inventory_descr',
+                'stock_unit',
+                'item_type',
+                'item_category',
+                'purchase_unit',
+                'item_sub_type',
+                'item_class',
+            ]);
+
+        // Filter item_type
+        if ($type === 'GI') {
+            $query->where('item_type', 'GI');
+        } elseif ($type === 'SE') {
+            $query->where('item_type', 'SE');
+        } elseif ($type === 'NS') {
+            $query->where('item_type', 'NS');
+        } else {
+            $query->whereNotIn('item_type', ['GI', 'SE']);
+        }
+
+        // FILTER item_class berdasarkan MsWorktypeWhs (hanya GI + deptId)
+        if ($type === 'GI' && !empty($deptId)) {
+            $allowedItemClasses = MsWorktypeWhs::where('department_id', $deptId)
+                ->where('status', 'A')
+                ->pluck('item_class')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($allowedItemClasses)) {
+                $query->whereIn('item_class', $allowedItemClasses);
+            }
+        }
+
+        // Search (PG)
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('inventoryid', 'ilike', "%{$search}%")
+                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                ->orWhere('stock_unit', 'ilike', "%{$search}%")
+                ->orWhere('purchase_unit', 'ilike', "%{$search}%")
+                ->orWhere('item_class', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query->distinct()
+            ->groupBy([
+                'inventoryid', 'inventory_descr', 'stock_unit',
+                'item_type', 'item_category', 'purchase_unit',
+                'item_sub_type', 'item_class'
+            ])
+            ->orderBy('inventoryid', 'asc')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return response()->json([
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'meta'     => [
+                    'type' => $type,
+                    'cpnyid' => $cpnyid,
+                    'departementid' => $deptId,
+                    'business_unit_id' => $businessUnitId,
+                    'integration_type' => $integrationType,
+                    'site_filter' => $siteFilter,
+                    'model' => $model ? class_basename($model) : null,
+                ],
+            ]);
+        }
+
+        // =========================
+        // 3) Expand stock/cost (SQL Server) - CHUNK SAFE
+        // =========================
+        $expanded = collect();
+
+        if ($model) {
+            $invIds = $rows->pluck('inventoryid')
+                ->filter()
+                ->map(fn($v) => strtoupper(trim((string)$v)))
+                ->unique()
+                ->values()
+                ->all();
+
+            // group stock rows by invtid (UPPER+TRIM)
+            $ssGroups = collect();
+
+            // ✅ CHUNK to avoid 2100 parameter limit (safe)
+            foreach (array_chunk($invIds, 1000) as $chunk) {
+                $ssRows = $model::query()
+                    ->selectRaw("
+                        RTRIM(LTRIM(invtid)) AS invtid,
+                        cpnyid,
+                        siteid,
+                        CAST(stock AS float) AS stock,
+                        CAST(cost  AS float) AS cost
+                    ")
+                    ->whereIn('invtid', $chunk)
+                    ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+                    ->when($siteFilter, fn($q) => $q->where('siteid', $siteFilter))
+                    ->get();
+
+                // merge
+                $ssGroups = $ssGroups->merge($ssRows);
+            }
+
+            // aggregate per invtid (sum stock & cost, keep last siteid)
+            $agg = [];
+            foreach ($ssGroups as $r) {
+                $k = strtoupper(trim((string)$r->invtid));
+                if ($k === '') continue;
+
+                if (!isset($agg[$k])) {
+                    $agg[$k] = [
+                        'stock' => 0.0,
+                        'cost'  => 0.0,
+                        'siteid'=> $r->siteid ?? null,
+                    ];
+                }
+                $agg[$k]['stock'] += (float)($r->stock ?? 0);
+                $agg[$k]['cost']  += (float)($r->cost ?? 0);
+                $agg[$k]['siteid'] = $r->siteid ?? $agg[$k]['siteid'];
+            }
+
+            foreach ($rows as $r) {
+                $key = strtoupper(trim((string)$r->inventoryid));
+
+                $clone = clone $r;
+
+                if (!isset($agg[$key])) {
+                    $clone->stock  = null;
+                    $clone->cost   = null;
+                    $clone->siteid = $siteFilter ?: null;
+                    $expanded->push($clone);
+                    continue;
+                }
+
+                // single row output (karena kita aggregate)
+                $clone->stock  = $agg[$key]['stock'];
+                $clone->cost   = $agg[$key]['cost'];
+                $clone->siteid = $agg[$key]['siteid'];
+                $expanded->push($clone);
+            }
+        } else {
+            // no sqlserver view found
+            foreach ($rows as $r) {
+                $clone = clone $r;
+                $clone->stock  = null;
+                $clone->cost   = null;
+                $clone->siteid = null;
+                $expanded->push($clone);
+            }
+        }
+
+        return response()->json([
+            'data'     => $expanded->values(),
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+            'meta'     => [
+                'type' => $type,
+                'cpnyid' => $cpnyid,
+                'departementid' => $deptId,
+                'business_unit_id' => $businessUnitId,
+                'integration_type' => $integrationType,
+                'site_filter' => $siteFilter,
+                'model' => $model ? class_basename($model) : null,
+            ],
+        ]);
+    }
+
+    public function InventoryListJoin_ori(Request $request)
+    {
+        $type    = strtoupper($request->get('type', 'GI'));
         $cpnyid  = strtoupper(trim($request->get('cpnyid', '')));
         $search  = trim($request->get('search', ''));
         $page    = max((int) $request->get('page', 1), 1);

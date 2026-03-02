@@ -140,80 +140,81 @@
         </div>
 
         <!-- ================== TRACKING MODAL ================== -->
-        <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-            <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+        <div id="trackingModal" class="fixed inset-0 z-50 hidden bg-black/50">
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div
+                    class="max-h-[90vh] w-full max-w-7xl overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
 
-                <div class="flex items-start justify-between gap-4">
-                    <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
-                        SPPT Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
-                    </h3>
-                    <button id="closeTracking"
-                        class="text-lg leading-none text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200">
-                        &times;
-                    </button>
-                </div>
-
-                <!-- Tabs -->
-                <div id="trackTabs" class="mt-4 flex flex-wrap gap-2">
-                    <button type="button"
-                        class="track-tab active rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
-                        data-tab="tab-sppt">SPPT</button>
-                    <button type="button" class="track-tab rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
-                        data-tab="tab-cs">CS</button>
-                    <button type="button" class="track-tab rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
-                        data-tab="tab-po">PO</button>
-                    <button type="button" class="track-tab rounded-lg border px-3 py-1 text-sm dark:border-gray-600"
-                        data-tab="tab-bast">BAST</button>
-                </div>
-
-                <!-- Loading -->
-                <div id="tlLoading" class="mt-4 hidden items-center justify-center">
+                    <!-- Header -->
                     <div
-                        class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-200">
-                        Loading...
-                    </div>
-                </div>
-
-                <!-- Panes -->
-                <div class="mt-4 space-y-4">
-                    <!-- SPPT -->
-                    <div id="tab-sppt" class="track-pane">
-                        <div id="spptHeaderBox"></div>
-                        <div class="mt-3" id="spptDetailBox"></div>
+                        class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
+                            Tracking Detail <span id="trackDoc" class="font-bold text-indigo-600"></span>
+                        </h3>
+                        <button type="button" id="closeTracking"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            ✕
+                        </button>
                     </div>
 
-                    <!-- CS -->
-                    <div id="tab-cs" class="track-pane hidden">
-                        <div class="mb-2 flex items-center gap-2">
-                            <label class="text-sm text-gray-500">CS:</label>
-                            <select id="selCs"
-                                class="rounded-lg border px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"></select>
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 px-4 dark:border-gray-700">
+                        <div class="flex gap-2 overflow-x-auto py-2" id="trackTabs">
+                            <button class="track-tab active" data-tab="tab-sppt">SPPT</button>
+                            <button class="track-tab" data-tab="tab-cs">CS</button>
+                            <button class="track-tab" data-tab="tab-po">SPK</button>
+                            <button class="track-tab" data-tab="tab-bast">BAST</button>
                         </div>
-                        <div id="csHeaderBox"></div>
-                        <div class="mt-3" id="csDetailBox"></div>
                     </div>
 
-                    <!-- PO -->
-                    <div id="tab-po" class="track-pane hidden">
-                        <div class="mb-2 flex items-center gap-2">
-                            <label class="text-sm text-gray-500">PO:</label>
-                            <select id="selPo"
-                                class="rounded-lg border px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"></select>
+                    <!-- Body -->
+                    <div class="max-h-[calc(90vh-110px)] overflow-y-auto p-4">
+                        <div id="tlLoading"
+                            class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
+                            <span
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                            Loading...
                         </div>
-                        <div id="poHeaderBox"></div>
-                        <div class="mt-3" id="poDetailBox"></div>
-                    </div>
 
-                    <!-- BAST -->
-                    <div id="tab-bast" class="track-pane hidden">
-                        <div class="mb-2 flex items-center gap-2">
-                            <label class="text-sm text-gray-500">BAST:</label>
-                            <select id="selBast"
-                                class="rounded-lg border px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"></select>
+                        <!-- SPPT -->
+                        <div id="tab-sppt" class="track-pane">
+                            <div id="spptHeaderBox"></div>
+                            <div class="mt-3" id="spptDetailBox"></div>
                         </div>
-                        <div id="bastHeaderBox"></div>
-                        <div class="mt-3" id="bastInfoBox"></div>
+
+                        <!-- CS -->
+                        <div id="tab-cs" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select CS</label>
+                                <select id="selCs"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="csHeaderBox"></div>
+                            <div class="mt-3" id="csDetailBox"></div>
+                        </div>
+
+                        <!-- PO -->
+                        <div id="tab-po" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select SPK</label>
+                                <select id="selPo"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="poHeaderBox"></div>
+                            <div class="mt-3" id="poDetailBox"></div>
+                        </div>
+
+                        <!-- BAST -->
+                        <div id="tab-bast" class="track-pane hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select BAST</label>
+                                <select id="selBast"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="bastHeaderBox"></div>
+                            <div class="mt-3" id="bastInfoBox"></div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -362,20 +363,16 @@
     </script>
     <script>
         /* =========================
-                                            MODAL open/close + tabs
-                                            ========================= */
+                                                        MODAL open/close + tabs
+                                                        ========================= */
         function openTrackingModal(docText) {
             document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-            const modal = document.getElementById('trackingModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('trackingModal').classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
         }
 
         function closeTrackingModal() {
-            const modal = document.getElementById('trackingModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('trackingModal').classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
         }
         document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
@@ -448,63 +445,126 @@
                 return `<span class="inline-block rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Rejected</span>`;
             if (st === 'D')
                 return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Revise</span>`;
+            if (st === 'H')
+                return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Hold</span>`;
             return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">${esc(st || '-')}</span>`;
+        }
+
+        function statusLabel2(st) {
+            st = String(st || '').toUpperCase();
+            switch (st) {
+                case 'P':
+                    return 'On Progress';
+                case 'C':
+                    return 'Completed';
+                case 'R':
+                    return 'Rejected';
+                case 'D':
+                    return 'Revise';
+                default:
+                    return st || '-';
+            }
+        }
+
+        function badgeApproved(isApproved) {
+            if (isApproved)
+                return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
+            return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
         }
 
         /* =========================
         render header box
         ========================= */
+
         function renderHeader(boxId, header, title) {
             const box = document.getElementById(boxId);
             if (!box) return;
 
             if (!header) {
                 box.innerHTML = `
-            <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
-                ${esc(title)} not created yet.
-            </div>`;
+                    <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
+                        ${esc(title)} not created yet.
+                    </div>`;
                 return;
             }
 
-            // tambahan field SPPT (kendaraan)
-            const vehicleInfo = (header.no_polisi !== undefined) ?
-                `
-            <div class="sm:col-span-2">
-                <span class="text-gray-500">Kendaraan:</span>
-                <span class="font-semibold text-gray-800 dark:text-white">
-                ${esc(header.no_polisi || '-')} | ${esc(header.namakendaraan || '-')} | ${esc(header.pemilikkendaraan || '-')} | KM ${esc(header.km_kendaraan || '-')}
-                </span>
-            </div>
-            ` : '';
+            // ✅ ambil last approval dari header
+            const la = header.last_approval || null;
+
+            let lastApprovalHtml = '';
+            if (la) {
+                const st = String(la.status || '').toUpperCase();
+                const stText = (st === 'P') ? 'Pending Approval' : (st === 'A') ? 'Approved' : (st || '-');
+
+                const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
+                const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null && la.aprv_leveling !== '') ?
+                    `Lvl ${esc(la.aprv_leveling)}` :
+                    '';
+
+                const dtb = la.date_before ? esc(la.date_before) : '';
+                const dta = la.date_after ? esc(la.date_after) : '';
+
+                lastApprovalHtml = `
+                    <div class="sm:col-span-2 mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-700/40 dark:bg-indigo-900/20">
+                        <div class="flex items-center justify-between">
+                            <div class="font-semibold text-indigo-700 dark:text-indigo-300">Last Approval</div>
+                            <div class="text-xs text-indigo-700/80 dark:text-indigo-300/80">
+                                ${esc(stText)} ${lvl ? `• ${lvl}` : ''}
+                            </div>
+                        </div>
+                        <div class="mt-1 text-gray-700 dark:text-gray-200">
+                            <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
+                            ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
+                            ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
 
             box.innerHTML = `
-            <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                <div class="text-sm font-semibold text-gray-800 dark:text-white">${esc(title)} : ${esc(header.doc)}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-300">${esc(header.date || '')}</div>
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-semibold text-gray-800 dark:text-white">
+                                ${esc(title)} : ${esc(header.doc)}
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-300">${esc(header.date || '')}</div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            ${statusBadge(header.status)}
+                        </div>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                        <div><span class="text-gray-500">Company:</span>
+                            <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
+                        </div>
+                        <div><span class="text-gray-500">Department:</span>
+                            <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
+                        </div>
+
+                        ${header.vendorname !== undefined ? `
+                                        <div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                            <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span>
+                                        </div>` : ''}
+
+                        ${header.keperluan !== undefined ? `
+                                        <div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                            <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span>
+                                        </div>` : ''}
+
+                        ${lastApprovalHtml}
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                ${statusBadge(header.status)}
-                </div>
-            </div>
-
-            <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                <div><span class="text-gray-500">Company:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span></div>
-                <div><span class="text-gray-500">Department:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span></div>
-
-                ${header.vendorname !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>` : ''}
-                ${header.keperluan !== undefined ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span> <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>` : ''}
-
-                ${vehicleInfo}
-            </div>
-            </div>`;
+            `;
         }
+
 
         /* =========================
         render detail tables
         ========================= */
-        function renderDetailSppk(rows) {
+        function renderDetailSppt(rows) {
             if (!Array.isArray(rows) || rows.length === 0) return `<div class="text-sm text-gray-500">No detail.</div>`;
             const trs = rows.map(r => `
             <tr class="border-b dark:border-gray-700">
@@ -513,9 +573,7 @@
             <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
             <td class="px-3 py-2">${esc(r.uom)}</td>
             <td class="px-3 py-2">${esc(r.siteid)}</td>
-            <td class="px-3 py-2 text-right">${fmt2(r.openordered)}</td>
-            <td class="px-3 py-2 text-right">${fmt2(r.ordered)}</td>
-            <td class="px-3 py-2 text-right">${fmt2(r.completeordered)}</td>
+            <td class="px-3 py-2">${statusBadge(r.ordered)}</td>
             </tr>
         `).join('');
             return `
@@ -528,9 +586,7 @@
                     <th class="px-3 py-2 text-right">Qty</th>
                     <th class="px-3 py-2 text-left">UOM</th>
                     <th class="px-3 py-2 text-left">Site</th>
-                    <th class="px-3 py-2 text-right">Open</th>
-                    <th class="px-3 py-2 text-right">Ordered</th>
-                    <th class="px-3 py-2 text-right">Completed</th>
+                    <th class="px-3 py-2 text-left">Ordered</th>
                 </tr>
                 </thead>
                 <tbody>${trs}</tbody>
@@ -547,7 +603,6 @@
             <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
             <td class="px-3 py-2">${esc(r.uom)}</td>
             <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>
-            <td class="px-3 py-2 text-right">${fmt2(r.vendorprice_selected)}</td>
             </tr>
         `).join('');
             return `
@@ -560,7 +615,6 @@
                     <th class="px-3 py-2 text-right">Qty</th>
                     <th class="px-3 py-2 text-left">UOM</th>
                     <th class="px-3 py-2 text-left">Selected Vendor</th>
-                    <th class="px-3 py-2 text-right">Selected Price</th>
                 </tr>
                 </thead>
                 <tbody>${trs}</tbody>
@@ -576,8 +630,6 @@
             <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
             <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
             <td class="px-3 py-2">${esc(r.uom)}</td>
-            <td class="px-3 py-2 text-right">${fmt2(r.unitcost)}</td>
-            <td class="px-3 py-2 text-right">${fmt2(r.totalcost)}</td>
             </tr>
         `).join('');
             return `
@@ -589,8 +641,6 @@
                     <th class="px-3 py-2 text-left">Description</th>
                     <th class="px-3 py-2 text-right">Qty</th>
                     <th class="px-3 py-2 text-left">UOM</th>
-                    <th class="px-3 py-2 text-right">Unit Cost</th>
-                    <th class="px-3 py-2 text-right">Total</th>
                 </tr>
                 </thead>
                 <tbody>${trs}</tbody>
@@ -599,47 +649,53 @@
         }
 
         function renderBastExtra(extra) {
-            if (!extra) return `<div class="text-sm text-gray-500">No detail.</div>`;
+            if (!extra) {
+                return `<div class="text-sm text-gray-500">No detail.</div>`;
+            }
 
             const row = (label, val) => `
-            <div class="flex justify-between gap-3 border-b py-2 dark:border-gray-700">
-            <div class="text-gray-500">${esc(label)}</div>
-            <div class="font-semibold text-gray-800 dark:text-white text-right">${esc(val ?? '-')}</div>
-            </div>
-        `;
+                <div class="flex justify-between gap-3 border-b py-2 dark:border-gray-700">
+                <div class="text-gray-500">${esc(label)}</div>
+                <div class="font-semibold text-gray-800 dark:text-white text-right">${esc(val ?? '-')}</div>
+                </div>
+            `;
 
             return `
-            <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-            <div class="grid grid-cols-1 gap-0 text-sm sm:grid-cols-2 sm:gap-x-6">
-                <div>
-                ${row('PO Nbr', extra.ponbr)}
-                ${row('CS ID', extra.csid)}
-                ${row('User Peminta', extra.user_peminta)}
-                ${row('Keperluan', extra.keperluan)}
-                ${row('Handover Date', extra.handoverdate)}
-                ${row('Start Date', extra.startdate)}
-                ${row('End Date', extra.enddate)}
+                <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                <div class="grid grid-cols-1 gap-0 text-sm sm:grid-cols-2 sm:gap-x-6">
+                    <div>
+                    ${row('PO Nbr', extra.ponbr)}
+                    ${row('CS ID', extra.csid)}
+                    ${row('User Peminta', extra.user_peminta)}
+                    ${row('Keperluan', extra.keperluan)}
+                    ${row('Handover Date', extra.handoverdate)}
+                    ${row('Start Date', extra.startdate)}
+                    ${row('End Date', extra.enddate)}
+                    </div>
+
+                    <div>
+                    ${row('TOP', extra.topid)}
+                    ${row('Payment %', extra.payment_pct)}
+                    ${row('Progress %', extra.progress_pct)}
+                    ${row('BAST Amount', extra.bast_amount)}
+                    ${row('Penalty', extra.penalty)}
+                    ${row('Total Penalty', extra.total_penalty)}
+                    ${row('Realize Amount', extra.realize_amount)}
+                    ${row('Rating Vendor', extra.rating_vendor)}
+                    </div>
+
+                    <div class="sm:col-span-2">
+                    ${row('Location', extra.location_id)}
+                    ${row('Sub Location', extra.sub_location_id)}
+                    ${row('SPK PIC', extra.spkpic)}
+                    ${row('Warranty', extra.spkwarranty)}
+                    ${row('Days Penalty', extra.days_penalty)}
+                    </div>
                 </div>
-                <div>
-                ${row('TOP', extra.topid)}
-                ${row('Payment %', extra.payment_pct)}
-                ${row('Progress %', extra.progress_pct)}
-                ${row('BAST Amount', extra.bast_amount)}
-                ${row('Penalty', extra.penalty)}
-                ${row('Total Penalty', extra.total_penalty)}
-                ${row('Realize Amount', extra.realize_amount)}
-                ${row('Rating Vendor', extra.rating_vendor)}
                 </div>
-                <div class="sm:col-span-2">
-                ${row('Location', extra.location_id)}
-                ${row('Sub Location', extra.sub_location_id)}
-                ${row('SPK PIC', extra.spkpic)}
-                ${row('Warranty', extra.spkwarranty)}
-                ${row('Days Penalty', extra.days_penalty)}
-                </div>
-            </div>
-            </div>`;
+            `;
         }
+
 
         /* =========================
         dropdown fill + ajax item fetch
@@ -657,8 +713,9 @@
             items.forEach(it => {
                 const opt = document.createElement('option');
                 opt.value = it.doc;
-                opt.textContent =
-                    `${it.doc} ${it.date ? ' | ' + it.date : ''} ${it.status ? ' | ' + it.status : ''}`;
+                opt.textContent = `${it.doc}` +
+                    (it.date ? ` | ${it.date}` : '') +
+                    (it.status ? ` | ${statusLabel2(it.status)}` : '');
                 if (String(it.doc) === String(selectedDoc)) opt.selected = true;
                 sel.appendChild(opt);
             });
@@ -737,21 +794,23 @@
                 success: function(res) {
                     setLoading(false);
 
+                    // headers
                     renderHeader('spptHeaderBox', res.sppt?.header, 'SPPT');
                     renderHeader('csHeaderBox', res.cs?.header, 'CS');
                     renderHeader('poHeaderBox', res.po?.header, 'PO');
                     renderHeader('bastHeaderBox', res.bast?.header, 'BAST');
 
-                    document.getElementById('spptDetailBox').innerHTML = renderDetailSppk(res.sppt
+                    // details
+                    document.getElementById('spptDetailBox').innerHTML = renderDetailSppt(res.sppt
                         ?.details || []);
                     document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.cs?.details ||
                         []);
                     document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.po?.details ||
                         []);
-
-                    // ✅ isi BAST pakai extra info
                     document.getElementById('bastInfoBox').innerHTML = renderBastExtra(res.bast?.extra);
 
+
+                    // dropdown lists
                     fillSelect('selCs', res.lists?.cs || [], res.selected?.cs_no || '');
                     fillSelect('selPo', res.lists?.po || [], res.selected?.po_no || '');
                     fillSelect('selBast', res.lists?.bast || [], res.selected?.bast_no || '');

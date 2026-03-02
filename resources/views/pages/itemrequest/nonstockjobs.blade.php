@@ -286,7 +286,17 @@
                     <div class="mt-5 flex justify-end gap-2">
                         <button type="button" id="closeInventoryModal"
                             class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                        {{-- <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button> --}}
+                        <button type="submit" id="btnInvSave"
+                            class="rounded-lg bg-blue-500 px-4 py-2 text-white inline-flex items-center gap-2">
+                            <svg id="btnInvSaveSpin" class="hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span id="btnInvSaveText">Save</span>
+                        </button>
                     </div>
                 </form>
 
@@ -1000,48 +1010,124 @@
                     });
                 });
 
+                function setInvSaving(isSaving) {
+                    const $btn = $('#btnInvSave');
+                    const $spin = $('#btnInvSaveSpin');
+                    const $txt = $('#btnInvSaveText');
+
+                    // disable button + form inputs
+                    $btn.prop('disabled', isSaving);
+                    $('#inventoryForm :input').prop('disabled', isSaving);
+
+                    // tapi tombol cancel tetap boleh
+                    $('#closeInventoryModal').prop('disabled', false);
+
+                    // spinner + text
+                    if (isSaving) {
+                        $spin.removeClass('hidden');
+                        $txt.text('Saving...');
+                    } else {
+                        $spin.addClass('hidden');
+                        $txt.text('Save');
+                        $('#inventoryForm :input').prop('disabled', false);
+                    }
+                }
+
                 // Submit create/update
+                let isInvSubmitting = false;
+
                 $('#inventoryForm').on('submit', function(e) {
                     e.preventDefault();
+                    if (isInvSubmitting) return; // ✅ anti double submit
+                    isInvSubmitting = true;
 
-                    const id = $('#inv_id').val();
+                    const id  = $('#inv_id').val();
                     const url = id ? `/invnonstock/${id}` : "{{ route('invnonstock.store') }}";
 
                     const formData = new FormData(document.getElementById('inventoryForm'));
                     if (id) formData.append('_method', 'PUT');
 
+                    setInvSaving(true);
+
                     $.ajax({
                         url: url,
                         type: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                         data: formData,
                         processData: false,
                         contentType: false,
-                        success: function() {
+                        success: function(res) {
                             closeInvModal();
-                            invTable.ajax.reload(null, false);
+                            if (invTable) invTable.ajax.reload(null, false);
 
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil',
-                                text: 'Data inventory berhasil disimpan',
+                                text: id ? 'Inventory berhasil diupdate.' : 'Inventory berhasil dibuat.',
                                 timer: 1400,
                                 showConfirmButton: false
                             });
                         },
                         error: function(xhr) {
                             console.error(xhr.responseText);
+
+                            // ambil pesan validasi kalau ada
+                            let msg = 'Gagal menyimpan data inventory.';
+                            if (xhr.responseJSON?.message) msg = xhr.responseJSON.message;
+
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: 'Gagal menyimpan data inventory'
+                                text: msg
                             });
+                        },
+                        complete: function() {
+                            setInvSaving(false);
+                            isInvSubmitting = false;
                         }
-
                     });
                 });
+                // $('#inventoryForm').on('submit', function(e) {
+                //     e.preventDefault();
+
+                //     const id = $('#inv_id').val();
+                //     const url = id ? `/invnonstock/${id}` : "{{ route('invnonstock.store') }}";
+
+                //     const formData = new FormData(document.getElementById('inventoryForm'));
+                //     if (id) formData.append('_method', 'PUT');
+
+                //     $.ajax({
+                //         url: url,
+                //         type: 'POST',
+                //         headers: {
+                //             'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                //         },
+                //         data: formData,
+                //         processData: false,
+                //         contentType: false,
+                //         success: function() {
+                //             closeInvModal();
+                //             invTable.ajax.reload(null, false);
+
+                //             Swal.fire({
+                //                 icon: 'success',
+                //                 title: 'Berhasil',
+                //                 text: 'Data inventory berhasil disimpan',
+                //                 timer: 1400,
+                //                 showConfirmButton: false
+                //             });
+                //         },
+                //         error: function(xhr) {
+                //             console.error(xhr.responseText);
+                //             Swal.fire({
+                //                 icon: 'error',
+                //                 title: 'Gagal',
+                //                 text: 'Gagal menyimpan data inventory'
+                //             });
+                //         }
+
+                //     });
+                // });
 
                 // =========================
                 // PICK INVENTORY MODAL
@@ -1471,7 +1557,7 @@
             });
         </script>
 
-
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     </div>
 </x-app-layout>

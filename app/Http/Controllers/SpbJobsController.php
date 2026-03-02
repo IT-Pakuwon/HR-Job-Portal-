@@ -70,6 +70,7 @@ class SpbJobsController extends Controller
 
         // 5. SPPB On Progress (TrSPPB) : status='P'
         $sppbprogress = TrSPPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('spbid', '!=', null)
             ->where('status', 'P')
             ->count();
 
@@ -134,6 +135,7 @@ class SpbJobsController extends Controller
         // 5. SPPB On Progress (SPPB) : status='P'
         $sppbprogress = TrSPPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
             ->where('status', $status_sppb_progress)
+            ->where('spbid', '!=', null)
             ->count();
 
         // 6. SPB On Progress (SPB header masih draft/progress)
@@ -290,6 +292,7 @@ class SpbJobsController extends Controller
 
                 $base = TrSPPB::with('requestType')
                     ->when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+                    ->where('spbid', '!=', null)
                     ->where('status', 'P');   // SPPB On Progress
 
                 $orderColumns = [

@@ -245,7 +245,11 @@
 
                     <div class="mt-5 flex justify-end gap-2">
                         <button type="button" id="closeInventoryModal" class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                        {{-- <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button> --}}
+                        <button id="btnInvSave" type="submit"
+                            class="rounded-lg bg-blue-500 px-4 py-2 text-white">
+                            Save
+                        </button>
                     </div>
                 </form>
             </div>
@@ -277,6 +281,213 @@
 
             </div>
         </div>
+
+        <script>
+            // URL endpoint dropdown STOCK (sesuaikan route name kamu)
+            window.ddUrlStock = {
+                itemTypes: "{{ route('stockjobs.stock-types') }}",
+                subTypes: "{{ route('stockjobs.stock-sub-types') }}",
+                classes:  "{{ route('stockjobs.stock-classes') }}",
+                subClasses:"{{ route('stockjobs.stock-sub-classes') }}"
+            };
+
+            function initSelect2InStockModal() {
+                // penting: dropdownParent supaya select2 muncul di modal (bukan di belakang overlay)
+                $('#inventoryModal .select2').select2({
+                    width: '100%',
+                    dropdownParent: $('#inventoryModal')
+                });
+            }
+
+            function resetSelect($el, placeholder) {
+                $el.prop('disabled', true)
+                    .empty()
+                    .append(new Option(placeholder, '', true, true))
+                    .trigger('change');
+            }
+        </script>
+
+        <script>
+            function loadStockItemTypesPromise() {
+                return $.get(window.ddUrlStock.itemTypes).then(function(res){
+                    const $type = $('#item_type');
+                    $type.prop('disabled', false)
+                        .empty()
+                        .append(new Option('-- Select Item Type --', '', true, true));
+
+                    (res.data || []).forEach(x => $type.append(new Option(x.text, x.id)));
+
+                    // AUTO pilih GI (karena Stock)
+                    const gi = (res.data || []).find(x =>
+                        String(x.id).toUpperCase() === 'GI' || String(x.text).toUpperCase() === 'GI'
+                    );
+                    if (gi) $type.val(gi.id).trigger('change');
+                    else $type.trigger('change');
+
+                    return res;
+                });
+            }
+
+            function loadStockSubTypesPromise(itemTypeId) {
+                return $.get(window.ddUrlStock.subTypes, { item_type_id: itemTypeId }).then(function(res){
+                    const $sub = $('#item_sub_type');
+                    $sub.prop('disabled', false)
+                        .empty()
+                        .append(new Option('-- Select Sub Type --', '', true, true));
+
+                    (res.data || []).forEach(x => $sub.append(new Option(x.text, x.id)));
+                    $sub.trigger('change');
+                    return res;
+                });
+            }
+
+            function loadStockClassesPromise(subTypeId) {
+                return $.get(window.ddUrlStock.classes, { item_sub_type_id: subTypeId }).then(function(res){
+                    const $cls = $('#item_class');
+                    $cls.prop('disabled', false)
+                        .empty()
+                        .append(new Option('-- Select Class --', '', true, true));
+
+                    (res.data || []).forEach(x => $cls.append(new Option(x.text, x.id)));
+                    $cls.trigger('change');
+                    return res;
+                });
+            }
+
+            function loadStockSubClassesPromise(classId) {
+                return $.get(window.ddUrlStock.subClasses, { item_class_id: classId }).then(function(res){
+                    const $subcls = $('#item_sub_class');
+                    $subcls.prop('disabled', false)
+                        .empty()
+                        .append(new Option('-- Select Sub Class --', '', true, true));
+
+                    (res.data || []).forEach(x => $subcls.append(new Option(x.text, x.id)));
+                    $subcls.trigger('change');
+                    return res;
+                });
+            }
+
+            // chaining onchange
+            $(document).on('change', '#item_type', function(){
+                const typeId = $(this).val();
+
+                resetSelect($('#item_sub_type'), '-- Select Sub Type --');
+                resetSelect($('#item_class'), '-- Select Class --');
+                resetSelect($('#item_sub_class'), '-- Select Sub Class --');
+
+                if (!typeId) return;
+                loadStockSubTypesPromise(typeId);
+            });
+
+            $(document).on('change', '#item_sub_type', function(){
+                const subTypeId = $(this).val();
+
+                resetSelect($('#item_class'), '-- Select Class --');
+                resetSelect($('#item_sub_class'), '-- Select Sub Class --');
+
+                if (!subTypeId) return;
+                loadStockClassesPromise(subTypeId);
+            });
+
+            $(document).on('change', '#item_class', function(){
+                const classId = $(this).val();
+
+                resetSelect($('#item_sub_class'), '-- Select Sub Class --');
+
+                if (!classId) return;
+                loadStockSubClassesPromise(classId);
+            });
+        </script>
+
+        <script>
+            function setSaveLoading(isLoading){
+                const $btn = $('#btnInvSave');
+                const $cancel = $('#closeInventoryModal');
+
+                if (isLoading) {
+                    $btn.prop('disabled', true)
+                        .addClass('opacity-60 cursor-not-allowed')
+                        .data('oldText', $btn.html())
+                        .html(`
+                            <span class="inline-flex items-center gap-2">
+                                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle>
+                                    <path d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" stroke-width="4" opacity="0.75"></path>
+                                </svg>
+                                Saving...
+                            </span>
+                        `);
+
+                    // optional: blok cancel saat saving biar ga aneh
+                    $cancel.prop('disabled', true).addClass('opacity-60 cursor-not-allowed');
+                } else {
+                    const old = $btn.data('oldText') || 'Save';
+                    $btn.prop('disabled', false)
+                        .removeClass('opacity-60 cursor-not-allowed')
+                        .html(old);
+
+                    $cancel.prop('disabled', false).removeClass('opacity-60 cursor-not-allowed');
+                }
+            }
+
+            // guard supaya kalau handler kebinding 2x pun tetap aman
+            let invSubmitting = false;
+
+            $('#inventoryForm').off('submit').on('submit', function(e){
+                e.preventDefault();
+                if (invSubmitting) return;         // ✅ cegah double submit
+                invSubmitting = true;
+                setSaveLoading(true);
+
+                const id  = $('#inv_id').val();
+                const url = id ? `/invstock/${id}` : "{{ route('invstock.store') }}";
+
+                const formData = new FormData(document.getElementById('inventoryForm'));
+                if (id) formData.append('_method', 'PUT');
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                })
+                .done(function(){
+                    closeInvModal();
+                    invTable.ajax.reload(null, false);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Data inventory berhasil disimpan',
+                        timer: 1400,
+                        showConfirmButton: false
+                    });
+                })
+                .fail(function(xhr){
+                    console.error(xhr.responseText);
+
+                    // ambil pesan validasi kalau ada
+                    let msg = 'Gagal menyimpan data inventory';
+                    try {
+                        const res = xhr.responseJSON;
+                        if (res?.message) msg = res.message;
+                        if (res?.error) msg = res.error;
+                    } catch (e) {}
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: msg
+                    });
+                })
+                .always(function(){
+                    invSubmitting = false;
+                    setSaveLoading(false);
+                });
+            });
+        </script>
 
         <script>
             // =========================
@@ -571,12 +782,19 @@
                 // =========================
                 // MODAL - ADD
                 // =========================
-                $('#addInventoryBtn').on('click', function(){
+               $('#addInventoryBtn').on('click', function(){
                     $('#inventoryModalTitle').text('Add Inventory');
                     $('#inventoryForm')[0].reset();
                     $('#inv_id').val('');
+
                     setFormMode(false);
                     openInvModal();
+
+                    // ✅ ini WAJIB biar select2 muncul benar di modal
+                    initSelect2InStockModal();
+
+                    // ✅ ini WAJIB biar dropdown ke-load
+                    loadStockItemTypesPromise();
                 });
 
                 $('#closeInventoryModal').on('click', closeInvModal);
@@ -652,33 +870,33 @@
                 // =========================
                 // SUBMIT CREATE/UPDATE
                 // =========================
-                $('#inventoryForm').on('submit', function(e){
-                    e.preventDefault();
+                // $('#inventoryForm').on('submit', function(e){
+                //     e.preventDefault();
 
-                    const id = $('#inv_id').val();
-                    const url = id ? `/invstock/${id}` : "{{ route('invstock.store') }}";
+                //     const id = $('#inv_id').val();
+                //     const url = id ? `/invstock/${id}` : "{{ route('invstock.store') }}";
 
-                    const formData = new FormData(document.getElementById('inventoryForm'));
-                    if (id) formData.append('_method', 'PUT');
+                //     const formData = new FormData(document.getElementById('inventoryForm'));
+                //     if (id) formData.append('_method', 'PUT');
 
-                    $.ajax({
-                        url: url,
-                        type: 'POST',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        success: function(){
-                            closeInvModal();
-                            invTable.ajax.reload(null, false);
-                            Swal.fire({icon:'success', title:'Berhasil', text:'Data inventory berhasil disimpan', timer:1400, showConfirmButton:false});
-                        },
-                        error: function(xhr){
-                            console.error(xhr.responseText);
-                            Swal.fire({icon:'error', title:'Gagal', text:'Gagal menyimpan data inventory'});
-                        }
-                    });
-                });
+                //     $.ajax({
+                //         url: url,
+                //         type: 'POST',
+                //         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                //         data: formData,
+                //         processData: false,
+                //         contentType: false,
+                //         success: function(){
+                //             closeInvModal();
+                //             invTable.ajax.reload(null, false);
+                //             Swal.fire({icon:'success', title:'Berhasil', text:'Data inventory berhasil disimpan', timer:1400, showConfirmButton:false});
+                //         },
+                //         error: function(xhr){
+                //             console.error(xhr.responseText);
+                //             Swal.fire({icon:'error', title:'Gagal', text:'Gagal menyimpan data inventory'});
+                //         }
+                //     });
+                // });
 
                 // =========================
                 // PICK INVENTORY (JOBS)
@@ -760,6 +978,7 @@
 
             });
         </script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     </div>
 </x-app-layout>

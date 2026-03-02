@@ -58,7 +58,7 @@ class StockJobsController extends Controller
         // Card count: GI & status A
         $inventoryStock = MsInventory::query()
             ->where('item_type', 'GI')
-            ->where('status', 'A')
+            // ->where('status', 'A')
             ->count();
 
         $baseuom = MsBaseUom::query()           

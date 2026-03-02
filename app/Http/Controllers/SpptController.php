@@ -2126,7 +2126,7 @@ class SpptController extends Controller
 
         // ===== LIST CS (ALL) =====
         $csList = TrCS::query()
-            ->where('sppbjktid', $spptNo) // relasi ke SPPT
+            ->where('sppbjktid', $spptNo) // <-- relasi ke SPPT
             ->whereNull('deleted_at')
             ->orderBy('csdate', 'desc')
             ->get(['csid','csdate','status','completed_by','completed_at']);
@@ -2135,7 +2135,7 @@ class SpptController extends Controller
 
         // ===== LIST PO (ALL) =====
         $poList = TrPO::query()
-            ->where('sppbjktid', $spptNo) // relasi ke SPPT
+            ->where('sppbjktid', $spptNo) // <-- relasi ke SPPT
             ->whereNull('deleted_at')
             ->orderBy('podate', 'desc')
             ->get(['ponbr','podate','status','csid','completed_by','completed_at']);
@@ -2143,8 +2143,9 @@ class SpptController extends Controller
         $selPoNo = optional($poList->first())->ponbr;
 
         // ===== LIST BAST (ALL) =====
+        // ⚠️ asumsi: tr_bast.sppbjktid = spptid
         $bastList = TrBast::query()
-            ->where('sppbjktid', $spptNo) // relasi ke SPPT
+            ->where('sppbjktid', $spptNo)
             ->whereNull('deleted_at')
             ->orderBy('bastdate', 'desc')
             ->get(['bastid','bastdate','status','ponbr','csid','completed_by','completed_at']);
@@ -2162,7 +2163,7 @@ class SpptController extends Controller
             : null;
 
         $csDetails = collect();
-        if ($selCsNo && $csHeader) {
+        if ($selCsNo) {
             $isTrue = function ($v) {
                 if (is_bool($v)) return $v;
                 $v = strtolower((string)$v);
@@ -2185,15 +2186,18 @@ class SpptController extends Controller
                 })
                 // ✅ map ke array supaya field tambahan pasti ikut ke JSON
                 ->map(function($d) use ($csHeader, $isTrue){
+
                     $vendorName  = null;
                     $vendorPrice = null;
 
-                    if ($isTrue($d->vendor1selected)) { $vendorName = $csHeader->vendorname1; $vendorPrice = $d->vendorprice1; }
-                    elseif ($isTrue($d->vendor2selected)) { $vendorName = $csHeader->vendorname2; $vendorPrice = $d->vendorprice2; }
-                    elseif ($isTrue($d->vendor3selected)) { $vendorName = $csHeader->vendorname3; $vendorPrice = $d->vendorprice3; }
-                    elseif ($isTrue($d->vendor4selected)) { $vendorName = $csHeader->vendorname4; $vendorPrice = $d->vendorprice4; }
-                    elseif ($isTrue($d->vendor5selected)) { $vendorName = $csHeader->vendorname5; $vendorPrice = $d->vendorprice5; }
-                    elseif ($isTrue($d->vendor6selected)) { $vendorName = $csHeader->vendorname6; $vendorPrice = $d->vendorprice6; }
+                    if ($csHeader) {
+                        if ($isTrue($d->vendor1selected)) { $vendorName = $csHeader->vendorname1; $vendorPrice = $d->vendorprice1; }
+                        elseif ($isTrue($d->vendor2selected)) { $vendorName = $csHeader->vendorname2; $vendorPrice = $d->vendorprice2; }
+                        elseif ($isTrue($d->vendor3selected)) { $vendorName = $csHeader->vendorname3; $vendorPrice = $d->vendorprice3; }
+                        elseif ($isTrue($d->vendor4selected)) { $vendorName = $csHeader->vendorname4; $vendorPrice = $d->vendorprice4; }
+                        elseif ($isTrue($d->vendor5selected)) { $vendorName = $csHeader->vendorname5; $vendorPrice = $d->vendorprice5; }
+                        elseif ($isTrue($d->vendor6selected)) { $vendorName = $csHeader->vendorname6; $vendorPrice = $d->vendorprice6; }
+                    }
 
                     return [
                         'id' => $d->id,
@@ -2201,8 +2205,11 @@ class SpptController extends Controller
                         'inventory_descr' => $d->inventory_descr,
                         'qty' => $d->qty,
                         'uom' => $d->uom,
+
+                        // ✅ tampilkan vendor selected (nama)
                         'vendorname_selected' => $vendorName,
                         'vendorprice_selected' => $vendorPrice,
+
                         'status' => $d->status,
                     ];
                 })
@@ -2222,10 +2229,14 @@ class SpptController extends Controller
             ->whereNull('deleted_at')->orderBy('id')->get()
             : collect();
 
-        // ---- BAST header only ----
+        // ---- BAST (header only, no detail) ----
         $bastHeader = $selBastNo
             ? TrBast::where('bastid', $selBastNo)->whereNull('deleted_at')->first()
             : null;
+
+        $lastApprSppj    = $this->getLastApprovalInfo($spptNo);
+        $lastApprCs      = $selCsNo ? $this->getLastApprovalInfo($selCsNo) : null;
+        $lastApprBast    = $selBastNo ? $this->getLastApprovalInfo($selBastNo) : null;
 
         return response()->json([
             'doc' => $spptNo,
@@ -2269,19 +2280,13 @@ class SpptController extends Controller
                     'cpny_id' => $sppt->cpny_id,
                     'department_id' => $sppt->department_id,
                     'keperluan' => $sppt->keperluan,
-
-                    // ✅ field khas SPPT
-                    'no_polisi' => $sppt->no_polisi,
-                    'namakendaraan' => $sppt->namakendaraan,
-                    'pemilikkendaraan' => $sppt->pemilikkendaraan,
-                    'km_kendaraan' => $sppt->km_kendaraan,
-
                     'status' => $sppt->status,
                     'created_by' => $sppt->created_by,
                     'created_at' => $fmt($sppt->created_at),
                     'completed_by' => $sppt->completed_by,
                     'completed_at' => $fmt($sppt->completed_at),
                     'is_approved' => $approved($sppt),
+                    'last_approval' => $lastApprSppj,
                 ],
                 'details' => $spptDetails,
             ],
@@ -2297,6 +2302,7 @@ class SpptController extends Controller
                     'completed_by' => $csHeader->completed_by,
                     'completed_at' => $fmt($csHeader->completed_at),
                     'is_approved' => $approved($csHeader),
+                    'last_approval' => $lastApprCs,
                 ] : null,
                 'details' => $csDetails,
             ],
@@ -2327,9 +2333,10 @@ class SpptController extends Controller
                     'completed_by' => $bastHeader->completed_by,
                     'completed_at' => $fmt($bastHeader->completed_at),
                     'is_approved' => $approved($bastHeader),
+                    'last_approval' => $lastApprBast,
                 ] : null,
 
-                // ✅ extra info untuk "No detail BAST"
+                // ✅ tambahan info header buat isi "detail"
                 'extra' => $bastHeader ? [
                     'ponbr'          => $bastHeader->ponbr,
                     'csid'           => $bastHeader->csid,
@@ -2360,9 +2367,10 @@ class SpptController extends Controller
 
                 'details' => [],
             ],
+
         ]);
     }
-
+   
     public function trackingDetailItem($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -2442,6 +2450,7 @@ class SpptController extends Controller
                     'completed_by' => $h->completed_by,
                     'completed_at' => $fmt($h->completed_at),
                     'is_approved' => $approved($h),
+                    'last_approval' => $this->getLastApprovalInfo($h->csid),
                 ] : null,
                 'details' => $details,
             ]);
@@ -2492,6 +2501,7 @@ class SpptController extends Controller
                 'completed_by' => $h->completed_by,
                 'completed_at' => $fmt($h->completed_at),
                 'is_approved' => $approved($h),
+                'last_approval' => $this->getLastApprovalInfo($h->bastid),
             ] : null,
             'extra'  => $h ? [
                 'ponbr' => $h->ponbr,
@@ -2515,8 +2525,47 @@ class SpptController extends Controller
                 'days_penalty' => $h->days_penalty,
                 'rating_vendor' => $h->rating_vendor,
             ] : null,
-            'details' => [],
+            'details' => [], // BAST tidak ada detail
         ]);
+    }
+
+    private function getLastApprovalInfo(string $refnbr): ?array
+    {
+        $refnbr = trim((string)$refnbr);
+        if ($refnbr === '') return null;
+
+        // 1) PRIORITY: status P & aprv_datebefore not null
+        $row = TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->orderByDesc('aprv_leveling')
+            ->orderByDesc('id')
+            ->first();
+
+        // 2) FALLBACK: status A (approved)
+        if (!$row) {
+            $row = TrApproval::query()
+                ->where('refnbr', $refnbr)
+                ->where('status', 'A')
+                ->orderByDesc('aprv_leveling')
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        if (!$row) return null;
+
+        // Note: field "created_by" kamu ada di fillable, tapi juga ada aprv_username & aprv_name
+        return [
+            'status'        => $row->status,                 // P / A
+            'aprv_leveling' => $row->aprv_leveling,
+            'username'      => $row->aprv_username ?? $row->created_by,
+            'name'          => $row->aprv_name,
+            'date_before'   => $row->aprv_datebefore,
+            'date_after'    => $row->aprv_dateafter,
+            'doctype'       => $row->aprv_doctype,
+            'condition'     => $row->aprv_condition,
+        ];
     }
 
     public function tracking_xxx($hash)
@@ -2628,7 +2677,7 @@ class SpptController extends Controller
         ]);
     }
 
-    public function showBQ($hash)
+    public function showBQ_xxx($hash)
     {        
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -2661,6 +2710,55 @@ class SpptController extends Controller
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
             ->get();                   
    
+        return view('pages.sppts.showbqsppts', compact('bq','bqdetail','canEdit','hash'));
+    }
+
+    public function showBQ($hash)
+    {        
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();       
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $bq = Bq::with([
+            'creator:username,name'
+        ])->findOrFail($id);     
+
+        // ==============================
+        // CEK APPROVAL LEVEL 1
+        // ==============================
+        $isApprovalLevel1 = TrApproval::where('refnbr', $bq->sppjtid)
+            ->where('aprv_leveling', '1')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->where(function ($q) use ($user) {
+                $u = $user->username;
+
+                $q->where('aprv_username', $u) 
+                    ->orWhere('aprv_username', 'ilike', $u . ',%')      
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%') 
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u);     
+            })
+            ->exists();
+                // dd($isApprovalLevel1);
+        // ==============================
+        // CEK CREATED BY
+        // ==============================
+        $isCreator = $bq->created_by === $user->username;
+
+        // ==============================
+        // FINAL CAN EDIT
+        // ==============================
+        $canEdit = $isApprovalLevel1 || $isCreator;
+
+        // dd($canEdit);
+
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();      
+            
         return view('pages.sppts.showbqsppts', compact('bq','bqdetail','canEdit','hash'));
     }
 
