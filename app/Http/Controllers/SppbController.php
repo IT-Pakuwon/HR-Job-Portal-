@@ -136,8 +136,6 @@ class SppbController extends Controller
         $mode        = (string) $request->query('mode', 'normal');
         $deptExtra   = (string) $request->query('department_extra', '');
 
-
-
         $baseTable = (new TrSPPB)->getTable();
 
         $columns = [
@@ -191,7 +189,6 @@ class SppbController extends Controller
                 $base->where('sppb.status', $status);
             }
         }
-
 
         // ==============================
         // TOTAL BEFORE SEARCH
