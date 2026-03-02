@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -49,7 +49,7 @@ class SppbController extends Controller
     use HasAutonbr;
     public function index()
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -91,33 +91,52 @@ class SppbController extends Controller
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
                     ->count();
-
-        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        // SPPB All List Count (P & C, all departments)
+        $allListCount = TrSPPB::whereIn('cpny_id', $cpnyIds)
+            ->whereIn('status', ['P', 'C'])
+            ->count();
+        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount'));
     }
 
-    
     public function json(Request $request)
     {
         $user = Auth::user();
 
+        if (!$user) {
+            return response()->json([], 401);
+        }
+
+        // ==============================
+        // USER COMPANY
+        // ==============================
         if (is_string($user->cpny_id)) {
             $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
         } else {
             $cpnyIds = (array) $user->cpny_id;
         }
 
-        // department_id juga bisa multi, tapi di debug sudah "IT"
+        // ==============================
+        // USER DEPARTMENT (NORMAL MODE ONLY)
+        // ==============================
         if (is_string($user->department_id)) {
             $deptIds = array_map('trim', explode(',', $user->department_id));
         } else {
             $deptIds = (array) $user->department_id;
         }
 
+        // ==============================
+        // DATATABLE PARAMETERS
+        // ==============================
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->query('status', '');
+
+        $status      = (string) $request->query('status', '');
+        $mode        = (string) $request->query('mode', 'normal');
+        $deptExtra   = (string) $request->query('department_extra', '');
+
+
 
         $baseTable = (new TrSPPB)->getTable();
 
@@ -135,20 +154,55 @@ class SppbController extends Controller
         $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'sppb.sppbid';
 
+        // ==============================
+        // BASE QUERY
+        // ==============================
         $base = TrSPPB::from($baseTable . ' as sppb')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid');
             })
-            ->whereIn('sppb.cpny_id', $cpnyIds)            // ✔ filter tambahan
-            ->whereIn('sppb.department_id', $deptIds);    // ✔ filter tambahan
+            ->whereIn('sppb.cpny_id', $cpnyIds);
 
-        if ($status !== '') {
-            $base->where('sppb.status', $status);
+        // ==============================
+        // MODE LOGIC
+        // ==============================
+        if ($mode === 'normal') {
+
+            // restrict by user department
+            $base->whereIn('sppb.department_id', $deptIds);
+
+            if ($status !== '') {
+                $base->where('sppb.status', $status);
+            }
         }
 
-        // Total sebelum search
-        $recordsTotal = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
+        if ($mode === 'all') {
 
+            // only P & C
+            $base->whereIn('sppb.status', ['P', 'C']);
+
+            // department filter (dropdown)
+            if (!empty($deptExtra)) {
+                $base->where('sppb.department_id', $deptExtra);
+            }
+
+            // status dropdown override
+            if ($status !== '') {
+                $base->where('sppb.status', $status);
+            }
+        }
+
+
+        // ==============================
+        // TOTAL BEFORE SEARCH
+        // ==============================
+        $recordsTotal = (clone $base)
+            ->distinct('sppb.sppbid')
+            ->count('sppb.sppbid');
+
+        // ==============================
+        // SEARCH FILTER
+        // ==============================
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('sppb.sppbid',          'ilike', "%{$search}%")
@@ -160,9 +214,16 @@ class SppbController extends Controller
             });
         }
 
-        // Total setelah search
-        $recordsFiltered = (clone $base)->distinct('sppb.sppbid')->count('sppb.sppbid');
+        // ==============================
+        // TOTAL AFTER SEARCH
+        // ==============================
+        $recordsFiltered = (clone $base)
+            ->distinct('sppb.sppbid')
+            ->count('sppb.sppbid');
 
+        // ==============================
+        // DATA FETCH
+        // ==============================
         $data = $base->select(
                     'sppb.id',
                     'sppb.sppbid',
@@ -181,42 +242,64 @@ class SppbController extends Controller
                 ->take($length)
                 ->get();
 
-        // Add encrypted ID
+        // Encrypt ID
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
             unset($row->id);
             return $row;
         });
 
+    // ==============================
+    // DEPARTMENT LIST (ONLY FOR ALL MODE)
+    // ==============================
+    $departments = [];
+
+    if ($mode === 'all') {
+
+        $deptQuery = TrSPPB::from($baseTable . ' as sppb')
+            ->whereIn('sppb.cpny_id', $cpnyIds)
+            ->whereIn('sppb.status', ['P','C']);
+
+        // apply department filter if selected
+        if (!empty($deptExtra)) {
+            $deptQuery->where('sppb.department_id', $deptExtra);
+        }
+
+        $departments = $deptQuery
+            ->select('sppb.department_id')
+            ->distinct()
+            ->orderBy('sppb.department_id')
+            ->pluck('department_id');
+    }
+
         return response()->json([
             'draw'            => $draw,
             'recordsTotal'    => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data'            => $data,
+            'departments'     => $departments,
         ]);
     }
 
 
-
-    
     public function createSppb()
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
 
         $usercpny = Usercpny::where('username', $user->username)
-            ->get();       
-        
+            ->get();
+
         $usercpny2 = Usercpny::where('username', $user->username)
             ->first();
         $userdept = Userdept::where('username', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', $user->username)
-            ->first();                   
-       
+            ->first();
+
         $akses_stock = SysUserRole::where('username', $user->username)
             ->where('role_id','WHSACCESS')
             ->first();
@@ -224,8 +307,8 @@ class SppbController extends Controller
         return view('pages.sppbs.createsppbs', compact('usercpny','usercpny2','userdept','userdept2','akses_stock'));
     }
 
-    
-    
+
+
     public function storeSppb(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
@@ -238,7 +321,7 @@ class SppbController extends Controller
         $locations     = $request->input('location', []);
         $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
         $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations  = $request->input('sub_location', []);      
+        $subLocations  = $request->input('sub_location', []);
         $activityIds   = $request->input('activity_id', []);
         $busUnitIds    = $request->input('business_unit_id', []);
         $deptFinIds    = $request->input('department_fin_id', []);
@@ -246,8 +329,8 @@ class SppbController extends Controller
         $coaIds        = $request->input('coa_id', []); // account_id
         $item_types    = $request->input('item_type', []);
         // $item_categories = $request->input('item_category', []);
-        $siteids        = $request->input('siteid', []);        
-        
+        $siteids        = $request->input('siteid', []);
+
         $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
         $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
         $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
@@ -260,14 +343,14 @@ class SppbController extends Controller
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
 
-        $dt        = Carbon::now();        
+        $dt        = Carbon::now();
         // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         // $datestamp = $dt->toDateTimeString();
         $year  = (int) (int) $dt->year;
         $month = str_pad((string)$dt->month, 2, '0', STR_PAD_LEFT);
 
 
-        // helper untuk normalisasi angka lokal (ID format)     
+        // helper untuk normalisasi angka lokal (ID format)
         $toFloat = function ($v): ?float {
             if ($v === null || $v === '') return null;
             $s = preg_replace('/\s+/', '', (string)$v);
@@ -315,7 +398,7 @@ class SppbController extends Controller
         //         'message' => 'Approval line belum di-setup, Please contact IT!',
         //     ], 422);
         // }
-       
+
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
@@ -412,8 +495,8 @@ class SppbController extends Controller
                     'err' => $e->getMessage(),
                 ]);
             }
-           
-           
+
+
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId = $inventoryIds[$i] ?? null;
                 $productName = $productNames[$i] ?? null;
@@ -465,13 +548,13 @@ class SppbController extends Controller
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty                 = $baseQty;            // hitungan M/D               
+                $detail->base_qty                 = $baseQty;            // hitungan M/D
                 $detail->budget_cpny_id           = $request->cpnyid;
                 $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
-                $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;                
+                $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
                 $detail->budget_account_id        = $coaIds[$i]         ?? null;
-                $detail->budget_activity_id       = $activityIds[$i]   ?? null;  
-                $detail->budget_activity_descr    = $actDescrs[$i] ?? null;             
+                $detail->budget_activity_id       = $activityIds[$i]   ?? null;
+                $detail->budget_activity_descr    = $actDescrs[$i] ?? null;
                 $detail->location_id              = $locationIds[$i]  ?? null;
                 $detail->sub_location_id          = $subLocIds[$i]    ?? null;
                 $detail->budget_perpost           = $request->perpost;
@@ -525,7 +608,7 @@ class SppbController extends Controller
             //     $header->save();
             // }
 
-                  
+
 
             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
@@ -577,19 +660,19 @@ class SppbController extends Controller
             //     foreach ($request->file('attachments') as $file) {
             //         $randomNumber = random_int(10000000, 99999999);
             //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
             //         $originalName = str_replace('%', '', $file->getClientOriginalName());
             //         $ext        = $file->getClientOriginalExtension();
             //         $attachfile = md5($randomNumber) . '.' . $ext;
 
             //         //attach to folder
             //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
+            //         $config['upload_path'] = $folder_attach;
             //         if(!is_dir($folder_attach))
             //         {
             //             mkdir($folder_attach, 0777);
             //         }
-                    
+
             //         $folder_upload = $folder_attach;
             //         // $folder_upload = public_path() . '/attachments';
             //         $file->move($folder_upload, $attachfile);
@@ -604,14 +687,14 @@ class SppbController extends Controller
             //         $attach->created_user = $user->username;
             //         $attach->save();
             //     }
-            // }            
+            // }
 
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),                    
+                    'departementid' => $request->input('departementid'),
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
@@ -657,7 +740,7 @@ class SppbController extends Controller
             // if ($firstApproval) {
 
             //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-                
+
             //     $subjectMap = [
             //         'P' => 'Waiting Approval',
             //         'R' => 'Rejected Approval',
@@ -669,7 +752,7 @@ class SppbController extends Controller
 
             //     $eid = Hashids::encode($header->id);
 
-                                
+
             //     $data = [
             //         'docid'    => $firstApproval->docid,
             //         'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -682,7 +765,7 @@ class SppbController extends Controller
             //         'docname'  => 'SPPB',
             //         'url'      => url('/showsppbs/' . $eid),
             //     ];
-                
+
             //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
             //     $emails = User::whereIn('username', $approvers)
             //         ->where('status', 'A')
@@ -717,15 +800,15 @@ class SppbController extends Controller
             ], 500);
         }
     }
-   
+
     public function editSppb($hash)
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
-        
+
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
@@ -814,11 +897,11 @@ class SppbController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'PB tidak ditemukan.');
 
-        $user      = $request->user();   
+        $user      = $request->user();
         $dt        = Carbon::now();
         $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();   
+        $datestamp = $dt->toDateTimeString();
         $doctype   = 'PB';
         $username  = $user->username ?? 'system';
         $fullname  = $user->name ?? 'system';
@@ -861,7 +944,7 @@ class SppbController extends Controller
         $header->department_id  = $request->departementid;
         $header->requesttypeid  = $request->requesttypeid;
         $header->keperluan      = $request->keperluan;
-        $header->budget_perpost = $request->perpost;   
+        $header->budget_perpost = $request->perpost;
         $header->woid           = $request->woid;
         $header->is_urgent      = $request->is_urgent;
         $header->status         = 'P';
@@ -880,12 +963,12 @@ class SppbController extends Controller
         $actIds       = array_values($request->input('activity_id', []));
         $buIds        = array_values($request->input('business_unit_id', []));
         $deptFinIds   = array_values($request->input('department_fin_id', []));
-        $actDescrs    = array_values($request->input('activity_descr', []));        
+        $actDescrs    = array_values($request->input('activity_descr', []));
         $coaIds       = array_values($request->input('coa_id', []));
         $itemTypes    = array_values($request->input('item_type', []));
         $itemCats     = array_values($request->input('item_category', []));
         $siteids     = array_values($request->input('siteid', []));
-        
+
         $inventorySubTypes   = $request->input('item_sub_type', []);
 
         // arrays UoM tambahan
@@ -1028,19 +1111,19 @@ class SppbController extends Controller
             //     foreach ($request->file('attachments') as $file) {
             //         $randomNumber = random_int(10000000, 99999999);
             //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
             //         $originalName = str_replace('%', '', $file->getClientOriginalName());
             //         $ext        = $file->getClientOriginalExtension();
             //         $attachfile = md5($randomNumber) . '.' . $ext;
 
             //         //attach to folder
             //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
+            //         $config['upload_path'] = $folder_attach;
             //         if(!is_dir($folder_attach))
             //         {
             //             mkdir($folder_attach, 0777);
             //         }
-                    
+
             //         $folder_upload = $folder_attach;
             //         // $folder_upload = public_path() . '/attachments';
             //         $file->move($folder_upload, $attachfile);
@@ -1055,7 +1138,7 @@ class SppbController extends Controller
             //         $attach->created_user = $user->username;
             //         $attach->save();
             //     }
-            // }       
+            // }
 
             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
@@ -1102,7 +1185,7 @@ class SppbController extends Controller
                 $header->save();
             }
 
-              
+
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -1146,7 +1229,7 @@ class SppbController extends Controller
             //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
             //     $eid = Hashids::encode($header->id);
-                
+
             //     $data = [
             //         'docid'    => $firstApproval->docid,
             //         'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -1199,8 +1282,8 @@ class SppbController extends Controller
         }
     }
 
-   
-   
+
+
     public function removeAttachment($id)
     {
         try {
@@ -1212,14 +1295,14 @@ class SppbController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
     }
- 
+
 
     public function showSppb($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -1230,7 +1313,7 @@ class SppbController extends Controller
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name'
         ])
-        ->findOrFail($id);        
+        ->findOrFail($id);
 
         $sppbdetail = TrSPPBdetail::with([
             'location:location_id,location_name',
@@ -1238,8 +1321,8 @@ class SppbController extends Controller
         ])
         ->where('sppbid', $sppb->sppbid)
         ->orderby('sppb_no', 'ASC')
-        ->get();       
-              
+        ->get();
+
         // ---------- ambil lampiran dari tr_attachment ----------
         // $rows = TrAttachment::where('refnbr', $sppb->sppbid)
         //     ->where('status', 'A')
@@ -1276,7 +1359,7 @@ class SppbController extends Controller
         //         \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
         //     }
 
-        //     return (object) [                
+        //     return (object) [
         //         'display_name' => $r->attachment_name,         // nama yang enak dibaca
         //         'created_by'   => $r->created_by,
         //         'created_at'   => $r->created_at,
@@ -1295,14 +1378,14 @@ class SppbController extends Controller
             $attachmentWO = $this->mapAttachmentsToSignedUrl($sppb->woid);
         }
 
-        
+
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $sppb->created_by === $loginUsername;
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id','COSTCTRLACCESS')
             ->first();
 
-       
+
         $userCpny = Usercpny::query()
         ->where('username',$user->username)->where('status','A')
         ->pluck('cpny_id')->values();
@@ -1338,7 +1421,7 @@ class SppbController extends Controller
                 $woHash = Hashids::encode($woData->id);
             }
         }
-       
+
         return view('pages.sppbs.showsppbs', compact('sppb','sppbdetail','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','attachmentPB','attachmentWO','woData','woHash'
         ));
     }
@@ -1388,7 +1471,7 @@ class SppbController extends Controller
             ];
         });
     }
-      
+
     public function approveSppb(Request $request, $docid)
     {
         $user    = $request->user();
@@ -1429,7 +1512,7 @@ class SppbController extends Controller
                         'info'     => $sppb->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
             },
@@ -1503,7 +1586,7 @@ class SppbController extends Controller
                         'info'     => $sppb->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
 
@@ -1737,7 +1820,7 @@ class SppbController extends Controller
     //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
     //     }
     // }
-    
+
     // public function rejectSppb(Request $request, $docid)
     // {
     //     $now     = Carbon::now();
@@ -1986,7 +2069,7 @@ class SppbController extends Controller
 
     //     return response()->json(['success' => true, 'message' => 'SPPB revised successfully']);
     // }
-    
+
 
     public function trackingDetail($hash)
     {
@@ -2193,7 +2276,7 @@ class SppbController extends Controller
                     'status'=>$poHeader->status,
                     'completed_by'=>$poHeader->completed_by,
                     'completed_at'=>$fmt($poHeader->completed_at),
-                    'is_approved'=>$approved($poHeader),                    
+                    'is_approved'=>$approved($poHeader),
                 ] : null,
                 'details' => $poDetails,
             ],
@@ -2215,7 +2298,7 @@ class SppbController extends Controller
             ],
         ]);
     }
-    
+
     public function trackingDetailItem($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -2631,15 +2714,15 @@ class SppbController extends Controller
 
     public function cancelSppb(Request $request, string $hash)
     {
-        
+
         // decode hash -> id (sesuaikan kalau tidak pakai Hashids)
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Invalid document');
 
         $id = $decoded[0];
-        
+
         // ambil doc
-        $sppb = TrSPPB::query()->where('id', $id)->firstOrFail();        
+        $sppb = TrSPPB::query()->where('id', $id)->firstOrFail();
 
         DB::beginTransaction();
         try {
@@ -2647,7 +2730,7 @@ class SppbController extends Controller
             $sppb->status = 'X';
             $sppb->updated_by = Auth::user()->username ?? Auth::id(); // kalau kolom ada
             $sppb->updated_at = now(); // kalau kolom ada
-            $sppb->save();          
+            $sppb->save();
 
             DB::commit();
 
@@ -2668,7 +2751,7 @@ class SppbController extends Controller
 
 
 
-    
+
 
 
 
