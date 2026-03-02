@@ -691,7 +691,7 @@
                         <details class="group" open>
                             <summary
                                 class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
-                                <span>Attachments</span>
+                                <span class="req">Attachments</span>
                                 <span class="text-sm font-medium text-gray-500 transition-all group-open:hidden">See
                                     details &rarr;</span>
                                 <span

@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
 
             {{-- 1. Issue New Jobs (TrSPB) --}}
             <button type="button" class="text-left">
@@ -97,6 +97,25 @@
                 </a>
             </button>
 
+            {{-- 6. SPB In Progress --}}
+            <button type="button" class="text-left">
+                <a href="#" class="scope-filter group block h-full" data-scope="spbprogress">
+                    <div
+                        class="scope-card flex items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-lg active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
+                                SPB On Progress
+                            </p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $spbprogress }}</p>
+                    </div>
+                </a>
+            </button>
+
         </div>
         <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
             <div
@@ -137,9 +156,10 @@
                 onprogress: 'SPPB - Jobs',
                 issueprogress: 'Issue - On Progress',
                 sppbprogress: 'SPPB - On Progress',
+                spbprogress: 'SPB - On Progress',
             };
 
-            const spbScopes = ['issuejobsnew', 'issuejobs', 'onprogress'];
+            const spbScopes = ['issuejobsnew', 'issuejobs', 'onprogress', 'spbprogress'];
             const issueScopes = ['issueprogress'];
             const sppbScopes = ['sppbprogress'];
             const allowedScopes = [...spbScopes, ...issueScopes, ...sppbScopes];
@@ -154,19 +174,28 @@
             function headerFor(sc) {
                 const type = scopeType(sc);
                 if (type === 'spb') {
+
+                    const hideAction = (sc === 'spbprogress');
                     const isSppbJobs = (sc === 'onprogress');
+                    const hideStatus = (sc === 'spbprogress');
+
                     return `
-                    <th></th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPB ID</th>
-                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">SPB Date</th>
-                                <th class="px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Keperluan</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">
-                                ${isSppbJobs ? 'Status SPPB' : 'Status Issue'}
-                                </th>
-                            `;
+        <th></th>
+        ${!hideAction ? `
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                    Action
+                                </th>` : ``}
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPB ID</th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">SPB Date</th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">Company</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Keperluan</th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
+        ${!hideStatus ? `
+                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    ${isSppbJobs ? 'Status SPPB' : 'Status Issue'}
+                </th>` : ``}
+
+    `;
                 }
 
                 if (type === 'issue') {
@@ -258,77 +287,54 @@
             function columnsFor(sc) {
                 const type = scopeType(sc);
                 if (type === 'spb') {
-                    const isSppbJobs = (sc === 'onprogress'); // scope SPPB Jobs
 
-                    return [
-                        dtControlColumn,
+                    const isSppbJobs = (sc === 'onprogress');
+                    const hideAction = (sc === 'spbprogress');
+                    const hideStatus = (sc === 'spbprogress');
 
-                        // ✅ ACTION COLUMN (Create Issue / Create SPPB)
-                        {
+                    const cols = [dtControlColumn];
+
+                    if (!hideAction) {
+                        cols.push({
                             data: null,
                             orderable: false,
                             searchable: false,
                             className: 'text-left',
                             render: (_v, _t, row) => {
-                                // kalau scope = onprogress => buat SPPB
                                 if (isSppbJobs) return renderSppbCreate(row);
-                                // selain itu => buat Issue
                                 return renderIssueCreate(row);
                             }
-                        },
+                        });
+                    }
 
-                        // SPB ID
-                        {
-                            data: 'spbid',
-                            defaultContent: '',
-                            render: (_v, _t, row) => renderSpbLink(row)
-                        },
+                    cols.push({
+                        data: 'spbid',
+                        render: (_v, _t, row) => renderSpbLink(row)
+                    }, {
+                        data: 'spbdate',
+                        render: (value, _t, row) => value || row.spbdate_fmt || '',
+                        className: 'text-center'
+                    }, {
+                        data: 'cpny_id',
+                        className: 'text-center'
+                    }, {
+                        data: 'keperluan'
+                    }, {
+                        data: 'created_by'
+                    });
 
-                        // SPB Date
-                        {
-                            data: 'spbdate',
-                            defaultContent: '',
-                            render: (value, _t, row) => value || row.spbdate_fmt || '',
-                            className: 'text-center'
-                        },
-
-                        // Company
-                        {
-                            data: 'cpny_id',
-                            defaultContent: '',
-                            className: 'text-center'
-                        },
-
-                        // Keperluan
-                        {
-                            data: 'keperluan',
-                            defaultContent: ''
-                        },
-
-                        // Created By
-                        {
-                            data: 'created_by',
-                            defaultContent: ''
-                        },
-
-                        // Status Issue / Status SPPB
-                        {
+                    if (!hideStatus) {
+                        cols.push({
                             data: null,
-                            defaultContent: '',
                             render: (_v, _t, row) => {
                                 const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ??
                                     '-');
-                                const map = {
-                                    'Open': 'bg-gray-200/50 text-gray-700',
-                                    'Partial': 'bg-amber-200/50 text-amber-700',
-                                    'Completed': 'bg-green-200/50 text-green-700',
-                                    'Full': 'bg-green-200/50 text-green-700',
-                                };
-                                const cls = map[val] || 'bg-gray-200/50 text-gray-700';
-                                return `<span class="inline-block ${cls} font-semibold px-3 py-1.5  text-sm  text-center rounded">${val}</span>`;
+                                return `<span class="bg-gray-200/50 text-gray-700 font-semibold px-3 py-1.5 text-sm rounded">${val}</span>`;
                             }
-                        }
-                    ];
+                        });
+                    }
+
+                    return cols;
                 }
 
                 // if (type === 'spb') {

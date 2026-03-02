@@ -198,6 +198,7 @@
     <thead>
         <tr>
             <th style="text-align:center; width:15px;">No</th>
+            <th style="text-align:center;">Inventory ID</th>
             <th style="text-align:center;">Description / Note</th>
             <th style="text-align:center; width:30px;">Qty / UoM</th>
             <th style="text-align:center; width:150px;">Location</th>
@@ -208,6 +209,8 @@
         @forelse($detail as $i => $dt)
             <tr>
                 <td style="text-align:center;">{{ $i + 1 }}</td>
+                <td>( {{ $dt->inventoryid }} )
+                </td>
                 <td>{{ $dt->inventory_descr }} ( {{ $dt->inventoryid }} ) <br>
                     <span class="text-sm text-gray-500 dark:text-gray-400">
                         Note: {{ $dt->note }}

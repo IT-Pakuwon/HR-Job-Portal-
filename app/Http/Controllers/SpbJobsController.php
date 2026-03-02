@@ -16,7 +16,7 @@ use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
-use Barryvdh\DomPDF\Facade\Pdf; 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\TrAttachmentController;
 use App\Http\Controllers\IssueController;
 use App\Models\TrAttachment;
@@ -26,7 +26,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
 use Illuminate\Support\Collection;
 use App\Models\TrWO;
-use App\Models\TrSPPB; 
+use App\Models\TrSPPB;
 use App\Models\TrSPPBdetail;
 use App\Models\MsPurchSetting;
 use App\Models\MsInventory;
@@ -73,12 +73,19 @@ class SpbJobsController extends Controller
             ->where('status', 'P')
             ->count();
 
+        $spbprogress = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', 'P')
+            ->count();
+
+
+
         return view('pages.spbjobs.spbjobs', compact(
             'issuejobsnew',  // Issue New Jobs
             'issuejobs', // Issue Jobs
             'sppbjobs', // SPPB Jobs
             'issueprogress',   // Issue On Progress
-            'sppbprogress'      // SPPB On Progress
+            'sppbprogress',      // SPPB On Progress
+            'spbprogress'        // SPB On Progress
         ));
     }
 
@@ -129,19 +136,26 @@ class SpbJobsController extends Controller
             ->where('status', $status_sppb_progress)
             ->count();
 
+        // 6. SPB On Progress (SPB header masih draft/progress)
+        $spbprogress = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', 'P')
+            ->count();
+
         return view('pages.spbjobs.spbjobs', compact(
             'issuejobsnew',
             'issuejobs',
             'sppbjobs',
             'issueprogress',
             'sppbprogress',
+            'spbprogress',
 
             // ✅ status label untuk view
             'status_issue_new',
             'status_issue_job',
             'status_sppb_job',
             'status_issue_progress',
-            'status_sppb_progress'
+            'status_sppb_progress',
+
         ));
     }
 
@@ -202,7 +216,7 @@ class SpbJobsController extends Controller
                           ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
                           ->where('status_issue',  'Partial');
                     })
-                    
+
                     // SPPB Jobs
                     ->when($scope === 'onprogress', function ($q) {
                          $q->where('status', 'C')
@@ -302,6 +316,46 @@ class SpbJobsController extends Controller
                         $qr->where('requesttype_name', 'ilike', "%{$search}%");
                     });
                 }
+                break;
+            case 'spbprogress':   // SPB On Progress (TrSPB)
+                $mode = 'spb';
+
+                $base = TrSPB::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+                    ->where('status', 'P')
+                    ->select([
+                        'id',
+                        'spbid',
+                        'spbdate',
+                        'cpny_id',
+                        'keperluan',
+                        'created_by',
+                        'status',
+                        'status_issue',
+                        'status_sppb',
+                        'totalspbqty',
+                        'totalissueqty',
+                        'totalsppbqty',
+                    ]);
+
+                $orderColumns = [
+                    0 => 'id',
+                    1 => 'spbid',
+                    2 => 'spbdate',
+                    3 => 'cpny_id',
+                    4 => 'keperluan',
+                    5 => 'created_by',
+                ];
+
+                if ($search !== '') {
+                    $base->where(function ($q) use ($search) {
+                        $q->where('spbid', 'ilike', "%{$search}%")
+                        ->orWhere('cpny_id', 'ilike', "%{$search}%")
+                        ->orWhere('keperluan', 'ilike', "%{$search}%")
+                        ->orWhere('created_by', 'ilike', "%{$search}%")
+                        ->orWhereRaw("TO_CHAR(spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                    });
+                }
+
                 break;
 
             default:
@@ -573,7 +627,7 @@ class SpbJobsController extends Controller
         ]);
     }
 
-    
+
     public function createIssue_xxx(Request $req)
     {
         $spbid = (string) $req->query('spbid', '');
@@ -1204,7 +1258,7 @@ class SpbJobsController extends Controller
     }
 
 
-   
+
     protected function applySppbPostingToSpb(TrSPPB $sppb, Collection $sppbDetails, User $user, Carbon $now): void
     {
         // Lock header SPB terkait SPPB ini

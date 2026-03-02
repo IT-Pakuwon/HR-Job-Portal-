@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Budget;
@@ -10,6 +10,7 @@ use App\Models\BudgetDetail;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
+use App\Models\DepartmentFin;
 use App\Models\Usercpny;
 use App\Models\Userdept;
 use App\Models\User;
@@ -38,10 +39,10 @@ use App\Http\Controllers\Traits\HasAutonbr;
 class BudgetController extends Controller
 {
     use HasAutonbr;
-    
+
     public function index()
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -65,23 +66,43 @@ class BudgetController extends Controller
                             Budget::where('status', 'C')
                         )->count();
 
+        $businessUnits = BusinessUnit::orderBy('business_unit_name')->get();
+        $departments = DepartmentFin::select('department_fin_id', 'department_name')
+            ->groupBy('department_fin_id', 'department_name')
+            ->orderBy('department_name')
+            ->get();
+
         return view(
             'pages.budgets.budgets',
-            compact('all', 'onProgress', 'reject', 'revise', 'completed')
+            compact('all', 'onProgress', 'reject', 'revise', 'completed', 'businessUnits', 'departments')
         );
     }
-    
+
     public function json(Request $request)
     {
-        $status = $request->query('status');
+        $status         = $request->query('status');
+        $businessUnit   = $request->query('business_unit');
+        $department     = $request->query('department');
 
         $query = Budget::with(['businessUnit', 'departmentFin']);
 
-        // terapkan filter sesuai akses
+        // ✅ Apply role-based access filter first
         $query = $this->applyBudgetFilter($query);
 
+        // ✅ Status filter
         if ($status && $status !== 'ALL') {
             $query->where('status', $status);
+        }
+
+        // ✅ Business Unit filter
+        if (!empty($businessUnit)) {
+            $query->where('business_unit_id', $businessUnit);
+        }
+
+        // ✅ Department filter
+        if (!empty($department)) {
+            $query->where('department_fin_id', $department);
+            // ⚠️ change column name if different in your DB
         }
 
         $budget = $query->orderBy('id', 'desc')->get();
@@ -124,7 +145,7 @@ class BudgetController extends Controller
 
         $full = $this->hasFullAccess();
 
-    
+
         // Kalau FULLACCESS → filter company saja
         if ($full) {
             return $query->whereIn('cpny_id', $cpnyIds);
@@ -190,17 +211,17 @@ class BudgetController extends Controller
 
         return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id'));
     }
-   
+
     public function createBudget_xxx()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
         $user = request()->user();
-     
+
         $companies = MsCompany::select('cpny_id','cpny_name')->where('status','A')->get();
 
         $usercpny = Usercpny::where('username', $user->username)->pluck('cpny_id')->toArray();
-       
+
         $temp_id = session('import_temp_id'); // ambil dari session
 
         $tempData = [];
@@ -208,11 +229,11 @@ class BudgetController extends Controller
             $tempData = MsBudgetTemp::where('temp_budget_id', $temp_id)->get();
         }
 
-       
+
         return view('pages.budgets.createbudgets', compact('companies','tempData','temp_id','usercpny'));
     }
-   
-  
+
+
     public function import(Request $request, $hash = null)
     {
         $request->validate([
@@ -358,7 +379,7 @@ class BudgetController extends Controller
         }
     }
 
- 
+
     public function import_xxx(Request $request, $hash = null)
     {
         $request->validate([
@@ -448,14 +469,14 @@ class BudgetController extends Controller
         }
     }
 
-  
+
     public function getBusinessUnits($cpny_id)
-    {        
+    {
         $units = BusinessUnit::where('cpny_id', $cpny_id)->get();
 
         return response()->json($units);
     }
-  
+
     public function storeBudget(Request $request)
     {
         // $doctype = 'BD';
@@ -526,7 +547,7 @@ class BudgetController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);           
+            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             // 5) Buat header Budget
             $totalBudget = (float) $tempData->sum('totalbudget');
@@ -702,7 +723,7 @@ class BudgetController extends Controller
         }
     }
 
-    
+
     public function editBudget($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -738,12 +759,12 @@ class BudgetController extends Controller
                         ->get();
 
         $departements  = MsDepartment::select('department_id','department_name')->get();
-        
-        $budget_detail = BudgetDetail::where('budget_id', $budget->budget_id) 
+
+        $budget_detail = BudgetDetail::where('budget_id', $budget->budget_id)
             ->get();
         $temp_id  = session('import_temp_id');
         $tempData = $temp_id ? MsBudgetTemp::where('temp_budget_id', $temp_id)->get() : [];
-        
+
         $rows = TrAttachment::where('refnbr', $budget->budget_id)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
@@ -978,15 +999,15 @@ class BudgetController extends Controller
             ], 500);
         }
     }
-    
-       
+
+
 
     public function showBudget($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -999,18 +1020,18 @@ class BudgetController extends Controller
             'creator'
         ])->findOrFail($id);
 
-        
-        $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
-            ->get();      
+
+        $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)
+            ->get();
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $budget->created_by === $loginUsername;
-            
-            
+
+
         return view('pages.budgets.showbudgets', compact('budget','budgetdetail','hash','canUpload'));
     }
 
-       
+
 
     public function approveBudget(Request $request, $docid)
     {
@@ -1052,7 +1073,7 @@ class BudgetController extends Controller
                         'info'     => $budget->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
             },
@@ -1126,7 +1147,7 @@ class BudgetController extends Controller
                         'info'     => $budget->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
 
@@ -1229,7 +1250,7 @@ class BudgetController extends Controller
     //     $tApproval = T_approval::where('docid', $budget->budget_id)
     //         ->where('status', 'P')
     //         ->where('aprvusername', 'like', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore') 
+    //         ->whereNotNull('aprvdatebefore')
     //         ->orderBy('aprvid', 'ASC')
     //         ->first();
 
@@ -1386,18 +1407,18 @@ class BudgetController extends Controller
 
     // public function rejectBudget(Request $request, $docid)
     // {
-        
-    //     // dd($request->all());         
-    //     $datestamp = Carbon::now()->toDateTimeString();       
+
+    //     // dd($request->all());
+    //     $datestamp = Carbon::now()->toDateTimeString();
     //     $user = request()->user(); // Ambil user yang login
 
-    //     // $budget = Budget::where('budget_id', $docid)->first();  
+    //     // $budget = Budget::where('budget_id', $docid)->first();
     //     $budget = Budget::with('creator')
     //         ->where('budget_id', $docid)
     //         ->first();
     //     $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
 
-        
+
     //     if (!$budget) {
     //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
     //     }
@@ -1406,20 +1427,20 @@ class BudgetController extends Controller
     //     $t_approval = T_approval::where('docid', $budget->budget_id)
     //         ->where('status', 'P')
     //         ->where('aprvusername', 'like', "%" . $user->username . "%")
-    //         ->whereNotNull('aprvdatebefore') 
+    //         ->whereNotNull('aprvdatebefore')
     //         ->first();
     //     // dd($t_approval);
     //     if ($t_approval == null) {
     //         return response()->json(['success' => false, 'message' => "You Can't Rejected!"], 403);
     //     } else {
     //         $t_approval->status = 'R';
-    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->aprvdateafter = $datestamp;
     //         $t_approval->save();
 
     //         $budget->status = 'R';
     //         $budget->save();
-    //     }   
-                       
+    //     }
+
     //     $t_aprv_sisa = T_approval::where('docid', '=', $budget->budget_id)
     //         ->where('status', '=', 'P')
     //         ->get();
@@ -1441,23 +1462,23 @@ class BudgetController extends Controller
 
     //     $eid = Hashids::encode($budget->id);
 
-    //     //send email 
+    //     //send email
     //     $data = array(
     //         'docid' => $t_approval->docid,
     //         'cpnyid' => $t_approval->aprvcpnyid,
-    //         'deptname' => $t_approval->aprvdeptid,           
+    //         'deptname' => $t_approval->aprvdeptid,
     //         'date' => $t_approval->aprvdatebefore,
-    //         'fullname'  => $fullname,               
-    //         'name'      => $fullname,               
+    //         'fullname'  => $fullname,
+    //         'name'      => $fullname,
     //         'createdby' => $fullname,
     //         'docname'   => 'Budget',
     //         'status'    => $status,
-    //         'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,                 
+    //         'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,
     //         'url' => url('/showbudgets/' . $eid)
 
     //     );
 
-       
+
     //     $email_it = User::where('username', $budget->created_by)
     //             ->where('status', 'A')
     //             ->get();
@@ -1479,18 +1500,18 @@ class BudgetController extends Controller
 
     // public function reviseBudget(Request $request, $docid)
     // {
-        
-    //     // dd($request->all());         
-    //     $datestamp = Carbon::now()->toDateTimeString();       
+
+    //     // dd($request->all());
+    //     $datestamp = Carbon::now()->toDateTimeString();
     //     $user = request()->user(); // Ambil user yang login
 
-    //     // $budget = Budget::where('budget_id', $docid)->first();  
+    //     // $budget = Budget::where('budget_id', $docid)->first();
     //     $budget = Budget::with('creator')
     //         ->where('budget_id', $docid)
     //         ->first();
     //     $fullname = data_get($budget, 'creator.name') ?: $budget->created_by;
-        
-        
+
+
     //     if (!$budget) {
     //         return response()->json(['success' => false, 'message' => 'Budget not found'], 404);
     //     }
@@ -1499,20 +1520,20 @@ class BudgetController extends Controller
     //     $t_approval = T_approval::where('docid', $budget->budget_id)
     //         ->where('status', 'P')
     //         ->where('aprvusername', 'like', "%" . $user->username . "%")
-    //         ->whereNotNull('aprvdatebefore') 
+    //         ->whereNotNull('aprvdatebefore')
     //         ->first();
     //     // dd($t_approval);
     //     if ($t_approval == null) {
     //         return response()->json(['success' => false, 'message' => "You Can't Revise!"], 403);
     //     } else {
     //         $t_approval->status = 'D';
-    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->aprvdateafter = $datestamp;
     //         $t_approval->save();
 
     //         $budget->status = 'D';
     //         $budget->save();
-    //     }   
-                       
+    //     }
+
     //     $t_aprv_sisa = T_approval::where('docid', '=', $budget->budget_id)
     //         ->where('status', '=', 'P')
     //         ->get();
@@ -1534,23 +1555,23 @@ class BudgetController extends Controller
 
     //     $eid = Hashids::encode($budget->id);
 
-    //     //send email 
+    //     //send email
     //     $data = array(
     //         'docid' => $t_approval->docid,
     //         'cpnyid' => $t_approval->aprvcpnyid,
-    //         'deptname' => $t_approval->aprvdeptid,           
+    //         'deptname' => $t_approval->aprvdeptid,
     //         'date' => $t_approval->aprvdatebefore,
-    //         'fullname'  => $fullname,             
-    //         'name'      => $fullname,             
+    //         'fullname'  => $fullname,
+    //         'name'      => $fullname,
     //         'createdby' => $fullname,
     //         'docname'   => 'Budget',
     //         'status'    => $status,
-    //         'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,               
+    //         'info' => 'Budget Company ' . $budget->cpny_id . ' Department ' . $budget->department_fin_id . ' ' . $budget->perpost,
     //         'url' => url('/showbudgets/' . $eid)
 
     //     );
 
-       
+
     //     $email_it = User::where('username', $budget->created_by)
     //             ->where('status', 'A')
     //             ->get();
@@ -1574,7 +1595,7 @@ class BudgetController extends Controller
     // {
     //     // Ambil user yang sedang login
     //     $user = Auth::user();
-        
+
     //     // Cek apakah user login ada di table trx_approval dengan status 'P'
     //     $approval = T_approval::where('docid', $id)
     //         ->where('aprvusername', 'like', '%' . $user->username . '%')
@@ -1594,7 +1615,7 @@ class BudgetController extends Controller
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
     //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
-    //                 ->where('status', 'P');                 
+    //                 ->where('status', 'P');
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
     //     if (in_array($action, ['reject', 'revise','approve'])) {
@@ -1607,13 +1628,13 @@ class BudgetController extends Controller
     //     return response()->json(['canPerformAction' => $canPerformAction]);
     // }
 
-   
+
     public function getSitesByCompany($cpnyid)
     {
         // $sites = Site::where('cpnyid', $cpnyid)
-        //     ->select('id', 'site')         
+        //     ->select('id', 'site')
         //     ->get();
-        $sites = Site::select('id', 'site')         
+        $sites = Site::select('id', 'site')
             ->get();
 
         return response()->json($sites);
@@ -1633,9 +1654,9 @@ class BudgetController extends Controller
        $budget = Budget::findOrFail($id);
 
         // Detail baris BDGET
-        $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)           
-            ->get();      
-        
+        $budgetdetail = BudgetDetail::where('budget_id', $budget->budget_id)
+            ->get();
+
         $refnbr    = $budget->budget_id;
         $apprTable = (new TrApproval)->getTable(); // "tr_approval"
 
@@ -1689,7 +1710,7 @@ class BudgetController extends Controller
             'department_id'       => $budget->department_id,
             'cpnyname'            => $company->cpny_name,
             'perpost'             => $budget->perpost,
-           
+
             'created_by_username' => $budget->created_by,
             'created_by_name'     => ucwords(strtolower(optional($budget->creator)->name)),
             'created_at_fmt'      => optional($budget->created_at)->format('d F Y'),
@@ -1717,19 +1738,19 @@ class BudgetController extends Controller
         return $pdf->stream("pdf_budgets_{$budget->budget_id}.pdf");
     }
 
-    
 
 
 
-   
 
 
 
-    
 
-   
 
-    
+
+
+
+
+
 
 
 

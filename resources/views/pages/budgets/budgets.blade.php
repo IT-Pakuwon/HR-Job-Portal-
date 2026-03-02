@@ -93,12 +93,58 @@
         </div>
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Budget</h1>
-                <a href="{{ url('/createbudgets') }}"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                    <i class="fas fa-plus pr-2"></i>Import Budget</a>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+
+                {{-- LEFT SIDE: Title --}}
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">
+                    Budget
+                </h1>
+
+                {{-- RIGHT SIDE: Filters + Button --}}
+                <div class="flex flex-wrap items-end gap-4">
+
+                    {{-- Business Unit --}}
+                    <div class="flex flex-col">
+                        <label class="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                            Business Unit
+                        </label>
+                        <select id="filterBusinessUnit"
+                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">All</option>
+                            @foreach ($businessUnits as $bu)
+                                <option value="{{ $bu->business_unit_id }}">
+                                    {{ $bu->business_unit_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Department --}}
+                    <div class="flex flex-col">
+                        <label class="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                            Department
+                        </label>
+                        <select id="filterDepartment"
+                            class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">All</option>
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept->department_fin_id }}">
+                                    {{ $dept->department_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Button --}}
+                    <a href="{{ url('/createbudgets') }}"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        <i class="fas fa-plus pr-2"></i>Import Budget
+                    </a>
+
+                </div>
+
             </div>
+
             <div class="rounded-base relative overflow-x-auto">
                 <table id="budgetsTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
@@ -135,8 +181,16 @@
 
     <script>
         $(document).ready(function() {
+            let currentStatus = 'P';
             let table = $('#budgetsTable').DataTable({
-                ajax: "{{ route('budgets.json') }}?status=P",
+                ajax: {
+                    url: "{{ route('budgets.json') }}",
+                    data: function(d) {
+                        d.status = currentStatus;
+                        d.business_unit = $('#filterBusinessUnit').val();
+                        d.department = $('#filterDepartment').val();
+                    }
+                },
                 processing: true,
                 serverSide: false,
                 lengthMenu: [
@@ -292,15 +346,13 @@
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
 
-                let selectedStatus = $(this).data('status') || 'ALL';
+                currentStatus = $(this).data('status') || 'ALL';
 
-                // URL baru dengan query param status
-                let newUrl = "{{ route('budgets.json') }}";
-                newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
+                table.ajax.reload();
+            });
 
-                console.log("Loading DataTable with URL:", newUrl); // for debug
-
-                table.ajax.url(newUrl).load();
+            $('#filterBusinessUnit, #filterDepartment').on('change', function() {
+                table.ajax.reload();
             });
 
             document.querySelectorAll('.status-filter').forEach(btn => {

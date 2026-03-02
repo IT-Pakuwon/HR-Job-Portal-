@@ -344,6 +344,7 @@
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
+                                <th class="px-4 py-2">Inventory ID</th>
                                 <th class="px-4 py-2">Description / Note</th>
                                 <th class="px-4 py-2">Qty / UoM</th>
                                 <th class="px-4 py-2">Location</th>
@@ -358,8 +359,8 @@
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
                                     <td class="px-4 py-2">{{ $item->spb_no }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventory_descr }} ( {{ $item->inventoryid }}
-                                        )<br>
+                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
+                                    <td class="px-4 py-2">{{ $item->inventory_descr }}<br>
                                         <span class="text-sm text-gray-500 dark:text-gray-400">
                                             Note: {{ $item->note }}
                                         </span>
@@ -1591,7 +1592,7 @@
                 // reset table/info
                 $('#coaPickerTbody').html(
                     '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Klik Apply untuk load</td></tr>'
-                    );
+                );
                 $('#coaPickerInfo').text('0 rows');
                 $('#coaPickerPage').text('1');
 
@@ -1647,7 +1648,7 @@
                 const $tb = $('#coaPickerTbody').empty();
                 if (!rows || !rows.length) {
                     $tb.append(
-                    '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">No data</td></tr>');
+                        '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">No data</td></tr>');
                     return;
                 }
 
@@ -1751,7 +1752,7 @@
                 $('#fSearch').val('');
                 $('#coaPickerTbody').html(
                     '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>'
-                    );
+                );
                 $('#coaPickerInfo').text('0 rows');
                 pickerState.page = 1;
                 $('#coaPickerPage').text('1');

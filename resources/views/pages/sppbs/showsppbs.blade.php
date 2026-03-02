@@ -324,6 +324,7 @@
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
                                 <th class="px-4 py-2">No</th>
+                                <th class="px-4 py-2">Inventory ID</th>
                                 <th class="px-4 py-2">Description / Note</th>
                                 <th class="px-4 py-2">Qty / UoM</th>
                                 <th class="px-4 py-2">Location</th>
@@ -349,9 +350,9 @@
                                     class="{{ $rowClass }} border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
 
                                     <td class="px-4 py-2">{{ $item->sppb_no }}</td>
-
+                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
                                     <td class="px-4 py-2">
-                                        {{ $item->inventory_descr }} ({{ $item->inventoryid }})<br>
+                                        {{ $item->inventory_descr }}<br>
                                         <span class="text-sm text-gray-500 dark:text-gray-400">
                                             Note: {{ $item->note }}
                                         </span>
