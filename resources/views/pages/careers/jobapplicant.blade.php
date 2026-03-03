@@ -516,7 +516,7 @@
                 buttons: [{
                         extend: 'excelHtml5',
                         text: '↓ Excel',
-                        title: 'Purchase_Order',
+                        title: 'Job_Applicants',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
                             columns: ':visible',
@@ -528,7 +528,7 @@
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
-                        title: 'Purchase_Order',
+                        title: 'Job_Applicants',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
                             columns: ':visible',
