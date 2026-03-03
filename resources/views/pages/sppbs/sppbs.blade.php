@@ -6,8 +6,10 @@
         @php
             $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
         @endphp
+
         <div
             class="{{ $hasAllList ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+
 
             {{-- All Status --}}
             <button type="button" class="text-left">
@@ -94,7 +96,7 @@
                 </a>
             </button>
             {{-- SPPB All List --}}
-            <button type="button" class="text-left">
+            {{-- <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-mode="all">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
@@ -110,8 +112,27 @@
 
                     </div>
                 </a>
-            </button>
+            </button> --}}
+            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+                {{-- SPPB All List --}}
+                <button type="button" class="text-left">
+                    <a href="#" class="status-filter group block h-full" data-mode="all">
+                        <div
+                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
 
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
+
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                                <p class="break-words text-sm font-medium">SPPB All List</p>
+                            </div>
+
+                            <p class="shrink-0 text-base font-bold">
+                                {{ $allListCount }}
+                            </p>
+                        </div>
+                    </a>
+                </button>
+            @endif
         </div>
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -364,8 +385,8 @@
 
     <script>
         /* =========================================================
-                                                                                                                                                                                    TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-                                                                                                                                                                                    ========================================================= */
+                                                                                                                                                                                        TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                                                                                                                                                                        ========================================================= */
 
         (function() {
             // ---------- Modal open/close ----------
@@ -558,13 +579,13 @@
 
                             ${header.vendorname !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
-                                                                                                                                                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
+                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
                                 : ''
                             }
 
                             ${header.keperluan !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
-                                                                                                                                                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
+                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
                                 : ''
                             }
                         </div>

@@ -100,23 +100,25 @@
             </button>
 
             {{-- SPB All List --}}
-            <button type="button" class="text-left">
-                <a href="#" class="status-filter group block h-full" data-mode="all">
-                    <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+                <button type="button" class="text-left">
+                    <a href="#" class="status-filter group block h-full" data-mode="all">
+                        <div
+                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
 
-                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
 
-                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">SPB All List</p>
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                                <p class="break-words text-sm font-medium">SPB All List</p>
+                            </div>
+                            <p class="shrink-0 text-base font-bold">
+                                {{ $allListCount }}
+                            </p>
+
                         </div>
-                        <p class="shrink-0 text-base font-bold">
-                            {{ $allListCount }}
-                        </p>
-
-                    </div>
-                </a>
-            </button>
+                    </a>
+                </button>
+            @endif
 
 
 
