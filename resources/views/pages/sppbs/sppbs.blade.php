@@ -4,7 +4,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS', 'WHSACCESS');
         @endphp
 
         <div
@@ -113,7 +113,7 @@
                     </div>
                 </a>
             </button> --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS', 'WHSACCESS'))
                 {{-- SPPB All List --}}
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
@@ -385,8 +385,8 @@
 
     <script>
         /* =========================================================
-                                                                                                                                                                                        TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-                                                                                                                                                                                        ========================================================= */
+                                                                                                                                                                                                TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                                                                                                                                                                                ========================================================= */
 
         (function() {
             // ---------- Modal open/close ----------
@@ -579,13 +579,13 @@
 
                             ${header.vendorname !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
-                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
+                                                                                                                                                                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
                                 : ''
                             }
 
                             ${header.keperluan !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
-                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
+                                                                                                                                                                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
                                 : ''
                             }
                         </div>
