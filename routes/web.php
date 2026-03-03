@@ -167,7 +167,8 @@ Route::post('/login', function (Request $request) {
     ]);
 
     // Cari user berdasarkan email, username, atau NIP
-    $user = User::where('email', $credentials['login'])
+    $user = User::where('status', 'A')
+                ->where('email', $credentials['login'])            
                 ->orWhere('username', $credentials['login'])
                 ->orWhere('npk', $credentials['login'])
                 ->first();
@@ -1088,6 +1089,9 @@ Route::post('/logout', function () {
     Route::get('/createkontrak/{hash}', [KontrakController::class, 'createKontrak'])->name('kontrak.create');
     Route::post('/kontrak/{kontrakid}/submit', [KontrakController::class, 'submitKontrak'])->name('kontrak.submit');
     Route::get('/kontrak/edit/{eid}', [KontrakController::class, 'editKontrak'])->name('kontrak.edit');
+    Route::post('/kontrak/{eid}/reuse', [KontrakController::class, 'reuse'])->name('kontrak.reuse');
+    Route::post('/kontrak/{eid}/terminate', [KontrakController::class, 'terminate'])->name('kontrak.terminate');
+
 
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
     Route::get('/lookup/tenants',  [MasterController::class, 'tenants'])->name('tenants.search');

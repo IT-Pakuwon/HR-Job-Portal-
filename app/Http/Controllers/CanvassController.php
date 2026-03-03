@@ -132,66 +132,163 @@ class CanvassController extends Controller
                 $top_type = 'SPK';
                 break;
 
-            case 'PO':
+                case 'PO':
 
-                // 1. Ambil dulu header PO asli
-                $poHeader = TrPO::with([
-                    'creator:username,name'
-                ])->findOrFail($src);
+                // src dari hash bisa:
+                // - id TrPO (normal)
+                // - id TrPOReuse (kalau kamu pakai eid = id tr_po_reuse)
+                // Jadi kita deteksi dulu
 
-                // Simpan dulu default header = PO
-                $header = $poHeader;
+                $poHeader = null;
+                $reuseFirst = TrPOReuse::query()->find($src); // kalau hash = id tr_po_reuse
+                $isKontrak = false;
+                $kontrakHeader = null;
 
-                // 2. Ambil sppbjktid dari PO
-                $sppbjktid = $poHeader->sppbjktid ?? null;
+                if ($reuseFirst) {
+                    // ponbr di tr_po_reuse kamu isi kontrakid atau ponbr
+                    $ponbrKey = $reuseFirst->ponbr;
 
-                // 3. Coba cari di masing-masing header source (SPPB / SPPJ / SPPK / SPPT)
-                if ($sppbjktid) {
-                    // urutan pengecekan: SPPB -> SPPJ -> SPPK -> SPPT
-                    $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first();
-                    if (!$headerSource) {
-                        $headerSource = TrSPPJ::where('sppjid', $sppbjktid)->first();
+                    // cek apakah ponbrKey itu kontrakid
+                    $kontrakHeader = TrKontrak::query()->where('kontrakid', $ponbrKey)->first();
+                    if ($kontrakHeader) {
+                        $isKontrak = true;
+                    } else {
+                        // bukan kontrak => anggap ponbrKey adalah ponbr PO
+                        $poHeader = TrPO::with(['creator:username,name'])
+                            ->where('ponbr', $ponbrKey)
+                            ->first();
                     }
-                    if (!$headerSource) {
-                        $headerSource = TrSPPK::where('sppkid', $sppbjktid)->first();
-                    }
-                    if (!$headerSource) {
-                        $headerSource = TrSPPT::where('spptid', $sppbjktid)->first();
-                    }
-
-
-                    // kalau ada salah satu yang ketemu, pakai itu sebagai header
-                    if ($headerSource) {
-                        $header = $headerSource;
-                        // dd($header);
-                    }
+                } else {
+                    // hash = id TrPO normal
+                    $poHeader = TrPO::with(['creator:username,name'])->findOrFail($src);
                 }
 
-                // 4. Detail tetap REUSE dari TrPOReuse (berdasarkan PO)
-                $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
-                    ->where('cpny_id', $poHeader->cpny_id)
-                    ->where(function($q){
-                        $q->whereNull('openordered')
-                        ->orWhere('openordered', '>', 0);
-                    })
-                    ->orderBy('id','asc')
-                    ->get();
+                if ($isKontrak) {
+                    // =========================
+                    // KONTRAK MODE
+                    // =========================
+                    $header = $kontrakHeader;                 // header untuk view createcs
+                    $refnbr = (string) $kontrakHeader->kontrakid; // attachment ref (sesuaikan kalau memang kontrak pakai ref ini)
+                    $docno  = (string) $kontrakHeader->kontrakid; // tampilkan docno
+                    $top_type = 'PO';
 
-                // 5. Ref attachment & info nomor tetap pakai PO
-                $refnbr   = $poHeader->ponbr;                    // ref ke attachment tetap PO
-                $docno    = $docno = $poHeader->sppbjktid;
-                $top_type = $poHeader->potype ?? 'PO';
+                    // detail dari tr_po_reuse where ponbr = kontrakid
+                    $detail = TrPOReuse::query()
+                        ->where('ponbr', $kontrakHeader->kontrakid)
+                        ->where('cpny_id', $kontrakHeader->cpny_id)
+                        ->where(function($q){
+                            $q->whereNull('openordered')->orWhere('openordered','>',0);
+                        })
+                        ->orderBy('id','asc')
+                        ->get();
 
-                $sppbjktid = $poHeader->sppbjktid;
+                    // optional: supaya view masih punya poHeader variable (kalau blade butuh)
+                    $poHeader = null;
 
-                // Ambil 2 digit depan khusus PB atau PK
-                if (Str::startsWith($sppbjktid, ['PB', 'PK'])) {
-                    $prefix2 = substr($sppbjktid, 0, 2);
+                    // optional prefix2 (kalau kamu perlu)
+                    $prefix2 = null;
+
                 } else {
-                    $prefix2 = null; // atau "" / atau pakai $sppbjktid full
+                    // =========================
+                    // PO NORMAL MODE (logic kamu tetap)
+                    // =========================
+                    $header = $poHeader;
+
+                    $sppbjktid = $poHeader->sppbjktid ?? null;
+
+                    if ($sppbjktid) {
+                        $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first()
+                            ?? TrSPPJ::where('sppjid', $sppbjktid)->first()
+                            ?? TrSPPK::where('sppkid', $sppbjktid)->first()
+                            ?? TrSPPT::where('spptid', $sppbjktid)->first();
+
+                        if ($headerSource) $header = $headerSource;
+                    }
+
+                    $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
+                        ->where('cpny_id', $poHeader->cpny_id)
+                        ->where(function($q){
+                            $q->whereNull('openordered')
+                            ->orWhere('openordered','>',0);
+                        })
+                        ->orderBy('id','asc')
+                        ->get();
+
+                    $refnbr   = $poHeader->ponbr;
+                    $docno    = $poHeader->sppbjktid;
+                    $top_type = $poHeader->potype ?? 'PO';
+
+                    $sppbjktid = $poHeader->sppbjktid;
+
+                    if (Str::startsWith($sppbjktid, ['PB', 'PK'])) {
+                        $prefix2 = substr($sppbjktid, 0, 2);
+                    } else {
+                        $prefix2 = null;
+                    }
                 }
 
                 break;
+
+            // case 'PO':
+
+            //     // 1. Ambil dulu header PO asli
+            //     $poHeader = TrPO::with([
+            //         'creator:username,name'
+            //     ])->findOrFail($src);
+
+            //     // Simpan dulu default header = PO
+            //     $header = $poHeader;
+
+            //     // 2. Ambil sppbjktid dari PO
+            //     $sppbjktid = $poHeader->sppbjktid ?? null;
+
+            //     // 3. Coba cari di masing-masing header source (SPPB / SPPJ / SPPK / SPPT)
+            //     if ($sppbjktid) {
+            //         // urutan pengecekan: SPPB -> SPPJ -> SPPK -> SPPT
+            //         $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first();
+            //         if (!$headerSource) {
+            //             $headerSource = TrSPPJ::where('sppjid', $sppbjktid)->first();
+            //         }
+            //         if (!$headerSource) {
+            //             $headerSource = TrSPPK::where('sppkid', $sppbjktid)->first();
+            //         }
+            //         if (!$headerSource) {
+            //             $headerSource = TrSPPT::where('spptid', $sppbjktid)->first();
+            //         }
+
+
+            //         // kalau ada salah satu yang ketemu, pakai itu sebagai header
+            //         if ($headerSource) {
+            //             $header = $headerSource;
+            //             // dd($header);
+            //         }
+            //     }
+
+            //     // 4. Detail tetap REUSE dari TrPOReuse (berdasarkan PO)
+            //     $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
+            //         ->where('cpny_id', $poHeader->cpny_id)
+            //         ->where(function($q){
+            //             $q->whereNull('openordered')
+            //             ->orWhere('openordered', '>', 0);
+            //         })
+            //         ->orderBy('id','asc')
+            //         ->get();
+
+            //     // 5. Ref attachment & info nomor tetap pakai PO
+            //     $refnbr   = $poHeader->ponbr;                    // ref ke attachment tetap PO
+            //     $docno    = $docno = $poHeader->sppbjktid;
+            //     $top_type = $poHeader->potype ?? 'PO';
+
+            //     $sppbjktid = $poHeader->sppbjktid;
+
+            //     // Ambil 2 digit depan khusus PB atau PK
+            //     if (Str::startsWith($sppbjktid, ['PB', 'PK'])) {
+            //         $prefix2 = substr($sppbjktid, 0, 2);
+            //     } else {
+            //         $prefix2 = null; // atau "" / atau pakai $sppbjktid full
+            //     }
+
+            //     break;
 
 
         }
@@ -4265,8 +4362,9 @@ class CanvassController extends Controller
         $seq = $this->nextAutoNumber('SK', (int)$now->format('Y'), (int)$now->format('n'), 3);
 
         return str_pad((string)$seq, 3, '0', STR_PAD_LEFT)
-            . '/SK'
+            . '/PROC'
             . '/' . strtoupper(trim($cpnyId))
+            . '/SK'
             . '/' . $roman
             . '/' . $year;
     }

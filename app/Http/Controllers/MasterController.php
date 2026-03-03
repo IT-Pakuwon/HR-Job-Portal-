@@ -385,7 +385,7 @@ class MasterController extends Controller
         $classes = $classesQ->pluck('item_class')
             ->filter(fn($v) => $v !== null && $v !== '')
             ->values();
-
+        
         if ($classes->isEmpty()) {
             return response()->json([
                 'data' => [], 'total' => 0,
@@ -1367,6 +1367,7 @@ class MasterController extends Controller
             ->where('status', 'A')
             ->pluck('department_id')
             ->toArray();
+            // dd($deptFinList);
 
         if (empty($deptFinList)) {
             return response()->json([
@@ -2175,13 +2176,13 @@ class MasterController extends Controller
             ])
             ->where('cpny_id', $cpnyid)
             ->whereIn('status', ['C','P']);
-
+   
         if ($worktypeid !== '') {
             $query->where('worktypeid', $worktypeid);
         }
-        if ($subworktypeid !== '') {
-            $query->where('subworktypeid', $subworktypeid);
-        }
+        // if ($subworktypeid !== '') {
+        //     $query->where('subworktypeid', $subworktypeid);
+        // }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {

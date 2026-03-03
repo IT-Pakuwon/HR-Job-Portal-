@@ -5,9 +5,11 @@
             @php
                 $st = strtoupper((string) ($kontrak->status ?? ''));
                 $statusText = match ($st) {
-                    'H' => 'Hold',
+                    'H' => 'Unsend',
                     'P' => 'On Progress',
                     'C' => 'Completed',
+                    'D' => 'Reuse',
+                    'T' => 'Terminated',
                     default => 'Unknown',
                 };
 
@@ -15,6 +17,8 @@
                     'H' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
                     'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
                     'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+                    'D' => 'bg-sky-100 text-sky-700 dark:bg-sky-800/30 dark:text-sky-300',
+                    'T' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
                     default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                 };
 
@@ -78,7 +82,7 @@
                 };
             @endphp
 
-            <div class="flex items-center gap-3">
+            {{-- <div class="flex items-center gap-3">
                 @if ($isOwner)
                     <a href="{{ route('kontrak.edit', $eid) }}"
                         class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700
@@ -91,6 +95,44 @@
                         </svg>
                         Edit
                     </a>
+                @endif
+            </div> --}}
+            <div class="flex items-center gap-3">
+                @if ($isOwner && $st === 'P')
+                    {{-- Edit --}}
+                    <a href="{{ route('kontrak.edit', $eid) }}"
+                        class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="h-4 w-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125 16.875 4.5" />
+                        </svg>
+                        Edit
+                    </a>
+
+                    {{-- Reuse --}}
+                    <form method="POST" action="{{ route('kontrak.reuse', $eid) }}"
+                        onsubmit="return confirm('Yakin REUSE kontrak ini?');">
+                        @csrf
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700
+                                focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            ♻️ Reuse
+                        </button>
+                    </form>
+
+                    {{-- Terminate --}}
+                    <form method="POST" action="{{ route('kontrak.terminate', $eid) }}"
+                        onsubmit="return confirm('Yakin TERMINATE kontrak ini?');">
+                        @csrf
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700
+                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            ⛔ Terminate
+                        </button>
+                    </form>
                 @endif
             </div>
         </div>

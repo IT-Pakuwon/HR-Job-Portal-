@@ -304,6 +304,11 @@
                                                     $desc = is_array($cat) ? ($cat['kontrakcategory_descr'] ?? '') : ($cat->kontrakcategory_descr ?? '');
                                                     $label = trim($desc) !== '' ? ($code.' - '.$desc) : $code;
                                                     $selected = ((string)($kontrak->kontrakcategory ?? '') === (string)$code) ? 'selected' : '';
+                                                    $fmtNum = function ($n) {
+                                                        if ($n === null || $n === '') return '-';
+                                                        if (!is_numeric($n)) return $n;
+                                                        return number_format((float)$n, 2, ',', '.');
+                                                    };
                                                 @endphp
 
                                                 <option value="{{ $code }}" {{ $selected }}>
@@ -321,6 +326,11 @@
                                                 return [$code => $label];
                                             });
                                             $readonlyText = $map->get($kontrak->kontrakcategory, $kontrak->kontrakcategory ?? '-');
+                                            $fmtNum = function ($n) {
+                                                if ($n === null || $n === '') return '-';
+                                                if (!is_numeric($n)) return $n;
+                                                return number_format((float)$n, 2, ',', '.');
+                                            };
                                         @endphp
 
                                         <div
@@ -332,23 +342,42 @@
                             </div>
 
                             {{-- ROW 2: Kontrak Date + User Approval --}}
+                            {{-- ROW 2: Kontrak Date + No SK --}}
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {{-- Kontrak Date --}}
                                 <div>
-                                    <label
-                                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak
-                                        Date</label>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Kontrak Date
+                                    </label>
+
                                     @if ($isHold)
                                         <input type="date" id="kontrakdate" name="kontrakdate"
                                             value="{{ old('kontrakdate', optional($kontrak->kontrakdate)->format('Y-m-d') ?? $kontrak->kontrakdate) }}"
                                             class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                     @else
-                                        <div
-                                            class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
                                             {{ optional($kontrak->kontrakdate)->format('d M Y') ?? ($kontrak->kontrakdate ?? '-') }}
                                         </div>
                                     @endif
-                                </div>                              
+                                </div>
+
+                                {{-- No SK --}}
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        No SK
+                                    </label>
+
+                                    @if ($isHold)
+                                        <input type="text" id="nosk" name="nosk"
+                                            value="{{ old('nosk', $kontrak->nosk ?? '') }}"
+                                            placeholder="Input No SK..."
+                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                    @else
+                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            {{ $kontrak->nosk ?? '-' }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
 
                             {{-- ROW 3: Start Date + End Date --}}
@@ -402,88 +431,111 @@
                             </div>
                         </form>
                     </div>                    
-                </div>
-
-                {{-- ===================== DETAIL SECTION ===================== --}}
-<div class="rounded-xl bg-white dark:bg-gray-800 mt-6">
-    <header
-        class="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-700 rounded-t-xl">
-        <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            <span
-                class="inline-flex items-center rounded-md bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">
-                DETAIL
-            </span>
-            TrBQCSDetail
-        </h2>
-    </header>
-
-    <div class="p-4 overflow-auto">
-        <table class="min-w-full text-sm">
-            <thead class="text-gray-600 dark:text-gray-300">
-                <tr class="border-b border-gray-200 dark:border-gray-700">
-                    <th class="p-3 text-left font-semibold">BQ No</th>
-                    <th class="p-3 text-left font-semibold">Line</th>
-                    <th class="p-3 text-left font-semibold">Description</th>
-                    <th class="p-3 text-right font-semibold">Qty</th>
-                    <th class="p-3 text-left font-semibold">UOM</th>
-                    <th class="p-3 text-left font-semibold">Category</th>
-                    <th class="p-3 text-right font-semibold">Duration</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @forelse(($details ?? []) as $d)
-                    <tr
-                        class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                        <td class="px-3 py-2 whitespace-nowrap">
-                            {{ $d->bq_no ?? '-' }}
-                        </td>
-
-                        <td class="px-3 py-2 whitespace-nowrap">
-                            {{ $d->bq_line_no ?? '-' }}
-                        </td>
-
-                        <td class="px-3 py-2">
-                            <div class="font-medium text-gray-900 dark:text-gray-100">
-                                {{ $d->bq_descr ?? '-' }}
-                            </div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">
-                                Source: {{ $d->bq_source ?? '-' }}
-                            </div>
-                        </td>
-
-                        <td class="px-3 py-2 text-right whitespace-nowrap">
-                            {{ number_format((float)($d->qty ?? $d->bq_qty), 2, ',', '.') }}
-                        </td>
-
-                        <td class="px-3 py-2 whitespace-nowrap">
-                            {{ $d->uom ?? '-' }}
-                        </td>
-
-                        <td class="px-3 py-2 whitespace-nowrap">
-                            {{ $d->kontrakcategory ?? '-' }}
-                        </td>
-
-                        <td class="px-3 py-2 text-right whitespace-nowrap">
-                            {{ number_format((float)($d->kontrak_duration_qty ?? 0), 2, ',', '.') }}
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7"
-                            class="p-6 text-center italic text-gray-500 dark:text-gray-400">
-                            No detail found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
+                </div>     
 
             </div>
+            {{-- ===================== DETAIL SECTION ===================== --}}
+        <div class="rounded-xl bg-white dark:bg-gray-800">
+            <header class="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-700 rounded-t-xl">
+                <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                    <span class="inline-flex items-center rounded-md bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-700">
+                        DETAIL
+                    </span>
+                    TrBQCSDetail
+                </h2>
+            </header>
+
+            <div class="p-4 overflow-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="text-gray-600 dark:text-gray-300">
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <th class="p-3 text-left font-semibold">BQ No</th>
+                            <th class="p-3 text-left font-semibold">Line</th>
+                            <th class="p-3 text-left font-semibold">Description</th>
+                            <th class="p-3 text-right font-semibold">Qty</th>
+                            <th class="p-3 text-left font-semibold">UOM</th>
+                            {{-- <th class="p-3 text-left font-semibold">Kontrak Category</th> --}}
+                            <th class="p-3 text-right font-semibold">Duration Qty</th>
+                            <th class="p-3 text-left font-semibold">Price</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @forelse(($details ?? []) as $d)
+                            @php
+                                $vendorSlots = [];
+
+                                for ($i=1; $i<=6; $i++) {
+                                    $vid = $d->{'vendorid'.$i} ?? null;
+
+                                    // tetap pakai vendorid hanya untuk cek slot aktif (biar tidak tampil slot kosong)
+                                    if (empty($vid)) continue;
+
+                                    $vendorSlots[] = [
+                                        'no' => $i,
+                                        'product' => $d->{'vendorproductprice'.$i} ?? null,
+                                        'total_product' => $d->{'vendortotalproductprice'.$i} ?? null,
+                                        'jasa' => $d->{'vendorjasaprice'.$i} ?? null,
+                                        'total_jasa' => $d->{'vendortotaljasaprice'.$i} ?? null,
+                                    ];
+                                }
+                            @endphp
+
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                <td class="px-3 py-2 whitespace-nowrap">{{ $d->bq_no ?? '-' }}</td>
+                                <td class="px-3 py-2 whitespace-nowrap">{{ $d->bq_line_no ?? '-' }}</td>
+                                <td class="px-3 py-2">
+                                    <div class="font-medium text-gray-900 dark:text-gray-100">{{ $d->bq_descr ?? '-' }}</div>                                       
+                                </td>
+                                <td class="px-3 py-2 text-right whitespace-nowrap">{{ $fmtNum($d->qty ?? $d->bq_qty) }}</td>
+                                <td class="px-3 py-2 whitespace-nowrap">{{ $d->uom ?? '-' }}</td>
+                                {{-- <td class="px-3 py-2 whitespace-nowrap">{{ $d->kontrakcategory ?? '-' }}</td> --}}
+                                <td class="px-3 py-2 text-right whitespace-nowrap">{{ $fmtNum($d->kontrak_duration_qty) }}</td>
+
+                                <td class="px-3 py-2">
+                                    @if (empty($vendorSlots))
+                                        <span class="text-gray-400 italic">-</span>
+                                    @else
+                                        <div class="space-y-2">
+                                            @foreach($vendorSlots as $v)
+                                                <div class="rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">                                                 
+
+                                                    <div class="mt-1 grid grid-cols-2 gap-2 text-xs text-gray-700 dark:text-gray-200">
+                                                        @if(!empty($v['product']))
+                                                            <div>Product Price: <span class="font-semibold">{{ number_format($v['product'],2,',','.') }}</span></div>
+                                                        @endif
+                                                        @if(!empty($v['total_product']))
+                                                            <div>Total Product: <span class="font-semibold">{{ number_format($v['total_product'],2,',','.') }}</span></div>
+                                                        @endif
+                                                        @if(!empty($v['jasa']))
+                                                            <div>Jasa Price: <span class="font-semibold">{{ number_format($v['jasa'],2,',','.') }}</span></div>
+                                                        @endif
+                                                        @if(!empty($v['total_jasa']))
+                                                            <div>Total Jasa: <span class="font-semibold">{{ number_format($v['total_jasa'],2,',','.') }}</span></div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="p-6 text-center italic text-gray-500 dark:text-gray-400">
+                                    No detail found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
+        </div>
+
+        
     </div>
+             
 
     {{-- spinner overlay (samakan dengan showpo) --}}
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading" style="display:none;">

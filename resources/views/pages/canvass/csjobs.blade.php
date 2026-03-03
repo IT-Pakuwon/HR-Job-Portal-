@@ -962,6 +962,57 @@
     </script>
     <script>
         function colSetRevision() {
+            const actionCol = {
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: 'text-left',
+                render: (_d, _t, row) => {
+                    const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                    return `
+                    <div class="inline-flex gap-2">
+                        <a href="${createUrl}"
+                            class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-medium text-white rounded bg-blue-500 hover:bg-blue-700"
+                            title="Create CS dari PO">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>`;
+                }
+            };
+
+            return [
+                actionCol,
+                {
+                    data: 'ponbr',
+                    className: 'text-left',
+                    render: (v, _t, row) => {
+                        const cat = String(row.inventory_category || '').toUpperCase();
+                        const href = (cat === 'KONTRAK')
+                            ? `/showkontrak/${row.eid}`
+                            : `/showpo/${row.eid}`;
+
+                        return `
+                            <a href="${href}"
+                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-600 hover:bg-gray-700">
+                            ${v}
+                            </a>`;
+                    }
+                },
+                {
+                    data: 'podate',
+                    className: 'text-center',
+                    render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+                },
+                { data: 'csid', className: 'text-center', defaultContent: '-' },
+                { data: 'sppbjktid', className: 'text-center', defaultContent: '-' },
+                { data: 'cpny_id', className: 'text-center', defaultContent: '-' },
+                { data: 'department_id', className: 'text-center', defaultContent: '-' },
+                { data: 'vendorname', className: 'text-left', defaultContent: '-' },
+            ];
+        }
+    </script>
+    {{-- <script>
+        function colSetRevision() {
             // kolom Action (Create CS untuk PO)
             const actionCol = {
                 data: null,
@@ -1024,82 +1075,7 @@
                 },
             ];
         }
-    </script>
-    {{-- <Script>
-        // Klik tombol X untuk complete sisa openordered
-        $(document).on('click', '.btn-complete-open', function() {
-            const doc = $(this).data('doc'); // SPPB | SPPJ | SPPK | SPPT
-            const eid = $(this).data('eid'); // hashids dari src_id
-
-            Swal.fire({
-                title: 'Complete Sisa Order?',
-                html: `
-                    <div style="text-align:left;">
-                        <p>Dokumen: <b>${doc}</b></p>
-                        <p>Aksi ini akan menandai <b>semua sisa (open qty)</b> sebagai <b>Completed</b>.</p>
-                        <p style="color:red; font-weight:bold;">Yakin ingin melanjutkan?</p>
-                    </div>
-                `,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Complete Sekarang',
-                cancelButtonText: 'Batal',
-                reverseButtons: true,
-                focusCancel: true,
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-
-                const $btn = $(this).prop('disabled', true);
-
-                $.ajax({
-                        url: `/csjobs/complete/${doc}/${eid}`,
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                    })
-                    .done(res => {
-                        if (res.ok) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: res.message || 'Sisa qty telah di-completed-kan.',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-
-                            // Refresh semua tabel yang mungkin terpengaruh
-                            try {
-                                $('#tblMine').DataTable().ajax.reload(null, false);
-                            } catch (e) {}
-                            try {
-                                $('#tblAll').DataTable().ajax.reload(null, false);
-                            } catch (e) {}
-                            try {
-                                $('#tblRevision').DataTable().ajax.reload(null, false);
-                            } catch (e) {}
-                            try {
-                                $('#tblSppbjkt').DataTable().ajax.reload(null, false);
-                            } catch (e) {}
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal!',
-                                text: res.message || 'Gagal memproses aksi.',
-                            });
-                        }
-                    })
-                    .fail(xhr => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: xhr.responseJSON?.message || 'Terjadi kesalahan pada server.',
-                        });
-                    })
-                    .always(() => $btn.prop('disabled', false));
-            });
-        });
-    </Script> --}}
+    </script> --}}
 
     <script>
         $(document).on('click', '.btn-complete-open', function() {

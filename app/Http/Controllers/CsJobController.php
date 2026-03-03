@@ -52,6 +52,7 @@ use App\Models\TrApproval;
 use App\Models\TrPO; 
 use App\Services\CsQtyValidator;
 use App\Models\vSppbjktCompleted;
+use App\Models\TrPOReuse;
 
 
 
@@ -66,7 +67,15 @@ class CsJobController extends Controller
         $u = $user->username ?? '';
 
         $mine     = vCsJobs::where('assignpurchasing', $u)->count();
-        $revision = vCsRevision::where('created_by', $u)->count();
+        // $revision = vCsRevision::where('created_by', $u)->count();
+        if ($this->revisionSourceForUser($u) === 'reuse') {
+            $revision = TrPOReuse::query()
+                ->where('created_by', $u)
+                ->whereRaw("UPPER(COALESCE(inventory_category,'')) = 'KONTRAK'")
+                ->count();
+        } else {
+            $revision = vCsRevision::where('created_by', $u)->count();
+        }
         $all      = vCsJobs::count();
         $sppbjkt  = vSppbjktOnProgress::count();
 
@@ -83,7 +92,13 @@ class CsJobController extends Controller
 
         return response()->json([
             'mine'      => vCsJobs::where('assignpurchasing', $u)->count(),
-            'revision'  => vCsRevision::where('created_by', $u)->count(),
+            // 'revision'  => vCsRevision::where('created_by', $u)->count(),
+            'revision' => ($this->revisionSourceForUser($u) === 'reuse')
+                ? TrPOReuse::query()
+                    ->where('created_by', $u)
+                    ->whereRaw("UPPER(COALESCE(inventory_category,'')) = 'KONTRAK'")
+                    ->count()
+                : vCsRevision::where('created_by', $u)->count(),
             'all'       => vCsJobs::count(),
             'sppbjkt'   => vSppbjktOnProgress::count(),
             'completed' => vSppbjktCompleted::where('completed_by', $u)->count(),
@@ -290,7 +305,25 @@ class CsJobController extends Controller
     /**
      * TAB 3: My Revision -> vCsRevision
      */
+
     public function CsJobsRevisionJson(Request $request)
+    {
+        $username = Auth::user()->username ?? '';
+
+        if ($this->revisionSourceForUser($username) === 'reuse') {
+            $base = TrPOReuse::query()
+                ->where('created_by', $username)
+                ->whereRaw("UPPER(COALESCE(inventory_category,'')) = 'KONTRAK'");
+
+            return $this->buildReuseRevisionJson($request, $base);
+        }
+
+        $base = vCsRevision::query()
+            ->where('created_by', $username);
+
+        return $this->buildRevisionJson($request, $base);
+    }
+    public function CsJobsRevisionJson_xxx(Request $request)
     {
         $username = Auth::user()->username ?? '';
 
@@ -1004,6 +1037,106 @@ class CsJobController extends Controller
                 'message' => 'Gagal revise: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function revisionSourceForUser(string $username): string
+    {
+        $hasKontrakReuse = TrPOReuse::query()
+            ->where('created_by', $username)
+            ->whereRaw("UPPER(COALESCE(inventory_category,'')) = 'KONTRAK'")
+            ->exists();
+
+        return $hasKontrakReuse ? 'reuse' : 'vcsrevision';
+    }
+
+    private function buildReuseRevisionJson(Request $request, $base)
+    {
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+
+        // kolom yang kita expose untuk DataTables (disamakan dengan revision)
+        $columns = [
+            0 => 'ponbr',
+            1 => 'created_at',
+            2 => 'cpny_id',
+            3 => 'created_by',
+            4 => 'csid',
+            5 => 'sppbjktid',
+            6 => 'inventory_descr',
+        ];
+
+        $orderIdx = (int) $request->input('order.0.column', 1);
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'created_at';
+
+        $recordsTotal = (clone $base)->count();
+
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('ponbr', 'ilike', "%{$search}%")
+                ->orWhere('cpny_id', 'ilike', "%{$search}%")
+                ->orWhere('created_by', 'ilike', "%{$search}%")
+                ->orWhere('csid', 'ilike', "%{$search}%")
+                ->orWhere('sppbjktid', 'ilike', "%{$search}%")
+                ->orWhere('inventoryid', 'ilike', "%{$search}%")
+                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                ->orWhereRaw("TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') ILIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        $recordsFiltered = (clone $base)->count();
+
+        $data = $base->select(
+                'id',
+                'ponbr',
+                'created_at',
+                'cpny_id',
+                'created_by',
+                'csid',
+                'sppbjktid',
+                'inventory_category',
+                'inventoryid',
+                'inventory_descr'
+            )
+            ->orderBy($orderCol, $orderDir)
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        // enrichment: samakan field agar cocok dengan DataTables existing
+        $data->transform(function ($r) {
+            $r->doc_type = 'PO';             // supaya tombol existing tidak rusak
+            $r->eid      = Hashids::encode($r->id);
+            $r->doc_no   = $r->ponbr;
+            $r->inventory_category = $r->inventory_category;
+
+            // samakan naming seperti revision sebelumnya
+            $r->ponbr    = $r->ponbr;
+            $r->podate   = $r->created_at;   // “tanggal” untuk sorting
+            $r->department_id = null;        // tr_po_reuse tidak punya department_id langsung
+            $r->vendorname    = null;        // tidak ada di tr_po_reuse
+
+            // optional isi deskripsi
+            $r->keperluan = "REUSE KONTRAK | {$r->inventoryid} - {$r->inventory_descr}";
+
+            // kolom yang tidak ada
+            $r->assigndate = null;
+            $r->assignpurchasing = null;
+            $r->assignby = null;
+
+            $r->created_by_name = $r->created_by;
+
+            return $r;
+        });
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
+        ]);
     }
 
   

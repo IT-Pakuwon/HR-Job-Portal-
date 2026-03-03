@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\TrKontrak;
 use App\Models\TrAttachment;
@@ -22,6 +23,8 @@ use Illuminate\Validation\Rule;
 use App\Models\MsKontrakCategory;
 use App\Models\TrBQCSDetail;
 use App\Models\MsVendor;
+use App\Models\TrCSdetail;
+use App\Models\TrPOReuse;
 
 class KontrakController extends Controller
 {
@@ -559,6 +562,7 @@ class KontrakController extends Controller
             'startdate'       => 'required|date',
             'enddate'         => 'required|date|after_or_equal:startdate',           
             'kontraknote'     => 'nullable|string|max:5000',
+            'nosk'            => 'nullable|string|max:255',
         ], [
             'enddate.after_or_equal' => 'End Date harus >= Start Date.',
             'user_approval.required' => 'User Approval wajib dipilih.',
@@ -580,6 +584,7 @@ class KontrakController extends Controller
         $kontrak->kontrakdate     = $request->kontrakdate;
         $kontrak->startdate       = $request->startdate;
         $kontrak->enddate         = $request->enddate;
+        $kontrak->nosk            = $request->nosk;
         // $kontrak->user_approval   = $request->user_approval; // ⬅️ simpan ini
         $kontrak->kontaknote      = $request->kontraknote;
 
@@ -631,6 +636,135 @@ class KontrakController extends Controller
             ->where('status', 'A') // kalau status aktif kamu beda, ganti di sini
             ->orderBy('kontrakcategory')
             ->get(['kontrakcategory', 'kontrakcategory_descr']);
+    }
+
+    private function isOwnerKontrak(TrKontrak $kontrak, $user): bool
+    {
+        if (!$user) return false;
+
+        $createdBy = (string)($kontrak->created_by ?? '');
+        $u1 = strtolower($user->username ?? '');
+        $u2 = strtolower($user->name ?? '');
+        $u3 = strtolower($user->email ?? '');
+
+        $cb = strtolower($createdBy);
+        return $cb !== '' && ($cb === $u1 || $cb === $u2 || $cb === $u3);
+    }
+
+    public function terminate(string $eid, Request $request)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = $request->user();
+        abort_if(!$user, 403);
+
+        $kontrak = TrKontrak::query()->findOrFail($id);
+
+        abort_if(!$this->isOwnerKontrak($kontrak, $user), 403);
+
+        // optional: batasi status yang boleh di-terminate
+        // abort_if(in_array(strtoupper((string)$kontrak->status), ['C'], true), 422);
+
+        $username = $user->username ?? $user->name ?? 'system';
+
+        $kontrak->status     = 'T';
+        $kontrak->updated_by = $username;
+        $kontrak->updated_at = now();
+        $kontrak->save();
+
+        return back()->with('success', 'Kontrak berhasil di-Terminate (status T).');
+    }
+
+    public function reuse(string $eid, Request $request)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = $request->user();
+        abort_if(!$user, 403);
+
+        $kontrak = TrKontrak::query()->findOrFail($id);
+
+        abort_if(!$this->isOwnerKontrak($kontrak, $user), 403);
+
+        $username = $user->username ?? $user->name ?? 'system';
+
+        DB::transaction(function () use ($kontrak, $username) {
+            // 1) ambil detail CS
+            $csid = (string)($kontrak->csid ?? '');
+            if ($csid === '') {
+                abort(422, 'CS ID kosong. Tidak bisa Reuse.');
+            }
+
+            $csDetails = TrCSdetail::query()
+                ->where('csid', $csid)
+                ->get();
+
+            if ($csDetails->isEmpty()) {
+                abort(422, "Tidak ada TrCSdetail untuk CS ID: {$csid}");
+            }
+
+            TrPOReuse::where('ponbr', $kontrak->kontrakid)->where('csid', $kontrak->csid)->delete();
+            // 2) insert ke TrPOReuse
+            foreach ($csDetails as $d) {
+                TrPOReuse::create([
+                    'cpny_id' => $kontrak->cpny_id,
+
+                    // ✅ ponbr diisi kontrakid (sesuai request kamu)
+                    'ponbr'   => $kontrak->kontrakid,
+                    'po_no'   => null,
+
+                    'csid'      => $kontrak->csid,
+                    'sppbjktid' => $kontrak->sppbjktid,
+                    'cs_no'     => $d->cs_no,
+                    'sppbjkt_no'=> $d->sppbjkt_no,
+
+                    'inventory_type'      => $d->inventory_type,
+                    'inventory_sub_type'  => $d->inventory_sub_type,
+                    'inventory_category'  => $d->inventory_category,
+                    'inventoryid'         => $d->inventoryid,
+                    'inventory_descr'     => $d->inventory_descr,
+
+                    'qty'       => $d->qty,
+                    'uom'       => $d->uom,
+                    'siteid'    => $d->siteid,
+
+                    'type_multiplier' => $d->type_multiplier,
+                    'base_multiplier' => $d->base_multiplier,
+                    'base_qty'        => $d->base_qty,
+                    'base_uom'        => $d->base_uom,
+
+                    'budget_perpost'           => $d->budget_perpost,
+                    'budget_cpny_id'           => $d->budget_cpny_id,
+                    'budget_business_unit_id'  => $d->budget_business_unit_id,
+                    'budget_department_fin_id' => $d->budget_department_fin_id,
+                    'budget_account_id'        => $d->budget_account_id,
+                    'budget_activity_id'       => $d->budget_activity_id,
+                    'budget_activity_descr'    => $d->budget_activity_descr,
+
+                    // default qty tracking
+                    'openordered'       => $d->qty, // atau base_qty, sesuai logika kamu
+                    'ordered'           => 0,
+                    'rejectordered'     => 0,
+                    'completeordered'   => 0,
+
+                    'status'     => 'D', // karena reuse
+                    'created_by' => $username,
+                    'created_at' => now(),
+                    'updated_by' => $username,
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // 3) update status kontrak -> D
+            $kontrak->status     = 'D';
+            $kontrak->updated_by = $username;
+            $kontrak->updated_at = now();
+            $kontrak->save();
+        });
+
+        return back()->with('success', 'Kontrak berhasil di-Reuse (status D) dan TrPOReuse berhasil diinsert.');
     }
 
 
