@@ -149,7 +149,7 @@
                         </select>
 
                     </div>
-                    <a id="createBtn" href="{{ url('/createsppbs') }}"
+                    <a id="createBtn" href="{{ url('/createspbs') }}"
                         class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
@@ -539,6 +539,9 @@
                         type: "GET",
                         data: function(d) {
                             d.status = statusFilter ?? '';
+
+                            d.mode = mode; // ✅ REQUIRED
+                            d.department_extra = deptFilter; // ✅ REQUIRED
                             console.log('[NORMAL] send status =', d.status);
                         },
                         error: function(xhr) {
