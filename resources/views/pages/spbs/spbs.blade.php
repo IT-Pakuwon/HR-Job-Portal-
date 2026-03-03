@@ -3,7 +3,11 @@
         $currentPage = Route::currentRouteName() == 'spbs' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        @php
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+        @endphp
+        <div
+            class="{{ $hasAllList ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
             {{-- All --}}
             <button type="button" class="status-filter group block h-full" data-status="">
@@ -95,18 +99,61 @@
                 </div>
             </button>
 
+            {{-- SPB All List --}}
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-mode="all">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">SPB All List</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">
+                            {{ $allListCount }}
+                        </p>
+
+                    </div>
+                </a>
+            </button>
+
 
 
         </div>
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                {{-- Changed text-lg to text-base --}}
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request SPB</h1>
-                <a href="{{ url('/createspbs') }}"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                    <i class="fas fa-plus pr-2"></i>Create
-                </a>
+            <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
+                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
+                    Request SPPB
+                </h1>
+
+                <div class="flex items-center gap-4">
+                    {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
+                    <div id="allFilters" class="flex hidden items-center gap-2">
+
+                        {{-- Status Filter --}}
+                        <select id="filterStatus"
+                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
+                            <option value="">All Status</option>
+                            <option value="P">On Progress</option>
+                            <option value="C">Completed</option>
+                        </select>
+
+                        {{-- Department Filter --}}
+                        <select id="filterDepartment"
+                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
+                            <option value="">All Department</option>
+                        </select>
+
+                    </div>
+                    <a id="createBtn" href="{{ url('/createsppbs') }}"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        <i class="fas fa-plus pr-2"></i>Create
+                    </a>
+                </div>
+
+
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
@@ -335,6 +382,7 @@
             let statusFilter = 'P';
             let mode = 'NORMAL'; // NORMAL | TRACK
             let dt = null;
+            let deptFilter = '';
             // const dtControlColumn = {
             //     data: null,
             //     width: '28px',
@@ -785,7 +833,21 @@
                     document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
                         'active'));
                     this.classList.add('active');
+                    const selectedMode = $(this).data('mode');
 
+                    if (selectedMode === 'all') {
+
+                        mode = 'ALL';
+                        statusFilter = '';
+                        deptFilter = '';
+
+                        $('#pageTitle').text('SPB All List');
+                        $('#createBtn').hide();
+                        $('#allFilters').removeClass('hidden');
+
+                        if (dt) dt.ajax.reload(null, true);
+                        return;
+                    }
                     if (st === 'TRACK') {
                         switchMode('TRACK');
                         return;
@@ -795,6 +857,15 @@
                     if (mode !== 'NORMAL') switchMode('NORMAL');
                     else if (dt) dt.ajax.reload(null, true);
                 });
+            });
+            $('#filterStatus').on('change', function() {
+                statusFilter = this.value;
+                if (dt) dt.ajax.reload();
+            });
+
+            $('#filterDepartment').on('change', function() {
+                deptFilter = this.value;
+                if (dt) dt.ajax.reload();
             });
         })();
     </script>

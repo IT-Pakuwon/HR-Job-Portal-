@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -23,7 +23,7 @@ use App\Models\BqDetailTemp;
 use PDF;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\BqDetailTempImport; 
+use App\Imports\BqDetailTempImport;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Http\Controllers\TrAttachmentController;
 use Illuminate\Support\Facades\Response;
@@ -55,7 +55,7 @@ class SppjController extends Controller
 
     public function index()
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -97,8 +97,12 @@ class SppjController extends Controller
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
                     ->count();
+        // SPPj All List Count (P & C, all departments)
+        $allListCount = TrSPPJ::whereIn('cpny_id', $cpnyIds)
+            ->whereIn('status', ['P', 'C'])
+            ->count();
 
-        return view('pages.sppjs.sppjs', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        return view('pages.sppjs.sppjs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount'));
     }
 
 
@@ -106,24 +110,39 @@ class SppjController extends Controller
     {
         $user = Auth::user();
 
+        if (!$user) {
+            return response()->json([], 401);
+        }
+
+        // ==============================
+        // USER COMPANY
+        // ==============================
         if (is_string($user->cpny_id)) {
             $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
         } else {
             $cpnyIds = (array) $user->cpny_id;
         }
 
-        // department_id juga bisa multi, tapi di debug sudah "IT"
+        // ==============================
+        // USER DEPARTMENT (NORMAL MODE ONLY)
+        // ==============================
         if (is_string($user->department_id)) {
             $deptIds = array_map('trim', explode(',', $user->department_id));
         } else {
             $deptIds = (array) $user->department_id;
         }
 
+        // ==============================
+        // DATATABLE PARAMETERS
+        // ==============================
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->query('status', '');
+
+        $status      = (string) $request->query('status', '');
+        $mode        = (string) $request->query('mode', 'normal');
+        $deptExtra   = (string) $request->query('department_extra', '');
 
         $baseTable = (new TrSPPJ)->getTable();
 
@@ -132,32 +151,67 @@ class SppjController extends Controller
             1 => 'sppj.sppjdate',
             2 => 'sppj.cpny_id',
             3 => 'sppj.department_id',
-            4 => 'sppj.bqtype',             
+            4 => 'sppj.bqtype',
             5 => 'rt.requesttype_name',
             6 => 'sppj.keperluan',
             7 => 'sppj.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'sppj.sppjid';
 
-        $base = TrSPPJ::from($baseTable.' as sppj')
+        // ==============================
+        // BASE QUERY
+        // ==============================
+        $base = TrSPPJ::from($baseTable . ' as sppj')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid');
             })
-            ->whereIn('sppj.cpny_id', $cpnyIds)          // ✔ filter sesuai SPPB
-            ->whereIn('sppj.department_id', $deptIds);   // ✔ filter sesuai SPPB
+            ->whereIn('sppj.cpny_id', $cpnyIds);
 
-        if ($status !== '') {
-            $base->where('sppj.status', $status);
+        // ==============================
+        // MODE LOGIC
+        // ==============================
+        if ($mode === 'normal') {
+
+            // restrict by user department
+            $base->whereIn('sppj.department_id', $deptIds);
+
+            if ($status !== '') {
+                $base->where('sppj.status', $status);
+            }
         }
 
-        $recordsTotal = (clone $base)->distinct('sppj.sppjid')->count('sppj.sppjid');
+        if ($mode === 'all') {
 
+            // only P & C
+            $base->whereIn('sppj.status', ['P', 'C']);
+
+            // department filter from dropdown
+            if (!empty($deptExtra)) {
+                $base->where('sppj.department_id', $deptExtra);
+            }
+
+            // status dropdown override
+            if ($status !== '') {
+                $base->where('sppj.status', $status);
+            }
+        }
+
+        // ==============================
+        // TOTAL BEFORE SEARCH
+        // ==============================
+        $recordsTotal = (clone $base)
+            ->distinct('sppj.sppjid')
+            ->count('sppj.sppjid');
+
+        // ==============================
+        // SEARCH FILTER
+        // ==============================
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppj.sppjid',           'ilike', "%{$search}%")
+                $q->where('sppj.sppjid',          'ilike', "%{$search}%")
                 ->orWhere('sppj.cpny_id',       'ilike', "%{$search}%")
                 ->orWhere('sppj.department_id', 'ilike', "%{$search}%")
                 ->orWhere('sppj.bqtype',        'ilike', "%{$search}%")
@@ -167,8 +221,16 @@ class SppjController extends Controller
             });
         }
 
-        $recordsFiltered = (clone $base)->distinct('sppj.sppjid')->count('sppj.sppjid');
+        // ==============================
+        // TOTAL AFTER SEARCH
+        // ==============================
+        $recordsFiltered = (clone $base)
+            ->distinct('sppj.sppjid')
+            ->count('sppj.sppjid');
 
+        // ==============================
+        // DATA FETCH
+        // ==============================
         $data = $base->select(
                     'sppj.id',
                     'sppj.sppjid',
@@ -188,26 +250,50 @@ class SppjController extends Controller
                 ->take($length)
                 ->get();
 
+        // Encrypt ID
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
             unset($row->id);
             return $row;
         });
 
+        // ==============================
+        // DEPARTMENT LIST (ONLY FOR ALL MODE)
+        // ==============================
+        $departments = [];
+
+        if ($mode === 'all') {
+
+            $deptQuery = TrSPPJ::from($baseTable . ' as sppj')
+                ->whereIn('sppj.cpny_id', $cpnyIds)
+                ->whereIn('sppj.status', ['P','C']);
+
+            if (!empty($deptExtra)) {
+                $deptQuery->where('sppj.department_id', $deptExtra);
+            }
+
+            $departments = $deptQuery
+                ->select('sppj.department_id')
+                ->distinct()
+                ->orderBy('sppj.department_id')
+                ->pluck('department_id');
+        }
+
         return response()->json([
             'draw'            => $draw,
             'recordsTotal'    => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data'            => $data,
+            'departments'     => $departments,
         ]);
     }
 
 
 
-    
+
     public function createSppj()
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -219,19 +305,19 @@ class SppjController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();        
-            
+            ->first();
+
         $kontrakDocs = MsKontrakDocument::query()
         ->where('status', 'A')
         ->where('kontrakcategory', 'Kontrak')
         ->orderBy('kontrakdocument_order')
         ->get();
-       
+
         return view('pages.sppjs.createsppjs', compact('usercpny','usercpny2','userdept','userdept2', 'kontrakDocs'));
     }
 
-    
-    
+
+
     public function storeSppj(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
@@ -244,7 +330,7 @@ class SppjController extends Controller
         $locations     = $request->input('location', []);
         $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
         $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations  = $request->input('sub_location', []);      
+        $subLocations  = $request->input('sub_location', []);
         $activityIds   = $request->input('activity_id', []);
         $busUnitIds    = $request->input('business_unit_id', []);
         $deptFinIds    = $request->input('department_fin_id', []);
@@ -272,7 +358,7 @@ class SppjController extends Controller
         $datestamp = $dt->toDateTimeString();
 
 
-        // helper untuk normalisasi angka lokal (ID format)     
+        // helper untuk normalisasi angka lokal (ID format)
         $toFloat = function ($v): ?float {
             if ($v === null || $v === '') return null;
             $s = preg_replace('/\s+/', '', (string)$v);
@@ -304,7 +390,7 @@ class SppjController extends Controller
                 // kalau 1 titik, biarkan sebagai decimal
             }
             return is_numeric($s) ? (float)$s : null;
-        };      
+        };
 
          // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
@@ -314,7 +400,7 @@ class SppjController extends Controller
 
         DB::beginTransaction();
         try {
-            // === generate autonbr & docid (lock) ===         
+            // === generate autonbr & docid (lock) ===
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -361,8 +447,8 @@ class SppjController extends Controller
             $rowCount = max(count($inventoryIds), count($qtys));
 
             // ===== default site fallback (ambil sekali per header cpny) =====
-            $defaultSiteId = null;         
-           
+            $defaultSiteId = null;
+
             $buSiteCache = [];
 
             for ($i = 0; $i < $rowCount; $i++) {
@@ -392,7 +478,7 @@ class SppjController extends Controller
                     $baseQty = $qty / $rate;
                 }
 
-    
+
                 // ============================
                 // SiteID dari Business Unit
                 // ============================
@@ -446,13 +532,13 @@ class SppjController extends Controller
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty                 = $baseQty;            // hitungan M/D               
+                $detail->base_qty                 = $baseQty;            // hitungan M/D
                 $detail->budget_cpny_id           = $request->cpnyid;
                 $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
                 $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
                 $detail->budget_activity_descr    = $actDescrs[$i] ?? null;
                 $detail->budget_account_id        = $coaIds[$i]         ?? null;
-                $detail->budget_activity_id       = $activityIds[$i]   ?? null;               
+                $detail->budget_activity_id       = $activityIds[$i]   ?? null;
                 $detail->location_id              = $locationIds[$i]  ?? null;
                 $detail->sub_location_id          = $subLocIds[$i]    ?? null;
                 $detail->budget_perpost           = $request->perpost;
@@ -475,7 +561,7 @@ class SppjController extends Controller
             $header->totalopenordered = $totalQty;
             $header->save();
 
-            // // === 4) copy line approval (M_approval -> T_approval) ===           
+            // // === 4) copy line approval (M_approval -> T_approval) ===
 
              // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
@@ -523,14 +609,14 @@ class SppjController extends Controller
             }
 
             // === 5) attachments (opsional) ===
-           
-            
+
+
         //    if ($request->hasFile('attachments')) {
         //         $meta = [
         //             'refnbr'        => $docid,
         //             'doctype'       => $doctype,
         //             'cpnyid'        => $request->input('cpnyid'),
-        //             'departementid' => $request->input('departementid'),                    
+        //             'departementid' => $request->input('departementid'),
         //             'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
         //             'created_by'    => $user->username,
         //         ];
@@ -647,7 +733,7 @@ class SppjController extends Controller
             // if ($firstApproval) {
 
             //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-                
+
             //     $subjectMap = [
             //         'P' => 'Waiting Approval',
             //         'R' => 'Rejected Approval',
@@ -656,10 +742,10 @@ class SppjController extends Controller
             //         'C' => 'Completed',
             //     ];
             //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-                
+
             //     $eid = Hashids::encode($header->id);
-                
-                
+
+
             //     $data = [
             //         'docid'    => $firstApproval->docid,
             //         'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -672,7 +758,7 @@ class SppjController extends Controller
             //         'docname'  => 'SPPJ',
             //         'url'      => url('/showsppjs/' . $eid),
             //     ];
-                
+
             //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
             //     $emails = User::whereIn('username', $approvers)
             //         ->where('status', 'A')
@@ -707,10 +793,10 @@ class SppjController extends Controller
             ], 500);
         }
     }
-   
+
     public function editSppj($hash)
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -800,11 +886,11 @@ class SppjController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'PJ tidak ditemukan.');
 
-        $user      = $request->user();   
+        $user      = $request->user();
         $dt        = Carbon::now();
         $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();   
+        $datestamp = $dt->toDateTimeString();
         $doctype   = 'PJ';
         $username  = $user->username ?? 'system';
         $fullname  = $user->name ?? 'system';
@@ -847,7 +933,7 @@ class SppjController extends Controller
         $header->department_id  = $request->departementid;
         $header->requesttypeid  = $request->requesttypeid;
         $header->keperluan      = $request->keperluan;
-        $header->budget_perpost = $request->perpost;   
+        $header->budget_perpost = $request->perpost;
         $header->bqtype         = $request->bqtype;
         $header->woid           = $request->woid;
         $header->is_urgent      = $request->is_urgent;
@@ -1090,26 +1176,26 @@ class SppjController extends Controller
                 $header->completed_at = $dt;
                 $header->save();
             }
-             
-           
+
+
             // attachments (tetap)
             // if ($request->hasfile('attachments')) {
             //     foreach ($request->file('attachments') as $file) {
             //         $randomNumber = random_int(10000000, 99999999);
             //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
             //         $originalName = str_replace('%', '', $file->getClientOriginalName());
             //         $ext        = $file->getClientOriginalExtension();
             //         $attachfile = md5($randomNumber) . '.' . $ext;
 
             //         //attach to folder
             //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
+            //         $config['upload_path'] = $folder_attach;
             //         if(!is_dir($folder_attach))
             //         {
             //             mkdir($folder_attach, 0777);
             //         }
-                    
+
             //         $folder_upload = $folder_attach;
             //         // $folder_upload = public_path() . '/attachments';
             //         $file->move($folder_upload, $attachfile);
@@ -1124,7 +1210,7 @@ class SppjController extends Controller
             //         $attach->created_user = $user->username;
             //         $attach->save();
             //     }
-            // }       
+            // }
 
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
@@ -1169,7 +1255,7 @@ class SppjController extends Controller
             //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
             //     $eid = Hashids::encode($header->id);
-                
+
             //     $data = [
             //         'docid'    => $firstApproval->docid,
             //         'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -1222,8 +1308,8 @@ class SppjController extends Controller
         }
     }
 
-   
-   
+
+
     public function removeAttachment($id)
     {
         try {
@@ -1235,14 +1321,14 @@ class SppjController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
     }
- 
+
 
     public function showSppj($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -1253,7 +1339,7 @@ class SppjController extends Controller
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name'
         ])
-        ->findOrFail($id);        
+        ->findOrFail($id);
 
         $sppjdetail = TrSPPJdetail::with([
             'location:location_id,location_name',
@@ -1261,7 +1347,7 @@ class SppjController extends Controller
         ])
         ->where('sppjid', $sppj->sppjid)
         ->orderby('sppj_no', 'ASC')
-        ->get();  
+        ->get();
 
         $attachmentPJ = $this->mapAttachmentsToSignedUrl($sppj->sppjid);
 
@@ -1269,9 +1355,9 @@ class SppjController extends Controller
         if (!empty($sppj->woid)) {
             $attachmentWO = $this->mapAttachmentsToSignedUrl($sppj->woid);
         }
-            
-        $bq = Bq::where('bqid', $sppj->bqid)   
-            ->first();            
+
+        $bq = Bq::where('bqid', $sppj->bqid)
+            ->first();
 
         if ($bq) {
             $bq->eid = Hashids::encode($bq->id);
@@ -1283,7 +1369,7 @@ class SppjController extends Controller
             ->where('role_id','COSTCTRLACCESS')
             ->first();
 
-       
+
         $userCpny = Usercpny::query()
         ->where('username',$user->username)->where('status','A')
         ->pluck('cpny_id')->values();
@@ -1319,7 +1405,7 @@ class SppjController extends Controller
                 $woHash = Hashids::encode($woData->id);
             }
         }
-       
+
         return view('pages.sppjs.showsppjs', compact('sppj','attachmentPJ','attachmentWO','sppjdetail','bq','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'
         ));
     }
@@ -1370,7 +1456,7 @@ class SppjController extends Controller
         });
     }
 
-      
+
     public function approveSppj(Request $request, $docid)
     {
         $user    = $request->user();
@@ -1411,7 +1497,7 @@ class SppjController extends Controller
                         'info'     => $sppj->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
             },
@@ -1485,7 +1571,7 @@ class SppjController extends Controller
                         'info'     => $sppj->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
 
@@ -1565,8 +1651,8 @@ class SppjController extends Controller
 
         return response()->json(['success'=>true,'message'=>'SPPJ revised successfully']);
     }
-    
-  
+
+
     public function trackingDetail($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -2208,22 +2294,22 @@ class SppjController extends Controller
         $temp_id  = session('import_temp_id');
         $tempData = $temp_id ? BqDetailTemp::where('temp_id', $temp_id)->get() : [];
 
-       
+
 
         return view('pages.sppjs.editbqsppjs', compact(
             'bq',
             'bq_detail',
             'temp_id',
             'tempData'
-           
+
         ));
     }
-    
+
     public function printSppj($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
-        
+
         $authUser = Auth::user();
         if (!$authUser) {
             return redirect()->route('login');
@@ -2243,7 +2329,7 @@ class SppjController extends Controller
             ])
             ->where('sppjid', $sppj->sppjid)
             ->get();
-   
+
         $refnbr    = $sppj->sppjid;
         $apprTable = (new TrApproval)->getTable(); // "tr_approval"
 
@@ -2296,7 +2382,7 @@ class SppjController extends Controller
             'doc_type'            => 'SPPJ',
             'docid'               => $sppj->sppjid,
             'department_id'       => $sppj->department_id,
-            'cpnyname'            => optional($company)->cpny_name,           
+            'cpnyname'            => optional($company)->cpny_name,
             // identitas & tanggal
             'created_by_username' => $sppj->created_by,
             'created_by_name'     => ucwords(strtolower(optional($sppj->creator)->name)),
@@ -2327,10 +2413,10 @@ class SppjController extends Controller
     }
 
     public function createBQ($id)
-    {       
-        $user = request()->user();     
-        $sppj = TrSPPJ::findOrFail($id);  
-       
+    {
+        $user = request()->user();
+        $sppj = TrSPPJ::findOrFail($id);
+
         $temp_id = session('import_temp_id'); // ambil dari session
 
         $tempData = [];
@@ -2338,7 +2424,7 @@ class SppjController extends Controller
             $tempData = BqDetailTemp::where('temp_id', $temp_id)->get();
         }
 
-       
+
         return view('pages.sppjs.createbqsppj', compact('sppj','tempData','temp_id'));
     }
 
@@ -2561,14 +2647,14 @@ class SppjController extends Controller
         try {
             $username = Auth::user()->username ?? 'system';
             $temp_id  = (string) Str::uuid();
-            
+
             // Bersihkan temp milik user agar tidak tercampur batch sebelumnya
             BqDetailTemp::where('created_by', $username)->delete();
 
             $idx = $request->input('idx');
             $sppjtid = $request->input('sppjtid');
             // $bqid    = $request->input('bqid'); // opsional
-            
+
             // Import Excel ke tr_bq_detail_temp
             Excel::import(
                 new BqDetailTempImport($temp_id, $sppjtid),
@@ -2586,7 +2672,7 @@ class SppjController extends Controller
             //                 ->with('success', 'Data berhasil di‑import (edit mode).')
             //     : redirect()->route('bqs.create')
             //                 ->with('success', 'Data berhasil di‑import.');
-            
+
             return back()->with('success', 'Data BQ berhasil di-import.');
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal import: '.$e->getMessage());
@@ -2684,7 +2770,7 @@ class SppjController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $bqid  = $doctype . $tglbln . sprintf("%04d", $urutan);    
+            $bqid  = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             $sppj->bqid = $bqid;
             $sppj->save();
@@ -2732,7 +2818,7 @@ class SppjController extends Controller
                     'refnbr'        => $bqid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $cpny_id,
-                    'departementid' => $deptid,                    
+                    'departementid' => $deptid,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $username,
                 ];
@@ -2781,7 +2867,7 @@ class SppjController extends Controller
         $bqid    = $bq->bqid;                 // <-- dipertahankan (tidak generate baru)
         $sppjtid = $bq->sppjtid ?? $request->input('sppjtid');
 
-        $sppj = TrSPPJ::where('sppjid', $sppjtid)                   
+        $sppj = TrSPPJ::where('sppjid', $sppjtid)
                     ->first();
         $cpny_id = $sppj->cpny_id ?? $sppj->cpnyid ?? null;
         $deptid = $sppj->department_id ?? $sppj->departmentid ?? null;
@@ -2855,13 +2941,13 @@ class SppjController extends Controller
                 BqDetailTemp::where('temp_id', $tempId)->delete();
             }
 
-            
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $bqid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $cpny_id,
-                    'departementid' => $deptid,                    
+                    'departementid' => $deptid,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
@@ -2897,15 +2983,15 @@ class SppjController extends Controller
 
     public function cancelSppj(Request $request, string $hash)
     {
-        
+
         // decode hash -> id (sesuaikan kalau tidak pakai Hashids)
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Invalid document');
 
         $id = $decoded[0];
-        
+
         // ambil doc
-        $sppb = TrSPPJ::query()->where('id', $id)->firstOrFail();        
+        $sppb = TrSPPJ::query()->where('id', $id)->firstOrFail();
 
         DB::beginTransaction();
         try {
@@ -2913,7 +2999,7 @@ class SppjController extends Controller
             $sppb->status = 'X';
             $sppb->updated_by = Auth::user()->username ?? Auth::id(); // kalau kolom ada
             $sppb->updated_at = now(); // kalau kolom ada
-            $sppb->save();          
+            $sppb->save();
 
             DB::commit();
 
@@ -2935,7 +3021,7 @@ class SppjController extends Controller
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
-        
+
         $authUser = Auth::user();
         if (!$authUser) {
             return redirect()->route('login');
@@ -2947,17 +3033,17 @@ class SppjController extends Controller
         // Detail baris SPPJ
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
             ->get();
-            
+
         $sppj = TrSPPJ::where('sppjid', $bq->sppjtid)
-            ->first();       
-       
+            ->first();
+
         $company = MsCompany::where('cpny_id', $bq->cpny_id)->first();
-        
+
         $data = [
             'title'               => 'Bills of Quantities (BQ)',
             'doc_type'            => 'BQ',
-            'cpny_id'             => $company->cpny_id,           
-            'cpny_name'           => $company->cpny_name, 
+            'cpny_id'             => $company->cpny_id,
+            'cpny_name'           => $company->cpny_name,
             'keperluan'           => $sppj->keperluan,
         ];
 
@@ -2966,7 +3052,7 @@ class SppjController extends Controller
             'pages.sppjs.pdfbq_sppj',
             array_merge($data, [
                 'bq'             => $bq,
-                'bqdetail'         => $bqdetail,               
+                'bqdetail'         => $bqdetail,
             ])
         );
 
@@ -2996,7 +3082,7 @@ class SppjController extends Controller
         return view('pages.sppjs.createbqkontrak', compact('sppj', 'tempRows'));
     }
 
-    
+
 
     public function categoriesBqKontrak(Request $request, string $sppjId)
     {
@@ -3053,7 +3139,7 @@ class SppjController extends Controller
 
         $kontrakcategory = $request->kontrakcategory;
 
-       
+
         // Ambil master BQ kontrak berdasar category
         $items = MsKontrakBQ::query()
             ->where('status', 'A')
@@ -3123,7 +3209,7 @@ class SppjController extends Controller
             ]);
     }
 
-    
+
     public function saveBqKontrak(Request $request, string $sppjId)
     {
         $user = Auth::user();
@@ -3310,13 +3396,13 @@ class SppjController extends Controller
         return view('pages.sppjs.showbqkontrak', compact('bq','bqdetail','canEdit','hash'));
     }
 
-    
+
     public function editBqKontrak_zzz($id)
     {
         $user = Auth::user();
         abort_unless($user, 401);
 
-       
+
         $bq = Bq::query()
             ->where('id', $id)
             ->firstOrFail();
@@ -3376,7 +3462,7 @@ class SppjController extends Controller
 
     public function editBqKontrak_xxx(string $eid)
     {
-        
+
         $user = Auth::user();
         abort_unless($user, 401);
 
@@ -3434,7 +3520,7 @@ class SppjController extends Controller
             ->where('created_by', $user->username)
             ->orderBy('bq_line_no')
             ->get();
-             
+
         return view('pages.sppjs.editbqkontrak', compact('bq', 'tempRows', 'eid', 'tempId'));
     }
 
@@ -3670,8 +3756,8 @@ class SppjController extends Controller
             ], 500);
         }
     }
-    
-    
+
+
     public function updateBqKontrak(Request $request, string $eid)
     {
         $user = Auth::user();

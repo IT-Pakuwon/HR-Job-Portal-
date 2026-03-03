@@ -3,7 +3,11 @@
         $currentPage = Route::currentRouteName() == 'sppbs' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        @php
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+        @endphp
+        <div
+            class="{{ $hasAllList ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
             {{-- All Status --}}
             <button type="button" class="text-left">
@@ -107,6 +111,7 @@
                     </div>
                 </a>
             </button>
+
         </div>
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -359,8 +364,8 @@
 
     <script>
         /* =========================================================
-                                                                                                                                                                    TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-                                                                                                                                                                    ========================================================= */
+                                                                                                                                                                                    TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                                                                                                                                                                    ========================================================= */
 
         (function() {
             // ---------- Modal open/close ----------
@@ -553,13 +558,13 @@
 
                             ${header.vendorname !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
-                                                                                                                                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
+                                                                                                                                                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
                                 : ''
                             }
 
                             ${header.keperluan !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
-                                                                                                                                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
+                                                                                                                                                                    <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
                                 : ''
                             }
                         </div>

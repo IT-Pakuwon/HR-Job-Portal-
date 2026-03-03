@@ -246,37 +246,37 @@ class SppbController extends Controller
             return $row;
         });
 
-    // ==============================
-    // DEPARTMENT LIST (ONLY FOR ALL MODE)
-    // ==============================
-    $departments = [];
+        // ==============================
+        // DEPARTMENT LIST (ONLY FOR ALL MODE)
+        // ==============================
+        $departments = [];
 
-    if ($mode === 'all') {
+        if ($mode === 'all') {
 
-        $deptQuery = TrSPPB::from($baseTable . ' as sppb')
-            ->whereIn('sppb.cpny_id', $cpnyIds)
-            ->whereIn('sppb.status', ['P','C']);
+            $deptQuery = TrSPPB::from($baseTable . ' as sppb')
+                ->whereIn('sppb.cpny_id', $cpnyIds)
+                ->whereIn('sppb.status', ['P','C']);
 
-        // apply department filter if selected
-        if (!empty($deptExtra)) {
-            $deptQuery->where('sppb.department_id', $deptExtra);
+            // apply department filter if selected
+            if (!empty($deptExtra)) {
+                $deptQuery->where('sppb.department_id', $deptExtra);
+            }
+
+            $departments = $deptQuery
+                ->select('sppb.department_id')
+                ->distinct()
+                ->orderBy('sppb.department_id')
+                ->pluck('department_id');
         }
 
-        $departments = $deptQuery
-            ->select('sppb.department_id')
-            ->distinct()
-            ->orderBy('sppb.department_id')
-            ->pluck('department_id');
-    }
-
-        return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
-            'departments'     => $departments,
-        ]);
-    }
+            return response()->json([
+                'draw'            => $draw,
+                'recordsTotal'    => $recordsTotal,
+                'recordsFiltered' => $recordsFiltered,
+                'data'            => $data,
+                'departments'     => $departments,
+            ]);
+        }
 
 
     public function createSppb()

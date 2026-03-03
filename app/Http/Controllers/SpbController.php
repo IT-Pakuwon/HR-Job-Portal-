@@ -92,94 +92,185 @@ class SpbController extends Controller
             ->whereRaw('(COALESCE(totalissueqty,0) > 0 OR COALESCE(totalsppbqty,0) > 0 OR COALESCE(sppbid, \'\') <> \'\')')
             ->count();
 
+        $allListCount = TrSPB::whereIn('cpny_id', $cpnyIds)
+            ->whereIn('status', ['P', 'C'])
+            ->count();
 
-        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed','tracking'));
+
+        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed','tracking','allListCount'));
     }
 
 
 
-    public function json(Request $request)
-    {
-        $user = Auth::user();
+public function json(Request $request)
+{
+    $user = Auth::user();
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
+    if (!$user) {
+        return response()->json([], 401);
+    }
 
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+    // ==============================
+    // USER COMPANY
+    // ==============================
+    $cpnyIds = is_string($user->cpny_id)
+        ? array_map('trim', explode(',', $user->cpny_id))
+        : (array) $user->cpny_id;
 
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 25);
-        $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->input('status', '');
+    // ==============================
+    // USER DEPARTMENT (NORMAL MODE)
+    // ==============================
+    $deptIds = is_string($user->department_id)
+        ? array_map('trim', explode(',', $user->department_id))
+        : (array) $user->department_id;
 
-        $columns = [
-            0 => 'spb.spbid',
-            1 => 'spb.spbdate',
-            2 => 'spb.cpny_id',
-            3 => 'spb.department_id',
-            4 => 'wt.worktype_name',
-            5 => 'swt.subworktype_name',
-            6 => 'spb.keperluan',
-            7 => 'spb.status',
-        ];
+    // ==============================
+    // DATATABLE PARAMS
+    // ==============================
+    $draw   = (int) $request->input('draw', 1);
+    $start  = (int) $request->input('start', 0);
+    $length = (int) $request->input('length', 25);
+    $search = trim((string) $request->input('search.value', ''));
 
-        $orderIdx = (int) $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'spb.spbid';
+    $status      = (string) $request->input('status', '');
+    $mode        = (string) $request->input('mode', 'normal');
+    $deptExtra   = (string) $request->input('department_extra', '');
 
-        $base = TrSPB::from('tr_spb as spb')
-            ->leftJoin('ms_worktype as wt', 'wt.worktypeid', '=', 'spb.worktypeid')
-            ->leftJoin('ms_subworktype as swt', function ($join) {
-                $join->on('swt.subworktypeid', '=', 'spb.subworktypeid')
-                    ->where('swt.doctype', '=', 'SPB');
-            })
-            ->whereIn('spb.cpny_id', $cpnyIds)
-            ->whereIn('spb.department_id', $deptIds);
+    $columns = [
+        0 => 'spb.spbid',
+        1 => 'spb.spbdate',
+        2 => 'spb.cpny_id',
+        3 => 'spb.department_id',
+        4 => 'wt.worktype_name',
+        5 => 'swt.subworktype_name',
+        6 => 'spb.keperluan',
+        7 => 'spb.status',
+    ];
 
-        if ($status !== '') $base->where('spb.status', $status);
+    $orderIdx = (int) $request->input('order.0.column', 0);
+    $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
+    $orderCol = $columns[$orderIdx] ?? 'spb.spbid';
 
-        $recordsTotal = (clone $base)->distinct('spb.spbid')->count('spb.spbid');
+    // ==============================
+    // BASE QUERY
+    // ==============================
+    $base = TrSPB::from('tr_spb as spb')
+        ->leftJoin('ms_worktype as wt', 'wt.worktypeid', '=', 'spb.worktypeid')
+        ->leftJoin('ms_subworktype as swt', function ($join) {
+            $join->on('swt.subworktypeid', '=', 'spb.subworktypeid')
+                 ->where('swt.doctype', '=', 'SPB');
+        })
+        ->whereIn('spb.cpny_id', $cpnyIds);
 
-        if ($search !== '') {
-            $base->where(function ($q) use ($search) {
-                $q->where('spb.spbid', 'ilike', "%{$search}%")
-                ->orWhere('spb.cpny_id', 'ilike', "%{$search}%")
-                ->orWhere('spb.department_id', 'ilike', "%{$search}%")
-                ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
-                ->orWhere('swt.subworktype_name', 'ilike', "%{$search}%")
-                ->orWhere('spb.keperluan', 'ilike', "%{$search}%")
-                ->orWhere('spb.status', 'ilike', "%{$search}%");
-            });
+    // ==============================
+    // MODE LOGIC
+    // ==============================
+    if ($mode === 'normal') {
+
+        $base->whereIn('spb.department_id', $deptIds);
+
+        if ($status !== '') {
+            $base->where('spb.status', $status);
+        }
+    }
+
+    if ($mode === 'all') {
+
+        // only P & C by default
+        $base->whereIn('spb.status', ['P', 'C']);
+
+        if (!empty($deptExtra)) {
+            $base->where('spb.department_id', $deptExtra);
         }
 
-        $recordsFiltered = (clone $base)->distinct('spb.spbid')->count('spb.spbid');
-
-        $data = $base->select(
-                'spb.id','spb.spbid','spb.spbdate','spb.cpny_id','spb.department_id',
-                'wt.worktype_name','swt.subworktype_name','spb.keperluan','spb.status','spb.created_by'
-            )
-            ->orderBy($orderCol, $orderDir)
-            ->orderBy('spb.spbid', 'desc')
-            ->skip($start)->take($length)
-            ->get();
-
-        $data->transform(function ($row) {
-            $row->eid = \Hashids::encode($row->id);
-            return $row;
-        });
-
-        return response()->json([
-            'draw' => $draw,
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'data' => $data,
-        ]);
+        if ($status !== '') {
+            $base->where('spb.status', $status);
+        }
     }
 
+    // ==============================
+    // TOTAL BEFORE SEARCH
+    // ==============================
+    $recordsTotal = (clone $base)
+        ->distinct('spb.spbid')
+        ->count('spb.spbid');
+
+    // ==============================
+    // SEARCH
+    // ==============================
+    if ($search !== '') {
+        $base->where(function ($q) use ($search) {
+            $q->where('spb.spbid', 'ilike', "%{$search}%")
+              ->orWhere('spb.cpny_id', 'ilike', "%{$search}%")
+              ->orWhere('spb.department_id', 'ilike', "%{$search}%")
+              ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
+              ->orWhere('swt.subworktype_name', 'ilike', "%{$search}%")
+              ->orWhere('spb.keperluan', 'ilike', "%{$search}%")
+              ->orWhere('spb.status', 'ilike', "%{$search}%");
+        });
+    }
+
+    $recordsFiltered = (clone $base)
+        ->distinct('spb.spbid')
+        ->count('spb.spbid');
+
+    // ==============================
+    // DATA
+    // ==============================
+    $data = $base->select(
+            'spb.id',
+            'spb.spbid',
+            'spb.spbdate',
+            'spb.cpny_id',
+            'spb.department_id',
+            'wt.worktype_name',
+            'swt.subworktype_name',
+            'spb.keperluan',
+            'spb.status',
+            'spb.created_by'
+        )
+        ->orderBy($orderCol, $orderDir)
+        ->orderBy('spb.spbid', 'desc')
+        ->skip($start)
+        ->take($length)
+        ->get();
+
+    $data->transform(function ($row) {
+        $row->eid = \Hashids::encode($row->id);
+        unset($row->id);
+        return $row;
+    });
+
+    // ==============================
+    // DEPARTMENT LIST (ALL MODE)
+    // ==============================
+    $departments = [];
+
+    if ($mode === 'all') {
+
+        $deptQuery = TrSPB::from('tr_spb as spb')
+            ->whereIn('spb.cpny_id', $cpnyIds)
+            ->whereIn('spb.status', ['P','C']);
+
+        if (!empty($deptExtra)) {
+            $deptQuery->where('spb.department_id', $deptExtra);
+        }
+
+        $departments = $deptQuery
+            ->select('spb.department_id')
+            ->distinct()
+            ->orderBy('spb.department_id')
+            ->pluck('department_id');
+    }
+
+    return response()->json([
+        'draw'            => $draw,
+        'recordsTotal'    => $recordsTotal,
+        'recordsFiltered' => $recordsFiltered,
+        'data'            => $data,
+        'departments'     => $departments,
+    ]);
+}
     public function trackJson(Request $request)
     {
         $user = Auth::user();

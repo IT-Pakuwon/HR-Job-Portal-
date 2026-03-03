@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -46,7 +46,7 @@ class SppkController extends Controller
 
     public function index()
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -89,34 +89,51 @@ class SppkController extends Controller
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
                     ->count();
-    
-        return view('pages.sppks.sppks', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        $allListCount = TrSPPK::whereIn('cpny_id', $cpnyIds)
+            ->whereIn('status', ['P', 'C'])
+            ->count();
+        return view('pages.sppks.sppks', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount'));
     }
 
     public function json(Request $request)
     {
         $user = Auth::user();
 
+        if (!$user) {
+            return response()->json([], 401);
+        }
+
+        // ==============================
+        // USER COMPANY
+        // ==============================
         if (is_string($user->cpny_id)) {
             $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
         } else {
             $cpnyIds = (array) $user->cpny_id;
         }
 
-        // department_id juga bisa multi, tapi di debug sudah "IT"
+        // ==============================
+        // USER DEPARTMENT (NORMAL MODE ONLY)
+        // ==============================
         if (is_string($user->department_id)) {
             $deptIds = array_map('trim', explode(',', $user->department_id));
         } else {
             $deptIds = (array) $user->department_id;
         }
 
+        // ==============================
+        // DATATABLE PARAMETERS
+        // ==============================
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->query('status', ''); // '' = all
 
-        $baseTable = (new TrSPPK)->getTable(); // e.g. "tr_sppk"
+        $status    = (string) $request->query('status', '');
+        $mode      = (string) $request->query('mode', 'normal');
+        $deptExtra = (string) $request->query('department_extra', '');
+
+        $baseTable = (new TrSPPK)->getTable();
 
         $columns = [
             0 => 'sppk.sppkid',
@@ -128,27 +145,58 @@ class SppkController extends Controller
             6 => 'sppk.status',
         ];
 
-        // ⬇️ default ke kolom 0 (sppk.sppkid) dan desc
         $orderIdx = (int) $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'sppk.sppkid';
 
-        $base = TrSPPK::from($baseTable.' as sppk')
+        // ==============================
+        // BASE QUERY
+        // ==============================
+        $base = TrSPPK::from($baseTable . ' as sppk')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppk.requesttypeid');
             })
-            ->whereIn('sppk.cpny_id', $cpnyIds)           // 🔹 filter cpny sesuai user
-            ->whereIn('sppk.department_id', $deptIds);    // 🔹 filter dept sesuai user
+            ->whereIn('sppk.cpny_id', $cpnyIds);
 
-        if ($status !== '') {
-            $base->where('sppk.status', $status);
+        // ==============================
+        // MODE LOGIC
+        // ==============================
+        if ($mode === 'normal') {
+
+            $base->whereIn('sppk.department_id', $deptIds);
+
+            if ($status !== '') {
+                $base->where('sppk.status', $status);
+            }
         }
 
-        $recordsTotal = (clone $base)->distinct('sppk.sppkid')->count('sppk.sppkid');
+        if ($mode === 'all') {
 
+            // only P & C
+            $base->whereIn('sppk.status', ['P', 'C']);
+
+            if (!empty($deptExtra)) {
+                $base->where('sppk.department_id', $deptExtra);
+            }
+
+            if ($status !== '') {
+                $base->where('sppk.status', $status);
+            }
+        }
+
+        // ==============================
+        // TOTAL BEFORE SEARCH
+        // ==============================
+        $recordsTotal = (clone $base)
+            ->distinct('sppk.sppkid')
+            ->count('sppk.sppkid');
+
+        // ==============================
+        // SEARCH
+        // ==============================
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppk.sppkid',           'ilike', "%{$search}%")
+                $q->where('sppk.sppkid',          'ilike', "%{$search}%")
                 ->orWhere('sppk.cpny_id',       'ilike', "%{$search}%")
                 ->orWhere('sppk.department_id', 'ilike', "%{$search}%")
                 ->orWhere('rt.requesttype_name','ilike', "%{$search}%")
@@ -157,8 +205,16 @@ class SppkController extends Controller
             });
         }
 
-        $recordsFiltered = (clone $base)->distinct('sppk.sppkid')->count('sppk.sppkid');
+        // ==============================
+        // TOTAL AFTER SEARCH
+        // ==============================
+        $recordsFiltered = (clone $base)
+            ->distinct('sppk.sppkid')
+            ->count('sppk.sppkid');
 
+        // ==============================
+        // FETCH DATA
+        // ==============================
         $data = $base->select(
                     'sppk.id',
                     'sppk.sppkid',
@@ -171,31 +227,53 @@ class SppkController extends Controller
                     'sppk.status',
                     'sppk.created_by'
                 )
-                ->orderBy($orderCol, $orderDir)          // ← mengikuti request, default ke sppkid desc
-                ->orderBy('sppk.sppkid', 'desc')         // ← tie-breaker agar stabil
+                ->orderBy($orderCol, $orderDir)
+                ->orderBy('sppk.sppkid', 'desc')
                 ->skip($start)
                 ->take($length)
                 ->get();
 
-        // Encode id dengan hashids → tambahkan field eid
+        // Encrypt ID
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-            unset($row->id); // opsional: sembunyikan id asli
+            unset($row->id);
             return $row;
         });
+
+        // ==============================
+        // DEPARTMENT LIST (ALL MODE ONLY)
+        // ==============================
+        $departments = [];
+
+        if ($mode === 'all') {
+
+            $deptQuery = TrSPPK::from($baseTable . ' as sppk')
+                ->whereIn('sppk.cpny_id', $cpnyIds)
+                ->whereIn('sppk.status', ['P','C']);
+
+            if (!empty($deptExtra)) {
+                $deptQuery->where('sppk.department_id', $deptExtra);
+            }
+
+            $departments = $deptQuery
+                ->select('sppk.department_id')
+                ->distinct()
+                ->orderBy('sppk.department_id')
+                ->pluck('department_id');
+        }
 
         return response()->json([
             'draw'            => $draw,
             'recordsTotal'    => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'data'            => $data,
+            'departments'     => $departments,
         ]);
     }
 
-    
     public function createSppk()
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -207,12 +285,12 @@ class SppkController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
-            ->first();                     
-       
+            ->first();
+
         return view('pages.sppks.createsppks', compact('usercpny','usercpny2','userdept','userdept2'));
     }
 
-        
+
     public function storeSppk(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
@@ -225,7 +303,7 @@ class SppkController extends Controller
         $locations     = $request->input('location', []);
         $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
         $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations  = $request->input('sub_location', []);      
+        $subLocations  = $request->input('sub_location', []);
         $activityIds   = $request->input('activity_id', []);
         $busUnitIds    = $request->input('business_unit_id', []);
         $deptFinIds    = $request->input('department_fin_id', []);
@@ -237,7 +315,7 @@ class SppkController extends Controller
         $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
         $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
         $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
-       
+
         $inventorySubTypes   = $request->input('item_sub_type', []); // untuk Fixed Asset subtype
 
         $doctype  = 'PK';
@@ -251,7 +329,7 @@ class SppkController extends Controller
         $datestamp = $dt->toDateTimeString();
 
 
-        // helper untuk normalisasi angka lokal (ID format)     
+        // helper untuk normalisasi angka lokal (ID format)
         $toFloat = function ($v): ?float {
             if ($v === null || $v === '') return null;
             $s = preg_replace('/\s+/', '', (string)$v);
@@ -400,7 +478,7 @@ class SppkController extends Controller
             // }
 
             $buSiteCache = [];
-           
+
             for ($i = 0; $i < $rowCount; $i++) {
                 $invId = $inventoryIds[$i] ?? null;
                 $productName = $productNames[$i] ?? null;
@@ -484,13 +562,13 @@ class SppkController extends Controller
                 $detail->base_uom                 = $baseUom;            // = purchase_unit
                 $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
                 $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty                 = $baseQty;            // hitungan M/D               
+                $detail->base_qty                 = $baseQty;            // hitungan M/D
                 $detail->budget_cpny_id           = $request->cpnyid;
                 $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
                 $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
                 $detail->budget_activity_descr    = $actDescrs[$i] ?? null;
                 $detail->budget_account_id        = $coaIds[$i]         ?? null;
-                $detail->budget_activity_id       = $activityIds[$i]   ?? null;               
+                $detail->budget_activity_id       = $activityIds[$i]   ?? null;
                 $detail->location_id              = $locationIds[$i]  ?? null;
                 $detail->sub_location_id          = $subLocIds[$i]    ?? null;
                 $detail->budget_perpost           = $request->perpost;
@@ -594,19 +672,19 @@ class SppkController extends Controller
             //     foreach ($request->file('attachments') as $file) {
             //         $randomNumber = random_int(10000000, 99999999);
             //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
             //         $originalName = str_replace('%', '', $file->getClientOriginalName());
             //         $ext        = $file->getClientOriginalExtension();
             //         $attachfile = md5($randomNumber) . '.' . $ext;
 
             //         //attach to folder
             //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
+            //         $config['upload_path'] = $folder_attach;
             //         if(!is_dir($folder_attach))
             //         {
             //             mkdir($folder_attach, 0777);
             //         }
-                    
+
             //         $folder_upload = $folder_attach;
             //         // $folder_upload = public_path() . '/attachments';
             //         $file->move($folder_upload, $attachfile);
@@ -621,14 +699,14 @@ class SppkController extends Controller
             //         $attach->created_user = $user->username;
             //         $attach->save();
             //     }
-            // }            
+            // }
 
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $docid,
                     'doctype'       => $doctype,
                     'cpnyid'        => $request->input('cpnyid'),
-                    'departementid' => $request->input('departementid'),                    
+                    'departementid' => $request->input('departementid'),
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
@@ -660,7 +738,7 @@ class SppkController extends Controller
             // if ($firstApproval) {
 
             //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-                
+
             //     $subjectMap = [
             //         'P' => 'Waiting Approval',
             //         'R' => 'Rejected Approval',
@@ -671,7 +749,7 @@ class SppkController extends Controller
             //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
             //     $eid = Hashids::encode($header->id);
-                
+
             //     $data = [
             //         'docid'    => $firstApproval->docid,
             //         'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -684,7 +762,7 @@ class SppkController extends Controller
             //         'docname'  => 'SPPK',
             //         'url'      => url('/showsppks/' . $eid),
             //     ];
-                
+
             //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
             //     $emails = User::whereIn('username', $approvers)
             //         ->where('status', 'A')
@@ -734,10 +812,10 @@ class SppkController extends Controller
             ], 500);
         }
     }
-   
+
     public function editSppk($hash)
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -825,12 +903,12 @@ class SppkController extends Controller
 
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'PK tidak ditemukan.');
-        
-        $user      = $request->user();   
+
+        $user      = $request->user();
         $dt        = Carbon::now();
         $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();   
+        $datestamp = $dt->toDateTimeString();
         $doctype   = 'PK';
         $username  = $user->username ?? 'system';
         $fullname  = $user->name ?? 'system';
@@ -877,7 +955,7 @@ class SppkController extends Controller
         $header->pemilikkendaraan      = $request->pemilikkendaraan;
         $header->km_kendaraan      = $request->km_kendaraan;
         $header->keperluan      = $request->keperluan;
-        $header->budget_perpost = $request->perpost;  
+        $header->budget_perpost = $request->perpost;
         $header->is_urgent      = $request->is_urgent;
         $header->status         = 'P';
         $header->updated_by     = $username;
@@ -1119,7 +1197,7 @@ class SppkController extends Controller
                 $header->save();
             }
 
-              
+
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -1149,19 +1227,19 @@ class SppkController extends Controller
             //     foreach ($request->file('attachments') as $file) {
             //         $randomNumber = random_int(10000000, 99999999);
             //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
             //         $originalName = str_replace('%', '', $file->getClientOriginalName());
             //         $ext        = $file->getClientOriginalExtension();
             //         $attachfile = md5($randomNumber) . '.' . $ext;
 
             //         //attach to folder
             //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
+            //         $config['upload_path'] = $folder_attach;
             //         if(!is_dir($folder_attach))
             //         {
             //             mkdir($folder_attach, 0777);
             //         }
-                    
+
             //         $folder_upload = $folder_attach;
             //         // $folder_upload = public_path() . '/attachments';
             //         $file->move($folder_upload, $attachfile);
@@ -1176,7 +1254,7 @@ class SppkController extends Controller
             //         $attach->created_user = $user->username;
             //         $attach->save();
             //     }
-            // }       
+            // }
 
             // $uploadResult = null;
             // if ($request->hasFile('attachments')) {
@@ -1221,7 +1299,7 @@ class SppkController extends Controller
             //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
             //     $eid = Hashids::encode($header->id);
-                
+
             //     $data = [
             //         'docid'    => $firstApproval->docid,
             //         'cpnyid'   => $firstApproval->aprvcpnyid,
@@ -1274,8 +1352,8 @@ class SppkController extends Controller
         }
     }
 
-   
-   
+
+
     public function removeAttachment($id)
     {
         try {
@@ -1287,14 +1365,14 @@ class SppkController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
     }
- 
+
 
     public function showSppk($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -1305,7 +1383,7 @@ class SppkController extends Controller
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name'
         ])
-        ->findOrFail($id);        
+        ->findOrFail($id);
 
         $sppkdetail = TrSPPKdetail::with([
             'location:location_id,location_name',
@@ -1313,8 +1391,8 @@ class SppkController extends Controller
         ])
         ->where('sppkid', $sppk->sppkid)
         ->orderby('sppk_no', 'ASC')
-        ->get();        
-               
+        ->get();
+
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $sppk->sppkid)
             ->where('status', 'A')
@@ -1351,7 +1429,7 @@ class SppkController extends Controller
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
 
-            return (object) [                
+            return (object) [
                 'display_name' => $r->attachment_name,         // nama yang enak dibaca
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
@@ -1364,12 +1442,12 @@ class SppkController extends Controller
         });
 
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $sppk->created_by === $loginUsername;   
+        $canUpload     = $sppk->created_by === $loginUsername;
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id','COSTCTRLACCESS')
             ->first();
 
-       
+
         $userCpny = Usercpny::query()
         ->where('username',$user->username)->where('status','A')
         ->pluck('cpny_id')->values();
@@ -1390,8 +1468,8 @@ class SppkController extends Controller
             ->select('department_fin_id')
             ->distinct()
             ->orderBy('department_fin_id')
-            ->get();     
-       
+            ->get();
+
         return view('pages.sppks.showsppks', compact('sppk','attachments','sppkdetail','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
     }
 
@@ -1584,7 +1662,7 @@ class SppkController extends Controller
         return response()->json(['success'=>true,'message'=>'SPPK revised successfully']);
     }
 
-    
+
 
     public function trackingDetail($hash)
     {
@@ -1852,7 +1930,7 @@ class SppkController extends Controller
 
         ]);
     }
-   
+
     public function trackingDetailItem($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -2276,15 +2354,15 @@ class SppkController extends Controller
 
     public function cancelSppk(Request $request, string $hash)
     {
-        
+
         // decode hash -> id (sesuaikan kalau tidak pakai Hashids)
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Invalid document');
 
         $id = $decoded[0];
-        
+
         // ambil doc
-        $sppb = TrSPPK::query()->where('id', $id)->firstOrFail();        
+        $sppb = TrSPPK::query()->where('id', $id)->firstOrFail();
 
         DB::beginTransaction();
         try {
@@ -2292,7 +2370,7 @@ class SppkController extends Controller
             $sppb->status = 'X';
             $sppb->updated_by = Auth::user()->username ?? Auth::id(); // kalau kolom ada
             $sppb->updated_at = now(); // kalau kolom ada
-            $sppb->save();          
+            $sppb->save();
 
             DB::commit();
 
@@ -2313,7 +2391,7 @@ class SppkController extends Controller
 
 
 
-    
+
 
 
 

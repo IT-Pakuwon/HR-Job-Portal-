@@ -8,24 +8,26 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\SysUserRole;
+
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasProfilePhoto, Notifiable, TwoFactorAuthenticatable;
 
-  
-   
+
+
     // protected $connection = 'mysql2';
-    // protected $table = "users";   
+    // protected $table = "users";
     protected $connection = 'pgsql2';
-    protected $table = "ms_user";   
+    protected $table = "ms_user";
     public $incrementing = true;
-  
-    protected $keyType = 'int';    
+
+    protected $keyType = 'int';
     protected $fillable = [
         'name',
         'username',
-        'email',    
+        'email',
         'phonenumber',
         'password',
         'cpny_id',
@@ -49,11 +51,21 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
         'two_factor_secret',
     ];
-  
+
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
 
-  
+    public function roleIds()
+        {
+            return SysUserRole::where('username', $this->username)
+                ->where('status', 'A')
+                ->pluck('role_id');
+        }
+        public function hasRole($roleId)
+        {
+            return $this->roleIds()->contains($roleId);
+        }
+
 
 }
