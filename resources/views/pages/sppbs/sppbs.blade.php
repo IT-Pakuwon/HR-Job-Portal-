@@ -4,11 +4,20 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS', 'WHSACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasWoAccess = auth()->user()->hasRole('WHSACCESS');
+
+            $xlCols = 5; // base cards
+
+            if ($hasAllList) {
+                $xlCols++;
+            }
+            if ($hasWoAccess) {
+                $xlCols++;
+            }
         @endphp
 
-        <div
-            class="{{ $hasAllList ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <div class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
 
             {{-- All Status --}}
@@ -113,7 +122,7 @@
                     </div>
                 </a>
             </button> --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS', 'WHSACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
                 {{-- SPPB All List --}}
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
@@ -128,6 +137,26 @@
 
                             <p class="shrink-0 text-base font-bold">
                                 {{ $allListCount }}
+                            </p>
+                        </div>
+                    </a>
+                </button>
+            @endif
+
+            @if (auth()->user()->hasRole('WHSACCESS'))
+                <button type="button" class="text-left">
+                    <a href="#" class="status-filter group block h-full" data-mode="wo">
+                        <div
+                            class="status-card flex h-full items-center gap-3 rounded-lg border border-sky-700 bg-sky-200/20 p-3 text-sky-600 hover:-translate-y-1 hover:bg-sky-100 hover:shadow-md active:scale-95">
+
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛠️</div>
+
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                                <p class="break-words text-sm font-medium">WO → SPPB</p>
+                            </div>
+
+                            <p class="shrink-0 text-base font-bold">
+                                {{ $woSppbCount ?? 0 }}
                             </p>
                         </div>
                     </a>
@@ -177,6 +206,9 @@
                             <th></th>
                             <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 DocID
+                            </th>
+                            <th id="thWoId" scope="col" class="hidden w-32 px-6 py-2 font-medium">
+                                WO ID
                             </th>
                             <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Date
@@ -385,8 +417,8 @@
 
     <script>
         /* =========================================================
-                                                                                                                                                                                                TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-                                                                                                                                                                                                ========================================================= */
+                                                                                                                                                                                                                                                                                                        TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                                                                                                                                                                                                                                                                                        ========================================================= */
 
         (function() {
             // ---------- Modal open/close ----------
@@ -579,13 +611,13 @@
 
                             ${header.vendorname !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
-                                                                                                                                                                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
+                                                                                                                                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
                                 : ''
                             }
 
                             ${header.keperluan !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
-                                                                                                                                                                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
+                                                                                                                                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
                                 : ''
                             }
                         </div>
@@ -889,6 +921,8 @@
             let mode = 'normal';
             let deptFilter = '';
 
+            const woColumnIndex = 2; // index WO column
+
             const table = $('#sppbsTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -903,6 +937,15 @@
                     [10, 25, 50, 100, 250, 'All']
                 ],
 
+                scrollX: true, // ✅ supaya tabel bisa scroll horizontal
+                // responsive: false, // ✅ disable responsive
+
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0 // 👈 this is REQUIRED
+                    }
+                },
 
 
                 dom: '<"dt-toolbar"l B f>rtip',
@@ -931,12 +974,7 @@
                         }
                     }
                 ],
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0 // 👈 this is REQUIRED
-                    }
-                },
+
 
                 columnDefs: [{
                     targets: 0,
@@ -1056,7 +1094,22 @@
                         }
 
                     },
+                    {
+                        data: 'wo_number',
+                        className: 'whitespace-nowrap', // tambahkan ini
+                        render: function(data, type, row) {
 
+                            if (mode !== 'wo') return '';
+                            if (!data || !row.wo_hash) return '';
+
+                            return `
+        <a href="/showwos/${row.wo_hash}"
+        target="_blank"
+        class="inline-flex whitespace-nowrap items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-sky-600 text-white hover:bg-sky-700">
+        ${data}
+        </a>`;
+                        }
+                    },
                     {
                         data: 'sppbdate',
                         className: 'text-left'
@@ -1117,7 +1170,7 @@
                 // Tweak untuk kinerja
                 searchDelay: 400, // debounce search
                 stateSave: true, // simpan state tabel (opsional)
-                responsive: true
+                // responsive: true
             });
 
             // $('.status-filter').on('click', function(e) {
@@ -1150,6 +1203,7 @@
             // });
 
             $(document).off('click', '.status-filter').on('click', '.status-filter', function(e) {
+
                 e.preventDefault();
 
                 const selectedMode = $(this).data('mode') || 'normal';
@@ -1162,9 +1216,24 @@
                     deptFilter = '';
 
                     $('#pageTitle').text('SPPB All List');
-
-                    $('#createBtn').css('display', 'none');
+                    $('#createBtn').hide();
                     $('#allFilters').removeClass('hidden');
+
+                    table.column(woColumnIndex).visible(false);
+                    $('#thWoId').addClass('hidden');
+
+                } else if (selectedMode === 'wo') {
+
+                    mode = 'wo';
+                    statusFilter = '';
+                    deptFilter = '';
+
+                    $('#pageTitle').text('WO → SPPB');
+                    $('#createBtn').hide();
+                    $('#allFilters').addClass('hidden');
+
+                    table.column(woColumnIndex).visible(true);
+                    $('#thWoId').removeClass('hidden');
 
                 } else {
 
@@ -1172,18 +1241,15 @@
                     statusFilter = selectedStatus ?? '';
 
                     $('#pageTitle').text('Request SPPB');
-
-                    $('#createBtn').css('display', '');
+                    $('#createBtn').show();
                     $('#allFilters').addClass('hidden');
+
+                    table.column(woColumnIndex).visible(false);
+                    $('#thWoId').addClass('hidden');
                 }
 
                 table.ajax.reload(null, true);
             });
-            $('#filterStatus').on('change', function() {
-                statusFilter = this.value;
-                table.ajax.reload();
-            });
-
             $('#filterDepartment').on('change', function() {
                 deptFilter = this.value;
                 table.ajax.reload();

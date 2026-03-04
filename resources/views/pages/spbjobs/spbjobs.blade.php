@@ -233,7 +233,12 @@
             }
 
             function headerFor(sc) {
+
                 const type = scopeType(sc);
+
+                // =========================
+                // SPB HEADER
+                // =========================
                 if (type === 'spb') {
 
                     const isSpbAll = (sc === 'spball');
@@ -242,74 +247,133 @@
                     const isSppbJobs = (sc === 'onprogress');
                     const hideStatus = (sc === 'spbprogress');
 
+                    return `
+                    <th></th>
+
+                    ${!hideAction ? `
+                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                            Action
+                            </th>` : ``}
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    SPB ID
+                    </th>
+
+                    ${isWoFlow ? `
+                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                            WO ID
+                            </th>` : ``}
+
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    SPB Date
+                    </th>
+
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    Company
+                    </th>
+
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    Department
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Keperluan
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Created By
+                    </th>
+
+                    ${isSpbAll ? `
+                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                            Status SPB
+                            </th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                            Status Issue
+                            </th>
+                            ` : !hideStatus ? `
+                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                            ${isSppbJobs ? 'Status SPPB' : 'Issue Status'}
+                            </th>` : ``}
+                    `;
+                }
+
+                // =========================
+                // ISSUE HEADER
+                // =========================
+                if (type === 'issue') {
 
                     return `
-        <th></th>
-        ${!hideAction ? `
-                                                                                                                                                                                                                                                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                                                                                                                                                                                                                                                            Action
-                                                                                                                                                                                                                                                        </th>` : ``}
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPB ID</th>
+                    <th></th>
 
-${isWoFlow ? `
-                                                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                                                                    WO ID
-                                                                </th>` : ``}
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">SPB Date</th>
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">Company</th>
-        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">Department</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Keperluan</th>
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
-${!hideStatus ? `
-        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-            ${isSppbJobs ? 'Status SPPB' : 'Issue Status'}
-        </th>` : ``}
-        `;
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Issue ID
+                    </th>
+
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    Issue Date
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Issue Type
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    SPB ID
+                    </th>
+
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    Company
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Created By
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Status
+                    </th>
+                    `;
                 }
 
+                // =========================
+                // SPPB HEADER
+                // =========================
+                return `
+                    <th></th>
 
-                if (type === 'issue') {
-                    // TrIssue header
-                    return ` <
-                                th > < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" >
-                            Issue ID < /th> <
-                            th class = "px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider" >
-                            Issue Date < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" >
-                            Issue Type < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" > SPB ID <
-                                /th> <
-                            th class = "px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider" >
-                            Company < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" >
-                            Created By < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" > Status <
-                                /th>
-                            `;
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    SPPB ID
+                    </th>
 
-                }
-                // SPPB (TrSPPB) header
-                return ` <
-                            th > < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" >
-                            SPPB ID < /th> <
-                            th class = "px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider" >
-                            SPPB Date < /th> <
-                            th class = "px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider" >
-                            Company < /th> <
-                            th class = "px-6 py-3 text-center  text-sm  font-semibold uppercase tracking-wider" >
-                            Department < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" >
-                            Request Type < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" >
-                            Description < /th> <
-                            th class = "px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider" > Status <
-                                /th>
-                            `;
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    SPPB Date
+                    </th>
+
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    Company
+                    </th>
+
+                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                    Department
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Request Type
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Description
+                    </th>
+
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                    Status
+                    </th>
+                    `;
             }
 
             function renderSpbLink(row) {
+
                 const label = row.spbid ?? '';
                 const hash = row.spb_eid || row.spb_hash || row.hash || row.id;
 
@@ -317,10 +381,13 @@ ${!hideStatus ? `
 
                 const url = `/showspbs/${encodeURIComponent(hash)}`;
 
-                return `<a href="${url}" target="_blank"
-        class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">
-        ${label}
-    </a>`;
+                return `
+    <a href="${url}"
+       target="_blank"
+       class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">
+       ${label}
+    </a>
+    `;
             }
 
             function renderSppbLink(row) {
@@ -363,15 +430,15 @@ ${!hideStatus ? `
             function renderIssueCreate(row) {
                 const url = `{{ route('issue.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
                 return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-blue-600 hover:bg-blue-700">
-                                        <i class="fas fa-plus"></i>
-                                    </a>`;
+                                                    <i class="fas fa-plus"></i>
+                                                </a>`;
             }
 
             function renderSppbCreate(row) {
                 const url = `{{ route('sppb.create') }}` + `?spbid=${encodeURIComponent(row.spb_eid ?? '')}`;
                 return `<a href="${url}" class="inline-flex justify-center items-center px-3 py-1.5  text-sm  font-medium text-white rounded bg-amber-600 hover:bg-amber-700">
-                                        <i class="fas fa-plus"></i>
-                                    </a>`;
+                                                    <i class="fas fa-plus"></i>
+                                                </a>`;
             }
 
 
@@ -413,10 +480,10 @@ ${!hideStatus ? `
                             render: function(data, type, row) {
                                 if (!data) return '';
                                 return `<a href="/showwos/${encodeURIComponent(data)}"
-                        target="_blank"
-                        class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-sky-600 text-white hover:bg-sky-700">
-                        ${row.woid}
-                    </a>`;
+                                    target="_blank"
+                                    class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-sky-600 text-white hover:bg-sky-700">
+                                    ${row.woid}
+                                </a>`;
                             }
                         });
                     }
@@ -435,65 +502,151 @@ ${!hideStatus ? `
                     }, {
                         data: 'created_by'
                     });
-
                     if (!hideStatus) {
-                        cols.push({
-                            data: null,
-                            render: (_v, _t, row) => {
-                                const map = {
-                                    C: {
-                                        t: 'Completed',
-                                        c: 'bg-green-200/60 text-green-800'
-                                    },
-                                    P: {
-                                        t: 'On Progress',
-                                        c: 'bg-orange-200/60 text-orange-800'
-                                    },
-                                    D: {
-                                        t: 'Revise',
+
+                        // =========================
+                        // SPB ALL → 2 STATUS COLUMN
+                        // =========================
+                        if (sc === 'spball') {
+
+                            // 🔹 STATUS SPB
+                            cols.push({
+                                data: 'status',
+                                render: function(data) {
+
+                                    const map = {
+                                        C: {
+                                            t: 'Completed',
+                                            c: 'bg-green-200/60 text-green-800'
+                                        },
+                                        P: {
+                                            t: 'On Progress',
+                                            c: 'bg-orange-200/60 text-orange-800'
+                                        },
+                                        D: {
+                                            t: 'Revise',
+                                            c: 'bg-gray-200/60 text-gray-700'
+                                        },
+                                        X: {
+                                            t: 'Cancel',
+                                            c: 'bg-red-200/60 text-red-800'
+                                        },
+                                        R: {
+                                            t: 'Rejected',
+                                            c: 'bg-red-200/60 text-red-800'
+                                        }
+                                    };
+
+                                    const it = map[data] ?? {
+                                        t: data ?? '-',
                                         c: 'bg-gray-200/60 text-gray-700'
-                                    },
-                                    X: {
-                                        t: 'Cancel',
-                                        c: 'bg-red-200/60 text-red-800'
-                                    },
-                                    R: {
-                                        t: 'Rejected',
-                                        c: 'bg-red-200/60 text-red-800'
-                                    },
-                                };
+                                    };
 
-                                let statusValue = '-';
+                                    return `<span class="${it.c} font-semibold px-3 py-1.5 text-sm rounded">${it.t}</span>`;
+                                }
+                            });
 
-                                // 🔥 SPB All → pakai status_issue
-                                if (sc === 'spball') {
-                                    statusValue = row.status_issue;
+                            // 🔹 STATUS ISSUE
+                            cols.push({
+                                data: 'status_issue',
+                                render: function(data) {
 
-                                    // 🔥 WO Flow
-                                } else if (sc === 'woflow') {
+                                    const map = {
+                                        Open: {
+                                            t: 'Open',
+                                            c: 'bg-gray-200/60 text-gray-700'
+                                        },
+                                        Partial: {
+                                            t: 'Partial',
+                                            c: 'bg-amber-200/60 text-amber-800'
+                                        },
+                                        Completed: {
+                                            t: 'Completed',
+                                            c: 'bg-green-200/60 text-green-800'
+                                        },
+                                        Full: {
+                                            t: 'Full',
+                                            c: 'bg-green-200/60 text-green-800'
+                                        }
+                                    };
 
-                                    if (row.sppbid) {
+                                    const it = map[data] ?? {
+                                        t: data ?? '-',
+                                        c: 'bg-gray-200/60 text-gray-700'
+                                    };
+
+                                    return `<span class="${it.c} font-semibold px-3 py-1.5 text-sm rounded">${it.t}</span>`;
+                                }
+                            });
+
+                        }
+
+                        // =========================
+                        // OTHER SCOPES → 1 STATUS
+                        // =========================
+                        else {
+
+                            cols.push({
+                                data: null,
+                                render: (_v, _t, row) => {
+
+                                    const map = {
+                                        C: {
+                                            t: 'Completed',
+                                            c: 'bg-green-200/60 text-green-800'
+                                        },
+                                        P: {
+                                            t: 'On Progress',
+                                            c: 'bg-orange-200/60 text-orange-800'
+                                        },
+                                        D: {
+                                            t: 'Revise',
+                                            c: 'bg-gray-200/60 text-gray-700'
+                                        },
+                                        X: {
+                                            t: 'Cancel',
+                                            c: 'bg-red-200/60 text-red-800'
+                                        },
+                                        R: {
+                                            t: 'Rejected',
+                                            c: 'bg-red-200/60 text-red-800'
+                                        }
+                                    };
+
+                                    let statusValue = '-';
+
+                                    // 🔹 WO FLOW
+                                    if (sc === 'woflow') {
+
+                                        if (row.sppbid) {
+                                            statusValue = row.status_sppb;
+                                        } else {
+                                            statusValue = row.status_issue;
+                                        }
+
+                                    }
+
+                                    // 🔹 SPPB JOBS
+                                    else if (isSppbJobs) {
                                         statusValue = row.status_sppb;
-                                    } else {
+                                    }
+
+                                    // 🔹 DEFAULT
+                                    else {
                                         statusValue = row.status_issue;
                                     }
 
-                                    // 🔥 SPPB Jobs
-                                } else if (isSppbJobs) {
-                                    statusValue = row.status_sppb;
+                                    const it = map[statusValue] ?? {
+                                        t: statusValue ?? '-',
+                                        c: 'bg-gray-200/60 text-gray-700'
+                                    };
 
-                                    // 🔥 Default (Issue New / Partial)
-                                } else {
-                                    statusValue = row.status_issue;
+                                    return `<span class="${it.c} font-semibold px-3 py-1.5 text-sm rounded">${it.t}</span>`;
                                 }
-                                const it = map[statusValue] ?? {
-                                    t: statusValue ?? '-',
-                                    c: 'bg-gray-200/60 text-gray-700'
-                                };
+                            });
 
-                                return `<span class="${it.c} font-semibold px-3 py-1.5 text-sm rounded">${it.t}</span>`;
-                            }
-                        });
+                        }
+
                     }
 
                     return cols;

@@ -95,7 +95,14 @@ class SppbController extends Controller
         $allListCount = TrSPPB::whereIn('cpny_id', $cpnyIds)
             ->whereIn('status', ['P', 'C'])
             ->count();
-        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount'));
+
+        // WO → SPPB Count
+        $woSppbCount = TrSPPB::whereIn('cpny_id', $cpnyIds)
+            ->whereIn('department_id', $deptIds)
+            ->whereNotNull('woid')
+            ->where('woid', '!=', '')
+            ->count();
+        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount', 'woSppbCount'));
     }
 
     public function json(Request $request)
@@ -139,13 +146,14 @@ class SppbController extends Controller
         $baseTable = (new TrSPPB)->getTable();
 
         $columns = [
-            0 => 'sppb.sppbid',
-            1 => 'sppb.sppbdate',
-            2 => 'sppb.cpny_id',
-            3 => 'sppb.department_id',
-            4 => 'rt.requesttype_name',
-            5 => 'sppb.keperluan',
-            6 => 'sppb.status',
+            1 => 'sppb.sppbid',
+             2 => 'wo.woid',
+            3 => 'sppb.sppbdate',
+            4 => 'sppb.cpny_id',
+            5 => 'sppb.department_id',
+            6 => 'rt.requesttype_name',
+            7 => 'sppb.keperluan',
+            8 => 'sppb.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
@@ -158,6 +166,9 @@ class SppbController extends Controller
         $base = TrSPPB::from($baseTable . ' as sppb')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid');
+            })
+            ->leftJoin('tr_wo as wo', function ($join) {
+                $join->on('wo.woid', '=', 'sppb.woid');
             })
             ->whereIn('sppb.cpny_id', $cpnyIds);
 
@@ -190,6 +201,21 @@ class SppbController extends Controller
             }
         }
 
+        if ($mode === 'wo') {
+
+    // Only SPPB that comes from WO
+    $base->whereNotNull('sppb.woid')
+         ->where('sppb.woid', '!=', '');
+
+    // Optional: restrict by user department
+    $base->whereIn('sppb.department_id', $deptIds);
+
+    // Optional status filter
+    if ($status !== '') {
+        $base->where('sppb.status', $status);
+    }
+}
+
         // ==============================
         // TOTAL BEFORE SEARCH
         // ==============================
@@ -203,6 +229,7 @@ class SppbController extends Controller
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('sppb.sppbid',          'ilike', "%{$search}%")
+                ->orWhere('wo.woid', 'ilike', "%{$search}%")
                 ->orWhere('sppb.cpny_id',       'ilike', "%{$search}%")
                 ->orWhere('sppb.department_id', 'ilike', "%{$search}%")
                 ->orWhere('rt.requesttype_name','ilike', "%{$search}%")
@@ -224,6 +251,7 @@ class SppbController extends Controller
         $data = $base->select(
                     'sppb.id',
                     'sppb.sppbid',
+                    'wo.woid as wo_number',
                     'sppb.sppbdate',
                     'sppb.cpny_id',
                     'sppb.department_id',
@@ -231,7 +259,9 @@ class SppbController extends Controller
                     'rt.requesttype_name',
                     'sppb.keperluan',
                     'sppb.status',
-                    'sppb.created_by'
+                    'sppb.created_by',
+                    'wo.id as wo_real_id',
+                    // 'wo.woid as wo_number'
                 )
                 ->orderBy($orderCol, $orderDir)
                 ->orderBy('sppb.sppbid', 'desc')
@@ -241,8 +271,18 @@ class SppbController extends Controller
 
         // Encrypt ID
         $data->transform(function ($row) {
+
             $row->eid = Hashids::encode($row->id);
+
+            if ($row->wo_real_id) {
+                $row->wo_hash = Hashids::encode($row->wo_real_id);
+            } else {
+                $row->wo_hash = null;
+            }
+
             unset($row->id);
+            unset($row->wo_real_id);
+
             return $row;
         });
 
