@@ -9,6 +9,7 @@ class SLSPBDet extends Model
 {
     protected $connection = 'sqlsrv5';
     protected $table = "Staging_SPBDet";
+    public $timestamps = false;                 // ✅ PENTING (hilangkan created_at/updated_at)
     // protected $primaryKey = 'id';
     protected $fillable = [
         'CpnyID' , 'Crtd_DateTime' , 'Crtd_Prog' , 'Crtd_User' , 'DeptID' , 'InfoDT' , 'InvtID'

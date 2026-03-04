@@ -44,7 +44,8 @@ class IFCAAPIIssueController extends Controller
             ])
             ->whereBetween('issue_date', [$fromDt, $toDt])
             ->groupBy('cpny_id', 'issue_id')
-            ->orderByDesc(DB::raw('MIN(issue_date)'))
+            // ->orderByDesc(DB::raw('MIN(issue_date)'))
+            ->orderByDesc('issue_id')
             ->limit(100)
             ->get();
 
@@ -392,7 +393,7 @@ class IFCAAPIIssueController extends Controller
                         'dept_cd' => $deptCd,
 
                         // Solomon fields
-                        'solomon_acct_cd'         => (string)$ln->reason_code,
+                        'solomon_reason_cd'         => (string)$ln->reason_code,
                         'solomon_acct_cd'         => $solAcctCd,
                         'solomon_allocation_cd'   => $solAlloc,
                         'solomon_subaccount_dept' => $solSubDept,
