@@ -968,6 +968,7 @@
                 searchable: false,
                 className: 'text-left',
                 render: (_d, _t, row) => {
+                    // ✅ create tetap pakai eid (hash id tr_po_reuse)
                     const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
                     return `
                     <div class="inline-flex gap-2">
@@ -987,14 +988,24 @@
                     className: 'text-left',
                     render: (v, _t, row) => {
                         const cat = String(row.inventory_category || '').toUpperCase();
+
+                        // ✅ showkontrak harus pakai hash id kontrak
+                        const kontrakEid = row.kontrak_eid ? String(row.kontrak_eid) : '';
+
                         const href = (cat === 'KONTRAK')
-                            ? `/showkontrak/${row.eid}`
+                            ? (kontrakEid ? `/showkontrak/${kontrakEid}` : '#')
                             : `/showpo/${row.eid}`;
 
+                        const disabled = (cat === 'KONTRAK' && !kontrakEid)
+                            ? 'opacity-50 pointer-events-none'
+                            : '';
+
                         return `
-                            <a href="${href}"
-                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-600 hover:bg-gray-700">
-                            ${v}
+                            <a href="${href}" target="_blank"
+                            class="inline-flex justify-center items-center w-[120px] px-3 py-1.5
+                                    text-sm leading-tight font-semibold text-white rounded text-center
+                                    transition-colors duration-200 bg-gray-600 hover:bg-gray-700 ${disabled}">
+                                ${v}
                             </a>`;
                     }
                 },

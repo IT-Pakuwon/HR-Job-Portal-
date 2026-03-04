@@ -270,13 +270,14 @@ class PoController extends Controller
 
             $current->addDay();
         }
-
-        // Compare with input
-        if ((int)$req->input('work_days') !== $calculatedWorkingDays) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Working days mismatch. Please recheck selected dates.'
-            ], 422);
+        if (strtoupper($po->potype ?? '') === 'SPK') {
+            // Compare with input
+            if ((int)$req->input('work_days') !== $calculatedWorkingDays) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Working days mismatch. Please recheck selected dates.'
+                ], 422);
+            }
         }
 
 
@@ -1003,8 +1004,8 @@ class PoController extends Controller
 
         $purchaser = ucwords(strtolower($user->name));
 
-        // $emailto   = MsVendor::where('vendor_id', $po->vendorid)->value('email');
-        $emailto ='bedriamaail@pakuwon.com ; rikiparahat@pakuwon.com';
+        $emailto   = MsVendor::where('vendor_id', $po->vendorid)->value('email');
+        // $emailto ='bedriamaail@pakuwon.com ; rikiparahat@pakuwon.com';
 
         $subject_email = $po->potype == 'PO'
             ? 'Purchase Order Nomor '.$ponbr.' untuk '.trim($po->vendorname).' - '.$po->keperluan

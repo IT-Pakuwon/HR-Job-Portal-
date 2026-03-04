@@ -51,7 +51,7 @@
                             Submit
                         </button>
                     @endif
-                    @if ($po->status === 'H')
+                    @if ($po->status === 'P')
                         <button id="cancelReuseBtn"
                             class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -855,7 +855,7 @@
                                     </table>
                                 </div>
 
-                                @if ($po->status === 'H')
+                                @if ($po->status === 'H' || $po->send_email === false)
                                     {{-- Upload (status HOLD saja yang boleh) --}}
                                     <form id="poAttachmentUploadForm" enctype="multipart/form-data"
                                         class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">

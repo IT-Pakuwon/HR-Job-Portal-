@@ -2113,7 +2113,7 @@
                 $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
                 const url = coaState.woid ?
-                    "{{ route('coa.byWo') }}" :
+                    "{{ route('coa.byWoSPB') }}" :
                     "{{ route('coa.byDept') }}";
 
                 const params = coaState.woid ? {
