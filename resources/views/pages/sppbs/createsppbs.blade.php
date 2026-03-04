@@ -1903,6 +1903,8 @@
                 // Tambah parameter sesuai mode
                 if (coaState.woid) {
                     params.woid = coaState.woid;
+                    params.cpnyid = coaState.cpnyid;
+                    params.deptid = coaState.deptid;
                 } else {
                     params.cpnyid = coaState.cpnyid;
                     params.deptid = coaState.deptid;

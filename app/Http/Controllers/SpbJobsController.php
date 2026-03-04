@@ -32,6 +32,7 @@ use App\Models\MsPurchSetting;
 use App\Models\MsInventory;
 use App\Models\Userdept;
 use Illuminate\Support\Facades\Schema;
+use App\Models\BusinessUnit;
 
 
 class SpbJobsController extends Controller
@@ -640,6 +641,201 @@ class SpbJobsController extends Controller
     }
 
     public function createIssue(Request $req)
+    {
+        $hash = (string) $req->query('spbid', '');
+        $decoded = Hashids::decode($hash);
+
+        abort_if(empty($decoded) || empty($decoded[0]), 404, 'SPB ID required');
+        $spbId = (int) $decoded[0];
+
+        $spb = TrSPB::select(['id','spbid','spbdate','cpny_id','department_id','keperluan'])
+            ->where('id', $spbId)
+            ->first();
+
+        abort_if(!$spb, 404, 'SPB not found');
+
+        // Recalc header/status biar status & total selalu up-to-date
+        $this->recalcSpbHeaderAndStatus($spb->spbid);
+
+        // =========================================================
+        // ✅ qty_sisa untuk ISSUE harus mengurangi sppb_qty juga
+        // =========================================================
+        $details = TrSPBdetail::select([
+                'id',
+                'spbid',
+                'spb_no',
+                'inventoryid',
+                'inventory_descr',
+                'note',
+                'siteid',
+                'budget_business_unit_id', // ✅ BU di detail
+                DB::raw("COALESCE(uom,'') AS uom"),
+                DB::raw("COALESCE(qty,0) AS qty_original"),
+                DB::raw("COALESCE(issue_qty,0) AS qty_issued"),
+                DB::raw("COALESCE(sppb_qty,0) AS qty_sppb"),
+                DB::raw("COALESCE(spb_completeqty,0) AS qty_completed"),
+                DB::raw("COALESCE(return_qty,0) AS qty_returned"),
+                DB::raw("
+                    GREATEST(
+                        COALESCE(qty,0)
+                        - (COALESCE(issue_qty,0) + COALESCE(spb_completeqty,0))
+                        - COALESCE(sppb_qty,0),
+                        0
+                    ) AS qty_sisa
+                "),
+            ])
+            ->where('spbid', $spb->spbid)
+            ->orderBy('id')
+            ->get()
+            ->filter(fn($r) => (float) $r->qty_sisa > 0)
+            ->map(function ($r) {
+                $r->qty_original = (float) $r->qty_original;
+                $r->qty_sisa     = (float) $r->qty_sisa;
+                return $r;
+            })
+            ->values();
+
+        // =========================================================
+        // 1) Ambil BU dari detail, lalu tentukan integrationType + siteFilter + model view
+        // =========================================================
+        $cpnyid = strtoupper(trim((string) $spb->cpny_id));
+
+        // ✅ Ambil 1 BU (pertama yang terisi) dari details
+        $businessUnitId = trim((string) optional(
+            $details->first(fn($d) => trim((string)($d->budget_business_unit_id ?? '')) !== '')
+        )->budget_business_unit_id);
+
+        $siteFilter = null;
+        $integrationType = null; // SOLOMON / IFCA / null
+        $model = null;
+
+        if ($businessUnitId !== '') {
+            $bu = BusinessUnit::query()
+                ->where('status', 'A')
+                ->where('business_unit_id', $businessUnitId)
+                ->when($cpnyid !== '', fn($q) => $q->where('cpny_id', $cpnyid))
+                ->first(['business_unit_id','cpny_id','integration_type','ifca_entity_cd','solomon_cpny_id']);
+
+            if ($bu) {
+                $integrationType = strtoupper(trim((string)($bu->integration_type ?? '')));
+
+                if ($integrationType === 'SOLOMON') {
+                    $siteFilter = trim((string)($bu->solomon_cpny_id ?? ''));
+                } elseif ($integrationType === 'IFCA') {
+                    $siteFilter = trim((string)($bu->ifca_entity_cd ?? ''));
+                } else {
+                    $siteFilter = trim((string)($bu->ifca_entity_cd ?? ''));
+                    if ($siteFilter === '') $siteFilter = trim((string)($bu->solomon_cpny_id ?? ''));
+                }
+                if ($siteFilter === '') $siteFilter = null;
+
+                // pilih model view berdasarkan company + integrationType (MIRROR InventoryListJoin)
+                switch ($cpnyid) {
+                    case 'AW':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryAWIfca::class
+                            : \App\Models\ViewInventoryAW::class;
+                        break;
+
+                    case 'EP':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryEPHIfca::class
+                            : \App\Models\ViewInventoryEPH::class;
+                        break;
+
+                    case 'O8':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryO8Ifca::class
+                            : \App\Models\ViewInventoryO8::class;
+                        break;
+
+                    case 'PSA':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryPSAIfca::class
+                            : \App\Models\ViewInventoryPSA::class;
+                        break;
+
+                    case 'GPS':
+                        $model = \App\Models\ViewInventoryGPSIfca::class;
+                        break;
+
+                    default:
+                        $model = null;
+                        break;
+                }
+            }
+        } else {
+            // fallback kalau BU kosong (opsional)
+            switch ($cpnyid) {
+                case 'AW':  $model = \App\Models\ViewInventoryAW::class; break;
+                case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
+                case 'O8':  $model = \App\Models\ViewInventoryO8::class; break;
+                case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
+                case 'GPS': $model = \App\Models\ViewInventoryGPSIfca::class; break;
+                default:    $model = null; break;
+            }
+        }
+
+        // =========================================================
+        // 2) Tambahkan stock_unit (UOM stock) dari View SQLSrv + chunk safe
+        // =========================================================
+        $details = $details->map(function ($d) {
+            $d->stock_unit = null; // default biar blade aman
+            return $d;
+        });
+
+        if ($model && $details->isNotEmpty()) {
+            $invIds = $details->pluck('inventoryid')
+                ->filter()
+                ->map(fn($v) => strtoupper(trim((string)$v)))
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($invIds)) {
+                $uomRowsAll = collect();
+
+                foreach (array_chunk($invIds, 1000) as $chunk) {
+                    $uomRows = $model::query()
+                        ->selectRaw("UPPER(LTRIM(RTRIM(invtid))) AS invtid_key, stock AS stock_unit")
+                        ->whereIn('invtid', $chunk)
+                        ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+                        ->when($siteFilter, fn($q) => $q->where('siteid', $siteFilter))
+                        ->get();
+
+                    $uomRowsAll = $uomRowsAll->merge($uomRows);
+                }
+
+                $uomMap = $uomRowsAll->mapWithKeys(fn($r) => [
+                    (string) $r->invtid_key => ($r->stock_unit ?? null),
+                ]);
+
+                $details = $details->map(function ($d) use ($uomMap) {
+                    $key = strtoupper(trim((string) $d->inventoryid));
+                    $d->stock_unit = $uomMap->get($key);
+                    return $d;
+                })->values();
+            }
+        }
+
+        $attachments = [];
+
+        return view('pages.spbjobs.createissue', [
+            'spb'         => $spb->fresh(),
+            'details'     => $details,
+            'attachments' => $attachments,
+
+            // optional debug:
+            // 'meta' => [
+            //     'cpnyid' => $cpnyid,
+            //     'business_unit_id' => $businessUnitId,
+            //     'integration_type' => $integrationType,
+            //     'site_filter' => $siteFilter,
+            //     'model' => $model ? class_basename($model) : null,
+            // ],
+        ]);
+    }
+    public function createIssue_old(Request $req)
     {
         $hash = (string) $req->query('spbid', '');
         $decoded = Hashids::decode($hash);

@@ -51,6 +51,10 @@ use App\Models\TrSPBdetail;
 use App\Models\MsDepartment;
 use App\Models\Userbusinessunit;
 use App\Models\BusinessUnit;
+use App\Models\ViewInventoryAWIfca;
+use App\Models\ViewInventoryEPHIfca;
+use App\Models\ViewInventoryO8Ifca;
+use App\Models\ViewInventoryPSAIfca;
 
 
 class MasterController extends Controller
@@ -207,25 +211,101 @@ class MasterController extends Controller
         ]);
     }
 
-
-    public function InventoryByWorktype_zzz(Request $request)
+    public function InventoryByWorktype(Request $request)
     {
-        $worktypeid = trim($request->get('worktypeid', ''));
-        $cpnyid     = strtoupper(trim($request->get('cpnyid', '')));
-        $search     = trim($request->get('search', ''));
-        $page       = max((int) $request->get('page', 1), 1);
-        $perPage    = min(max((int) $request->get('per_page', 10), 1), 100);
+        $worktypeid      = trim((string) $request->get('worktypeid', ''));
+        $cpnyid          = strtoupper(trim((string) $request->get('cpnyid', '')));
+        $businessUnitId  = trim((string) $request->get('business_unit_id', '')); // ✅ NEW
+        $search          = trim((string) $request->get('search', ''));
+        $page            = max((int) $request->get('page', 1), 1);
+        $perPage         = min(max((int) $request->get('per_page', 10), 1), 100);
 
-        // 1) Ambil item_class utk worktype + ATK
+        // =========================================================
+        // 0) Tentukan BU + integrationType + siteFilter + model view
+        // =========================================================
+        $siteFilter = null;
+        $integrationType = null; // SOLOMON / IFCA / null
+        $model = null;
+
+        if ($businessUnitId !== '') {
+            $bu = BusinessUnit::query()
+                ->where('status', 'A')
+                ->where('business_unit_id', $businessUnitId)
+                ->when($cpnyid !== '', fn($q) => $q->where('cpny_id', $cpnyid))
+                ->first(['business_unit_id','cpny_id','integration_type','ifca_entity_cd','solomon_cpny_id']);
+
+            if ($bu) {
+                $integrationType = strtoupper(trim((string)($bu->integration_type ?? '')));
+
+                if ($integrationType === 'SOLOMON') {
+                    $siteFilter = trim((string)($bu->solomon_cpny_id ?? ''));
+                } elseif ($integrationType === 'IFCA') {
+                    $siteFilter = trim((string)($bu->ifca_entity_cd ?? ''));
+                } else {
+                    $siteFilter = trim((string)($bu->ifca_entity_cd ?? ''));
+                    if ($siteFilter === '') $siteFilter = trim((string)($bu->solomon_cpny_id ?? ''));
+                }
+                if ($siteFilter === '') $siteFilter = null;
+
+                // pilih model view berdasarkan company + integrationType (MIRROR InventoryListJoin)
+                switch ($cpnyid) {
+                    case 'AW':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryAWIfca::class
+                            : \App\Models\ViewInventoryAW::class;
+                        break;
+
+                    case 'EP':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryEPHIfca::class
+                            : \App\Models\ViewInventoryEPH::class;
+                        break;
+
+                    case 'O8':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryO8Ifca::class
+                            : \App\Models\ViewInventoryO8::class;
+                        break;
+
+                    case 'PSA':
+                        $model = ($integrationType === 'IFCA')
+                            ? \App\Models\ViewInventoryPSAIfca::class
+                            : \App\Models\ViewInventoryPSA::class;
+                        break;
+
+                    case 'GPS':
+                        $model = \App\Models\ViewInventoryGPSIfca::class; // GPS IFCA only
+                        break;
+
+                    default:
+                        $model = null;
+                        break;
+                }
+            }
+        } else {
+            // fallback kalau BU kosong (opsional)
+            switch ($cpnyid) {
+                case 'AW':  $model = \App\Models\ViewInventoryAW::class; break;
+                case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
+                case 'O8':  $model = \App\Models\ViewInventoryO8::class; break;
+                case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
+                case 'GPS': $model = \App\Models\ViewInventoryGPSIfca::class; break;
+                default:    $model = null; break;
+            }
+        }
+
+        // =========================================================
+        // 1) Ambil item_class utk worktype (sesuai logic kamu)
+        // =========================================================
         $classesQ = \App\Models\MsWorktypeItem::query();
         if ($worktypeid !== '') {
             $classesQ->where(function($q) use ($worktypeid){
-                $q->where('worktypeid', $worktypeid)
-                ->orWhere('worktypeid', 'ATK');
+                $q->where('worktypeid', $worktypeid);
             });
         } else {
             $classesQ->where('worktypeid', 'ATK');
         }
+
         $classes = $classesQ->pluck('item_class')
             ->filter(fn($v) => $v !== null && $v !== '')
             ->values();
@@ -234,11 +314,20 @@ class MasterController extends Controller
             return response()->json([
                 'data' => [], 'total' => 0,
                 'page' => $page, 'per_page' => $perPage,
-                'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
+                'meta' => [
+                    'worktypeid' => $worktypeid,
+                    'cpnyid' => $cpnyid,
+                    'business_unit_id' => $businessUnitId,
+                    'integration_type' => $integrationType,
+                    'site_filter' => $siteFilter,
+                    'model' => $model ? class_basename($model) : null,
+                ],
             ]);
         }
 
-        // 2) Query PG (tanpa distinct) + filter + paging
+        // =========================================================
+        // 2) Query PG: inventory + paging
+        // =========================================================
         $pg = \App\Models\MsInventory::query()
             ->select([
                 'inventoryid','inventory_descr','stock_unit',
@@ -250,117 +339,159 @@ class MasterController extends Controller
         if ($search !== '') {
             $pg->where(function ($q) use ($search) {
                 $q->where('inventoryid', 'ilike', "%{$search}%")
-                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-                ->orWhere('stock_unit', 'ilike', "%{$search}%")
-                ->orWhere('purchase_unit', 'ilike', "%{$search}%")
-                ->orWhere('item_class', 'ilike', "%{$search}%");
+                    ->orWhere('inventory_descr', 'ilike', "%{$search}%")
+                    ->orWhere('stock_unit', 'ilike', "%{$search}%")
+                    ->orWhere('purchase_unit', 'ilike', "%{$search}%")
+                    ->orWhere('item_class', 'ilike', "%{$search}%");
             });
         }
 
-        $totalBase = (clone $pg)->count();
+        $total = (clone $pg)->count();
 
-        $pgRows = $pg
+        $rows = $pg->distinct()
+            ->groupBy([
+                'inventoryid', 'inventory_descr', 'stock_unit',
+                'item_type', 'item_category', 'purchase_unit',
+                'item_sub_type', 'item_class'
+            ])
             ->orderBy('inventoryid', 'asc')
             ->offset(($page - 1) * $perPage)
             ->limit($perPage)
             ->get();
 
-        if ($pgRows->isEmpty()) {
+        if ($rows->isEmpty()) {
             return response()->json([
                 'data' => [], 'total' => 0,
                 'page' => $page, 'per_page' => $perPage,
-                'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
+                'meta' => [
+                    'worktypeid' => $worktypeid,
+                    'cpnyid' => $cpnyid,
+                    'business_unit_id' => $businessUnitId,
+                    'integration_type' => $integrationType,
+                    'site_filter' => $siteFilter,
+                    'model' => $model ? class_basename($model) : null,
+                ],
             ]);
         }
 
-        // 3) Tentukan model View berdasarkan cpnyid
-        switch ($cpnyid) {
-            case 'AW':  $model = \App\Models\ViewInventoryAW::class;  break;
-            case 'EP':  $model = \App\Models\ViewInventoryEPH::class; break;
-            case 'O8':  $model = \App\Models\ViewInventoryO8::class;  break;
-            case 'PSA': $model = \App\Models\ViewInventoryPSA::class; break;
-            case 'GPS': $model = \App\Models\ViewInventoryGPSIfca::class; break;
-            default:
-                return response()->json([
-                    'message' => "Unknown cpnyid: {$cpnyid}",
-                    'data' => [], 'total' => 0
-                ], 422);
+        // =========================================================
+        // 3) Ambil stok/cost dari SQL Server (chunk safe) + filter siteid
+        // =========================================================
+        $expanded = collect();
+
+        if (!$model) {
+            // kalau model tidak ketemu → tetap return data PG dengan stock/cost null
+            foreach ($rows as $r) {
+                $clone = clone $r;
+                $clone->stock  = null;
+                $clone->cost   = null;
+                $clone->siteid = null;
+                $expanded->push($clone);
+            }
+
+            return response()->json([
+                'data'     => $expanded->values(),
+                'total'    => $total,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'meta'     => [
+                    'worktypeid' => $worktypeid,
+                    'cpnyid' => $cpnyid,
+                    'business_unit_id' => $businessUnitId,
+                    'integration_type' => $integrationType,
+                    'site_filter' => $siteFilter,
+                    'model' => null,
+                ],
+            ]);
         }
 
-        // 4) Ambil stok/cost PER SITE dari SQL Server (per invtid)
-        $invIds = $pgRows->pluck('inventoryid')->map(fn($v)=>(string)$v)->unique()->values();
+        $invIds = $rows->pluck('inventoryid')
+            ->filter()
+            ->map(fn($v) => strtoupper(trim((string)$v)))
+            ->unique()
+            ->values()
+            ->all();
 
-        $awRows = $model::query()
-            ->selectRaw("
-                invtid,
-                cpnyid,
-                siteid,
-                CAST(stock AS float) AS stock,
-                CAST(cost  AS float) AS cost
-            ")
-            ->whereIn('invtid', $invIds)
-            ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
-            ->get();
+        $ssAll = collect();
 
-        // Group: invtid => [baris per site]
-        $awGroup = $awRows->groupBy(fn($r) => strtoupper(trim((string)$r->invtid)));
+        foreach (array_chunk($invIds, 1000) as $chunk) {
+            $ssRows = $model::query()
+                ->selectRaw("
+                    RTRIM(LTRIM(invtid)) AS invtid,
+                    cpnyid,
+                    siteid,
+                    CAST(stock AS float) AS stock,
+                    CAST(cost  AS float) AS cost
+                ")
+                ->whereIn('invtid', $chunk)
+                ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
+                ->when($siteFilter, fn($q) => $q->where('siteid', $siteFilter))
+                ->get();
 
-        // 5) Merge: hasil akhir 1 baris per (inventoryid, siteid)
-        $final = collect();
-        foreach ($pgRows as $r) {
-            $key = strtoupper(trim((string)$r->inventoryid));
-            $sites = $awGroup->get($key);
+            $ssAll = $ssAll->merge($ssRows);
+        }
 
-            if ($sites && $sites->count()) {
-                foreach ($sites as $aw) {
-                    $final->push((object)[
-                        'inventoryid'      => $r->inventoryid,
-                        'inventory_descr'  => $r->inventory_descr,
-                        'stock_unit'       => $r->stock_unit,
-                        'item_type'        => $r->item_type,
-                        'item_category'    => $r->item_category,
-                        'purchase_unit'    => $r->purchase_unit,
-                        'item_sub_type'    => $r->item_sub_type,
-                        'item_class'       => $r->item_class,
-                        // dari view:
-                        'siteid'           => $aw->siteid,
-                        'stock'            => $aw->stock,
-                        'cost'             => $aw->cost,
-                    ]);
-                }
-            } else {
-                // tidak ada baris site → tetap kirim 1 baris dengan site null
-                $final->push((object)[
-                    'inventoryid'      => $r->inventoryid,
-                    'inventory_descr'  => $r->inventory_descr,
-                    'stock_unit'       => $r->stock_unit,
-                    'item_type'        => $r->item_type,
-                    'item_category'    => $r->item_category,
-                    'purchase_unit'    => $r->purchase_unit,
-                    'item_sub_type'    => $r->item_sub_type,
-                    'item_class'       => $r->item_class,
-                    'siteid'           => null,
-                    'stock'            => null,
-                    'cost'             => null,
-                ]);
+        // group by invtid normalized (bisa >1 row per invtid)
+        $ssGroups = $ssAll->groupBy(function ($r) {
+            return strtoupper(trim((string)$r->invtid));
+        });
+
+        // fan-out per siteid
+        foreach ($rows as $r) {
+            $key   = strtoupper(trim((string)$r->inventoryid));
+            $group = $ssGroups->get($key);
+
+            if (!$group || $group->isEmpty()) {
+                $clone = clone $r;
+                $clone->stock  = null;
+                $clone->cost   = null;
+                $clone->siteid = $siteFilter ?: null;
+                $expanded->push($clone);
+                continue;
+            }
+
+            foreach ($group as $ss) {
+                $clone = clone $r;
+                $clone->stock  = $ss->stock;
+                $clone->cost   = $ss->cost;
+                $clone->siteid = $ss->siteid;
+                $expanded->push($clone);
             }
         }
 
-        // Catatan: total sekarang = baris merged (per site) di halaman ini
-        // Jika ingin total global akurat per site, perlu hitung di level totalBase dengan query terpisah ke view (lebih mahal).
-        $totalMerged = $final->count();
+        // debug optional (key compare)
+        if (config('app.debug')) {
+            $pgKeys = $rows->pluck('inventoryid')->map(fn($v) => strtoupper(trim((string)$v)))->unique()->values();
+            $ssKeys = $ssGroups->keys()->values();
+            $missing = $pgKeys->reject(fn($k) => $ssKeys->contains($k))->values();
+
+            \Log::info('[INV-BY-WORKTYPE-BU] meta='.json_encode([
+                'cpnyid' => $cpnyid,
+                'business_unit_id' => $businessUnitId,
+                'integration_type' => $integrationType,
+                'site_filter' => $siteFilter,
+                'model' => $model ? class_basename($model) : null,
+            ]).' missing='.json_encode($missing->take(10)));
+        }
 
         return response()->json([
-            'data'     => $final->values(),
-            'total'    => $totalMerged,
+            'data'     => $expanded->values(),
+            'total'    => $total,
             'page'     => $page,
             'per_page' => $perPage,
-            'meta'     => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
+            'meta'     => [
+                'worktypeid' => $worktypeid,
+                'cpnyid' => $cpnyid,
+                'business_unit_id' => $businessUnitId,
+                'integration_type' => $integrationType,
+                'site_filter' => $siteFilter,
+                'model' => $model ? class_basename($model) : null,
+            ],
         ]);
     }
 
-
-    public function InventoryByWorktype(Request $request)
+ 
+    public function InventoryByWorktype_old(Request $request)
     {
         // dd($request->all());
         $worktypeid = trim($request->get('worktypeid', ''));
@@ -1245,7 +1376,11 @@ class MasterController extends Controller
     
     public function CoaBudgetWo(Request $request)
     {
+        // dd($request->all());
         $woid    = trim((string) $request->get('woid', ''));
+        $cpnyid  = $request->get('cpnyid');
+        $deptid  = $request->get('deptid');
+        // dd($cpnyid, $deptid);
         $search  = trim((string) $request->get('search', ''));
         $page    = max((int) $request->get('page', 1), 1);
         $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
@@ -1360,31 +1495,104 @@ class MasterController extends Controller
         // =========================================================
         // 3) Selain PEMBERI KERJA -> Ambil dari ms_budget (mapping worktype -> dept)
         // =========================================================
+        // $perpost = $wo->budget_perpost;
+
+        // $deptFinList = MsWorktypeDept::query()
+        //     ->where('worktypeid', $wo->worktypeid)
+        //     ->where('status', 'A')
+        //     ->pluck('department_id')
+        //     ->toArray();
+        //     // dd($deptFinList);
+
+        // if (empty($deptFinList)) {
+        //     return response()->json([
+        //         'meta'     => $meta,
+        //         'data'     => [],
+        //         'total'    => 0,
+        //         'page'     => $page,
+        //         'per_page' => $perPage,
+        //         'message'  => "Mapping Worktype {$wo->worktypeid} ke Department tidak ditemukan.",
+        //     ]);
+        // }
+
+        // // ✅ cek budget header (minimal ada 1 yang completed)
+        // $budgetExists = Budget::query()
+        //     ->where('status', 'C')
+        //     ->where('cpny_id', $wo->cpny_id)
+        //     ->whereIn('department_fin_id', $deptFinList)
+        //     ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+        //     ->exists();
+
+        // if (!$budgetExists) {
+        //     return response()->json([
+        //         'meta'     => $meta,
+        //         'data'     => [],
+        //         'total'    => 0,
+        //         'page'     => $page,
+        //         'per_page' => $perPage,
+        //         'message'  => "Budget belum tersedia/Completed untuk Company {$wo->cpny_id}, Worktype {$wo->worktypeid}, Perpost {$perpost}.",
+        //     ]);
+        // }
+
+        // $q = BudgetDetail::query()
+        //     ->from('ms_budget as b')
+        //     ->join('ms_coa as c', function ($j) {
+        //         $j->on('c.account_id', '=', 'b.account_id')
+        //         ->on('c.cpny_id', '=', 'b.cpny_id');
+        //     })
+        //     ->leftJoin('ms_activity as a', function ($j) {
+        //         $j->on('a.activity_id', '=', 'b.activity_id')
+        //         ->on('a.cpny_id', '=', 'b.cpny_id');
+        //     })
+        //     ->where('b.status', 'C')
+        //     ->where('b.cpny_id', $wo->cpny_id)
+        //     ->whereIn('b.department_fin_id', $deptFinList)
+        //     ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+
+        // if ($search !== '') {
+        //     $q->where(function ($w) use ($search) {
+        //         $w->where('b.account_id', 'ilike', "%{$search}%")
+        //         ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+        //         ->orWhere('b.activity_id', 'ilike', "%{$search}%")
+        //         ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
+        //         ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
+        //         ->orWhereRaw(
+        //             "(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?",
+        //             ["%{$search}%"]
+        //         );
+        //     });
+        // }
+
+        // =========================================================
+        // 3) Selain PEMBERI KERJA -> Ambil dari ms_budget (department_fin_id dari MsDepartment)
+        // =========================================================
         $perpost = $wo->budget_perpost;
 
-        $deptFinList = MsWorktypeDept::query()
-            ->where('worktypeid', $wo->worktypeid)
+        // ✅ ambil 1 department_fin_id dari master department berdasarkan department_id WO
+        $dept = MsDepartment::query()
             ->where('status', 'A')
-            ->pluck('department_id')
-            ->toArray();
-            // dd($deptFinList);
+            ->where('department_id', $deptid)   // sumber dari WO
+            ->first(['department_id','department_fin_id']);
 
-        if (empty($deptFinList)) {
+        $departmentFinId = $dept->department_fin_id;
+        // dd("dept_fin_id: {$departmentFinId} untuk dept_id: {$wo->department_id}");
+
+        if (!$departmentFinId) {
             return response()->json([
                 'meta'     => $meta,
                 'data'     => [],
                 'total'    => 0,
                 'page'     => $page,
                 'per_page' => $perPage,
-                'message'  => "Mapping Worktype {$wo->worktypeid} ke Department tidak ditemukan.",
+                'message'  => "Department FIN ID tidak ditemukan untuk Department {$deptid}.",
             ]);
         }
 
         // ✅ cek budget header (minimal ada 1 yang completed)
         $budgetExists = Budget::query()
             ->where('status', 'C')
-            ->where('cpny_id', $wo->cpny_id)
-            ->whereIn('department_fin_id', $deptFinList)
+            ->where('cpny_id', $cpnyid)
+            ->where('department_fin_id', $departmentFinId) // ✅ sekarang single
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
             ->exists();
 
@@ -1395,7 +1603,7 @@ class MasterController extends Controller
                 'total'    => 0,
                 'page'     => $page,
                 'per_page' => $perPage,
-                'message'  => "Budget belum tersedia/Completed untuk Company {$wo->cpny_id}, Worktype {$wo->worktypeid}, Perpost {$perpost}.",
+                'message'  => "Budget belum tersedia/Completed untuk Company {$cpnyid}, DepartmentFin {$departmentFinId}, Perpost {$perpost}.",
             ]);
         }
 
@@ -1410,9 +1618,240 @@ class MasterController extends Controller
                 ->on('a.cpny_id', '=', 'b.cpny_id');
             })
             ->where('b.status', 'C')
-            ->where('b.cpny_id', $wo->cpny_id)
-            ->whereIn('b.department_fin_id', $deptFinList)
+            ->where('b.cpny_id', $cpnyid)
+            ->where('b.department_fin_id', $departmentFinId) // ✅ sekarang single
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+
+        $total = (clone $q)->count();
+
+        $rows = $q->orderBy('a.activity_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'b.account_id',
+                'c.account_descr',
+                'b.activity_id',
+                'b.activity_descr as activity_descr',
+                'a.activity_descr as act_descr',
+                'b.business_unit_id',
+                'b.department_fin_id',
+
+                // ✅ samakan kolom budget seperti CoaBudget()
+                DB::raw("COALESCE(b.totalbudget,0)      as totalbudget"),
+                DB::raw("COALESCE(b.totalbudget_add,0)  as totalbudget_add"),
+                DB::raw("COALESCE(b.total_reserve,0)    as total_reserve"),
+                DB::raw("COALESCE(b.total_used,0)       as total_used"),
+                DB::raw("(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) as availablebudget"),
+                DB::raw("(COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))   as usedbudget"),
+                DB::raw("((COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0)) - (COALESCE(b.total_reserve,0) + COALESCE(b.total_used,0))) as remaining"),
+            ]);
+
+        return response()->json([
+            'meta'     => $meta,
+            'data'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+    public function CoaBudgetWoSPB(Request $request)
+    {
+        $woid    = trim((string) $request->get('woid', ''));
+        $cpnyid  = strtoupper(trim((string) $request->get('cpnyid', '')));   // dari view
+        $deptid  = trim((string) $request->get('deptid', ''));              // dari view
+        $buId    = trim((string) $request->get('business_unit_id', ''));    // ✅ dari view (SPB header)
+        $search  = trim((string) $request->get('search', ''));
+        $page    = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        if ($woid === '') {
+            return response()->json(['message' => 'WOID is required.'], 422);
+        }
+
+        // =========================================================
+        // 1) Ambil WO + join COA + join Activity (buat descr)
+        // =========================================================
+        $wo = TrWO::query()
+            ->from('tr_wo as w')
+            ->leftJoin('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'w.budget_account_id')
+                ->on('c.cpny_id', '=', 'w.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'w.budget_activity_id')
+                ->on('a.cpny_id', '=', 'w.cpny_id');
+            })
+            ->where('w.woid', $woid)
+            ->first([
+                'w.woid',
+                'w.cpny_id',
+                'w.department_id',
+                'w.worktypeid',
+                'w.budget_perpost',
+                'w.budget_use',
+
+                'w.budget_account_id',
+                'w.budget_activity_id',
+                'w.budget_activity_descr',
+                'w.budget_business_unit_id',
+                'w.budget_department_fin_id',
+
+                'c.account_descr as account_descr',
+                'a.activity_descr as act_descr',
+            ]);
+
+        if (!$wo) {
+            return response()->json(['message' => 'WO not found.'], 404);
+        }
+
+        // fallback cpny/dept kalau request kosong
+        $cpny = $cpnyid !== '' ? $cpnyid : strtoupper(trim((string) $wo->cpny_id));
+        $dept = $deptid !== '' ? $deptid : trim((string) $wo->department_id);
+
+        $meta = [
+            'woid'       => $wo->woid,
+            'cpnyid'     => $cpny,
+            'deptid'     => $dept,
+            'perpost'    => $wo->budget_perpost,
+            'budget_use' => $wo->budget_use,
+            'business_unit_id' => $buId,
+        ];
+
+        $budgetUse = strtoupper(trim((string) ($wo->budget_use ?? '')));
+
+        // =========================================================
+        // 2) PEMBERI KERJA -> ambil dari TrWO (single row)
+        // =========================================================
+        if ($budgetUse === 'PEMBERI KERJA') {
+            $row = (object) [
+                'account_id'        => $wo->budget_account_id,
+                'account_descr'     => $wo->account_descr,
+                'activity_id'       => $wo->budget_activity_id,
+                'activity_descr'    => $wo->budget_activity_descr,
+                'act_descr'         => $wo->act_descr,
+                'business_unit_id'  => $wo->budget_business_unit_id,
+                'department_fin_id' => $wo->budget_department_fin_id,
+
+                'totalbudget'      => 0,
+                'totalbudget_add'  => 0,
+                'total_reserve'    => 0,
+                'total_used'       => 0,
+                'availablebudget'  => 0,
+                'usedbudget'       => 0,
+                'remaining'        => 0,
+            ];
+
+            if ($search !== '') {
+                $haystack = implode(' ', array_map('strval', [
+                    $row->account_id,
+                    $row->account_descr,
+                    $row->activity_id,
+                    $row->activity_descr,
+                    $row->act_descr,
+                    $row->business_unit_id,
+                    $row->department_fin_id,
+                ]));
+
+                if (stripos($haystack, $search) === false) {
+                    return response()->json([
+                        'meta'     => $meta,
+                        'data'     => [],
+                        'total'    => 0,
+                        'page'     => $page,
+                        'per_page' => $perPage,
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [$row],
+                'total'    => 1,
+                'page'     => 1,
+                'per_page' => $perPage,
+            ]);
+        }
+
+        // =========================================================
+        // 3) Selain PEMBERI KERJA
+        //    ✅ MsWorktypeDept DIPAKAI untuk validasi mapping worktype→dept
+        //    ✅ department_fin_id hanya 1 diambil dari MsDepartment
+        // =========================================================
+        $perpost = $wo->budget_perpost;
+
+        // ✅ VALIDASI mapping worktypeid ↔ department_id (pakai MsWorktypeDept)
+        $mappingOk = MsWorktypeDept::query()
+            ->where('worktypeid', $wo->worktypeid)
+            ->where('department_id', $dept)    // dept dari header SPB (request)
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$mappingOk) {
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'message'  => "Mapping Worktype {$wo->worktypeid} ke Department {$dept} tidak ditemukan / tidak aktif.",
+            ]);
+        }
+
+        // ✅ AMBIL department_fin_id (single) dari MsDepartment
+        $deptRow = MsDepartment::query()
+            ->where('status', 'A')
+            ->where('department_id', $dept)
+            ->first(['department_id', 'department_fin_id']);
+
+        $departmentFinId = $deptRow->department_fin_id;
+
+        if (!$departmentFinId) {
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'message'  => "Department FIN ID tidak ditemukan untuk Department {$dept}.",
+            ]);
+        }
+
+        // ✅ cek budget header (minimal ada 1 yang completed)
+        $budgetExists = Budget::query()
+            ->where('status', 'C')
+            ->where('cpny_id', $cpny)
+            ->where('department_fin_id', $departmentFinId)
+            ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
+            ->when($buId !== '', fn ($q) => $q->where('business_unit_id', $buId)) // ✅ filter BU (optional)
+            ->exists();
+
+        if (!$budgetExists) {
+            return response()->json([
+                'meta'     => $meta,
+                'data'     => [],
+                'total'    => 0,
+                'page'     => $page,
+                'per_page' => $perPage,
+                'message'  => "Budget belum tersedia/Completed untuk Company {$cpny}, DeptFin {$departmentFinId}, Perpost {$perpost}" . ($buId ? ", BU {$buId}" : "") . ".",
+            ]);
+        }
+
+        $q = BudgetDetail::query()
+            ->from('ms_budget as b')
+            ->join('ms_coa as c', function ($j) {
+                $j->on('c.account_id', '=', 'b.account_id')
+                ->on('c.cpny_id', '=', 'b.cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($j) {
+                $j->on('a.activity_id', '=', 'b.activity_id')
+                ->on('a.cpny_id', '=', 'b.cpny_id');
+            })
+            ->where('b.status', 'C')
+            ->where('b.cpny_id', $cpny)
+            ->where('b.department_fin_id', $departmentFinId)
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost))
+            ->when($buId !== '', fn ($qq) => $qq->where('b.business_unit_id', $buId)); // ✅ filter BU (optional)
 
         if ($search !== '') {
             $q->where(function ($w) use ($search) {
@@ -1442,7 +1881,6 @@ class MasterController extends Controller
                 'b.business_unit_id',
                 'b.department_fin_id',
 
-                // ✅ samakan kolom budget seperti CoaBudget()
                 DB::raw("COALESCE(b.totalbudget,0)      as totalbudget"),
                 DB::raw("COALESCE(b.totalbudget_add,0)  as totalbudget_add"),
                 DB::raw("COALESCE(b.total_reserve,0)    as total_reserve"),
@@ -3047,192 +3485,7 @@ class MasterController extends Controller
     }
 
 
-    public function InventoryListJoin_xxx(Request $request)
-    {
-       
-        $type    = strtoupper($request->get('type', 'GI')); // GI | SE | NS | dll
-        $cpnyid  = strtoupper(trim($request->get('cpnyid', ''))); // ✅ tambah
-        $search  = trim($request->get('search', ''));
-        $page    = max((int) $request->get('page', 1), 1);
-        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
-
-        // departementid dari form header
-        $deptId = $request->get('departementid'); // boleh null
-
-        // Base query MsInventory (PG)
-        $query = MsInventory::query()
-            ->select([
-                'inventoryid',
-                'inventory_descr',
-                'stock_unit',
-                'item_type',
-                'item_category',
-                'purchase_unit',
-                'item_sub_type',
-                'item_class', // penting untuk filter & debug
-            ]);
-
-        /**
-         * Filter item_type
-         */
-        if ($type === 'GI') {
-            $query->where('item_type', 'GI');
-        } elseif ($type === 'SE') {
-            $query->where('item_type', 'SE');
-        } elseif ($type === 'NS') {
-            $query->where('item_type', 'NS');
-        } else {
-            $query->whereNotIn('item_type', ['GI', 'SE']);
-        }
-
-        /**
-         * FILTER item_class berdasarkan MsWorktypeWhs (hanya GI + deptId)
-         */
-        if ($type === 'GI' && !empty($deptId)) {
-            $allowedItemClasses = MsWorktypeWhs::where('department_id', $deptId)
-                ->where('status', 'A')
-                ->pluck('item_class')
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
-
-            if (!empty($allowedItemClasses)) {
-                $query->whereIn('item_class', $allowedItemClasses);
-            }
-            // else: biarkan tanpa filter (sesuai script kamu)
-        }
-
-        /**
-         * Search
-         */
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('inventoryid', 'ilike', "%{$search}%")
-                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-                ->orWhere('stock_unit', 'ilike', "%{$search}%")
-                ->orWhere('purchase_unit', 'ilike', "%{$search}%")
-                ->orWhere('item_class', 'ilike', "%{$search}%");
-            });
-        }
-
-        $total = (clone $query)->count();
-
-        // Ambil page dari PG
-        $rows = $query->distinct()
-            ->groupBy([
-                'inventoryid', 'inventory_descr', 'stock_unit',
-                'item_type', 'item_category', 'purchase_unit',
-                'item_sub_type', 'item_class'
-            ])
-            ->orderBy('inventory_descr')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get();
-
-        // Kalau kosong, balikin cepat
-        if ($rows->isEmpty()) {
-            return response()->json([
-                'data'     => [],
-                'total'    => 0,
-                'page'     => $page,
-                'per_page' => $perPage,
-                'meta'     => ['type' => $type, 'cpnyid' => $cpnyid, 'departementid' => $deptId],
-            ]);
-        }
-
-        /**
-         * ✅ Ambil stock/cost/siteid dari SQL Server via model dinamis (ViewInventory*)
-         *    Hanya kalau cpnyid valid
-         */
-        $model = null;
-        switch ($cpnyid) {
-            case 'AW':
-                $model = \App\Models\ViewInventoryAW::class;
-                break;
-            case 'EP':
-                $model = \App\Models\ViewInventoryEPH::class;
-                break;
-            case 'O8':
-                $model = \App\Models\ViewInventoryO8::class;
-                break;
-            case 'PSA':
-                $model = \App\Models\ViewInventoryPSA::class;
-                break;
-            case 'GPS':
-                $model = \App\Models\ViewInventoryGPSIfca::class;
-                break;
-            default:
-                // kalau cpnyid kosong → skip stok/cost (boleh)
-                // kalau mau strict, uncomment return 422
-                // return response()->json(['message'=>"Unknown cpnyid: {$cpnyid}",'data'=>[],'total'=>0], 422);
-                $model = null;
-                break;
-        }
-
-        $expanded = collect();
-
-        if ($model) {
-            $invIds = $rows->pluck('inventoryid')->map(fn($v) => (string) $v)->unique()->values();
-
-            $ssRows = $model::query()
-                ->selectRaw("
-                    invtid,
-                    cpnyid,
-                    siteid,
-                    CAST(stock AS float) AS stock,
-                    CAST(cost  AS float) AS cost
-                ")
-                ->whereIn('invtid', $invIds)
-                ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
-                ->get();
-
-            $ssGroups = $ssRows->groupBy(function ($r) {
-                return strtoupper(trim((string) $r->invtid));
-            });
-
-            foreach ($rows as $r) {
-                $key   = strtoupper(trim((string) $r->inventoryid));
-                $group = $ssGroups->get($key);
-
-                if (!$group || $group->isEmpty()) {
-                    $clone = clone $r;
-                    $clone->stock  = null;
-                    $clone->cost   = null;
-                    $clone->siteid = null;
-                    $expanded->push($clone);
-                    continue;
-                }
-
-                foreach ($group as $ss) {
-                    $clone = clone $r;
-                    $clone->stock  = $ss->stock;
-                    $clone->cost   = $ss->cost;
-                    $clone->siteid = $ss->siteid;
-                    $expanded->push($clone);
-                }
-            }
-        } else {
-            // cpnyid tidak ada / tidak valid → tetap keluar 1 baris per inventory
-            foreach ($rows as $r) {
-                $clone = clone $r;
-                $clone->stock  = null;
-                $clone->cost   = null;
-                $clone->siteid = null;
-                $expanded->push($clone);
-            }
-        }
-
-        return response()->json([
-            'data'     => $expanded,
-            'total'    => $total,
-            'page'     => $page,
-            'per_page' => $perPage,
-            'meta'     => ['type' => $type, 'cpnyid' => $cpnyid, 'departementid' => $deptId],
-        ]);
-    }
-
-                
+                   
     public function businessUnitsByCpny(Request $request)
     {
         $user = Auth::user();

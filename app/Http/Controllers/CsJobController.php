@@ -53,7 +53,7 @@ use App\Models\TrPO;
 use App\Services\CsQtyValidator;
 use App\Models\vSppbjktCompleted;
 use App\Models\TrPOReuse;
-
+use App\Models\TrKontrak;
 
 
 class CsJobController extends Controller
@@ -522,106 +522,7 @@ class CsJobController extends Controller
         ]);
     }
 
-
-   
-
-    public function CompleteRemainingOpen_xxx(string $doc, string $eid)
-    {
-        $ids = \Vinkla\Hashids\Facades\Hashids::decode($eid);
-        abort_if(empty($ids), 404);
-        $srcId = $ids[0];
-
-        $doc = strtoupper($doc);
-        abort_unless(in_array($doc, ['SPPB','SPPJ','SPPK','SPPT']), 422, 'Invalid doc type');
-
-        DB::connection('pgsql')->beginTransaction();
-        try {
-            // ambil header + detail & nama kolom key nomor urut seperti helper lain
-            switch ($doc) {
-                case 'SPPB':
-                    $updated = \App\Models\TrSPPB::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPBdetail::on('pgsql')->where('sppbid', $updated->sppbid)->get();
-                    break;
-                case 'SPPJ':
-                    $updated = \App\Models\TrSPPJ::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPJdetail::on('pgsql')->where('sppjid', $updated->sppjid)->get();
-                    break;
-                case 'SPPK':
-                    $updated = \App\Models\TrSPPK::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPKdetail::on('pgsql')->where('sppkid', $updated->sppkid)->get();
-                    break;
-                case 'SPPT':
-                    $updated = \App\Models\TrSPPT::on('pgsql')->lockForUpdate()->findOrFail($srcId);
-                    $details = \App\Models\TrSPPTdetail::on('pgsql')->where('spptid', $updated->spptid)->get();
-                    break;
-            }
-
-            $detTable = fn($m) => $m->getTable();
-            $hdrTable = $updated->getTable();
-
-            $sumCompletedAdded = 0.0;
-            $sumOpenReduced    = 0.0;
-
-            foreach ($details as $d) {
-                // angka dasar
-                $qty        = (float)($d->qty ?? 0);
-                $ordered    = (float)($d->ordered ?? 0);
-                $rejected   = (float)($d->rejectordered ?? 0);
-                $completed  = (float)($d->completeordered ?? 0);
-
-                // remaining: pakai openordered kalau ada, else hitung manual
-                if (\Schema::connection('pgsql')->hasColumn($detTable($d), 'openordered') && $d->openordered !== null) {
-                    $remaining = (float)$d->openordered;
-                } else {
-                    $remaining = max($qty - $ordered - $rejected - $completed, 0);
-                }
-
-                if ($remaining <= 0) continue;
-
-                // update detail: completeordered += remaining, openordered = 0 (jika kolom ada)
-                if (\Schema::connection('pgsql')->hasColumn($detTable($d), 'completeordered')) {
-                    $d->completeordered = $completed + $remaining;
-                }
-                if (\Schema::connection('pgsql')->hasColumn($detTable($d), 'openordered')) {
-                    $d->openordered = 0;
-                }
-
-                // simpan detail
-                $d->save();
-
-                // akumulasi untuk header
-                $sumCompletedAdded += $remaining;
-                $sumOpenReduced    += $remaining;
-            }
-
-            // update header agregat bila kolom tersedia
-            if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalcompleteordered')) {
-                $updated->totalcompleteordered = (float)($updated->totalcompleteordered ?? 0) + $sumCompletedAdded;
-            }
-            if (\Schema::connection('pgsql')->hasColumn($hdrTable, 'totalopenordered')) {
-                $updated->totalopenordered = max(0, (float)($updated->totalopenordered ?? 0) - $sumOpenReduced);
-            }
-
-            // opsional: kalau semua detail sudah complete, set status header (mis. 'C' atau tetap sesuai workflow)
-            // if (method_exists($details, 'sum')) { ... } — skip bila belum butuh.
-
-            $updated->save();
-
-            DB::connection('pgsql')->commit();
-
-            return response()->json([
-                'ok'      => true,
-                'message' => 'Sisa qty berhasil di-mark Completed.',
-            ]);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql')->rollBack();
-            \Log::error('CompleteRemainingOpen failed', ['error'=>$e->getMessage()]);
-            return response()->json([
-                'ok' => false,
-                'message' => 'Gagal memproses: '.$e->getMessage(),
-            ], 422);
-        }
-    }
+  
 
     public function CompleteRemainingOpen(Request $request, string $doc, string $eid)
     {
@@ -1107,21 +1008,30 @@ class CsJobController extends Controller
 
         // enrichment: samakan field agar cocok dengan DataTables existing
         $data->transform(function ($r) {
-            $r->doc_type = 'PO';             // supaya tombol existing tidak rusak
-            $r->eid      = Hashids::encode($r->id);
+            $r->doc_type = 'PO';
+            $r->eid      = Hashids::encode($r->id);   // hash tr_po_reuse (createcs)
             $r->doc_no   = $r->ponbr;
-            $r->inventory_category = $r->inventory_category;
 
-            // samakan naming seperti revision sebelumnya
-            $r->ponbr    = $r->ponbr;
-            $r->podate   = $r->created_at;   // “tanggal” untuk sorting
-            $r->department_id = null;        // tr_po_reuse tidak punya department_id langsung
-            $r->vendorname    = null;        // tidak ada di tr_po_reuse
+            $r->kontrak_eid = null;
+            $kontrak = null; // ✅ penting
 
-            // optional isi deskripsi
+            if (strtoupper(trim((string)$r->inventory_category)) === 'KONTRAK') {
+                $kontrak = TrKontrak::query()
+                    ->select('id', 'kontrakid', 'department_id', 'vendorname') // ✅ ambil fieldnya sekalian
+                    ->where('kontrakid', $r->ponbr)
+                    ->first();
+
+                if ($kontrak) {
+                    $r->kontrak_eid = Hashids::encode($kontrak->id); // hash id kontrak
+                }
+            }
+
+            $r->podate         = $r->created_at;
+            $r->department_id  = optional($kontrak)->department_id; // ✅ aman
+            $r->vendorname     = optional($kontrak)->vendorname;    // ✅ aman
+
             $r->keperluan = "REUSE KONTRAK | {$r->inventoryid} - {$r->inventory_descr}";
 
-            // kolom yang tidak ada
             $r->assigndate = null;
             $r->assignpurchasing = null;
             $r->assignby = null;
@@ -1130,7 +1040,6 @@ class CsJobController extends Controller
 
             return $r;
         });
-
         return response()->json([
             'draw'            => $draw,
             'recordsTotal'    => $recordsTotal,

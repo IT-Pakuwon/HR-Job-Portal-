@@ -1168,7 +1168,8 @@
                         page: invState.page,
                         per_page: invState.per_page,
                         worktypeid: ($('#worktypeid').val() || '').trim(), // <-- kirim worktypeid
-                        cpnyid: ($('select[name="cpnyid"]').val() || '').trim()
+                        cpnyid: ($('select[name="cpnyid"]').val() || '').trim(),
+                        business_unit_id: ($('#business_unit_id').val() || '').trim(),
                     })
                     .done(function(res) {
                         console.log('inventory.byWorktype result sample:', res.data?.[0]);
@@ -1489,7 +1490,7 @@
                 const esc = v => $('<div>').text(v ?? '').html();
 
                 const url = coaState.woid ?
-                    "{{ route('coa.byWo') }}" :
+                    "{{ route('coa.byWoSPB') }}" :
                     "{{ route('coa.byDept') }}";
 
                 const params = coaState.woid ? {

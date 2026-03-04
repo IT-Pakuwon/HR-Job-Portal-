@@ -132,7 +132,7 @@ class CanvassController extends Controller
                 $top_type = 'SPK';
                 break;
 
-                case 'PO':
+            case 'PO':
 
                 // src dari hash bisa:
                 // - id TrPO (normal)
@@ -168,9 +168,12 @@ class CanvassController extends Controller
                     // KONTRAK MODE
                     // =========================
                     $header = $kontrakHeader;                 // header untuk view createcs
-                    $refnbr = (string) $kontrakHeader->kontrakid; // attachment ref (sesuaikan kalau memang kontrak pakai ref ini)
+                   
+                    $refnbr = (string) $kontrakHeader->sppbjktid; // attachment ref (sesuaikan kalau memang kontrak pakai ref ini)
+                   
                     $docno  = (string) $kontrakHeader->kontrakid; // tampilkan docno
                     $top_type = 'PO';
+                    // $doc = 'KONTRAK'; // override doc untuk keperluan view (kalau kamu butuh)
 
                     // detail dari tr_po_reuse where ponbr = kontrakid
                     $detail = TrPOReuse::query()
@@ -214,8 +217,8 @@ class CanvassController extends Controller
                         ->orderBy('id','asc')
                         ->get();
 
-                    $refnbr   = $poHeader->ponbr;
-                    $docno    = $poHeader->sppbjktid;
+                    $refnbr   = $poHeader->sppbjktid ?? $poHeader->ponbr; 
+                    $docno    = $poHeader->ponbr;
                     $top_type = $poHeader->potype ?? 'PO';
 
                     $sppbjktid = $poHeader->sppbjktid;
@@ -227,69 +230,7 @@ class CanvassController extends Controller
                     }
                 }
 
-                break;
-
-            // case 'PO':
-
-            //     // 1. Ambil dulu header PO asli
-            //     $poHeader = TrPO::with([
-            //         'creator:username,name'
-            //     ])->findOrFail($src);
-
-            //     // Simpan dulu default header = PO
-            //     $header = $poHeader;
-
-            //     // 2. Ambil sppbjktid dari PO
-            //     $sppbjktid = $poHeader->sppbjktid ?? null;
-
-            //     // 3. Coba cari di masing-masing header source (SPPB / SPPJ / SPPK / SPPT)
-            //     if ($sppbjktid) {
-            //         // urutan pengecekan: SPPB -> SPPJ -> SPPK -> SPPT
-            //         $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first();
-            //         if (!$headerSource) {
-            //             $headerSource = TrSPPJ::where('sppjid', $sppbjktid)->first();
-            //         }
-            //         if (!$headerSource) {
-            //             $headerSource = TrSPPK::where('sppkid', $sppbjktid)->first();
-            //         }
-            //         if (!$headerSource) {
-            //             $headerSource = TrSPPT::where('spptid', $sppbjktid)->first();
-            //         }
-
-
-            //         // kalau ada salah satu yang ketemu, pakai itu sebagai header
-            //         if ($headerSource) {
-            //             $header = $headerSource;
-            //             // dd($header);
-            //         }
-            //     }
-
-            //     // 4. Detail tetap REUSE dari TrPOReuse (berdasarkan PO)
-            //     $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
-            //         ->where('cpny_id', $poHeader->cpny_id)
-            //         ->where(function($q){
-            //             $q->whereNull('openordered')
-            //             ->orWhere('openordered', '>', 0);
-            //         })
-            //         ->orderBy('id','asc')
-            //         ->get();
-
-            //     // 5. Ref attachment & info nomor tetap pakai PO
-            //     $refnbr   = $poHeader->ponbr;                    // ref ke attachment tetap PO
-            //     $docno    = $docno = $poHeader->sppbjktid;
-            //     $top_type = $poHeader->potype ?? 'PO';
-
-            //     $sppbjktid = $poHeader->sppbjktid;
-
-            //     // Ambil 2 digit depan khusus PB atau PK
-            //     if (Str::startsWith($sppbjktid, ['PB', 'PK'])) {
-            //         $prefix2 = substr($sppbjktid, 0, 2);
-            //     } else {
-            //         $prefix2 = null; // atau "" / atau pakai $sppbjktid full
-            //     }
-
-            //     break;
-
+                break;          
 
         }
 
@@ -410,6 +351,7 @@ class CanvassController extends Controller
             'poHeader'   => $poHeader ?? null,
             'prefix2'    => $prefix2 ?? null,       
             'sourceShowUrl' => $sourceShowUrl,  
+            'refnbr'     => $refnbr,
 
         ]);
     }
@@ -1045,12 +987,6 @@ class CanvassController extends Controller
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
 
-        // $user     = $request->user();
-        // $username = $user->username ?? 'system';
-
-        // $dt        = Carbon::now();
-        // $year      = (int) $dt->year;
-        // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $doctype  = 'CS';
         $user     = $request->user();
         $username = $user->username ?? 'system';
@@ -1127,13 +1063,11 @@ class CanvassController extends Controller
                 }
             } else {
                 // Kalau BUKAN revisi dan doc bukan SPPB/J/K/T → tolak
-                if (empty($prev_csid)) {
-                    abort(422, 'Invalid doc type');
-                }
+                // if (empty($prev_csid)) {
+                //     abort(422, 'Invalid doc type');
+                // }
                 // Jika revisi (prev_csid ada), aman → kita hanya gunakan payload + TrPOReuse
-            }
-
-            // 2b) Kalau CS revisi, ambil sumber dari TrPOReuse (CS sebelumnya)
+            }           
            
             $prevDetIndex = [];
             $prevLocIndex = [];
@@ -1162,30 +1096,7 @@ class CanvassController extends Controller
                 }
             }
 
-            // ==== 3) Generate autonbr CS (lock for update) ====
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr($year, 2) . $month; // YYMM
-            // $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
-
+            // ==== 3) Generate autonbr CS (lock for update) ====         
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -1236,29 +1147,6 @@ class CanvassController extends Controller
             $cs->status     = 'H';
             $cs->created_by = $username;
 
-            // Map maksimal 6 vendor
-            // for ($i = 0; $i < min(count($vendors), 6); $i++) {
-            //     $idx = $i + 1;
-            //     $v   = $vendors[$i];
-
-            //     $safeSet($cs, $csTable, "vendorid{$idx}",      $v['vendorid']        ?? null);
-            //     $safeSet($cs, $csTable, "vendorname{$idx}",    $v['vendorname']      ?? null);
-            //     $safeSet($cs, $csTable, "vendoralamat{$idx}",  $v['vendoralamat']    ?? null);
-            //     $safeSet($cs, $csTable, "vendortelp{$idx}",    $v['vendortelp']      ?? null);
-            //     $safeSet($cs, $csTable, "vendorcp{$idx}",      $v['vendorcp']        ?? null);
-            //     $safeSet($cs, $csTable, "vendortop{$idx}",     $v['vendortop']       ?? null);
-            //     $safeSet($cs, $csTable, "vendornote{$idx}",    $v['vendornote']      ?? null);
-
-            //     $safeSet($cs, $csTable, "totalvendor{$idx}",              $round2($v['total']          ?? 0));
-            //     $safeSet($cs, $csTable, "taxcodevendor{$idx}",            $v['taxcode']                ?? null);
-            //     $safeSet($cs, $csTable, "ppnvendor{$idx}",                $round2($v['ppn']            ?? 0));
-            //     $safeSet($cs, $csTable, "pphvendor{$idx}",                $round2($v['pph']            ?? 0));
-            //     $safeSet($cs, $csTable, "taxvendor{$idx}",                $round2($v['tax']            ?? 0));
-            //     $safeSet($cs, $csTable, "grandtotalvendor{$idx}",         $round2($v['grand']          ?? 0));
-            //     $safeSet($cs, $csTable, "totalselectedvendor{$idx}",      $round2($v['selected_total'] ?? 0));
-            //     $safeSet($cs, $csTable, "taxselectedvendor{$idx}",        $round2($v['selected_tax']   ?? 0));
-            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$idx}", $round2($v['selected_grand'] ?? 0));
-            // }
             // Map maksimal 6 vendor
             for ($i = 0; $i < min(count($vendors), 6); $i++) {
                 $idx = $i + 1;

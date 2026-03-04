@@ -6,7 +6,7 @@
                     @csrf
                     <input type="hidden" name="doc" value="{{ $doc }}">
                     <input type="hidden" name="src_id" value="{{ $src_id }}">
-                    <input type="hidden" name="sppbjktid" value="{{ $docno }}">
+                    <input type="hidden" name="sppbjktid" value="{{ $refnbr }}">
                     <input type="hidden" name="cpny_id" value="{{ $header->cpny_id }}">
                     <input type="hidden" name="department_id" value="{{ $header->department_id }}">
                     <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}">
@@ -28,7 +28,9 @@
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="font-bold text-gray-800 dark:text-white">
                                 @if ($doc === 'PO')
-                                    Create CS Reuse for PO
+                                    Create CS Reuse for PO - {{ $docno }}
+                                @elseif ($doc === 'KONTRAK')
+                                    Create CS for Kontrak - {{ $docno }}
                                 @else
                                     Create CS
                                 @endif
@@ -50,10 +52,10 @@
                                 @if (!empty($sourceShowUrl))
                                     <a href="{{ $sourceShowUrl }}" target="_blank"
                                         class="ml-1 text-indigo-600 underline hover:text-indigo-800">
-                                        {{ $docno }}
+                                        {{ $refnbr }}
                                     </a>
                                 @else
-                                    <span class="{{ $valueClass }}">{{ $docno }}</span>
+                                    <span class="{{ $valueClass }}">{{ $refnbr }}</span>
                                 @endif
                             </div>
 

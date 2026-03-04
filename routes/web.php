@@ -1108,6 +1108,7 @@ Route::post('/logout', function () {
     Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
     Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');
     Route::get('/coa/by-wo',   [MasterController::class, 'CoaBudgetWo'])->name('coa.byWo');
+    Route::get('/coa/by-wo-spb',   [MasterController::class, 'CoaBudgetWoSPB'])->name('coa.byWoSPB');
     Route::get('/editcoa/by-dept', [MasterController::class, 'editCoaBudget'])->name('editcoa.byDept');
     Route::get('/uom/by-inventory', [MasterController::class, 'UomInventory'])->name('uom.byInventory');
     Route::get('/wos/ajax/categories/{categoryid}', [MasterController::class, 'getCategories']);
