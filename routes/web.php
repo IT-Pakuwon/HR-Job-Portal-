@@ -121,7 +121,7 @@ use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TrainingRegistrationController;
 
-
+use App\Http\Controllers\ReportWarehouseController;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
@@ -168,7 +168,7 @@ Route::post('/login', function (Request $request) {
 
     // Cari user berdasarkan email, username, atau NIP
     $user = User::where('status', 'A')
-                ->where('email', $credentials['login'])            
+                ->where('email', $credentials['login'])
                 ->orWhere('username', $credentials['login'])
                 ->orWhere('npk', $credentials['login'])
                 ->first();
@@ -1525,6 +1525,9 @@ Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent
     return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
 
 })->middleware('auth')->name('manual');
+
+    Route::get('/report-warehouse', [ReportWarehouseController::class, 'index'])
+        ->name('report-warehouse.index');
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
     // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');
@@ -1582,6 +1585,6 @@ Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent
             Route::get('list', [SLAPIIssueController::class, 'list'])->name('list');
             Route::post('process', [SLAPIIssueController::class, 'process'])->name('process');
         });
-        
+
     });
 });
