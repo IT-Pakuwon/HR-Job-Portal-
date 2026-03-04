@@ -1414,120 +1414,120 @@ Route::post('/logout', function () {
         ->name('training.list');
 
 
-Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent = null, $child = null) {
+    Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent = null, $child = null) {
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    if (!$user) {
-        return redirect()->route('login');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | 1️⃣ Get Allowed Menu IDs Based On User Role
-    |--------------------------------------------------------------------------
-    */
-
-    $allowedIds = SysRoleMenu::where('role_id', $user->user_role)
-        ->where('status', 'A')
-        ->pluck('menu_id')
-        ->toArray();
-
-    if (empty($allowedIds)) {
-        return view('manual.layout', [
-            'rootMenus' => collect(),
-            'root' => $root,
-            'parent' => $parent,
-            'child' => $child,
-        ]);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | 2️⃣ Add Parent Chain (Ensure Root & Parent Visible)
-    |--------------------------------------------------------------------------
-    */
-
-    $allMenus = SysMenu::where('status', 'A')
-        ->get()
-        ->keyBy('menu_id');
-
-    foreach ($allowedIds as $id) {
-
-        $menu = $allMenus->get($id);
-
-        while ($menu && $menu->parent_menu_id) {
-
-            if (!in_array($menu->parent_menu_id, $allowedIds)) {
-                $allowedIds[] = $menu->parent_menu_id;
-            }
-
-            $menu = $allMenus->get($menu->parent_menu_id);
+        if (!$user) {
+            return redirect()->route('login');
         }
-    }
 
-    $allowedIds = array_unique($allowedIds);
+        /*
+        |--------------------------------------------------------------------------
+        | 1️⃣ Get Allowed Menu IDs Based On User Role
+        |--------------------------------------------------------------------------
+        */
 
-    /*
-    |--------------------------------------------------------------------------
-    | 3️⃣ Build Sidebar Tree Based On Allowed IDs
-    |--------------------------------------------------------------------------
-    */
-
-    $rootMenus = SysMenu::whereNull('parent_menu_id')
-        ->whereIn('menu_id', $allowedIds)
-        ->where('status', 'A')
-        ->with(['children' => function ($q) use ($allowedIds) {
-
-            $q->whereIn('menu_id', $allowedIds)
-              ->where('status', 'A')
-              ->with(['children' => function ($qq) use ($allowedIds) {
-                  $qq->whereIn('menu_id', $allowedIds)
-                     ->where('status', 'A');
-              }]);
-
-        }])
-        ->orderBy('menu_sort_order')
-        ->get();
-
-    /*
-    |--------------------------------------------------------------------------
-    | 4️⃣ Secure Direct URL Access (Root / Parent / Child)
-    |--------------------------------------------------------------------------
-    */
-
-    $currentMenu = null;
-
-    if ($child) {
-        $currentMenu = SysMenu::where('menu_slug', $child)
+        $allowedIds = SysRoleMenu::where('role_id', $user->user_role)
             ->where('status', 'A')
-            ->first();
-    } elseif ($parent) {
-        $currentMenu = SysMenu::where('menu_slug', $parent)
+            ->pluck('menu_id')
+            ->toArray();
+
+        if (empty($allowedIds)) {
+            return view('manual.layout', [
+                'rootMenus' => collect(),
+                'root' => $root,
+                'parent' => $parent,
+                'child' => $child,
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2️⃣ Add Parent Chain (Ensure Root & Parent Visible)
+        |--------------------------------------------------------------------------
+        */
+
+        $allMenus = SysMenu::where('status', 'A')
+            ->get()
+            ->keyBy('menu_id');
+
+        foreach ($allowedIds as $id) {
+
+            $menu = $allMenus->get($id);
+
+            while ($menu && $menu->parent_menu_id) {
+
+                if (!in_array($menu->parent_menu_id, $allowedIds)) {
+                    $allowedIds[] = $menu->parent_menu_id;
+                }
+
+                $menu = $allMenus->get($menu->parent_menu_id);
+            }
+        }
+
+        $allowedIds = array_unique($allowedIds);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 3️⃣ Build Sidebar Tree Based On Allowed IDs
+        |--------------------------------------------------------------------------
+        */
+
+        $rootMenus = SysMenu::whereNull('parent_menu_id')
+            ->whereIn('menu_id', $allowedIds)
             ->where('status', 'A')
-            ->first();
-    } elseif ($root) {
-        $currentMenu = SysMenu::where('menu_slug', $root)
-            ->where('status', 'A')
-            ->first();
-    }
+            ->with(['children' => function ($q) use ($allowedIds) {
 
-    if ($currentMenu && !in_array($currentMenu->menu_id, $allowedIds)) {
-        abort(403, 'Unauthorized manual access.');
-    }
+                $q->whereIn('menu_id', $allowedIds)
+                ->where('status', 'A')
+                ->with(['children' => function ($qq) use ($allowedIds) {
+                    $qq->whereIn('menu_id', $allowedIds)
+                        ->where('status', 'A');
+                }]);
 
-    /*
-    |--------------------------------------------------------------------------
-    | 5️⃣ Return View
-    |--------------------------------------------------------------------------
-    */
+            }])
+            ->orderBy('menu_sort_order')
+            ->get();
 
-    return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
+        /*
+        |--------------------------------------------------------------------------
+        | 4️⃣ Secure Direct URL Access (Root / Parent / Child)
+        |--------------------------------------------------------------------------
+        */
 
-})->middleware('auth')->name('manual');
+        $currentMenu = null;
+
+        if ($child) {
+            $currentMenu = SysMenu::where('menu_slug', $child)
+                ->where('status', 'A')
+                ->first();
+        } elseif ($parent) {
+            $currentMenu = SysMenu::where('menu_slug', $parent)
+                ->where('status', 'A')
+                ->first();
+        } elseif ($root) {
+            $currentMenu = SysMenu::where('menu_slug', $root)
+                ->where('status', 'A')
+                ->first();
+        }
+
+        if ($currentMenu && !in_array($currentMenu->menu_id, $allowedIds)) {
+            abort(403, 'Unauthorized manual access.');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 5️⃣ Return View
+        |--------------------------------------------------------------------------
+        */
+
+        return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
+
+    })->middleware('auth')->name('manual');
 
     Route::get('/report-warehouse', [ReportWarehouseController::class, 'index'])
-        ->name('report-warehouse.index');
+        ->name('repportwh');
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
     // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');
