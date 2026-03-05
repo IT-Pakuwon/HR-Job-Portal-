@@ -1527,8 +1527,18 @@ Route::post('/logout', function () {
 
     })->middleware('auth')->name('manual');
 
-    Route::get('/report-warehouse', [ReportWarehouseController::class, 'index'])
-        ->name('repportwh');
+    Route::prefix('report-warehouse')->group(function () {
+
+        Route::get('/', [ReportWarehouseController::class,'index'])
+            ->name('repportwh');
+
+        Route::get('/report-warehouse/json', [ReportWarehouseController::class,'json'])
+            ->name('report.warehouse.json');
+
+        Route::get('/report-warehouse/export',[ReportWarehouseController::class,'export'])
+            ->name('report.warehouse.export');
+
+    });
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
     // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');

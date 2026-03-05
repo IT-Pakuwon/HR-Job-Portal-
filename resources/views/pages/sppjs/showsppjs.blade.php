@@ -435,9 +435,9 @@
                                 : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
                             {{ $hasBq ? $bqId : 'Create BQ' }}
                         </a> --}}
-                        @if($hasBq || $canUpload)
+                        @if ($hasBq || $canUpload)
                             <a href="{{ $hasBq ? $urlShow : $urlCreate }}" target="_blank"
-                            class="{{ $hasBq
+                                class="{{ $hasBq
                                     ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
                                     : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
                                 {{ $hasBq ? $bqId : 'Create BQ' }}
@@ -1337,7 +1337,6 @@
             // ================================
             $('#btnUploadSppbAttachment').on('click', function() {
 
-                const $form = $('#sppjAttachmentUploadForm')[0];
                 const files = $('#sppjAttachFiles')[0].files;
 
                 if (!files || !files.length) {
@@ -1345,7 +1344,17 @@
                     return;
                 }
 
-                const fd = new FormData($form);
+                const fd = new FormData();
+
+                // append file satu per satu
+                for (let i = 0; i < files.length; i++) {
+                    fd.append('attachments[]', files[i]);
+                }
+
+                // append data lain
+                fd.append('_token', '{{ csrf_token() }}');
+                fd.append('cpnyid', '{{ $sppj->cpny_id }}');
+                fd.append('departementid', '{{ $sppj->department_id }}');
 
                 $.ajax({
                     url: uploadUrlPJ,
@@ -1363,7 +1372,7 @@
                         toastr.success('Upload success.');
                         $('#sppjAttachFiles').val('');
 
-                        // 🔥 Refresh dari API supaya signed URL baru
+                        // refresh attachment
                         refreshPJAttachments();
                     },
                     error: function(xhr) {
