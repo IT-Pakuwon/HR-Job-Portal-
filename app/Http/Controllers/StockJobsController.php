@@ -61,7 +61,7 @@ class StockJobsController extends Controller
             // ->where('status', 'A')
             ->count();
 
-        $baseuom = MsBaseUom::query()           
+        $baseuom = MsBaseUom::query()
             ->where('status', 'A')
             ->get();
 
@@ -78,11 +78,16 @@ class StockJobsController extends Controller
         $buList = BusinessUnit::whereIn('business_unit_id', $businessUnits)
             ->where('status', 'A')
             ->get();
-        
+        $stockAllRequest = TrItemRequest::query()
+        ->where('status', 'C')
+        ->where('inventory_type', 'STOCK')
+        ->whereIn('cpny_id', $cpnyIds)
+        ->count();
         return view('pages.itemrequest.stockjobs', compact(
             'stockJobs',
             'stockDone',
             'inventoryStock',
+            'stockAllRequest',
             'cpnyIds',
             'buList',
             'baseuom'
@@ -326,7 +331,8 @@ class StockJobsController extends Controller
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
 
-        $filter = strtolower((string) $request->get('filter', 'all')); // all | jobs | done
+        $filter = strtolower((string) $request->get('filter', 'all'));
+        // all | jobs | done | stock_all
 
         $q = TrItemRequest::query()
             ->where('status', 'C')
@@ -334,11 +340,21 @@ class StockJobsController extends Controller
             ->whereIn('cpny_id', $cpnyIds);
 
         if ($filter === 'jobs') {
-            $q->whereNull('inventoryid');
-        } elseif ($filter === 'done') {
-            $q->whereNotNull('inventoryid');
-        }
 
+            // hanya jobs
+            $q->whereNull('inventoryid');
+
+        } elseif ($filter === 'done') {
+
+            // hanya done
+            $q->whereNotNull('inventoryid');
+
+        } elseif ($filter === 'stock_all') {
+
+            // semua request stock (jobs + done)
+            // tidak perlu filter inventoryid
+
+        }
         $recordsTotal = (clone $q)->count();
 
         if ($search !== '') {
@@ -386,6 +402,7 @@ class StockJobsController extends Controller
                 'inventoryid'         => $r->inventoryid,
                 'is_done'             => !empty($r->inventoryid),
                 'created_by'          => $r->created_by,
+                'status'              => $r->status,
                 'created_at'          => $r->created_at,
             ];
         });
@@ -528,7 +545,7 @@ class StockJobsController extends Controller
         }
     }
 
-   
+
     public function edit($id)
     {
         $inv = MsInventory::findOrFail($id);
@@ -573,7 +590,7 @@ class StockJobsController extends Controller
             // ===== NAMA (untuk fallback)
             'item_type' => $inv->item_type,
             'item_sub_type' => $inv->item_sub_type,
-            
+
             'item_class' => $inv->item_class,
             'item_sub_class' => $inv->item_sub_class,
 

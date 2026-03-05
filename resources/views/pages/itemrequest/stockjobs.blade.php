@@ -3,51 +3,14 @@
         $currentPage = Route::currentRouteName() == 'stockjobs' ? 'Stock Jobs' : '';
     @endphp
 
-    <style>
-        /* Biar toolbar DataTables rapi di Tailwind */
-        .dt-toolbar{
-            display:flex;
-            gap:12px;
-            align-items:center;
-            justify-content:space-between;
-            flex-wrap:wrap;
-            margin-bottom:10px;
-        }
-        .dt-toolbar .dataTables_length,
-        .dt-toolbar .dataTables_filter{
-            display:flex;
-            align-items:center;
-            gap:8px;
-        }
-        .dt-toolbar .dataTables_filter input{
-            border:1px solid #e5e7eb;
-            border-radius:8px;
-            padding:6px 10px;
-        }
-        .dt-toolbar .dataTables_length select{
-            border:1px solid #e5e7eb;
-            border-radius:8px;
-            padding:6px 10px;
-        }
-        /* Responsive control column */
-        td.dtr-control{
-            cursor:pointer;
-        }
-        /* Toggle switch (kalau kamu pakai) */
-        .switch{ position: relative; display:inline-block; width:40px; height:22px; }
-        .switch input{ opacity:0; width:0; height:0; }
-        .slider{ position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#cbd5e1; transition:.2s; border-radius:999px; }
-        .slider:before{ position:absolute; content:""; height:18px; width:18px; left:2px; bottom:2px; background:white; transition:.2s; border-radius:999px; }
-        .switch input:checked + .slider{ background:#22c55e; }
-        .switch input:checked + .slider:before{ transform:translateX(18px); }
-    </style>
 
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             <a href="#" class="status-filter group block h-full" data-filter="all">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">All</p>
@@ -57,7 +20,8 @@
             </a>
 
             <a href="#" class="status-filter active group block h-full" data-filter="jobs">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🧾</div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">Stock Jobs</p>
@@ -67,7 +31,8 @@
             </a>
 
             <a href="#" class="status-filter group block h-full" data-filter="done">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">Stock Done</p>
@@ -77,7 +42,8 @@
             </a>
 
             <a href="#" class="status-filter group block h-full" data-filter="inv">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
                         <p class="break-words text-sm font-medium">Inventory Stock</p>
@@ -85,7 +51,30 @@
                     <p class="shrink-0 text-base font-bold">{{ number_format($inventoryStock) }}</p>
                 </div>
             </a>
+
+
+            <a href="#" class="status-filter group block h-full" data-filter="stock_all">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                        🗂️
+                    </div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">
+                            All Item Request
+                        </p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">
+                        {{ number_format($stockAllRequest ?? 0) }}
+                    </p>
+
+                </div>
+            </a>
         </div>
+
 
         {{-- TABLES --}}
         <div class="mt-6 flex flex-col rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -98,7 +87,8 @@
 
                 <div class="rounded-base relative overflow-x-auto">
                     <table id="stockJobsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th class="w-8"></th>
                                 <th class="w-32 px-6 py-2 font-medium">IRID</th>
@@ -108,6 +98,7 @@
                                 <th class="w-32 px-6 py-2 font-medium">Description</th>
                                 <th class="w-32 px-6 py-2 font-medium">Inventory ID</th>
                                 <th class="w-32 px-6 py-2 font-medium">Created By</th>
+                                <th class="w-32 px-6 py-2 font-medium">IR Status</th>
                                 <th class="w-32 px-6 py-2 font-medium">Job Status</th>
                             </tr>
                         </thead>
@@ -145,7 +136,8 @@
 
                 <div class="rounded-base relative overflow-x-auto">
                     <table id="inventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
                                 <th class="w-8"></th>
                                 <th class="w-32 px-6 py-2 font-medium">Actions</th>
@@ -168,7 +160,8 @@
         {{-- INVENTORY CRUD MODAL --}}
         <div id="inventoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div class="relative w-full max-w-3xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
-                <h2 id="inventoryModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Inventory</h2>
+                <h2 id="inventoryModalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add
+                    Inventory</h2>
 
                 <form id="inventoryForm">
                     @csrf
@@ -184,7 +177,8 @@
 
                         <div>
                             <label class="block text-gray-700 dark:text-white">Item Type</label>
-                            <select id="item_type" name="item_type_id" class="select2 w-full rounded-lg border px-3 py-2" required>
+                            <select id="item_type" name="item_type_id"
+                                class="select2 w-full rounded-lg border px-3 py-2" required>
                                 <option value="">Select Item Type</option>
                             </select>
                             <input type="hidden" id="item_type_hidden" name="item_type_id_hidden">
@@ -192,7 +186,8 @@
 
                         <div>
                             <label class="block text-gray-700 dark:text-white">Item Sub Type</label>
-                            <select id="item_sub_type" name="item_sub_type_id" class="select2 w-full rounded-lg border px-3 py-2" required disabled>
+                            <select id="item_sub_type" name="item_sub_type_id"
+                                class="select2 w-full rounded-lg border px-3 py-2" required disabled>
                                 <option value="">Select Sub Type</option>
                             </select>
                             <input type="hidden" id="item_sub_type_hidden" name="item_sub_type_id_hidden">
@@ -200,7 +195,8 @@
 
                         <div>
                             <label class="block text-gray-700 dark:text-white">Item Class</label>
-                            <select id="item_class" name="item_class_id" class="select2 w-full rounded-lg border px-3 py-2" required disabled>
+                            <select id="item_class" name="item_class_id"
+                                class="select2 w-full rounded-lg border px-3 py-2" required disabled>
                                 <option value="">Select Class</option>
                             </select>
                             <input type="hidden" id="item_class_hidden" name="item_class_id_hidden">
@@ -208,7 +204,8 @@
 
                         <div>
                             <label class="block text-gray-700 dark:text-white">Item Sub Class</label>
-                            <select id="item_sub_class" name="item_sub_class_id" class="select2 w-full rounded-lg border px-3 py-2" required disabled>
+                            <select id="item_sub_class" name="item_sub_class_id"
+                                class="select2 w-full rounded-lg border px-3 py-2" required disabled>
                                 <option value="">Select Sub Class</option>
                             </select>
                             <input type="hidden" id="item_sub_class_hidden" name="item_sub_class_id_hidden">
@@ -222,7 +219,8 @@
 
                         <div id="stockUnitWrap">
                             <label class="block text-gray-700 dark:text-white">Stock Unit</label>
-                            <select id="stock_unit" name="stock_unit" class="select2 w-full rounded-lg border px-3 py-2" required>
+                            <select id="stock_unit" name="stock_unit"
+                                class="select2 w-full rounded-lg border px-3 py-2" required>
                                 <option value="">Select</option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
@@ -233,7 +231,8 @@
 
                         <div id="purchaseUnitWrap">
                             <label class="block text-gray-700 dark:text-white">Purchase Unit</label>
-                            <select id="purchase_unit" name="purchase_unit" class="select2 w-full rounded-lg border px-3 py-2" required>
+                            <select id="purchase_unit" name="purchase_unit"
+                                class="select2 w-full rounded-lg border px-3 py-2" required>
                                 <option value="">Select</option>
                                 @foreach ($baseuom as $r)
                                     <option value="{{ $r->uom_description }}">{{ $r->uom_description }}</option>
@@ -244,10 +243,10 @@
                     </div>
 
                     <div class="mt-5 flex justify-end gap-2">
-                        <button type="button" id="closeInventoryModal" class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                        <button type="button" id="closeInventoryModal"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
                         {{-- <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button> --}}
-                        <button id="btnInvSave" type="submit"
-                            class="rounded-lg bg-blue-500 px-4 py-2 text-white">
+                        <button id="btnInvSave" type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">
                             Save
                         </button>
                     </div>
@@ -260,7 +259,8 @@
             <div class="relative w-full max-w-4xl rounded-xl bg-white p-4 shadow-lg dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h2 class="text-base font-bold text-gray-800 dark:text-white">🔎 Pilih Inventory (MsInventory)</h2>
-                    <button type="button" id="closePickInventoryModal" class="rounded-lg bg-red-500 px-4 py-2 text-white">Close</button>
+                    <button type="button" id="closePickInventoryModal"
+                        class="rounded-lg bg-red-500 px-4 py-2 text-white">Close</button>
                 </div>
 
                 <div class="mb-3 text-sm text-gray-500 dark:text-gray-300">
@@ -269,10 +269,15 @@
 
                 <div class="overflow-x-auto">
                     <table id="pickInventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
-                                <th class="w-52 px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Inventory ID</th>
-                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">Inventory Description</th>
+                                <th
+                                    class="w-52 px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Inventory ID</th>
+                                <th
+                                    class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                    Inventory Description</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -287,8 +292,8 @@
             window.ddUrlStock = {
                 itemTypes: "{{ route('stockjobs.stock-types') }}",
                 subTypes: "{{ route('stockjobs.stock-sub-types') }}",
-                classes:  "{{ route('stockjobs.stock-classes') }}",
-                subClasses:"{{ route('stockjobs.stock-sub-classes') }}"
+                classes: "{{ route('stockjobs.stock-classes') }}",
+                subClasses: "{{ route('stockjobs.stock-sub-classes') }}"
             };
 
             function initSelect2InStockModal() {
@@ -309,7 +314,7 @@
 
         <script>
             function loadStockItemTypesPromise() {
-                return $.get(window.ddUrlStock.itemTypes).then(function(res){
+                return $.get(window.ddUrlStock.itemTypes).then(function(res) {
                     const $type = $('#item_type');
                     $type.prop('disabled', false)
                         .empty()
@@ -329,7 +334,9 @@
             }
 
             function loadStockSubTypesPromise(itemTypeId) {
-                return $.get(window.ddUrlStock.subTypes, { item_type_id: itemTypeId }).then(function(res){
+                return $.get(window.ddUrlStock.subTypes, {
+                    item_type_id: itemTypeId
+                }).then(function(res) {
                     const $sub = $('#item_sub_type');
                     $sub.prop('disabled', false)
                         .empty()
@@ -342,7 +349,9 @@
             }
 
             function loadStockClassesPromise(subTypeId) {
-                return $.get(window.ddUrlStock.classes, { item_sub_type_id: subTypeId }).then(function(res){
+                return $.get(window.ddUrlStock.classes, {
+                    item_sub_type_id: subTypeId
+                }).then(function(res) {
                     const $cls = $('#item_class');
                     $cls.prop('disabled', false)
                         .empty()
@@ -355,7 +364,9 @@
             }
 
             function loadStockSubClassesPromise(classId) {
-                return $.get(window.ddUrlStock.subClasses, { item_class_id: classId }).then(function(res){
+                return $.get(window.ddUrlStock.subClasses, {
+                    item_class_id: classId
+                }).then(function(res) {
                     const $subcls = $('#item_sub_class');
                     $subcls.prop('disabled', false)
                         .empty()
@@ -368,7 +379,7 @@
             }
 
             // chaining onchange
-            $(document).on('change', '#item_type', function(){
+            $(document).on('change', '#item_type', function() {
                 const typeId = $(this).val();
 
                 resetSelect($('#item_sub_type'), '-- Select Sub Type --');
@@ -379,7 +390,7 @@
                 loadStockSubTypesPromise(typeId);
             });
 
-            $(document).on('change', '#item_sub_type', function(){
+            $(document).on('change', '#item_sub_type', function() {
                 const subTypeId = $(this).val();
 
                 resetSelect($('#item_class'), '-- Select Class --');
@@ -389,7 +400,7 @@
                 loadStockClassesPromise(subTypeId);
             });
 
-            $(document).on('change', '#item_class', function(){
+            $(document).on('change', '#item_class', function() {
                 const classId = $(this).val();
 
                 resetSelect($('#item_sub_class'), '-- Select Sub Class --');
@@ -400,7 +411,7 @@
         </script>
 
         <script>
-            function setSaveLoading(isLoading){
+            function setSaveLoading(isLoading) {
                 const $btn = $('#btnInvSave');
                 const $cancel = $('#closeInventoryModal');
 
@@ -433,59 +444,61 @@
             // guard supaya kalau handler kebinding 2x pun tetap aman
             let invSubmitting = false;
 
-            $('#inventoryForm').off('submit').on('submit', function(e){
+            $('#inventoryForm').off('submit').on('submit', function(e) {
                 e.preventDefault();
-                if (invSubmitting) return;         // ✅ cegah double submit
+                if (invSubmitting) return; // ✅ cegah double submit
                 invSubmitting = true;
                 setSaveLoading(true);
 
-                const id  = $('#inv_id').val();
+                const id = $('#inv_id').val();
                 const url = id ? `/invstock/${id}` : "{{ route('invstock.store') }}";
 
                 const formData = new FormData(document.getElementById('inventoryForm'));
                 if (id) formData.append('_method', 'PUT');
 
                 $.ajax({
-                    url: url,
-                    type: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                })
-                .done(function(){
-                    closeInvModal();
-                    invTable.ajax.reload(null, false);
+                        url: url,
+                        type: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                    })
+                    .done(function() {
+                        closeInvModal();
+                        invTable.ajax.reload(null, false);
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Data inventory berhasil disimpan',
-                        timer: 1400,
-                        showConfirmButton: false
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Data inventory berhasil disimpan',
+                            timer: 1400,
+                            showConfirmButton: false
+                        });
+                    })
+                    .fail(function(xhr) {
+                        console.error(xhr.responseText);
+
+                        // ambil pesan validasi kalau ada
+                        let msg = 'Gagal menyimpan data inventory';
+                        try {
+                            const res = xhr.responseJSON;
+                            if (res?.message) msg = res.message;
+                            if (res?.error) msg = res.error;
+                        } catch (e) {}
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: msg
+                        });
+                    })
+                    .always(function() {
+                        invSubmitting = false;
+                        setSaveLoading(false);
                     });
-                })
-                .fail(function(xhr){
-                    console.error(xhr.responseText);
-
-                    // ambil pesan validasi kalau ada
-                    let msg = 'Gagal menyimpan data inventory';
-                    try {
-                        const res = xhr.responseJSON;
-                        if (res?.message) msg = res.message;
-                        if (res?.error) msg = res.error;
-                    } catch (e) {}
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: msg
-                    });
-                })
-                .always(function(){
-                    invSubmitting = false;
-                    setSaveLoading(false);
-                });
             });
         </script>
 
@@ -493,19 +506,25 @@
             // =========================
             // HELPERS
             // =========================
-            function openInvModal(){ $('#inventoryModal').removeClass('hidden').addClass('flex'); }
-            function closeInvModal(){ $('#inventoryModal').addClass('hidden').removeClass('flex'); }
+            function openInvModal() {
+                $('#inventoryModal').removeClass('hidden').addClass('flex');
+            }
 
-            function openPickInvModal(){
+            function closeInvModal() {
+                $('#inventoryModal').addClass('hidden').removeClass('flex');
+            }
+
+            function openPickInvModal() {
                 $('#pickInventoryModal').removeClass('hidden').addClass('flex');
                 if (pickInvTable) pickInvTable.ajax.reload(null, true);
             }
-            function closePickInvModal(){
+
+            function closePickInvModal() {
                 $('#pickInventoryModal').addClass('hidden').removeClass('flex');
                 $('#pick_irid').text('-');
             }
 
-            function setFormMode(isEdit){
+            function setFormMode(isEdit) {
                 // Add mode: inventoryid disembunyikan
                 if (!isEdit) {
                     $('#inventoryIdWrapper').addClass('hidden');
@@ -529,8 +548,8 @@
 
                     if (isEdit) {
                         $hid.val($sel.val() || '');
-                        $hid.attr('name', realName);     // hidden ikut submit
-                        $sel.removeAttr('name');         // select tidak ikut submit
+                        $hid.attr('name', realName); // hidden ikut submit
+                        $sel.removeAttr('name'); // select tidak ikut submit
                         $sel.prop('required', false);
                         $sel.prop('disabled', true);
                     } else {
@@ -555,13 +574,13 @@
             let pickedTrid = null;
             let pickedIrid = null;
 
-            $(document).ready(function(){
+            $(document).ready(function() {
 
                 const $jobsWrap = $('#jobsWrap');
-                const $invWrap  = $('#invWrap');
+                const $invWrap = $('#invWrap');
                 const $jobsTitle = $('#jobsTitle');
 
-                function setActive(el){
+                function setActive(el) {
                     $('.status-filter').removeClass('active');
                     $(el).addClass('active');
                 }
@@ -574,47 +593,92 @@
                     serverSide: true,
                     deferRender: true,
                     pageLength: 10,
-                    lengthMenu: [[10,25,50,100,250,-1],[10,25,50,100,250,'All']],
-                    responsive: { details: { type: 'column', target: 0 } },
-                    columnDefs: [
-                        { targets: '_all', className: 'whitespace-normal break-words' },
-                        { targets: 0, width: '28px', className: 'dtr-control', orderable: false }
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                            targets: '_all',
+                            className: 'whitespace-normal break-words'
+                        },
+                        {
+                            targets: 0,
+                            width: '28px',
+                            className: 'dtr-control',
+                            orderable: false
+                        },
+                        {
+                            targets: 8, // IR Status column
+                            visible: false
+                        }
                     ],
                     dom: '<"dt-toolbar"l B f>rtip',
-                    buttons: [
-                        { extend:'excelHtml5', text:'↓ Excel', title:'List_Stock', className:'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700' },
-                        { extend:'csvHtml5', text:'↓ CSV', title:'List_Stock', className:'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700' }
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'List_Stock',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700'
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'List_Stock',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700'
+                        }
                     ],
                     ajax: {
                         url: "{{ route('stockjobs.json') }}",
                         type: "GET",
-                        data: function(d){
+                        data: function(d) {
                             d.source = 'jobs';
                             d.filter = jobsFilter || 'all';
                         }
                     },
-                    order: [[1,'desc']],
-                    columns: [
-                        { data:null, defaultContent:'', searchable:false, orderable:false },
+                    order: [
+                        [1, 'desc']
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: '',
+                            searchable: false,
+                            orderable: false
+                        },
                         {
-                            data:'irid',
-                            render: function(data, type, row){
+                            data: 'irid',
+                            render: function(data, type, row) {
                                 const text = data || '-';
                                 const url = `/showitemreq/${row.eid}`;
                                 return `<a href="${url}" class="inline-flex w-[160px] justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">${text}</a>`;
                             }
                         },
-                        { data:'irdate' },
-                        { data:'cpny_id', className:'text-center' },
-                        { data:'department_id', className:'text-center whitespace-normal break-words' },
-                        { data:'inventory_descr_req', defaultContent:'-' },
+                        {
+                            data: 'irdate'
+                        },
+                        {
+                            data: 'cpny_id',
+                            className: 'text-center'
+                        },
+                        {
+                            data: 'department_id',
+                            className: 'text-center whitespace-normal break-words'
+                        },
+                        {
+                            data: 'inventory_descr_req',
+                            defaultContent: '-'
+                        },
 
                         // InventoryID: pick / rollback (pola lama)
                         {
-                            data:'inventoryid',
-                            orderable:false,
-                            render: function(data, type, row){
-                                if (!data){
+                            data: 'inventoryid',
+                            orderable: false,
+                            render: function(data, type, row) {
+                                if (!data) {
                                     return `
                                         <div class="flex items-center gap-2">
                                             <button type="button"
@@ -641,16 +705,45 @@
                             }
                         },
 
-                        { data:'created_by', defaultContent:'-' },
                         {
-                            data:'is_done',
-                            orderable:false,
-                            searchable:false,
-                            className:'text-center',
-                            render: function(v){
-                                return v
-                                    ? `<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">DONE</span>`
-                                    : `<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">JOB</span>`;
+                            data: 'created_by',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'status',
+                            className: 'text-center',
+                            render: function(v) {
+
+                                v = String(v || '').toUpperCase();
+
+                                if (v === 'D') {
+                                    return `<span class="inline-block w-24 rounded bg-gray-300/30 px-3 py-1.5 text-sm font-semibold text-gray-600">Draft</span>`;
+                                }
+
+                                if (v === 'P') {
+                                    return `<span class="inline-block w-24 rounded bg-yellow-300/30 px-3 py-1.5 text-sm font-semibold text-yellow-600">On Progress</span>`;
+                                }
+
+                                if (v === 'C') {
+                                    return `<span class="inline-block w-24 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">Completed</span>`;
+                                }
+
+                                if (v === 'R') {
+                                    return `<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Rejected</span>`;
+                                }
+
+                                return v;
+                            }
+                        },
+                        {
+                            data: 'is_done',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(v) {
+                                return v ?
+                                    `<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">DONE</span>` :
+                                    `<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">JOB</span>`;
                             }
                         }
                     ],
@@ -661,40 +754,71 @@
                 // IMPORTANT: kolom harus SAMA dgn <thead> (9 kolom)
                 // =========================
                 invTable = $('#inventoryTable').DataTable({
-                    processing:true,
-                    serverSide:true,
-                    deferRender:true,
-                    pageLength:10,
-                    lengthMenu: [[10,25,50,100,250,-1],[10,25,50,100,250,'All']],
-                    responsive: { details: { type:'column', target:0 } },
-                    columnDefs: [
-                        { targets:'_all', className:'whitespace-normal break-words' },
-                        { targets:0, width:'28px', className:'dtr-control', orderable:false }
+                    processing: true,
+                    serverSide: true,
+                    deferRender: true,
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                            targets: '_all',
+                            className: 'whitespace-normal break-words'
+                        },
+                        {
+                            targets: 0,
+                            width: '28px',
+                            className: 'dtr-control',
+                            orderable: false
+                        }
                     ],
                     dom: '<"dt-toolbar"l B f>rtip',
-                    buttons: [
-                        { extend:'excelHtml5', text:'↓ Excel', title:'List_Inventory', className:'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700' },
-                        { extend:'csvHtml5', text:'↓ CSV', title:'List_Inventory', className:'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700' }
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'List_Inventory',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700'
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'List_Inventory',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700'
+                        }
                     ],
-                    ajax:{
-                        url:"{{ route('stockjobs.json') }}",
-                        type:"GET",
-                        data:function(d){
+                    ajax: {
+                        url: "{{ route('stockjobs.json') }}",
+                        type: "GET",
+                        data: function(d) {
                             d.source = 'inventory';
                             d.cpny_id = $('#filter_cpny').val();
                             d.business_unit_id = $('#filter_bu').val();
                         }
                     },
-                    order:[[2,'asc']],
-                    columns:[
-                        { data:null, defaultContent:'', searchable:false, orderable:false },
+                    order: [
+                        [2, 'asc']
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: '',
+                            searchable: false,
+                            orderable: false
+                        },
                         {
-                            data:'id',
-                            orderable:false,
-                            searchable:false,
-                            className:'text-center',
-                            render:function(data,type,row){
-                                const checked = (String(row.status||'').toUpperCase()==='A') ? 'checked' : '';
+                            data: 'id',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                const checked = (String(row.status || '').toUpperCase() === 'A') ?
+                                    'checked' : '';
                                 return `
                                     <div class="flex items-center justify-center gap-2">
                                         <label class="switch">
@@ -708,21 +832,41 @@
                                 `;
                             }
                         },
-                        { data:'inventoryid' },
-                        { data:'inventory_descr', defaultContent:'-' },
-                        { data:'stock', defaultContent:'-' },
-                        { data:'item_sub_type', defaultContent:'-' },
-                        { data:'item_class', defaultContent:'-' },
-                        { data:'item_sub_class', defaultContent:'-' },
-                        { data:'stock_unit', defaultContent:'-' },
                         {
-                            data:'status',
-                            className:'text-center',
-                            render:function(s){
-                                s = String(s||'').toUpperCase();
-                                return s==='A'
-                                    ? '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>'
-                                    : '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>';
+                            data: 'inventoryid'
+                        },
+                        {
+                            data: 'inventory_descr',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'stock',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'item_sub_type',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'item_class',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'item_sub_class',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'stock_unit',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'status',
+                            className: 'text-center',
+                            render: function(s) {
+                                s = String(s || '').toUpperCase();
+                                return s === 'A' ?
+                                    '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>' :
+                                    '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>';
                             }
                         }
                     ]
@@ -732,15 +876,24 @@
                 // PICK INVENTORY TABLE
                 // =========================
                 pickInvTable = $('#pickInventoryTable').DataTable({
-                    processing:true,
-                    serverSide:true,
-                    deferRender:true,
-                    pageLength:10,
-                    ajax:{ url:"{{ route('stockjobs.inventory-pick.json') }}", type:"GET" },
-                    order:[[0,'asc']],
-                    columns:[
-                        { data:'inventoryid' },
-                        { data:'inventory_descr', defaultContent:'-' }
+                    processing: true,
+                    serverSide: true,
+                    deferRender: true,
+                    pageLength: 10,
+                    ajax: {
+                        url: "{{ route('stockjobs.inventory-pick.json') }}",
+                        type: "GET"
+                    },
+                    order: [
+                        [0, 'asc']
+                    ],
+                    columns: [{
+                            data: 'inventoryid'
+                        },
+                        {
+                            data: 'inventory_descr',
+                            defaultContent: '-'
+                        }
                     ]
                 });
 
@@ -751,10 +904,14 @@
                 // =========================
                 // CARD CLICK
                 // =========================
-                $('.status-filter').on('click', function(e){
+                const irStatusCol = 8;
+                $('.status-filter').on('click', function(e) {
                     e.preventDefault();
                     const f = $(this).data('filter') || 'all';
                     setActive(this);
+
+                    jobsTable.column(irStatusCol).visible(false);
+
 
                     if (f === 'inv') {
                         $jobsWrap.addClass('hidden');
@@ -763,26 +920,45 @@
                         return;
                     }
 
+                    if (f === 'stock_all') {
+                        // SHOW IR STATUS
+                        jobsTable.column(irStatusCol).visible(true);
+
+                        $invWrap.addClass('hidden');
+                        $jobsWrap.removeClass('hidden');
+
+                        jobsFilter = 'stock_all';
+
+                        $jobsTitle.text('All Item Request (Stock)');
+                        jobsTable.ajax.reload(null, true);
+                        return;
+                    }
+
                     $invWrap.addClass('hidden');
                     $jobsWrap.removeClass('hidden');
 
                     jobsFilter = f;
 
-                    const titleMap = { all:'Stock Jobs (All)', jobs:'Stock Jobs', done:'Stock Done' };
+                    const titleMap = {
+                        all: 'Stock Jobs (All)',
+                        jobs: 'Stock Jobs',
+                        done: 'Stock Done',
+                        stock_all: 'All Item Request (Stock)'
+                    };
                     $jobsTitle.text(titleMap[jobsFilter] ?? 'Stock Jobs');
 
                     jobsTable.ajax.reload(null, true);
                 });
 
                 // inventory filter
-                $('#filter_cpny, #filter_bu').on('change', function(){
+                $('#filter_cpny, #filter_bu').on('change', function() {
                     invTable.ajax.reload(null, true);
                 });
 
                 // =========================
                 // MODAL - ADD
                 // =========================
-               $('#addInventoryBtn').on('click', function(){
+                $('#addInventoryBtn').on('click', function() {
                     $('#inventoryModalTitle').text('Add Inventory');
                     $('#inventoryForm')[0].reset();
                     $('#inv_id').val('');
@@ -802,10 +978,10 @@
                 // =========================
                 // MODAL - EDIT
                 // =========================
-                $(document).on('click', '.editInventoryBtn', function(){
+                $(document).on('click', '.editInventoryBtn', function() {
                     const id = $(this).data('id');
 
-                    $.get(`/invstock/${id}/edit`, function(i){
+                    $.get(`/invstock/${id}/edit`, function(i) {
                         $('#inventoryModalTitle').text('Edit Inventory');
                         $('#inventoryForm')[0].reset();
 
@@ -817,8 +993,9 @@
                         $('#inventory_descr').val(i.inventory_descr);
 
                         // untuk display dropdown (disabled) isi value dummy
-                        function setSelectDisplay($el, text){
-                            $el.prop('disabled', true).empty().append(new Option(text || '-', text || '-', true, true));
+                        function setSelectDisplay($el, text) {
+                            $el.prop('disabled', true).empty().append(new Option(text || '-', text ||
+                                '-', true, true));
                         }
 
                         setSelectDisplay($('#item_type'), i.item_type);
@@ -837,32 +1014,50 @@
                         $('#purchase_unit_hidden').val(i.purchase_unit ?? '');
 
                         openInvModal();
-                    }).fail(function(xhr){
+                    }).fail(function(xhr) {
                         console.error(xhr.responseText);
-                        Swal.fire({icon:'error', title:'Gagal', text:'Gagal load data inventory'});
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Gagal load data inventory'
+                        });
                     });
                 });
 
                 // =========================
                 // TOGGLE STATUS
                 // =========================
-                $(document).on('change', '.toggleInvStatus', function(){
+                $(document).on('change', '.toggleInvStatus', function() {
                     const id = $(this).data('id');
                     const newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                     $.ajax({
                         url: `/invstock/${id}/toggle-status`,
                         type: 'PUT',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        data: { status: newStatus },
-                        success: function(){
-                            invTable.ajax.reload(null, false);
-                            Swal.fire({icon:'success', title:'Berhasil', text:'Update Status Sukses', timer:1400, showConfirmButton:false});
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        error: function(xhr){
+                        data: {
+                            status: newStatus
+                        },
+                        success: function() {
+                            invTable.ajax.reload(null, false);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Update Status Sukses',
+                                timer: 1400,
+                                showConfirmButton: false
+                            });
+                        },
+                        error: function(xhr) {
                             console.error(xhr.responseText);
                             invTable.ajax.reload(null, false);
-                            Swal.fire({icon:'error', title:'Gagal', text:'Gagal update status inventory'});
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Gagal update status inventory'
+                            });
                         }
                     });
                 });
@@ -901,13 +1096,15 @@
                 // =========================
                 // PICK INVENTORY (JOBS)
                 // =========================
-                $('#closePickInventoryModal').on('click', function(){
+                $('#closePickInventoryModal').on('click', function() {
                     closePickInvModal();
-                    pickedId = null; pickedTrid = null; pickedIrid = null;
+                    pickedId = null;
+                    pickedTrid = null;
+                    pickedIrid = null;
                 });
 
-                $(document).on('click', '.btnPickInventory', function(){
-                    pickedId  = $(this).data('id') || null;
+                $(document).on('click', '.btnPickInventory', function() {
+                    pickedId = $(this).data('id') || null;
                     pickedTrid = $(this).data('trid') || null;
                     pickedIrid = $(this).data('irid') || null;
 
@@ -915,30 +1112,51 @@
                     openPickInvModal();
                 });
 
-                $('#pickInventoryTable tbody').on('click', 'tr', function(){
+                $('#pickInventoryTable tbody').on('click', 'tr', function() {
                     const row = pickInvTable.row(this).data();
                     if (!row || !row.inventoryid) return;
 
                     if (!pickedId && !pickedTrid) {
-                        Swal.fire({icon:'error', title:'Error', text:'ID/TRID kosong, tidak bisa update.'});
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'ID/TRID kosong, tidak bisa update.'
+                        });
                         return;
                     }
 
                     $.ajax({
                         url: "{{ route('stockjobs.set-inventory') }}",
                         type: 'POST',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        data: { id: pickedId, trid: pickedTrid, inventoryid: row.inventoryid },
-                        success: function(){
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: {
+                            id: pickedId,
+                            trid: pickedTrid,
+                            inventoryid: row.inventoryid
+                        },
+                        success: function() {
                             closePickInvModal();
-                            pickedId = null; pickedTrid = null; pickedIrid = null;
+                            pickedId = null;
+                            pickedTrid = null;
+                            pickedIrid = null;
 
                             jobsTable.ajax.reload(null, false);
-                            Swal.fire({icon:'success', title:'Stock Jobs Sukses', timer:1200, showConfirmButton:false});
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Stock Jobs Sukses',
+                                timer: 1200,
+                                showConfirmButton: false
+                            });
                         },
-                        error: function(xhr){
+                        error: function(xhr) {
                             console.error(xhr.responseText);
-                            Swal.fire({icon:'error', title:'Gagal', text:'Gagal update inventory ke item request'});
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Gagal update inventory ke item request'
+                            });
                         }
                     });
                 });
@@ -946,31 +1164,42 @@
                 // =========================
                 // ROLLBACK INVENTORYID (JOBS)
                 // =========================
-                $(document).on('click', '.btnRollback', function(){
+                $(document).on('click', '.btnRollback', function() {
                     const eid = $(this).data('eid');
                     if (!eid) return;
 
                     Swal.fire({
-                        title:'Rollback?',
-                        text:'Inventory ID akan dikosongkan dan item balik ke Stock Jobs.',
-                        icon:'warning',
-                        showCancelButton:true,
-                        confirmButtonText:'Ya, rollback',
-                        cancelButtonText:'Batal'
+                        title: 'Rollback?',
+                        text: 'Inventory ID akan dikosongkan dan item balik ke Stock Jobs.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, rollback',
+                        cancelButtonText: 'Batal'
                     }).then((r) => {
                         if (!r.isConfirmed) return;
 
                         $.ajax({
                             url: `/stockjobs/${eid}/rollback`,
                             type: 'PUT',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                            success: function(){
-                                jobsTable.ajax.reload(null, false);
-                                Swal.fire({icon:'success', title:'Rollback sukses', timer:1200, showConfirmButton:false});
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
-                            error: function(xhr){
+                            success: function() {
+                                jobsTable.ajax.reload(null, false);
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Rollback sukses',
+                                    timer: 1200,
+                                    showConfirmButton: false
+                                });
+                            },
+                            error: function(xhr) {
                                 console.error(xhr.responseText);
-                                Swal.fire({icon:'error', title:'Gagal', text:'Gagal rollback inventory id'});
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Gagal rollback inventory id'
+                                });
                             }
                         });
                     });
