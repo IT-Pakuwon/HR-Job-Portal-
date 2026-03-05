@@ -741,7 +741,7 @@ Route::post('/logout', function () {
             'hash' => '[A-Za-z0-9]+',
         ])
         ->name('canvass.createcsreuse');
-        
+
         // SAVE / STORE CANVASS SHEET
         Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
         Route::post('/cssave',  [CanvassController::class, 'saveCS'])->name('cs.save');
@@ -1538,13 +1538,29 @@ Route::post('/logout', function () {
     Route::prefix('report-warehouse')->group(function () {
 
         Route::get('/', [ReportWarehouseController::class,'index'])
-            ->name('repportwh');
+            ->name('reportwh');
 
-        Route::get('/report-warehouse/json', [ReportWarehouseController::class,'json'])
+        Route::get('/json', [ReportWarehouseController::class,'json'])
             ->name('report.warehouse.json');
 
-        Route::get('/report-warehouse/export',[ReportWarehouseController::class,'export'])
+        Route::get('/export',[ReportWarehouseController::class,'export'])
             ->name('report.warehouse.export');
+
+        Route::get('/view/{type}', function ($type) {
+
+            if ($type == 'spb') {
+                return view('pages.report-warehouse.spb-detail');
+            }
+
+            if ($type == 'issue') {
+                return view('pages.report-warehouse.issue-detail');
+            }
+
+            if ($type == 'receipt') {
+                return view('pages.report-warehouse.receipt-detail');
+            }
+
+        });
 
     });
     // === IFCA Integration MASTER ===

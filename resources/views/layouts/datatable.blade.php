@@ -80,6 +80,21 @@ SEARCH / FILTER / LENGTH CONTROLS (GLOBAL)
         color: #4b5563;
     }
 
+
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        padding-bottom: 10px;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        padding-top: 10px;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        padding-top: 10px;
+    }
+
     /* LENGTH (Show entries) */
     .dataTables_wrapper .dataTables_length select {
         width: auto !important;
