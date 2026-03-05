@@ -1,4 +1,9 @@
 <style>
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
     body {
         font-family: Arial, sans-serif;
         font-size: 12px;
@@ -218,7 +223,7 @@
         @forelse($detail as $i => $dt)
             <tr>
                 <td style="text-align:center;">{{ $i + 1 }}</td>
-                <td>{{ $dt->inventoryid }} 
+                <td>{{ $dt->inventoryid }}
                 </td>
                 <td>{{ $dt->inventory_descr }} <br>
                     <span class="text-sm text-gray-500 dark:text-gray-400">

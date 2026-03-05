@@ -1,4 +1,9 @@
 <style>
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
     body {
         font-family: Arial, sans-serif;
         font-size: 12px;
