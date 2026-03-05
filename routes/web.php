@@ -734,6 +734,14 @@ Route::post('/logout', function () {
                 'hash' => '[A-Za-z0-9]+',
             ])
             ->name('canvass.createcs');
+
+        Route::get('/createcsrev/{doc}/{hash}', [CanvassController::class, 'createCSReuse'])
+        ->where([
+            'doc'  => 'PO',
+            'hash' => '[A-Za-z0-9]+',
+        ])
+        ->name('canvass.createcsreuse');
+        
         // SAVE / STORE CANVASS SHEET
         Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
         Route::post('/cssave',  [CanvassController::class, 'saveCS'])->name('cs.save');

@@ -99,7 +99,127 @@ class TrAttachmentController extends Controller
         return $result;
     }
 
-    public function uploadAttachments(Request $request, string $doctype, string $refnbr)
+public function uploadAttachments(Request $request, string $doctype, string $refnbr)
+{
+    $user = Auth::user();
+    $username = $user->username ?? 'system';
+
+    $cpnyId = $request->input('cpny_id') ?? $request->input('cpnyid');
+    $deptId = $request->input('department_id') ?? $request->input('departementid');
+
+    // =========================================================
+    // DEBUG: cek environment upload yg dipakai request WEB (FPM)
+    // =========================================================
+    \Log::info('UPLOAD DEBUG', [
+        'doctype'            => $doctype,
+        'refnbr'             => $refnbr,
+        'content_type'       => $request->header('Content-Type'),
+        'content_length'     => $request->server('CONTENT_LENGTH'),
+        'post_max_size'      => ini_get('post_max_size'),
+        'upload_max_filesize'=> ini_get('upload_max_filesize'),
+        'max_file_uploads'   => ini_get('max_file_uploads'),
+        'upload_tmp_dir'     => ini_get('upload_tmp_dir'),
+        'sys_temp_dir'       => sys_get_temp_dir(),
+        '_files_keys'        => array_keys($_FILES ?? []),
+        '_files_attachments' => $_FILES['attachments'] ?? null,
+    ]);
+
+    // =========================================================
+    // Ambil attachments (bisa 1 file atau array of files)
+    // =========================================================
+    $att = $request->file('attachments');
+
+    $attList = [];
+    if ($att instanceof \Illuminate\Http\UploadedFile) {
+        $attList = [$att];
+    } elseif (is_array($att)) {
+        $attList = $att;
+    }
+
+    // =========================================================
+    // Validasi file: kalau invalid / tmp kosong -> jangan proses
+    // =========================================================
+    $validFiles = [];
+    $invalidInfo = [];
+
+    foreach ($attList as $f) {
+        if (!$f) {
+            $invalidInfo[] = ['name' => null, 'size' => null, 'error' => null, 'isValid' => false, 'tmp' => null];
+            continue;
+        }
+
+        $tmp = method_exists($f, 'getPathname') ? $f->getPathname() : null;
+
+        $info = [
+            'name'        => $f->getClientOriginalName(),
+            'size'        => $f->getSize(),
+            'error'       => $f->getError(),  // penting: ini kode error PHP upload
+            'isValid'     => $f->isValid(),
+            'tmp'         => $tmp,
+            'tmp_exists'  => $tmp ? file_exists($tmp) : false,
+            'tmp_readable'=> $tmp ? is_readable($tmp) : false,
+            'client_mime' => $f->getClientMimeType(),
+        ];
+
+        // kalau upload gagal, biasanya isValid=false atau tmp kosong
+        if (!$f->isValid() || empty($tmp) || !is_readable($tmp)) {
+            $invalidInfo[] = $info;
+            continue;
+        }
+
+        $validFiles[] = $f;
+    }
+
+    \Log::info('UPLOAD FILE CHECK', [
+        'valid_count'   => count($validFiles),
+        'invalid_count' => count($invalidInfo),
+        'invalid'       => $invalidInfo,
+    ]);
+
+    // =========================================================
+    // Kalau tidak ada file valid -> return 422 (bukan 500)
+    // =========================================================
+    if (count($validFiles) === 0) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No files received (upload failed before reaching server/tmp).',
+            'invalid' => $invalidInfo, // lihat ini di response / log untuk tahu penyebabnya
+        ], 422);
+    }
+
+    // =========================================================
+    // Meta upload
+    // =========================================================
+    $meta = [
+        'refnbr'        => (string) $refnbr,
+        'doctype'       => strtoupper($doctype),
+        'cpny_id'       => $cpnyId,
+        'department_id' => $deptId,
+        'base_folder'   => 'att-purchasing-app/' . strtolower($doctype),
+        'created_by'    => $username,
+    ];
+
+    try {
+        // Panggil uploadInternal langsung (tidak perlu app(self::class))
+        $this->uploadInternal($meta, $validFiles);
+
+        // setelah sukses, kirim daftar terbaru
+        return $this->listAttachments($request, $doctype, $refnbr);
+
+    } catch (\Throwable $e) {
+        \Log::error('uploadAttachments error', [
+            'doctype' => $doctype,
+            'refnbr'  => $refnbr,
+            'error'   => $e->getMessage(),
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Upload failed: ' . $e->getMessage(),
+        ], 500);
+    }
+}
+    public function uploadAttachments_xxx(Request $request, string $doctype, string $refnbr)
     {
         // dd($request->all());
         // $user = $request->user();

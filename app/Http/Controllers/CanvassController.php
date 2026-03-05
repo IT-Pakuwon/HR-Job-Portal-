@@ -58,12 +58,791 @@ use App\Models\TrKontrak;
 use App\Http\Controllers\Traits\HasAutonbr;
 
 
+
 class CanvassController extends Controller
 {
 
     use HasAutonbr;
 
     public function createCS(string $doc, string $hash)
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        $src = \Hashids::decode($hash)[0] ?? null;
+        abort_if(!$src, 404);
+
+        $doc = strtoupper($doc);
+        abort_unless(in_array($doc, ['SPPB','SPPJ','SPPK','SPPT'], true), 404, 'Invalid doc type');
+
+        $header = null;
+        $detail = collect();
+        $docno  = null;
+        $refnbr = null;
+        $top_type = 'PO';
+        $sourceShowUrl = null;
+        $prefix2 = null; // keep for blade compatibility
+
+        switch ($doc) {
+            case 'SPPB':
+                $header = TrSPPB::with([
+                    'requestType:requesttypeid,requesttype_name',
+                    'creator:username,name',
+                    'purchaser:username,name'
+                ])->findOrFail($src);
+
+                $detail = TrSPPBdetail::where('sppbid', $header->sppbid)
+                    ->orderBy('sppb_no','asc')->get();
+
+                $refnbr = $header->sppbid;
+                $docno  = $header->sppbno ?? $header->doc_no ?? $header->sppbid;
+                $top_type = 'PO';
+                $sourceShowUrl = url('/showsppbs/' . $hash);
+                break;
+
+            case 'SPPJ':
+                $header = TrSPPJ::with([
+                    'requestType:requesttypeid,requesttype_name',
+                    'creator:username,name',
+                    'purchaser:username,name'
+                ])->findOrFail($src);
+
+                $detail = TrSPPJdetail::where('sppjid', $header->sppjid)
+                    ->orderBy('sppj_no','asc')->get();
+
+                $refnbr = $header->sppjid;
+                $docno  = $header->sppjno ?? $header->doc_no ?? $header->sppjid;
+                $top_type = 'SPK';
+                $sourceShowUrl = url('/showsppjs/' . $hash);
+                break;
+
+            case 'SPPK':
+                $header = TrSPPK::with([
+                    'requestType:requesttypeid,requesttype_name',
+                    'creator:username,name',
+                    'purchaser:username,name'
+                ])->findOrFail($src);
+
+                $detail = TrSPPKdetail::where('sppkid', $header->sppkid)
+                    ->orderBy('sppk_no','asc')->get();
+
+                $refnbr = $header->sppkid;
+                $docno  = $header->sppkno ?? $header->doc_no ?? $header->sppkid;
+                $top_type = 'SPK';
+                $sourceShowUrl = url('/showsppks/' . $hash);
+                break;
+
+            case 'SPPT':
+                $header = TrSPPT::with([
+                    'requestType:requesttypeid,requesttype_name',
+                    'creator:username,name',
+                    'purchaser:username,name'
+                ])->findOrFail($src);
+
+                $detail = TrSPPTdetail::where('spptid', $header->spptid)
+                    ->orderBy('sppt_no','asc')->get();
+
+                $refnbr = $header->spptid;
+                $docno  = $header->spptno ?? $header->doc_no ?? $header->spptid;
+                $top_type = 'SPK';
+                $sourceShowUrl = url('/showsppts/' . $hash);
+                break;
+        }
+
+        // ===== Attachments by refnbr =====
+        $rows = TrAttachment::where('refnbr', $refnbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        // ===== Items + last price =====
+        $items = $this->mapRemainingLines($detail);
+
+        $invIds = collect($items)->pluck('inventoryid')->filter()->unique()->values()->all();
+
+        $lastUnitcostMap = [];
+        if (!empty($invIds)) {
+            $lpRows = TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at')
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')
+                ->orderByDesc('created_at')
+                ->get();
+
+            $lastUnitcostMap = $lpRows
+                ->groupBy('inventoryid')
+                ->map(fn($g) => (float)($g->first()->unitcost ?? 0))
+                ->toArray();
+        }
+
+        $items = collect($items)->map(function ($it) use ($lastUnitcostMap) {
+            $invId = $it->inventoryid ?? null;
+            $it->last_unitcost = $invId ? ($lastUnitcostMap[$invId] ?? 0) : 0;
+            return $it;
+        });
+
+        $tops = MsTop::where('status','A')
+            ->where('top_type', $top_type)
+            ->orderByRaw('COALESCE(top_days, 9999), top_name')
+            ->get(['topid','top_name','top_days','top_type']);
+
+        return view('pages.canvass.createcs', [
+            'doc'           => $doc,
+            'src_id'        => $src,
+            'docno'         => $docno,
+            'header'        => $header,
+            'attachment'    => $attachments,
+            'items'         => $items,
+            'tops'          => $tops,
+            'poHeader'      => null,      // keep blade safe
+            'prefix2'       => $prefix2,  // keep blade safe
+            'sourceShowUrl' => $sourceShowUrl,
+            'refnbr'        => $refnbr,
+        ]);
+    }
+
+    public function createCSReuse(string $doc, string $hash)
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        $src = \Hashids::decode($hash)[0] ?? null;
+        abort_if(!$src, 404);
+
+        $doc = 'PO';
+
+        $header = null;
+        $detail = collect();
+        $docno  = null;
+        $refnbr = null;
+        $top_type = 'PO';
+        $sourceShowUrl = null;
+        $prefix2 = null;
+
+        $bqid   = null;
+        $bqtype = null;
+        $userPeminta = null;
+
+        $poHeader = null;
+        $reuseFirst = TrPOReuse::query()->find($src);
+
+        $isKontrak = false;
+        $kontrakHeader = null;
+
+        $budgetPerpost = null;
+        $prevCsid = null;
+
+        // =========================================================
+        // helper: ambil bqid/bqtype + user peminta DARI SPPJ/SPPT SAJA
+        // (karena hanya mereka yang punya bqid/bqtype)
+        // =========================================================
+        $fillBqFromSppjSppt = function (?string $key) use (&$bqid, &$bqtype, &$userPeminta) {
+            if (!$key) return;
+
+            // --- SPPJ ---
+            if (Str::startsWith($key, 'PJ')) {
+                $pj = TrSPPJ::query()
+                    ->select(['bqid', 'bqtype', 'created_by'])
+                    ->where('sppjid', $key)
+                    ->first();
+
+                if ($pj) {
+                    $bqid   = $pj->bqid   ?? $bqid;
+                    $bqtype = $pj->bqtype ?? $bqtype;
+                    if (!empty($pj->created_by)) $userPeminta = $pj->created_by;
+                }
+                return;
+            }
+
+            // --- SPPT ---
+            if (Str::startsWith($key, 'PT')) {
+                // ✅ aman: hanya select bqid/bqtype kalau kolomnya ada
+                $m = new TrSPPT;
+                $table = $m->getTable();
+                $conn  = $m->getConnectionName() ?: config('database.default');
+
+                $cols = ['created_by'];
+                if (Schema::connection($conn)->hasColumn($table, 'bqid'))   $cols[] = 'bqid';
+                if (Schema::connection($conn)->hasColumn($table, 'bqtype')) $cols[] = 'bqtype';
+
+                $pt = TrSPPT::query()
+                    ->select($cols)
+                    ->where('spptid', $key)
+                    ->first();
+
+                if ($pt) {
+                    if (property_exists($pt, 'bqid'))   $bqid   = $pt->bqid   ?? $bqid;
+                    if (property_exists($pt, 'bqtype')) $bqtype = $pt->bqtype ?? $bqtype;
+                    if (!empty($pt->created_by)) $userPeminta = $pt->created_by;
+                }
+                return;
+            }
+
+            // kalau PB/PK atau prefix lain -> tidak ada bqid/bqtype, skip
+            return;
+        };
+
+        // =========================================================
+        // helper: ambil budget_perpost/perpost dari sumber PB/PJ/PK/PT
+        // =========================================================
+        $fillBudgetPerpostFromSource = function (?string $key) use (&$budgetPerpost) {
+            if (!$key) return;
+
+            $try = function(string $modelClass, string $keyCol, string $keyVal) use (&$budgetPerpost) {
+                $m = new $modelClass;
+                $table = $m->getTable();
+                $conn  = $m->getConnectionName() ?: config('database.default');
+
+                $cols = [];
+                if (Schema::connection($conn)->hasColumn($table, 'budget_perpost')) $cols[] = 'budget_perpost';
+                if (Schema::connection($conn)->hasColumn($table, 'perpost'))        $cols[] = 'perpost';
+                if (empty($cols)) return false;
+
+                $row = $modelClass::query()->select($cols)->where($keyCol, $keyVal)->first();
+                if (!$row) return false;
+
+                if (in_array('budget_perpost', $cols, true) && !empty($row->budget_perpost)) {
+                    $budgetPerpost = $row->budget_perpost;
+                    return true;
+                }
+                if (in_array('perpost', $cols, true) && !empty($row->perpost)) {
+                    $budgetPerpost = $row->perpost;
+                    return true;
+                }
+                return false;
+            };
+
+            if (Str::startsWith($key, 'PB')) { if ($try(TrSPPB::class,'sppbid',$key)) return; }
+            if (Str::startsWith($key, 'PJ')) { if ($try(TrSPPJ::class,'sppjid',$key)) return; }
+            if (Str::startsWith($key, 'PK')) { if ($try(TrSPPK::class,'sppkid',$key)) return; }
+            if (Str::startsWith($key, 'PT')) { if ($try(TrSPPT::class,'spptid',$key)) return; }
+
+            $try(TrSPPB::class,'sppbid',$key)
+            || $try(TrSPPJ::class,'sppjid',$key)
+            || $try(TrSPPK::class,'sppkid',$key)
+            || $try(TrSPPT::class,'spptid',$key);
+        };
+
+        // =========================================================
+        // helper: prev csid
+        // =========================================================
+        $findPrevCsid = function (?string $ref) use (&$prevCsid) {
+            if (!$ref) return;
+
+            $prevCsid = TrCS::query()
+                ->where('sppbjktid', $ref) // kalau kolomnya refnbr -> ganti
+                ->orderByDesc('created_at')
+                ->value('csid');
+        };
+
+        // =========================================================
+        // Resolve source: Reuse / PO / Kontrak
+        // =========================================================
+        if ($reuseFirst) {
+            $ponbrKey = $reuseFirst->ponbr;
+
+            $kontrakHeader = TrKontrak::query()->where('kontrakid', $ponbrKey)->first();
+            if ($kontrakHeader) {
+                $isKontrak = true;
+            } else {
+                $poHeader = TrPO::with(['creator:username,name'])
+                    ->where('ponbr', $ponbrKey)
+                    ->first();
+                abort_if(!$poHeader, 404);
+            }
+        } else {
+            $poHeader = TrPO::with(['creator:username,name'])->findOrFail($src);
+        }
+
+        // =========================================================
+        // KONTRAK MODE
+        // =========================================================
+        if ($isKontrak) {
+            $header = $kontrakHeader;
+
+            $srcKey = $kontrakHeader->sppbjktid ?? null;
+
+            // bqid/bqtype + user peminta hanya dari PJ/PT
+            if ($srcKey && Str::startsWith($srcKey, ['PJ','PT'])) {
+                $fillBqFromSppjSppt($srcKey);
+            }
+
+            // budget perpost dari PB/PJ/PK/PT
+            $fillBudgetPerpostFromSource($srcKey);
+
+            // fallback user peminta kalau PJ/PT tidak ketemu
+            if (!$userPeminta) $userPeminta = $kontrakHeader->created_by ?? null;
+
+            // refnbr untuk attachment + prev cs
+            $refnbr = (string)($srcKey ?: $kontrakHeader->kontrakid);
+
+            $findPrevCsid($refnbr);
+
+            $docno  = (string)$kontrakHeader->kontrakid;
+            $top_type = 'PO';
+
+            $detail = TrPOReuse::query()
+                ->where('ponbr', $kontrakHeader->kontrakid)
+                ->where('cpny_id', $kontrakHeader->cpny_id)
+                ->where(function($q){
+                    $q->whereNull('openordered')->orWhere('openordered','>',0);
+                })
+                ->orderBy('id','asc')
+                ->get();
+
+            $poHeader = null;
+            $prefix2 = null;
+
+        } else {
+            // =========================================================
+            // PO NORMAL MODE
+            // =========================================================
+            $header = $poHeader;
+
+            $sppbjktid = $poHeader->sppbjktid ?? null;
+
+            // bqid/bqtype hanya PJ/PT
+            if ($sppbjktid && Str::startsWith($sppbjktid, ['PJ','PT'])) {
+                $fillBqFromSppjSppt($sppbjktid);
+            }
+
+            // budget perpost dari sumber
+            $fillBudgetPerpostFromSource($sppbjktid);
+
+            if ($sppbjktid) {
+                $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first()
+                    ?? TrSPPJ::where('sppjid', $sppbjktid)->first()
+                    ?? TrSPPK::where('sppkid', $sppbjktid)->first()
+                    ?? TrSPPT::where('spptid', $sppbjktid)->first();
+
+                if ($headerSource) $header = $headerSource;
+
+                if (Str::startsWith($sppbjktid, ['PB', 'PK'])) {
+                    $prefix2 = substr($sppbjktid, 0, 2);
+                }
+            }
+
+            $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
+                ->where('cpny_id', $poHeader->cpny_id)
+                ->where(function($q){
+                    $q->whereNull('openordered')->orWhere('openordered','>',0);
+                })
+                ->orderBy('id','asc')
+                ->get();
+
+            $refnbr   = $poHeader->sppbjktid ?? $poHeader->ponbr;
+            $docno    = $poHeader->ponbr;
+            $top_type = $poHeader->potype ?? 'PO';
+
+            // prev cs utk PO reuse juga boleh (kalau mau)
+            $findPrevCsid($refnbr);
+        }
+
+        
+        // ===== Attachments =====
+        $rows = TrAttachment::where('refnbr', $refnbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        // ===== Items + last price =====
+        $items = $this->mapRemainingLines($detail);
+
+        $invIds = collect($items)->pluck('inventoryid')->filter()->unique()->values()->all();
+
+        $lastUnitcostMap = [];
+        if (!empty($invIds)) {
+            $lpRows = TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at')
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')
+                ->orderByDesc('created_at')
+                ->get();
+
+            $lastUnitcostMap = $lpRows
+                ->groupBy('inventoryid')
+                ->map(fn($g) => (float)($g->first()->unitcost ?? 0))
+                ->toArray();
+        }
+
+        $items = collect($items)->map(function ($it) use ($lastUnitcostMap) {
+            $invId = $it->inventoryid ?? null;
+            $it->last_unitcost = $invId ? ($lastUnitcostMap[$invId] ?? 0) : 0;
+            return $it;
+        });
+
+        $tops = MsTop::where('status','A')
+            ->where('top_type',$top_type)
+            ->orderByRaw('COALESCE(top_days, 9999), top_name')
+            ->get(['topid','top_name','top_days','top_type']);
+
+
+        return view('pages.canvass.createcs', [
+            'doc'            => $doc,
+            'src_id'         => $src,
+            'docno'          => $docno,
+            'header'         => $header,
+            'attachment'     => $attachments,
+            'items'          => $items,
+            'tops'           => $tops,
+            'poHeader'       => $poHeader,
+            'prefix2'        => $prefix2,
+            'sourceShowUrl'  => $sourceShowUrl,
+            'refnbr'         => $refnbr,
+            'bqid'           => $bqid,
+            'bqtype'         => $bqtype,
+            'user_peminta'   => $userPeminta,
+            'budget_perpost' => $budgetPerpost,
+            'prev_csid'      => $prevCsid,
+        ]);
+    }
+
+    public function createCSReuse_xxx(string $doc, string $hash)
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        $src = \Hashids::decode($hash)[0] ?? null;
+        abort_if(!$src, 404);
+
+        $doc = 'PO';
+
+        $header = null;
+        $detail = collect();
+        $docno  = null;
+        $refnbr = null;
+        $top_type = 'PO';
+        $sourceShowUrl = null; // PO biasanya tidak ada show URL SPPB/J/K/T
+        $prefix2 = null;
+        $bqid   = null;
+        $bqtype = null;
+        $userPeminta = null;
+
+        // src dari hash bisa: id TrPO (normal) atau id TrPOReuse
+        $poHeader = null;
+        $reuseFirst = TrPOReuse::query()->find($src);
+        $isKontrak = false;
+        $kontrakHeader = null;
+        $budgetPerpost = null;
+        $prevCsid = null;        
+        
+
+        $fillBudgetPerpostFromSource = function (?string $key) use (&$budgetPerpost) {
+            if (!$key) return;
+
+            $try = function(string $modelClass, string $keyCol, string $keyVal) use (&$budgetPerpost) {
+                $m = new $modelClass;
+                $table = $m->getTable();
+                $conn  = $m->getConnectionName() ?: config('database.default');
+
+                // beberapa table pakai budget_perpost, ada yg pakai perpost
+                $cols = [];
+                if (Schema::connection($conn)->hasColumn($table, 'budget_perpost')) $cols[] = 'budget_perpost';
+                if (Schema::connection($conn)->hasColumn($table, 'perpost'))        $cols[] = 'perpost';
+
+                if (empty($cols)) return false;
+
+                $row = $modelClass::query()->select($cols)->where($keyCol, $keyVal)->first();
+                if (!$row) return false;
+
+                if (in_array('budget_perpost', $cols, true) && !empty($row->budget_perpost)) {
+                    $budgetPerpost = $row->budget_perpost;
+                    return true;
+                }
+                if (in_array('perpost', $cols, true) && !empty($row->perpost)) {
+                    $budgetPerpost = $row->perpost;
+                    return true;
+                }
+                return false;
+            };
+
+            // urutan sesuai prefix (lebih cepat), tapi aman kalau tidak match
+            if (Str::startsWith($key, 'PB')) { if ($try(\App\Models\TrSPPB::class,'sppbid',$key)) return; }
+            if (Str::startsWith($key, 'PJ')) { if ($try(\App\Models\TrSPPJ::class,'sppjid',$key)) return; }
+            if (Str::startsWith($key, 'PK')) { if ($try(\App\Models\TrSPPK::class,'sppkid',$key)) return; }
+            if (Str::startsWith($key, 'PT')) { if ($try(\App\Models\TrSPPT::class,'spptid',$key)) return; }
+
+            // fallback scan (kalau prefix tidak standar)
+            $try(\App\Models\TrSPPB::class,'sppbid',$key)
+            || $try(\App\Models\TrSPPJ::class,'sppjid',$key)
+            || $try(\App\Models\TrSPPK::class,'sppkid',$key)
+            || $try(\App\Models\TrSPPT::class,'spptid',$key);
+        };
+
+        $findPrevCsid = function (?string $ref) use (&$prevCsid) {
+            if (!$ref) return;
+
+            $prevCsid = \App\Models\TrCS::query()
+                ->where('sppbjktid', $ref)                
+                ->orderByDesc('created_at')
+                ->value('csid');
+        };
+
+        if ($reuseFirst) {
+            $ponbrKey = $reuseFirst->ponbr;
+
+            $kontrakHeader = TrKontrak::query()->where('kontrakid', $ponbrKey)->first();
+            if ($kontrakHeader) {
+                $isKontrak = true;
+            } else {
+                $poHeader = TrPO::with(['creator:username,name'])
+                    ->where('ponbr', $ponbrKey)
+                    ->first();
+                abort_if(!$poHeader, 404);
+            }
+        } else {
+            $poHeader = TrPO::with(['creator:username,name'])->findOrFail($src);
+        }
+
+        if ($isKontrak) {
+            // =========================
+            // KONTRAK MODE
+            // =========================
+            $header = $kontrakHeader;
+            $fillBqFromSppjSppt($kontrakHeader->sppbjktid ?? null);
+            if (!$userPeminta) {
+                $userPeminta = $kontrakHeader->created_by ?? null; // atau Auth user kalau mau
+            }
+
+            // refnbr untuk attachment dan juga lookup prev cs
+            $refnbr = (string)($srcKey ?? $kontrakHeader->kontrakid);
+
+            // prev csid utk kontrak (ambil dari CS sebelumnya yg pakai refnbr yg sama)
+            $findPrevCsid($refnbr);
+
+            // NOTE: kalau sppbjktid kontrak null, fallback ke kontrakid (biar attachment tidak null)
+            $refnbr = (string)($kontrakHeader->sppbjktid ?? $kontrakHeader->kontrakid);
+
+            $docno  = (string)$kontrakHeader->kontrakid;
+            $top_type = 'PO';
+
+            $detail = TrPOReuse::query()
+                ->where('ponbr', $kontrakHeader->kontrakid)
+                ->where('cpny_id', $kontrakHeader->cpny_id)
+                ->where(function($q){
+                    $q->whereNull('openordered')->orWhere('openordered','>',0);
+                })
+                ->orderBy('id','asc')
+                ->get();
+
+            $poHeader = null;
+            $prefix2 = null;
+
+        } else {
+            // =========================
+            // PO NORMAL MODE
+            // =========================
+            $header = $poHeader;            
+
+            $sppbjktid = $poHeader->sppbjktid ?? null;
+            $fillBqFromSppjSppt($sppbjktid);
+            if ($sppbjktid && Str::startsWith($sppbjktid, ['PJ', 'PT'])) {
+                $fillBqFromSppjSppt($sppbjktid);
+            }
+
+            if ($sppbjktid) {
+                $headerSource = TrSPPB::where('sppbid', $sppbjktid)->first()
+                    ?? TrSPPJ::where('sppjid', $sppbjktid)->first()
+                    ?? TrSPPK::where('sppkid', $sppbjktid)->first()
+                    ?? TrSPPT::where('spptid', $sppbjktid)->first();
+
+                if ($headerSource) $header = $headerSource;
+
+                if (Str::startsWith($sppbjktid, ['PB', 'PK'])) {
+                    $prefix2 = substr($sppbjktid, 0, 2);
+                }
+            }
+
+            $detail = TrPOReuse::where('ponbr', $poHeader->ponbr)
+                ->where('cpny_id', $poHeader->cpny_id)
+                ->where(function($q){
+                    $q->whereNull('openordered')->orWhere('openordered','>',0);
+                })
+                ->orderBy('id','asc')
+                ->get();
+
+            $refnbr   = $poHeader->sppbjktid ?? $poHeader->ponbr;
+            $docno    = $poHeader->ponbr;
+            $top_type = $poHeader->potype ?? 'PO';
+        }
+
+        // ===== Attachments =====
+        $rows = TrAttachment::where('refnbr', $refnbr)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+
+            $signedUrl = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+
+            return (object) [
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        // ===== Items + last price =====
+        $items = $this->mapRemainingLines($detail);
+
+        $invIds = collect($items)->pluck('inventoryid')->filter()->unique()->values()->all();
+
+        $lastUnitcostMap = [];
+        if (!empty($invIds)) {
+            $lpRows = TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at')
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')
+                ->orderByDesc('created_at')
+                ->get();
+
+            $lastUnitcostMap = $lpRows
+                ->groupBy('inventoryid')
+                ->map(fn($g) => (float)($g->first()->unitcost ?? 0))
+                ->toArray();
+        }
+
+        $items = collect($items)->map(function ($it) use ($lastUnitcostMap) {
+            $invId = $it->inventoryid ?? null;
+            $it->last_unitcost = $invId ? ($lastUnitcostMap[$invId] ?? 0) : 0;
+            return $it;
+        });
+
+        $tops = MsTop::where('status','A')
+            ->where('top_type',$top_type)
+            ->orderByRaw('COALESCE(top_days, 9999), top_name')
+            ->get(['topid','top_name','top_days','top_type']);
+
+        
+
+        return view('pages.canvass.createcs', [
+            'doc'           => $doc,
+            'src_id'        => $src,
+            'docno'         => $docno,
+            'header'        => $header,
+            'attachment'    => $attachments,
+            'items'         => $items,
+            'tops'          => $tops,
+            'poHeader'      => $poHeader,
+            'prefix2'       => $prefix2,
+            'sourceShowUrl' => $sourceShowUrl,
+            'refnbr'        => $refnbr,
+            'bqid'          => $bqid,
+            'bqtype'        => $bqtype,
+            'user_peminta' => $userPeminta,
+            'budget_perpost' => $budgetPerpost,
+            'prev_csid'      => $prevCsid,
+        ]);
+    }
+
+    public function createCS_old(string $doc, string $hash)
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
@@ -1472,7 +2251,9 @@ class CanvassController extends Controller
         $bq = null;
         $bq_eid = null;
         if (!empty($cs->bqid)) {
-            $bq = TrBQCS::where('bqid', $cs->bqid)->first();   // <— sesuai permintaan
+            $bq = TrBQCS::where('bqid', $cs->bqid)
+                ->where('csid', $cs->csid)
+                ->first();   
             if ($bq) {
                 $bq_eid = Hashids::encode($bq->id);
             }

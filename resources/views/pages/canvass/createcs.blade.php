@@ -9,16 +9,21 @@
                     <input type="hidden" name="sppbjktid" value="{{ $refnbr }}">
                     <input type="hidden" name="cpny_id" value="{{ $header->cpny_id }}">
                     <input type="hidden" name="department_id" value="{{ $header->department_id }}">
-                    <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}">
+                    {{-- <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}"> --}}
+                    <input type="hidden" name="bqid" value="{{ $bqid ?? ($header->bqid ?? '') }}">
                     <input type="hidden" name="woid" value="{{ $header->woid ?? '' }}">
                     <input type="hidden" name="spbid" value="{{ $header->spbid ?? '' }}">
                     <input type="hidden" name="keperluan" value="{{ $header->keperluan ?? '' }}">
-                    <input type="hidden" name="bqtype" value="{{ $header->bqtype ?? '' }}">
-                    <input type="hidden" name="budget_perpost" value="{{ $header->budget_perpost ?? '' }}">
+                    {{-- <input type="hidden" name="bqtype" value="{{ $header->bqtype ?? '' }}"> --}}
+                    <input type="hidden" name="bqtype" value="{{ $bqtype ?? ($header->bqtype ?? '') }}">
+                    {{-- <input type="hidden" name="budget_perpost" value="{{ $header->budget_perpost ?? '' }}"> --}}
+                    <input type="hidden" name="budget_perpost" value="{{ $budget_perpost ?? ($header->budget_perpost ?? '') }}">
                     {{-- <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}"> --}}
-                    <input type="hidden" name="user_peminta" value="{{ $header->created_by }}">
+                    {{-- <input type="hidden" name="user_peminta" value="{{ $header->created_by }}"> --}}
+                    <input type="hidden" name="user_peminta" value="{{ $user_peminta ?? ($header->created_by ?? '') }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
-                    <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}">
+                    {{-- <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}"> --}}
+                    <input type="hidden" name="prev_csid" value="{{ $prev_csid ?? ($poHeader->csid ?? '') }}">
 
                     <!-- Create CS Header -->
                     <div

@@ -298,6 +298,7 @@ class BQCSController extends Controller
             // 3b) Update semua detail BQ: vendorid1..6 mengikuti CS
             TrBQCSDetail::on('pgsql')
                 ->where('bqid', $bq->bqid)
+                ->where('csid', $bq->csid)
                 ->update([
                     'vendorid1' => $csVendors[1]['id'],
                     'vendorid2' => $csVendors[2]['id'],
@@ -311,6 +312,7 @@ class BQCSController extends Controller
         // 4) Ambil ulang detail setelah sinkron
         $details = TrBQCSDetail::on('pgsql')
             ->where('bqid', $bq->bqid)
+            ->where('csid', $bq->csid)
             ->orderBy('bq_no')
             ->orderBy('bq_line_no')
             ->get();

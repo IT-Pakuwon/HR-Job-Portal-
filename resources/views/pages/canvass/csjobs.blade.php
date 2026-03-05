@@ -969,7 +969,7 @@
                 className: 'text-left',
                 render: (_d, _t, row) => {
                     // ✅ create tetap pakai eid (hash id tr_po_reuse)
-                    const createUrl = `/createcs/${row.doc_type}/${row.eid}`;
+                    const createUrl = `/createcsrev/${row.doc_type}/${row.eid}`;
                     return `
                     <div class="inline-flex gap-2">
                         <a href="${createUrl}"

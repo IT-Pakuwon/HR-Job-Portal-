@@ -1136,106 +1136,7 @@
             });
         }
     </script>
-
-
-    {{-- <script>
-        $(function() {
-            const listUrl = @json(route('attachments.list', ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
-            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'PJ', 'refnbr' => $sppj->sppjid]));
-
-            function $tbody() {
-                return $('#sppjAttachmentTbody');
-            } // <tbody id="sppjAttachmentTbody">
-
-            function renderSppbAttachmentRows(rows) {
-                const $tb = $tbody().empty();
-
-                if (!rows || !rows.length) {
-                    $tb.append(`
-                <tr>
-                <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-                    No attachments found.
-                </td>
-                </tr>
-            `);
-                    return;
-                }
-
-                rows.forEach(at => {
-                    const fileName = at.name || at.display_name || '(no name)';
-                    const createdBy = at.created_user ?? at.created_by ?? '-';
-                    const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') :
-                        '-';
-                    const linkHtml = at.url ?
-                        `<a href="${at.url}" target="_blank"
-                    class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>` :
-                        `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span>
-                <span class="ml-2  text-sm  text-red-500">(link unavailable)</span>`;
-
-                    $tb.append(`
-                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-                <td class="px-3 py-2">${linkHtml}</td>
-                <td class="px-3 py-2">${createdBy}</td>
-                <td class="px-3 py-2">${dateStr}</td>
-                </tr>
-            `);
-                });
-            }
-
-            function refreshSppbAttachments() {
-                $.get(listUrl)
-                    .done(res => {
-                        if (res.success) renderSppbAttachmentRows(res.attachments);
-                        else toastr.error(res.message || 'Failed to load attachments.');
-                    })
-                    .fail(() => toastr.error('Failed to load attachments.'));
-            }
-
-            // optional: load saat tab dibuka / page load
-            refreshSppbAttachments();
-
-            $('#btnUploadSppbAttachment').on('click', function() {
-                const $form = $('#sppjAttachmentUploadForm')[0];
-                const files = $('#sppjAttachFiles')[0].files;
-
-                if (!files || !files.length) {
-                    toastr.warning('Please choose at least one file.');
-                    return;
-                }
-
-                const fd = new FormData($form);
-                if (typeof showOverlay === 'function') showOverlay('Uploading');
-
-                $.ajax({
-                    url: uploadUrl,
-                    method: 'POST',
-                    data: fd,
-                    processData: false,
-                    contentType: false,
-                    success: function(res) {
-                        if (typeof hideOverlay === 'function') hideOverlay();
-                        if (!res || !res.success) {
-                            toastr.error(res?.message || 'Upload failed.');
-                            return;
-                        }
-                        toastr.success('Upload success.');
-                        $('#sppjAttachFiles').val('');
-                        // back-end sudah mengembalikan list terbaru
-                        renderSppbAttachmentRows(res.attachments || []);
-                    },
-                    error: function(xhr) {
-                        if (typeof hideOverlay === 'function') hideOverlay();
-                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
-                    }
-                });
-            });
-
-            $('#btnResetSppbAttachment').on('click', function() {
-                $('#sppjAttachFiles').val('');
-            });
-        });
-    </script> --}}
-
+    
     <script>
         $(function() {
 
@@ -1335,9 +1236,60 @@
             // ================================
             // UPLOAD HANDLER (PJ ONLY)
             // ================================
-            $('#btnUploadSppbAttachment').on('click', function() {
+            // $('#btnUploadSppbAttachment').on('click', function() {
 
-                const files = $('#sppjAttachFiles')[0].files;
+            //     const files = $('#sppjAttachFiles')[0].files;
+
+            //     if (!files || !files.length) {
+            //         toastr.warning('Please choose at least one file.');
+            //         return;
+            //     }
+
+            //     const fd = new FormData();
+
+            //     // append file satu per satu
+            //     for (let i = 0; i < files.length; i++) {
+            //         fd.append('attachments[]', files[i]);
+            //     }
+
+            //     // append data lain
+            //     fd.append('_token', '{{ csrf_token() }}');
+            //     fd.append('cpnyid', '{{ $sppj->cpny_id }}');
+            //     fd.append('departementid', '{{ $sppj->department_id }}');
+
+            //     $.ajax({
+            //         url: uploadUrlPJ,
+            //         method: 'POST',
+            //         data: fd,
+            //         processData: false,
+            //         contentType: false,
+            //         success: function(res) {
+
+            //             if (!res || !res.success) {
+            //                 toastr.error(res?.message || 'Upload failed.');
+            //                 return;
+            //             }
+
+            //             toastr.success('Upload success.');
+            //             $('#sppjAttachFiles').val('');
+
+            //             // refresh attachment
+            //             refreshPJAttachments();
+            //         },
+            //         error: function(xhr) {
+            //             toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+            //         }
+            //     });
+            // });
+
+            // $('#btnResetSppjAttachment').on('click', function() {
+            //     $('#sppjAttachFiles').val('');
+            // });
+            $('#btnUploadSppbAttachment').on('click', function() {
+                const input = document.getElementById('sppjAttachFiles');
+                const files = input ? input.files : null;
+
+                console.log('files length =', files ? files.length : 'no input');
 
                 if (!files || !files.length) {
                     toastr.warning('Please choose at least one file.');
@@ -1345,16 +1297,23 @@
                 }
 
                 const fd = new FormData();
-
-                // append file satu per satu
                 for (let i = 0; i < files.length; i++) {
-                    fd.append('attachments[]', files[i]);
+                    fd.append('attachments', files[i]); // ✅ penting: sama dengan backend
                 }
 
-                // append data lain
                 fd.append('_token', '{{ csrf_token() }}');
                 fd.append('cpnyid', '{{ $sppj->cpny_id }}');
                 fd.append('departementid', '{{ $sppj->department_id }}');
+
+                console.log("files:", files);
+                console.log("files length:", files.length);
+
+                for (const pair of fd.entries()) {
+                    console.log(pair[0], pair[1]);
+                }
+
+                // DEBUG isi formdata
+                for (const [k,v] of fd.entries()) console.log('FD', k, v);
 
                 $.ajax({
                     url: uploadUrlPJ,
@@ -1363,27 +1322,24 @@
                     processData: false,
                     contentType: false,
                     success: function(res) {
-
-                        if (!res || !res.success) {
-                            toastr.error(res?.message || 'Upload failed.');
-                            return;
-                        }
-
-                        toastr.success('Upload success.');
-                        $('#sppjAttachFiles').val('');
-
-                        // refresh attachment
-                        refreshPJAttachments();
+                    if (!res || !res.success) {
+                        toastr.error(res?.message || 'Upload failed.');
+                        return;
+                    }
+                    toastr.success('Upload success.');
+                    $('#sppjAttachFiles').val('');
+                    refreshPJAttachments();
                     },
                     error: function(xhr) {
-                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                    console.error(xhr.responseText);
                     }
                 });
-            });
+                });
 
-            $('#btnResetSppjAttachment').on('click', function() {
-                $('#sppjAttachFiles').val('');
-            });
+                $('#btnResetSppbAttachment').on('click', function() {
+                    $('#sppjAttachFiles').val('');
+                });
 
         });
     </script>
