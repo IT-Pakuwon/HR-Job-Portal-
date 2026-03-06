@@ -151,7 +151,8 @@
             serverSide: true,
             responsive: true,
 
-            dom: "<'flex items-center justify-between mb-3'<'text-sm'l><'text-sm'f>>" +
+            searching: false,
+            dom: "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
                 "rt" +
                 "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
 
