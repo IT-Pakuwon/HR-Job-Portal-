@@ -167,7 +167,7 @@
                 },
 
                 {
-                    data: 'created_issue_by'
+                    data: 'created_issue_by',
                     render: function(data) {
                         if (!data) return '';
 

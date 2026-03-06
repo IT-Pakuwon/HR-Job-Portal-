@@ -172,7 +172,7 @@
                 },
 
                 {
-                    data: 'creator'
+                    data: 'creator',
                     render: function(data) {
                         if (!data) return '';
 
