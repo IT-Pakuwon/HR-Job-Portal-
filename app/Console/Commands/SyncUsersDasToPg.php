@@ -17,11 +17,17 @@ class SyncUsersDasToPg extends Command
     public function handle(): int
     {
         $chunk = (int) $this->option('chunk') ?: 500;
-        $since = $this->option('since'); // optional
+        $since = $this->option('since');
 
-        $q = UserDas::query()->select(['name','username','email','password','updated_at','role']);
+        $q = UserDas::query()->select([
+            'name',
+            'username',
+            'email',
+            'password',
+            'updated_at',
+            'role'
+        ]);
 
-        // kalau mau incremental berdasarkan updated_at
         if ($since) {
             $q->where('updated_at', '>=', $since);
         }
@@ -29,26 +35,32 @@ class SyncUsersDasToPg extends Command
         $count = 0;
 
         $q->orderBy('username')
-          ->chunk($chunk, function ($rows) use (&$count) {
+            ->chunk($chunk, function ($rows) use (&$count) {
+                foreach ($rows as $src) {
+                    if (!$src->username) {
+                        continue;
+                    }
 
-              foreach ($rows as $src) {
-                  if (!$src->username) continue;
+                    $data = [
+                        'name'      => $src->name,
+                        'email'     => $src->email,
+                        'password'  => $src->password,
+                        'user_role' => $src->role,
+                    ];
 
-                  // Upsert ke Postgres ms_user
-                  User::query()->updateOrCreate(
-                      ['username' => $src->username],
-                      [
-                          'name'     => $src->name,
-                          'email'    => $src->email,
-                          'password' => $src->password, // hash ikut dari mysql
-                          'notification_email' => $src->email, // default notification_email sama dengan email
-                          'user_role' => $src->role, // map role langsung
-                      ]
-                  );
+                    // hanya update notification_email jika bukan environment demo
+                    if (!app()->environment('demo')) {
+                        $data['notification_email'] = $src->email;
+                    }
 
-                  $count++;
-              }
-          });
+                    User::query()->updateOrCreate(
+                        ['username' => $src->username],
+                        $data
+                    );
+
+                    $count++;
+                }
+            });
 
         $this->info("OK synced {$count} user(s).");
         return self::SUCCESS;

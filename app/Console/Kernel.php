@@ -10,11 +10,19 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      */
-    protected function schedule(Schedule $schedule): void
+    protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('email:approval-pending')
+            ->days([
+                \Illuminate\Console\Scheduling\Schedule::MONDAY,
+                \Illuminate\Console\Scheduling\Schedule::TUESDAY,
+                \Illuminate\Console\Scheduling\Schedule::WEDNESDAY,
+                \Illuminate\Console\Scheduling\Schedule::THURSDAY,
+                \Illuminate\Console\Scheduling\Schedule::FRIDAY,
+            ])
+            ->at('07:00')
+            ->withoutOverlapping();
     }
-
     /**
      * Register the commands for the application.
      */
@@ -24,4 +32,5 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
+    
 }

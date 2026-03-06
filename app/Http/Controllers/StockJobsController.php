@@ -44,14 +44,14 @@ class StockJobsController extends Controller
         $stockJobs = TrItemRequest::query()
             ->where('status', 'C')
             ->where('inventory_type', 'STOCK')
-            ->whereIn('cpny_id', $cpnyIds)
+            // ->whereIn('cpny_id', $cpnyIds)
             ->whereNull('inventoryid')
             ->count();
 
         $stockDone = TrItemRequest::query()
             ->where('status', 'C')
             ->where('inventory_type', 'STOCK')
-            ->whereIn('cpny_id', $cpnyIds)
+            // ->whereIn('cpny_id', $cpnyIds)
             ->whereNotNull('inventoryid')
             ->count();
 
@@ -81,7 +81,7 @@ class StockJobsController extends Controller
         $stockAllRequest = TrItemRequest::query()
         ->where('status', 'C')
         ->where('inventory_type', 'STOCK')
-        ->whereIn('cpny_id', $cpnyIds)
+        // ->whereIn('cpny_id', $cpnyIds)
         ->count();
         return view('pages.itemrequest.stockjobs', compact(
             'stockJobs',
@@ -336,8 +336,8 @@ class StockJobsController extends Controller
 
         $q = TrItemRequest::query()
             ->where('status', 'C')
-            ->where('inventory_type', 'STOCK')
-            ->whereIn('cpny_id', $cpnyIds);
+            ->where('inventory_type', 'STOCK');
+            // ->whereIn('cpny_id', $cpnyIds);
 
         if ($filter === 'jobs') {
 
@@ -843,7 +843,7 @@ class StockJobsController extends Controller
             ->where('id', $id)
             ->where('status', 'C')
             ->where('inventory_type', 'STOCK')
-            ->whereIn('cpny_id', $cpnyIds)
+            // ->whereIn('cpny_id', $cpnyIds)
             ->first();
 
         if (!$row) {

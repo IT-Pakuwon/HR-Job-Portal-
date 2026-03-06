@@ -1205,7 +1205,7 @@
             // ================================
             // UPLOAD HANDLER (RB ONLY)
             // ================================
-            $('#btnUploadSppbAttachment').on('click', function() {
+            $('#btnUploadSpbAttachment').on('click', function() {
 
                 const $form = $('#spbAttachmentUploadForm')[0];
                 const files = $('#spbAttachFiles')[0].files;

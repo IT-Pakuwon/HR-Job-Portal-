@@ -4,20 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-use App\Models\StagingIfcaPoApprove;
-use App\Models\MsVendor;
+use App\Models\StagingIfcaIcStkIssue;
 
-class MappingPoERPController extends Controller
+class MappingIssueERPController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
 
-        return view('pages.budgets.mapping_po_erp');
+        return view('pages.budgets.mapping_issue_erp');
     }
 
     private function statusLabel(?string $status): string
@@ -41,14 +39,14 @@ class MappingPoERPController extends Controller
         $user = Auth::user();
         if (!$user) return response()->json(['data' => []], 401);
 
-        $status = strtoupper(trim((string)$req->query('status', '')));
-        $search = trim((string)$req->query('search', ''));
+        $status = strtoupper(trim((string) $req->query('status', '')));
+        $search = trim((string) $req->query('search', ''));
 
-        $sub = StagingIfcaPoApprove::query()
+        $sub = StagingIfcaIcStkIssue::query()
             ->selectRaw('MAX(id) AS id')
-            ->groupBy('cpny_id', 'order_no');
+            ->groupBy('cpny_id', 'issue_id');
 
-        $q = StagingIfcaPoApprove::query()->whereIn('id', $sub);
+        $q = StagingIfcaIcStkIssue::query()->whereIn('id', $sub);
 
         if (in_array($status, ['D', 'P', 'C'], true)) {
             $q->where('status', $status);
@@ -56,48 +54,32 @@ class MappingPoERPController extends Controller
 
         if ($search !== '') {
             $q->where(function ($w) use ($search) {
-                $w->where('order_no', 'ilike', "%{$search}%")
-                    ->orWhere('supplier_cd', 'ilike', "%{$search}%")
-                    ->orWhere('remark', 'ilike', "%{$search}%")
-                    ->orWhere('ref_no_cs', 'ilike', "%{$search}%")
-                    ->orWhere('ref_no_spbjkt', 'ilike', "%{$search}%")
-                    ->orWhere('cpny_id', 'ilike', "%{$search}%");
+                $w->where('cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('issue_id', 'ilike', "%{$search}%")
+                    ->orWhere('reference_no', 'ilike', "%{$search}%")
+                    ->orWhere('spb_id', 'ilike', "%{$search}%")
+                    ->orWhere('wo_id', 'ilike', "%{$search}%")
+                    ->orWhere('department_id', 'ilike', "%{$search}%")
+                    ->orWhere('user_peminta', 'ilike', "%{$search}%")
+                    ->orWhere('issuehd_descs', 'ilike', "%{$search}%");
             });
         }
 
         $rows = $q->orderByDesc('id')->limit(500)->get([
             'id',
             'cpny_id',
-            'order_no',
-            'order_date',
-            'supplier_cd',
-            'ref_no_spbjkt',
-            'ref_no_cs',
-            'status'
+            'issue_id',
+            'issue_date',
+            'reference_no',
+            'spb_id',
+            'wo_id',
+            'department_id',
+            'user_peminta',
+            'status',
         ]);
 
-        $vendorIds = $rows->pluck('supplier_cd')
-            ->filter()
-            ->map(fn($v) => trim((string)$v))
-            ->unique()
-            ->values()
-            ->all();
-
-        $vendorMap = [];
-        if (!empty($vendorIds)) {
-            $vendorMap = MsVendor::query()
-                ->whereIn('vendor_id', $vendorIds)
-                ->pluck('vendor_name', 'vendor_id')
-                ->map(fn($n) => (string)$n)
-                ->toArray();
-        }
-
-        $rows->transform(function ($r) use ($vendorMap) {
+        $rows->transform(function ($r) {
             $r->status_label = $this->statusLabel($r->status ?? null);
-
-            $vid = trim((string)($r->supplier_cd ?? ''));
-            $r->vendor_name = $vendorMap[$vid] ?? null;
-
             return $r;
         });
 
@@ -113,56 +95,49 @@ class MappingPoERPController extends Controller
                 'data' => []
             ], 401);
         }
-        // dd($user->username);        
-        $rows = StagingIfcaPoApprove::query()
-            ->select('integration_type')
-            ->whereNotNull('integration_type')
-            // ->where('integration_type', '<>', '')
-            ->distinct()
-            ->orderBy('integration_type')
-            ->get();
 
         return response()->json([
             'success' => true,
-            'data' => $rows,
+            'data' => [
+                ['integration_type' => 'IFCA'],
+                ['integration_type' => 'SOLOMON'],
+            ],
         ]);
     }
 
     public function showMapping(int $id)
     {
         $user = Auth::user();
-        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
 
-        $row = StagingIfcaPoApprove::query()->findOrFail($id);
+        $row = StagingIfcaIcStkIssue::query()->findOrFail($id);
 
-        $cpny  = (string)$row->cpny_id;
-        $order = (string)$row->order_no;
+        $cpny    = (string) $row->cpny_id;
+        $issueId = (string) $row->issue_id;
 
-        $details = StagingIfcaPoApprove::query()
+        $details = StagingIfcaIcStkIssue::query()
             ->where('cpny_id', $cpny)
-            ->where('order_no', $order)
-            ->orderBy('order_line', 'asc')
+            ->where('issue_id', $issueId)
+            ->orderBy('line_no', 'asc')
             ->orderBy('id', 'asc')
             ->get();
 
-        $vid = trim((string)($row->supplier_cd ?? ''));
-        $vendorName = $vid !== ''
-            ? MsVendor::query()->where('vendor_id', $vid)->value('vendor_name')
-            : null;
-
         $header = [
             'cpny_id'          => $row->cpny_id,
-            'order_no'         => $row->order_no,
-            'order_date'       => $row->order_date,
-            'order_type'       => $row->order_type,
-            'supplier_cd'      => $row->supplier_cd,
-            'vendor_name'      => $vendorName,
-            'remark'           => $row->remark,
-            'ref_no_spbjkt'    => $row->ref_no_spbjkt,
-            'ref_no_cs'        => $row->ref_no_cs,
+            'issue_id'         => $row->issue_id,
+            'issue_date'       => $row->issue_date,
+            'issuehd_descs'    => $row->issuehd_descs,
+            'reference_no'     => $row->reference_no,
+            'spb_id'           => $row->spb_id,
+            'wo_id'            => $row->wo_id,
+            'department_id'    => $row->department_id,
+            'user_peminta'     => $row->user_peminta,
+            'keeper'           => $row->keeper,
             'status'           => $row->status,
             'status_label'     => $this->statusLabel($row->status ?? null),
-            'reviewed_note'     => $row->reviewed_note,
+            'reviewed_note'    => $row->reviewed_note,
             'integration_type' => $row->integration_type,
         ];
 
@@ -178,34 +153,38 @@ class MappingPoERPController extends Controller
     public function updateMapping(Request $req, int $id)
     {
         $user = Auth::user();
-        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
 
-        $rep = StagingIfcaPoApprove::query()->findOrFail($id);
-        $cpny  = (string)$rep->cpny_id;
-        $order = (string)$rep->order_no;
+        $rep = StagingIfcaIcStkIssue::query()->findOrFail($id);
+
+        $cpny    = (string) $rep->cpny_id;
+        $issueId = (string) $rep->issue_id;
 
         $data = $req->validate([
             'status'            => ['required', 'in:D,P,C'],
-            'reviewed_note'      => ['nullable', 'string', 'max:500'],
+            'reviewed_note'     => ['nullable', 'string', 'max:500'],
             'integration_type'  => ['nullable', 'in:IFCA,SOLOMON'],
 
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.id' => ['required', 'integer'],
 
             'lines.*.entity_cd'   => ['nullable', 'string', 'max:50'],
-            'lines.*.location_cd' => ['nullable', 'string', 'max:50'],
-            'lines.*.acct_cd'     => ['nullable', 'string', 'max:50'],
+            'lines.*.ic_location' => ['nullable', 'string', 'max:50'],
+            'lines.*.trx_cd'      => ['nullable', 'string', 'max:50'],
             'lines.*.div_cd'      => ['nullable', 'string', 'max:50'],
             'lines.*.dept_cd'     => ['nullable', 'string', 'max:50'],
 
-            'lines.*.solomon_acct_cd'         => ['nullable', 'string', 'max:50'],
-            'lines.*.solomon_allocation_cd'   => ['nullable', 'string', 'max:50'],
-            'lines.*.solomon_subaccount_dept' => ['nullable', 'string', 'max:50'],
+            'lines.*.solomon_reason_cd'        => ['nullable', 'string', 'max:50'],
+            'lines.*.solomon_acct_cd'          => ['nullable', 'string', 'max:50'],
+            'lines.*.solomon_allocation_cd'    => ['nullable', 'string', 'max:50'],
+            'lines.*.solomon_subaccount_dept'  => ['nullable', 'string', 'max:50'],
         ]);
 
-        $groupRows = StagingIfcaPoApprove::query()
+        $groupRows = StagingIfcaIcStkIssue::query()
             ->where('cpny_id', $cpny)
-            ->where('order_no', $order)
+            ->where('issue_id', $issueId)
             ->get()
             ->keyBy('id');
 
@@ -228,22 +207,22 @@ class MappingPoERPController extends Controller
             $r->updated_at  = $now;
         }
 
-        $integrationType = strtoupper((string)($data['integration_type'] ?? ''));
+        $integrationType = strtoupper((string) ($data['integration_type'] ?? ''));
 
         foreach ($data['lines'] as $ln) {
-            $rid = (int)$ln['id'];
+            $rid = (int) $ln['id'];
             if (!isset($groupRows[$rid])) continue;
 
             $row = $groupRows[$rid];
 
             if ($integrationType === 'IFCA') {
-                foreach (['entity_cd', 'location_cd', 'acct_cd', 'div_cd', 'dept_cd'] as $f) {
+                foreach (['entity_cd', 'ic_location', 'trx_cd', 'div_cd', 'dept_cd'] as $f) {
                     if (array_key_exists($f, $ln)) {
                         $row->{$f} = $ln[$f];
                     }
                 }
             } elseif ($integrationType === 'SOLOMON') {
-                foreach (['solomon_acct_cd', 'solomon_allocation_cd', 'solomon_subaccount_dept'] as $f) {
+                foreach (['solomon_reason_cd', 'solomon_acct_cd', 'solomon_allocation_cd', 'solomon_subaccount_dept'] as $f) {
                     if (array_key_exists($f, $ln)) {
                         $row->{$f} = $ln[$f];
                     }
@@ -257,7 +236,7 @@ class MappingPoERPController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Mapping berhasil diupdate.',
+            'message' => 'Mapping issue berhasil diupdate.',
         ]);
     }
 }

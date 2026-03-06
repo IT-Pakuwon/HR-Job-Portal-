@@ -86,7 +86,111 @@ class DashboardController extends Controller
     /**
      * Shared approval loader (FAST)
      */
+
     private function approvalJson(Request $request, string $status)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['data' => []], 401);
+
+        $doctype = strtoupper(trim((string)$request->get('doctype', '')));
+        $doctype = ($doctype === 'ALL') ? '' : $doctype;
+
+        $trxM   = new Viewtrxall();
+        $appM   = new ViewJobApply();
+        $aprM   = new TrApproval();
+        $purchM = new ViewtrPurch();
+
+        $trxConn   = $trxM->getConnectionName()   ?: config('database.default');
+        $appConn   = $appM->getConnectionName()   ?: config('database.default');
+        $aprConn   = $aprM->getConnectionName()   ?: config('database.default');
+        $purchConn = $purchM->getConnectionName() ?: config('database.default');
+
+        $tblTrx   = $trxM->getTable();
+        $tblApp   = $appM->getTable();
+        $tblApr   = $aprM->getTable();
+        $tblPurch = $purchM->getTable();
+
+        $username = strtolower(trim((string) $user->username));
+
+        // 1️⃣ Ambil DOCID dari approval (exact username match dalam CSV)
+        $docids = DB::connection($aprConn)->table($tblApr)
+            ->whereRaw(
+                "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
+                ['%,' . $username . ',%']
+            )
+            ->where('status', $status)
+            ->whereNotNull('aprv_datebefore')
+            ->pluck('refnbr')
+            ->filter()
+            ->map(fn ($v) => strtoupper(trim($v)))
+            ->unique()
+            ->values();
+
+        if ($doctype !== '') {
+            $docids = $docids->filter(function ($docid) use ($doctype) {
+                if (!preg_match('/^[A-Z]+/', $docid, $m)) return false;
+                return $m[0] === $doctype;
+            })->values();
+        }
+
+        if ($docids->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $selectCols = ['id','docdate','cpnyid','departementid','infohd','url','docid'];
+
+        $fetch = function (string $conn, string $table) use ($docids, $selectCols) {
+            $out = collect();
+            foreach ($docids->chunk(1200) as $chunk) {
+                $rows = DB::connection($conn)->table($table)
+                    ->whereIn('docid', $chunk->all())
+                    ->select($selectCols)
+                    ->get();
+                $out = $out->concat($rows);
+            }
+            return $out;
+        };
+
+        $t0 = microtime(true);
+
+        $data = collect()
+            ->concat($fetch($trxConn, $tblTrx))
+            ->concat($fetch($appConn, $tblApp));
+
+        try {
+            $data = $data->concat($fetch($purchConn, $tblPurch));
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson: purchasing fetch failed', [
+                'err' => $e->getMessage()
+            ]);
+        }
+
+        $data = $data->map(function ($r) {
+            return [
+                'hid'           => Hashids::encode($r->id),
+                'docid'         => $r->docid,
+                'docdate'       => $r->docdate,
+                'cpnyid'        => $r->cpnyid,
+                'departementid' => $r->departementid,
+                'infohd'        => $r->infohd,
+                'url'           => $r->url,
+            ];
+        })
+        ->sortByDesc('docid')
+        ->values();
+
+        Log::info('approvalJson perf', [
+            'user'    => $user->username,
+            'status'  => $status,
+            'doctype' => $doctype ?: 'ALL',
+            'docids'  => $docids->count(),
+            'rows'    => $data->count(),
+            'ms'      => (int)((microtime(true) - $t0) * 1000),
+        ]);
+
+        return response()->json(['data' => $data]);
+    }
+    private function approvalJson_old(Request $request, string $status)
     {
         $user = $request->user();
         if (!$user) return response()->json(['data' => []], 401);

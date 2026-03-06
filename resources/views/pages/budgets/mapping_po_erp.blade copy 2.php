@@ -122,13 +122,6 @@
                         <div class="pt-1 text-gray-500">Remaks</div><div class="pt-1">:</div>
                         <textarea id="mRemark" rows="2" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
                     </div>
-                    <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm md:col-span-2">
-                        <div class="text-gray-500">Integration Type</div><div>:</div>
-                        <select id="mIntegrationType"
-                            class="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                            <option value="">-- Select Integration Type --</option>
-                        </select>
-                    </div>
                 </div>
 
                 {{-- DETAIL TABLE (rapi seperti gambar: info digabung) --}}
@@ -169,7 +162,7 @@
                         </select>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="mb-1 block text-xs font-semibold text-gray-500">Review Note</label>
+                        <label class="mb-1 block text-xs font-semibold text-gray-500">Process Note</label>
                         <input id="mNote"
                             class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                             placeholder="Catatan review...">
@@ -195,11 +188,9 @@
     const tbody = document.getElementById('tbody');
     const modal = document.getElementById('editModal');
     const detailTbody = document.getElementById('detailTbody');
-    const btnSave = document.getElementById('btnSave');
 
     const URL_JSON = @json(route('mapping_po_erp.json'));
     const BASE     = @json(url('/mapping-po-erp'));
-    const URL_INTEGRATION_TYPES = @json(route('mapping_po_erp.integration-types'));
 
     function statusBadge(st) {
         st = (st || '').toUpperCase();
@@ -212,15 +203,8 @@
         return `<span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${m.cls}">${m.text}</span>`;
     }
 
-    function openModal() {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    function openModal() { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    function closeModal(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
     function magnifierBtn(id) {
         return `
@@ -233,63 +217,6 @@
         `;
     }
 
-    function escapeHtml(str) {
-        return (str ?? '').toString()
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    function setInputEditable(el, editable) {
-        if (!el) return;
-
-        el.readOnly = !editable;
-
-        if (editable) {
-            el.classList.remove(
-                'bg-gray-200',
-                'text-gray-500',
-                'cursor-not-allowed',
-                'opacity-70'
-            );
-
-            el.classList.add(
-                'bg-white'
-            );
-
-        } else {
-
-            el.classList.remove('bg-white');
-
-            el.classList.add(
-                'bg-gray-200',
-                'text-gray-500',
-                'cursor-not-allowed',
-                'opacity-70'
-            );
-        }
-    }
-
-    function applyIntegrationTypeMode(type) {
-        const selected = (type || '').toUpperCase();
-
-        const ifcaFields = detailTbody.querySelectorAll('input[data-group="ifca"]');
-        const solomonFields = detailTbody.querySelectorAll('input[data-group="solomon"]');
-
-        if (selected === 'IFCA') {
-            ifcaFields.forEach(inp => setInputEditable(inp, true));
-            solomonFields.forEach(inp => setInputEditable(inp, false));
-        } else if (selected === 'SOLOMON') {
-            ifcaFields.forEach(inp => setInputEditable(inp, false));
-            solomonFields.forEach(inp => setInputEditable(inp, true));
-        } else {
-            ifcaFields.forEach(inp => setInputEditable(inp, false));
-            solomonFields.forEach(inp => setInputEditable(inp, false));
-        }
-    }
-
     // format helpers
     function formatQty(val) {
         if (val === null || val === undefined || val === '') return '';
@@ -297,44 +224,11 @@
         if (isNaN(num)) return String(val);
         return num.toFixed(2);
     }
-
     function formatMoney(val) {
         if (val === null || val === undefined || val === '') return '';
         const num = parseFloat(val);
         if (isNaN(num)) return String(val);
         return num.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-    }
-
-    async function loadIntegrationTypes(selectedValue = '') {
-        const select = document.getElementById('mIntegrationType');
-        if (!select) return;
-
-        select.innerHTML = `<option value="">Loading...</option>`;
-
-        try {
-            const res = await fetch(URL_INTEGRATION_TYPES, {
-                headers: { 'Accept': 'application/json' }
-            });
-
-            const json = await res.json();
-            const rows = json.data || [];
-
-            let html = `<option value="">-- Select Integration Type --</option>`;
-            html += rows.map(x => {
-                const raw = (typeof x === 'object')
-                    ? (x.integration_type ?? '')
-                    : x;
-
-                const val = (raw ?? '').toString().toUpperCase();
-                const selected = val === (selectedValue || '').toUpperCase() ? 'selected' : '';
-
-                return `<option value="${escapeHtml(val)}" ${selected}>${escapeHtml(val)}</option>`;
-            }).join('');
-
-            select.innerHTML = html;
-        } catch (err) {
-            select.innerHTML = `<option value="">-- Failed load option --</option>`;
-        }
     }
 
     async function loadTable() {
@@ -347,10 +241,7 @@
         if (status) qs.set('status', status);
         if (search) qs.set('search', search);
 
-        const res = await fetch(URL_JSON + '?' + qs.toString(), {
-            headers: { 'Accept': 'application/json' }
-        });
-
+        const res = await fetch(URL_JSON + '?' + qs.toString(), { headers: { 'Accept': 'application/json' } });
         const json = await res.json();
         const rows = json.data || [];
 
@@ -361,46 +252,36 @@
 
         tbody.innerHTML = rows.map(r => {
             const vendor = r.vendor_name ? r.vendor_name : (r.supplier_cd ?? '');
-
             return `
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td class="px-4 py-3">${magnifierBtn(r.id)}</td>
-                    <td class="px-4 py-3 font-semibold text-gray-800 dark:text-white">${escapeHtml(r.cpny_id ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.order_no ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.order_date ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(vendor)}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.ref_no_spbjkt ?? '')}</td>
-                    <td class="px-4 py-3">${escapeHtml(r.ref_no_cs ?? '')}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800 dark:text-white">${r.cpny_id ?? ''}</td>
+                    <td class="px-4 py-3">${r.order_no ?? ''}</td>
+                    <td class="px-4 py-3">${r.order_date ?? ''}</td>
+                    <td class="px-4 py-3">${vendor}</td>
+                    <td class="px-4 py-3">${r.ref_no_spbjkt ?? ''}</td>
+                    <td class="px-4 py-3">${r.ref_no_cs ?? ''}</td>
                     <td class="px-4 py-3">${statusBadge(r.status)}</td>
                 </tr>
             `;
         }).join('');
     }
 
-    function inputCell(name, value, rid, widthCls, group) {
-        const v = escapeHtml(value ?? '');
+    function inputCell(name, value, rid, widthCls) {
+        const v = (value ?? '').toString();
         const w = widthCls || 'w-full';
-        const g = group || '';
-
-        return `<input
-            data-rid="${rid}"
-            data-name="${name}"
-            data-group="${g}"
-            value="${v}"
+        return `<input data-rid="${rid}" data-name="${name}" value="${v.replace(/"/g,'&quot;')}"
             class="${w} rounded-md border border-gray-300 bg-white px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white" />`;
     }
 
     async function openRow(id) {
         detailTbody.innerHTML = `<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">Loading...</td></tr>`;
 
-        const res = await fetch(`${BASE}/${id}`, {
-            headers: { 'Accept': 'application/json' }
-        });
-
+        const res = await fetch(`${BASE}/${id}`, { headers: { 'Accept': 'application/json' } });
         const json = await res.json();
         if (!json.success) return;
 
-        const header = json.data.header || {};
+        const header = json.data.header;
         const details = json.data.details || [];
 
         document.getElementById('rowId').value = id;
@@ -414,42 +295,33 @@
         document.getElementById('mOrderType').value = header.order_type ?? '';
         document.getElementById('mRemark').value    = header.remark ?? '';
 
-        const status = (header.status ?? 'D').toUpperCase();
-
-        document.getElementById('mStatus').value = status;
-        document.getElementById('mNote').value   = header.reviewed_note ?? '';
-
-        // hide save button if completed
-        if (status === 'C') {
-            btnSave.classList.add('hidden');
-        } else {
-            btnSave.classList.remove('hidden');
-        }
+        document.getElementById('mStatus').value = (header.status ?? 'D').toUpperCase();
+        document.getElementById('mNote').value   = header.process_note ?? '';
 
         document.getElementById('modalSub').textContent =
             `Vendor: ${(header.vendor_name ?? header.supplier_cd ?? '-')}`;
 
-        // details table
+        // details table (Item/Descr digabung, Qty/Uom digabung)
         if (!details.length) {
             detailTbody.innerHTML = `<tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">No detail</td></tr>`;
         } else {
             detailTbody.innerHTML = details.map(d => {
                 const rid = d.id;
-                const item = d.item_cd ?? '';
-                const descr = d.item_remark ?? '';
+                const item = (d.item_cd ?? '');
+                const descr = (d.item_remark ?? '');
 
                 return `
                     <tr>
-                        <td class="px-3 py-2 align-top">${escapeHtml(d.order_line ?? '')}</td>
+                        <td class="px-3 py-2 align-top">${d.order_line ?? ''}</td>
 
                         <td class="px-3 py-2 align-top">
-                            <div class="font-semibold text-gray-800 dark:text-white">${escapeHtml(item)}</div>
-                            <div class="mt-0.5 text-gray-600 dark:text-gray-300 leading-snug">${escapeHtml(descr)}</div>
+                            <div class="font-semibold text-gray-800 dark:text-white">${item}</div>
+                            <div class="mt-0.5 text-gray-600 dark:text-gray-300 leading-snug">${descr}</div>
                         </td>
 
                         <td class="px-3 py-2 align-top">
                             <div class="text-right font-semibold">${formatQty(d.order_qty)}</div>
-                            <div class="text-right text-gray-500">${escapeHtml(d.uom ?? '')}</div>
+                            <div class="text-right text-gray-500">${d.uom ?? ''}</div>
                         </td>
 
                         <td class="px-3 py-2 align-top text-right font-semibold">
@@ -458,19 +330,19 @@
 
                         <td class="px-3 py-2 align-top">
                             <div class="grid grid-cols-2 gap-1">
-                                ${inputCell('entity_cd', d.entity_cd, rid, 'w-full', 'ifca')}
-                                ${inputCell('location_cd', d.location_cd, rid, 'w-full', 'ifca')}
-                                <div class="col-span-2">${inputCell('acct_cd', d.acct_cd, rid, 'w-full', 'ifca')}</div>
-                                ${inputCell('div_cd', d.div_cd, rid, 'w-full', 'ifca')}
-                                ${inputCell('dept_cd', d.dept_cd, rid, 'w-full', 'ifca')}
+                                ${inputCell('entity_cd', d.entity_cd, rid)}
+                                ${inputCell('location_cd', d.location_cd, rid)}
+                                <div class="col-span-2">${inputCell('acct_cd', d.acct_cd, rid)}</div>
+                                ${inputCell('div_cd', d.div_cd, rid)}
+                                ${inputCell('dept_cd', d.dept_cd, rid)}
                             </div>
                         </td>
 
                         <td class="px-3 py-2 align-top">
                             <div class="grid grid-cols-1 gap-1">
-                                ${inputCell('solomon_acct_cd', d.solomon_acct_cd, rid, 'w-full', 'solomon')}
-                                ${inputCell('solomon_allocation_cd', d.solomon_allocation_cd, rid, 'w-full', 'solomon')}
-                                ${inputCell('solomon_subaccount_dept', d.solomon_subaccount_dept, rid, 'w-full', 'solomon')}
+                                ${inputCell('solomon_acct_cd', d.solomon_acct_cd, rid)}
+                                ${inputCell('solomon_allocation_cd', d.solomon_allocation_cd, rid)}
+                                ${inputCell('solomon_subaccount_dept', d.solomon_subaccount_dept, rid)}
                             </div>
                         </td>
                     </tr>
@@ -478,34 +350,18 @@
             }).join('');
         }
 
-        const integrationType = (header.integration_type ?? '').toUpperCase();
-        await loadIntegrationTypes(integrationType);
-
-        const integrationSelect = document.getElementById('mIntegrationType');
-        if (integrationSelect) {
-            integrationSelect.value = integrationType;
-        }
-
-        applyIntegrationTypeMode(integrationType);
-
         openModal();
     }
 
     function collectLinesPayload() {
         const inputs = detailTbody.querySelectorAll('input[data-rid][data-name]');
         const map = {};
-
         inputs.forEach(inp => {
             const rid = inp.getAttribute('data-rid');
             const name = inp.getAttribute('data-name');
-
-            if (!map[rid]) {
-                map[rid] = { id: parseInt(rid, 10) };
-            }
-
+            if (!map[rid]) map[rid] = { id: parseInt(rid, 10) };
             map[rid][name] = inp.value.trim();
         });
-
         return Object.values(map);
     }
 
@@ -513,12 +369,9 @@
         const id = document.getElementById('rowId').value;
         if (!id) return;
 
-        const integrationSelect = document.getElementById('mIntegrationType');
-
         const payload = {
             status: document.getElementById('mStatus').value,
-            reviewed_note: document.getElementById('mNote').value.trim(),
-            integration_type: integrationSelect ? integrationSelect.value : '',
+            process_note: document.getElementById('mNote').value.trim(),
             lines: collectLinesPayload()
         };
 
@@ -556,13 +409,6 @@
         if (!btn) return;
         openRow(btn.dataset.id);
     });
-
-    const integrationSelect = document.getElementById('mIntegrationType');
-    if (integrationSelect) {
-        integrationSelect.addEventListener('change', function() {
-            applyIntegrationTypeMode(this.value);
-        });
-    }
 
     document.getElementById('btnSave').addEventListener('click', saveUpdate);
     document.getElementById('btnCloseModal').addEventListener('click', closeModal);

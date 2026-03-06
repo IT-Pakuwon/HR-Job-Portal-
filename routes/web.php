@@ -113,7 +113,7 @@ use App\Http\Controllers\Integration\SLAPIIssueController;
 
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
-
+use App\Http\Controllers\MappingIssueERPController;
 
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\GoogleCalendarApiController;
@@ -523,12 +523,19 @@ Route::post('/logout', function () {
         Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
         Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
         Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
-
-
+   
         Route::get('/mapping-po-erp', [MappingPoERPController::class, 'index'])->name('mapping_po_erp.index');
         Route::get('/mapping-po-erp/json', [MappingPoERPController::class, 'json'])->name('mapping_po_erp.json');
+        Route::get('/mapping-po-erp/integration-types', [MappingPoERPController::class, 'integrationTypes'])->name('mapping_po_erp.integration-types');
         Route::get('/mapping-po-erp/{id}', [MappingPoERPController::class, 'showMapping'])->name('mapping_po_erp.show');
         Route::put('/mapping-po-erp/{id}', [MappingPoERPController::class, 'updateMapping'])->name('mapping_po_erp.update');
+
+        Route::get('/mapping-issue-erp', [MappingIssueERPController::class, 'index'])->name('mapping_issue_erp.index');
+        Route::get('/mapping-issue-erp/json', [MappingIssueERPController::class, 'json'])->name('mapping_issue_erp.json');
+        Route::get('/mapping-issue-erp/integration-types', [MappingIssueERPController::class, 'integrationTypes'])->name('mapping_issue_erp.integration-types');
+        Route::get('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'showMapping'])->whereNumber('id')->name('mapping_issue_erp.show');
+        Route::put('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'updateMapping'])->whereNumber('id')->name('mapping_issue_erp.update');
+        
 
     });
 
