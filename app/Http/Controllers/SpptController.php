@@ -163,7 +163,8 @@ class SpptController extends Controller
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid');
             })
-            ->whereIn('sppt.cpny_id', $cpnyIds);
+            ->whereIn('sppt.cpny_id', $cpnyIds)
+            ->whereIn('ms_request_type.doctype', 'SPPT');
 
         // ==============================
         // MODE LOGIC
