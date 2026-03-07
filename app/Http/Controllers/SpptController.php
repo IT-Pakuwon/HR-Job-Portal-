@@ -1411,17 +1411,23 @@ class SpptController extends Controller
         ->orderby('sppt_no', 'ASC')
         ->get();
 
-        $budgets = BudgetDetail::select(
-            'cpny_id',
-            'business_unit_id',
-            'department_fin_id',
-            'account_id',
-            'activity_id',
-            'perpost',
-            'totalbudget',
-            'total_reserve',
-            'total_used'
-        )->get();
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+                $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                    ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+            })
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_id',
+                'ms_budget.perpost',
+                'ms_budget.totalbudget',
+                'ms_budget.total_reserve',
+                'ms_budget.total_used',
+                'ms_coa.account_descr as account_descr'
+            )
+            ->get();
 
 
         /*
@@ -1442,7 +1448,19 @@ class SpptController extends Controller
 
             });
 
-            $item->budget_data = $budget;
+            if ($budget) {
+
+                $item->budget_data = $budget;
+
+                // optional: make fields easier to access in blade
+                $item->account_descr = $budget->account_descr;
+
+            } else {
+
+                $item->budget_data = null;
+                $item->account_descr = null;
+
+            }
         }
 
 

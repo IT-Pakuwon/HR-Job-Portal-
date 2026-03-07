@@ -366,15 +366,15 @@
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
-                                <th class="px-4 py-2">No</th>
-                                <th class="px-4 py-2">Inventory ID</th>
-                                <th class="px-4 py-2">Description / Note</th>
-                                <th class="px-4 py-2">Qty / UoM</th>
-                                <th class="px-4 py-2">Location</th>
-                                <th class="px-4 py-2">Budget Department</th>
-                                <th class="px-4 py-2">Ordered</th>
-                                <th class="px-4 py-2">Rejectordered</th>
-                                <th class="px-4 py-2">Completeordered</th>
+                                <th class="px-4 py-3 text-left">No</th>
+                                <th class="px-4 py-2 text-left">Inventory ID</th>
+                                <th class="px-4 py-2 text-left">Description / Note</th>
+                                <th class="px-4 py-2 text-center">Qty / UoM</th>
+                                <th class="px-4 py-3 text-left">Location</th>
+                                <th class="px-4 py-3 text-left">Budget</th>
+                                <th class="px-4 py-3 text-right">Ordered</th>
+                                <th class="px-4 py-3 text-right">Rejected</th>
+                                <th class="px-4 py-3 text-right">Completed</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -397,14 +397,17 @@
                                         {{ $item->sppb_no }}
                                     </td>
 
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                            {{ $item->inventoryid }}
+                                        </div>
+
+                                    </td>
+
                                     <!-- Description -->
                                     <td class="px-4 py-3">
                                         <div class="font-medium">
                                             {{ $item->inventory_descr }}
-                                        </div>
-
-                                        <div class="text-xs text-gray-500">
-                                            {{ $item->inventoryid }}
                                         </div>
 
                                         @if ($item->note)
@@ -451,6 +454,7 @@
                                                 data-available="{{ $available }}"
                                                 data-desc="{{ $item->budget_activity_descr }}"
                                                 data-account="{{ $item->budget_account_id }}"
+                                                data-coa="{{ optional($item->budget_data)->account_descr }}"
                                                 data-bu="{{ $item->budget_business_unit_id }}">
 
                                                 <div class="flex items-center gap-2 text-sm">
@@ -489,17 +493,21 @@
                                                 <!-- HEADER -->
                                                 <div class="space-y-1">
 
-                                                    <!-- Activity -->
+                                                    <!-- Activity Description -->
                                                     <div id="ttDesc"
                                                         class="font-semibold text-gray-900 dark:text-white">
                                                     </div>
 
-                                                    <!-- Account + BU -->
+                                                    <!-- COA | Account Desc | BU -->
                                                     <div class="text-xs text-gray-500 dark:text-gray-400">
 
                                                         <span id="ttAccount"></span>
 
-                                                        <span class="mx-1">•</span>
+                                                        <span class="mx-1 text-gray-300">|</span>
+
+                                                        <span id="ttCoa"></span>
+
+                                                        <span class="mx-1 text-gray-300">|</span>
 
                                                         <span id="ttBU"></span>
 
@@ -1984,8 +1992,9 @@
 
                 el.addEventListener("mouseenter", function() {
 
-                    document.getElementById("ttAccount").innerText = this.dataset.account;
                     document.getElementById("ttDesc").innerText = this.dataset.desc;
+                    document.getElementById("ttAccount").innerText = this.dataset.account;
+                    document.getElementById("ttCoa").innerText = this.dataset.coa;
                     document.getElementById("ttBU").innerText = this.dataset.bu;
 
                     document.getElementById("ttBudget").innerText =

@@ -34,7 +34,8 @@ use App\Models\SysUserRole;
 use App\Models\Userbusinessunit;
 use App\Models\Budget;
 use App\Models\TrWO;
-
+use App\Exports\SpbDetailExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class SpbController extends Controller
@@ -1404,6 +1405,24 @@ public function json(Request $request)
 
         // untuk konsistensi link detail, kirim balik hash apa adanya
         return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'));
+    }
+
+    public function exportDetail($id)
+    {
+        $spb = TrSPB::findOrFail($id);
+
+        $spbdetail = TrSPBDetail::with([
+            'location',
+            'subLocation'
+        ])
+        ->where('spbid', $spb->spbid)
+        ->orderBy('spb_no', 'ASC')
+        ->get();
+
+        return Excel::download(
+            new SpbDetailExport($spbdetail),
+            'SPB_Detail_'.$spb->spbid.'.xlsx'
+        );
     }
 
     private function mapAttachmentsToSignedUrl($refnbr)

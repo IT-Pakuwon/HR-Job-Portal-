@@ -893,6 +893,8 @@ Route::post('/logout', function () {
         Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);
         Route::get('/spbs/{id}/tracking', [SpbController::class, 'tracking'])->name('spbs.tracking');
         Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
+        Route::get('/spb/export/{id}', [SpbController::class, 'exportDetail'])
+        ->name('spb.export');
     });
 
     Route::middleware('access:SPBLIST,CREATE')->group(function () {
