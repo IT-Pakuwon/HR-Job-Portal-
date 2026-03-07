@@ -523,7 +523,7 @@ Route::post('/logout', function () {
         Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
         Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
         Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
-   
+
         Route::get('/mapping-po-erp', [MappingPoERPController::class, 'index'])->name('mapping_po_erp.index');
         Route::get('/mapping-po-erp/json', [MappingPoERPController::class, 'json'])->name('mapping_po_erp.json');
         Route::get('/mapping-po-erp/integration-types', [MappingPoERPController::class, 'integrationTypes'])->name('mapping_po_erp.integration-types');
@@ -535,7 +535,7 @@ Route::post('/logout', function () {
         Route::get('/mapping-issue-erp/integration-types', [MappingIssueERPController::class, 'integrationTypes'])->name('mapping_issue_erp.integration-types');
         Route::get('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'showMapping'])->whereNumber('id')->name('mapping_issue_erp.show');
         Route::put('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'updateMapping'])->whereNumber('id')->name('mapping_issue_erp.update');
-        
+
 
     });
 
@@ -566,6 +566,8 @@ Route::post('/logout', function () {
         Route::get('/sppbs/{id}/tracking-detail/item', [SppbController::class, 'trackingDetailItem']);
 
         Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);
+        Route::get('/sppb/export/{id}', [SppbController::class, 'exportDetail'])
+        ->name('sppb.export');
     });
 
     // ✍️ CREATE SPPB
@@ -600,6 +602,8 @@ Route::post('/logout', function () {
 
         Route::get('/createbqkontrak/{sppjId}/categories', [SppjController::class, 'categoriesBqKontrak'])->name('bqkontrak.categories');
         Route::get('/showbqkontrak/{hash}', [SppjController::class, 'showBqKontrak'])->name('bqkontrak.show');
+        Route::get('/sppj/export/{id}', [SPPJController::class, 'exportDetail'])
+        ->name('sppj.export');
     });
 
     Route::middleware('access:SPPJ,CREATE')->group(function () {
@@ -648,6 +652,8 @@ Route::post('/logout', function () {
         Route::get('/sppks/{hash}/tracking-detail', [SppkController::class, 'trackingDetail'])->name('sppks.trackingDetail');
         Route::get('/sppks/{hash}/tracking-detail/item', [SppkController::class, 'trackingDetailItem'])->name('sppks.trackingDetailItem');
         Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);
+        Route::get('/sppk/export/{id}', [SppkController::class, 'exportDetail'])
+        ->name('sppk.export');
     });
 
     Route::middleware('access:SPPK,CREATE')->group(function () {
@@ -676,6 +682,8 @@ Route::post('/logout', function () {
         // BQ VIEW
         Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);
         Route::get('/pdf_bq_pt/{hash}', [SpptController::class, 'printBQ']);
+        Route::get('/sppt/export/{id}', [SpptController::class, 'exportDetail'])
+        ->name('sppt.export');
     });
 
     Route::middleware('access:SPPT,CREATE')->group(function () {

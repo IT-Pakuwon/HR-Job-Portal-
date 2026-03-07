@@ -80,76 +80,82 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
+
                         @php
-                            // Reusable classes
                             $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            // Build field list
                             $fields = [
                                 [
                                     'icon' => 'building-office',
                                     'label' => 'Company',
                                     'value' => $spb->cpny_id,
                                 ],
+
                                 [
                                     'icon' => 'squares-2x2',
                                     'label' => 'Department',
                                     'value' => $spb->department_id,
                                 ],
+
                                 [
                                     'icon' => 'calendar',
                                     'label' => 'Date',
-                                    'value' => date('j F Y', strtotime($spb->spbdate)),
+                                    'value' => date('j F Y', strtotime($spb->sppbdate)),
                                 ],
+
                                 [
                                     'icon' => 'user-circle',
                                     'label' => 'Created User',
                                     'value' => ucwords(strtolower(optional($spb->creator)->name)),
                                 ],
+                                [
+                                    'icon' => 'wrench-screwdriver',
+                                    'label' => 'WO',
+                                    'value' => !empty($woData) ? $woData->woid : '-',
+                                    'link' => !empty($woHash) ? url('/showwos/' . $woHash) : null,
+                                ],
                             ];
 
-                            // Worktype + Subworktype
                             $worktypeText = optional($spb->worktype)->worktype_name ?? '-';
                             $subText = optional($spb->subworktype)->subworktype_name;
+
                             if ($subText) {
                                 $worktypeText .= ' — ' . $subText;
                             }
                         @endphp
 
+
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
-                            {{-- Top Fields --}}
+                            {{-- SIMPLE HEADER FIELDS --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
+
                                     <div class="{{ $label }}">
                                         <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
                                         <span>{{ $f['label'] }}</span>
                                     </div>
-                                    <span class="{{ $value }}">{{ $f['value'] }}</span>
+
+                                    <span class="{{ $value }}">
+                                        @if (!empty($f['link']))
+                                            <a href="{{ $f['link'] }}" target="_blank"
+                                                class="font-semibold text-indigo-600 hover:underline">
+                                                {{ $f['value'] }}
+                                            </a>
+                                        @else
+                                            {{ $f['value'] }}
+                                        @endif
+                                    </span>
+
                                 </div>
                             @endforeach
 
-                            @if (!empty($woData))
-                                <div class="col-span-2 flex items-start gap-2 p-2">
-                                    <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">WO</span>
-
-                                    <div class="flex flex-col">
-                                        <a href="{{ url('/showwos/' . $woHash) }}" target="_blank"
-                                            class="font-semibold text-indigo-600 hover:underline">
-                                            {{ $woData->woid }}
-                                        </a>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $woData->keperluan }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endif
 
                             {{-- JENIS PEKERJAAN --}}
                             <div class="col-span-2 grid gap-3 sm:grid-cols-2">
+
                                 <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
@@ -160,34 +166,51 @@
                                     </div>
                                 </div>
 
-                                {{-- WO ID --}}
-                                <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <x-heroicon-o-document-text class="mt-0.5 h-5 w-5 text-gray-400" />
-                                    <div class="flex flex-col">
-                                        <span class="text-gray-500">WO ID</span>
-                                        <span class="font-medium text-gray-900 dark:text-gray-300">
-                                            {{ $spb->woid ?? '-' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {{-- DESCRIPTION --}}
-                            <div class="col-span-2">
                                 <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+
                                     <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
+
                                     <div class="flex flex-col">
+
                                         <span class="text-gray-500">Description</span>
+
                                         <span class="font-medium text-gray-900 dark:text-gray-300">
                                             {{ $spb->keperluan }}
                                         </span>
+
                                     </div>
+
                                 </div>
+
                             </div>
 
-                        </div>
-                    </div>
+                            @if (!empty($woData))
+                                <div class="col-span-2">
 
+                                    <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+
+                                        <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
+
+                                        <div class="flex flex-col">
+
+                                            <span class="text-gray-500">WO Purpose</span>
+
+                                            <span class="font-medium text-gray-900 dark:text-gray-300">
+                                                {{ $woData->keperluan }}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            @endif
+
+
+                        </div>
+
+                    </div>
 
 
                 </div>

@@ -43,8 +43,10 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\BusinessUnit;
 use App\Models\Userbusinessunit;
 use App\Models\Budget;
+use App\Models\BudgetDetail;
 use App\Models\SysUserRole;
 use App\Models\TrWO;
+use App\Exports\SpptDetailExport;
 
 class SpptController extends Controller
 {
@@ -164,7 +166,7 @@ class SpptController extends Controller
                 $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid');
             })
             ->whereIn('sppt.cpny_id', $cpnyIds)
-            ->whereIn('ms_request_type.doctype', 'SPPT');
+            ->where('rt.doctype', 'SPPT');
 
         // ==============================
         // MODE LOGIC
@@ -1409,6 +1411,40 @@ class SpptController extends Controller
         ->orderby('sppt_no', 'ASC')
         ->get();
 
+        $budgets = BudgetDetail::select(
+            'cpny_id',
+            'business_unit_id',
+            'department_fin_id',
+            'account_id',
+            'activity_id',
+            'perpost',
+            'totalbudget',
+            'total_reserve',
+            'total_used'
+        )->get();
+
+
+        /*
+        |-----------------------------------------
+        | Map Budget to Each Item
+        |-----------------------------------------
+        */
+        foreach ($spptdetail as $item) {
+
+            $budget = $budgets->first(function ($b) use ($item) {
+
+                return $b->cpny_id == $item->budget_cpny_id
+                    && $b->business_unit_id == $item->budget_business_unit_id
+                    && $b->department_fin_id == $item->budget_department_fin_id
+                    && $b->account_id == $item->budget_account_id
+                    && $b->activity_id == $item->budget_activity_id
+                    && $b->perpost == $item->budget_perpost;
+
+            });
+
+            $item->budget_data = $budget;
+        }
+
 
         // $rows = TrAttachment::where('refnbr', $sppt->spptid)
         //     ->where('status', 'A')
@@ -1515,6 +1551,51 @@ class SpptController extends Controller
         }
 
         return view('pages.sppts.showsppts', compact('sppt','attachmentPT','attachmentWO','spptdetail','bq','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'));
+    }
+
+    public function exportDetail($id)
+    {
+        $sppt = TrSPPT::findOrFail($id);
+
+        $spptdetail = TrSPPTDetail::with([
+            'location',
+            'subLocation'
+        ])
+        ->where('spptid', $sppt->spptid)
+        ->orderBy('sppt_no','ASC')
+        ->get();
+
+        $budgets = BudgetDetail::select(
+            'cpny_id',
+            'business_unit_id',
+            'department_fin_id',
+            'account_id',
+            'activity_id',
+            'perpost',
+            'totalbudget',
+            'total_reserve',
+            'total_used'
+        )->get();
+
+        foreach ($spptdetail as $item) {
+
+            $budget = $budgets->first(function ($b) use ($item) {
+
+                return $b->cpny_id == $item->budget_cpny_id
+                    && $b->business_unit_id == $item->budget_business_unit_id
+                    && $b->department_fin_id == $item->budget_department_fin_id
+                    && $b->account_id == $item->budget_account_id
+                    && $b->activity_id == $item->budget_activity_id
+                    && $b->perpost == $item->budget_perpost;
+            });
+
+            $item->budget_data = $budget;
+        }
+
+        return Excel::download(
+            new SpptDetailExport($spptdetail),
+            'SPPT_Detail_'.$sppt->spptid.'.xlsx'
+        );
     }
 
     private function mapAttachmentsToSignedUrl($refnbr)

@@ -266,6 +266,66 @@
             color: rgb(31 41 55);
         }
 
+        /* =====================================================
+   DARK MODE FIX — STATUS & SCOPE CARDS
+===================================================== */
+
+        .dark .status-card,
+        .dark .scope-card {
+            border-color: rgba(255, 255, 255, .12);
+        }
+
+        /* ⚪ ALL */
+        .dark .status-filter[data-status="ALL"] .status-card,
+        .dark .status-filter[data-status=""] .status-card,
+        .dark .scope-filter[data-scope="my"] .scope-card {
+            background: rgba(148, 163, 184, .15);
+            color: #e5e7eb;
+        }
+
+        /* 🟧 ON PROGRESS */
+        .dark .status-filter[data-status="P"] .status-card,
+        .dark .scope-filter[data-scope="onprogress"] .scope-card {
+            background: rgba(251, 146, 60, .18);
+            color: #fdba74;
+        }
+
+        /* 🟥 REJECT */
+        .dark .status-filter[data-status="R"] .status-card,
+        .dark .scope-filter[data-scope="issueprogress"] .scope-card {
+            background: rgba(239, 68, 68, .18);
+            color: #f87171;
+        }
+
+        /* 🟨 HOLD / DRAFT */
+        .dark .status-filter[data-status="H,D"] .status-card,
+        .dark .status-filter[data-status="D"] .status-card {
+            background: rgba(251, 191, 36, .18);
+            color: #fcd34d;
+        }
+
+        /* 🟩 COMPLETED */
+        .dark .status-filter[data-status="C"] .status-card,
+        .dark .scope-filter[data-scope="completed"] .scope-card {
+            background: rgba(34, 197, 94, .18);
+            color: #86efac;
+        }
+
+        /* 🟪 TRACK */
+        .dark .status-filter[data-status="TRACK"] .status-card,
+        .dark .scope-filter[data-scope="tracking"] .scope-card {
+            background: rgba(168, 85, 247, .18);
+            color: #c084fc;
+        }
+
+        /* 🔵 UNREAD / ACTIVE FLOW */
+        .dark .status-filter[data-status="is_read_N"] .status-card,
+        .dark .scope-filter[data-scope="hold"] .scope-card,
+        .dark .scope-filter[data-scope="purchase"] .scope-card {
+            background: rgba(59, 130, 246, .18);
+            color: #93c5fd;
+        }
+
         /* Active / Selected state */
         .filter-card.active {
             transform: scale(1.02);

@@ -45,8 +45,10 @@ use App\Models\MsKontrakCategory;
 use App\Models\MsKontrakDocument;
 use App\Models\Userbusinessunit;
 use App\Models\Budget;
+use App\Models\BudgetDetail;
 use App\Models\SysUserRole;
 use App\Models\TrWO;
+use App\Exports\SppjDetailExport;
 
 
 class SppjController extends Controller
@@ -287,8 +289,6 @@ class SppjController extends Controller
             'departments'     => $departments,
         ]);
     }
-
-
 
 
     public function createSppj()
@@ -1322,7 +1322,6 @@ class SppjController extends Controller
         }
     }
 
-
     public function showSppj($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1348,6 +1347,40 @@ class SppjController extends Controller
         ->where('sppjid', $sppj->sppjid)
         ->orderby('sppj_no', 'ASC')
         ->get();
+
+        $budgets = BudgetDetail::select(
+            'cpny_id',
+            'business_unit_id',
+            'department_fin_id',
+            'account_id',
+            'activity_id',
+            'perpost',
+            'totalbudget',
+            'total_reserve',
+            'total_used'
+        )->get();
+
+
+        /*
+        |-----------------------------------------
+        | Map Budget to Each Item
+        |-----------------------------------------
+        */
+        foreach ($sppjdetail as $item) {
+
+            $budget = $budgets->first(function ($b) use ($item) {
+
+                return $b->cpny_id == $item->budget_cpny_id
+                    && $b->business_unit_id == $item->budget_business_unit_id
+                    && $b->department_fin_id == $item->budget_department_fin_id
+                    && $b->account_id == $item->budget_account_id
+                    && $b->activity_id == $item->budget_activity_id
+                    && $b->perpost == $item->budget_perpost;
+
+            });
+
+            $item->budget_data = $budget;
+        }
 
         $attachmentPJ = $this->mapAttachmentsToSignedUrl($sppj->sppjid);
 
@@ -1408,6 +1441,49 @@ class SppjController extends Controller
 
         return view('pages.sppjs.showsppjs', compact('sppj','attachmentPJ','attachmentWO','sppjdetail','bq','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'
         ));
+    }
+
+
+    public function exportDetail($id)
+    {
+        $sppj = TrSPPJ::findOrFail($id);
+
+        $sppjdetail = TrSPPJDetail::where('sppjid', $sppj->sppjid)
+            ->with(['location','subLocation'])
+            ->orderBy('sppj_no','ASC')
+            ->get();
+
+        $budgets = BudgetDetail::select(
+            'cpny_id',
+            'business_unit_id',
+            'department_fin_id',
+            'account_id',
+            'activity_id',
+            'perpost',
+            'totalbudget',
+            'total_reserve',
+            'total_used'
+        )->get();
+
+        foreach ($sppjdetail as $item) {
+
+            $budget = $budgets->first(function ($b) use ($item) {
+
+                return $b->cpny_id == $item->budget_cpny_id
+                    && $b->business_unit_id == $item->budget_business_unit_id
+                    && $b->department_fin_id == $item->budget_department_fin_id
+                    && $b->account_id == $item->budget_account_id
+                    && $b->activity_id == $item->budget_activity_id
+                    && $b->perpost == $item->budget_perpost;
+            });
+
+            $item->budget_data = $budget;
+        }
+
+        return Excel::download(
+            new SppjDetailExport($sppjdetail),
+            'SPPJ_Detail_'.$sppj->sppjid.'.xlsx'
+        );
     }
 
     private function mapAttachmentsToSignedUrl($refnbr)

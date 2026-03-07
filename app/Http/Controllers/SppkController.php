@@ -25,6 +25,7 @@ use App\Http\Controllers\TrAttachmentController;
 use Illuminate\Support\Facades\Response;
 use App\Models\TrAttachment;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Google\Cloud\Storage\StorageClient;
 use App\Http\Controllers\ApprovalController;
 use App\Models\TrApproval;
@@ -38,7 +39,9 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\BusinessUnit;
 use App\Models\Userbusinessunit;
 use App\Models\Budget;
+use App\Models\BudgetDetail;
 use App\Models\SysUserRole;
+use App\Exports\SppkDetailExport;
 
 class SppkController extends Controller
 {
@@ -1393,6 +1396,41 @@ class SppkController extends Controller
         ->orderby('sppk_no', 'ASC')
         ->get();
 
+        $budgets = BudgetDetail::select(
+            'cpny_id',
+            'business_unit_id',
+            'department_fin_id',
+            'account_id',
+            'activity_id',
+            'perpost',
+            'totalbudget',
+            'total_reserve',
+            'total_used'
+        )->get();
+
+
+        /*
+        |-----------------------------------------
+        | Map Budget to Each Item
+        |-----------------------------------------
+        */
+        foreach ($sppkdetail as $item) {
+
+            $budget = $budgets->first(function ($b) use ($item) {
+
+                return $b->cpny_id == $item->budget_cpny_id
+                    && $b->business_unit_id == $item->budget_business_unit_id
+                    && $b->department_fin_id == $item->budget_department_fin_id
+                    && $b->account_id == $item->budget_account_id
+                    && $b->activity_id == $item->budget_activity_id
+                    && $b->perpost == $item->budget_perpost;
+
+            });
+
+            $item->budget_data = $budget;
+        }
+
+
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $sppk->sppkid)
             ->where('status', 'A')
@@ -1473,6 +1511,50 @@ class SppkController extends Controller
         return view('pages.sppks.showsppks', compact('sppk','attachments','sppkdetail','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin'));
     }
 
+    public function exportDetail($id)
+    {
+        $sppk = TrSPPK::findOrFail($id);
+
+        $sppkdetail = TrSPPKDetail::with([
+            'location',
+            'subLocation'
+        ])
+        ->where('sppkid', $sppk->sppkid)
+        ->orderBy('sppk_no','ASC')
+        ->get();
+
+        $budgets = BudgetDetail::select(
+            'cpny_id',
+            'business_unit_id',
+            'department_fin_id',
+            'account_id',
+            'activity_id',
+            'perpost',
+            'totalbudget',
+            'total_reserve',
+            'total_used'
+        )->get();
+
+        foreach ($sppkdetail as $item) {
+
+            $budget = $budgets->first(function ($b) use ($item) {
+
+                return $b->cpny_id == $item->budget_cpny_id
+                    && $b->business_unit_id == $item->budget_business_unit_id
+                    && $b->department_fin_id == $item->budget_department_fin_id
+                    && $b->account_id == $item->budget_account_id
+                    && $b->activity_id == $item->budget_activity_id
+                    && $b->perpost == $item->budget_perpost;
+            });
+
+            $item->budget_data = $budget;
+        }
+
+        return Excel::download(
+            new SppkDetailExport($sppkdetail),
+            'SPPK_Detail_'.$sppk->sppkid.'.xlsx'
+        );
+    }
     public function approveSppk(Request $request, $docid)
     {
         $user    = $request->user();
