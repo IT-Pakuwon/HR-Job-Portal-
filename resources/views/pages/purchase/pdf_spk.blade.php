@@ -380,16 +380,20 @@
                     {{-- ================= PAYMENT TERMS ================= --}}
                     &nbsp;&nbsp; b. Sistem Pembayaran :
 
-                    @if ($paymentTerms->count())
+                    @php
+                        $terms = $paymentTerms->where('terms_type', '!=', 'DP')->unique('terms_name');
+                    @endphp
 
-                        @foreach ($paymentTerms as $term)
+                    @if ($terms->count())
+
+                        @foreach ($terms as $term)
                             @php
                                 $pct = (float) $term->payment_pct;
                                 $amount = ($pct / 100) * $grand;
                             @endphp
 
                             <br>&nbsp;&nbsp;&nbsp;&nbsp;
-                            {{ $term->terms_name ?? $poTerms->top_name }}
+                            {{ $term->terms_name }}
                             - Rp {{ $nf2($amount) }}
                             ({{ $pct }}%)
                         @endforeach
@@ -399,7 +403,6 @@
                         - Rp {{ $nf2($grand) }}
 
                     @endif
-
                 </td>
             </tr>
             <tr>
@@ -482,9 +485,17 @@
 
 
         <table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:10px;">
+            @php
+                $retensiTerm = $paymentTerms->where('terms_type', 'Retensi')->unique('terms_name')->first();
 
+                $retensi = 0;
+
+                if ($retensiTerm) {
+                    $retensi = ((float) $retensiTerm->payment_pct / 100) * $grand;
+                }
+            @endphp
             {{-- RETENSI --}}
-            @if (!empty($retensi))
+            @if ($retensi > 0)
                 <tr>
                     <td style="width:180px; padding:3px 0;">
                         Retensi Pekerjaan
