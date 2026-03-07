@@ -396,31 +396,99 @@
                             @foreach ($spbdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $item->spb_no }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventory_descr }}<br>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                                            Note: {{ $item->note }}
-                                        </span>
+
+                                    <!-- No -->
+                                    <td class="px-4 py-3 font-semibold">
+                                        {{ $item->spb_no }}
                                     </td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty, 2, ',', '.') }}<br>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+
+                                    <!-- Item -->
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                            {{ $item->inventory_descr }}
+                                        </div>
+
+                                        <div class="text-xs text-gray-500">
+                                            {{ $item->inventoryid }}
+                                        </div>
+
+                                        @if ($item->note)
+                                            <div class="mt-1 text-xs text-gray-400">
+                                                Note: {{ $item->note }}
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    <!-- Qty -->
+                                    <td class="px-4 py-3 text-center">
+                                        <div class="font-semibold">
+                                            {{ number_format($item->qty, 2, ',', '.') }}
+                                        </div>
+
+                                        <div class="text-xs text-gray-500">
                                             {{ $item->uom }}
-                                        </span>
+                                        </div>
                                     </td>
-                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }} -
-                                        {{ optional($item->subLocation)->sub_location_name }}</td>
-                                    <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
-                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}
-                                        <br>
-                                        <strong>
-                                            Business Unit : {{ $item->budget_business_unit_id }}
-                                        </strong>
+
+                                    <!-- Location -->
+                                    <td class="px-4 py-3">
+                                        <div>
+                                            {{ optional($item->location)->location_name }}
+                                        </div>
+
+                                        <div class="text-xs text-gray-500">
+                                            {{ optional($item->subLocation)->sub_location_name }}
+                                        </div>
+                                    </td>
+
+                                    <!-- Budget -->
+                                    <td class="px-4 py-3">
+
+                                        <div class="flex items-center gap-2 text-sm">
+
+                                            <!-- Department -->
+                                            <span
+                                                class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                {{ $item->budget_department_fin_id }}
+                                            </span>
+
+                                            <!-- Business Unit -->
+                                            <span
+                                                class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                {{ $item->budget_business_unit_id }}
+                                            </span>
+
+                                            <!-- Account -->
+                                            <span class="font-medium text-gray-700 dark:text-gray-200">
+                                                {{ $item->budget_account_id }}
+                                            </span>
+
+                                            <span class="text-gray-400">•</span>
+
+                                            <!-- Activity -->
+                                            <span class="truncate text-gray-500">
+                                                {{ $item->budget_activity_descr }}
+                                            </span>
+
+                                        </div>
 
                                     </td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty_issued, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty_sppb, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty_sisa, 2, ',', '.') }}</td>
+
+                                    <!-- Issue -->
+                                    <td class="px-4 py-3 text-right">
+                                        {{ number_format($item->qty_issued, 2, ',', '.') }}
+                                    </td>
+
+                                    <!-- SPPB -->
+                                    <td class="px-4 py-3 text-right">
+                                        {{ number_format($item->qty_sppb, 2, ',', '.') }}
+                                    </td>
+
+                                    <!-- Open -->
+                                    <td class="px-4 py-3 text-right font-semibold text-amber-600">
+                                        {{ number_format($item->qty_sisa, 2, ',', '.') }}
+                                    </td>
+
                                 </tr>
                             @endforeach
                         </tbody>
