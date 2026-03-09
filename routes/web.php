@@ -109,7 +109,7 @@ use App\Http\Controllers\Integration\IFCAAPIGRNController;
 use App\Http\Controllers\Integration\IFCAAPIBASTController;
 use App\Http\Controllers\Integration\IFCAAPIIssueController;
 use App\Http\Controllers\Integration\SLAPIIssueController;
-
+use App\Http\Controllers\Integration\SLAPIGRNController;
 
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
@@ -1626,6 +1626,12 @@ Route::post('/logout', function () {
         Route::prefix('ifcaintegration/issuesolomon')->name('ifcaintegration.issuesolomon.')->group(function () {
             Route::get('list', [SLAPIIssueController::class, 'list'])->name('list');
             Route::post('process', [SLAPIIssueController::class, 'process'])->name('process');
+        });
+
+        // ✅ module: GRN Solomon
+        Route::prefix('ifcaintegration/grnsolomon')->name('ifcaintegration.grnsolomon.')->group(function () {
+            Route::get('list',    [SLAPIGRNController::class, 'list'])->name('list');
+            Route::post('process',[SLAPIGRNController::class, 'process'])->name('process');
         });
 
     });

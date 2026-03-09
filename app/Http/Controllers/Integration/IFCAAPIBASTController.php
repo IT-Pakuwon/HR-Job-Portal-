@@ -267,12 +267,19 @@ class IFCAAPIBASTController extends Controller
                         'grn_date'     => $ln->grn_date,
     
                         'supplier_cd'  => (string)($ln->supplier_cd ?? ''),
+                        'keeper'  => (string)($ln->created_by ?? ''),
+                        'keeper_date'     => $ln->created_at,
                         'reference_no' => (string)($ln->reference_no ?? ''),
                         'order_no'     => (string)($ln->order_no ?? ''),
     
                         'total_record' => (int)($ln->total_record ?? 0),
+                        'total_qty' => (int)($ln->total_qty ?? 0),
+
+                        'receipt_line'   => (int)($ln->receipt_line ?? 0),
                         'order_line'   => (int)($ln->order_line ?? 0),
                         'item_cd'      => (string)($ln->item_cd ?? ''),
+                        'item_type'      => (string)($ln->item_type ?? ''),
+                        'item_descr'      => (string)($ln->item_descr ?? ''),
                         'uom_cd'       => (string)($ln->uom ?? ''),
                         'rec_qty'      => (float)($ln->rec_qty ?? 0),
     

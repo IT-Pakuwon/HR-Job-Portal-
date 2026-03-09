@@ -43,6 +43,11 @@
                         Issue Solomon
                     </button>
 
+                    <button type="button" data-tab="tab-grn-sl"
+                        class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
+                        GRN Solomon
+                    </button>
+
                     <button type="button" data-tab="tab-sttb-return"
                         class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-gray-600 hover:border-gray-200 hover:bg-white">
                         STTB Return (soon)
@@ -99,6 +104,11 @@
                     @include('pages.integration.slapissue')
                 </div>
 
+                {{-- TAB: GRN Solomon --}}
+                <div id="tab-grn-sl" class="hidden">
+                    @include('pages.integration.slapigrn')
+                </div>
+
                 {{-- Placeholder tabs --}}
                 <div id="tab-sttb-return" class="hidden text-sm text-gray-500">STTB Return tab (soon)</div>
                 <div id="tab-receipt" class="hidden text-sm text-gray-500">Receipt tab (soon)</div>
@@ -111,7 +121,7 @@
         // Tabs
         const emptyState = document.getElementById('emptyState');
         const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb', 'tab-bast','tab-issue','tab-issue-sl']
+        const tabPanels = ['tab-nonstock', 'tab-stock', 'tab-supplier', 'tab-po', 'tab-sttb', 'tab-bast','tab-issue','tab-issue-sl','tab-grn-sl']
             .map(id => document.getElementById(id));
 
         tabButtons.forEach(btn => {
