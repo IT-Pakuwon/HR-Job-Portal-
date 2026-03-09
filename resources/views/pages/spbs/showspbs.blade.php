@@ -402,14 +402,18 @@
                                         {{ $item->spb_no }}
                                     </td>
 
-                                    <!-- Item -->
+
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                            {{ $item->inventoryid }}
+                                        </div>
+
+                                    </td>
+
+                                    <!-- Description -->
                                     <td class="px-4 py-3">
                                         <div class="font-medium">
                                             {{ $item->inventory_descr }}
-                                        </div>
-
-                                        <div class="text-xs text-gray-500">
-                                            {{ $item->inventoryid }}
                                         </div>
 
                                         @if ($item->note)

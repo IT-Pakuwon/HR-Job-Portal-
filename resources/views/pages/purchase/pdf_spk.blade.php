@@ -419,7 +419,7 @@
 
         {{-- ================= TABLE PEKERJAAN ================= --}}
         <br>
-        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:10px;">
+        <table style="width:100%; border-collapse:collapse; font-size:9px; margin-top:10px;">
 
             <thead>
                 <tr style="border-top:1px solid #000; border-bottom:1px solid #000;">
@@ -441,7 +441,7 @@
                             <span class=bold>{{ $item->inventory_descr }}</span>
 
                             @if ($item->ponote_detail)
-                                <div style="margin-top:2px; font-size:10.5px;">
+                                <div style="margin-top:2px; font-size:9px;">
                                     {{ ucfirst(strtolower($item->ponote_detail)) }}
                                 </div>
                             @endif
@@ -484,7 +484,7 @@
         </table>
 
 
-        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:10px;">
+        <table style="width:100%; border-collapse:collapse; font-size:9px; margin-top:10px;">
             @php
                 $retensiTerm = $paymentTerms->where('terms_type', 'Retensi')->unique('terms_name')->first();
 
@@ -546,7 +546,7 @@
         </table>
 
 
-        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:4px;">
+        <table style="width:100%; border-collapse:collapse; font-size:9px; margin-top:4px;">
 
             <tr>
                 <td style="width:20px;">a.</td>
