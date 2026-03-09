@@ -98,6 +98,10 @@ use App\Http\Controllers\SelfRegisterApplicantController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\UserSyncController;
 use App\Http\Controllers\InventoryUserController;
+use App\Http\Controllers\SysCalendarController;
+use App\Http\Controllers\BusinessUnitController;
+use App\Http\Controllers\AttachmentMasterController;
+use App\Http\Controllers\KendaraanController;
 
 // INTEGRATION
 use App\Http\Controllers\Integration\IFCAIntegrationController;
@@ -1356,7 +1360,32 @@ Route::post('/logout', function () {
     Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
     Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
     Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
-    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
+    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');    
+
+    Route::get('/sys-calendar', [SysCalendarController::class, 'index'])->name('sys-calendar');
+    Route::get('/sys-calendar/json', [SysCalendarController::class, 'json'])->name('sys-calendar.json');
+    Route::post('/sys-calendar', [SysCalendarController::class, 'store'])->name('sys-calendar.store');
+    Route::get('/sys-calendar/{id}/edit', [SysCalendarController::class, 'edit'])->name('sys-calendar.edit');
+    Route::post('/sys-calendar/{id}', [SysCalendarController::class, 'update'])->name('sys-calendar.update');
+    Route::put('/sys-calendar/{id}/toggle-status', [SysCalendarController::class, 'toggleStatus'])->name('sys-calendar.toggle-status');  
+
+    Route::get('/business-units', [BusinessUnitController::class, 'index'])->name('business-units');
+    Route::get('/business-units/json', [BusinessUnitController::class, 'json'])->name('business-units.json');
+    Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
+    Route::get('/business-units/{id}/edit', [BusinessUnitController::class, 'edit'])->name('business-units.edit');
+    Route::post('/business-units/{id}', [BusinessUnitController::class, 'update'])->name('business-units.update');
+    Route::put('/business-units/{id}/toggle-status', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle-status');    
+
+    Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
+    Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');   
+    Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');    
+
+    Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
+    Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
+    Route::post('/kendaraan', [KendaraanController::class, 'store'])->name('kendaraan.store');
+    Route::get('/kendaraan/{id}/edit', [KendaraanController::class, 'edit'])->name('kendaraan.edit');
+    Route::post('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
+    Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
 
     Route::middleware(['auth'])->group(function () {
         // halaman setting + tombol run

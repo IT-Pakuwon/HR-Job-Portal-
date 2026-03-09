@@ -75,9 +75,9 @@
     </div>
 
     {{-- ===== Modal (Tailwind) ===== --}}
-    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-        <div class="w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-800">
-            <div class="flex items-start justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-2 sm:p-4">
+        <div class="flex w-full max-w-[95vw] lg:max-w-6xl max-h-[95vh] flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-800">
+            <div class="shrink-0 flex items-start justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
                 <div>
                     <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Detail & Mapping</h2>
                     <p id="modalSub" class="text-sm font-semibold text-gray-700 dark:text-gray-200"></p>
@@ -86,7 +86,7 @@
                     class="rounded-lg px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✕</button>
             </div>
 
-            <div class="space-y-4 p-5">
+            <div class="flex-1 overflow-y-auto p-5 space-y-4">
                 <input type="hidden" id="rowId">
 
                 {{-- HEADER --}}
@@ -122,6 +122,7 @@
                         <div class="pt-1 text-gray-500">Remaks</div><div class="pt-1">:</div>
                         <textarea id="mRemark" rows="2" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white"></textarea>
                     </div>
+
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm md:col-span-2">
                         <div class="text-gray-500">Integration Type</div><div>:</div>
                         <select id="mIntegrationType"
@@ -131,7 +132,7 @@
                     </div>
                 </div>
 
-                {{-- DETAIL TABLE (rapi seperti gambar: info digabung) --}}
+                {{-- DETAIL TABLE --}}
                 <div class="rounded-xl border border-gray-200 dark:border-gray-700">
                     <div class="border-b border-gray-200 px-4 py-2 text-sm font-bold text-gray-700 dark:border-gray-700 dark:text-gray-200">
                         Detail Items (Mapping per Line)
@@ -177,7 +178,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+            <div class="shrink-0 flex items-center justify-end gap-2 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
                 <button id="btnCancel"
                     class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     Close

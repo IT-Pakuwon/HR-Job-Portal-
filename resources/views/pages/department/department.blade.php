@@ -14,9 +14,9 @@
             </div>
 
             <table id="departmentTable" class="text-body w-full text-left text-sm rtl:text-right">
-                <thead
-                    class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                     <tr>
+                        <th class="w-8 px-2 py-3 text-center"></th> {{-- responsive control --}}
                         <th class="w-32 px-4 py-3 text-center">Actions</th>
                         <th class="px-4 py-3 text-left">Department ID</th>
                         <th class="px-4 py-3 text-left">Department Name</th>
@@ -63,10 +63,9 @@
             </div>
         </div>
     </div>
+
     <script>
         $(document).ready(function() {
-
-            // Kalau sebelumnya sudah pernah di-init, destroy dulu
             if ($.fn.DataTable.isDataTable('#departmentTable')) {
                 $('#departmentTable').DataTable().clear().destroy();
             }
@@ -82,6 +81,7 @@
                 },
                 processing: true,
                 serverSide: false,
+                autoWidth: false,
                 lengthMenu: [
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
@@ -89,61 +89,71 @@
                 responsive: {
                     details: {
                         type: 'column',
-                        target: 0 // 👈 this is REQUIRED
+                        target: 0
                     }
                 },
-
-                columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                }],
+                columnDefs: [
+                    {
+                        targets: 0,
+                        className: 'dtr-control',
+                        orderable: false,
+                        searchable: false,
+                        width: '28px',
+                        defaultContent: ''
+                    },
+                    {
+                        targets: 1,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        targets: 5,
+                        className: 'text-center'
+                    }
+                ],
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
-                buttons: [{
+                buttons: [
+                    {
                         extend: 'excelHtml5',
                         text: '↓ Excel',
-                        title: 'User',
+                        title: 'Department',
                         className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: {
-                            columns: ':visible',
-                            modifier: {
-                                page: 'current'
-                            }
+                            columns: [2, 3, 4, 5]
                         }
                     },
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
-                        title: 'User',
+                        title: 'Department',
                         className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: {
-                            columns: ':visible',
-                            modifier: {
-                                page: 'current'
-                            }
+                            columns: [2, 3, 4, 5]
                         }
                     }
                 ],
-                columns: [{
+                columns: [
+                    {
                         data: null,
                         defaultContent: ''
-                    }, {
+                    },
+                    {
                         data: 'id',
                         render: function(data, type, row) {
                             return `
-                                        <div class="flex justify-center space-x-2">
-                                            <label class="switch">
-                                                <input type="checkbox" class="toggleStatus"
-                                                    data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
-                                                <span class="slider round"></span>
-                                            </label>
-                                            <button class="editDepartmentBtn bg-blue-500 text-white px-2 py-1 rounded"
-                                                data-id="${data}">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                        </div>
-                                    `;
+                                <div class="flex justify-center space-x-2">
+                                    <label class="switch">
+                                        <input type="checkbox" class="toggleStatus"
+                                            data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <button class="editDepartmentBtn bg-blue-500 text-white px-2 py-1 rounded"
+                                        data-id="${data}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            `;
                         }
                     },
                     {
@@ -156,21 +166,21 @@
                     },
                     {
                         data: 'department_fin_id',
-                        className: 'no-pointer'
+                        className: 'no-pointer',
+                        defaultContent: '-'
                     },
                     {
                         data: 'status',
                         className: 'no-pointer',
                         render: function(data) {
-                            return data === 'A' ?
-                                '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 font-semibold px-4 py-2 text-center rounded">Active</span>' :
-                                '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            return data === 'A'
+                                ? '<span class="inline-block rounded bg-green-300/30 px-4 py-2 font-semibold text-green-600">Active</span>'
+                                : '<span class="inline-block rounded bg-red-300/30 px-4 py-2 font-semibold text-red-600">Inactive</span>';
                         }
                     }
                 ]
             });
 
-            // Add
             $('#addDepartmentBtn').click(function() {
                 $('#modalTitle').text("Add Department");
                 $('#departmentForm')[0].reset();
@@ -178,7 +188,6 @@
                 $('#departmentModal').removeClass('hidden');
             });
 
-            // Edit
             $(document).on('click', '.editDepartmentBtn', function() {
                 let id = $(this).data('id');
 
@@ -191,10 +200,13 @@
                     $('#department_id').val(c.department_id);
                     $('#department_name').val(c.department_name);
                     $('#department_fin_id').val(c.department_fin_id);
+                }).fail(function(xhr) {
+                    console.error(xhr.responseText);
+                    alert('Gagal mengambil data department');
+                    $('#departmentModal').addClass('hidden');
                 });
             });
 
-            // Toggle status
             $(document).on('change', '.toggleStatus', function() {
                 let id = $(this).data('id');
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
@@ -210,16 +222,20 @@
                     },
                     success: function() {
                         table.ajax.reload(null, false);
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        alert('Gagal update status');
+                        table.ajax.reload(null, false);
                     }
                 });
             });
 
-            // Submit form (create / update)
             $('#departmentForm').submit(function(e) {
                 e.preventDefault();
+
                 let id = $('#id').val();
                 let url = id ? `/department/${id}` : "{{ route('department.store') }}";
-                let method = 'POST';
                 let formData = new FormData(document.getElementById('departmentForm'));
 
                 if (id) {
@@ -228,7 +244,7 @@
 
                 $.ajax({
                     url: url,
-                    type: method,
+                    type: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
@@ -237,7 +253,9 @@
                     contentType: false,
                     success: function() {
                         $('#departmentModal').addClass('hidden');
-                        table.ajax.reload();
+                        $('#departmentForm')[0].reset();
+                        $('#id').val('');
+                        table.ajax.reload(null, false);
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);
