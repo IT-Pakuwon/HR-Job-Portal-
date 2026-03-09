@@ -2086,46 +2086,77 @@
                 closePicker();
             });
 
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
             const tooltip = document.getElementById("budgetTooltip");
 
             document.querySelectorAll(".budget-trigger").forEach(el => {
 
                 el.addEventListener("mouseenter", function() {
 
-                    document.getElementById("ttDesc").innerText = this.dataset.desc;
-                    document.getElementById("ttAccount").innerText = this.dataset.account;
-                    document.getElementById("ttCoa").innerText = this.dataset.coa;
-                    document.getElementById("ttBU").innerText = this.dataset.bu;
+                    const desc = this.dataset.desc || "";
+                    const account = this.dataset.account || "";
+                    const coa = this.dataset.coa || "";
+                    const bu = this.dataset.bu || "";
+
+                    const budget = Number(this.dataset.budget || 0);
+                    const additional = Number(this.dataset.additional || 0);
+                    const reserved = Number(this.dataset.reserved || 0);
+                    const used = Number(this.dataset.used || 0);
+                    const available = Number(this.dataset.available || 0);
+
+                    document.getElementById("ttDesc").innerText = desc;
+                    document.getElementById("ttAccount").innerText = account;
+                    document.getElementById("ttCoa").innerText = coa;
+                    document.getElementById("ttBU").innerText = bu;
 
                     document.getElementById("ttBudget").innerText =
-                        Number(this.dataset.budget).toLocaleString();
+                        budget.toLocaleString("id-ID");
+
+                    document.getElementById("ttAdditional").innerText =
+                        additional.toLocaleString("id-ID");
 
                     document.getElementById("ttReserved").innerText =
-                        Number(this.dataset.reserved).toLocaleString();
+                        reserved.toLocaleString("id-ID");
 
                     document.getElementById("ttUsed").innerText =
-                        Number(this.dataset.used).toLocaleString();
+                        used.toLocaleString("id-ID");
 
-                    document.getElementById("ttAvailable").innerText =
-                        Number(this.dataset.available).toLocaleString();
+                    const availableEl = document.getElementById("ttAvailable");
+                    availableEl.innerText = available.toLocaleString("id-ID");
+
+                    if (available < 0) {
+                        availableEl.classList.remove("text-emerald-500");
+                        availableEl.classList.add("text-red-500");
+                    } else {
+                        availableEl.classList.remove("text-red-500");
+                        availableEl.classList.add("text-emerald-500");
+                    }
 
                     tooltip.classList.remove("hidden");
+
                 });
 
                 el.addEventListener("mousemove", function(e) {
-                    tooltip.style.left = e.pageX + 15 + "px";
-                    tooltip.style.top = e.pageY + 15 + "px";
+
+                    tooltip.style.left = (e.pageX + 15) + "px";
+                    tooltip.style.top = (e.pageY + 15) + "px";
+
                 });
 
                 el.addEventListener("mouseleave", function() {
+
                     tooltip.classList.add("hidden");
+
                 });
 
             });
 
         });
     </script>
-
 
 
 

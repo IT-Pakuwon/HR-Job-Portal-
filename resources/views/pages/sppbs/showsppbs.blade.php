@@ -442,14 +442,20 @@
 
                                         <div class="group relative inline-block cursor-help">
                                             @php
-                                                $budget = $item->budget_data->totalbudget ?? 0;
-                                                $reserved = $item->budget_data->total_reserve ?? 0;
-                                                $used = $item->budget_data->total_used ?? 0;
-                                                $available = $budget - $reserved - $used;
+                                                $budgetData = $item->budget_data;
+
+                                                $budget = (float) ($budgetData->totalbudget ?? 0);
+                                                $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                $used = (float) ($budgetData->total_used ?? 0);
+
+                                                $totalBudget = $budget + $additional;
+
+                                                $available = $totalBudget - $reserved - $used;
                                             @endphp
 
-                                            <div class="budget-trigger cursor-pointer"
-                                                data-budget="{{ $budget }}"
+                                            <div class="budget-trigger" data-budget="{{ $budget }}"
+                                                data-additional="{{ $additional }}"
                                                 data-reserved="{{ $reserved }}" data-used="{{ $used }}"
                                                 data-available="{{ $available }}"
                                                 data-desc="{{ $item->budget_activity_descr }}"
@@ -459,71 +465,70 @@
 
                                                 <div class="flex items-center gap-2 text-sm">
 
-                                                    <!-- Department -->
-                                                    <span
-                                                        class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
-                                                        {{ $item->budget_department_fin_id }}
-                                                    </span>
+                                                    {{-- Department --}}
+                                                    @if (!empty($item->budget_department_fin_id))
+                                                        <span
+                                                            class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                            {{ $item->budget_department_fin_id }}
+                                                        </span>
+                                                    @endif
 
-                                                    <!-- Business Unit -->
-                                                    <span
-                                                        class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
-                                                        {{ $item->budget_business_unit_id }}
-                                                    </span>
+                                                    {{-- Business Unit --}}
+                                                    @if (!empty($item->budget_business_unit_id))
+                                                        <span
+                                                            class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                            {{ $item->budget_business_unit_id }}
+                                                        </span>
+                                                    @endif
 
-                                                    <!-- Account -->
-                                                    <span class="font-medium text-gray-700 dark:text-gray-200">
-                                                        {{ $item->budget_account_id }}
+                                                    {{-- Account --}}
+                                                    <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                        {{ $item->budget_account_id ?? '-' }}
                                                     </span>
 
                                                     <span class="text-gray-400 dark:text-gray-500">•</span>
 
-                                                    <!-- Activity -->
-                                                    <span class="truncate text-gray-500 dark:text-gray-400">
-                                                        {{ $item->budget_activity_descr }}
+                                                    {{-- Activity --}}
+                                                    <span
+                                                        class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
+                                                        {{ $item->budget_activity_descr ?? '-' }}
                                                     </span>
 
                                                 </div>
-
                                             </div>
+
                                             <!-- Tooltip -->
                                             <div id="budgetTooltip"
                                                 class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900">
 
-                                                <!-- HEADER -->
                                                 <div class="space-y-1">
 
-                                                    <!-- Activity Description -->
                                                     <div id="ttDesc"
-                                                        class="font-semibold text-gray-900 dark:text-white">
-                                                    </div>
+                                                        class="font-semibold text-gray-900 dark:text-white"></div>
 
-                                                    <!-- COA | Account Desc | BU -->
                                                     <div class="text-xs text-gray-500 dark:text-gray-400">
 
                                                         <span id="ttAccount"></span>
-
                                                         <span class="mx-1 text-gray-300">|</span>
-
                                                         <span id="ttCoa"></span>
-
                                                         <span class="mx-1 text-gray-300">|</span>
-
                                                         <span id="ttBU"></span>
 
                                                     </div>
-
                                                 </div>
 
-                                                <!-- DIVIDER -->
                                                 <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
 
-                                                <!-- DATA -->
                                                 <div class="space-y-1.5">
 
                                                     <div class="flex justify-between text-gray-600 dark:text-gray-400">
-                                                        <span>Total Budget</span>
-                                                        <span id="ttBudget" class="font-medium"></span>
+                                                        <span>Budget</span>
+                                                        <span id="ttBudget"></span>
+                                                    </div>
+
+                                                    <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                        <span>Additional</span>
+                                                        <span id="ttAdditional"></span>
                                                     </div>
 
                                                     <div class="flex justify-between">
@@ -541,14 +546,14 @@
 
                                                     <div class="flex justify-between font-semibold">
                                                         <span class="text-gray-700 dark:text-gray-300">Available</span>
-                                                        <span id="ttAvailable" class="text-emerald-500"></span>
+                                                        <span id="ttAvailable"></span>
                                                     </div>
 
                                                 </div>
 
                                             </div>
-                                        </div>
 
+                                        </div>
                                     </td>
 
                                     <!-- Ordered -->
@@ -1985,6 +1990,11 @@
 
                 closePicker();
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
 
             const tooltip = document.getElementById("budgetTooltip");
 
@@ -1992,39 +2002,65 @@
 
                 el.addEventListener("mouseenter", function() {
 
-                    document.getElementById("ttDesc").innerText = this.dataset.desc;
-                    document.getElementById("ttAccount").innerText = this.dataset.account;
-                    document.getElementById("ttCoa").innerText = this.dataset.coa;
-                    document.getElementById("ttBU").innerText = this.dataset.bu;
+                    const desc = this.dataset.desc || "";
+                    const account = this.dataset.account || "";
+                    const coa = this.dataset.coa || "";
+                    const bu = this.dataset.bu || "";
+
+                    const budget = Number(this.dataset.budget || 0);
+                    const additional = Number(this.dataset.additional || 0);
+                    const reserved = Number(this.dataset.reserved || 0);
+                    const used = Number(this.dataset.used || 0);
+                    const available = Number(this.dataset.available || 0);
+
+                    document.getElementById("ttDesc").innerText = desc;
+                    document.getElementById("ttAccount").innerText = account;
+                    document.getElementById("ttCoa").innerText = coa;
+                    document.getElementById("ttBU").innerText = bu;
 
                     document.getElementById("ttBudget").innerText =
-                        Number(this.dataset.budget).toLocaleString();
+                        budget.toLocaleString("id-ID");
+
+                    document.getElementById("ttAdditional").innerText =
+                        additional.toLocaleString("id-ID");
 
                     document.getElementById("ttReserved").innerText =
-                        Number(this.dataset.reserved).toLocaleString();
+                        reserved.toLocaleString("id-ID");
 
                     document.getElementById("ttUsed").innerText =
-                        Number(this.dataset.used).toLocaleString();
+                        used.toLocaleString("id-ID");
 
-                    document.getElementById("ttAvailable").innerText =
-                        Number(this.dataset.available).toLocaleString();
+                    const availableEl = document.getElementById("ttAvailable");
+                    availableEl.innerText = available.toLocaleString("id-ID");
+
+                    if (available < 0) {
+                        availableEl.classList.remove("text-emerald-500");
+                        availableEl.classList.add("text-red-500");
+                    } else {
+                        availableEl.classList.remove("text-red-500");
+                        availableEl.classList.add("text-emerald-500");
+                    }
 
                     tooltip.classList.remove("hidden");
+
                 });
 
                 el.addEventListener("mousemove", function(e) {
-                    tooltip.style.left = e.pageX + 15 + "px";
-                    tooltip.style.top = e.pageY + 15 + "px";
+
+                    tooltip.style.left = (e.pageX + 15) + "px";
+                    tooltip.style.top = (e.pageY + 15) + "px";
+
                 });
 
                 el.addEventListener("mouseleave", function() {
+
                     tooltip.classList.add("hidden");
+
                 });
 
             });
 
         });
     </script>
-
 
 </x-app-layout>
