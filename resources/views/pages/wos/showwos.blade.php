@@ -132,7 +132,7 @@
                                 [
                                     'icon' => 'calendar',
                                     'label' => 'Date',
-                                    'value' => \Carbon\Carbon::parse($wo->wodate)->format('j F Y'),
+                                    'value' => date('j F Y', strtotime($wo->wodate)),
                                 ],
                                 [
                                     'icon' => 'user-circle',
@@ -1310,18 +1310,6 @@
                     }
                 }
 
-                if (mode === "read") {
-
-                    $btn.addClass("bg-gray-400 cursor-not-allowed text-white")
-                        .prop("disabled", true);
-
-                    $btn.find("span").text("Read Only");
-
-                    $badge.removeClass().addClass(
-                        "inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700"
-                    ).text("Read Mode");
-                }
-
                 $btn.attr("data-mode", mode);
             }
 
@@ -1356,7 +1344,7 @@
 
             } else {
                 lockForm();
-                setButtonMode("read");
+                setButtonMode("process");
             }
 
             /* =====================================
