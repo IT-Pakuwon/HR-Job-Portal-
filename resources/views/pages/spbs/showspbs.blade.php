@@ -102,7 +102,7 @@
                                 [
                                     'icon' => 'calendar',
                                     'label' => 'Date',
-                                    'value' => \Carbon\Carbon::parse($spb->sppbdate)->format('j F Y'),
+                                    'value' => \Carbon\Carbon::parse($spb->spbdate)->format('j F Y'),
                                 ],
 
                                 [
