@@ -134,7 +134,7 @@
                                 [
                                     'icon' => 'calendar',
                                     'label' => 'Date',
-                                    'value' => date('j F Y', strtotime($imbudget->imbudgetdate)),
+                                    'value' => \Carbon\Carbon::parse($imbudget->imbudgetdate)->format('j F Y'),
                                 ],
                                 [
                                     'icon' => 'user',
@@ -513,7 +513,7 @@
 
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let imbudgetid = "{{ $imbudget->imbudgetid }}"; // Ambil Task ID dari modal        
+            let imbudgetid = "{{ $imbudget->imbudgetid }}"; // Ambil Task ID dari modal
             approveIMBudget(imbudgetid);
         });
 
@@ -591,7 +591,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -659,7 +659,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 

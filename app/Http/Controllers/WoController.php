@@ -1,40 +1,35 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
-use App\Models\MsDepartment;
-use App\Models\Usercpny;
-use App\Models\Userdept;
-use App\Models\User;
-use App\Models\Site;
-use App\Models\Division;
-use App\Models\TrWO;
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
-use Mail;
+use App\Models\MsWorktypeDept;
+use App\Models\TrApproval;
+use App\Models\TrAttachment;
+use App\Models\TrWO;
+use App\Models\User;
+use App\Models\Usercpny;
+use App\Models\Userdept;
+use Google\Cloud\Storage\StorageClient;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
+use Mail;
 use PDF;
 use Vinkla\Hashids\Facades\Hashids;
-use App\Http\Controllers\TrAttachmentController;
-use Illuminate\Support\Facades\Response;
-use App\Models\TrAttachment;
-use Illuminate\Support\Str;
-use Google\Cloud\Storage\StorageClient;
-use App\Http\Controllers\ApprovalController;
-use App\Models\TrApproval;
-use App\Models\MsWorktypeDept;
-use App\Http\Controllers\Traits\HasAutonbr;
-
-
 
 class WoController extends Controller
 {
     use HasAutonbr;
+
     public function index()
     {
         $user = Auth::user();
@@ -123,8 +118,6 @@ class WoController extends Controller
         ));
     }
 
-
-
     public function json(Request $request)
     {
         $user = Auth::user();
@@ -142,13 +135,13 @@ class WoController extends Controller
             $deptIds = (array) $user->department_id;
         }
 
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', ''); // '' = all
 
-        $baseTable = (new TrWO)->getTable(); // "tr_wo"
+        $baseTable = (new TrWO())->getTable(); // "tr_wo"
 
         $columns = [
             0 => 'wo.woid',
@@ -183,36 +176,36 @@ class WoController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('wo.woid',            'ilike', "%{$search}%")
-                ->orWhere('wo.cpny_id',       'ilike', "%{$search}%")
+                $q->where('wo.woid', 'ilike', "%{$search}%")
+                ->orWhere('wo.cpny_id', 'ilike', "%{$search}%")
                 ->orWhere('wo.department_id', 'ilike', "%{$search}%")
                 ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
-                ->orWhere('wo.worequest',     'ilike', "%{$search}%")
-                ->orWhere('wo.keperluan',     'ilike', "%{$search}%")
-                ->orWhere('wo.status',        'ilike', "%{$search}%")
+                ->orWhere('wo.worequest', 'ilike', "%{$search}%")
+                ->orWhere('wo.keperluan', 'ilike', "%{$search}%")
+                ->orWhere('wo.status', 'ilike', "%{$search}%")
                 ->orWhere('wo.status_pekerjaan', 'ilike', "%{$search}%")
-                ->orWhere('wo.budget_use',     'ilike', "%{$search}%")
-                ->orWhere('wo.subworktypeid',  'ilike', "%{$search}%");
+                ->orWhere('wo.budget_use', 'ilike', "%{$search}%")
+                ->orWhere('wo.subworktypeid', 'ilike', "%{$search}%");
             });
         }
 
         $recordsFiltered = (clone $base)->distinct('wo.woid')->count('wo.woid');
 
         $data = $base->select(
-                    'wo.id',                // untuk hashids -> eid
-                    'wo.woid',
-                    'wo.wodate',
-                    'wo.cpny_id',
-                    'wo.department_id',
-                    'wt.worktype_name',
-                    'wo.worequest',
-                    'wo.keperluan',
-                    'wo.status',
-                    'wo.status_pekerjaan',
-                    'wo.budget_use',
-                    'wo.subworktypeid',
-                    'wo.created_by'
-                )
+            'wo.id',                // untuk hashids -> eid
+            'wo.woid',
+            'wo.wodate',
+            'wo.cpny_id',
+            'wo.department_id',
+            'wt.worktype_name',
+            'wo.worequest',
+            'wo.keperluan',
+            'wo.status',
+            'wo.status_pekerjaan',
+            'wo.budget_use',
+            'wo.subworktypeid',
+            'wo.created_by'
+        )
                 ->orderBy($orderCol, $orderDir)
                 ->orderBy('wo.woid', 'desc')
                 ->skip($start)
@@ -222,14 +215,15 @@ class WoController extends Controller
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
             unset($row->id);
+
             return $row;
         });
 
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
@@ -249,34 +243,34 @@ class WoController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
 
-        return view('pages.wos.createwos', compact('usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.wos.createwos', compact('usercpny', 'usercpny2', 'userdept', 'userdept2'));
     }
-
-
 
     public function storeWo(Request $request)
     {
         // dd($request->all());
-        $doctype  = 'WO';
-        $user     = $request->user();
+        $doctype = 'WO';
+        $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
 
-        $dt        = \Carbon\Carbon::now();
-        $year      = (int) $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $dt = \Carbon\Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
         // Normalisasi angka lokal → float
         $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
+            if ($v === null || $v === '') {
+                return null;
+            }
+            $s = preg_replace('/\s+/', '', (string) $v);
             $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
+            $hasDot = strpos($s, '.') !== false;
 
             if ($hasComma && $hasDot) {
                 $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
+                $lastDot = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
@@ -290,76 +284,76 @@ class WoController extends Controller
                     $s = str_replace('.', '', $s);
                 }
             }
-            return is_numeric($s) ? (float)$s : null;
+
+            return is_numeric($s) ? (float) $s : null;
         };
 
         // ===== Validasi utama + validasi kondisional COA =====
         $baseRules = [
-            'cpnyid'          => ['required','string','max:20'],
-            'departementid'   => ['required','string','max:100'],
-            'wotype'          => ['required','string','max:100'],
-            'worequest'       => ['required','string','max:100'],
-            'worktypeid'      => ['required','string','max:50'],
-            'subworktypeid'   => ['required','string','max:50'],
-            'picrequester'    => ['required','string','max:100'],
-            'biaya_wo'        => ['nullable','string','max:50'], // dinormalisasi manual
-            'location_id'     => ['required','string','max:50'],
-            'sub_location_id' => ['required','string','max:50'],
-            'keperluan'       => ['nullable','string','max:1000'],
-            'wobudget'        => ['required','in:Pemberi Kerja,Penerima Kerja'], // Pemberi Kerja/ Penerima Kerja
+            'cpnyid' => ['required', 'string', 'max:20'],
+            'departementid' => ['required', 'string', 'max:100'],
+            'wotype' => ['required', 'string', 'max:100'],
+            'worequest' => ['required', 'string', 'max:100'],
+            'worktypeid' => ['required', 'string', 'max:50'],
+            'subworktypeid' => ['required', 'string', 'max:50'],
+            'picrequester' => ['required', 'string', 'max:100'],
+            'biaya_wo' => ['nullable', 'string', 'max:50'], // dinormalisasi manual
+            'location_id' => ['required', 'string', 'max:50'],
+            'sub_location_id' => ['required', 'string', 'max:50'],
+            'keperluan' => ['nullable', 'string', 'max:1000'],
+            'wobudget' => ['required', 'in:Pemberi Kerja,Penerima Kerja'], // Pemberi Kerja/ Penerima Kerja
         ];
 
         // Kalau budget = Internal (Pemberi Kerja) → COA wajib + perpost dipakai
         $input = $request->all();
         if (($input['wobudget'] ?? null) === 'Pemberi Kerja') {
             $baseRules = array_merge($baseRules, [
-                'perpost'            => ['required','string','max:10'],
-                'coa_id'             => ['required','string','max:100'],
-                'activity_id'        => ['required','string','max:100'],
-                'business_unit_id'   => ['required','string','max:100'],
-                'department_fin_id'  => ['required','string','max:100'],
-                'activity_descr'     => ['required','string','max:255'],
+                'perpost' => ['required', 'string', 'max:10'],
+                'coa_id' => ['required', 'string', 'max:100'],
+                'activity_id' => ['required', 'string', 'max:100'],
+                'business_unit_id' => ['required', 'string', 'max:100'],
+                'department_fin_id' => ['required', 'string', 'max:100'],
+                'activity_descr' => ['required', 'string', 'max:255'],
             ]);
         } else {
             // External boleh tanpa COA, tapi jika dikirim tetap batasi panjang
             $baseRules = array_merge($baseRules, [
-                'perpost'            => ['nullable','string','max:10'],
-                'coa_id'             => ['nullable','string','max:100'],
-                'activity_id'        => ['nullable','string','max:100'],
-                'business_unit_id'   => ['nullable','string','max:100'],
-                'department_fin_id'  => ['nullable','string','max:100'],
-                'activity_descr'     => ['nullable','string','max:255'],
+                'perpost' => ['nullable', 'string', 'max:10'],
+                'coa_id' => ['nullable', 'string', 'max:100'],
+                'activity_id' => ['nullable', 'string', 'max:100'],
+                'business_unit_id' => ['nullable', 'string', 'max:100'],
+                'department_fin_id' => ['nullable', 'string', 'max:100'],
+                'activity_descr' => ['nullable', 'string', 'max:255'],
             ]);
         }
 
         $messages = [
-            'cpnyid.required'          => 'Company wajib.',
-            'departementid.required'   => 'Department wajib.',
-            'wotype.required'          => 'WO Type wajib.',
-            'worequest.required'       => 'WO Request wajib.',
-            'worktypeid.required'      => 'Worktype wajib.',
-            'subworktypeid.required'   => 'Sub Worktype wajib.',
-            'location_id.required'     => 'Location wajib.',
+            'cpnyid.required' => 'Company wajib.',
+            'departementid.required' => 'Department wajib.',
+            'wotype.required' => 'WO Type wajib.',
+            'worequest.required' => 'WO Request wajib.',
+            'worktypeid.required' => 'Worktype wajib.',
+            'subworktypeid.required' => 'Sub Worktype wajib.',
+            'location_id.required' => 'Location wajib.',
             'sub_location_id.required' => 'Sub Location wajib.',
-            'picrequester.required'    => 'PIC Requester wajib.',
-            'wobudget.required'        => 'Budget wajib.',
-            'perpost.required'         => 'Perpost wajib untuk Budget Pemberi Kerja.',
-            'coa_id.required'          => 'COA wajib untuk Budget Pemberi Kerja.',
-            'activity_id.required'     => 'Activity wajib untuk Budget Pemberi Kerja.',
-            'business_unit_id.required'=> 'Business Unit wajib untuk Budget Pemberi Kerja.',
-            'department_fin_id.required'=> 'Department Finance wajib untuk Budget Pemberi Kerja.',
-            'activity_descr.required'  => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
+            'picrequester.required' => 'PIC Requester wajib.',
+            'wobudget.required' => 'Budget wajib.',
+            'perpost.required' => 'Perpost wajib untuk Budget Pemberi Kerja.',
+            'coa_id.required' => 'COA wajib untuk Budget Pemberi Kerja.',
+            'activity_id.required' => 'Activity wajib untuk Budget Pemberi Kerja.',
+            'business_unit_id.required' => 'Business Unit wajib untuk Budget Pemberi Kerja.',
+            'department_fin_id.required' => 'Department Finance wajib untuk Budget Pemberi Kerja.',
+            'activity_descr.required' => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
         ];
 
         $validator = \Validator::make($input, $baseRules, $messages);
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
+                'errors' => $validator->errors(),
             ], 422);
         }
         $validated = $validator->validated();
-
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
@@ -400,53 +394,53 @@ class WoController extends Controller
             );
             $urutan = (int) $auto['next'];
 
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            $tglbln = substr((string) $year, 2).$month;   // YYMM
+            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             // === header ===
             $wo = new TrWO();
-            $wo->woid            = $docid;
-            $wo->cpny_id         = $validated['cpnyid'];
-            $wo->department_id   = $validated['departementid'];
-            $wo->wotype          = $validated['wotype'];
-            $wo->worequest       = $validated['worequest'];
-            $wo->worktypeid      = $validated['worktypeid'];
-            $wo->subworktypeid   = $validated['subworktypeid'];
-            $wo->picrequester    = $validated['picrequester'];
-            $wo->biaya_wo        = $toFloat($validated['biaya_wo'] ?? null) ?? 0;
-            $wo->location_id     = $validated['location_id'];
+            $wo->woid = $docid;
+            $wo->cpny_id = $validated['cpnyid'];
+            $wo->department_id = $validated['departementid'];
+            $wo->wotype = $validated['wotype'];
+            $wo->worequest = $validated['worequest'];
+            $wo->worktypeid = $validated['worktypeid'];
+            $wo->subworktypeid = $validated['subworktypeid'];
+            $wo->picrequester = $validated['picrequester'];
+            $wo->biaya_wo = $toFloat($validated['biaya_wo'] ?? null) ?? 0;
+            $wo->location_id = $validated['location_id'];
             $wo->sub_location_id = $validated['sub_location_id'];
-            $wo->keperluan       = $validated['keperluan'] ?? null;
-            $wo->wodate          = $dt;
-            $wo->status          = 'P';
-            $wo->created_by      = $username;
+            $wo->keperluan = $validated['keperluan'] ?? null;
+            $wo->wodate = $dt;
+            $wo->status = 'P';
+            $wo->created_by = $username;
 
             // Simpan info Budget + COA (jika Internal)
-            $wo->budget_use        = $validated['wobudget'];
+            $wo->budget_use = $validated['wobudget'];
             if ($validated['wobudget'] === 'Pemberi Kerja') {
-                $wo->budget_perpost            = $validated['perpost'] ?? null;
-                $wo->budget_cpny_id            = $validated['cpnyid'] ?? null;
-                $wo->budget_account_id         = $validated['coa_id'] ?? null;
-                $wo->budget_activity_id        = $validated['activity_id'] ?? null;
-                $wo->budget_business_unit_id   = $validated['business_unit_id'] ?? null;
-                $wo->budget_department_fin_id  = $validated['department_fin_id'] ?? null;
-                $wo->budget_activity_descr     = $validated['activity_descr'] ?? null;
+                $wo->budget_perpost = $validated['perpost'] ?? null;
+                $wo->budget_cpny_id = $validated['cpnyid'] ?? null;
+                $wo->budget_account_id = $validated['coa_id'] ?? null;
+                $wo->budget_activity_id = $validated['activity_id'] ?? null;
+                $wo->budget_business_unit_id = $validated['business_unit_id'] ?? null;
+                $wo->budget_department_fin_id = $validated['department_fin_id'] ?? null;
+                $wo->budget_activity_descr = $validated['activity_descr'] ?? null;
             } else {
                 // Pastikan null untuk keamanan
-                $wo->budget_perpost            = $validated['perpost'] ?? null;
-                $wo->budget_cpny_id            = $validated['cpnyid'] ?? null;
-                $wo->budget_account_id         = null;
-                $wo->budget_activity_id        = null;
-                $wo->budget_business_unit_id   = $validated['business_unit_id'] ?? null;
-                $wo->budget_department_fin_id  = null;
-                $wo->budget_activity_descr     = null;
+                $wo->budget_perpost = $validated['perpost'] ?? null;
+                $wo->budget_cpny_id = $validated['cpnyid'] ?? null;
+                $wo->budget_account_id = null;
+                $wo->budget_activity_id = null;
+                $wo->budget_business_unit_id = $validated['business_unit_id'] ?? null;
+                $wo->budget_department_fin_id = null;
+                $wo->budget_activity_descr = null;
             }
 
             $wo->save();
 
             // ===== Generate TrApproval (WO)
-            $wotype     = strtoupper(trim((string)($validated['wotype'] ?? '')));
-            $worktypeid = strtoupper(trim((string)($validated['worktypeid'] ?? '')));
+            $wotype = strtoupper(trim((string) ($validated['wotype'] ?? '')));
+            $worktypeid = strtoupper(trim((string) ($validated['worktypeid'] ?? '')));
 
             $ctx = ['ignore_nominal' => true];
 
@@ -465,7 +459,6 @@ class WoController extends Controller
                 $ctx['approval_conditions'] = [$worktypeid];
             }
 
-
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $docid,
                 $doctype,
@@ -475,8 +468,6 @@ class WoController extends Controller
                 $ctx,
                 $dt
             );
-
-
 
             // (opsional) Jika kamu punya kolom hint di header WO, bisa disimpan.
             // Contoh:
@@ -489,12 +480,12 @@ class WoController extends Controller
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $docid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $validated['cpnyid'],
+                    'refnbr' => $docid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $validated['cpnyid'],
                     'departementid' => $validated['departementid'],
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $username,
                 ];
 
                 $files = (array) $request->file('attachments');
@@ -504,9 +495,10 @@ class WoController extends Controller
                     $uploadResult = $uploader->uploadInternal($meta, $files);
                 } catch (\Throwable $e) {
                     \DB::rollBack();
+
                     return response()->json([
                         'message' => 'Failed to create WO',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -518,21 +510,21 @@ class WoController extends Controller
                 $doctype,
                 $wo->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
                 'WO',
-                url('/showwos/' . $eid),
+                url('/showwos/'.$eid),
                 [
-                    'info'      => $validated['keperluan'] ?? null,
+                    'info' => $validated['keperluan'] ?? null,
                     'createdby' => $wo->created_by,
-                    'date'      => $dt->toDateTimeString(),
+                    'date' => $dt->toDateTimeString(),
                 ]
             );
 
             \DB::commit();
 
             return response()->json([
-                'ok'          => true,
-                'message'     => 'WO created successfully',
-                'id'          => $wo->id,
-                'docid'       => $docid,
+                'ok' => true,
+                'message' => 'WO created successfully',
+                'id' => $wo->id,
+                'docid' => $docid,
                 'attachments' => $uploadResult, // opsional
             ]);
         } catch (\Throwable $e) {
@@ -541,12 +533,10 @@ class WoController extends Controller
 
             return response()->json([
                 'message' => 'Failed to create WO',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
-
-
 
     public function editWo($hash)
     {
@@ -567,10 +557,10 @@ class WoController extends Controller
             'creator:username,name',
         ])->findOrFail($id);
 
-        $user      = request()->user();
-        $usercpny  = Usercpny::where('username', $user->username)->get();
+        $user = request()->user();
+        $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
-        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
         // attachments
@@ -579,21 +569,21 @@ class WoController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $config      = config('filesystems.disks.gcs');
+        $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
         $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
+            'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
         $bucket = $storage->bucket($config['bucket']);
 
         $attachments = $rows->map(function ($r) use ($bucket) {
             $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
-            $signedUrl  = null;
+            $object = $bucket->object($objectPath);
+            $signedUrl = null;
             try {
                 $signedUrl = $object->signedUrl(
                     new \DateTimeImmutable('+10 minutes'),
@@ -602,53 +592,53 @@ class WoController extends Controller
             } catch (\Throwable $e) {
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
+
             return (object) [
-                'id'          => $r->id,
+                'id' => $r->id,
                 'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
+                'created_by' => $r->created_by,
+                'created_at' => $r->created_at,
+                'url' => $signedUrl,
+                'folder' => $r->folder,
+                'filename' => $r->filename,
+                'extention' => $r->extention,
+                'size' => $r->filesize,
             ];
         });
 
         // ==== nilai awal untuk prefill (aman jika relasi null) ====
         $prefill = [
-            'cpnyid'          => $wo->cpny_id ?? '',
-            'departementid'   => $wo->department_id ?? '',
-            'wotype'          => $wo->wotype ?? '',            // (string nama kategori, sama seperti create)
-            'worequest'       => $wo->worequest ?? '',         // (string nama kategori)
-            'location_id'     => $wo->location_id ?? '',
-            'location_name'   => optional($wo->location)->location_name ?? ($wo->location_id ?? ''),
+            'cpnyid' => $wo->cpny_id ?? '',
+            'departementid' => $wo->department_id ?? '',
+            'wotype' => $wo->wotype ?? '',            // (string nama kategori, sama seperti create)
+            'worequest' => $wo->worequest ?? '',         // (string nama kategori)
+            'location_id' => $wo->location_id ?? '',
+            'location_name' => optional($wo->location)->location_name ?? ($wo->location_id ?? ''),
             'sub_location_id' => $wo->sub_location_id ?? '',
-            'sub_location_name'=> optional($wo->sublocation)->sub_location_name ?? ($wo->sub_location_id ?? ''),
-            'worktypeid'      => $wo->worktypeid ?? '',
-            'worktype_name'   => optional($wo->worktype)->worktype_name ?? ($wo->worktypeid ?? ''),
-            'subworktypeid'   => $wo->subworktypeid ?? '',
-            'subworktype_name'=> optional($wo->subworktype)->subworktype_name ?? ($wo->subworktypeid ?? ''),
-            'picrequester'    => $wo->picrequester ?? ($wo->created_by ?? ''),
-            'biaya_wo'        => $wo->biaya_wo ?? null,
-            'keperluan'       => $wo->keperluan ?? '',
-            'woid'            => $wo->woid ?? '',
-            'hash'            => request()->route('hash') ?? '',
+            'sub_location_name' => optional($wo->sublocation)->sub_location_name ?? ($wo->sub_location_id ?? ''),
+            'worktypeid' => $wo->worktypeid ?? '',
+            'worktype_name' => optional($wo->worktype)->worktype_name ?? ($wo->worktypeid ?? ''),
+            'subworktypeid' => $wo->subworktypeid ?? '',
+            'subworktype_name' => optional($wo->subworktype)->subworktype_name ?? ($wo->subworktypeid ?? ''),
+            'picrequester' => $wo->picrequester ?? ($wo->created_by ?? ''),
+            'biaya_wo' => $wo->biaya_wo ?? null,
+            'keperluan' => $wo->keperluan ?? '',
+            'woid' => $wo->woid ?? '',
+            'hash' => request()->route('hash') ?? '',
 
-            'budget_use'       => $wo->budget_use,               // Internal / External
-            'perpost'          => $wo->budget_perpost,            // year
-            'coa_id'           => $wo->budget_account_id,
-            'activity_id'      => $wo->budget_activity_id,
+            'budget_use' => $wo->budget_use,               // Internal / External
+            'perpost' => $wo->budget_perpost,            // year
+            'coa_id' => $wo->budget_account_id,
+            'activity_id' => $wo->budget_activity_id,
             'business_unit_id' => $wo->budget_business_unit_id,
-            'department_fin_id'=> $wo->budget_department_fin_id,
-            'activity_descr'   => $wo->budget_activity_descr,
+            'department_fin_id' => $wo->budget_department_fin_id,
+            'activity_descr' => $wo->budget_activity_descr,
         ];
 
         return view('pages.wos.editwos', compact(
-            'wo','usercpny','usercpny2','userdept','userdept2','attachments','prefill'
+            'wo', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'attachments', 'prefill'
         ));
     }
-
 
     public function updateWo(Request $request, $hash)
     {
@@ -656,23 +646,25 @@ class WoController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'WO tidak ditemukan.');
 
-        $doctype  = 'WO';
-        $user     = $request->user();
+        $doctype = 'WO';
+        $user = $request->user();
         $username = $user->username ?? 'system';
 
-        $dt        = \Carbon\Carbon::now();
+        $dt = \Carbon\Carbon::now();
         $datestamp = $dt->toDateTimeString();
 
         // Normalisasi angka lokal → float (copy dari create)
         $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
+            if ($v === null || $v === '') {
+                return null;
+            }
+            $s = preg_replace('/\s+/', '', (string) $v);
             $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
+            $hasDot = strpos($s, '.') !== false;
 
             if ($hasComma && $hasDot) {
                 $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
+                $lastDot = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
@@ -682,72 +674,75 @@ class WoController extends Controller
             } elseif ($hasComma) {
                 $s = str_replace(',', '.', $s);
             } elseif ($hasDot) {
-                if (substr_count($s, '.') > 1) $s = str_replace('.', '', $s);
+                if (substr_count($s, '.') > 1) {
+                    $s = str_replace('.', '', $s);
+                }
             }
-            return is_numeric($s) ? (float)$s : null;
+
+            return is_numeric($s) ? (float) $s : null;
         };
 
         // ===== Validasi utama + validasi kondisional COA (SAMA dengan create) =====
         $baseRules = [
-            'cpnyid'          => ['required','string','max:20'],
-            'departementid'   => ['required','string','max:100'],
-            'wotype'          => ['required','string','max:100'],
-            'worequest'       => ['required','string','max:100'],
-            'worktypeid'      => ['required','string','max:50'],
-            'subworktypeid'   => ['required','string','max:50'],
-            'picrequester'    => ['required','string','max:100'],
-            'biaya_wo'        => ['nullable','string','max:50'],
-            'location_id'     => ['required','string','max:50'],
-            'sub_location_id' => ['required','string','max:50'],
-            'keperluan'       => ['nullable','string','max:1000'],
-            'wobudget'        => ['required','in:Pemberi Kerja,Penerima Kerja'],
+            'cpnyid' => ['required', 'string', 'max:20'],
+            'departementid' => ['required', 'string', 'max:100'],
+            'wotype' => ['required', 'string', 'max:100'],
+            'worequest' => ['required', 'string', 'max:100'],
+            'worktypeid' => ['required', 'string', 'max:50'],
+            'subworktypeid' => ['required', 'string', 'max:50'],
+            'picrequester' => ['required', 'string', 'max:100'],
+            'biaya_wo' => ['nullable', 'string', 'max:50'],
+            'location_id' => ['required', 'string', 'max:50'],
+            'sub_location_id' => ['required', 'string', 'max:50'],
+            'keperluan' => ['nullable', 'string', 'max:1000'],
+            'wobudget' => ['required', 'in:Pemberi Kerja,Penerima Kerja'],
         ];
 
         $input = $request->all();
         if (($input['wobudget'] ?? null) === 'Pemberi Kerja') {
             $baseRules = array_merge($baseRules, [
-                'perpost'            => ['required','string','max:10'],
-                'coa_id'             => ['required','string','max:100'],
-                'activity_id'        => ['required','string','max:100'],
-                'business_unit_id'   => ['required','string','max:100'],
-                'department_fin_id'  => ['required','string','max:100'],
-                'activity_descr'     => ['required','string','max:255'],
+                'perpost' => ['required', 'string', 'max:10'],
+                'coa_id' => ['required', 'string', 'max:100'],
+                'activity_id' => ['required', 'string', 'max:100'],
+                'business_unit_id' => ['required', 'string', 'max:100'],
+                'department_fin_id' => ['required', 'string', 'max:100'],
+                'activity_descr' => ['required', 'string', 'max:255'],
             ]);
         } else {
             $baseRules = array_merge($baseRules, [
-                'perpost'            => ['nullable','string','max:10'],
-                'coa_id'             => ['nullable','string','max:100'],
-                'activity_id'        => ['nullable','string','max:100'],
-                'business_unit_id'   => ['nullable','string','max:100'],
-                'department_fin_id'  => ['nullable','string','max:100'],
-                'activity_descr'     => ['nullable','string','max:255'],
+                'perpost' => ['nullable', 'string', 'max:10'],
+                'coa_id' => ['nullable', 'string', 'max:100'],
+                'activity_id' => ['nullable', 'string', 'max:100'],
+                'business_unit_id' => ['nullable', 'string', 'max:100'],
+                'department_fin_id' => ['nullable', 'string', 'max:100'],
+                'activity_descr' => ['nullable', 'string', 'max:255'],
             ]);
         }
 
         $messages = [
-            'cpnyid.required'           => 'Company wajib.',
-            'departementid.required'    => 'Department wajib.',
-            'wotype.required'           => 'WO Type wajib.',
-            'worequest.required'        => 'WO Request wajib.',
-            'worktypeid.required'       => 'Worktype wajib.',
-            'subworktypeid.required'    => 'Sub Worktype wajib.',
-            'location_id.required'      => 'Location wajib.',
-            'sub_location_id.required'  => 'Sub Location wajib.',
-            'picrequester.required'     => 'PIC Requester wajib.',
-            'wobudget.required'         => 'Budget wajib.',
-            'perpost.required'          => 'Perpost wajib untuk Budget Pemberi Kerja.',
-            'coa_id.required'           => 'COA wajib untuk Budget Pemberi Kerja.',
-            'activity_id.required'      => 'Activity wajib untuk Budget Pemberi Kerja.',
+            'cpnyid.required' => 'Company wajib.',
+            'departementid.required' => 'Department wajib.',
+            'wotype.required' => 'WO Type wajib.',
+            'worequest.required' => 'WO Request wajib.',
+            'worktypeid.required' => 'Worktype wajib.',
+            'subworktypeid.required' => 'Sub Worktype wajib.',
+            'location_id.required' => 'Location wajib.',
+            'sub_location_id.required' => 'Sub Location wajib.',
+            'picrequester.required' => 'PIC Requester wajib.',
+            'wobudget.required' => 'Budget wajib.',
+            'perpost.required' => 'Perpost wajib untuk Budget Pemberi Kerja.',
+            'coa_id.required' => 'COA wajib untuk Budget Pemberi Kerja.',
+            'activity_id.required' => 'Activity wajib untuk Budget Pemberi Kerja.',
             'business_unit_id.required' => 'Business Unit wajib untuk Budget Pemberi Kerja.',
-            'department_fin_id.required'=> 'Department Finance wajib untuk Budget Pemberi Kerja.',
-            'activity_descr.required'   => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
+            'department_fin_id.required' => 'Department Finance wajib untuk Budget Pemberi Kerja.',
+            'activity_descr.required' => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
         ];
 
         $validator = \Validator::make($input, $baseRules, $messages);
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
+                'errors' => $validator->errors(),
             ], 422);
         }
         $validated = $validator->validated();
@@ -764,47 +759,46 @@ class WoController extends Controller
             $docid = $wo->woid;
 
             // --- update header (SAMA seperti create) ---
-            $wo->cpny_id         = $validated['cpnyid'];
-            $wo->department_id   = $validated['departementid'];
-            $wo->wotype          = $validated['wotype'];
-            $wo->worequest       = $validated['worequest'];
-            $wo->worktypeid      = $validated['worktypeid'];
-            $wo->subworktypeid   = $validated['subworktypeid'];
-            $wo->picrequester    = $validated['picrequester'];
-            $wo->biaya_wo        = $toFloat($validated['biaya_wo'] ?? null) ?? 0;
-            $wo->location_id     = $validated['location_id'];
+            $wo->cpny_id = $validated['cpnyid'];
+            $wo->department_id = $validated['departementid'];
+            $wo->wotype = $validated['wotype'];
+            $wo->worequest = $validated['worequest'];
+            $wo->worktypeid = $validated['worktypeid'];
+            $wo->subworktypeid = $validated['subworktypeid'];
+            $wo->picrequester = $validated['picrequester'];
+            $wo->biaya_wo = $toFloat($validated['biaya_wo'] ?? null) ?? 0;
+            $wo->location_id = $validated['location_id'];
             $wo->sub_location_id = $validated['sub_location_id'];
-            $wo->keperluan       = $validated['keperluan'] ?? null;
-            $wo->status          = 'P';
-            $wo->updated_by      = $username;
+            $wo->keperluan = $validated['keperluan'] ?? null;
+            $wo->status = 'P';
+            $wo->updated_by = $username;
 
             // Simpan info Budget + COA (SAMA seperti create)
             $wo->budget_use = $validated['wobudget'];
 
             if ($validated['wobudget'] === 'Pemberi Kerja') {
-                $wo->budget_perpost           = $validated['perpost'] ?? null;
-                $wo->budget_cpny_id           = $validated['cpnyid'] ?? null;
-                $wo->budget_account_id        = $validated['coa_id'] ?? null;
-                $wo->budget_activity_id       = $validated['activity_id'] ?? null;
-                $wo->budget_business_unit_id  = $validated['business_unit_id'] ?? null;
+                $wo->budget_perpost = $validated['perpost'] ?? null;
+                $wo->budget_cpny_id = $validated['cpnyid'] ?? null;
+                $wo->budget_account_id = $validated['coa_id'] ?? null;
+                $wo->budget_activity_id = $validated['activity_id'] ?? null;
+                $wo->budget_business_unit_id = $validated['business_unit_id'] ?? null;
                 $wo->budget_department_fin_id = $validated['department_fin_id'] ?? null;
-                $wo->budget_activity_descr    = $validated['activity_descr'] ?? null;
+                $wo->budget_activity_descr = $validated['activity_descr'] ?? null;
             } else {
-                $wo->budget_perpost           = $validated['perpost'] ?? null;
-                $wo->budget_cpny_id           = null;
-                $wo->budget_account_id        = null;
-                $wo->budget_activity_id       = null;
-                $wo->budget_business_unit_id  = null;
+                $wo->budget_perpost = $validated['perpost'] ?? null;
+                $wo->budget_cpny_id = null;
+                $wo->budget_account_id = null;
+                $wo->budget_activity_id = null;
+                $wo->budget_business_unit_id = null;
                 $wo->budget_department_fin_id = null;
-                $wo->budget_activity_descr    = null;
+                $wo->budget_activity_descr = null;
             }
 
             $wo->save();
 
-
             // ===== Generate TrApproval (WO) - SAMA seperti create =====
-            $wotype     = strtoupper(trim((string)($validated['wotype'] ?? '')));
-            $worktypeid = strtoupper(trim((string)($validated['worktypeid'] ?? '')));
+            $wotype = strtoupper(trim((string) ($validated['wotype'] ?? '')));
+            $worktypeid = strtoupper(trim((string) ($validated['worktypeid'] ?? '')));
 
             $ctx = ['ignore_nominal' => true];
 
@@ -837,12 +831,12 @@ class WoController extends Controller
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $docid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $validated['cpnyid'],
+                    'refnbr' => $docid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $validated['cpnyid'],
                     'departementid' => $validated['departementid'],
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $username,
                 ];
 
                 $files = (array) $request->file('attachments');
@@ -852,9 +846,10 @@ class WoController extends Controller
                     $uploadResult = $uploader->uploadInternal($meta, $files);
                 } catch (\Throwable $e) {
                     \DB::rollBack();
+
                     return response()->json([
                         'message' => 'Failed to update WO',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -867,11 +862,11 @@ class WoController extends Controller
                 $doctype,
                 $wo->status,
                 'WO',
-                url('/showwos/' . $eid),
+                url('/showwos/'.$eid),
                 [
-                    'info'      => $validated['keperluan'] ?? null,
+                    'info' => $validated['keperluan'] ?? null,
                     'createdby' => $wo->created_by,
-                    'date'      => $dt->toDateTimeString(),
+                    'date' => $dt->toDateTimeString(),
                     'updatedby' => $username,
                 ]
             );
@@ -879,10 +874,10 @@ class WoController extends Controller
             \DB::commit();
 
             return response()->json([
-                'ok'          => true,
-                'message'     => 'WO updated successfully',
-                'id'          => $wo->id,
-                'docid'       => $docid,
+                'ok' => true,
+                'message' => 'WO updated successfully',
+                'id' => $wo->id,
+                'docid' => $docid,
                 'attachments' => $uploadResult,
             ]);
         } catch (\Throwable $e) {
@@ -891,11 +886,10 @@ class WoController extends Controller
 
             return response()->json([
                 'message' => 'Failed to update WO',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
-
 
     public function removeAttachment($id)
     {
@@ -944,12 +938,12 @@ class WoController extends Controller
         // siapkan Signed URL dari GCS
         $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
 
         $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
+            'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
         $bucket = $storage->bucket($config['bucket']);
@@ -957,7 +951,7 @@ class WoController extends Controller
         // map jadi data siap pakai di view
         $attachments = $rows->map(function ($r) use ($bucket) {
             $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
-            $object     = $bucket->object($objectPath);
+            $object = $bucket->object($objectPath);
 
             // Signed URL 10 menit
             $signedUrl = null;
@@ -973,13 +967,13 @@ class WoController extends Controller
 
             return (object) [
                 'display_name' => $r->attachment_name,         // nama yang enak dibaca
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,                  // bisa null jika gagal
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
+                'created_by' => $r->created_by,
+                'created_at' => $r->created_at,
+                'url' => $signedUrl,                  // bisa null jika gagal
+                'folder' => $r->folder,
+                'filename' => $r->filename,
+                'extention' => $r->extention,
+                'size' => $r->filesize,
             ];
         });
 
@@ -990,9 +984,9 @@ class WoController extends Controller
         // ✅ HITUNG isProcessor DI CONTROLLER
         // department_id user: "ENGINEERING,ENGINEERING HVAC,..." => array
         // =========================
-        $userDeptRaw = (string)($user->department_id ?? '');
+        $userDeptRaw = (string) ($user->department_id ?? '');
         $userDepts = collect(explode(',', $userDeptRaw))
-            ->map(fn($v) => strtoupper(trim($v)))
+            ->map(fn ($v) => strtoupper(trim($v)))
             ->filter()
             ->unique()
             ->values();
@@ -1000,7 +994,7 @@ class WoController extends Controller
         // MsWorktypeDept: ambil semua department utk worktype WO ini
         $worktypeDepts = MsWorktypeDept::where('worktypeid', $wo->worktypeid)
             ->pluck('department_id')
-            ->map(fn($v) => strtoupper(trim((string)$v)))
+            ->map(fn ($v) => strtoupper(trim((string) $v)))
             ->filter()
             ->unique()
             ->values();
@@ -1009,11 +1003,11 @@ class WoController extends Controller
             || $userDepts->intersect($worktypeDepts)->isNotEmpty();
 
         // PIC WO boleh proses juga
-        $loginUsername = strtolower(trim((string)($user->username ?? $user->name ?? '')));
-        $pic = strtolower(trim((string)($wo->pic_wo ?? '')));
+        $loginUsername = strtolower(trim((string) ($user->username ?? $user->name ?? '')));
+        $pic = strtolower(trim((string) ($wo->pic_wo ?? '')));
 
         $isPicWo = ($pic !== '' && $pic === $loginUsername); // ✅ hanya PIC yang boleh save/edit
-        $hasPic  = ($pic !== ''); // ✅ sudah diprocess
+        $hasPic = ($pic !== ''); // ✅ sudah diprocess
 
         $canProcess = ($deptMatch && !$hasPic) || $isPicWo; // ✅ tombol process hanya kalau belum ada PIC, atau user adalah PIC
 
@@ -1021,7 +1015,7 @@ class WoController extends Controller
         // canUpload + userdept (punya kamu)
         // =========================
         $loginUsername2 = $user->username ?? $user->name ?? null;
-        $canUpload     = $wo->created_by === $loginUsername2;
+        $canUpload = $wo->created_by === $loginUsername2;
 
         $userdept = Userdept::where('username', '=', $user->username)->get();
         $userdept2 = Userdept::where('username', '=', $user->username)->first();
@@ -1040,21 +1034,21 @@ class WoController extends Controller
         ));
     }
 
-
-
     public function approveWo(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'WO';
 
         $wo = TrWO::with('creator')->where('woid', $docid)->first();
-        if (!$wo) return response()->json(['success'=>false,'message'=>'WO not found'],404);
+        if (!$wo) {
+            return response()->json(['success' => false, 'message' => 'WO not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($wo->id);
-        $docUrl   = url('/showwos/' . $eid);
+        $eid = Hashids::encode($wo->id);
+        $docUrl = url('/showwos/'.$eid);
         $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+        $result = app(ApprovalController::class)->approveStep(
             $wo->woid,
             $doctype,
             $user->username,
@@ -1062,42 +1056,42 @@ class WoController extends Controller
 
             // complete: update header/detail + email creator complete
             function (string $refnbr, \Carbon\Carbon $now) use ($wo, $fullname, $docUrl) {
-                $wo->status       = 'C';
-                $wo->status_pekerjaan  = 'H';
+                $wo->status = 'C';
+                $wo->status_pekerjaan = 'H';
                 $wo->completed_by = $wo->completed_by ?: auth()->user()->username;
                 $wo->completed_at = $now;
                 $wo->save();
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
                     'WO',
                     'C',
                     $wo->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $wo->cpny_id ?? $wo->cpnyid ?? '',
+                        'cpnyid' => $wo->cpny_id ?? $wo->cpnyid ?? '',
                         'deptname' => $wo->department_id ?? $wo->departementid ?? '',
-                        'date'     => $wo->wodate,
-                        'info'     => $wo->keperluan,
+                        'date' => $wo->wodate,
+                        'info' => $wo->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
             },
 
             // notify next approver
             function ($next, \Carbon\Carbon $now) use ($wo, $docUrl) {
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                app(ApprovalController::class)->notifyFirstApprover(
                     $wo->woid,
                     'WO',
                     'P',
                     'WO',
                     $docUrl,
                     [
-                        'info'      => $wo->keperluan,
+                        'info' => $wo->keperluan,
                         'createdby' => $wo->created_by,
-                        'date'      => $now->toDateTimeString(),
+                        'date' => $now->toDateTimeString(),
                     ]
                 );
 
@@ -1109,127 +1103,130 @@ class WoController extends Controller
         );
 
         if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
+            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Approve failed'], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
+        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
     }
 
     public function rejectWo(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'WO';
 
-        $wo = \App\Models\TrWO::with('creator')->where('woid', $docid)->first();
-        if (!$wo) return response()->json(['success'=>false,'message'=>'WO not found'],404);
+        $wo = TrWO::with('creator')->where('woid', $docid)->first();
+        if (!$wo) {
+            return response()->json(['success' => false, 'message' => 'WO not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($wo->id);
-        $docUrl   = url('/showwos/' . $eid);
+        $eid = Hashids::encode($wo->id);
+        $docUrl = url('/showwos/'.$eid);
         $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+        $result = app(ApprovalController::class)->rejectStep(
             $wo->woid,
             $doctype,
             $user->username,
             $user->name,
 
             function (string $refnbr, \Carbon\Carbon $now) use ($wo, $fullname, $docUrl) {
-                $wo->status       = 'R';
+                $wo->status = 'R';
                 $wo->completed_by = auth()->user()->username;
                 $wo->completed_at = $now;
                 $wo->save();
 
-
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
                     'WO',
                     'R',
                     $wo->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $wo->cpny_id ?? $wo->cpnyid ?? '',
+                        'cpnyid' => $wo->cpny_id ?? $wo->cpnyid ?? '',
                         'deptname' => $wo->department_id ?? $wo->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $wo->keperluan,
+                        'date' => $now->toDateString(),
+                        'info' => $wo->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
 
                 // simpan komentar (jika ada)
                 try {
                     app('App\Http\Controllers\SendCommentController')->sendmsg($wo->id, 'WO', request());
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         );
 
         if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
+            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Reject failed'], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'WO rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'WO rejected successfully']);
     }
 
     public function reviseWo(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'WO';
 
-        $wo = \App\Models\TrWO::with('creator')->where('woid', $docid)->first();
-        if (!$wo) return response()->json(['success'=>false,'message'=>'WO not found'],404);
+        $wo = TrWO::with('creator')->where('woid', $docid)->first();
+        if (!$wo) {
+            return response()->json(['success' => false, 'message' => 'WO not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($wo->id);
-        $docUrl   = url('/showwos/' . $eid);
+        $eid = Hashids::encode($wo->id);
+        $docUrl = url('/showwos/'.$eid);
         $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+        $result = app(ApprovalController::class)->reviseStep(
             $wo->woid,            // refnbr
             $doctype,                 // PT
             $user->username,          // actor
             $user->name,              // actor
             function (string $refnbr, \Carbon\Carbon $now) use ($wo, $fullname, $docUrl) {
                 // === HEADER WO -> D ===
-                $wo->status       = 'D';
+                $wo->status = 'D';
                 $wo->completed_by = auth()->user()->username;
                 $wo->completed_at = $now;
                 $wo->save();
 
-
                 // === Email ke requester ===
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $wo->woid,
                     'WO',
                     'D',
                     $wo->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $wo->cpny_id ?? $wo->cpnyid ?? '',
+                        'cpnyid' => $wo->cpny_id ?? $wo->cpnyid ?? '',
                         'deptname' => $wo->department_id ?? $wo->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $wo->keperluan,
+                        'date' => $now->toDateString(),
+                        'info' => $wo->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,   // <<< tambahkan ini
+                        'name' => $fullname,
+                        'createdby' => $fullname,   // <<< tambahkan ini
                     ]
                 );
-
 
                 // === Simpan komentar (jika ada) ===
                 try {
                     app('App\Http\Controllers\SendCommentController')->sendmsg($wo->id, 'WO', request());
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         );
 
         if (!$result['ok']) {
             return response()->json([
-                'success'=>false,
-                'message'=>$result['message'] ?? 'Revise failed'
+                'success' => false,
+                'message' => $result['message'] ?? 'Revise failed',
             ], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'WO revised successfully']);
+        return response()->json(['success' => true, 'message' => 'WO revised successfully']);
     }
 
     // public function approveWo(Request $request, $docid)
@@ -1295,7 +1292,6 @@ class WoController extends Controller
     //             $wo->completed_by = $user->username;
     //             $wo->completed_at = $now;
     //             $wo->save();
-
 
     //             // Kirim email ke requester (creator)
     //             $status        = 'C';
@@ -1624,7 +1620,6 @@ class WoController extends Controller
     //     return response()->json(['success' => true, 'message' => 'WO revised successfully']);
     // }
 
-
     // public function checkApproval($id, $action)
     // {
     //     $user = Auth::user(); // Ambil user yang login
@@ -1653,23 +1648,26 @@ class WoController extends Controller
         $wo = TrWO::findOrFail($id);
 
         $getName = function (?string $username) {
-            if (!$username) return null;
-            $u = \App\Models\User::where('username', $username)->first();
+            if (!$username) {
+                return null;
+            }
+            $u = User::where('username', $username)->first();
+
             return $u->name ?? $username;
         };
 
         $createdByName = $getName($wo->created_by ?? null);
-        $createdAt     = $wo->created_at ? \Carbon\Carbon::parse($wo->created_at)->format('Y-m-d H:i') : null;
+        $createdAt = $wo->created_at ? \Carbon\Carbon::parse($wo->created_at)->format('Y-m-d H:i') : null;
 
         $completedByName = $getName($wo->completed_by ?? null);
-        $completedAt     = $wo->completed_at ? \Carbon\Carbon::parse($wo->completed_at)->format('Y-m-d H:i') : null;
+        $completedAt = $wo->completed_at ? \Carbon\Carbon::parse($wo->completed_at)->format('Y-m-d H:i') : null;
 
         // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($wo->rejected_by ?? null);
-        $rejectedAt      = isset($wo->rejected_at) ? \Carbon\Carbon::parse($wo->rejected_at)->format('Y-m-d H:i') : null;
+        $rejectedByName = $getName($wo->rejected_by ?? null);
+        $rejectedAt = isset($wo->rejected_at) ? \Carbon\Carbon::parse($wo->rejected_at)->format('Y-m-d H:i') : null;
 
-        $revisedByName   = $getName($wo->revised_by ?? null);
-        $revisedAt       = isset($wo->revised_at) ? \Carbon\Carbon::parse($wo->revised_at)->format('Y-m-d H:i') : null;
+        $revisedByName = $getName($wo->revised_by ?? null);
+        $revisedAt = isset($wo->revised_at) ? \Carbon\Carbon::parse($wo->revised_at)->format('Y-m-d H:i') : null;
 
         $status = (string) ($wo->status ?? '');
         $labelMap = [
@@ -1682,48 +1680,48 @@ class WoController extends Controller
 
         // selalu mulai dari Submitted
         $steps = [[
-            'key'          => 'submitted',
-            'title'        => 'WO',
-            'status'       => 'C',              // dibuat = completed
+            'key' => 'submitted',
+            'title' => 'WO',
+            'status' => 'C',              // dibuat = completed
             'status_label' => 'Submitted',
-            'by'           => $createdByName,
-            'at'           => $createdAt,
+            'by' => $createdByName,
+            'at' => $createdAt,
         ]];
 
         switch ($status) {
             case 'P':
                 // masih menunggu/berjalan → tampilkan Approval saja
                 $steps[] = [
-                    'key'          => 'approval',
-                    'title'        => 'Approval',
-                    'status'       => 'P',
+                    'key' => 'approval',
+                    'title' => 'Approval',
+                    'status' => 'P',
                     'status_label' => 'Waiting approval',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
             case 'R':
                 // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
                 $steps[] = [
-                    'key'          => 'rejected',
-                    'title'        => 'Rejected',
-                    'status'       => 'R',
+                    'key' => 'rejected',
+                    'title' => 'Rejected',
+                    'status' => 'R',
                     'status_label' => 'Rejected',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
             case 'D':
                 // REVISE → Submitted → Revise
                 $steps[] = [
-                    'key'          => 'revise',
-                    'title'        => 'Revise',
-                    'status'       => 'D',
+                    'key' => 'revise',
+                    'title' => 'Revise',
+                    'status' => 'D',
                     'status_label' => 'Revise',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
@@ -1732,12 +1730,12 @@ class WoController extends Controller
                 // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
                 // tambahkan step 'approval' sebelum 'completed')
                 $steps[] = [
-                    'key'          => 'completed',
-                    'title'        => 'Completed',
-                    'status'       => 'C',
+                    'key' => 'completed',
+                    'title' => 'Completed',
+                    'status' => 'C',
                     'status_label' => 'Completed',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
@@ -1747,9 +1745,9 @@ class WoController extends Controller
         }
 
         return response()->json([
-            'doc'   => $wo->woid ?? (string)$wo->id,
+            'doc' => $wo->woid ?? (string) $wo->id,
             'steps' => $steps,
-            'status'=> $status,
+            'status' => $status,
             'status_label' => $statusLabel,
         ]);
     }
@@ -1777,8 +1775,8 @@ class WoController extends Controller
         //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
         //     ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
         //     ->get();
-        $refnbr    = $wo->woid;
-        $apprTable = (new TrApproval)->getTable(); // "tr_approval"
+        $refnbr = $wo->woid;
+        $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
             ->where('refnbr', $refnbr)
@@ -1798,7 +1796,6 @@ class WoController extends Controller
             ")
             ->orderBy('id', 'asc')
             ->get();
-
 
         $approve_count = $approval->count();
 
@@ -1821,33 +1818,33 @@ class WoController extends Controller
             : 'pages.wos.pdf_wos';
 
         $data = [
-            'title'               => $variant === 'tenant' ? 'Work Order (Tenant)' : 'Work Order (WO)',
-            'doc_type'            => 'WO',
-            'docid'               => $wo->woid,
-            'department_id'       => $wo->department_id,
-            'cpnyname'            => optional($company)->cpny_name,
-            'cpnyid'              => $wo->cpny_id,
+            'title' => $variant === 'tenant' ? 'Work Order (Tenant)' : 'Work Order (WO)',
+            'doc_type' => 'WO',
+            'docid' => $wo->woid,
+            'department_id' => $wo->department_id,
+            'cpnyname' => optional($company)->cpny_name,
+            'cpnyid' => $wo->cpny_id,
             'created_by_username' => $wo->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($wo->creator)->name)),
-            'created_at_fmt'      => optional($wo->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($wo->created_at)->format('d M Y H:i'),
-            'wodate'              => \Carbon\Carbon::parse($wo->wodate)->format('d F Y'),
-            'keperluan'           => $wo->keperluan,
-            'status_doc'          => $status_doc,
-            'budget_use'          => $wo->budget_use,
+            'created_by_name' => ucwords(strtolower(optional($wo->creator)->name)),
+            'created_at_fmt' => optional($wo->created_at)->format('d F Y'),
+            'req_date_fmt' => optional($wo->created_at)->format('d M Y H:i'),
+            'wodate' => \Carbon\Carbon::parse($wo->wodate)->format('d F Y'),
+            'keperluan' => $wo->keperluan,
+            'status_doc' => $status_doc,
+            'budget_use' => $wo->budget_use,
             // info tambahan yang sering dipakai di template
-            'wotype'              => $wo->wotype,                      // disimpan string category_name
-            'worequest'           => $wo->worequest,                   // disimpan string category_name
-            'worktype_name'       => optional($wo->worktype)->worktype_name,
-            'subworktype_name'    => optional($wo->subworktype)->subworktype_name,
-            'location_name'       => optional($wo->location)->location_name,
-            'sub_location_name'   => optional($wo->sublocation)->sub_location_name,
-            'picrequester'        => $wo->picrequester,
-            'biaya_wo'            => number_format($wo->biaya_wo, 0, ',', '.'),
+            'wotype' => $wo->wotype,                      // disimpan string category_name
+            'worequest' => $wo->worequest,                   // disimpan string category_name
+            'worktype_name' => optional($wo->worktype)->worktype_name,
+            'subworktype_name' => optional($wo->subworktype)->subworktype_name,
+            'location_name' => optional($wo->location)->location_name,
+            'sub_location_name' => optional($wo->sublocation)->sub_location_name,
+            'picrequester' => $wo->picrequester,
+            'biaya_wo' => number_format($wo->biaya_wo, 0, ',', '.'),
         ];
 
         $pdf = \PDF::loadView($view, array_merge($data, [
-            'approval'      => $approval,
+            'approval' => $approval,
             'approve_count' => $approve_count,
         ]));
 
@@ -1855,6 +1852,7 @@ class WoController extends Controller
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         $suffix = $variant === 'tenant' ? '_tenant' : '';
+
         return $pdf->stream("pdf_wos{$suffix}_{$wo->woid}.pdf");
     }
 
@@ -1883,6 +1881,7 @@ class WoController extends Controller
         // Kalau salah satu kosong → tidak ada data
         if (empty($cpnyIds) || empty($deptIds)) {
             $all = $onProgress = $cancel = $completed = $wojobs = 0;
+
             return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
         }
 
@@ -1895,16 +1894,14 @@ class WoController extends Controller
             ->where('wo.status', 'C');                 // dokumen closed saja
 
         // Hitung pakai DISTINCT woid
-        $all        = (clone $base)->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $all = (clone $base)->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
         $onProgress = (clone $base)->where('wo.status_pekerjaan', 'P')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $cancel     = (clone $base)->where('wo.status_pekerjaan', 'X')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $completed  = (clone $base)->where('wo.status_pekerjaan', 'C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
-        $wojobs     = (clone $base)->where('wo.status_pekerjaan', 'H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $cancel = (clone $base)->where('wo.status_pekerjaan', 'X')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $completed = (clone $base)->where('wo.status_pekerjaan', 'C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        $wojobs = (clone $base)->where('wo.status_pekerjaan', 'H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
 
         return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
     }
-
-
 
     public function jsonJobs(Request $request)
     {
@@ -1942,8 +1939,8 @@ class WoController extends Controller
             ]);
         }
 
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
         $jobStatus = (string) $request->query('job_status', ''); // H/P/R/C atau kosong
@@ -1982,32 +1979,32 @@ class WoController extends Controller
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('wo.woid',          'ilike', "%{$search}%")
-                ->orWhere('wo.cpny_id',     'ilike', "%{$search}%")
-                ->orWhere('wo.department_id','ilike', "%{$search}%")
-                ->orWhere('wt.worktype_name','ilike', "%{$search}%")
-                ->orWhere('wo.worequest',   'ilike', "%{$search}%")
-                ->orWhere('wo.keperluan',   'ilike', "%{$search}%")
-                ->orWhere('wo.status',      'ilike', "%{$search}%")
-                ->orWhere('wo.status_pekerjaan','ilike', "%{$search}%");
+                $q->where('wo.woid', 'ilike', "%{$search}%")
+                ->orWhere('wo.cpny_id', 'ilike', "%{$search}%")
+                ->orWhere('wo.department_id', 'ilike', "%{$search}%")
+                ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
+                ->orWhere('wo.worequest', 'ilike', "%{$search}%")
+                ->orWhere('wo.keperluan', 'ilike', "%{$search}%")
+                ->orWhere('wo.status', 'ilike', "%{$search}%")
+                ->orWhere('wo.status_pekerjaan', 'ilike', "%{$search}%");
             });
         }
 
         $recordsFiltered = (clone $base)->distinct()->count('wo.woid');
 
         $data = $base->select(
-                    'wo.id',
-                    'wo.woid',
-                    'wo.wodate',
-                    'wo.cpny_id',
-                    'wo.department_id',
-                    'wt.worktype_name',
-                    'wo.worequest',
-                    'wo.keperluan',
-                    'wo.status',
-                    'wo.status_pekerjaan',
-                    'wo.created_by'
-                )
+            'wo.id',
+            'wo.woid',
+            'wo.wodate',
+            'wo.cpny_id',
+            'wo.department_id',
+            'wt.worktype_name',
+            'wo.worequest',
+            'wo.keperluan',
+            'wo.status',
+            'wo.status_pekerjaan',
+            'wo.created_by'
+        )
                 ->orderBy($orderCol, $orderDir)
                 ->orderBy('wo.woid', 'desc')
                 ->distinct('wo.woid')
@@ -2016,50 +2013,63 @@ class WoController extends Controller
                 ->get();
 
         $data->transform(function ($row) {
-            $row->eid = \Vinkla\Hashids\Facades\Hashids::encode($row->id);
+            $row->eid = Hashids::encode($row->id);
             unset($row->id);
+
             return $row;
         });
 
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
-
     // POST /wo/{woid}/process
-    public function processWo($woid) {
+    public function processWo($woid)
+    {
         $user = auth()->user();
+
         $wo = TrWO::where('woid', $woid)->firstOrFail();
 
-        // set pic_wo & pic_department (server-side agar aman)
+        // jika sudah ada PIC jangan overwrite
+        if ($wo->pic_wo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'WO already processed.',
+            ], 400);
+        }
+
         $wo->pic_wo = $user->username;
-        // $wo->pic_department = $user->departmentid ?? $user->department_id ?? $wo->pic_department;
-        $wo->pic_department = '';
+        $wo->pic_department = $user->department_id ?? null;
+        $wo->status_pekerjaan = 'P'; // 🔥 langsung On Progress
+
         $wo->save();
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'pic_wo' => $wo->pic_wo,
+            'status_pekerjaan' => $wo->status_pekerjaan,
+        ]);
     }
 
     // POST /wo/{woid}/job-status
     public function updateJobStatus(Request $req, $woid)
     {
-
         $req->validate([
             'status_pekerjaan' => 'required|in:P,X,C',
-            'pic_wo_comment'   => 'nullable|string',
-            'pic_department'   => 'nullable|string',
-            'flag_sppbjkt'     => 'nullable' // checkbox (akan dinormalisasi)
+            'pic_wo_comment' => 'nullable|string',
+            'pic_department' => 'nullable|string',
+            'flag_sppbjkt' => 'nullable', // checkbox (akan dinormalisasi)
         ]);
 
         $wo = TrWO::where('woid', $woid)->firstOrFail();
 
         $wo->status_pekerjaan = $req->status_pekerjaan;
-        $wo->pic_wo_comment   = $req->pic_wo_comment;
-        $wo->pic_department   = $req->pic_department;
+        $wo->pic_wo_comment = $req->pic_wo_comment;
+        $wo->pic_department = $req->pic_department;
 
         // ✅ jika Completed → isi timestamp pic_completed_wo
         if ($req->status_pekerjaan === 'C') {
@@ -2081,22 +2091,13 @@ class WoController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Job status updated.',
-            'data'    => [
+            'data' => [
                 'status_pekerjaan' => $wo->status_pekerjaan,
-                'pic_department'   => $wo->pic_department,
-                'pic_wo_comment'   => $wo->pic_wo_comment,
+                'pic_department' => $wo->pic_department,
+                'pic_wo_comment' => $wo->pic_wo_comment,
                 'pic_completed_wo' => $wo->pic_completed_wo,
-                'flag_sppbjkt'     => $wo->flag_sppbjkt,
-            ]
+                'flag_sppbjkt' => $wo->flag_sppbjkt,
+            ],
         ]);
     }
-
-
-
-
-
-
-
-
-
 }

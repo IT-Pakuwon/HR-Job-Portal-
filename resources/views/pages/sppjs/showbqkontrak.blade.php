@@ -20,7 +20,7 @@
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">
 
-            <div class="flex gap-3">            
+            <div class="flex gap-3">
                 @if (!empty($canEdit) && $canEdit)
                     <button id="editBtn"
                         class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
@@ -90,7 +90,7 @@
                                     [
                                         'icon' => 'calendar',
                                         'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($bq->created_at)),
+                                        'value' => \Carbon\Carbon::parse($bq->created_at)->format('j F Y'),
                                     ],
                                     [
                                         'icon' => 'user-circle',
@@ -119,7 +119,7 @@
                     </div>
                 </div>
 
-                               
+
             </div>
             <div class="flex max-h-[50rem] min-h-[12rem] w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 {{-- Header --}}
@@ -136,7 +136,7 @@
                                 <th class="px-4 py-2 text-left">Line No</th>
                                 <th class="px-4 py-2 text-left">Description</th>
                                 <th class="px-4 py-2 text-right">Qty</th>
-                                <th class="px-4 py-2 text-left">UoM</th>                               
+                                <th class="px-4 py-2 text-left">UoM</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,7 +148,7 @@
                                     <td class="px-4 py-2 text-right">
                                         {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}
                                     </td>
-                                    <td class="px-4 py-2">{{ $item->uom }}</td>                                    
+                                    <td class="px-4 py-2">{{ $item->uom }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -226,7 +226,7 @@
             `;
 
                 return `
-                <div class="p-2 "> 
+                <div class="p-2 ">
                  <div class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800">
                 <a ${at.url ? `href="${href}" target="_blank"` : ''} class="relative block aspect-square overflow-hidden">
                     ${thumb}

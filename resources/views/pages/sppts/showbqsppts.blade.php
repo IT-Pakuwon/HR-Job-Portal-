@@ -90,7 +90,7 @@
                                     [
                                         'icon' => 'calendar',
                                         'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($bq->created_at)),
+                                        'value' => \Carbon\Carbon::parse($bq->created_at)->format('j F Y'),
                                     ],
                                     [
                                         'icon' => 'user-circle',

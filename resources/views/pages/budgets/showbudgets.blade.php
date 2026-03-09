@@ -112,7 +112,7 @@
                                     ],
                                     [
                                         'label' => 'Date',
-                                        'value' => optional($budget->budget_date)->format('j F Y'),
+                                        'value' => \Carbon\Carbon::parse($budget->budget_date)->format('j F Y'),
                                         'icon' => 'calendar',
                                     ],
                                     [

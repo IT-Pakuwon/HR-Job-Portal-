@@ -101,7 +101,7 @@
                                     [
                                         'icon' => 'calendar',
                                         'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($sppk->sppkdate)),
+                                        'value' => \Carbon\Carbon::parse($sppk->sppkdate)->format('j F Y'),
                                     ],
                                     [
                                         'icon' => 'user-circle',

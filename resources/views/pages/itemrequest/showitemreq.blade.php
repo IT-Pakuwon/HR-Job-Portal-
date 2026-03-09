@@ -105,7 +105,7 @@
                                     [
                                         'icon' => 'calendar',
                                         'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($itemReq->irdate)),
+                                        'value' => \Carbon\Carbon::parse($itemReq->irdate)->format('j F Y'),
                                     ],
                                     [
                                         'icon' => 'user-circle',

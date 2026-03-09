@@ -99,7 +99,7 @@
                                     [
                                         'icon' => 'calendar',
                                         'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($bq->created_at)),
+                                        'value' => \Carbon\Carbon::parse($bq->created_at)->format('j F Y'),
                                     ],
                                     [
                                         'icon' => 'user-circle',
@@ -302,7 +302,7 @@
             `;
 
                 return `
-                <div class="p-2 "> 
+                <div class="p-2 ">
                  <div class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800">
                 <a ${at.url ? `href="${href}" target="_blank"` : ''} class="relative block aspect-square overflow-hidden">
                     ${thumb}
