@@ -1967,8 +1967,19 @@ class WoController extends Controller
             ->join('ms_worktype_dept as wtd', function ($j) {
                 $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
             })
-            ->whereIn('wo.cpny_id', $cpnyIds)          // 🔥 filter company
-            ->whereIn('wtd.department_id', $deptIds);  // 🔥 filter department
+
+    // ✅ LOCATION
+    ->leftJoin('ms_location as loc', function ($j) {
+        $j->on('loc.location_id', '=', 'wo.location_id');
+    })
+
+    // ✅ SUB LOCATION (correct table + column)
+    ->leftJoin('ms_sub_location as subloc', function ($j) {
+        $j->on('subloc.sub_location_id', '=', 'wo.sub_location_id');
+    })
+
+            ->whereIn('wo.cpny_id', $cpnyIds)
+            ->whereIn('wtd.department_id', $deptIds);
 
         // filter berdasarkan status_pekerjaan (H / P / R / C), kalau kosong = semua
         if ($jobStatus !== '') {
@@ -1998,19 +2009,26 @@ class WoController extends Controller
             'wo.wodate',
             'wo.cpny_id',
             'wo.department_id',
+
+            'wo.pic_wo',
+
             'wt.worktype_name',
             'wo.worequest',
             'wo.keperluan',
+
+            'loc.location_name',
+            'subloc.sublocation_name',
+
             'wo.status',
             'wo.status_pekerjaan',
             'wo.created_by'
         )
-                ->orderBy($orderCol, $orderDir)
-                ->orderBy('wo.woid', 'desc')
-                ->distinct('wo.woid')
-                ->skip($start)
-                ->take($length)
-                ->get();
+            ->orderBy($orderCol, $orderDir)
+                        ->orderBy('wo.woid', 'desc')
+                        ->distinct('wo.woid')
+                        ->skip($start)
+                        ->take($length)
+                        ->get();
 
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);

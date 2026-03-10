@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
 
             {{-- 1. Issue New Jobs (TrSPB) --}}
             <button type="button" class="text-left">
@@ -152,7 +152,23 @@
                     </div>
                 </a>
             </button>
+            <button type="button" class="text-left">
+                <a href="#" class="scope-filter group block h-full" data-scope="spbflow">
+                    <div
+                        class="scope-card flex items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-lg active:scale-95">
 
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔁</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="whitespace-normal break-words text-sm font-medium leading-tight">
+                                SPB → SPPB
+                            </p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $spbflow }}</p>
+                    </div>
+                </a>
+            </button>
         </div>
         <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
             <div class="flex items-center justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
@@ -217,10 +233,13 @@
                 sppbprogress: 'SPPB - On Progress',
                 spbprogress: 'SPB - On Progress',
                 spball: 'SPB - All',
-                woflow: 'WO - SPB / SPPB',
+                woflow: 'WO → SPB / SPPB',
+                spbflow: 'SPB → SPPB',
             };
 
-            const spbScopes = ['issuejobsnew', 'issuejobs', 'onprogress', 'spbprogress', 'spball', 'woflow'];
+            const spbScopes = ['issuejobsnew', 'issuejobs', 'onprogress', 'spbprogress', 'spball', 'woflow',
+                'spbflow'
+            ];
             const issueScopes = ['issueprogress'];
             const sppbScopes = ['sppbprogress'];
             const allowedScopes = [...spbScopes, ...issueScopes, ...sppbScopes];
@@ -243,59 +262,65 @@
 
                     const isSpbAll = (sc === 'spball');
                     const isWoFlow = (sc === 'woflow');
-                    const hideAction = (sc === 'spbprogress' || isSpbAll || isWoFlow);
+                    const isSpbFlow = (sc === 'spbflow'); // ⭐ NEW
+                    const hideAction = (sc === 'spbprogress' || isSpbAll || isWoFlow || isSpbFlow);
                     const isSppbJobs = (sc === 'onprogress');
                     const hideStatus = (sc === 'spbprogress');
 
                     return `
-                    <th></th>
+        <th></th>
 
-                    ${!hideAction ? `
-                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                            Action
-                            </th>` : ``}
+        ${!hideAction ? `
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                        Action
+                        </th>` : ``}
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    SPB ID
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        SPB ID
+        </th>
 
-                    ${isWoFlow ? `
-                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                            WO ID
-                            </th>` : ``}
+        ${isWoFlow ? `
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                        WO ID
+                        </th>` : ``}
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    SPB Date
-                    </th>
+        ${isSpbFlow ? `
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                        SPPB ID
+                        </th>` : ``}
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    Company
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        SPB Date
+        </th>
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    Department
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        Company
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Keperluan
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        Department
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Created By
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Keperluan
+        </th>
 
-                    ${isSpbAll ? `
-                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                            Status SPB
-                            </th>
-                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                            Status Issue
-                            </th>
-                            ` : !hideStatus ? `
-                            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                            ${isSppbJobs ? 'Status SPPB' : 'Issue Status'}
-                            </th>` : ``}
-                    `;
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Created By
+        </th>
+
+        ${isSpbAll ? `
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                        Status SPB
+                        </th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                        Status Issue
+                        </th>
+                        ` : !hideStatus ? `
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                        ${isSppbJobs ? 'Status SPPB' : 'Issue Status'}
+                        </th>` : ``}
+        `;
                 }
 
                 // =========================
@@ -304,72 +329,72 @@
                 if (type === 'issue') {
 
                     return `
-                    <th></th>
+        <th></th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Issue ID
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Issue ID
+        </th>
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    Issue Date
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        Issue Date
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Issue Type
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Issue Type
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    SPB ID
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        SPB ID
+        </th>
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    Company
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        Company
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Created By
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Created By
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Status
-                    </th>
-                    `;
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Status
+        </th>
+        `;
                 }
 
                 // =========================
                 // SPPB HEADER
                 // =========================
                 return `
-                    <th></th>
+        <th></th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    SPPB ID
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        SPPB ID
+        </th>
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    SPPB Date
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        SPPB Date
+        </th>
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    Company
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        Company
+        </th>
 
-                    <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
-                    Department
-                    </th>
+        <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+        Department
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Request Type
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Request Type
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Description
-                    </th>
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Description
+        </th>
 
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                    Status
-                    </th>
-                    `;
+        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+        Status
+        </th>
+        `;
             }
 
             function renderSpbLink(row) {
@@ -443,18 +468,24 @@
 
 
             function columnsFor(sc) {
+
                 const type = scopeType(sc);
+
                 if (type === 'spb') {
 
                     const isSpbAll = (sc === 'spball');
                     const isWoFlow = (sc === 'woflow');
+                    const isSpbFlow = (sc === 'spbflow'); // ⭐ NEW
                     const isSppbJobs = (sc === 'onprogress');
-                    const hideAction = (sc === 'spbprogress' || isSpbAll || isWoFlow);
+
+                    const hideAction = (sc === 'spbprogress' || isSpbAll || isWoFlow || isSpbFlow);
                     const hideStatus = (sc === 'spbprogress');
 
                     const cols = [dtControlColumn];
 
-                    // Action
+                    // =========================
+                    // ACTION
+                    // =========================
                     if (!hideAction) {
                         cols.push({
                             data: null,
@@ -467,27 +498,57 @@
                         });
                     }
 
+                    // =========================
                     // SPB ID
+                    // =========================
                     cols.push({
                         data: 'spbid',
                         render: (_v, _t, row) => renderSpbLink(row)
                     });
 
-                    // WO
+                    // =========================
+                    // WO FLOW
+                    // =========================
                     if (isWoFlow) {
                         cols.push({
                             data: 'wo_hash',
                             render: function(data, type, row) {
+
                                 if (!data) return '';
+
                                 return `<a href="/showwos/${encodeURIComponent(data)}"
-                                    target="_blank"
-                                    class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-sky-600 text-white hover:bg-sky-700">
-                                    ${row.woid}
-                                </a>`;
+                        target="_blank"
+                        class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-sky-600 text-white hover:bg-sky-700">
+                        ${row.woid}
+                    </a>`;
                             }
                         });
                     }
 
+                    // =========================
+                    // ⭐ SPB FLOW (SPB → SPPB)
+                    // =========================
+                    if (isSpbFlow) {
+                        cols.push({
+                            data: 'sppbid',
+                            render: function(data, type, row) {
+
+                                if (!data) return '-';
+
+                                const hash = row.sppb_hash || row.sppb_eid || row.sppb_id;
+
+                                return `<a href="/showsppbs/${encodeURIComponent(hash)}"
+                        target="_blank"
+                        class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                        ${data}
+                    </a>`;
+                            }
+                        });
+                    }
+
+                    // =========================
+                    // BASIC COLUMNS
+                    // =========================
                     cols.push({
                         data: 'spbdate',
                         className: 'text-center'
@@ -502,14 +563,15 @@
                     }, {
                         data: 'created_by'
                     });
+
+                    // =========================
+                    // STATUS
+                    // =========================
                     if (!hideStatus) {
 
-                        // =========================
-                        // SPB ALL → 2 STATUS COLUMN
-                        // =========================
                         if (sc === 'spball') {
 
-                            // 🔹 STATUS SPB
+                            // STATUS SPB
                             cols.push({
                                 data: 'status',
                                 render: function(data) {
@@ -546,7 +608,7 @@
                                 }
                             });
 
-                            // 🔹 STATUS ISSUE
+                            // STATUS ISSUE
                             cols.push({
                                 data: 'status_issue',
                                 render: function(data) {
@@ -579,12 +641,7 @@
                                 }
                             });
 
-                        }
-
-                        // =========================
-                        // OTHER SCOPES → 1 STATUS
-                        // =========================
-                        else {
+                        } else {
 
                             cols.push({
                                 data: null,
@@ -615,7 +672,6 @@
 
                                     let statusValue = '-';
 
-                                    // 🔹 WO FLOW
                                     if (sc === 'woflow') {
 
                                         if (row.sppbid) {
@@ -624,15 +680,9 @@
                                             statusValue = row.status_issue;
                                         }
 
-                                    }
-
-                                    // 🔹 SPPB JOBS
-                                    else if (isSppbJobs) {
+                                    } else if (isSppbJobs) {
                                         statusValue = row.status_sppb;
-                                    }
-
-                                    // 🔹 DEFAULT
-                                    else {
+                                    } else {
                                         statusValue = row.status_issue;
                                     }
 
@@ -652,201 +702,136 @@
                     return cols;
                 }
 
-                //                 if (isWoFlow) {
-                //                     cols.push({
-                //                         data: 'woid', // ✅ ambil langsung dari tr_spb.woid
-                //                         defaultContent: '',
-                //                         render: function(data) {
-                //                             if (!data) return '';
-
-                //                             const url = `/showwo/${encodeURIComponent(data)}`;
-
-                //                             return `<a href="${url}" target="_blank"
-            //     class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded bg-sky-600 text-white hover:bg-sky-700">
-            //     ${data}
-            // </a>`;
-                //                         }
-                //                     });
-                //                 }
-
-                // if (type === 'spb') {
-                //     const isSppbJobs = (sc === 'onprogress'); // scope SPPB Jobs
-
-                //     return [dtControlColumn,
-                //         {
-                //             data: 'spbid',
-                //             defaultContent: '',
-                //             render: (_v, _t, row) => renderSpbLink(row)
-                //         },
-                //         {
-                //             data: 'spbdate',
-                //             defaultContent: '',
-                //             render: (value, _t, row) => value || row.spbdate_fmt || '',
-                //             className: 'text-center'
-                //         },
-                //         {
-                //             data: 'cpny_id',
-                //             defaultContent: '',
-                //             className: 'text-center'
-                //         },
-                //         {
-                //             data: 'keperluan',
-                //             defaultContent: ''
-                //         },
-                //         {
-                //             data: 'created_by',
-                //             defaultContent: ''
-                //         },
-                //         {
-                //             data: null,
-                //             defaultContent: '',
-                //             render: (_v, _t, row) => {
-                //                 const isSppbJobs = (sc === 'onprogress');
-                //                 const val = isSppbJobs ? (row.status_sppb ?? '-') : (row.status_issue ??
-                //                     '-');
-
-                //                 const map = {
-                //                     'Open': 'bg-gray-200/50 text-gray-700',
-                //                     'Partial': 'bg-amber-200/50 text-amber-700',
-                //                     'Completed': 'bg-green-200/50 text-green-700',
-                //                     'Full': 'bg-green-200/50 text-green-700',
-                //                 };
-                //                 const cls = map[val] || 'bg-gray-200/50 text-gray-700';
-                //                 return `<span class="inline-block ${cls} font-semibold px-3 py-1.5  text-sm  text-center rounded">${val}</span>`;
-                //             }
-                //         }
-
-                //     ];
-                // }
-
+                // =========================
+                // ISSUE TABLE
+                // =========================
                 if (type === 'issue') {
-                    return [dtControlColumn, {
+
+                    return [
+                        dtControlColumn,
+                        {
                             data: 'issueid',
-                            defaultContent: '',
                             render: renderIssueLinkCell
                         },
                         {
                             data: 'issuedate',
-                            defaultContent: '',
                             render: (_v, _t, row) => row.issuedate_fmt ?? row.issuedate ?? '',
                             className: 'text-center'
                         },
                         {
-                            data: 'issuetype',
-                            defaultContent: ''
+                            data: 'issuetype'
                         },
                         {
-                            data: 'spbid',
-                            defaultContent: ''
+                            data: 'spbid'
                         },
                         {
                             data: 'cpny_id',
-                            defaultContent: '',
                             className: 'text-center'
                         },
                         {
-                            data: 'created_by',
-                            defaultContent: ''
+                            data: 'created_by'
                         },
                         {
                             data: 'status',
-                            defaultContent: '',
                             render: function(data) {
+
                                 const map = {
-                                    'D': {
+                                    D: {
                                         t: 'Revise',
                                         c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
                                     },
-                                    'P': {
+                                    P: {
                                         t: 'On Progress',
                                         c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
                                     },
-                                    'C': {
+                                    C: {
                                         t: 'Completed',
                                         c: 'bg-green-200/60 text-green-800 border border-green-600/40'
                                     },
-                                    'X': {
+                                    X: {
                                         t: 'Cancel',
                                         c: 'bg-red-200/60 text-red-800 border border-red-600/40'
                                     },
-                                    'R': {
+                                    R: {
                                         t: 'Rejected',
                                         c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                    },
+                                    }
                                 };
-                                const it = map[data] || {
-                                    t: (data || '-'),
+
+                                const it = map[data] ?? {
+                                    t: data ?? '-',
                                     c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
                                 };
+
                                 return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                             }
                         }
-
                     ];
                 }
-                // SPPB (sppbprogress)
-                return [dtControlColumn, {
+
+                // =========================
+                // SPPB TABLE
+                // =========================
+                return [
+                    dtControlColumn,
+                    {
                         data: 'sppbid',
-                        defaultContent: '',
                         render: (_v, _t, row) => renderSppbLink(row)
                     },
                     {
                         data: 'sppbdate',
-                        defaultContent: '',
                         render: (_v, _t, row) => row.sppbdate_fmt ?? row.sppbdate ?? '',
                         className: 'text-center'
                     },
                     {
                         data: 'cpny_id',
-                        defaultContent: '',
                         className: 'text-center'
                     },
                     {
                         data: 'department_id',
-                        defaultContent: '',
                         className: 'text-center'
                     },
                     {
-                        data: 'requesttype_name',
-                        defaultContent: ''
+                        data: 'requesttype_name'
                     },
                     {
-                        data: 'keperluan',
-                        defaultContent: ''
+                        data: 'keperluan'
                     },
                     {
                         data: 'status',
-                        className: 'text-left',
                         render: function(data) {
+
                             const map = {
-                                'D': {
+                                D: {
                                     t: 'Revise',
                                     c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40'
                                 },
-                                'P': {
+                                P: {
                                     t: 'On Progress',
                                     c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40'
                                 },
-                                'C': {
+                                C: {
                                     t: 'Completed',
                                     c: 'bg-green-200/60 text-green-800 border border-green-600/40'
                                 },
-                                'X': {
+                                X: {
                                     t: 'Cancel',
                                     c: 'bg-red-200/60 text-red-800 border border-red-600/40'
                                 },
-                                'R': {
+                                R: {
                                     t: 'Rejected',
                                     c: 'bg-red-200/60 text-red-800 border border-red-600/40'
-                                },
+                                }
                             };
-                            const it = map[data] || {
-                                t: data || '-',
+
+                            const it = map[data] ?? {
+                                t: data ?? '-',
                                 c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
                             };
+
                             return `<span class="w-32 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${it.t}</span>`;
                         }
-                    },
+                    }
                 ];
             }
 

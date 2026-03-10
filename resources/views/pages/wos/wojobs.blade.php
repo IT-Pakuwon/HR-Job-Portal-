@@ -101,6 +101,11 @@
                                 Company</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
+
+                            <th class="w-32 px-6 py-2 font-medium">
+                                PIC</th>
+                            <th class="w-32 px-6 py-2 font-medium">
+                                Location</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Work Type</th>
                             <th class="w-32 px-6 py-2 font-medium">
@@ -224,6 +229,22 @@
                         className: 'text-center whitespace-normal break-words'
                     },
                     {
+                        data: 'pic_wo',
+                        defaultContent: '-',
+                        className: 'text-left'
+                    },
+                    {
+                        data: null,
+                        render: function(data, type, row) {
+
+                            const loc = row.location_name ?? '';
+                            const sub = row.sub_location_name ?? '';
+
+                            if (!loc && !sub) return '-';
+
+                            return `${loc}${sub ? ' - ' + sub : ''}`;
+                        }
+                    }, {
                         data: 'worktype_name',
                         defaultContent: '-',
                         className: 'text-left'
@@ -235,7 +256,8 @@
                     },
                     {
                         data: 'keperluan',
-                        className: 'text-left'
+                        className: 'text-left whitespace-normal break-words',
+                        width: '120px'
                     },
                     {
                         data: 'status_pekerjaan', // ini dok-status; kalau mau ganti ke job status tinggal pakai 'status_pekerjaan'

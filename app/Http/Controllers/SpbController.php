@@ -1,42 +1,33 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use App\Models\Autonbr;
+use App\Exports\SpbDetailExport;
+use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\Budget;
 use App\Models\MsCompany;
-use App\Models\MsDepartment;
-use App\Models\Usercpny;
-use App\Models\Userdept;
-use App\Models\User;
-use App\Models\Site;
-use App\Models\Division;
+use App\Models\SysUserRole;
+use App\Models\TrApproval;
+use App\Models\TrAttachment;
+use App\Models\TrIssue;
 use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
-use App\Models\MsLocation;
-use App\Models\MsSubLocation;
-use Mail;
-use Illuminate\Support\Facades\Log;
-use PDF;
-use Vinkla\Hashids\Facades\Hashids;
-use App\Http\Controllers\TrAttachmentController;
-use Illuminate\Support\Facades\Response;
-use App\Models\TrAttachment;
-use Illuminate\Support\Str;
-use Google\Cloud\Storage\StorageClient;
-use App\Http\Controllers\ApprovalController;
-use App\Models\TrApproval;
-use App\Models\TrIssue;
-use App\Http\Controllers\Traits\HasAutonbr;
-use App\Models\SysUserRole;
-use App\Models\Userbusinessunit;
-use App\Models\Budget;
 use App\Models\TrWO;
-use App\Exports\SpbDetailExport;
+use App\Models\User;
+use App\Models\Userbusinessunit;
+use App\Models\Usercpny;
+use App\Models\Userdept;
+use Google\Cloud\Storage\StorageClient;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Mail;
+use Vinkla\Hashids\Facades\Hashids;
 
 class SpbController extends Controller
 {
@@ -97,128 +88,121 @@ class SpbController extends Controller
             ->whereIn('status', ['P', 'C'])
             ->count();
 
-
-        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed','tracking','allListCount'));
+        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'tracking', 'allListCount'));
     }
 
+    public function json(Request $request)
+    {
+        $user = Auth::user();
 
-
-public function json(Request $request)
-{
-    $user = Auth::user();
-
-    if (!$user) {
-        return response()->json([], 401);
-    }
-
-    // ==============================
-    // USER COMPANY
-    // ==============================
-    $cpnyIds = is_string($user->cpny_id)
-        ? array_map('trim', explode(',', $user->cpny_id))
-        : (array) $user->cpny_id;
-
-    // ==============================
-    // USER DEPARTMENT (NORMAL MODE)
-    // ==============================
-    $deptIds = is_string($user->department_id)
-        ? array_map('trim', explode(',', $user->department_id))
-        : (array) $user->department_id;
-
-    // ==============================
-    // DATATABLE PARAMS
-    // ==============================
-    $draw   = (int) $request->input('draw', 1);
-    $start  = (int) $request->input('start', 0);
-    $length = (int) $request->input('length', 25);
-    $search = trim((string) $request->input('search.value', ''));
-
-    $status      = (string) $request->input('status', '');
-    $mode        = (string) $request->input('mode', 'normal');
-    $deptExtra   = (string) $request->input('department_extra', '');
-
-    $columns = [
-        0 => 'spb.spbid',
-        1 => 'spb.spbdate',
-        2 => 'spb.cpny_id',
-        3 => 'spb.department_id',
-        4 => 'wt.worktype_name',
-        5 => 'swt.subworktype_name',
-        6 => 'spb.keperluan',
-        7 => 'spb.status',
-    ];
-
-    $orderIdx = (int) $request->input('order.0.column', 0);
-    $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
-    $orderCol = $columns[$orderIdx] ?? 'spb.spbid';
-
-    // ==============================
-    // BASE QUERY
-    // ==============================
-    $base = TrSPB::from('tr_spb as spb')
-        ->leftJoin('ms_worktype as wt', 'wt.worktypeid', '=', 'spb.worktypeid')
-        ->leftJoin('ms_subworktype as swt', function ($join) {
-            $join->on('swt.subworktypeid', '=', 'spb.subworktypeid')
-                 ->where('swt.doctype', '=', 'SPB');
-        })
-        ->whereIn('spb.cpny_id', $cpnyIds);
-
-    // ==============================
-    // MODE LOGIC
-    // ==============================
-    if ($mode === 'normal') {
-
-        $base->whereIn('spb.department_id', $deptIds);
-
-        if ($status !== '') {
-            $base->where('spb.status', $status);
-        }
-    }
-
-    if ($mode === 'all') {
-
-        // only P & C by default
-        $base->whereIn('spb.status', ['P', 'C']);
-
-        if (!empty($deptExtra)) {
-            $base->where('spb.department_id', $deptExtra);
+        if (!$user) {
+            return response()->json([], 401);
         }
 
-        if ($status !== '') {
-            $base->where('spb.status', $status);
+        // ==============================
+        // USER COMPANY
+        // ==============================
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_map('trim', explode(',', $user->cpny_id))
+            : (array) $user->cpny_id;
+
+        // ==============================
+        // USER DEPARTMENT (NORMAL MODE)
+        // ==============================
+        $deptIds = is_string($user->department_id)
+            ? array_map('trim', explode(',', $user->department_id))
+            : (array) $user->department_id;
+
+        // ==============================
+        // DATATABLE PARAMS
+        // ==============================
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+
+        $status = (string) $request->input('status', '');
+        $mode = (string) $request->input('mode', 'normal');
+        $deptExtra = (string) $request->input('department_extra', '');
+
+        $columns = [
+            0 => 'spb.spbid',
+            1 => 'spb.spbdate',
+            2 => 'spb.cpny_id',
+            3 => 'spb.department_id',
+            4 => 'wt.worktype_name',
+            5 => 'swt.subworktype_name',
+            6 => 'spb.keperluan',
+            7 => 'spb.status',
+        ];
+
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'spb.spbid';
+
+        // ==============================
+        // BASE QUERY
+        // ==============================
+        $base = TrSPB::from('tr_spb as spb')
+            ->leftJoin('ms_worktype as wt', 'wt.worktypeid', '=', 'spb.worktypeid')
+            ->leftJoin('ms_subworktype as swt', function ($join) {
+                $join->on('swt.subworktypeid', '=', 'spb.subworktypeid')
+                     ->where('swt.doctype', '=', 'SPB');
+            })
+            ->whereIn('spb.cpny_id', $cpnyIds);
+
+        // ==============================
+        // MODE LOGIC
+        // ==============================
+        if ($mode === 'normal') {
+            $base->whereIn('spb.department_id', $deptIds);
+
+            if ($status !== '') {
+                $base->where('spb.status', $status);
+            }
         }
-    }
+        if ($mode === 'all') {
+            // only P & C by default
+            $base->whereIn('spb.status', ['P', 'C']);
 
-    // ==============================
-    // TOTAL BEFORE SEARCH
-    // ==============================
-    $recordsTotal = (clone $base)
-        ->distinct('spb.spbid')
-        ->count('spb.spbid');
+            if (!empty($deptExtra)) {
+                $base->where('spb.department_id', $deptExtra);
+            }
 
-    // ==============================
-    // SEARCH
-    // ==============================
-    if ($search !== '') {
-        $base->where(function ($q) use ($search) {
-            $q->where('spb.spbid', 'ilike', "%{$search}%")
-              ->orWhere('spb.cpny_id', 'ilike', "%{$search}%")
-              ->orWhere('spb.department_id', 'ilike', "%{$search}%")
-              ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
-              ->orWhere('swt.subworktype_name', 'ilike', "%{$search}%")
-              ->orWhere('spb.keperluan', 'ilike', "%{$search}%")
-              ->orWhere('spb.status', 'ilike', "%{$search}%");
-        });
-    }
+            if ($status !== '') {
+                $base->where('spb.status', $status);
+            }
+        }
+        // ==============================
+        // TOTAL BEFORE SEARCH
+        // ==============================
+        $recordsTotal = (clone $base)
+            ->distinct('spb.spbid')
+            ->count('spb.spbid');
 
-    $recordsFiltered = (clone $base)
-        ->distinct('spb.spbid')
-        ->count('spb.spbid');
+        // ==============================
+        // SEARCH
+        // ==============================
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('spb.spbid', 'ilike', "%{$search}%")
+                  ->orWhere('spb.cpny_id', 'ilike', "%{$search}%")
+                  ->orWhere('spb.department_id', 'ilike', "%{$search}%")
+                  ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
+                  ->orWhere('swt.subworktype_name', 'ilike', "%{$search}%")
+                  ->orWhere('spb.keperluan', 'ilike', "%{$search}%")
+                  ->orWhere('spb.status', 'ilike', "%{$search}%");
+            });
+        }
 
-    // ==============================
-    // DATA
-    // ==============================
-    $data = $base->select(
+        $recordsFiltered = (clone $base)
+            ->distinct('spb.spbid')
+            ->count('spb.spbid');
+
+        // ==============================
+        // DATA
+        // ==============================
+        $data = $base->select(
             'spb.id',
             'spb.spbid',
             'spb.spbdate',
@@ -230,48 +214,49 @@ public function json(Request $request)
             'spb.status',
             'spb.created_by'
         )
-        ->orderBy($orderCol, $orderDir)
-        ->orderBy('spb.spbid', 'desc')
-        ->skip($start)
-        ->take($length)
-        ->get();
+            ->orderBy($orderCol, $orderDir)
+            ->orderBy('spb.spbid', 'desc')
+            ->skip($start)
+            ->take($length)
+            ->get();
 
-    $data->transform(function ($row) {
-        $row->eid = \Hashids::encode($row->id);
-        unset($row->id);
-        return $row;
-    });
+        $data->transform(function ($row) {
+            $row->eid = \Hashids::encode($row->id);
+            unset($row->id);
 
-    // ==============================
-    // DEPARTMENT LIST (ALL MODE)
-    // ==============================
-    $departments = [];
+            return $row;
+        });
 
-    if ($mode === 'all') {
+        // ==============================
+        // DEPARTMENT LIST (ALL MODE)
+        // ==============================
+        $departments = [];
 
-        $deptQuery = TrSPB::from('tr_spb as spb')
-            ->whereIn('spb.cpny_id', $cpnyIds)
-            ->whereIn('spb.status', ['P','C']);
+        if ($mode === 'all') {
+            $deptQuery = TrSPB::from('tr_spb as spb')
+                ->whereIn('spb.cpny_id', $cpnyIds)
+                ->whereIn('spb.status', ['P', 'C']);
 
-        if (!empty($deptExtra)) {
-            $deptQuery->where('spb.department_id', $deptExtra);
+            if (!empty($deptExtra)) {
+                $deptQuery->where('spb.department_id', $deptExtra);
+            }
+
+            $departments = $deptQuery
+                ->select('spb.department_id')
+                ->distinct()
+                ->orderBy('spb.department_id')
+                ->pluck('department_id');
         }
 
-        $departments = $deptQuery
-            ->select('spb.department_id')
-            ->distinct()
-            ->orderBy('spb.department_id')
-            ->pluck('department_id');
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+            'departments' => $departments,
+        ]);
     }
 
-    return response()->json([
-        'draw'            => $draw,
-        'recordsTotal'    => $recordsTotal,
-        'recordsFiltered' => $recordsFiltered,
-        'data'            => $data,
-        'departments'     => $departments,
-    ]);
-}
     public function trackJson(Request $request)
     {
         $user = Auth::user();
@@ -284,8 +269,8 @@ public function json(Request $request)
             ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
             : array_values(array_filter((array) $user->department_id));
 
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
 
@@ -308,7 +293,7 @@ public function json(Request $request)
         $orderCol = $cols[$orderIdx] ?? 'iss.issueid';
 
         // ✅ Master = tr_issue (1 row = 1 issue)
-        $base = \App\Models\TrIssue::from('tr_issue as iss')
+        $base = TrIssue::from('tr_issue as iss')
             ->join('tr_spb as spb', 'spb.spbid', '=', 'iss.spbid')
             // join SPPB by sppbid (kalau tidak selalu ada, pakai leftJoin)
             ->leftJoin('tr_sppb as sppb', 'sppb.sppbid', '=', 'spb.sppbid')
@@ -327,21 +312,21 @@ public function json(Request $request)
         $recordsFiltered = $recordsTotal;
 
         $data = $base->select([
-                'iss.id as issue_row_id',
-                'iss.issueid',
-                'spb.id as spb_row_id',
-                'spb.spbid',
-                'spb.sppbid',
-                'sppb.id as sppb_row_id',
+            'iss.id as issue_row_id',
+            'iss.issueid',
+            'spb.id as spb_row_id',
+            'spb.spbid',
+            'spb.sppbid',
+            'sppb.id as sppb_row_id',
 
-                'spb.totalspbqty',
-                'spb.totalissueqty',
-                'spb.totalreturnqty',
-                'spb.totalsppbqty',
-                'spb.totalcompleteqty',
-                'spb.status_sppb',
-                'spb.status_issue',
-            ])
+            'spb.totalspbqty',
+            'spb.totalissueqty',
+            'spb.totalreturnqty',
+            'spb.totalsppbqty',
+            'spb.totalcompleteqty',
+            'spb.status_sppb',
+            'spb.status_issue',
+        ])
             ->orderBy($orderCol, $orderDir)
             ->skip($start)->take($length)
             ->get();
@@ -349,10 +334,10 @@ public function json(Request $request)
         // ✅ inject eid per row (Hashids dari id masing-masing tabel)
         $data->transform(function ($row) {
             $row->eid_issue = \Hashids::encode($row->issue_row_id);
-            $row->eid_spb   = \Hashids::encode($row->spb_row_id);
+            $row->eid_spb = \Hashids::encode($row->spb_row_id);
 
             // sppb bisa null kalau leftJoin tidak ketemu
-            $row->eid_sppb  = $row->sppb_row_id ? \Hashids::encode($row->sppb_row_id) : null;
+            $row->eid_sppb = $row->sppb_row_id ? \Hashids::encode($row->sppb_row_id) : null;
 
             return $row;
         });
@@ -364,8 +349,6 @@ public function json(Request $request)
             'data' => $data,
         ]);
     }
-
-
 
     public function trackJson_xxx(Request $request)
     {
@@ -379,8 +362,8 @@ public function json(Request $request)
             ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
             : array_values(array_filter((array) $user->department_id));
 
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
 
@@ -404,7 +387,7 @@ public function json(Request $request)
 
         /**
          * ✅ Base dibalik: mulai dari tr_issue (karena 1 SPB bisa punya >1 Issue)
-         * Tapi output tetap 1 row per SPB dengan string_agg(issueid)
+         * Tapi output tetap 1 row per SPB dengan string_agg(issueid).
          */
         $base = TrIssue::from('tr_issue as iss')
             ->join('tr_spb as spb', function ($join) {
@@ -416,7 +399,7 @@ public function json(Request $request)
 
         // tracking criteria: ada issue ATAU spb sudah ada sppbid / totalsppbqty
         $base->where(function ($q) {
-            $q->whereRaw("COALESCE(spb.totalsppbqty,0) > 0")
+            $q->whereRaw('COALESCE(spb.totalsppbqty,0) > 0')
             ->orWhereRaw("COALESCE(spb.sppbid,'') <> ''")
             ->orWhereNotNull('iss.issueid'); // karena base dari iss, ini biasanya true
         });
@@ -435,17 +418,17 @@ public function json(Request $request)
 
         // select agregasi issue per spb
         $q = $base->select([
-                'spb.spbid',
-                DB::raw("COALESCE(string_agg(DISTINCT iss.issueid, ', '), '') as issueid"),
-                'spb.sppbid',
-                'spb.totalspbqty',
-                'spb.totalissueqty',
-                'spb.totalreturnqty',
-                'spb.totalsppbqty',
-                'spb.totalcompleteqty',
-                'spb.status_sppb',
-                'spb.status_issue',
-            ])
+            'spb.spbid',
+            DB::raw("COALESCE(string_agg(DISTINCT iss.issueid, ', '), '') as issueid"),
+            'spb.sppbid',
+            'spb.totalspbqty',
+            'spb.totalissueqty',
+            'spb.totalreturnqty',
+            'spb.totalsppbqty',
+            'spb.totalcompleteqty',
+            'spb.status_sppb',
+            'spb.status_issue',
+        ])
             ->groupBy([
                 'spb.spbid',
                 'spb.sppbid',
@@ -475,11 +458,6 @@ public function json(Request $request)
         ]);
     }
 
-
-
-
-
-
     public function createSpb()
     {
         $user = Auth::user();
@@ -496,59 +474,59 @@ public function json(Request $request)
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
 
-        return view('pages.spbs.createspbs', compact('usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.spbs.createspbs', compact('usercpny', 'usercpny2', 'userdept', 'userdept2'));
     }
-
 
     public function storeSpb(Request $request)
     {
         // dd($request->all());
-        $doctype  = 'RB';
-        $user     = $request->user();
+        $doctype = 'RB';
+        $user = $request->user();
         $username = $user->username ?? 'system';
-        $dt       = Carbon::now();
-        $year      = (int) $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $dt = Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
         // === Ambil array dari form ===
-        $inventoryIds   = (array) $request->input('inventoryid',  $request->input('inventory_id', []));
-        $productNames   = (array) $request->input('product_name', []);
-        $qtys           = (array) $request->input('qty', []);
-        $uoms           = (array) $request->input('stock_unit',   $request->input('uom', []));
-        $notes          = (array) $request->input('note', []);
-        $siteids        = (array) $request->input('siteid', []);
+        $inventoryIds = (array) $request->input('inventoryid', $request->input('inventory_id', []));
+        $productNames = (array) $request->input('product_name', []);
+        $qtys = (array) $request->input('qty', []);
+        $uoms = (array) $request->input('stock_unit', $request->input('uom', []));
+        $notes = (array) $request->input('note', []);
+        $siteids = (array) $request->input('siteid', []);
 
         // stock dan harga per unit dari form
-        $stockQtys      = (array) $request->input('stock_qty', []);   // dari screenshot
-        $unitCosts      = (array) $request->input('unitcost', []);    // dari screenshot
-
+        $stockQtys = (array) $request->input('stock_qty', []);   // dari screenshot
+        $unitCosts = (array) $request->input('unitcost', []);    // dari screenshot
 
         // lokasi gabungan (modal baru)
-        $locationIds    = (array) $request->input('location_id',      $request->input('locationid', []));
-        $subLocIds      = (array) $request->input('sub_location_id',  $request->input('sublocationid', []));
+        $locationIds = (array) $request->input('location_id', $request->input('locationid', []));
+        $subLocIds = (array) $request->input('sub_location_id', $request->input('sublocationid', []));
 
         // COA chain
-        $activityIds    = (array) $request->input('activity_id', []);
-        $busUnitIds     = (array) $request->input('business_unit_id', []);
-        $deptFinIds     = (array) $request->input('department_fin_id', []);
-        $coaIds         = (array) $request->input('coa_id', []);
+        $activityIds = (array) $request->input('activity_id', []);
+        $busUnitIds = (array) $request->input('business_unit_id', []);
+        $deptFinIds = (array) $request->input('department_fin_id', []);
+        $coaIds = (array) $request->input('coa_id', []);
 
-        $actDescrs     = (array) $request->input('activity_descr', []);
+        $actDescrs = (array) $request->input('activity_descr', []);
 
         // UoM konversi
-        $purchaseUnits  = (array) $request->input('purchase_unit', []);
-        $uomMultDivs    = (array) $request->input('uom_unitmultdiv', []);
-        $uomRates       = (array) $request->input('uom_unitrate', []);
+        $purchaseUnits = (array) $request->input('purchase_unit', []);
+        $uomMultDivs = (array) $request->input('uom_unitmultdiv', []);
+        $uomRates = (array) $request->input('uom_unitrate', []);
 
         // helper angka lokal → float
         $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
+            if ($v === null || $v === '') {
+                return null;
+            }
+            $s = preg_replace('/\s+/', '', (string) $v);
             $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
+            $hasDot = strpos($s, '.') !== false;
             if ($hasComma && $hasDot) {
                 $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
+                $lastDot = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
@@ -560,21 +538,21 @@ public function json(Request $request)
             } elseif ($hasDot && substr_count($s, '.') > 1) {
                 $s = str_replace('.', '', $s);
             }
-            return is_numeric($s) ? (float)$s : null;
+
+            return is_numeric($s) ? (float) $s : null;
         };
 
         // normalisasi: '' → null
-        $nullIfEmpty = fn($x) => ($x === '' || $x === null) ? null : $x;
+        $nullIfEmpty = fn ($x) => ($x === '' || $x === null) ? null : $x;
         $locationIds = array_map($nullIfEmpty, $locationIds);
-        $subLocIds   = array_map($nullIfEmpty, $subLocIds);
+        $subLocIds = array_map($nullIfEmpty, $subLocIds);
 
         // ===== generate TrApproval dari MsApproval (cek garis approval dulu) =====
         $approvalCtl = app(ApprovalController::class);
         $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
 
         DB::beginTransaction();
-        try {           
-
+        try {
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -584,91 +562,100 @@ public function json(Request $request)
             );
             $urutan = (int) $auto['next'];
 
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-
+            $tglbln = substr((string) $year, 2).$month;   // YYMM
+            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             // === Guard minimal 1 detail valid & validasi lokasi per baris ===
             $rowCount = max(count($inventoryIds), count($qtys));
             $hasValid = false;
-            $errors   = [];
+            $errors = [];
 
-            for ($i = 0; $i < $rowCount; $i++) {
+            for ($i = 0; $i < $rowCount; ++$i) {
                 $inv = $inventoryIds[$i] ?? null;
-                $qty = (float) str_replace(',', '.', (string)($qtys[$i] ?? 0));
+                $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
                 $loc = $locationIds[$i] ?? null;
                 $sub = $subLocIds[$i] ?? null;
 
                 // baris kosong → lewati
-                if (empty($inv) && (!$qty || $qty <= 0)) continue;
+                if (empty($inv) && (!$qty || $qty <= 0)) {
+                    continue;
+                }
 
                 // baris aktif → wajib inv + qty > 0
                 if (empty($inv) || $qty <= 0) {
-                    $errors[] = "Row ".($i+1).": Product dan Qty > 0 wajib.";
+                    $errors[] = 'Row '.($i + 1).': Product dan Qty > 0 wajib.';
                     continue;
                 }
 
                 // lokasi wajib
-                if (empty($loc)) $errors[] = "Row ".($i+1).": Location wajib.";
-                if (empty($sub)) $errors[] = "Row ".($i+1).": Sub Location wajib.";
+                if (empty($loc)) {
+                    $errors[] = 'Row '.($i + 1).': Location wajib.';
+                }
+                if (empty($sub)) {
+                    $errors[] = 'Row '.($i + 1).': Sub Location wajib.';
+                }
 
                 $hasValid = true;
             }
 
             if (!$hasValid) {
                 DB::rollBack();
+
                 return response()->json(['message' => 'Minimal 1 baris detail dengan Product & Qty > 0.'], 422);
             }
             if ($errors) {
                 DB::rollBack();
-                return response()->json(['message' => implode(" ", $errors)], 422);
+
+                return response()->json(['message' => implode(' ', $errors)], 422);
             }
 
             // === Header (TrSPB) ===
             $header = new TrSPB();
-            $header->spbid             = $docid;
-            $header->spbdate           = $dt->toDateString();
-            $header->cpny_id           = $request->input('cpnyid');
-            $header->department_id     = $request->input('departementid');
-            $header->worktypeid        = $request->input('worktypeid');
-            $header->subworktypeid     = $request->input('subworktypeid');
-            $header->keperluan         = $request->input('keperluan');
-            $header->budget_perpost    = $request->input('perpost');
-            $header->woid              = $nullIfEmpty($request->input('woid'));
+            $header->spbid = $docid;
+            $header->spbdate = $dt->toDateString();
+            $header->cpny_id = $request->input('cpnyid');
+            $header->department_id = $request->input('departementid');
+            $header->worktypeid = $request->input('worktypeid');
+            $header->subworktypeid = $request->input('subworktypeid');
+            $header->keperluan = $request->input('keperluan');
+            $header->budget_perpost = $request->input('perpost');
+            $header->woid = $nullIfEmpty($request->input('woid'));
 
             // field numeric baru di header
-            $header->grandtotalcost    = 0;
-            $header->totalspbqty       = 0;
-            $header->totalissueqty     = 0;
-            $header->totalreturnqty    = 0;
-            $header->totalsppbqty      = 0;
-            $header->totalcompleteqty  = 0;
+            $header->grandtotalcost = 0;
+            $header->totalspbqty = 0;
+            $header->totalissueqty = 0;
+            $header->totalreturnqty = 0;
+            $header->totalsppbqty = 0;
+            $header->totalcompleteqty = 0;
 
             // status header
-            $header->status            = 'P';       // Pending / Process
-            $header->status_issue      = 'Open';    // sesuai rule: issueQty=0
-            $header->status_sppb       = 'Open';    // sesuai rule: sppbqty=0
+            $header->status = 'P';       // Pending / Process
+            $header->status_issue = 'Open';    // sesuai rule: issueQty=0
+            $header->status_sppb = 'Open';    // sesuai rule: sppbqty=0
 
-            $header->created_by        = $username;
+            $header->created_by = $username;
             $header->save();
 
             // === Detail (TrSPBdetail) ===
-            $totalQty       = 0;
+            $totalQty = 0;
             $grandTotalCost = 0;
 
-            for ($i = 0; $i < $rowCount; $i++) {
-                $invId       = $inventoryIds[$i] ?? null;
+            for ($i = 0; $i < $rowCount; ++$i) {
+                $invId = $inventoryIds[$i] ?? null;
                 $productName = $productNames[$i] ?? null;
-                $qtyRaw      = $qtys[$i] ?? 0;
-                $qty         = (float) str_replace(',', '.', (string) $qtyRaw);
-                $uom         = $uoms[$i] ?? null;
+                $qtyRaw = $qtys[$i] ?? 0;
+                $qty = (float) str_replace(',', '.', (string) $qtyRaw);
+                $uom = $uoms[$i] ?? null;
 
-                if (empty($invId) || $qty <= 0) continue;
+                if (empty($invId) || $qty <= 0) {
+                    continue;
+                }
 
                 // konversi base
-                $baseUom        = $purchaseUnits[$i] ?? null;
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? '')));
-                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;
+                $baseUom = $purchaseUnits[$i] ?? null;
+                $typeMultiplier = strtoupper(trim((string) ($uomMultDivs[$i] ?? '')));
+                $rate = $toFloat($uomRates[$i] ?? null) ?? 1.0;
                 if ($rate <= 0) {
                     $rate = 1.0;
                     $typeMultiplier = '';
@@ -688,88 +675,89 @@ public function json(Request $request)
                 $lineTotalCost = $unitCost * $qty;
 
                 $locId = $locationIds[$i] ?? null;
-                $subId = $subLocIds[$i]   ?? null;
+                $subId = $subLocIds[$i] ?? null;
 
                 $detail = new TrSPBdetail();
-                $detail->spbid                      = $docid;
-                $detail->spb_no                     = $i + 1;
-                $detail->inventoryid                = $invId;
-                $detail->inventory_descr            = $productName;
-                $detail->siteid                     = $siteids[$i] ?? null;
+                $detail->spbid = $docid;
+                $detail->spb_no = $i + 1;
+                $detail->inventoryid = $invId;
+                $detail->inventory_descr = $productName;
+                $detail->siteid = $siteids[$i] ?? null;
 
-                $detail->qty                        = $qty;
-                $detail->uom                        = $uom;
-                $detail->type_multiplier            = $typeMultiplier ?: null;
-                $detail->base_multiplier            = $rate;
-                $detail->base_qty                   = $baseQty;
-                $detail->base_uom                   = $baseUom;
+                $detail->qty = $qty;
+                $detail->uom = $uom;
+                $detail->type_multiplier = $typeMultiplier ?: null;
+                $detail->base_multiplier = $rate;
+                $detail->base_qty = $baseQty;
+                $detail->base_uom = $baseUom;
 
                 // biaya (kalau suatu saat ada harga di form)
-                $detail->unitcost                   = $unitCost;
-                $detail->totalcost                  = $lineTotalCost;
+                $detail->unitcost = $unitCost;
+                $detail->totalcost = $lineTotalCost;
 
-                $detail->note                       = $notes[$i]           ?? null;
+                $detail->note = $notes[$i] ?? null;
 
                 // lokasi
-                $detail->location_id                = $locId ?: null;
-                $detail->sub_location_id            = $subId ?: null;
+                $detail->location_id = $locId ?: null;
+                $detail->sub_location_id = $subId ?: null;
 
                 // budget / COA chain
-                $detail->budget_perpost             = $request->input('perpost');
-                $detail->budget_cpny_id             = $request->input('cpnyid');
-                $detail->budget_business_unit_id    = $busUnitIds[$i]      ?? null;
-                $detail->budget_department_fin_id   = $deptFinIds[$i]      ?? null;
-                $detail->budget_account_id          = $coaIds[$i]          ?? null;
-                $detail->budget_activity_id         = $activityIds[$i]     ?? null;
-                $detail->budget_activity_descr      = $actDescrs[$i] ?? null;
+                $detail->budget_perpost = $request->input('perpost');
+                $detail->budget_cpny_id = $request->input('cpnyid');
+                $detail->budget_business_unit_id = $busUnitIds[$i] ?? null;
+                $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
+                $detail->budget_account_id = $coaIds[$i] ?? null;
+                $detail->budget_activity_id = $activityIds[$i] ?? null;
+                $detail->budget_activity_descr = $actDescrs[$i] ?? null;
 
                 // stok & qty turunannya di model baru
-                $detail->reason_code                = null;
-                $detail->stock_qty                  = $stockQty;
-                $detail->base_stock_qty             = $stockQty;
+                $detail->reason_code = null;
+                $detail->stock_qty = $stockQty;
+                $detail->base_stock_qty = $stockQty;
 
-                $detail->issue_qty                  = 0;
-                $detail->base_issue_qty             = 0;
+                $detail->issue_qty = 0;
+                $detail->base_issue_qty = 0;
 
-                $detail->return_qty                 = 0;
-                $detail->base_return_qty            = 0;
+                $detail->return_qty = 0;
+                $detail->base_return_qty = 0;
 
-                $detail->sppb_qty                   = 0;
-                $detail->base_sppb_qty              = 0;
+                $detail->sppb_qty = 0;
+                $detail->base_sppb_qty = 0;
 
-                $detail->spb_completeqty            = 0;
-                $detail->base_spb_completeqty       = 0;
+                $detail->spb_completeqty = 0;
+                $detail->base_spb_completeqty = 0;
 
-                $detail->sppbid                     = null;
+                $detail->sppbid = null;
 
-                $detail->status                     = 'P';
-                $detail->created_by                 = $username;
+                $detail->status = 'P';
+                $detail->created_by = $username;
                 $detail->save();
 
-                $totalQty       += $qty;
+                $totalQty += $qty;
                 $grandTotalCost += $lineTotalCost;
             }
 
             if ($totalQty <= 0) {
                 DB::rollBack();
+
                 return response()->json(['message' => 'Tidak ada detail valid untuk disimpan.'], 422);
             }
 
             // === Update total header + status issue/SPPB ===
-            $header->totalspbqty       = $totalQty;
-            $header->totalissueqty     = 0;
-            $header->totalreturnqty    = 0;
-            $header->totalsppbqty      = 0;
-            $header->totalcompleteqty  = 0;
-            $header->grandtotalcost    = $grandTotalCost;
+            $header->totalspbqty = $totalQty;
+            $header->totalissueqty = 0;
+            $header->totalreturnqty = 0;
+            $header->totalsppbqty = 0;
+            $header->totalcompleteqty = 0;
+            $header->grandtotalcost = $grandTotalCost;
 
             // Status awal masih Open untuk issue & sppb
-            $header->status_issue      = 'Open';
-            $header->status_sppb       = 'Open';
+            $header->status_issue = 'Open';
+            $header->status_sppb = 'Open';
             $header->save();
 
             // === Approval generate ===
-            $worktypeid = strtoupper(trim((string)($request->input('worktypeid') ?? '')));
+            $worktypeid = strtoupper(trim((string) ($request->input('worktypeid') ?? '')));
             $ctx = ['ignore_nominal' => true];
 
             if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
@@ -788,15 +776,15 @@ public function json(Request $request)
             // === Attachments (opsional) ===
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $docid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $request->input('cpnyid'),
+                    'refnbr' => $docid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $request->input('cpnyid'),
                     'departementid' => $request->input('departementid'),
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $username,
                 ];
-                $files     = (array) $request->file('attachments');
-                $uploader  = app(TrAttachmentController::class);
+                $files = (array) $request->file('attachments');
+                $uploader = app(TrAttachmentController::class);
                 $uploader->uploadInternal($meta, $files);
             }
 
@@ -804,34 +792,31 @@ public function json(Request $request)
             $eid = Hashids::encode($header->id);
             $approvalCtl->notifyFirstApprover(
                 $docid, $doctype, $header->status, 'SPB',
-                url('/showspbs/' . $eid),
+                url('/showspbs/'.$eid),
                 [
-                    'info'      => $request->input('keperluan'),
+                    'info' => $request->input('keperluan'),
                     'createdby' => $header->created_by,
-                    'date'      => $dt->toDateTimeString(),
+                    'date' => $dt->toDateTimeString(),
                 ]
             );
 
             DB::commit();
 
             return response()->json([
-                'message'  => 'SPB created successfully',
-                'spbid'    => $docid,
+                'message' => 'SPB created successfully',
+                'spbid' => $docid,
                 'totalqty' => $totalQty,
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+
             return response()->json([
                 'message' => 'Failed to create SPB',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
-
-
-
 
     public function editSpb($hash)
     {
@@ -848,22 +833,23 @@ public function json(Request $request)
 
         // Ambil detail + eager load relasi lokasi & sublokasi
         $spbdetail = TrSPBdetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])
             ->where('spbid', $spb->spbid)
             ->get()
             ->map(function ($d) {
                 // Sematkan nama ke attribute agar Blade lama tetap jalan
-                $d->location_name      = optional($d->location)->location_name;
-                $d->sub_location_name  = optional($d->subLocation)->sub_location_name;
+                $d->location_name = optional($d->location)->location_name;
+                $d->sub_location_name = optional($d->subLocation)->sub_location_name;
+
                 return $d;
             });
 
-        $user   = request()->user();
-        $usercpny  = Usercpny::where('username', $user->username)->get();
+        $user = request()->user();
+        $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
-        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
         // $attachment = Attachment::where('docid', $spb->spbid)
@@ -875,21 +861,21 @@ public function json(Request $request)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $config      = config('filesystems.disks.gcs');
+        $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
         $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
+            'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
         $bucket = $storage->bucket($config['bucket']);
 
         $attachments = $rows->map(function ($r) use ($bucket) {
             $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
-            $signedUrl  = null;
+            $object = $bucket->object($objectPath);
+            $signedUrl = null;
             try {
                 $signedUrl = $object->signedUrl(
                     new \DateTimeImmutable('+10 minutes'),
@@ -898,25 +884,24 @@ public function json(Request $request)
             } catch (\Throwable $e) {
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
+
             return (object) [
-                'id'          => $r->id,
+                'id' => $r->id,
                 'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
+                'created_by' => $r->created_by,
+                'created_at' => $r->created_at,
+                'url' => $signedUrl,
+                'folder' => $r->folder,
+                'filename' => $r->filename,
+                'extention' => $r->extention,
+                'size' => $r->filesize,
             ];
         });
 
         return view('pages.spbs.editspbs', compact(
-            'spb','spbdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
+            'spb', 'spbdetail', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'attachments', 'hash'
         ));
     }
-
-
 
     public function updateSpb(Request $request, $hash)
     {
@@ -924,13 +909,13 @@ public function json(Request $request)
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'SPB tidak ditemukan.');
 
-        $user      = $request->user();
-        $dt        = \Carbon\Carbon::now();
+        $user = $request->user();
+        $dt = \Carbon\Carbon::now();
         $datestamp = $dt->toDateTimeString();
-        $doctype   = 'RB';
-        $username  = $user->username ?? 'system';
+        $doctype = 'RB';
+        $username = $user->username ?? 'system';
 
-         // ===== generate TrApproval dari MsApproval sesuai context =====
+        // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
@@ -938,14 +923,16 @@ public function json(Request $request)
 
         // helper normalisasi angka lokal
         $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
+            if ($v === null || $v === '') {
+                return null;
+            }
+            $s = preg_replace('/\s+/', '', (string) $v);
             $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
+            $hasDot = strpos($s, '.') !== false;
 
             if ($hasComma && $hasDot) {
                 $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
+                $lastDot = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
@@ -955,49 +942,52 @@ public function json(Request $request)
             } elseif ($hasComma) {
                 $s = str_replace(',', '.', $s);
             } elseif ($hasDot) {
-                if (substr_count($s, '.') > 1) $s = str_replace('.', '', $s);
+                if (substr_count($s, '.') > 1) {
+                    $s = str_replace('.', '', $s);
+                }
             }
-            return is_numeric($s) ? (float)$s : null;
+
+            return is_numeric($s) ? (float) $s : null;
         };
 
         /** @var TrSPB $header */
         $header = TrSPB::findOrFail($id);
 
         // === Ambil arrays dari form ===
-        $detailIds      = array_values($request->input('detail_id', [])); // optional dari UI edit
-        $inventoryIds   = array_values($request->input('inventoryid', []));
-        $productNames   = array_values($request->input('product_name', []));
-        $qtys           = array_values($request->input('qty', []));
-        $uoms           = array_values($request->input('stock_unit', $request->input('uom', []))); // display uom
-        $notes          = array_values($request->input('note', []));
-        $locIds         = array_values($request->input('location_id', []));
-        $subLocIds      = array_values($request->input('sub_location_id', []));
-        $actIds         = array_values($request->input('activity_id', []));
-        $actDescrs         = array_values($request->input('activity_descr', []));
-        $buIds          = array_values($request->input('business_unit_id', []));
-        $deptFinIds     = array_values($request->input('department_fin_id', []));
-        $coaIds         = array_values($request->input('coa_id', []));
-        $itemTypes      = array_values($request->input('item_type', []));
-        $itemCats       = array_values($request->input('item_category', []));
-        $siteids       = array_values($request->input('siteid', []));
+        $detailIds = array_values($request->input('detail_id', [])); // optional dari UI edit
+        $inventoryIds = array_values($request->input('inventoryid', []));
+        $productNames = array_values($request->input('product_name', []));
+        $qtys = array_values($request->input('qty', []));
+        $uoms = array_values($request->input('stock_unit', $request->input('uom', []))); // display uom
+        $notes = array_values($request->input('note', []));
+        $locIds = array_values($request->input('location_id', []));
+        $subLocIds = array_values($request->input('sub_location_id', []));
+        $actIds = array_values($request->input('activity_id', []));
+        $actDescrs = array_values($request->input('activity_descr', []));
+        $buIds = array_values($request->input('business_unit_id', []));
+        $deptFinIds = array_values($request->input('department_fin_id', []));
+        $coaIds = array_values($request->input('coa_id', []));
+        $itemTypes = array_values($request->input('item_type', []));
+        $itemCats = array_values($request->input('item_category', []));
+        $siteids = array_values($request->input('siteid', []));
         // UoM konversi
-        $purchaseUnits  = array_values($request->input('purchase_unit', []));
-        $uomMultDivs    = array_values($request->input('uom_unitmultdiv', []));
-        $uomRates       = array_values($request->input('uom_unitrate', []));
+        $purchaseUnits = array_values($request->input('purchase_unit', []));
+        $uomMultDivs = array_values($request->input('uom_unitmultdiv', []));
+        $uomRates = array_values($request->input('uom_unitrate', []));
 
         DB::beginTransaction();
         try {
             // === Update header (sesuai model) ===
             $header->fill([
-                'cpny_id'        => $request->cpnyid,
-                'department_id'  => $request->departementid,
-                'worktypeid'     => $request->worktypeid,
-                'subworktypeid'  => $request->subworktypeid,
-                'keperluan'      => $request->keperluan,
+                'cpny_id' => $request->cpnyid,
+                'department_id' => $request->departementid,
+                'worktypeid' => $request->worktypeid,
+                'subworktypeid' => $request->subworktypeid,
+                'keperluan' => $request->keperluan,
                 'budget_perpost' => $request->perpost,
-                'woid'           => $request->woid,
-                'status'         => 'P',
-                'updated_by'     => $username,
+                'woid' => $request->woid,
+                'status' => 'P',
+                'updated_by' => $username,
             ])->save();
 
             // === Hapus detail yang di-mark delete (jika ada) ===
@@ -1011,21 +1001,26 @@ public function json(Request $request)
             }
 
             // === Simpan / update detail ===
-            $rowCount     = max(count($inventoryIds), count($qtys));
-            $savedIds     = [];
-            $runningNo    = 1;
+            $rowCount = max(count($inventoryIds), count($qtys));
+            $savedIds = [];
+            $runningNo = 1;
 
-            for ($i = 0; $i < $rowCount; $i++) {
+            for ($i = 0; $i < $rowCount; ++$i) {
                 $invId = $inventoryIds[$i] ?? null;
-                $qty   = (float) str_replace(',', '.', (string)($qtys[$i] ?? 0));
-                if (empty($invId) || $qty <= 0) continue;
+                $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
+                if (empty($invId) || $qty <= 0) {
+                    continue;
+                }
 
                 // Konversi base_* (match store)
-                $displayUom     = $uoms[$i] ?? null;
-                $baseUom        = $purchaseUnits[$i] ?? null;
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M'/'D'/''
-                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;
-                if ($rate <= 0) { $rate = 1.0; $typeMultiplier = ''; }
+                $displayUom = $uoms[$i] ?? null;
+                $baseUom = $purchaseUnits[$i] ?? null;
+                $typeMultiplier = strtoupper(trim((string) ($uomMultDivs[$i] ?? ''))); // 'M'/'D'/''
+                $rate = $toFloat($uomRates[$i] ?? null) ?? 1.0;
+                if ($rate <= 0) {
+                    $rate = 1.0;
+                    $typeMultiplier = '';
+                }
 
                 $baseQty = $qty;
                 if ($typeMultiplier === 'M') {
@@ -1035,38 +1030,38 @@ public function json(Request $request)
                 }
 
                 $payload = [
-                    'spbid'                    => $header->spbid,
-                    'spb_no'                   => $runningNo,                 // direnumber tiap loop
-                    'inventoryid'              => $invId,
-                    'inventory_descr'          => $productNames[$i] ?? null,
-                    'qty'                      => $qty,
-                    'uom'                      => $displayUom,
-                    'siteid'                   => $siteids[$i] ?? null,
-                    'type_multiplier'          => $typeMultiplier ?: null,
-                    'base_multiplier'          => $rate,
-                    'base_qty'                 => $baseQty,
-                    'base_uom'                 => $baseUom,
-                    'note'                     => $notes[$i] ?? null,
-                    'location_id'              => $locIds[$i] ?? null,
-                    'sub_location_id'          => $subLocIds[$i] ?? null,
+                    'spbid' => $header->spbid,
+                    'spb_no' => $runningNo,                 // direnumber tiap loop
+                    'inventoryid' => $invId,
+                    'inventory_descr' => $productNames[$i] ?? null,
+                    'qty' => $qty,
+                    'uom' => $displayUom,
+                    'siteid' => $siteids[$i] ?? null,
+                    'type_multiplier' => $typeMultiplier ?: null,
+                    'base_multiplier' => $rate,
+                    'base_qty' => $baseQty,
+                    'base_uom' => $baseUom,
+                    'note' => $notes[$i] ?? null,
+                    'location_id' => $locIds[$i] ?? null,
+                    'sub_location_id' => $subLocIds[$i] ?? null,
 
                     // budget mapping
-                    'budget_perpost'           => $request->perpost,
-                    'budget_cpny_id'           => $request->cpnyid,
-                    'budget_business_unit_id'  => $buIds[$i] ?? null,
+                    'budget_perpost' => $request->perpost,
+                    'budget_cpny_id' => $request->cpnyid,
+                    'budget_business_unit_id' => $buIds[$i] ?? null,
                     'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_account_id'        => $coaIds[$i] ?? null,
-                    'budget_activity_id'       => $actIds[$i] ?? null,
-                    'budget_activity_descr'    => $actDescrs[$i] ?? null,
+                    'budget_account_id' => $coaIds[$i] ?? null,
+                    'budget_activity_id' => $actIds[$i] ?? null,
+                    'budget_activity_descr' => $actDescrs[$i] ?? null,
 
                     // extra (ikuti model)
-                    'stock_qty'                => null,
-                    'spb_openqty'              => $qty,  // open = qty saat submit/edit
-                    'issue_qty'                => 0,
-                    'spb_completeqty'          => 0,
+                    'stock_qty' => null,
+                    'spb_openqty' => $qty,  // open = qty saat submit/edit
+                    'issue_qty' => 0,
+                    'spb_completeqty' => 0,
 
-                    'status'                   => 'P',
-                    'updated_by'               => $username,
+                    'status' => 'P',
+                    'updated_by' => $username,
                 ];
 
                 $idDetail = $detailIds[$i] ?? null;
@@ -1090,24 +1085,22 @@ public function json(Request $request)
                 }
 
                 $savedIds[] = $detail->id;
-                $runningNo++;
+                ++$runningNo;
             }
 
             // === Recalculate header totals (mengikuti store) ===
             $totalQty = TrSPBdetail::where('spbid', $header->spbid)->sum('qty');
 
             $header->fill([
-                'totalspbqty'       => $totalQty,
-                'totalspbqty'   => $totalQty,  // sama dengan qty saat baru/diupdate
-                'totalissueqty'     => 0,
-                'totalcompleteqty'  => 0,
-                'updated_by'        => $username,
+                'totalspbqty' => $totalQty,
+                'totalspbqty' => $totalQty,  // sama dengan qty saat baru/diupdate
+                'totalissueqty' => 0,
+                'totalcompleteqty' => 0,
+                'updated_by' => $username,
             ])->save();
 
-
-
             // === Approval generate ===
-            $worktypeid = strtoupper(trim((string)($request->worktypeid ?? '')));
+            $worktypeid = strtoupper(trim((string) ($request->worktypeid ?? '')));
             $ctx = ['ignore_nominal' => true];
 
             if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
@@ -1136,65 +1129,61 @@ public function json(Request $request)
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $header->spbid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $request->cpnyid,
+                    'refnbr' => $header->spbid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $request->cpnyid,
                     'departementid' => $request->departementid,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $user->username,
                 ];
                 $files = (array) $request->file('attachments');
 
                 try {
-                    $uploader      = app(TrAttachmentController::class);
-                    $uploadResult  = $uploader->uploadInternal($meta, $files);
+                    $uploader = app(TrAttachmentController::class);
+                    $uploadResult = $uploader->uploadInternal($meta, $files);
                 } catch (\Throwable $e) {
                     DB::rollBack();
+
                     return response()->json([
                         'message' => 'Failed to update SPB',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
 
-
-
             $eid = Hashids::encode($header->id);
 
             $approvalCtl->notifyFirstApprover(
-                    $header->spbid,
-                    $doctype,
-                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                    'SPB',
-                    url('/showspbs/' . $eid),
-                    [
-                        'info'      => $request->keperluan,
-                        'createdby' => $header->created_by,
-                        'date'      => $dt->toDateTimeString(),
-                    ]
+                $header->spbid,
+                $doctype,
+                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                'SPB',
+                url('/showspbs/'.$eid),
+                [
+                    'info' => $request->keperluan,
+                    'createdby' => $header->created_by,
+                    'date' => $dt->toDateTimeString(),
+                ]
             );
 
             DB::commit();
 
             return response()->json([
-                'message'      => 'SPB updated successfully',
-                'spbid'        => $header->spbid,
-                'totalspbqty'  => $header->totalspbqty,
-                'attachments'  => $uploadResult,
+                'message' => 'SPB updated successfully',
+                'spbid' => $header->spbid,
+                'totalspbqty' => $header->totalspbqty,
+                'attachments' => $uploadResult,
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+
             return response()->json([
                 'message' => 'Update failed',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
-
-
-
 
     public function showSpb($hash)
     {
@@ -1233,7 +1222,6 @@ public function json(Request $request)
             'subworktype:subworktypeid,subworktype_name',
             'creator:username,name',
         ])->where('spbid', $spbid)->firstOrFail();
-
 
         $spbdetail = TrSPBdetail::query()
             ->with([
@@ -1284,7 +1272,6 @@ public function json(Request $request)
             ->where('spbid', $spb->spbid)
             ->orderBy('spb_no', 'ASC')
             ->get();
-
 
         // --- Attachments (GCS signed URL) ---
         // $rows = TrAttachment::where('refnbr', $spb->spbid)
@@ -1337,22 +1324,20 @@ public function json(Request $request)
             $attachmentWO = $this->mapAttachmentsToSignedUrl($spb->woid);
         }
 
-
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $spb->created_by === $loginUsername;
+        $canUpload = $spb->created_by === $loginUsername;
 
         $akses_cc = SysUserRole::where('username', $user->username)
-            ->where('role_id','COSTCTRLACCESS')
+            ->where('role_id', 'COSTCTRLACCESS')
             ->first();
 
-
         $userCpny = Usercpny::query()
-        ->where('username',$user->username)->where('status','A')
+        ->where('username', $user->username)->where('status', 'A')
         ->pluck('cpny_id')->values();
 
         $userBu = Userbusinessunit::query()
-        ->where('username',$user->username)->where('status','A')
-        ->get(['cpny_id','business_unit_id']);
+        ->where('username', $user->username)->where('status', 'A')
+        ->get(['cpny_id', 'business_unit_id']);
 
         $userCpnyIds = Usercpny::query()
             ->where('username', $user->username)
@@ -1372,8 +1357,7 @@ public function json(Request $request)
         $woHash = null;
 
         if (!empty($spb->woid)) {
-
-            $woData = TrWO::select('id','woid','keperluan')
+            $woData = TrWO::select('id', 'woid', 'keperluan')
                 ->where('woid', $spb->woid)
                 ->first();
 
@@ -1383,16 +1367,16 @@ public function json(Request $request)
         }
 
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'));
+        return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'));
     }
 
     public function exportDetail($id)
     {
         $spb = TrSPB::findOrFail($id);
 
-        $spbdetail = TrSPBDetail::with([
+        $spbdetail = TrSPBdetail::with([
             'location',
-            'subLocation'
+            'subLocation',
         ])
         ->where('spbid', $spb->spbid)
         ->orderBy('spb_no', 'ASC')
@@ -1413,19 +1397,19 @@ public function json(Request $request)
 
         $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
 
-        $storage = new \Google\Cloud\Storage\StorageClient([
-            'projectId'   => $config['project_id'],
+        $storage = new StorageClient([
+            'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
         $bucket = $storage->bucket($config['bucket']);
 
         return $rows->map(function ($r) use ($bucket) {
             $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
+            $object = $bucket->object($objectPath);
 
             $signedUrl = null;
             try {
@@ -1437,33 +1421,34 @@ public function json(Request $request)
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
 
-            return (object)[
+            return (object) [
                 'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
+                'created_by' => $r->created_by,
+                'created_at' => $r->created_at,
+                'url' => $signedUrl,
+                'folder' => $r->folder,
+                'filename' => $r->filename,
+                'extention' => $r->extention,
+                'size' => $r->filesize,
             ];
         });
     }
 
-
     public function approveSpb(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'RB';
 
         $spb = TrSPB::with('creator')->where('spbid', $docid)->first();
-        if (!$spb) return response()->json(['success'=>false,'message'=>'SPB not found'],404);
+        if (!$spb) {
+            return response()->json(['success' => false, 'message' => 'SPB not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($spb->id);
-        $docUrl   = url('/showspbs/' . $eid);
+        $eid = Hashids::encode($spb->id);
+        $docUrl = url('/showspbs/'.$eid);
         $fullname = data_get($spb, 'creator.name') ?: $spb->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+        $result = app(ApprovalController::class)->approveStep(
             $spb->spbid,
             $doctype,
             $user->username,
@@ -1471,43 +1456,43 @@ public function json(Request $request)
 
             // complete: update header/detail + email creator complete
             function (string $refnbr, \Carbon\Carbon $now) use ($spb, $fullname, $docUrl) {
-                $spb->status       = 'C';
+                $spb->status = 'C';
                 $spb->completed_by = $spb->completed_by ?: auth()->user()->username;
                 $spb->completed_at = $now;
                 $spb->save();
 
                 TrSPBdetail::where('spbid', $spb->spbid)->update(['status' => 'C']);
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $spb->spbid,
                     'SPB',
                     'C',
                     $spb->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $spb->cpny_id ?? $spb->cpnyid ?? '',
+                        'cpnyid' => $spb->cpny_id ?? $spb->cpnyid ?? '',
                         'deptname' => $spb->department_id ?? $spb->departementid ?? '',
-                        'date'     => $spb->spbdate,
-                        'info'     => $spb->keperluan,
+                        'date' => $spb->spbdate,
+                        'info' => $spb->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
             },
 
             // notify next approver
             function ($next, \Carbon\Carbon $now) use ($spb, $docUrl) {
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                app(ApprovalController::class)->notifyFirstApprover(
                     $spb->spbid,
                     'RB',
                     'P',
                     'SPB',
                     $docUrl,
                     [
-                        'info'      => $spb->keperluan,
+                        'info' => $spb->keperluan,
                         'createdby' => $spb->created_by,
-                        'date'      => $now->toDateTimeString(),
+                        'date' => $now->toDateTimeString(),
                     ]
                 );
 
@@ -1519,32 +1504,34 @@ public function json(Request $request)
         );
 
         if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
+            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Approve failed'], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
+        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
     }
 
     public function rejectSpb(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'RB';
 
-        $spb = \App\Models\TrSPB::with('creator')->where('spbid', $docid)->first();
-        if (!$spb) return response()->json(['success'=>false,'message'=>'SPB not found'],404);
+        $spb = TrSPB::with('creator')->where('spbid', $docid)->first();
+        if (!$spb) {
+            return response()->json(['success' => false, 'message' => 'SPB not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($spb->id);
-        $docUrl   = url('/showspbs/' . $eid);
+        $eid = Hashids::encode($spb->id);
+        $docUrl = url('/showspbs/'.$eid);
         $fullname = data_get($spb, 'creator.name') ?: $spb->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+        $result = app(ApprovalController::class)->rejectStep(
             $spb->spbid,
             $doctype,
             $user->username,
             $user->name,
 
             function (string $refnbr, \Carbon\Carbon $now) use ($spb, $fullname, $docUrl) {
-                $spb->status       = 'R';
+                $spb->status = 'R';
                 $spb->completed_by = auth()->user()->username;
                 $spb->completed_at = $now;
                 $spb->save();
@@ -1552,57 +1539,60 @@ public function json(Request $request)
                 // optional: tandai detail R
                 // \App\Models\TrSPBdetail::where('spbid', $spb->spbid)->update(['status' => 'R']);
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $spb->spbid,
                     'SPB',
                     'R',
                     $spb->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $spb->cpny_id ?? $spb->cpnyid ?? '',
+                        'cpnyid' => $spb->cpny_id ?? $spb->cpnyid ?? '',
                         'deptname' => $spb->department_id ?? $spb->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $spb->keperluan,
+                        'date' => $now->toDateString(),
+                        'info' => $spb->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
 
                 // simpan komentar (jika ada)
                 try {
                     app('App\Http\Controllers\SendCommentController')->sendmsg($spb->id, 'RB', request());
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         );
 
         if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
+            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Reject failed'], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'SPB rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'SPB rejected successfully']);
     }
 
     public function reviseSpb(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'RB';
 
-        $spb = \App\Models\TrSPB::with('creator')->where('spbid', $docid)->first();
-        if (!$spb) return response()->json(['success'=>false,'message'=>'SPB not found'],404);
+        $spb = TrSPB::with('creator')->where('spbid', $docid)->first();
+        if (!$spb) {
+            return response()->json(['success' => false, 'message' => 'SPB not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($spb->id);
-        $docUrl   = url('/showspbs/' . $eid);
+        $eid = Hashids::encode($spb->id);
+        $docUrl = url('/showspbs/'.$eid);
         $fullname = data_get($spb, 'creator.name') ?: $spb->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+        $result = app(ApprovalController::class)->reviseStep(
             $spb->spbid,            // refnbr
             $doctype,                 // PT
             $user->username,          // actor
             $user->name,              // actor
             function (string $refnbr, \Carbon\Carbon $now) use ($spb, $fullname, $docUrl) {
                 // === HEADER SPB -> D ===
-                $spb->status       = 'D';
+                $spb->status = 'D';
                 $spb->completed_by = auth()->user()->username;
                 $spb->completed_at = $now;
                 $spb->save();
@@ -1611,41 +1601,40 @@ public function json(Request $request)
                 // \App\Models\TrSPBdetail::where('spbid', $spb->spbid)->update(['status' => 'D']);
 
                 // === Email ke requester ===
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $spb->spbid,
                     'SPB',
                     'D',
                     $spb->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $spb->cpny_id ?? $spb->cpnyid ?? '',
+                        'cpnyid' => $spb->cpny_id ?? $spb->cpnyid ?? '',
                         'deptname' => $spb->department_id ?? $spb->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $spb->keperluan,
+                        'date' => $now->toDateString(),
+                        'info' => $spb->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,   // <<< tambahkan ini
+                        'name' => $fullname,
+                        'createdby' => $fullname,   // <<< tambahkan ini
                     ]
                 );
-
 
                 // === Simpan komentar (jika ada) ===
                 try {
                     app('App\Http\Controllers\SendCommentController')->sendmsg($spb->id, 'RB', request());
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         );
 
         if (!$result['ok']) {
             return response()->json([
-                'success'=>false,
-                'message'=>$result['message'] ?? 'Revise failed'
+                'success' => false,
+                'message' => $result['message'] ?? 'Revise failed',
             ], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'SPB revised successfully']);
+        return response()->json(['success' => true, 'message' => 'SPB revised successfully']);
     }
-
 
     // public function approveSpb(Request $request, $docid)
     // {
@@ -2046,7 +2035,6 @@ public function json(Request $request)
     //     return response()->json(['success' => true, 'message' => 'SPB revised successfully']);
     // }
 
-
     // public function checkApproval($id, $action)
     // {
     //     $user = Auth::user(); // Ambil user yang login
@@ -2075,23 +2063,26 @@ public function json(Request $request)
         $spb = TrSPB::findOrFail($id);
 
         $getName = function (?string $username) {
-            if (!$username) return null;
-            $u = \App\Models\User::where('username', $username)->first();
+            if (!$username) {
+                return null;
+            }
+            $u = User::where('username', $username)->first();
+
             return $u->name ?? $username;
         };
 
         $createdByName = $getName($spb->created_by ?? null);
-        $createdAt     = $spb->created_at ? \Carbon\Carbon::parse($spb->created_at)->format('Y-m-d H:i') : null;
+        $createdAt = $spb->created_at ? \Carbon\Carbon::parse($spb->created_at)->format('Y-m-d H:i') : null;
 
         $completedByName = $getName($spb->completed_by ?? null);
-        $completedAt     = $spb->completed_at ? \Carbon\Carbon::parse($spb->completed_at)->format('Y-m-d H:i') : null;
+        $completedAt = $spb->completed_at ? \Carbon\Carbon::parse($spb->completed_at)->format('Y-m-d H:i') : null;
 
         // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($spb->rejected_by ?? null);
-        $rejectedAt      = isset($spb->rejected_at) ? \Carbon\Carbon::parse($spb->rejected_at)->format('Y-m-d H:i') : null;
+        $rejectedByName = $getName($spb->rejected_by ?? null);
+        $rejectedAt = isset($spb->rejected_at) ? \Carbon\Carbon::parse($spb->rejected_at)->format('Y-m-d H:i') : null;
 
-        $revisedByName   = $getName($spb->revised_by ?? null);
-        $revisedAt       = isset($spb->revised_at) ? \Carbon\Carbon::parse($spb->revised_at)->format('Y-m-d H:i') : null;
+        $revisedByName = $getName($spb->revised_by ?? null);
+        $revisedAt = isset($spb->revised_at) ? \Carbon\Carbon::parse($spb->revised_at)->format('Y-m-d H:i') : null;
 
         $status = (string) ($spb->status ?? '');
         $labelMap = [
@@ -2104,48 +2095,48 @@ public function json(Request $request)
 
         // selalu mulai dari Submitted
         $steps = [[
-            'key'          => 'submitted',
-            'title'        => 'SPB',
-            'status'       => 'C',              // dibuat = completed
+            'key' => 'submitted',
+            'title' => 'SPB',
+            'status' => 'C',              // dibuat = completed
             'status_label' => 'Submitted',
-            'by'           => $createdByName,
-            'at'           => $createdAt,
+            'by' => $createdByName,
+            'at' => $createdAt,
         ]];
 
         switch ($status) {
             case 'P':
                 // masih menunggu/berjalan → tampilkan Approval saja
                 $steps[] = [
-                    'key'          => 'approval',
-                    'title'        => 'Approval',
-                    'status'       => 'P',
+                    'key' => 'approval',
+                    'title' => 'Approval',
+                    'status' => 'P',
                     'status_label' => 'Waiting approval',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
             case 'R':
                 // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
                 $steps[] = [
-                    'key'          => 'rejected',
-                    'title'        => 'Rejected',
-                    'status'       => 'R',
+                    'key' => 'rejected',
+                    'title' => 'Rejected',
+                    'status' => 'R',
                     'status_label' => 'Rejected',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
             case 'D':
                 // REVISE → Submitted → Revise
                 $steps[] = [
-                    'key'          => 'revise',
-                    'title'        => 'Revise',
-                    'status'       => 'D',
+                    'key' => 'revise',
+                    'title' => 'Revise',
+                    'status' => 'D',
                     'status_label' => 'Revise',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
@@ -2154,12 +2145,12 @@ public function json(Request $request)
                 // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
                 // tambahkan step 'approval' sebelum 'completed')
                 $steps[] = [
-                    'key'          => 'completed',
-                    'title'        => 'Completed',
-                    'status'       => 'C',
+                    'key' => 'completed',
+                    'title' => 'Completed',
+                    'status' => 'C',
                     'status_label' => 'Completed',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
@@ -2169,9 +2160,9 @@ public function json(Request $request)
         }
 
         return response()->json([
-            'doc'   => $spb->spbid ?? (string)$spb->id,
+            'doc' => $spb->spbid ?? (string) $spb->id,
             'steps' => $steps,
-            'status'=> $status,
+            'status' => $status,
             'status_label' => $statusLabel,
         ]);
     }
@@ -2186,9 +2177,8 @@ public function json(Request $request)
             return redirect()->route('login');
         }
 
-
         // Ambil SPB + relasi yang dibutuhkan
-         $spb = TrSPB::with([
+        $spb = TrSPB::with([
             'worktype:worktypeid,worktype_name',
             'subworktype:subworktypeid,subworktype_name',
             'creator:username,name',
@@ -2200,8 +2190,8 @@ public function json(Request $request)
             'subLocation:sub_location_id,sub_location_name',
         ])->where('spbid', $spb->spbid)->get();
 
-        $refnbr    = $spb->spbid;
-        $apprTable = (new TrApproval)->getTable(); // "tr_approval"
+        $refnbr = $spb->spbid;
+        $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
             ->where('refnbr', $refnbr)
@@ -2247,33 +2237,33 @@ public function json(Request $request)
         }
 
         $data = [
-            'title'               => 'Surat Permintaan Barang',
-            'doc_type'            => 'SPB',
-            'docid'               => $spb->spbid,
-            'department_id'       => $spb->department_id,
-            'cpnyname'            => optional($company)->cpny_name,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
-            'woid'                => $spb->woid ?? '-',
+            'title' => 'Surat Permintaan Barang',
+            'doc_type' => 'SPB',
+            'docid' => $spb->spbid,
+            'department_id' => $spb->department_id,
+            'cpnyname' => optional($company)->cpny_name,
+            'parent' => optional($company)->parent,
+            'project' => optional($company)->project,
+            'woid' => $spb->woid ?? '-',
             // identitas & tanggal
             'created_by_username' => $spb->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($spb->creator)->name)),
-            'created_at_fmt'      => optional($spb->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($spb->created_at)->format('d M Y H:i'),
-            'spbdate'            => \Carbon\Carbon::parse($spb->spbdate)->format('d F Y'),
+            'created_by_name' => ucwords(strtolower(optional($spb->creator)->name)),
+            'created_at_fmt' => optional($spb->created_at)->format('d F Y'),
+            'req_date_fmt' => optional($spb->created_at)->format('d M Y H:i'),
+            'spbdate' => \Carbon\Carbon::parse($spb->spbdate)->format('d F Y'),
             // konten
-            'keperluan'           => $spb->keperluan,
-            'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($spb->requestType)->requesttype_name,
+            'keperluan' => $spb->keperluan,
+            'status_doc' => $status_doc,
+            'requesttype_name' => optional($spb->requestType)->requesttype_name,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.spbs.pdf_spbs',
             array_merge($data, [
-                'detail'         => $spbdetail,
-                'approval'       => $approval,
-                'approve_count'  => $approve_count,
+                'detail' => $spbdetail,
+                'approval' => $approval,
+                'approve_count' => $approve_count,
             ])
         );
 
@@ -2282,16 +2272,4 @@ public function json(Request $request)
 
         return $pdf->stream("pdf_spbs_{$spb->spbid}.pdf");
     }
-
-
-
-
-
-
-
-
-
-
-
-
 }

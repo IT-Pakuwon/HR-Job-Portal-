@@ -174,7 +174,7 @@
         <!-- ================== TRACKING MODAL ================== -->
         <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
 
                 <!-- Header -->
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -382,9 +382,10 @@
         (function() {
             const currentUser = "{{ auth()->user()->username }}";
             let statusFilter = 'P';
-            let mode = 'NORMAL'; // NORMAL | TRACK
+            let mode = 'normal'; // NORMAL | TRACK
             let dt = null;
             let deptFilter = '';
+
             // const dtControlColumn = {
             //     data: null,
             //     width: '28px',
@@ -445,40 +446,40 @@
             }
 
 
-            // ====== DEBUG HELPERS ======
-            function attachDebug(name) {
-                if (!dt) return;
+            // // ====== DEBUG HELPERS ======
+            // function attachDebug(name) {
+            //     if (!dt) return;
 
-                // log response json & status code
-                dt.on('xhr.dt', function(e, settings, json, xhr) {
-                    const code = xhr ? xhr.status : '(no xhr)';
-                    console.log(`[%c${name}%c] xhr status:`, 'color:#7c3aed;font-weight:bold', 'color:inherit',
-                        code);
-                    console.log(`[%c${name}%c] response json:`, 'color:#7c3aed;font-weight:bold',
-                        'color:inherit', json);
+            //     // log response json & status code
+            //     dt.on('xhr.dt', function(e, settings, json, xhr) {
+            //         const code = xhr ? xhr.status : '(no xhr)';
+            //         console.log(`[%c${name}%c] xhr status:`, 'color:#7c3aed;font-weight:bold', 'color:inherit',
+            //             code);
+            //         console.log(`[%c${name}%c] response json:`, 'color:#7c3aed;font-weight:bold',
+            //             'color:inherit', json);
 
-                    // kalau JSON ada error key
-                    if (json && json.error) {
-                        console.error(`[%c${name}%c] json.error:`, 'color:#dc2626;font-weight:bold',
-                            'color:inherit', json.error);
-                    }
-                });
+            //         // kalau JSON ada error key
+            //         if (json && json.error) {
+            //             console.error(`[%c${name}%c] json.error:`, 'color:#dc2626;font-weight:bold',
+            //                 'color:inherit', json.error);
+            //         }
+            //     });
 
-                // log datatables internal error
-                dt.on('error.dt', function(e, settings, techNote, message) {
-                    console.error(`[%c${name}%c] DataTables error:`, 'color:#dc2626;font-weight:bold',
-                        'color:inherit', message);
-                });
+            //     // log datatables internal error
+            //     dt.on('error.dt', function(e, settings, techNote, message) {
+            //         console.error(`[%c${name}%c] DataTables error:`, 'color:#dc2626;font-weight:bold',
+            //             'color:inherit', message);
+            //     });
 
-                // log ajax error detail
-                dt.on('preXhr.dt', function(e, settings, data) {
-                    // ini data yang akan dikirim dt ke server
-                    console.log(`[%c${name}%c] sending params:`, 'color:#2563eb;font-weight:bold',
-                        'color:inherit', data);
-                    console.log(`[%c${name}%c] ajax url:`, 'color:#2563eb;font-weight:bold', 'color:inherit',
-                        settings.ajax?.url);
-                });
-            }
+            //     // log ajax error detail
+            //     dt.on('preXhr.dt', function(e, settings, data) {
+            //         // ini data yang akan dikirim dt ke server
+            //         console.log(`[%c${name}%c] sending params:`, 'color:#2563eb;font-weight:bold',
+            //             'color:inherit', data);
+            //         console.log(`[%c${name}%c] ajax url:`, 'color:#2563eb;font-weight:bold', 'color:inherit',
+            //             settings.ajax?.url);
+            //     });
+            // }
 
 
             function initNormal() {
@@ -655,7 +656,7 @@
                     ],
                 });
 
-                attachDebug('NORMAL');
+                // attachDebug('NORMAL');
             }
 
             function initTrack() {
@@ -807,7 +808,7 @@
 
 
             function switchMode(next) {
-                console.log('[SWITCH MODE] =>', next);
+                // console.log('[SWITCH MODE] =>', next);
                 destroyDT();
 
                 if (next === 'TRACK') {
@@ -831,18 +832,21 @@
                 document.querySelector(`.status-filter[data-status="P"]`)?.classList.add('active');
 
                 $(document).on('click', '.status-filter', function(e) {
-                    e.preventDefault();
-                    const st = $(this).data('status') || '';
-                    console.log('CLICK card status =', st);
 
-                    document.querySelectorAll('.status-filter').forEach(b => b.classList.remove(
-                        'active'));
-                    this.classList.add('active');
+                    e.preventDefault();
+
+                    const st = $(this).data('status') || '';
                     const selectedMode = $(this).data('mode');
 
+                    $('.status-filter').removeClass('active');
+                    $(this).addClass('active');
+
+                    // ====================
+                    // ALL LIST
+                    // ====================
                     if (selectedMode === 'all') {
 
-                        mode = 'ALL';
+                        mode = 'all';
                         statusFilter = '';
                         deptFilter = '';
 
@@ -853,14 +857,29 @@
                         if (dt) dt.ajax.reload(null, true);
                         return;
                     }
+
+                    // ====================
+                    // TRACK MODE
+                    // ====================
                     if (st === 'TRACK') {
                         switchMode('TRACK');
                         return;
                     }
 
+                    // ====================
+                    // NORMAL MODE
+                    // ====================
+                    mode = 'normal';
                     statusFilter = st;
-                    if (mode !== 'NORMAL') switchMode('NORMAL');
-                    else if (dt) dt.ajax.reload(null, true);
+
+                    $('#pageTitle').text('Request SPB');
+                    $('#createBtn').show();
+                    $('#allFilters').addClass('hidden');
+
+                    if (dt) dt.ajax.reload(null, true);
+
+                    switchMode('NORMAL');
+
                 });
             });
             $('#filterStatus').on('change', function() {
