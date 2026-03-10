@@ -98,6 +98,10 @@ use App\Http\Controllers\SelfRegisterApplicantController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\UserSyncController;
 use App\Http\Controllers\InventoryUserController;
+use App\Http\Controllers\SysCalendarController;
+use App\Http\Controllers\BusinessUnitController;
+use App\Http\Controllers\AttachmentMasterController;
+use App\Http\Controllers\KendaraanController;
 
 // INTEGRATION
 use App\Http\Controllers\Integration\IFCAIntegrationController;
@@ -523,7 +527,7 @@ Route::post('/logout', function () {
         Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
         Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
         Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
-   
+
         Route::get('/mapping-po-erp', [MappingPoERPController::class, 'index'])->name('mapping_po_erp.index');
         Route::get('/mapping-po-erp/json', [MappingPoERPController::class, 'json'])->name('mapping_po_erp.json');
         Route::get('/mapping-po-erp/integration-types', [MappingPoERPController::class, 'integrationTypes'])->name('mapping_po_erp.integration-types');
@@ -535,7 +539,7 @@ Route::post('/logout', function () {
         Route::get('/mapping-issue-erp/integration-types', [MappingIssueERPController::class, 'integrationTypes'])->name('mapping_issue_erp.integration-types');
         Route::get('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'showMapping'])->whereNumber('id')->name('mapping_issue_erp.show');
         Route::put('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'updateMapping'])->whereNumber('id')->name('mapping_issue_erp.update');
-        
+
 
     });
 
@@ -566,6 +570,8 @@ Route::post('/logout', function () {
         Route::get('/sppbs/{id}/tracking-detail/item', [SppbController::class, 'trackingDetailItem']);
 
         Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);
+        Route::get('/sppb/export/{id}', [SppbController::class, 'exportDetail'])
+        ->name('sppb.export');
     });
 
     // ✍️ CREATE SPPB
@@ -600,6 +606,8 @@ Route::post('/logout', function () {
 
         Route::get('/createbqkontrak/{sppjId}/categories', [SppjController::class, 'categoriesBqKontrak'])->name('bqkontrak.categories');
         Route::get('/showbqkontrak/{hash}', [SppjController::class, 'showBqKontrak'])->name('bqkontrak.show');
+        Route::get('/sppj/export/{id}', [SPPJController::class, 'exportDetail'])
+        ->name('sppj.export');
     });
 
     Route::middleware('access:SPPJ,CREATE')->group(function () {
@@ -648,6 +656,8 @@ Route::post('/logout', function () {
         Route::get('/sppks/{hash}/tracking-detail', [SppkController::class, 'trackingDetail'])->name('sppks.trackingDetail');
         Route::get('/sppks/{hash}/tracking-detail/item', [SppkController::class, 'trackingDetailItem'])->name('sppks.trackingDetailItem');
         Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);
+        Route::get('/sppk/export/{id}', [SppkController::class, 'exportDetail'])
+        ->name('sppk.export');
     });
 
     Route::middleware('access:SPPK,CREATE')->group(function () {
@@ -676,6 +686,8 @@ Route::post('/logout', function () {
         // BQ VIEW
         Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);
         Route::get('/pdf_bq_pt/{hash}', [SpptController::class, 'printBQ']);
+        Route::get('/sppt/export/{id}', [SpptController::class, 'exportDetail'])
+        ->name('sppt.export');
     });
 
     Route::middleware('access:SPPT,CREATE')->group(function () {
@@ -885,6 +897,8 @@ Route::post('/logout', function () {
         Route::get('/showspbs/{hash}', [SpbController::class, 'showSpb']);
         Route::get('/spbs/{id}/tracking', [SpbController::class, 'tracking'])->name('spbs.tracking');
         Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
+        Route::get('/spb/export/{id}', [SpbController::class, 'exportDetail'])
+        ->name('spb.export');
     });
 
     Route::middleware('access:SPBLIST,CREATE')->group(function () {
@@ -1346,7 +1360,32 @@ Route::post('/logout', function () {
     Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
     Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
     Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
-    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
+    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');    
+
+    Route::get('/sys-calendar', [SysCalendarController::class, 'index'])->name('sys-calendar');
+    Route::get('/sys-calendar/json', [SysCalendarController::class, 'json'])->name('sys-calendar.json');
+    Route::post('/sys-calendar', [SysCalendarController::class, 'store'])->name('sys-calendar.store');
+    Route::get('/sys-calendar/{id}/edit', [SysCalendarController::class, 'edit'])->name('sys-calendar.edit');
+    Route::post('/sys-calendar/{id}', [SysCalendarController::class, 'update'])->name('sys-calendar.update');
+    Route::put('/sys-calendar/{id}/toggle-status', [SysCalendarController::class, 'toggleStatus'])->name('sys-calendar.toggle-status');  
+
+    Route::get('/business-units', [BusinessUnitController::class, 'index'])->name('business-units');
+    Route::get('/business-units/json', [BusinessUnitController::class, 'json'])->name('business-units.json');
+    Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
+    Route::get('/business-units/{id}/edit', [BusinessUnitController::class, 'edit'])->name('business-units.edit');
+    Route::post('/business-units/{id}', [BusinessUnitController::class, 'update'])->name('business-units.update');
+    Route::put('/business-units/{id}/toggle-status', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle-status');    
+
+    Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
+    Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');   
+    Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');    
+
+    Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
+    Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
+    Route::post('/kendaraan', [KendaraanController::class, 'store'])->name('kendaraan.store');
+    Route::get('/kendaraan/{id}/edit', [KendaraanController::class, 'edit'])->name('kendaraan.edit');
+    Route::post('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
+    Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
 
     Route::middleware(['auth'])->group(function () {
         // halaman setting + tombol run

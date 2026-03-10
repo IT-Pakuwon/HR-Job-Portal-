@@ -630,27 +630,136 @@
 
                                                         </div>
 
-                                                        {{-- ================= PIC ================= --}}
-                                                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                        {{-- ================= CONTACT PERSON ================= --}}
+                                                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-                                                            <div>
-                                                                <label class="mb-1 block text-xs text-gray-500">PIC
-                                                                    Name</label>
-                                                                <input type="text" name="pic_name" id="pic_name"
-                                                                    value="{{ old('pic_name') }}"
-                                                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                            {{-- ================= INTERNAL PAKUWON ================= --}}
+                                                            <div
+                                                                class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+
+                                                                <div class="mb-3 flex items-center gap-2">
+                                                                    <x-heroicon-o-building-office
+                                                                        class="h-4 w-4 text-indigo-500" />
+                                                                    <span
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        Internal Pakuwon PIC
+                                                                    </span>
+                                                                </div>
+
+                                                                <div class="grid grid-cols-1 gap-3">
+
+                                                                    <div class="grid grid-cols-2 gap-3">
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Name</label>
+                                                                            <input type="text" id="spkpic"
+                                                                                name="spkpic" required
+                                                                                value="{{ old('spkpic', $po->spkpic) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Position</label>
+                                                                            <input type="text" id="spkpicjabatan"
+                                                                                name="spkpicjabatan" required
+                                                                                value="{{ old('spkpicjabatan', $po->spkpicjabatan) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                    <div class="grid grid-cols-2 gap-3">
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Phone</label>
+                                                                            <input type="text" id="spkpicphone"
+                                                                                name="spkpicphone" required
+                                                                                value="{{ old('spkpicphone', $po->spkpicphone) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Email</label>
+                                                                            <input type="email" id="spkpicemail"
+                                                                                name="spkpicemail" required
+                                                                                value="{{ old('spkpicemail', $po->spkpicemail) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                </div>
                                                             </div>
 
-                                                            <div>
-                                                                <label class="mb-1 block text-xs text-gray-500">PIC
-                                                                    Phone</label>
-                                                                <input type="text" name="pic_phone" id="pic_phone"
-                                                                    value="{{ old('pic_phone') }}"
-                                                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+
+                                                            {{-- ================= VENDOR PIC ================= --}}
+                                                            <div
+                                                                class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+
+                                                                <div class="mb-3 flex items-center gap-2">
+                                                                    <x-heroicon-o-user
+                                                                        class="h-4 w-4 text-indigo-500" />
+                                                                    <span
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        Vendor PIC
+                                                                    </span>
+                                                                </div>
+
+                                                                <div class="grid grid-cols-1 gap-3">
+
+                                                                    <div class="grid grid-cols-2 gap-3">
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Name</label>
+                                                                            <input type="text" id="spkvendor"
+                                                                                name="spkvendor" required
+                                                                                value="{{ old('spkvendor', $po->spkvendor) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Position</label>
+                                                                            <input type="text"
+                                                                                id="spkvendorjabatan"
+                                                                                name="spkvendorjabatan" required
+                                                                                value="{{ old('spkvendorjabatan', $po->spkvendorjabatan) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                    <div class="grid grid-cols-2 gap-3">
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Phone</label>
+                                                                            <input type="text" id="spkvendorphone"
+                                                                                name="spkvendorphone" required
+                                                                                value="{{ old('spkvendorphone', $po->spkvendorphone) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                        <div>
+                                                                            <label
+                                                                                class="mb-1 block text-xs text-gray-500">Email</label>
+                                                                            <input type="email" id="spkvendoremail"
+                                                                                name="spkvendoremail" required
+                                                                                value="{{ old('spkvendoremail', $po->spkvendoremail) }}"
+                                                                                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white focus:ring-0 dark:border-gray-700 dark:bg-gray-700 dark:text-gray-100">
+                                                                        </div>
+
+                                                                    </div>
+
+                                                                </div>
                                                             </div>
 
                                                         </div>
-
                                                     </div>
                                                 @else
                                                     {{-- ==================== READ-ONLY MODE ==================== --}}
@@ -677,151 +786,216 @@
                                                     @endphp
 
 
-                                                    <div class="mx-auto max-w-4xl text-sm">
+                                                    <div class="mx-auto max-w-4xl space-y-2 text-sm">
 
-                                                        <div class="space-y-2">
+                                                        {{-- ================= EXECUTION ================= --}}
+                                                        <div
+                                                            class="rounded-xl bg-gray-50 pl-2 pr-2 pt-4 dark:bg-gray-800/40">
 
-                                                            {{-- ================= EXECUTION ================= --}}
-                                                            <div
-                                                                class="grid grid-cols-1 gap-y-5 md:grid-cols-3 md:gap-x-14">
+                                                            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 
-                                                                {{-- Date --}}
-                                                                <div class="min-w-0">
+                                                                <div>
                                                                     <p
-                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                                                                        Execution Date
-                                                                    </p>
+                                                                        class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                        Execution Date</p>
                                                                     <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
+                                                                        class="mt-1 font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $dateRange }}
                                                                     </p>
                                                                 </div>
 
-                                                                {{-- Duration --}}
-                                                                <div class="min-w-0">
+                                                                <div>
                                                                     <p
-                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                                                                        Duration
-                                                                    </p>
+                                                                        class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                        Duration</p>
 
-                                                                    <div
-                                                                        class="mt-1 flex flex-wrap items-center gap-2">
-                                                                        <span class="text-gray-900 dark:text-gray-100">
+                                                                    <div class="mt-1 flex items-center gap-2">
+                                                                        <span
+                                                                            class="font-medium text-gray-900 dark:text-gray-100">
                                                                             {{ $po->spktotalday ?? '-' }} days
                                                                         </span>
 
-                                                                        <span
-                                                                            class="text-xs text-gray-400 dark:text-gray-500">
+                                                                        <span class="text-xs text-gray-400">
                                                                             • {{ $workdayLabel }}
                                                                         </span>
                                                                     </div>
                                                                 </div>
 
-                                                                {{-- Manpower --}}
-                                                                <div class="min-w-0">
+                                                                <div>
                                                                     <p
-                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                                                                        Man Power
-                                                                    </p>
+                                                                        class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                        Man Power</p>
                                                                     <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
+                                                                        class="mt-1 font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $po->spkmanpower ?? '-' }} people
                                                                     </p>
                                                                 </div>
 
                                                             </div>
 
-
-                                                            {{-- Divider --}}
-                                                            <div class="border-t border-gray-100 dark:border-gray-700">
-                                                            </div>
+                                                        </div>
 
 
-                                                            {{-- ================= SCHEDULE ================= --}}
-                                                            <div
-                                                                class="grid grid-cols-1 gap-y-5 md:grid-cols-2 md:gap-x-14">
+                                                        {{-- ================= SCHEDULE ================= --}}
+                                                        <div
+                                                            class="rounded-xl bg-gray-50 pl-2 pr-2 pt-4 dark:bg-gray-800/40">
 
-                                                                {{-- Work Schedule --}}
-                                                                <div class="min-w-0">
+                                                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                                                                <div>
                                                                     <p
-                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                                                                        Work Schedule
-                                                                    </p>
+                                                                        class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                        Work Schedule</p>
                                                                     <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
+                                                                        class="mt-1 font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $schedule }}
                                                                     </p>
                                                                 </div>
 
-                                                                {{-- Warranty --}}
-                                                                <div class="min-w-0">
+                                                                <div>
                                                                     <p
-                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                                                                        Warranty
-                                                                    </p>
+                                                                        class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                        Warranty</p>
                                                                     <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
+                                                                        class="mt-1 font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $po->spkwarranty ?? '-' }}
                                                                     </p>
                                                                 </div>
 
                                                             </div>
 
+                                                        </div>
 
-                                                            {{-- Divider --}}
-                                                            <div class="border-t border-gray-100 dark:border-gray-700">
+
+                                                        {{-- ================= CONTACT PERSON ================= --}}
+                                                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                                                            {{-- Internal Pakuwon --}}
+                                                            <div
+                                                                class="rounded-xl bg-gray-50 pl-2 pr-2 pt-4 dark:bg-gray-800/40">
+
+                                                                <div class="mb-3 flex items-center gap-2">
+                                                                    <x-heroicon-o-building-office
+                                                                        class="h-4 w-4 text-indigo-500" />
+                                                                    <span
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        Internal Pakuwon PIC
+                                                                    </span>
+                                                                </div>
+
+                                                                <p
+                                                                    class="font-semibold text-gray-900 dark:text-gray-100">
+                                                                    {{ $po->spkpic ?? '-' }}
+
+                                                                    @if ($po->spkpicjabatan)
+                                                                        <span class="font-normal text-gray-500">
+                                                                            — {{ $po->spkpicjabatan }}
+                                                                        </span>
+                                                                    @endif
+                                                                </p>
+
+                                                                <div
+                                                                    class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+
+                                                                    @if ($po->spkpicphone)
+                                                                        <span class="flex items-center gap-1">
+                                                                            <x-heroicon-o-phone class="h-3.5 w-3.5" />
+                                                                            {{ $po->spkpicphone }}
+                                                                        </span>
+                                                                    @endif
+
+                                                                    @if ($po->spkpicemail)
+                                                                        <span class="flex items-center gap-1">
+                                                                            <x-heroicon-o-envelope
+                                                                                class="h-3.5 w-3.5" />
+                                                                            {{ $po->spkpicemail }}
+                                                                        </span>
+                                                                    @endif
+
+                                                                </div>
+
                                                             </div>
 
 
-                                                            {{-- ================= PIC & PAYMENT ================= --}}
+                                                            {{-- Vendor PIC --}}
                                                             <div
-                                                                class="grid grid-cols-1 gap-y-5 md:grid-cols-2 md:gap-x-14">
+                                                                class="rounded-xl bg-gray-50 pl-2 pr-2 pt-4 dark:bg-gray-800/40">
 
-                                                                {{-- PIC --}}
-                                                                <div class="min-w-0">
-                                                                    <p
-                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                                                                        PIC
-                                                                    </p>
-                                                                    <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
-                                                                        {{ $po->spkpic ?? '-' }}
-                                                                        @if (!empty($po->spkpicphone))
-                                                                            <span
-                                                                                class="text-gray-400 dark:text-gray-500">
-                                                                                · {{ $po->spkpicphone }}
-                                                                            </span>
-                                                                        @endif
-                                                                    </p>
+                                                                <div class="mb-3 flex items-center gap-2">
+                                                                    <x-heroicon-o-user
+                                                                        class="h-4 w-4 text-indigo-500" />
+                                                                    <span
+                                                                        class="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                                        Vendor PIC
+                                                                    </span>
                                                                 </div>
 
-                                                                {{-- Payment --}}
-                                                                <div class="min-w-0">
+                                                                <p
+                                                                    class="font-semibold text-gray-900 dark:text-gray-100">
+                                                                    {{ $po->spkvendor ?? '-' }}
+
+                                                                    @if ($po->spkvendorjabatan)
+                                                                        <span class="font-normal text-gray-500">
+                                                                            — {{ $po->spkvendorjabatan }}
+                                                                        </span>
+                                                                    @endif
+                                                                </p>
+
+                                                                <div
+                                                                    class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+
+                                                                    @if ($po->spkvendorphone)
+                                                                        <span class="flex items-center gap-1">
+                                                                            <x-heroicon-o-phone class="h-3.5 w-3.5" />
+                                                                            {{ $po->spkvendorphone }}
+                                                                        </span>
+                                                                    @endif
+
+                                                                    @if ($po->spkvendoremail)
+                                                                        <span class="flex items-center gap-1">
+                                                                            <x-heroicon-o-envelope
+                                                                                class="h-3.5 w-3.5" />
+                                                                            {{ $po->spkvendoremail }}
+                                                                        </span>
+                                                                    @endif
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        </div>
+
+
+                                                        {{-- ================= PAYMENT ================= --}}
+                                                        <div
+                                                            class="rounded-xl bg-gray-50 pl-2 pr-2 pt-4 dark:bg-gray-800/40">
+
+                                                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                                                                <div>
                                                                     <p
-                                                                        class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                                                                        class="text-[11px] uppercase tracking-wide text-gray-400">
                                                                         Payment Method
                                                                     </p>
+
                                                                     <p
-                                                                        class="mt-1 break-words text-gray-900 dark:text-gray-100">
+                                                                        class="mt-1 font-medium text-gray-900 dark:text-gray-100">
                                                                         {{ $po->spkpaymentmethod ?? 'TRANSFER' }}
                                                                     </p>
                                                                 </div>
 
-                                                            </div>
-                                                            {{-- Divider --}}
+                                                                <div>
+                                                                    <p
+                                                                        class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                        Term of Payment
+                                                                    </p>
 
-                                                            <div class="border-t border-gray-100 dark:border-gray-700">
-                                                            </div>
+                                                                    <p
+                                                                        class="mt-1 font-medium text-gray-900 dark:text-gray-100">
+                                                                        {{ $poTerms->top_name ?? '-' }}
+                                                                    </p>
+                                                                </div>
 
-                                                            <div class="flex items-center justify-between">
-                                                                <label
-                                                                    class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                                    Term of Payment
-                                                                </label>
-                                                                <span
-                                                                    class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                                                    {{ $poTerms->top_name ?? '-' }}
-                                                                </span>
                                                             </div>
 
                                                         </div>
@@ -1198,6 +1372,8 @@
         // ...
         $spinner.fadeOut(); // sembunyikan saat selesai
     </script>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const chk = document.getElementById('work_time_24');
@@ -1428,9 +1604,108 @@
             });
         });
     </script> --}}
+
+    <script>
+        const HOLIDAYS = @json($holidayDates ?? []);
+
+        function parseDate(val) {
+            if (!val) return null;
+            const [y, m, d] = val.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+
+        function formatYMD(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function countWorkingDays(start, end) {
+
+            let count = 0;
+            const type = $('#work_day_type').val();
+            const cur = new Date(start);
+
+            while (cur <= end) {
+
+                const day = cur.getDay();
+                const dateStr = formatYMD(cur);
+
+                const isWeekend = (day === 0 || day === 6);
+                const isHoliday = HOLIDAYS.includes(dateStr);
+
+                if (type === 'INCLUDE') {
+                    count++;
+                } else {
+                    if (!isWeekend && !isHoliday) {
+                        count++;
+                    }
+                }
+
+                cur.setDate(cur.getDate() + 1);
+            }
+
+            return count;
+        }
+
+        function updateWorkingDays() {
+
+            const from = $('#work_date_from').val();
+            const to = $('#work_date_to').val();
+
+            const d1 = parseDate(from);
+            const d2 = parseDate(to);
+
+            if (!d1 || !d2) {
+                $('#work_days').val('');
+                return;
+            }
+
+            if (d2 < d1) {
+                $('#work_days').val('');
+                return;
+            }
+
+            const result = countWorkingDays(d1, d2);
+            $('#work_days').val(result);
+        }
+
+        $(function() {
+
+            const $from = $('#work_date_from');
+            const $to = $('#work_date_to');
+            const $toggle = $('#work_day_type_toggle');
+            const $hiddenType = $('#work_day_type');
+            const $info = $('#workDayInfo');
+
+            const today = new Date().toISOString().split('T')[0];
+            $from.attr('min', today);
+            $to.attr('min', today);
+
+            $from.on('change', updateWorkingDays);
+            $to.on('change', updateWorkingDays);
+
+            $toggle.on('change', function() {
+
+                const include = $(this).is(':checked');
+
+                $hiddenType.val(include ? 'INCLUDE' : 'EXCLUDE');
+
+                $info.text(
+                    include ?
+                    'Includes weekends & public holidays' :
+                    'Excludes weekends & public holidays'
+                );
+
+                updateWorkingDays();
+            });
+
+            updateWorkingDays();
+
+        });
+    </script>
     <script>
         $(function() {
-            const ponbr = "{{ $po->ponbr ?? $po->ponbr }}";
+
+            const ponbr = "{{ $po->ponbr }}";
             const statusNow = "{{ $po->status }}";
             const isPO = "{{ strtoupper($po->potype ?? '') }}" === "PO";
             const hash = @json($hash ?? '');
@@ -1446,110 +1721,181 @@
             }
 
             function validateInfoForm() {
+
+                updateWorkingDays(); // ensure latest calculation
+
                 clearMarks();
+
                 const errors = [];
                 const val = (id) => ($("#" + id).val() ?? '').toString().trim();
 
-                if (isPO) {
-                    // Hanya wajib untuk PO
-                    if (!val('podeliverydate')) errors.push({
-                        id: 'podeliverydate',
-                        msg: 'Delivery Date wajib diisi.'
-                    });
-                } else {
-                    // Hanya wajib untuk SPK/Other
-                    if (!val('work_date_from')) errors.push({
+                if (!val('work_date_from')) {
+                    errors.push({
                         id: 'work_date_from',
-                        msg: 'Work Start Date wajib diisi.'
+                        msg: 'Work Start Date is required.'
                     });
-                    if (!val('work_date_to')) errors.push({
+                }
+
+                if (!val('work_date_to')) {
+                    errors.push({
                         id: 'work_date_to',
-                        msg: 'Work End Date wajib diisi.'
+                        msg: 'Work End Date is required.'
                     });
-                    const wd = val('work_days');
-                    if (!wd) errors.push({
-                        id: 'work_days',
-                        msg: 'Jumlah Hari Kerja wajib diisi.'
-                    });
-                    else if (isNaN(Number(wd)) || Number(wd) < 0) errors.push({
-                        id: 'work_days',
-                        msg: 'Jumlah Hari Kerja harus angka ≥ 0.'
-                    });
-                    if (!val('work_day_from')) errors.push({
+                }
+
+                if (!val('work_day_from')) {
+                    errors.push({
                         id: 'work_day_from',
-                        msg: 'Hari (Dari) wajib diisi.'
+                        msg: 'Working Day (From) is required.'
                     });
-                    if (!val('work_day_to')) errors.push({
+                }
+
+                if (!val('work_day_to')) {
+                    errors.push({
                         id: 'work_day_to',
-                        msg: 'Hari (Sampai) wajib diisi.'
+                        msg: 'Working Day (To) is required.'
                     });
-                    if (!val('work_time_from')) errors.push({
+                }
+
+                if (!val('work_time_from')) {
+                    errors.push({
                         id: 'work_time_from',
-                        msg: 'Pukul (Dari) wajib diisi.'
+                        msg: 'Working Time (From) is required.'
                     });
-                    if (!val('work_time_to')) errors.push({
+                }
+
+                if (!val('work_time_to')) {
+                    errors.push({
                         id: 'work_time_to',
-                        msg: 'Pukul (Sampai) wajib diisi.'
+                        msg: 'Working Time (To) is required.'
                     });
-                    const mp = val('manpower_total');
-                    if (!mp) errors.push({
+                }
+
+                if (!val('manpower_total')) {
+                    errors.push({
                         id: 'manpower_total',
-                        msg: 'Total Man Power wajib diisi.'
+                        msg: 'Man Power is required.'
                     });
-                    else if (isNaN(Number(mp)) || Number(mp) < 0) errors.push({
-                        id: 'manpower_total',
-                        msg: 'Total Man Power harus angka ≥ 0.'
-                    });
-                    if (!val('pic_name')) errors.push({
-                        id: 'pic_name',
-                        msg: 'Nama PIC wajib diisi.'
-                    });
-                    if (!val('pic_phone')) errors.push({
-                        id: 'pic_phone',
-                        msg: 'Nomor HP PIC wajib diisi.'
-                    });
-                    // if (!val('payment_method')) errors.push({
-                    //     id: 'payment_method',
-                    //     msg: 'Cara Pembayaran wajib diisi.'
-                    // });
-                    if (!val('warranty')) errors.push({
+                }
+
+                if (!val('warranty')) {
+                    errors.push({
                         id: 'warranty',
-                        msg: 'Garansi Pekerjaan wajib diisi.'
+                        msg: 'Warranty is required.'
+                    });
+                }
+
+                if (!val('spkpic')) {
+                    errors.push({
+                        id: 'spkpic',
+                        msg: 'Internal PIC Name is required.'
+                    });
+                }
+
+                if (!val('spkpicjabatan')) {
+                    errors.push({
+                        id: 'spkpicjabatan',
+                        msg: 'Internal PIC Position is required.'
+                    });
+                }
+
+                if (!val('spkpicphone')) {
+                    errors.push({
+                        id: 'spkpicphone',
+                        msg: 'Internal PIC Phone is required.'
+                    });
+                }
+
+                if (!val('spkpicemail')) {
+                    errors.push({
+                        id: 'spkpicemail',
+                        msg: 'Internal PIC Email is required.'
+                    });
+                }
+
+                if (!val('spkvendor')) {
+                    errors.push({
+                        id: 'spkvendor',
+                        msg: 'Vendor PIC Name is required.'
+                    });
+                }
+
+                if (!val('spkvendorjabatan')) {
+                    errors.push({
+                        id: 'spkvendorjabatan',
+                        msg: 'Vendor PIC Position is required.'
+                    });
+                }
+
+                if (!val('spkvendorphone')) {
+                    errors.push({
+                        id: 'spkvendorphone',
+                        msg: 'Vendor PIC Phone is required.'
+                    });
+                }
+
+                if (!val('spkvendoremail')) {
+                    errors.push({
+                        id: 'spkvendoremail',
+                        msg: 'Vendor PIC Email is required.'
+                    });
+                }
+
+                const d1 = new Date(val('work_date_from'));
+                const d2 = new Date(val('work_date_to'));
+
+                if (d1 && d2 && d2 < d1) {
+                    errors.push({
+                        id: 'work_date_to',
+                        msg: 'End Date cannot be earlier than Start Date.'
                     });
                 }
 
                 if (errors.length) {
-                    errors.forEach(e => markInvalid($('#' + e.id)));
+
+                    errors.forEach(e => {
+                        markInvalid($('#' + e.id));
+                    });
+
                     const first = errors[0];
                     const $first = $('#' + first.id);
+
                     $first.focus()[0]?.scrollIntoView({
                         behavior: 'smooth',
                         block: 'center'
                     });
+
                     toastr.error(first.msg);
+
                     return {
-                        ok: false,
-                        errors
+                        ok: false
                     };
                 }
+
                 return {
                     ok: true
                 };
             }
 
-            // ===== SUBMIT PO with validation =====
+            /*
+            ========================
+            SUBMIT BUTTON
+            ========================
+            */
+
             $('#submitBtn').on('click', function(e) {
+
                 e.preventDefault();
 
-                const statusNow = "{{ $po->status }}";
                 if (statusNow !== 'H') {
-                    toastr.warning('Dokumen hanya bisa di-Submit jika status = HOLD (H).');
+                    toastr.warning('Document can only be submitted when status = HOLD.');
                     return;
                 }
 
                 const {
                     ok
                 } = validateInfoForm();
+
                 if (!ok) return;
 
                 const $spinner = $("#loadingSpinnerContainer").fadeIn();
@@ -1558,29 +1904,37 @@
                     url: `/po/${ponbr}/submit`,
                     type: 'POST',
                     data: $('#infoPoForm').serialize(),
+
                     success(res) {
+
                         if (res.success) {
-                            toastr.success(
-                                'Submit berhasil. Status berubah menjadi Purchase Order (P).'
-                            );
+
+                            toastr.success('Submit successful.');
+
                             if (hash) {
                                 window.location.href = `/showpo/${encodeURIComponent(hash)}`;
                             } else {
-                                // fallback kalau entah kenapa hash kosong
                                 window.location.reload();
                             }
+
                         } else {
-                            toastr.error(res.message || 'Gagal submit.');
+                            toastr.error(res.message || 'Submit failed.');
                         }
+
                     },
+
                     error(xhr) {
-                        toastr.error(xhr.responseJSON?.message || 'Gagal submit.');
+                        toastr.error(xhr.responseJSON?.message || 'Submit failed.');
                     },
+
                     complete() {
                         $spinner.fadeOut();
                     }
+
                 });
+
             });
+
         });
     </script>
 
@@ -2118,98 +2472,7 @@
         });
     </script>
 
-    <script>
-        $(function() {
 
-            const $from = $('#work_date_from');
-            const $to = $('#work_date_to');
-            const $days = $('#work_days');
-
-            const $toggle = $('#work_day_type_toggle');
-            const $hiddenType = $('#work_day_type');
-            const $info = $('#workDayInfo');
-
-            const HOLIDAYS = @json($holidayDates ?? []);
-
-            // ==============================
-            // Prevent Past Date
-            // ==============================
-            const today = new Date().toISOString().split('T')[0];
-            $from.attr('min', today);
-            $to.attr('min', today);
-
-            // ==============================
-            // Helpers
-            // ==============================
-            function parseDate(ymd) {
-                if (!ymd) return null;
-                const [y, m, d] = ymd.split('-').map(Number);
-                return new Date(y, m - 1, d);
-            }
-
-            function formatYMD(date) {
-                return date.toISOString().split('T')[0];
-            }
-
-            function countWorkingDays(start, end) {
-                const type = $hiddenType.val();
-                let count = 0;
-                const cur = new Date(start);
-
-                while (cur <= end) {
-
-                    const day = cur.getDay();
-                    const dateStr = formatYMD(cur);
-
-                    const isWeekend = (day === 0 || day === 6);
-                    const isHoliday = HOLIDAYS.includes(dateStr);
-
-                    if (type === 'INCLUDE' || (!isWeekend && !isHoliday)) {
-                        count++;
-                    }
-
-                    cur.setDate(cur.getDate() + 1);
-                }
-
-                return count;
-            }
-
-            function updateWorkingDays() {
-                const d1 = parseDate($from.val());
-                const d2 = parseDate($to.val());
-
-                if (!d1 || !d2 || d2 < d1) {
-                    $days.val('');
-                    return;
-                }
-
-                $days.val(countWorkingDays(d1, d2));
-            }
-
-            // ==============================
-            // Toggle
-            // ==============================
-            $toggle.on('change', function() {
-
-                const isInclude = $(this).is(':checked');
-
-                $hiddenType.val(isInclude ? 'INCLUDE' : 'EXCLUDE');
-                $info.text(
-                    isInclude ?
-                    'Includes weekends & public holidays' :
-                    'Excludes weekends & public holidays'
-                );
-
-                updateWorkingDays();
-            });
-
-            // Date Change
-            $from.on('change', updateWorkingDays);
-            $to.on('change', updateWorkingDays);
-
-            updateWorkingDays();
-        });
-    </script>
 
 
 

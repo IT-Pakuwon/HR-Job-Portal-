@@ -41,6 +41,7 @@ use App\Models\TrBQCSDetail;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\BusinessUnit;
 use App\Models\SysCalendar;
+use App\Models\TrCSDetail;   // add this
 
 class PoController extends Controller
 {
@@ -239,9 +240,15 @@ class PoController extends Controller
                 'work_time_from' => ['required','date_format:H:i'],
                 'work_time_to'   => ['required','date_format:H:i'],
                 'manpower_total' => ['required','integer','min:0'],
-                'pic_name'       => ['required','string'],
-                'pic_phone'      => ['required','string'],
-                // 'payment_method' => ['required','string'],
+
+                // Internal Pakuwon
+                'spkpic'         => ['required','string'],
+                'spkpicphone'    => ['required','string'],
+
+                // Vendor
+                'spkvendor'      => ['required','string'],
+                'spkvendorphone' => ['required','string'],
+
                 'warranty'       => ['required','string'],
             ]);
         }
@@ -259,13 +266,20 @@ class PoController extends Controller
         $calculatedWorkingDays = 0;
         $current = $start->copy();
 
+        $type = $req->input('work_day_type', 'EXCLUDE');
+
+
         while ($current <= $end) {
 
             $isWeekend = $current->isWeekend();
             $isHoliday = in_array($current->format('Y-m-d'), $holidays);
 
-            if (!$isWeekend && !$isHoliday) {
+            if ($type === 'INCLUDE') {
                 $calculatedWorkingDays++;
+            } else {
+                if (!$isWeekend && !$isHoliday) {
+                    $calculatedWorkingDays++;
+                }
             }
 
             $current->addDay();
@@ -314,7 +328,19 @@ class PoController extends Controller
 
                 // manpower & PIC
                 $po->spkmanpower = $req->input('manpower_total');
-                $po->spkpic      = trim($req->input('pic_name').' || HP '.$req->input('pic_phone'));
+
+                // Internal Pakuwon
+                $po->spkpic         = $req->input('spkpic');
+                $po->spkpicjabatan  = $req->input('spkpicjabatan');
+                $po->spkpicphone    = $req->input('spkpicphone');
+                $po->spkpicemail    = $req->input('spkpicemail');
+
+                // Vendor
+                $po->spkvendor         = $req->input('spkvendor');
+                $po->spkvendorjabatan  = $req->input('spkvendorjabatan');
+                $po->spkvendorphone    = $req->input('spkvendorphone');
+                $po->spkvendoremail    = $req->input('spkvendoremail');
+
                 $po->spkwarranty = $req->input('warranty');
 
                 // simpan "cara pembayaran" ke ponote (kolom yang ada) — gunakan variabel berbeda!
@@ -723,56 +749,143 @@ class PoController extends Controller
         $id = $decoded[0];
 
         $authUser = Auth::user();
-        if (!$authUser) return redirect()->route('login');
+        if (!$authUser) {
+            return redirect()->route('login');
+        }
 
-        // Header PO/SPK
+        // =========================
+        // PO HEADER
+        // =========================
         $po = TrPO::findOrFail($id);
 
-        // Detail pakai ponbr
-        $podetail = TrPOdetail::where('ponbr', $po->ponbr)
-            ->where('budget_cpny_id', $po->cpny_id)
-            ->orderBy('cs_no')
-            ->get();
+        // =========================
+        // PO DETAIL
+        // =========================
+    $podetail = TrPOdetail::where('ponbr', $po->ponbr)
+        ->where('budget_cpny_id', $po->cpny_id)
+        ->orderBy('cs_no')
+        ->get();
 
-        // $poTerms = TrPOterm::where('ponbr', $po->ponbr)
-        //     ->where('cpny_id', $po->cpny_id)
-        //     ->orderBy('order_term')
-        //     ->first();
+        // =========================
+        // COMPANY
+        // =========================
+        $company = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
+        // =========================
+        // TERM OF PAYMENT (TOP)
+        // =========================
         $poTerms = MsTop::where('top_type', $po->potype)
             ->where('topid', $po->vendortop)
             ->first();
 
-        // Amount
+        // =========================
+        // PO TERMS (DP / PAYMENT)
+        // =========================
+        $poTermDetails = TrPOterm::where('ponbr', $po->ponbr)
+            ->where('cpny_id', $po->cpny_id)
+            ->orderBy('order_term')
+            ->get();
+
+        $dpTerm = $poTermDetails->firstWhere('term_type', 'DP');
+
+        $paymentTerms = $poTermDetails->where('term_type', '<>', 'DP');
+
+        // =========================
+        // AMOUNT
+        // =========================
         $dpp   = (float) ($po->totalamt ?? 0);
         $ppn   = (float) ($po->taxamt ?? 0);
         $grand = (float) ($po->grandtotalamt ?? 0);
 
-        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-        $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
+        // =========================
+        // DP AMOUNT
+        // =========================
+        $dpAmount = 0;
 
+        if ($dpTerm) {
+            $dpAmount = ($dpTerm->payment_pct / 100) * $grand;
+        }
+
+        // =========================
+        // RETENTION
+        // =========================
+        $retensi = MsTopdetail::where('topid', $po->vendortop)
+            ->where('top_type', $po->potype)
+            ->where('terms_type', 'RET')
+            ->first();
+
+        $retentionValue = null;
+
+        if ($retensi) {
+            $retentionValue = ($retensi->payment_pct / 100) * $grand;
+        }
+        // =========================
+        // LOCATION FROM CS DETAIL
+        // =========================
+        $location = '-';
+
+        if ($po->csid) {
+
+            $csDetail = \App\Models\TrCSdetail::with(['location','subLocation'])
+                ->where('csid', $po->csid)
+                ->first();
+
+            if ($csDetail) {
+
+                $loc = optional($csDetail->location)->location_name;
+                $sub = optional($csDetail->subLocation)->sub_location_name;
+
+                if ($loc) {
+                    $location = $loc;
+                }
+
+                if ($sub) {
+                    $location .= ' - ' . $sub;
+                }
+            }
+        }
+        // =========================
+        // TERBILANG
+        // =========================
+        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+
+        // =========================
+        // PURCHASER
+        // =========================
         $purchaser = ucwords(strtolower($po->created_by ?? 'System'));
 
+        // =========================
+        // DATA FOR VIEW
+        // =========================
         $data = [
-            'po'        => $po,
-            'podetail'  => $podetail,
-            'poTerms'   => $poTerms,
-            'dpp'       => $dpp,
-            'ppn'       => $ppn,
-            'grand'     => $grand,
-            'terbilang' => $terbilang,
-            'company'   => $company,
-            'now'       => Carbon::now(),
-            'purchaser' => $purchaser,
+            'po'            => $po,
+            'podetail'      => $podetail,
+            'poTerms'       => $poTerms,
+            'poTermDetails' => $poTermDetails,
+            'dpTerm'        => $dpTerm,
+            'dpAmount'      => $dpAmount,
+            'paymentTerms'  => $paymentTerms,
+            'retensi'       => $retentionValue,
+            'location'      => $location,
+            'dpp'           => $dpp,
+            'ppn'           => $ppn,
+            'grand'         => $grand,
+            'terbilang'     => $terbilang,
+            'company'       => $company,
+            'now'           => Carbon::now(),
+            'purchaser'     => $purchaser,
         ];
 
-        // ✅ Pilih view
+        // =========================
+        // SELECT VIEW
+        // =========================
         $potype = strtoupper((string) ($po->potype ?? ''));
+
         if ($potype === 'PO') {
             $view = 'pages.purchase.pdf_po';
-        } else { // SPK / lainnya
+        } else {
             $view = ($grand > 1_000_000_000)
-                ? 'pages.purchase.pdf_spk_1m'
+                ? 'pages.purchase.pdf_spk'
                 : 'pages.purchase.pdf_spk';
         }
 
@@ -780,29 +893,53 @@ class PoController extends Controller
         $pdf = Pdf::loadView($view, $data)->setPaper('A4', 'portrait');
 
         /** @var \Dompdf\Dompdf $dompdf */
+        $pdf = Pdf::loadView($view, $data)->setPaper('A4', 'portrait');
+
+        /** @var \Dompdf\Dompdf $dompdf */
         $dompdf = $pdf->getDomPDF();
         $dompdf->render();
 
-        // Footer via canvas
-        $canvas  = $dompdf->get_canvas();
-        $w       = $canvas->get_width();
-        $h       = $canvas->get_height();
+   $canvas  = $dompdf->get_canvas();
+$w       = $canvas->get_width();
+$h       = $canvas->get_height();
 
-        $metrics = $dompdf->getFontMetrics();
-        $font    = $metrics->get_font('sans-serif', 'normal');
-        $size    = 9;
+$metrics = $dompdf->getFontMetrics();
+$font    = $metrics->get_font('sans-serif', 'normal');
+$size    = 7;
 
-        $now      = $data['now'];
-        $leftTxt  = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
-        $rightTpl = "Page {PAGE_NUM} of {PAGE_COUNT}";
+$now = $data['now'];
 
-        $rightWidth = $metrics->getTextWidth($rightTpl, $font, $size);
-        $y = $h - 28;
+$leftTxt  = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+$pageTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
+$parafTxt = "Paraf PIHAK KEDUA";
 
-        // kanan: pakai margin 20px dari kanan
-        $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
-        $canvas->page_text($w - $rightWidth - 20, $y, $rightTpl, $font, $size, [0,0,0]);
+$margin = 20;
 
+/* ============================= */
+/* LEFT TEXT */
+/* ============================= */
+
+$canvas->page_text(
+    $margin,
+    $h - 22,
+    $leftTxt,
+    $font,
+    $size,
+    [0,0,0]
+);
+
+/* ============================= */
+/* RIGHT BLOCK (justify-end) */
+/* ============================= */
+
+$pageWidth  = $metrics->getTextWidth($pageTpl, $font, $size);
+$parafWidth = $metrics->getTextWidth($parafTxt, $font, $size);
+
+$xPage  = $w - $pageWidth  - $margin;
+$xParaf = $w - $parafWidth - $margin;
+
+$canvas->page_text($xParaf, $h - 36, $parafTxt, $font, $size, [0,0,0]);
+$canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
         $basename = ($potype === 'PO') ? 'PO' : 'SPK';
         return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
     }

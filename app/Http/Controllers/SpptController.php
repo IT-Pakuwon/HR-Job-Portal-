@@ -1,55 +1,53 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use App\Exports\SpptDetailExport;
+use App\Http\Controllers\Traits\HasAutonbr;
+use App\Imports\BqDetailTempImport;
 use App\Models\Autonbr;
-use App\Models\MsCompany;
-use App\Models\MsDepartment;
-use App\Models\Usercpny;
-use App\Models\Userdept;
-use App\Models\User;
-use App\Models\TrSPPT;
-use App\Models\TrSPPTdetail;
-use App\Models\MsLocation;
-use App\Models\MsSubLocation;
-use Mail;
-use Illuminate\Support\Facades\Log;
 use App\Models\Bq;
 use App\Models\BqDetail;
 use App\Models\BqDetailTemp;
-use PDF;
-use Illuminate\Support\Str;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\BqDetailTempImport;
-use Vinkla\Hashids\Facades\Hashids;
-use App\Http\Controllers\TrAttachmentController;
-use Illuminate\Support\Facades\Response;
-use App\Models\TrAttachment;
-use Google\Cloud\Storage\StorageClient;
-use App\Models\MsTenant;
-use App\Http\Controllers\ApprovalController;
-use App\Models\TrApproval;
+use App\Models\Budget;
+use App\Models\BudgetDetail;
+use App\Models\BusinessUnit;
+use App\Models\MsCompany;
 use App\Models\MsSite;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Models\MsTenant;
+use App\Models\SysUserRole;
+use App\Models\TrApproval;
+use App\Models\TrAttachment;
+use App\Models\TrBast;
 use App\Models\TrCS;
 use App\Models\TrCSdetail;
 use App\Models\TrPO;
 use App\Models\TrPOdetail;
-use App\Models\TrBast;
-use App\Http\Controllers\Traits\HasAutonbr;
-use App\Models\BusinessUnit;
-use App\Models\Userbusinessunit;
-use App\Models\Budget;
-use App\Models\SysUserRole;
+use App\Models\TrSPPT;
+use App\Models\TrSPPTdetail;
 use App\Models\TrWO;
+use App\Models\User;
+use App\Models\Userbusinessunit;
+use App\Models\Usercpny;
+use App\Models\Userdept;
+use Google\Cloud\Storage\StorageClient;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use Mail;
+use PDF;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Vinkla\Hashids\Facades\Hashids;
 
 class SpptController extends Controller
 {
-
     use HasAutonbr;
+
     public function index()
     {
         $user = Auth::user();
@@ -131,16 +129,16 @@ class SpptController extends Controller
         // ==============================
         // DATATABLE PARAMETERS
         // ==============================
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
 
-        $status    = (string) $request->query('status', '');
-        $mode      = (string) $request->query('mode', 'normal');
+        $status = (string) $request->query('status', '');
+        $mode = (string) $request->query('mode', 'normal');
         $deptExtra = (string) $request->query('department_extra', '');
 
-        $baseTable = (new TrSPPT)->getTable();
+        $baseTable = (new TrSPPT())->getTable();
 
         $columns = [
             0 => 'sppt.spptid',
@@ -159,18 +157,17 @@ class SpptController extends Controller
         // ==============================
         // BASE QUERY
         // ==============================
-        $base = TrSPPT::from($baseTable . ' as sppt')
+        $base = TrSPPT::from($baseTable.' as sppt')
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid');
             })
             ->whereIn('sppt.cpny_id', $cpnyIds)
-            ->whereIn('ms_request_type.doctype', 'SPPT');
+            ->where('rt.doctype', 'SPPT');
 
         // ==============================
         // MODE LOGIC
         // ==============================
         if ($mode === 'normal') {
-
             $base->whereIn('sppt.department_id', $deptIds);
 
             if ($status !== '') {
@@ -179,7 +176,6 @@ class SpptController extends Controller
         }
 
         if ($mode === 'all') {
-
             // only P & C
             $base->whereIn('sppt.status', ['P', 'C']);
 
@@ -204,12 +200,12 @@ class SpptController extends Controller
         // ==============================
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppt.spptid',          'ilike', "%{$search}%")
-                ->orWhere('sppt.cpny_id',       'ilike', "%{$search}%")
+                $q->where('sppt.spptid', 'ilike', "%{$search}%")
+                ->orWhere('sppt.cpny_id', 'ilike', "%{$search}%")
                 ->orWhere('sppt.department_id', 'ilike', "%{$search}%")
-                ->orWhere('rt.requesttype_name','ilike', "%{$search}%")
-                ->orWhere('sppt.keperluan',     'ilike', "%{$search}%")
-                ->orWhere('sppt.status',        'ilike', "%{$search}%");
+                ->orWhere('rt.requesttype_name', 'ilike', "%{$search}%")
+                ->orWhere('sppt.keperluan', 'ilike', "%{$search}%")
+                ->orWhere('sppt.status', 'ilike', "%{$search}%");
             });
         }
 
@@ -224,17 +220,17 @@ class SpptController extends Controller
         // FETCH DATA
         // ==============================
         $data = $base->select(
-                    'sppt.id',
-                    'sppt.spptid',
-                    'sppt.spptdate',
-                    'sppt.cpny_id',
-                    'sppt.department_id',
-                    'sppt.requesttypeid',
-                    'rt.requesttype_name',
-                    'sppt.keperluan',
-                    'sppt.status',
-                    'sppt.created_by'
-                )
+            'sppt.id',
+            'sppt.spptid',
+            'sppt.spptdate',
+            'sppt.cpny_id',
+            'sppt.department_id',
+            'sppt.requesttypeid',
+            'rt.requesttype_name',
+            'sppt.keperluan',
+            'sppt.status',
+            'sppt.created_by'
+        )
                 ->orderBy($orderCol, $orderDir)
                 ->orderBy('sppt.spptid', 'desc')
                 ->skip($start)
@@ -244,6 +240,7 @@ class SpptController extends Controller
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
             unset($row->id);
+
             return $row;
         });
 
@@ -253,10 +250,9 @@ class SpptController extends Controller
         $departments = [];
 
         if ($mode === 'all') {
-
-            $deptQuery = TrSPPT::from($baseTable . ' as sppt')
+            $deptQuery = TrSPPT::from($baseTable.' as sppt')
                 ->whereIn('sppt.cpny_id', $cpnyIds)
-                ->whereIn('sppt.status', ['P','C']);
+                ->whereIn('sppt.status', ['P', 'C']);
 
             if (!empty($deptExtra)) {
                 $deptQuery->where('sppt.department_id', $deptExtra);
@@ -270,16 +266,13 @@ class SpptController extends Controller
         }
 
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
-            'departments'     => $departments,
+            'data' => $data,
+            'departments' => $departments,
         ]);
     }
-
-
-
 
     public function createSppt()
     {
@@ -297,60 +290,59 @@ class SpptController extends Controller
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
 
-        return view('pages.sppts.createsppts', compact('usercpny','usercpny2','userdept','userdept2'));
+        return view('pages.sppts.createsppts', compact('usercpny', 'usercpny2', 'userdept', 'userdept2'));
     }
-
-
 
     public function storeSppt(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
         // kumpulkan array dari form
-        $inventoryIds  = $request->input('inventoryid',  $request->input('inventory_id', []));
-        $productNames  = $request->input('product_name', []);
-        $qtys          = $request->input('qty', []);
-        $uoms          = $request->input('stock_unit',   $request->input('uom', [])); // <- penting
-        $notes         = $request->input('note', []);
-        $locations     = $request->input('location', []);
-        $locationIds   = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
-        $subLocIds     = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations  = $request->input('sub_location', []);
-        $activityIds   = $request->input('activity_id', []);
-        $busUnitIds    = $request->input('business_unit_id', []);
-        $deptFinIds    = $request->input('department_fin_id', []);
-        $actDescrs     = $request->input('activity_descr', []);
-        $coaIds        = $request->input('coa_id', []); // account_id
-        $item_types    = $request->input('item_type', []);
+        $inventoryIds = $request->input('inventoryid', $request->input('inventory_id', []));
+        $productNames = $request->input('product_name', []);
+        $qtys = $request->input('qty', []);
+        $uoms = $request->input('stock_unit', $request->input('uom', [])); // <- penting
+        $notes = $request->input('note', []);
+        $locations = $request->input('location', []);
+        $locationIds = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
+        $subLocIds = $request->input('sub_location_id', $request->input('sublocationid', []));
+        $subLocations = $request->input('sub_location', []);
+        $activityIds = $request->input('activity_id', []);
+        $busUnitIds = $request->input('business_unit_id', []);
+        $deptFinIds = $request->input('department_fin_id', []);
+        $actDescrs = $request->input('activity_descr', []);
+        $coaIds = $request->input('coa_id', []); // account_id
+        $item_types = $request->input('item_type', []);
         $item_categories = $request->input('item_category', []);
-        $inventorySubTypes   = $request->input('item_sub_type', []); // untuk Fixed Asset subtype
+        $inventorySubTypes = $request->input('item_sub_type', []); // untuk Fixed Asset subtype
 
-        $purchaseUnits    = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
-        $uomMultDivs      = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
-        $uomRates         = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
+        $purchaseUnits = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
+        $uomMultDivs = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
+        $uomRates = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
 
-        $doctype  = 'PT';
-        $user     = $request->user();
+        $doctype = 'PT';
+        $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
 
-        $dt        = Carbon::now();
-        $year      = (int) $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $dt = Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
-
 
         // helper untuk normalisasi angka lokal (ID format)
         $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
+            if ($v === null || $v === '') {
+                return null;
+            }
+            $s = preg_replace('/\s+/', '', (string) $v);
 
             $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
+            $hasDot = strpos($s, '.') !== false;
 
             if ($hasComma && $hasDot) {
                 // Decimal = separator yang muncul paling akhir
                 $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
+                $lastDot = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
                     // koma = decimal, titik = ribuan
                     $s = str_replace('.', '', $s);
@@ -370,9 +362,9 @@ class SpptController extends Controller
                 }
                 // kalau 1 titik, biarkan sebagai decimal
             }
-            return is_numeric($s) ? (float)$s : null;
-        };
 
+            return is_numeric($s) ? (float) $s : null;
+        };
 
         // // pastikan line approval ada
         // $approvalCount = M_approval::where([
@@ -430,43 +422,43 @@ class SpptController extends Controller
             );
             $urutan = (int) $auto['next'];
 
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            $tglbln = substr((string) $year, 2).$month;   // YYMM
+            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
             $spptNo = $docid;
 
             // === 1) header dulu (totalqty sementara 0) ===
             $header = new TrSPPT();
-            $header->spptid            = $docid;                // PT string
-            $header->spptdate          = $dt->toDateString();
-            $header->cpny_id           = $request->input('cpnyid');
-            $header->department_id     = $request->input('departementid');
-            $header->requesttypeid     = $request->input('requesttypeid');
-            $header->nama_tenant       = $request->input('tenant_id');
-            $header->no_unit_tenant    = $request->input('unit_id');
-            $header->pic_pengawas      = $request->input('pic_pengawas');
-            $header->condition_unit    = $request->input('condition_unit');
-            $header->beban             = $request->input('beban');
-            $header->keperluan         = $request->input('keperluan');
-            $header->budget_perpost    = $request->input('perpost');
-            $header->woid              = $request->input('woid');
-            $header->is_urgent         = $request->input('is_urgent');
-            $header->bqid              = '';
-            $header->totalopenordered  = 0;
-            $header->totalqty          = 0;
-            $header->totalordered      = 0;
+            $header->spptid = $docid;                // PT string
+            $header->spptdate = $dt->toDateString();
+            $header->cpny_id = $request->input('cpnyid');
+            $header->department_id = $request->input('departementid');
+            $header->requesttypeid = $request->input('requesttypeid');
+            $header->nama_tenant = $request->input('tenant_id');
+            $header->no_unit_tenant = $request->input('unit_id');
+            $header->pic_pengawas = $request->input('pic_pengawas');
+            $header->condition_unit = $request->input('condition_unit');
+            $header->beban = $request->input('beban');
+            $header->keperluan = $request->input('keperluan');
+            $header->budget_perpost = $request->input('perpost');
+            $header->woid = $request->input('woid');
+            $header->is_urgent = $request->input('is_urgent');
+            $header->bqid = '';
+            $header->totalopenordered = 0;
+            $header->totalqty = 0;
+            $header->totalordered = 0;
             $header->totalrejectordered = 0;
             $header->totalcompleteordered = 0;
-            $header->assignby          = null;
-            $header->assigndate        = null;
-            $header->assignpurchasing  = null;
-            $header->csjobs            = null;
-            $header->cs                = null;
-            $header->status            = 'P';
-            $header->created_by        = $username;
+            $header->assignby = null;
+            $header->assigndate = null;
+            $header->assignpurchasing = null;
+            $header->csjobs = null;
+            $header->cs = null;
+            $header->status = 'P';
+            $header->created_by = $username;
             $header->save();
 
             // === 2) detail ===
-            $totalQty         = 0;
+            $totalQty = 0;
             $totalOpenOrdered = 0;
             $rowCount = max(count($inventoryIds), count($qtys));
 
@@ -492,20 +484,22 @@ class SpptController extends Controller
 
             $buSiteCache = [];
 
-            for ($i = 0; $i < $rowCount; $i++) {
+            for ($i = 0; $i < $rowCount; ++$i) {
                 $invId = $inventoryIds[$i] ?? null;
                 $productName = $productNames[$i] ?? null;
                 // qty: sudah kamu konversi koma->titik di JS; tetap jaga-jaga:
-                $qty   = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
-                $uom   = $uoms[$i] ?? null;
+                $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
+                $uom = $uoms[$i] ?? null;
 
-                if (empty($invId) || $qty <= 0) continue;
+                if (empty($invId) || $qty <= 0) {
+                    continue;
+                }
 
                 // ==== perhitungan base_* ====
-                $baseUom        = $purchaseUnits[$i] ?? null;                   // WAJIB: purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M' / 'D' / ''
-                $rateRaw        = $uomRates[$i] ?? null;
-                $rate           = $toFloat($rateRaw) ?? 1.0;                     // default 1 kalau kosong/tidak valid
+                $baseUom = $purchaseUnits[$i] ?? null;                   // WAJIB: purchase_unit
+                $typeMultiplier = strtoupper(trim((string) ($uomMultDivs[$i] ?? ''))); // 'M' / 'D' / ''
+                $rateRaw = $uomRates[$i] ?? null;
+                $rate = $toFloat($rateRaw) ?? 1.0;                     // default 1 kalau kosong/tidak valid
                 if ($rate <= 0) {                                                // guard divide-by-zero & negatif
                     $rate = 1.0;
                     $typeMultiplier = '';                                        // anggap tidak ada konversi
@@ -525,7 +519,7 @@ class SpptController extends Controller
                 // ============================
                 // SiteID dari Business Unit
                 // ============================
-                $buIdRow = trim((string)($busUnitIds[$i] ?? ''));
+                $buIdRow = trim((string) ($busUnitIds[$i] ?? ''));
 
                 $siteFromBu = null;
                 if ($buIdRow !== '') {
@@ -533,7 +527,7 @@ class SpptController extends Controller
                         $siteFromBu = $buSiteCache[$buIdRow];
                     } else {
                         // query BU
-                        $bu = \App\Models\BusinessUnit::query()
+                        $bu = BusinessUnit::query()
                             ->select('ifca_entity_cd', 'solomon_cpny_id')
                             ->where('cpny_id', $request->cpnyid)
                             ->where('business_unit_id', $buIdRow)
@@ -542,8 +536,8 @@ class SpptController extends Controller
 
                         $siteFromBu = null;
                         if ($bu) {
-                            $ifca = trim((string)($bu->ifca_entity_cd ?? ''));
-                            $solo = trim((string)($bu->solomon_cpny_id ?? ''));
+                            $ifca = trim((string) ($bu->ifca_entity_cd ?? ''));
+                            $solo = trim((string) ($bu->solomon_cpny_id ?? ''));
                             $siteFromBu = $ifca !== '' ? $ifca : ($solo !== '' ? $solo : null);
                         }
 
@@ -560,41 +554,40 @@ class SpptController extends Controller
                     throw new \Exception("SiteID kosong. BU={$buIdRow} tidak punya ifca_entity_cd/solomon_cpny_id dan default site company tidak ditemukan (cpny={$request->cpnyid}).");
                 }
 
-
                 $detail = new TrSPPTdetail();
-                $detail->spptid                   = $docid;
-                $detail->sppt_no                  = $i + 1;   // nomor urut detail
-                $detail->inventoryid              = $invId;
-                $detail->inventory_descr          = $productName;
-                $detail->siteid                   = $finalSiteId;
-                $detail->qty                      = $qty;
-                $detail->uom                      = $uom;
-                $detail->note                     = $notes[$i]   ?? null;
-                $detail->inventory_type           = $item_types[$i] ?? null;
-                $detail->inventory_sub_type       = $inventorySubTypes[$i] ?? null;
-                $detail->inventory_category       = $item_categories[$i] ?? null;
-                $detail->base_uom                 = $baseUom;            // = purchase_unit
-                $detail->base_multiplier          = $rate;               // = uom_unitrate (float)
-                $detail->type_multiplier          = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty                 = $baseQty;            // hitungan M/D
-                $detail->budget_cpny_id           = $request->cpnyid;
-                $detail->budget_business_unit_id  = $busUnitIds[$i]     ?? null;
+                $detail->spptid = $docid;
+                $detail->sppt_no = $i + 1;   // nomor urut detail
+                $detail->inventoryid = $invId;
+                $detail->inventory_descr = $productName;
+                $detail->siteid = $finalSiteId;
+                $detail->qty = $qty;
+                $detail->uom = $uom;
+                $detail->note = $notes[$i] ?? null;
+                $detail->inventory_type = $item_types[$i] ?? null;
+                $detail->inventory_sub_type = $inventorySubTypes[$i] ?? null;
+                $detail->inventory_category = $item_categories[$i] ?? null;
+                $detail->base_uom = $baseUom;            // = purchase_unit
+                $detail->base_multiplier = $rate;               // = uom_unitrate (float)
+                $detail->type_multiplier = $typeMultiplier ?: null; // = 'M' / 'D' / null
+                $detail->base_qty = $baseQty;            // hitungan M/D
+                $detail->budget_cpny_id = $request->cpnyid;
+                $detail->budget_business_unit_id = $busUnitIds[$i] ?? null;
                 $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
-                $detail->budget_activity_descr    = $actDescrs[$i] ?? null;
-                $detail->budget_account_id        = $coaIds[$i]         ?? null;
-                $detail->budget_activity_id       = $activityIds[$i]   ?? null;
-                $detail->location_id              = $locationIds[$i]  ?? null;
-                $detail->sub_location_id          = $subLocIds[$i]    ?? null;
-                $detail->budget_perpost           = $request->perpost;
-                $detail->assignby                 = null;
-                $detail->assigndate               = null;
-                $detail->assignpurchasing         = null;
-                $detail->openordered              = $qty;
-                $detail->ordered                  = 0;
-                $detail->rejectordered            = 0;
-                $detail->completeordered          = 0;
-                $detail->status                   = 'P';
-                $detail->created_by               = $username;
+                $detail->budget_activity_descr = $actDescrs[$i] ?? null;
+                $detail->budget_account_id = $coaIds[$i] ?? null;
+                $detail->budget_activity_id = $activityIds[$i] ?? null;
+                $detail->location_id = $locationIds[$i] ?? null;
+                $detail->sub_location_id = $subLocIds[$i] ?? null;
+                $detail->budget_perpost = $request->perpost;
+                $detail->assignby = null;
+                $detail->assigndate = null;
+                $detail->assignpurchasing = null;
+                $detail->openordered = $qty;
+                $detail->ordered = 0;
+                $detail->rejectordered = 0;
+                $detail->completeordered = 0;
+                $detail->status = 'P';
+                $detail->created_by = $username;
                 $detail->save();
 
                 $totalQty += $qty;
@@ -643,23 +636,29 @@ class SpptController extends Controller
             $firstCategory = null;
             if (!empty($inventoryCategories)) {
                 foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) { $firstCategory = $c; break; }
+                    if (!empty($c)) {
+                        $firstCategory = $c;
+                        break;
+                    }
                 }
             }
 
             // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
             $hasFixedAssetSubtype = false;
-            foreach ((array)$inventorySubTypes as $sub) {
-                $s = mb_strtolower((string)$sub);
-                if ($s === 'fixed asset' || $s === 'fa') { $hasFixedAssetSubtype = true; break; }
+            foreach ((array) $inventorySubTypes as $sub) {
+                $s = mb_strtolower((string) $sub);
+                if ($s === 'fixed asset' || $s === 'fa') {
+                    $hasFixedAssetSubtype = true;
+                    break;
+                }
             }
 
             // 4) Build context untuk ApprovalController
             $ctx = [
-                'is_urgent'                => $isUrgent,
+                'is_urgent' => $isUrgent,
                 'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype'  => $hasFixedAssetSubtype,
-                'ignore_nominal'           => true,   // SPPT diminta tidak cek nominal
+                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
                 // 'grand_total'           => ...     // tidak dipakai di SPPT
             ];
 
@@ -680,7 +679,6 @@ class SpptController extends Controller
                 $header->completed_at = $dt;
                 $header->save();
             }
-
 
             // === 5) attachments (opsional) ===
             // if ($request->hasfile('attachments')) {
@@ -718,12 +716,12 @@ class SpptController extends Controller
 
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $docid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $request->input('cpnyid'),
+                    'refnbr' => $docid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $request->input('cpnyid'),
                     'departementid' => $request->input('departementid'),
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $user->username,
                 ];
 
                 $files = (array) $request->file('attachments');
@@ -734,9 +732,10 @@ class SpptController extends Controller
                     // tidak return di sini!
                 } catch (\Throwable $e) {
                     \DB::rollBack();
+
                     return response()->json([
                         'message' => 'Failed to create PT',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             } else {
@@ -794,36 +793,34 @@ class SpptController extends Controller
             $eid = Hashids::encode($header->id);
 
             $approvalCtl->notifyFirstApprover(
-                    $docid,
-                    $doctype,
-                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                    'SPPT',
-                    url('/showsppts/' . $eid),
-                    [
-                        'info'      => $request->keperluan,
-                        'createdby' => $header->created_by,
-                        'date'      => $dt->toDateTimeString(),
-                    ]
+                $docid,
+                $doctype,
+                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                'SPPT',
+                url('/showsppts/'.$eid),
+                [
+                    'info' => $request->keperluan,
+                    'createdby' => $header->created_by,
+                    'date' => $dt->toDateTimeString(),
+                ]
             );
-
 
             DB::commit();
 
             return response()->json([
-                'message'  => 'SPPT created successfully',
-                'spptid'   => $docid,
-                'sppt_no'  => $spptNo,
+                'message' => 'SPPT created successfully',
+                'spptid' => $docid,
+                'sppt_no' => $spptNo,
                 'totalqty' => $totalQty,
                 'attachments' => $uploadResult,
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
             return response()->json([
                 'message' => 'Failed to create SPPT',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
@@ -841,48 +838,48 @@ class SpptController extends Controller
 
         $sppt = TrSPPT::findOrFail($id);
 
-    // ===== Prefill TENANT: pakai MsTenant (unit_id, store_name, floor_id, store_no)
-    if (!empty($sppt->nama_tenant)) {
-        $tenant = \App\Models\MsTenant::select('unit_id','store_name','floor_id','store_no')
-            ->where('unit_id', $sppt->nama_tenant)
-            ->first();
+        // ===== Prefill TENANT: pakai MsTenant (unit_id, store_name, floor_id, store_no)
+        if (!empty($sppt->nama_tenant)) {
+            $tenant = MsTenant::select('unit_id', 'store_name', 'floor_id', 'store_no')
+                ->where('unit_id', $sppt->nama_tenant)
+                ->first();
 
-        if ($tenant) {
-            $sppt->tenant_name    = $tenant->store_name; // <-- label yg ditampilkan Select2
-            $sppt->no_unit_tenant = trim(
-                ($tenant->floor_id ? $tenant->floor_id : '') .
-                ($tenant->store_no ? (' - '.$tenant->store_no) : '')
-            );
+            if ($tenant) {
+                $sppt->tenant_name = $tenant->store_name; // <-- label yg ditampilkan Select2
+                $sppt->no_unit_tenant = trim(
+                    ($tenant->floor_id ? $tenant->floor_id : '').
+                    ($tenant->store_no ? (' - '.$tenant->store_no) : '')
+                );
+            }
         }
-    }
 
-    // ===== (Opsional) Prefill PIC: ambil nama lengkap utk label Select2 PIC
-    if (!empty($sppt->pic_pengawas)) {
-        $pic = \App\Models\User::where('username', $sppt->pic_pengawas)
-            ->first(['username','name as full_name']);
-        if ($pic) {
-            $sppt->pic_name = $pic->full_name;
+        // ===== (Opsional) Prefill PIC: ambil nama lengkap utk label Select2 PIC
+        if (!empty($sppt->pic_pengawas)) {
+            $pic = User::where('username', $sppt->pic_pengawas)
+                ->first(['username', 'name as full_name']);
+            if ($pic) {
+                $sppt->pic_name = $pic->full_name;
+            }
         }
-    }
-
 
         // ===== Detail + eager load lokasi (sudah OK)
         $spptdetail = TrSPPTdetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])
             ->where('spptid', $sppt->spptid)
             ->get()
             ->map(function ($d) {
-                $d->location_name     = optional($d->location)->location_name;
+                $d->location_name = optional($d->location)->location_name;
                 $d->sub_location_name = optional($d->subLocation)->sub_location_name;
+
                 return $d;
             });
 
-        $user      = request()->user();
-        $usercpny  = Usercpny::where('username', $user->username)->get();
+        $user = request()->user();
+        $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
-        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
         $rows = TrAttachment::where('refnbr', $sppt->spptid)
@@ -890,21 +887,21 @@ class SpptController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $config      = config('filesystems.disks.gcs');
+        $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
         $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
+            'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
         $bucket = $storage->bucket($config['bucket']);
 
         $attachments = $rows->map(function ($r) use ($bucket) {
             $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
-            $signedUrl  = null;
+            $object = $bucket->object($objectPath);
+            $signedUrl = null;
             try {
                 $signedUrl = $object->signedUrl(
                     new \DateTimeImmutable('+10 minutes'),
@@ -913,25 +910,24 @@ class SpptController extends Controller
             } catch (\Throwable $e) {
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
+
             return (object) [
-                'id'           => $r->id,
+                'id' => $r->id,
                 'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
+                'created_by' => $r->created_by,
+                'created_at' => $r->created_at,
+                'url' => $signedUrl,
+                'folder' => $r->folder,
+                'filename' => $r->filename,
+                'extention' => $r->extention,
+                'size' => $r->filesize,
             ];
         });
 
         return view('pages.sppts.editsppts', compact(
-            'sppt','spptdetail','usercpny','usercpny2','userdept','userdept2','attachments','hash'
+            'sppt', 'spptdetail', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'attachments', 'hash'
         ));
     }
-
-
 
     public function updateSppt(Request $request, $hash)
     {
@@ -940,16 +936,16 @@ class SpptController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'PT tidak ditemukan.');
 
-        $user      = $request->user();
-        $dt        = Carbon::now();
-        $year      = (int) $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $user = $request->user();
+        $dt = Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
-        $doctype   = 'PT';
-        $username  = $user->username ?? 'system';
-        $fullname  = $user->name ?? 'system';
+        $doctype = 'PT';
+        $username = $user->username ?? 'system';
+        $fullname = $user->name ?? 'system';
 
-         // ===== generate TrApproval dari MsApproval sesuai context =====
+        // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
@@ -957,14 +953,16 @@ class SpptController extends Controller
 
         // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
         $toFloat = function ($v): ?float {
-            if ($v === null || $v === '') return null;
-            $s = preg_replace('/\s+/', '', (string)$v);
+            if ($v === null || $v === '') {
+                return null;
+            }
+            $s = preg_replace('/\s+/', '', (string) $v);
             $hasComma = strpos($s, ',') !== false;
-            $hasDot   = strpos($s, '.') !== false;
+            $hasDot = strpos($s, '.') !== false;
 
             if ($hasComma && $hasDot) {
                 $lastComma = strrpos($s, ',');
-                $lastDot   = strrpos($s, '.');
+                $lastDot = strrpos($s, '.');
                 if ($lastComma > $lastDot) {
                     // koma = decimal, titik = ribuan
                     $s = str_replace('.', '', $s);
@@ -976,52 +974,55 @@ class SpptController extends Controller
             } elseif ($hasComma) {
                 $s = str_replace(',', '.', $s);
             } elseif ($hasDot) {
-                if (substr_count($s, '.') > 1) $s = str_replace('.', '', $s);
+                if (substr_count($s, '.') > 1) {
+                    $s = str_replace('.', '', $s);
+                }
             }
-            return is_numeric($s) ? (float)$s : null;
+
+            return is_numeric($s) ? (float) $s : null;
         };
 
         $header = TrSPPT::findOrFail($id);
         // update header
-        $header->cpny_id        = $request->cpnyid;
-        $header->department_id  = $request->departementid;
-        $header->requesttypeid  = $request->requesttypeid;
-        $header->nama_tenant    = $request->nama_tenant;
+        $header->cpny_id = $request->cpnyid;
+        $header->department_id = $request->departementid;
+        $header->requesttypeid = $request->requesttypeid;
+        $header->nama_tenant = $request->nama_tenant;
         $header->no_unit_tenant = $request->no_unit_tenant;
-        $header->pic_pengawas   = $request->pic_pengawas;
+        $header->pic_pengawas = $request->pic_pengawas;
         $header->condition_unit = $request->condition_unit;
-        $header->beban          = $request->beban;
-        $header->keperluan      = $request->keperluan;
+        $header->beban = $request->beban;
+        $header->keperluan = $request->keperluan;
         $header->budget_perpost = $request->perpost;
-        $header->woid           = $request->woid;
-        $header->is_urgent      = $request->is_urgent;
-        $header->status         = 'P';
-        $header->updated_by     = $username;
+        $header->woid = $request->woid;
+        $header->is_urgent = $request->is_urgent;
+        $header->status = 'P';
+        $header->updated_by = $username;
         $header->save();
 
         // arrays utama
-        $detailIds    = array_values($request->input('detail_id', []));
+        $detailIds = array_values($request->input('detail_id', []));
         $inventoryIds = array_values($request->input('inventoryid', []));
         $productNames = array_values($request->input('product_name', []));
-        $qtys         = array_values($request->input('qty', []));
-        $uoms         = array_values($request->input('stock_unit', []));
-        $notes        = array_values($request->input('note', []));
-        $locIds       = array_values($request->input('location_id', []));
-        $subLocIds    = array_values($request->input('sub_location_id', []));
-        $actIds       = array_values($request->input('activity_id', []));
-        $buIds        = array_values($request->input('business_unit_id', []));
-        $deptFinIds   = array_values($request->input('department_fin_id', []));
-        $actDescrs    = array_values($request->input('activity_descr', []));
-        $coaIds       = array_values($request->input('coa_id', []));
-        $itemTypes    = array_values($request->input('item_type', []));
-        $itemCats     = array_values($request->input('item_category', []));
+        $qtys = array_values($request->input('qty', []));
+        $uoms = array_values($request->input('stock_unit', []));
+        $notes = array_values($request->input('note', []));
+        $locIds = array_values($request->input('location_id', []));
+        $subLocIds = array_values($request->input('sub_location_id', []));
+        $actIds = array_values($request->input('activity_id', []));
+        $buIds = array_values($request->input('business_unit_id', []));
+        $deptFinIds = array_values($request->input('department_fin_id', []));
+        $actDescrs = array_values($request->input('activity_descr', []));
+        $coaIds = array_values($request->input('coa_id', []));
+        $itemTypes = array_values($request->input('item_type', []));
+        $itemCats = array_values($request->input('item_category', []));
 
-        $inventorySubTypes   = array_values($request->input('item_sub_type', []));
+        $inventorySubTypes = array_values($request->input('item_sub_type', []));
 
         // arrays UoM tambahan
         $purchaseUnits = array_values($request->input('purchase_unit', []));      // hidden dari UI
-        $uomMultDivs   = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
-        $uomRates      = array_values($request->input('uom_unitrate', []));       // bisa "12.000"
+        $uomMultDivs = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
+        $uomRates = array_values($request->input('uom_unitrate', []));       // bisa "12.000"
 
         DB::beginTransaction();
 
@@ -1029,24 +1030,31 @@ class SpptController extends Controller
             // hapus baris yang di-mark delete
             if ($request->filled('deleted_detail_ids')) {
                 $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) TrSPPTdetail::whereIn('id', $idsToDelete)->delete();
+                if ($idsToDelete) {
+                    TrSPPTdetail::whereIn('id', $idsToDelete)->delete();
+                }
             }
 
             $rowCount = max(count($inventoryIds), count($qtys));
             $savedDetails = [];
             $buSiteCache = [];
 
-            for ($i = 0; $i < $rowCount; $i++) {
+            for ($i = 0; $i < $rowCount; ++$i) {
                 $invId = $inventoryIds[$i] ?? null;
-                $qty   = (float) str_replace(',', '.', (string)($qtys[$i] ?? 0));
-                if (empty($invId) || $qty <= 0) continue;
+                $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
+                if (empty($invId) || $qty <= 0) {
+                    continue;
+                }
 
                 // === konversi base_* seperti di  ===
-                $displayUom     = $uoms[$i] ?? null;
-                $baseUom        = $purchaseUnits[$i] ?? null;                        // purchase_unit
-                $typeMultiplier = strtoupper(trim((string)($uomMultDivs[$i] ?? ''))); // 'M'/'D'
-                $rate           = $toFloat($uomRates[$i] ?? null) ?? 1.0;             // 12.000 -> 12.0
-                if ($rate <= 0) { $rate = 1.0; $typeMultiplier = ''; }
+                $displayUom = $uoms[$i] ?? null;
+                $baseUom = $purchaseUnits[$i] ?? null;                        // purchase_unit
+                $typeMultiplier = strtoupper(trim((string) ($uomMultDivs[$i] ?? ''))); // 'M'/'D'
+                $rate = $toFloat($uomRates[$i] ?? null) ?? 1.0;             // 12.000 -> 12.0
+                if ($rate <= 0) {
+                    $rate = 1.0;
+                    $typeMultiplier = '';
+                }
 
                 $baseQty = $qty;
                 if ($typeMultiplier === 'M') {
@@ -1058,7 +1066,7 @@ class SpptController extends Controller
                 // ============================
                 // SiteID dari Business Unit
                 // ============================
-                $buIdRow = trim((string)($buIds[$i] ?? ''));
+                $buIdRow = trim((string) ($buIds[$i] ?? ''));
 
                 $siteFromBu = null;
                 if ($buIdRow !== '') {
@@ -1066,7 +1074,7 @@ class SpptController extends Controller
                         $siteFromBu = $buSiteCache[$buIdRow];
                     } else {
                         // query BU
-                        $bu = \App\Models\BusinessUnit::query()
+                        $bu = BusinessUnit::query()
                             ->select('ifca_entity_cd', 'solomon_cpny_id')
                             ->where('cpny_id', $request->cpnyid)
                             ->where('business_unit_id', $buIdRow)
@@ -1075,8 +1083,8 @@ class SpptController extends Controller
 
                         $siteFromBu = null;
                         if ($bu) {
-                            $ifca = trim((string)($bu->ifca_entity_cd ?? ''));
-                            $solo = trim((string)($bu->solomon_cpny_id ?? ''));
+                            $ifca = trim((string) ($bu->ifca_entity_cd ?? ''));
+                            $solo = trim((string) ($bu->solomon_cpny_id ?? ''));
                             $siteFromBu = $ifca !== '' ? $ifca : ($solo !== '' ? $solo : null);
                         }
 
@@ -1094,35 +1102,35 @@ class SpptController extends Controller
                 }
 
                 $data = [
-                    'inventoryid'              => $invId,
-                    'inventory_descr'          => $productNames[$i] ?? null,
-                    'qty'                      => $qty,
-                    'uom'                      => $displayUom,
-                    'siteid'                   => $finalSiteId,
-                    'note'                     => $notes[$i] ?? null,
-                    'inventory_type'                => $itemTypes[$i] ?? null,
-                    'inventory_sub_type'            => $inventorySubTypes[$i] ?? null,
-                    'inventory_category'            => $itemCats[$i] ?? null,
+                    'inventoryid' => $invId,
+                    'inventory_descr' => $productNames[$i] ?? null,
+                    'qty' => $qty,
+                    'uom' => $displayUom,
+                    'siteid' => $finalSiteId,
+                    'note' => $notes[$i] ?? null,
+                    'inventory_type' => $itemTypes[$i] ?? null,
+                    'inventory_sub_type' => $inventorySubTypes[$i] ?? null,
+                    'inventory_category' => $itemCats[$i] ?? null,
 
                     // >>> ini yang ditambahkan <<<
-                    'base_uom'                 => $baseUom,                       // purchase_unit
-                    'base_multiplier'          => $rate,                          // uom_unitrate (float)
-                    'type_multiplier'          => $typeMultiplier ?: null,        // 'M'/'D'/null
-                    'base_qty'                 => $baseQty,                        // hasil M/D
+                    'base_uom' => $baseUom,                       // purchase_unit
+                    'base_multiplier' => $rate,                          // uom_unitrate (float)
+                    'type_multiplier' => $typeMultiplier ?: null,        // 'M'/'D'/null
+                    'base_qty' => $baseQty,                        // hasil M/D
 
-                    'budget_cpny_id'           => $request->cpnyid,
-                    'budget_business_unit_id'  => $buIds[$i] ?? null,
+                    'budget_cpny_id' => $request->cpnyid,
+                    'budget_business_unit_id' => $buIds[$i] ?? null,
                     'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_activity_descr'    => $actDescrs[$i] ?? null,
-                    'budget_account_id'        => $coaIds[$i] ?? null,
-                    'budget_activity_id'       => $actIds[$i] ?? null,
-                    'openordered'              => $qty,
-                    'ordered'                  => 0,
-                    'location_id'              => $locIds[$i] ?? null,
-                    'sub_location_id'          => $subLocIds[$i] ?? null,
-                    'budget_perpost'           => $request->perpost,
-                    'status'                   => 'P',
-                    'updated_by'               => $username,
+                    'budget_activity_descr' => $actDescrs[$i] ?? null,
+                    'budget_account_id' => $coaIds[$i] ?? null,
+                    'budget_activity_id' => $actIds[$i] ?? null,
+                    'openordered' => $qty,
+                    'ordered' => 0,
+                    'location_id' => $locIds[$i] ?? null,
+                    'sub_location_id' => $subLocIds[$i] ?? null,
+                    'budget_perpost' => $request->perpost,
+                    'status' => 'P',
+                    'updated_by' => $username,
                 ];
 
                 $idDetail = $detailIds[$i] ?? null;
@@ -1190,30 +1198,36 @@ class SpptController extends Controller
             //     $header->save();
             // }
 
-             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
 
             // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
             $firstCategory = null;
             if (!empty($inventoryCategories)) {
                 foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) { $firstCategory = $c; break; }
+                    if (!empty($c)) {
+                        $firstCategory = $c;
+                        break;
+                    }
                 }
             }
 
             // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
             $hasFixedAssetSubtype = false;
-            foreach ((array)$inventorySubTypes as $sub) {
-                $s = mb_strtolower((string)$sub);
-                if ($s === 'fixed asset' || $s === 'fa') { $hasFixedAssetSubtype = true; break; }
+            foreach ((array) $inventorySubTypes as $sub) {
+                $s = mb_strtolower((string) $sub);
+                if ($s === 'fixed asset' || $s === 'fa') {
+                    $hasFixedAssetSubtype = true;
+                    break;
+                }
             }
 
             // 4) Build context untuk ApprovalController
             $ctx = [
-                'is_urgent'                => $isUrgent,
+                'is_urgent' => $isUrgent,
                 'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype'  => $hasFixedAssetSubtype,
-                'ignore_nominal'           => true,   // SPPT diminta tidak cek nominal
+                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
                 // 'grand_total'           => ...     // tidak dipakai di SPPT
             ];
 
@@ -1234,7 +1248,6 @@ class SpptController extends Controller
                 $header->completed_at = $dt;
                 $header->save();
             }
-
 
             // attachments (tetap)
             // if ($request->hasfile('attachments')) {
@@ -1273,12 +1286,12 @@ class SpptController extends Controller
             $uploadResult = null;
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $header->spptid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $request->cpnyid,
+                    'refnbr' => $header->spptid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $request->cpnyid,
                     'departementid' => $request->departementid,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $user->username,
                 ];
                 $files = (array) $request->file('attachments');
 
@@ -1287,9 +1300,10 @@ class SpptController extends Controller
                     $uploadResult = $uploader->uploadInternal($meta, $files);
                 } catch (\Throwable $e) {
                     DB::rollBack();
+
                     return response()->json([
                         'message' => 'Failed to update PT',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -1344,30 +1358,28 @@ class SpptController extends Controller
             $eid = Hashids::encode($header->id);
 
             $approvalCtl->notifyFirstApprover(
-                    $header->spptid,
-                    $doctype,
-                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                    'SPPT',
-                    url('/showsppts/' . $eid),
-                    [
-                        'info'      => $request->keperluan,
-                        'createdby' => $header->created_by,
-                        'date'      => $dt->toDateTimeString(),
-                    ]
+                $header->spptid,
+                $doctype,
+                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                'SPPT',
+                url('/showsppts/'.$eid),
+                [
+                    'info' => $request->keperluan,
+                    'createdby' => $header->created_by,
+                    'date' => $dt->toDateTimeString(),
+                ]
             );
 
-
             DB::commit();
-            return response()->json(['message' => 'SPPT updated successfully']);
 
+            return response()->json(['message' => 'SPPT updated successfully']);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+
             return response()->json(['message' => 'Update failed', 'error' => $e->getMessage()], 500);
         }
     }
-
-
 
     public function removeAttachment($id)
     {
@@ -1380,7 +1392,6 @@ class SpptController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
     }
-
 
     public function showSppt($hash)
     {
@@ -1403,12 +1414,76 @@ class SpptController extends Controller
 
         $spptdetail = TrSPPTdetail::with([
             'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name'
+            'subLocation:sub_location_id,sub_location_name',
         ])
         ->where('spptid', $sppt->spptid)
         ->orderby('sppt_no', 'ASC')
         ->get();
 
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+            $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+        })
+                ->select(
+                    'ms_budget.cpny_id',
+                    'ms_budget.business_unit_id',
+                    'ms_budget.department_fin_id',
+                    'ms_budget.account_id',
+                    'ms_budget.activity_id',
+                    'ms_budget.activity_descr',
+                    'ms_budget.perpost',
+                    'ms_budget.totalbudget',
+                    'ms_budget.totalbudget_add',
+                    'ms_budget.total_reserve',
+                    'ms_budget.total_used',
+                    'ms_coa.account_descr as account_descr'
+                )
+                ->get();
+
+        $budgetMap = [];
+
+        foreach ($budgets as $b) {
+            $key = implode('|', [
+                $b->cpny_id,
+                $b->business_unit_id,
+                $b->department_fin_id,
+                $b->account_id,
+                $b->activity_descr,
+                $b->perpost,
+            ]);
+
+            $budgetMap[$key] = $b;
+        }
+
+        foreach ($spptdetail as $item) {
+            $key = implode('|', [
+                $item->budget_cpny_id,
+                $item->budget_business_unit_id,
+                $item->budget_department_fin_id,
+                $item->budget_account_id,
+                $item->budget_activity_descr,
+                $item->budget_perpost,
+            ]);
+
+            if (isset($budgetMap[$key])) {
+                $budget = $budgetMap[$key];
+
+                $item->budget_data = $budget;
+                $item->account_descr = $budget->account_descr;
+
+                $budgetValue = (float) ($budget->totalbudget ?? 0);
+                $additional = (float) ($budget->totalbudget_add ?? 0);
+                $reserved = (float) ($budget->total_reserve ?? 0);
+                $used = (float) ($budget->total_used ?? 0);
+
+                $item->budget_remaining =
+                    $budgetValue + $additional - $reserved - $used;
+            } else {
+                $item->budget_data = null;
+                $item->account_descr = null;
+                $item->budget_remaining = 0;
+            }
+        }
 
         // $rows = TrAttachment::where('refnbr', $sppt->spptid)
         //     ->where('status', 'A')
@@ -1472,19 +1547,18 @@ class SpptController extends Controller
         }
 
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $sppt->created_by === $loginUsername;
+        $canUpload = $sppt->created_by === $loginUsername;
         $akses_cc = SysUserRole::where('username', $user->username)
-            ->where('role_id','COSTCTRLACCESS')
+            ->where('role_id', 'COSTCTRLACCESS')
             ->first();
 
-
         $userCpny = Usercpny::query()
-        ->where('username',$user->username)->where('status','A')
+        ->where('username', $user->username)->where('status', 'A')
         ->pluck('cpny_id')->values();
 
         $userBu = Userbusinessunit::query()
-        ->where('username',$user->username)->where('status','A')
-        ->get(['cpny_id','business_unit_id']);
+        ->where('username', $user->username)->where('status', 'A')
+        ->get(['cpny_id', 'business_unit_id']);
 
         $userCpnyIds = Usercpny::query()
             ->where('username', $user->username)
@@ -1504,8 +1578,7 @@ class SpptController extends Controller
         $woHash = null;
 
         if (!empty($sppt->woid)) {
-
-            $woData = TrWO::select('id','woid','keperluan')
+            $woData = TrWO::select('id', 'woid', 'keperluan')
                 ->where('woid', $sppt->woid)
                 ->first();
 
@@ -1514,7 +1587,50 @@ class SpptController extends Controller
             }
         }
 
-        return view('pages.sppts.showsppts', compact('sppt','attachmentPT','attachmentWO','spptdetail','bq','hash','canUpload','akses_cc','userCpny','userBu','userDeptFin','woData','woHash'));
+        return view('pages.sppts.showsppts', compact('sppt', 'attachmentPT', 'attachmentWO', 'spptdetail', 'bq', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'));
+    }
+
+    public function exportDetail($id)
+    {
+        $sppt = TrSPPT::findOrFail($id);
+
+        $spptdetail = TrSPPTdetail::with([
+            'location',
+            'subLocation',
+        ])
+        ->where('spptid', $sppt->spptid)
+        ->orderBy('sppt_no', 'ASC')
+        ->get();
+
+        $budgets = BudgetDetail::select(
+            'cpny_id',
+            'business_unit_id',
+            'department_fin_id',
+            'account_id',
+            'activity_id',
+            'perpost',
+            'totalbudget',
+            'total_reserve',
+            'total_used'
+        )->get();
+
+        foreach ($spptdetail as $item) {
+            $budget = $budgets->first(function ($b) use ($item) {
+                return $b->cpny_id == $item->budget_cpny_id
+                    && $b->business_unit_id == $item->budget_business_unit_id
+                    && $b->department_fin_id == $item->budget_department_fin_id
+                    && $b->account_id == $item->budget_account_id
+                    && $b->activity_id == $item->budget_activity_id
+                    && $b->perpost == $item->budget_perpost;
+            });
+
+            $item->budget_data = $budget;
+        }
+
+        return Excel::download(
+            new SpptDetailExport($spptdetail),
+            'SPPT_Detail_'.$sppt->spptid.'.xlsx'
+        );
     }
 
     private function mapAttachmentsToSignedUrl($refnbr)
@@ -1526,19 +1642,19 @@ class SpptController extends Controller
 
         $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
 
-        $storage = new \Google\Cloud\Storage\StorageClient([
-            'projectId'   => $config['project_id'],
+        $storage = new StorageClient([
+            'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
         $bucket = $storage->bucket($config['bucket']);
 
         return $rows->map(function ($r) use ($bucket) {
             $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
+            $object = $bucket->object($objectPath);
 
             $signedUrl = null;
             try {
@@ -1550,32 +1666,34 @@ class SpptController extends Controller
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
 
-            return (object)[
+            return (object) [
                 'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
+                'created_by' => $r->created_by,
+                'created_at' => $r->created_at,
+                'url' => $signedUrl,
+                'folder' => $r->folder,
+                'filename' => $r->filename,
+                'extention' => $r->extention,
+                'size' => $r->filesize,
             ];
         });
     }
 
     public function approveSppt(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'PT';
 
         $sppt = TrSPPT::with('creator')->where('spptid', $docid)->first();
-        if (!$sppt) return response()->json(['success'=>false,'message'=>'SPPT not found'],404);
+        if (!$sppt) {
+            return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppt->id);
-        $docUrl   = url('/showsppts/' . $eid);
+        $eid = Hashids::encode($sppt->id);
+        $docUrl = url('/showsppts/'.$eid);
         $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+        $result = app(ApprovalController::class)->approveStep(
             $sppt->spptid,
             $doctype,
             $user->username,
@@ -1583,43 +1701,43 @@ class SpptController extends Controller
 
             // complete: update header/detail + email creator complete
             function (string $refnbr, \Carbon\Carbon $now) use ($sppt, $fullname, $docUrl) {
-                $sppt->status       = 'C';
+                $sppt->status = 'C';
                 $sppt->completed_by = $sppt->completed_by ?: auth()->user()->username;
                 $sppt->completed_at = $now;
                 $sppt->save();
 
                 TrSPPTdetail::where('spptid', $sppt->spptid)->update(['status' => 'C']);
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $sppt->spptid,
                     'SPPT',
                     'C',
                     $sppt->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+                        'cpnyid' => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
                         'deptname' => $sppt->department_id ?? $sppt->departementid ?? '',
-                        'date'     => $sppt->spptdate,
-                        'info'     => $sppt->keperluan,
+                        'date' => $sppt->spptdate,
+                        'info' => $sppt->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
             },
 
             // notify next approver
             function ($next, \Carbon\Carbon $now) use ($sppt, $docUrl) {
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                app(ApprovalController::class)->notifyFirstApprover(
                     $sppt->spptid,
                     'PT',
                     'P',
                     'SPPT',
                     $docUrl,
                     [
-                        'info'      => $sppt->keperluan,
+                        'info' => $sppt->keperluan,
                         'createdby' => $sppt->created_by,
-                        'date'      => $now->toDateTimeString(),
+                        'date' => $now->toDateTimeString(),
                     ]
                 );
 
@@ -1631,32 +1749,34 @@ class SpptController extends Controller
         );
 
         if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
+            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Approve failed'], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
+        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
     }
 
     public function rejectSppt(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'PT';
 
-        $sppt = \App\Models\TrSPPT::with('creator')->where('spptid', $docid)->first();
-        if (!$sppt) return response()->json(['success'=>false,'message'=>'SPPT not found'],404);
+        $sppt = TrSPPT::with('creator')->where('spptid', $docid)->first();
+        if (!$sppt) {
+            return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppt->id);
-        $docUrl   = url('/showsppts/' . $eid);
+        $eid = Hashids::encode($sppt->id);
+        $docUrl = url('/showsppts/'.$eid);
         $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+        $result = app(ApprovalController::class)->rejectStep(
             $sppt->spptid,
             $doctype,
             $user->username,
             $user->name,
 
             function (string $refnbr, \Carbon\Carbon $now) use ($sppt, $fullname, $docUrl) {
-                $sppt->status       = 'R';
+                $sppt->status = 'R';
                 $sppt->completed_by = auth()->user()->username;
                 $sppt->completed_at = $now;
                 $sppt->save();
@@ -1664,57 +1784,60 @@ class SpptController extends Controller
                 // optional: tandai detail R
                 // \App\Models\TrSPPTdetail::where('spptid', $sppt->spptid)->update(['status' => 'R']);
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $sppt->spptid,
                     'SPPT',
                     'R',
                     $sppt->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+                        'cpnyid' => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
                         'deptname' => $sppt->department_id ?? $sppt->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $sppt->keperluan,
+                        'date' => $now->toDateString(),
+                        'info' => $sppt->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
 
                 // simpan komentar (jika ada)
                 try {
                     app('App\Http\Controllers\SendCommentController')->sendmsg($sppt->id, 'PT', request());
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         );
 
         if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
+            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Reject failed'], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'SPPT rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'SPPT rejected successfully']);
     }
 
     public function reviseSppt(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'PT';
 
-        $sppt = \App\Models\TrSPPT::with('creator')->where('spptid', $docid)->first();
-        if (!$sppt) return response()->json(['success'=>false,'message'=>'SPPT not found'],404);
+        $sppt = TrSPPT::with('creator')->where('spptid', $docid)->first();
+        if (!$sppt) {
+            return response()->json(['success' => false, 'message' => 'SPPT not found'], 404);
+        }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($sppt->id);
-        $docUrl   = url('/showsppts/' . $eid);
+        $eid = Hashids::encode($sppt->id);
+        $docUrl = url('/showsppts/'.$eid);
         $fullname = data_get($sppt, 'creator.name') ?: $sppt->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+        $result = app(ApprovalController::class)->reviseStep(
             $sppt->spptid,            // refnbr
             $doctype,                 // PT
             $user->username,          // actor
             $user->name,              // actor
             function (string $refnbr, \Carbon\Carbon $now) use ($sppt, $fullname, $docUrl) {
                 // === HEADER SPPT -> D ===
-                $sppt->status       = 'D';
+                $sppt->status = 'D';
                 $sppt->completed_by = auth()->user()->username;
                 $sppt->completed_at = $now;
                 $sppt->save();
@@ -1723,43 +1846,40 @@ class SpptController extends Controller
                 // \App\Models\TrSPPTdetail::where('spptid', $sppt->spptid)->update(['status' => 'D']);
 
                 // === Email ke requester ===
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $sppt->spptid,
                     'SPPT',
                     'D',
                     $sppt->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
+                        'cpnyid' => $sppt->cpny_id ?? $sppt->cpnyid ?? '',
                         'deptname' => $sppt->department_id ?? $sppt->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $sppt->keperluan,
+                        'date' => $now->toDateString(),
+                        'info' => $sppt->keperluan,
                         'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,   // <<< tambahkan ini
+                        'name' => $fullname,
+                        'createdby' => $fullname,   // <<< tambahkan ini
                     ]
                 );
-
 
                 // === Simpan komentar (jika ada) ===
                 try {
                     app('App\Http\Controllers\SendCommentController')->sendmsg($sppt->id, 'PT', request());
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         );
 
         if (!$result['ok']) {
             return response()->json([
-                'success'=>false,
-                'message'=>$result['message'] ?? 'Revise failed'
+                'success' => false,
+                'message' => $result['message'] ?? 'Revise failed',
             ], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'SPPT revised successfully']);
+        return response()->json(['success' => true, 'message' => 'SPPT revised successfully']);
     }
-
-
-
 
     // public function approveSppt(Request $request, $docid)
     // {
@@ -2162,7 +2282,6 @@ class SpptController extends Controller
     //     return response()->json(['success' => true, 'message' => 'SPPT revised successfully']);
     // }
 
-
     // public function checkApproval($id, $action)
     // {
     //     $user = Auth::user(); // Ambil user yang login
@@ -2188,13 +2307,13 @@ class SpptController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppt   = TrSPPT::findOrFail($id);
+        $sppt = TrSPPT::findOrFail($id);
         $spptNo = $sppt->spptid;
 
-        $fmt = fn($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
+        $fmt = fn ($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
 
         // ✅ sesuai request: approved jika status = 'C'
-        $approved = fn($h) => $h ? (strtoupper((string)$h->status) === 'C') : false;
+        $approved = fn ($h) => $h ? (strtoupper((string) $h->status) === 'C') : false;
 
         // ===== SPPT DETAIL =====
         $spptDetails = TrSPPTdetail::query()
@@ -2208,7 +2327,7 @@ class SpptController extends Controller
             ->where('sppbjktid', $spptNo) // <-- relasi ke SPPT
             ->whereNull('deleted_at')
             ->orderBy('csdate', 'desc')
-            ->get(['csid','csdate','status','completed_by','completed_at']);
+            ->get(['csid', 'csdate', 'status', 'completed_by', 'completed_at']);
 
         $selCsNo = optional($csList->first())->csid;
 
@@ -2217,7 +2336,7 @@ class SpptController extends Controller
             ->where('sppbjktid', $spptNo) // <-- relasi ke SPPT
             ->whereNull('deleted_at')
             ->orderBy('podate', 'desc')
-            ->get(['ponbr','podate','status','csid','completed_by','completed_at']);
+            ->get(['ponbr', 'podate', 'status', 'csid', 'completed_by', 'completed_at']);
 
         $selPoNo = optional($poList->first())->ponbr;
 
@@ -2227,7 +2346,7 @@ class SpptController extends Controller
             ->where('sppbjktid', $spptNo)
             ->whereNull('deleted_at')
             ->orderBy('bastdate', 'desc')
-            ->get(['bastid','bastdate','status','ponbr','csid','completed_by','completed_at']);
+            ->get(['bastid', 'bastdate', 'status', 'ponbr', 'csid', 'completed_by', 'completed_at']);
 
         // default selected bast: kalau ada PO terpilih, pilih bast terbaru by ponbr tsb
         $selBastNo = optional(
@@ -2244,9 +2363,12 @@ class SpptController extends Controller
         $csDetails = collect();
         if ($selCsNo) {
             $isTrue = function ($v) {
-                if (is_bool($v)) return $v;
-                $v = strtolower((string)$v);
-                return in_array($v, ['1','true','t','yes','y'], true);
+                if (is_bool($v)) {
+                    return $v;
+                }
+                $v = strtolower((string) $v);
+
+                return in_array($v, ['1', 'true', 't', 'yes', 'y'], true);
             };
 
             $csDetails = TrCSdetail::query()
@@ -2255,7 +2377,7 @@ class SpptController extends Controller
                 ->orderBy('id')
                 ->get()
                 // ✅ hanya vendor selected = true
-                ->filter(function($d) use ($isTrue){
+                ->filter(function ($d) use ($isTrue) {
                     return $isTrue($d->vendor1selected)
                         || $isTrue($d->vendor2selected)
                         || $isTrue($d->vendor3selected)
@@ -2264,18 +2386,30 @@ class SpptController extends Controller
                         || $isTrue($d->vendor6selected);
                 })
                 // ✅ map ke array supaya field tambahan pasti ikut ke JSON
-                ->map(function($d) use ($csHeader, $isTrue){
-
-                    $vendorName  = null;
+                ->map(function ($d) use ($csHeader, $isTrue) {
+                    $vendorName = null;
                     $vendorPrice = null;
 
                     if ($csHeader) {
-                        if ($isTrue($d->vendor1selected)) { $vendorName = $csHeader->vendorname1; $vendorPrice = $d->vendorprice1; }
-                        elseif ($isTrue($d->vendor2selected)) { $vendorName = $csHeader->vendorname2; $vendorPrice = $d->vendorprice2; }
-                        elseif ($isTrue($d->vendor3selected)) { $vendorName = $csHeader->vendorname3; $vendorPrice = $d->vendorprice3; }
-                        elseif ($isTrue($d->vendor4selected)) { $vendorName = $csHeader->vendorname4; $vendorPrice = $d->vendorprice4; }
-                        elseif ($isTrue($d->vendor5selected)) { $vendorName = $csHeader->vendorname5; $vendorPrice = $d->vendorprice5; }
-                        elseif ($isTrue($d->vendor6selected)) { $vendorName = $csHeader->vendorname6; $vendorPrice = $d->vendorprice6; }
+                        if ($isTrue($d->vendor1selected)) {
+                            $vendorName = $csHeader->vendorname1;
+                            $vendorPrice = $d->vendorprice1;
+                        } elseif ($isTrue($d->vendor2selected)) {
+                            $vendorName = $csHeader->vendorname2;
+                            $vendorPrice = $d->vendorprice2;
+                        } elseif ($isTrue($d->vendor3selected)) {
+                            $vendorName = $csHeader->vendorname3;
+                            $vendorPrice = $d->vendorprice3;
+                        } elseif ($isTrue($d->vendor4selected)) {
+                            $vendorName = $csHeader->vendorname4;
+                            $vendorPrice = $d->vendorprice4;
+                        } elseif ($isTrue($d->vendor5selected)) {
+                            $vendorName = $csHeader->vendorname5;
+                            $vendorPrice = $d->vendorprice5;
+                        } elseif ($isTrue($d->vendor6selected)) {
+                            $vendorName = $csHeader->vendorname6;
+                            $vendorPrice = $d->vendorprice6;
+                        }
                     }
 
                     return [
@@ -2313,36 +2447,36 @@ class SpptController extends Controller
             ? TrBast::where('bastid', $selBastNo)->whereNull('deleted_at')->first()
             : null;
 
-        $lastApprSppj    = $this->getLastApprovalInfo($spptNo);
-        $lastApprCs      = $selCsNo ? $this->getLastApprovalInfo($selCsNo) : null;
-        $lastApprBast    = $selBastNo ? $this->getLastApprovalInfo($selBastNo) : null;
+        $lastApprSppj = $this->getLastApprovalInfo($spptNo);
+        $lastApprCs = $selCsNo ? $this->getLastApprovalInfo($selCsNo) : null;
+        $lastApprBast = $selBastNo ? $this->getLastApprovalInfo($selBastNo) : null;
 
         return response()->json([
             'doc' => $spptNo,
 
             'lists' => [
-                'cs' => $csList->map(fn($x)=>[
+                'cs' => $csList->map(fn ($x) => [
                     'doc' => $x->csid,
                     'date' => $fmt($x->csdate),
                     'status' => $x->status,
-                    'is_approved' => (strtoupper((string)$x->status) === 'C'),
+                    'is_approved' => (strtoupper((string) $x->status) === 'C'),
                 ])->values(),
 
-                'po' => $poList->map(fn($x)=>[
+                'po' => $poList->map(fn ($x) => [
                     'doc' => $x->ponbr,
                     'date' => $fmt($x->podate),
                     'status' => $x->status,
                     'csid' => $x->csid,
-                    'is_approved' => (strtoupper((string)$x->status) === 'C'),
+                    'is_approved' => (strtoupper((string) $x->status) === 'C'),
                 ])->values(),
 
-                'bast' => $bastList->map(fn($x)=>[
+                'bast' => $bastList->map(fn ($x) => [
                     'doc' => $x->bastid,
                     'date' => $fmt($x->bastdate),
                     'status' => $x->status,
                     'ponbr' => $x->ponbr,
                     'csid' => $x->csid,
-                    'is_approved' => (strtoupper((string)$x->status) === 'C'),
+                    'is_approved' => (strtoupper((string) $x->status) === 'C'),
                 ])->values(),
             ],
 
@@ -2417,36 +2551,35 @@ class SpptController extends Controller
 
                 // ✅ tambahan info header buat isi "detail"
                 'extra' => $bastHeader ? [
-                    'ponbr'          => $bastHeader->ponbr,
-                    'csid'           => $bastHeader->csid,
-                    'keperluan'      => $bastHeader->keperluan,
-                    'user_peminta'   => $bastHeader->user_peminta,
-                    'handoverdate'   => $fmt($bastHeader->handoverdate),
-                    'startdate'      => $fmt($bastHeader->startdate),
-                    'enddate'        => $fmt($bastHeader->enddate),
+                    'ponbr' => $bastHeader->ponbr,
+                    'csid' => $bastHeader->csid,
+                    'keperluan' => $bastHeader->keperluan,
+                    'user_peminta' => $bastHeader->user_peminta,
+                    'handoverdate' => $fmt($bastHeader->handoverdate),
+                    'startdate' => $fmt($bastHeader->startdate),
+                    'enddate' => $fmt($bastHeader->enddate),
 
-                    'order_term'     => $bastHeader->order_term,
-                    'terms_id'       => $bastHeader->terms_id,
-                    'topid'          => $bastHeader->topid,
-                    'payment_pct'    => $bastHeader->payment_pct,
-                    'progress_pct'   => $bastHeader->progress_pct,
+                    'order_term' => $bastHeader->order_term,
+                    'terms_id' => $bastHeader->terms_id,
+                    'topid' => $bastHeader->topid,
+                    'payment_pct' => $bastHeader->payment_pct,
+                    'progress_pct' => $bastHeader->progress_pct,
 
-                    'bast_amount'    => $bastHeader->bast_amount,
-                    'penalty'        => $bastHeader->penalty,
-                    'total_penalty'  => $bastHeader->total_penalty,
+                    'bast_amount' => $bastHeader->bast_amount,
+                    'penalty' => $bastHeader->penalty,
+                    'total_penalty' => $bastHeader->total_penalty,
                     'realize_amount' => $bastHeader->realize_amount,
 
-                    'location_id'    => $bastHeader->location_id,
-                    'sub_location_id'=> $bastHeader->sub_location_id,
-                    'spkpic'         => $bastHeader->spkpic,
-                    'spkwarranty'    => $bastHeader->spkwarranty,
-                    'days_penalty'   => $bastHeader->days_penalty,
-                    'rating_vendor'  => $bastHeader->rating_vendor,
+                    'location_id' => $bastHeader->location_id,
+                    'sub_location_id' => $bastHeader->sub_location_id,
+                    'spkpic' => $bastHeader->spkpic,
+                    'spkwarranty' => $bastHeader->spkwarranty,
+                    'days_penalty' => $bastHeader->days_penalty,
+                    'rating_vendor' => $bastHeader->rating_vendor,
                 ] : null,
 
                 'details' => [],
             ],
-
         ]);
     }
 
@@ -2459,12 +2592,12 @@ class SpptController extends Controller
         $spptNo = $sppt->spptid;
 
         $type = request('type'); // cs|po|bast
-        $doc  = request('doc');  // csid / ponbr / bastid
-        abort_if(!in_array($type, ['cs','po','bast'], true), 400);
+        $doc = request('doc');  // csid / ponbr / bastid
+        abort_if(!in_array($type, ['cs', 'po', 'bast'], true), 400);
         abort_if(!$doc, 400);
 
-        $fmt = fn($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
-        $approved = fn($h) => $h ? (strtoupper((string)$h->status) === 'C') : false;
+        $fmt = fn ($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
+        $approved = fn ($h) => $h ? (strtoupper((string) $h->status) === 'C') : false;
 
         if ($type === 'cs') {
             $h = TrCS::where('csid', $doc)
@@ -2475,9 +2608,12 @@ class SpptController extends Controller
             $details = collect();
             if ($h) {
                 $isTrue = function ($v) {
-                    if (is_bool($v)) return $v;
-                    $v = strtolower((string)$v);
-                    return in_array($v, ['1','true','t','yes','y'], true);
+                    if (is_bool($v)) {
+                        return $v;
+                    }
+                    $v = strtolower((string) $v);
+
+                    return in_array($v, ['1', 'true', 't', 'yes', 'y'], true);
                 };
 
                 $details = TrCSdetail::query()
@@ -2485,7 +2621,7 @@ class SpptController extends Controller
                     ->whereNull('deleted_at')
                     ->orderBy('id')
                     ->get()
-                    ->filter(function($d) use ($isTrue){
+                    ->filter(function ($d) use ($isTrue) {
                         return $isTrue($d->vendor1selected)
                             || $isTrue($d->vendor2selected)
                             || $isTrue($d->vendor3selected)
@@ -2493,16 +2629,29 @@ class SpptController extends Controller
                             || $isTrue($d->vendor5selected)
                             || $isTrue($d->vendor6selected);
                     })
-                    ->map(function($d) use ($h, $isTrue){
-                        $vendorName  = null;
+                    ->map(function ($d) use ($h, $isTrue) {
+                        $vendorName = null;
                         $vendorPrice = null;
 
-                        if ($isTrue($d->vendor1selected)) { $vendorName = $h->vendorname1; $vendorPrice = $d->vendorprice1; }
-                        elseif ($isTrue($d->vendor2selected)) { $vendorName = $h->vendorname2; $vendorPrice = $d->vendorprice2; }
-                        elseif ($isTrue($d->vendor3selected)) { $vendorName = $h->vendorname3; $vendorPrice = $d->vendorprice3; }
-                        elseif ($isTrue($d->vendor4selected)) { $vendorName = $h->vendorname4; $vendorPrice = $d->vendorprice4; }
-                        elseif ($isTrue($d->vendor5selected)) { $vendorName = $h->vendorname5; $vendorPrice = $d->vendorprice5; }
-                        elseif ($isTrue($d->vendor6selected)) { $vendorName = $h->vendorname6; $vendorPrice = $d->vendorprice6; }
+                        if ($isTrue($d->vendor1selected)) {
+                            $vendorName = $h->vendorname1;
+                            $vendorPrice = $d->vendorprice1;
+                        } elseif ($isTrue($d->vendor2selected)) {
+                            $vendorName = $h->vendorname2;
+                            $vendorPrice = $d->vendorprice2;
+                        } elseif ($isTrue($d->vendor3selected)) {
+                            $vendorName = $h->vendorname3;
+                            $vendorPrice = $d->vendorprice3;
+                        } elseif ($isTrue($d->vendor4selected)) {
+                            $vendorName = $h->vendorname4;
+                            $vendorPrice = $d->vendorprice4;
+                        } elseif ($isTrue($d->vendor5selected)) {
+                            $vendorName = $h->vendorname5;
+                            $vendorPrice = $d->vendorprice5;
+                        } elseif ($isTrue($d->vendor6selected)) {
+                            $vendorName = $h->vendorname6;
+                            $vendorPrice = $d->vendorprice6;
+                        }
 
                         return [
                             'id' => $d->id,
@@ -2582,7 +2731,7 @@ class SpptController extends Controller
                 'is_approved' => $approved($h),
                 'last_approval' => $this->getLastApprovalInfo($h->bastid),
             ] : null,
-            'extra'  => $h ? [
+            'extra' => $h ? [
                 'ponbr' => $h->ponbr,
                 'csid' => $h->csid,
                 'keperluan' => $h->keperluan,
@@ -2610,8 +2759,10 @@ class SpptController extends Controller
 
     private function getLastApprovalInfo(string $refnbr): ?array
     {
-        $refnbr = trim((string)$refnbr);
-        if ($refnbr === '') return null;
+        $refnbr = trim((string) $refnbr);
+        if ($refnbr === '') {
+            return null;
+        }
 
         // 1) PRIORITY: status P & aprv_datebefore not null
         $row = TrApproval::query()
@@ -2632,18 +2783,20 @@ class SpptController extends Controller
                 ->first();
         }
 
-        if (!$row) return null;
+        if (!$row) {
+            return null;
+        }
 
         // Note: field "created_by" kamu ada di fillable, tapi juga ada aprv_username & aprv_name
         return [
-            'status'        => $row->status,                 // P / A
+            'status' => $row->status,                 // P / A
             'aprv_leveling' => $row->aprv_leveling,
-            'username'      => $row->aprv_username ?? $row->created_by,
-            'name'          => $row->aprv_name,
-            'date_before'   => $row->aprv_datebefore,
-            'date_after'    => $row->aprv_dateafter,
-            'doctype'       => $row->aprv_doctype,
-            'condition'     => $row->aprv_condition,
+            'username' => $row->aprv_username ?? $row->created_by,
+            'name' => $row->aprv_name,
+            'date_before' => $row->aprv_datebefore,
+            'date_after' => $row->aprv_dateafter,
+            'doctype' => $row->aprv_doctype,
+            'condition' => $row->aprv_condition,
         ];
     }
 
@@ -2655,23 +2808,26 @@ class SpptController extends Controller
         $sppt = TrSPPT::findOrFail($id);
 
         $getName = function (?string $username) {
-            if (!$username) return null;
-            $u = \App\Models\User::where('username', $username)->first();
+            if (!$username) {
+                return null;
+            }
+            $u = User::where('username', $username)->first();
+
             return $u->name ?? $username;
         };
 
         $createdByName = $getName($sppt->created_by ?? null);
-        $createdAt     = $sppt->created_at ? \Carbon\Carbon::parse($sppt->created_at)->format('Y-m-d H:i') : null;
+        $createdAt = $sppt->created_at ? \Carbon\Carbon::parse($sppt->created_at)->format('Y-m-d H:i') : null;
 
         $completedByName = $getName($sppt->completed_by ?? null);
-        $completedAt     = $sppt->completed_at ? \Carbon\Carbon::parse($sppt->completed_at)->format('Y-m-d H:i') : null;
+        $completedAt = $sppt->completed_at ? \Carbon\Carbon::parse($sppt->completed_at)->format('Y-m-d H:i') : null;
 
         // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($sppt->rejected_by ?? null);
-        $rejectedAt      = isset($sppt->rejected_at) ? \Carbon\Carbon::parse($sppt->rejected_at)->format('Y-m-d H:i') : null;
+        $rejectedByName = $getName($sppt->rejected_by ?? null);
+        $rejectedAt = isset($sppt->rejected_at) ? \Carbon\Carbon::parse($sppt->rejected_at)->format('Y-m-d H:i') : null;
 
-        $revisedByName   = $getName($sppt->revised_by ?? null);
-        $revisedAt       = isset($sppt->revised_at) ? \Carbon\Carbon::parse($sppt->revised_at)->format('Y-m-d H:i') : null;
+        $revisedByName = $getName($sppt->revised_by ?? null);
+        $revisedAt = isset($sppt->revised_at) ? \Carbon\Carbon::parse($sppt->revised_at)->format('Y-m-d H:i') : null;
 
         $status = (string) ($sppt->status ?? '');
         $labelMap = [
@@ -2684,48 +2840,48 @@ class SpptController extends Controller
 
         // selalu mulai dari Submitted
         $steps = [[
-            'key'          => 'submitted',
-            'title'        => 'SPPT',
-            'status'       => 'C',              // dibuat = completed
+            'key' => 'submitted',
+            'title' => 'SPPT',
+            'status' => 'C',              // dibuat = completed
             'status_label' => 'Submitted',
-            'by'           => $createdByName,
-            'at'           => $createdAt,
+            'by' => $createdByName,
+            'at' => $createdAt,
         ]];
 
         switch ($status) {
             case 'P':
                 // masih menunggu/berjalan → tampilkan Approval saja
                 $steps[] = [
-                    'key'          => 'approval',
-                    'title'        => 'Approval',
-                    'status'       => 'P',
+                    'key' => 'approval',
+                    'title' => 'Approval',
+                    'status' => 'P',
                     'status_label' => 'Waiting approval',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
             case 'R':
                 // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
                 $steps[] = [
-                    'key'          => 'rejected',
-                    'title'        => 'Rejected',
-                    'status'       => 'R',
+                    'key' => 'rejected',
+                    'title' => 'Rejected',
+                    'status' => 'R',
                     'status_label' => 'Rejected',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
             case 'D':
                 // REVISE → Submitted → Revise
                 $steps[] = [
-                    'key'          => 'revise',
-                    'title'        => 'Revise',
-                    'status'       => 'D',
+                    'key' => 'revise',
+                    'title' => 'Revise',
+                    'status' => 'D',
                     'status_label' => 'Revise',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
@@ -2734,12 +2890,12 @@ class SpptController extends Controller
                 // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
                 // tambahkan step 'approval' sebelum 'completed')
                 $steps[] = [
-                    'key'          => 'completed',
-                    'title'        => 'Completed',
-                    'status'       => 'C',
+                    'key' => 'completed',
+                    'title' => 'Completed',
+                    'status' => 'C',
                     'status_label' => 'Completed',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'by' => $completedByName,
+                    'at' => $completedAt,
                 ];
                 break;
 
@@ -2749,9 +2905,9 @@ class SpptController extends Controller
         }
 
         return response()->json([
-            'doc'   => $sppt->spptid ?? (string)$sppt->id,
+            'doc' => $sppt->spptid ?? (string) $sppt->id,
             'steps' => $steps,
-            'status'=> $status,
+            'status' => $status,
             'status_label' => $statusLabel,
         ]);
     }
@@ -2769,27 +2925,27 @@ class SpptController extends Controller
 
         // $sppt = TrSPPT::findOrFail($id);
         $bq = Bq::with([
-            'creator:username,name'
+            'creator:username,name',
         ])
         ->findOrFail($id);
 
-       $canEdit = TrApproval::where('refnbr', $bq->sppjtid)
-            ->where('status', 'P')
-            ->whereNotNull('aprv_datebefore')
-            ->where(function ($q) use ($user) {
-                $u = $user->username;
+        $canEdit = TrApproval::where('refnbr', $bq->sppjtid)
+             ->where('status', 'P')
+             ->whereNotNull('aprv_datebefore')
+             ->where(function ($q) use ($user) {
+                 $u = $user->username;
 
-                $q->where('aprv_username', $u)
-                ->orWhere('aprv_username', 'ilike', $u . ',%')
-                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
-                ->orWhere('aprv_username', 'ilike', '%,' . $u);
-            })
-            ->exists();
+                 $q->where('aprv_username', $u)
+                 ->orWhere('aprv_username', 'ilike', $u.',%')
+                 ->orWhere('aprv_username', 'ilike', '%,'.$u.',%')
+                 ->orWhere('aprv_username', 'ilike', '%,'.$u);
+             })
+             ->exists();
         // dd( $canEdit);
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
             ->get();
 
-        return view('pages.sppts.showbqsppts', compact('bq','bqdetail','canEdit','hash'));
+        return view('pages.sppts.showbqsppts', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
 
     public function showBQ($hash)
@@ -2822,9 +2978,9 @@ class SpptController extends Controller
                 $u = $loginUsername;
 
                 $q->where('aprv_username', $u)
-                ->orWhere('aprv_username', 'ilike', $u . ',%')
-                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
-                ->orWhere('aprv_username', 'ilike', '%,' . $u);
+                ->orWhere('aprv_username', 'ilike', $u.',%')
+                ->orWhere('aprv_username', 'ilike', '%,'.$u.',%')
+                ->orWhere('aprv_username', 'ilike', '%,'.$u);
             })
             ->exists();
 
@@ -2852,17 +3008,14 @@ class SpptController extends Controller
             ->orderBy('bq_no') // biar urut
             ->get();
 
-        $temp_id  = session('import_temp_id');
+        $temp_id = session('import_temp_id');
         $tempData = $temp_id ? BqDetailTemp::where('temp_id', $temp_id)->get() : [];
-
-
 
         return view('pages.sppts.editbqsppts', compact(
             'bq',
             'bq_detail',
             'temp_id',
             'tempData'
-
         ));
     }
 
@@ -2878,21 +3031,21 @@ class SpptController extends Controller
 
         // Ambil SPPT + relasi yang dibutuhkan
         $sppt = TrSPPT::with([
-                'requestType:requesttypeid,requesttype_name',
-                'creator:username,name',
-            ])
+            'requestType:requesttypeid,requesttype_name',
+            'creator:username,name',
+        ])
             ->findOrFail($id);
 
         // Detail baris SPPT
         $spptdetail = TrSPPTdetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])
             ->where('spptid', $sppt->spptid)
             ->get();
 
-        $refnbr    = $sppt->spptid;
-        $apprTable = (new TrApproval)->getTable(); // "tr_approval"
+        $refnbr = $sppt->spptid;
+        $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
             ->where('refnbr', $refnbr)
@@ -2912,7 +3065,6 @@ class SpptController extends Controller
             ")
             ->orderBy('id', 'asc')
             ->get();
-
 
         $approve_count = $approval->count();
 
@@ -2939,38 +3091,38 @@ class SpptController extends Controller
         }
 
         $data = [
-            'title'               => ' Surat Permintaan Pekerjaan Tenant',
-            'doc_type'            => 'SPPT',
-            'docid'               => $sppt->spptid,
-            'department_id'       => $sppt->department_id,
-            'cpnyname'            => optional($company)->cpny_name,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
+            'title' => ' Surat Permintaan Pekerjaan Tenant',
+            'doc_type' => 'SPPT',
+            'docid' => $sppt->spptid,
+            'department_id' => $sppt->department_id,
+            'cpnyname' => optional($company)->cpny_name,
+            'parent' => optional($company)->parent,
+            'project' => optional($company)->project,
             // identitas & tanggal
             'created_by_username' => $sppt->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($sppt->creator)->name)),
-            'created_at_fmt'      => optional($sppt->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($sppt->created_at)->format('d M Y H:i'),
-            'spptdate'            => \Carbon\Carbon::parse($sppt->spptdate)->format('d F Y'),
+            'created_by_name' => ucwords(strtolower(optional($sppt->creator)->name)),
+            'created_at_fmt' => optional($sppt->created_at)->format('d F Y'),
+            'req_date_fmt' => optional($sppt->created_at)->format('d M Y H:i'),
+            'spptdate' => \Carbon\Carbon::parse($sppt->spptdate)->format('d F Y'),
             // konten
-            'bqid'                => $sppt->bqid,
-            'nama_tenant'         => optional($sppt->tenantname)->tenant,
-            'no_unit_tenant'      => $sppt->no_unit_tenant,
-            'pic_pengawas'        => ucwords(strtolower(optional($sppt->pic)->name)),
-            'condition_unit'      => $sppt->condition_unit,
-            'beban'               => $sppt->beban,
-            'keperluan'           => $sppt->keperluan,
-            'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($sppt->requestType)->requesttype_name,
+            'bqid' => $sppt->bqid,
+            'nama_tenant' => optional($sppt->tenantname)->tenant,
+            'no_unit_tenant' => $sppt->no_unit_tenant,
+            'pic_pengawas' => ucwords(strtolower(optional($sppt->pic)->name)),
+            'condition_unit' => $sppt->condition_unit,
+            'beban' => $sppt->beban,
+            'keperluan' => $sppt->keperluan,
+            'status_doc' => $status_doc,
+            'requesttype_name' => optional($sppt->requestType)->requesttype_name,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.sppts.pdf_sppts',
             array_merge($data, [
-                'detail'         => $spptdetail,
-                'approval'       => $approval,
-                'approve_count'  => $approve_count,
+                'detail' => $spptdetail,
+                'approval' => $approval,
+                'approve_count' => $approve_count,
             ])
         );
 
@@ -2992,32 +3144,31 @@ class SpptController extends Controller
             $tempData = BqDetailTemp::where('temp_id', $temp_id)->get();
         }
 
-
-        return view('pages.sppts.createbqsppt', compact('sppt','tempData','temp_id'));
+        return view('pages.sppts.createbqsppt', compact('sppt', 'tempData', 'temp_id'));
     }
 
     public function importCreate(Request $request)
     {
         $request->validate([
-            'file'    => 'required|mimes:xlsx,xls,csv',
+            'file' => 'required|mimes:xlsx,xls,csv',
             'sppjtid' => 'required',
         ]);
 
         try {
             $username = Auth::user()->username ?? 'system';
-            $temp_id  = (string) Str::uuid();
+            $temp_id = (string) Str::uuid();
 
             // Bersihkan temp milik user agar batch tidak tercampur
             BqDetailTemp::where('created_by', $username)->delete();
 
-            $idx     = $request->input('idx');
+            $idx = $request->input('idx');
             $sppjtid = $request->input('sppjtid');
 
             // =========================
             // ✅ VALIDASI: TOLAK FORMULA
             // =========================
             $file = $request->file('file');
-            $ext  = strtolower($file->getClientOriginalExtension());
+            $ext = strtolower($file->getClientOriginalExtension());
 
             if (in_array($ext, ['xlsx', 'xls'], true)) {
                 $spreadsheet = IOFactory::load($file->getPathname());
@@ -3026,25 +3177,21 @@ class SpptController extends Controller
                     $highestRow = $sheet->getHighestDataRow();
                     $highestCol = $sheet->getHighestDataColumn();
 
-                    for ($row = 1; $row <= $highestRow; $row++) {
-                        for ($col = 'A'; $col <= $highestCol; $col++) {
+                    for ($row = 1; $row <= $highestRow; ++$row) {
+                        for ($col = 'A'; $col <= $highestCol; ++$col) {
                             $cell = $sheet->getCell("{$col}{$row}");
-                            $raw  = $cell->getValue();
+                            $raw = $cell->getValue();
 
-                            if ($raw === null || $raw === '') continue;
+                            if ($raw === null || $raw === '') {
+                                continue;
+                            }
 
                             if ($cell->isFormula()) {
-                                throw new \RuntimeException(
-                                    "Import gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
-                                    "Silakan ubah menjadi nilai (Copy → Paste Values)."
-                                );
+                                throw new \RuntimeException("Import gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. ".'Silakan ubah menjadi nilai (Copy → Paste Values).');
                             }
 
                             if (is_string($raw) && str_starts_with(ltrim($raw), '=')) {
-                                throw new \RuntimeException(
-                                    "Import gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
-                                    "Silakan Paste Values lalu import ulang."
-                                );
+                                throw new \RuntimeException("Import gagal: file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. ".'Silakan Paste Values lalu import ulang.');
                             }
                         }
                     }
@@ -3063,36 +3210,35 @@ class SpptController extends Controller
             return redirect()
                 ->route('bqsppt.create', $idx)
                 ->with('success', 'Data berhasil di-import.');
-
         } catch (\Throwable $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Gagal import: ' . $e->getMessage());
+                ->with('error', 'Gagal import: '.$e->getMessage());
         }
     }
 
     public function importEdit(Request $request)
     {
         $request->validate([
-            'file'    => 'required|mimes:xlsx,xls,csv',
+            'file' => 'required|mimes:xlsx,xls,csv',
             'sppjtid' => 'required',
         ]);
 
         try {
             $username = Auth::user()->username ?? 'system';
-            $temp_id  = (string) Str::uuid();
+            $temp_id = (string) Str::uuid();
 
             // Bersihkan temp milik user agar tidak tercampur batch sebelumnya
             BqDetailTemp::where('created_by', $username)->delete();
 
-            $idx     = $request->input('idx');
+            $idx = $request->input('idx');
             $sppjtid = $request->input('sppjtid');
 
             // =========================
             // ✅ VALIDASI: TOLAK FORMULA
             // =========================
             $file = $request->file('file');
-            $ext  = strtolower($file->getClientOriginalExtension());
+            $ext = strtolower($file->getClientOriginalExtension());
 
             if (in_array($ext, ['xlsx', 'xls'], true)) {
                 $spreadsheet = IOFactory::load($file->getPathname());
@@ -3101,25 +3247,21 @@ class SpptController extends Controller
                     $highestRow = $sheet->getHighestDataRow();
                     $highestCol = $sheet->getHighestDataColumn();
 
-                    for ($row = 1; $row <= $highestRow; $row++) {
-                        for ($col = 'A'; $col <= $highestCol; $col++) {
+                    for ($row = 1; $row <= $highestRow; ++$row) {
+                        for ($col = 'A'; $col <= $highestCol; ++$col) {
                             $cell = $sheet->getCell("{$col}{$row}");
-                            $raw  = $cell->getValue();
+                            $raw = $cell->getValue();
 
-                            if ($raw === null || $raw === '') continue;
+                            if ($raw === null || $raw === '') {
+                                continue;
+                            }
 
                             if ($cell->isFormula()) {
-                                throw new \RuntimeException(
-                                    "Import gagal (edit mode): file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
-                                    "Silakan ubah menjadi nilai (Copy → Paste Values)."
-                                );
+                                throw new \RuntimeException("Import gagal (edit mode): file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. ".'Silakan ubah menjadi nilai (Copy → Paste Values).');
                             }
 
                             if (is_string($raw) && str_starts_with(ltrim($raw), '=')) {
-                                throw new \RuntimeException(
-                                    "Import gagal (edit mode): file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. " .
-                                    "Silakan Paste Values lalu import ulang."
-                                );
+                                throw new \RuntimeException("Import gagal (edit mode): file Excel mengandung rumus pada sheet '{$sheet->getTitle()}' cell {$col}{$row}. ".'Silakan Paste Values lalu import ulang.');
                             }
                         }
                     }
@@ -3138,11 +3280,10 @@ class SpptController extends Controller
             return redirect()
                 ->route('bqsppt.edit', $idx)
                 ->with('success', 'Data berhasil di-import (edit mode).');
-
         } catch (\Throwable $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Gagal import: ' . $e->getMessage());
+                ->with('error', 'Gagal import: '.$e->getMessage());
         }
     }
 
@@ -3150,13 +3291,13 @@ class SpptController extends Controller
     {
         // dd($request->all());
         $request->validate([
-            'file'    => 'required|mimes:xlsx,xls,csv',
+            'file' => 'required|mimes:xlsx,xls,csv',
             'sppjtid' => 'required',
         ]);
 
         try {
             $username = Auth::user()->username ?? 'system';
-            $temp_id  = (string) Str::uuid();
+            $temp_id = (string) Str::uuid();
 
             // Bersihkan temp milik user agar batch tidak tercampur
             BqDetailTemp::where('created_by', $username)->delete();
@@ -3181,22 +3322,21 @@ class SpptController extends Controller
             // opsional: report($e);
             return back()
                 ->withInput()
-                ->with('error', 'Gagal import: ' . $e->getMessage());
+                ->with('error', 'Gagal import: '.$e->getMessage());
         }
     }
-
 
     public function importEdit_xxx(Request $request)
     {
         $request->validate([
-            'file'     => 'required|mimes:xlsx,xls,csv',
-            'sppjtid'  => 'required', // dari hidden input di form
+            'file' => 'required|mimes:xlsx,xls,csv',
+            'sppjtid' => 'required', // dari hidden input di form
             // 'bqid'   => 'nullable'  // kalau suatu saat kamu kirim bqid juga
         ]);
 
         try {
             $username = Auth::user()->username ?? 'system';
-            $temp_id  = (string) Str::uuid();
+            $temp_id = (string) Str::uuid();
 
             // Bersihkan temp milik user agar tidak tercampur batch sebelumnya
             BqDetailTemp::where('created_by', $username)->delete();
@@ -3214,9 +3354,9 @@ class SpptController extends Controller
             // Simpan temp_id ke session untuk dipakai di createBQ()
             session(['import_temp_id' => $temp_id]);
 
-           return redirect()
-                ->route('bqsppt.edit', $idx)
-                ->with('success', 'Data berhasil di‑import (edit mode).');
+            return redirect()
+                 ->route('bqsppt.edit', $idx)
+                 ->with('success', 'Data berhasil di‑import (edit mode).');
             //  return $idx
             //     ? redirect()->route('bqsppt.edit', $idx)
             //                 ->with('success', 'Data berhasil di‑import (edit mode).')
@@ -3245,7 +3385,7 @@ class SpptController extends Controller
         if ($tempData->isEmpty()) {
             return response()->json(['message' => 'Tidak ada data BQ import ditemukan!'], 422);
         }
-        $tempHead  = $tempData->first();
+        $tempHead = $tempData->first();
 
         // $dt       = Carbon::now();
         // $datenow  = $dt->format('Y-m-d');
@@ -3255,19 +3395,18 @@ class SpptController extends Controller
 
         // // Kebutuhan header
         // $doctype  = 'BQ';
-        $doctype  = 'BQ';
-        $user     = $request->user();
+        $doctype = 'BQ';
+        $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
 
-        $dt        = Carbon::now();
-        $year      = (int) $dt->year;
-        $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $dt = Carbon::now();
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
         $datestamp = $dt->toDateTimeString();
 
-
-        $sppjtid  = $tempHead->sppjtid ?? $request->input('sppjtid'); // string SPPTID (mis. SPPT-xxxxx)
-        $bq_type  = $request->input('bq_type', 'SPPT'); // default
+        $sppjtid = $tempHead->sppjtid ?? $request->input('sppjtid'); // string SPPTID (mis. SPPT-xxxxx)
+        $bq_type = $request->input('bq_type', 'SPPT'); // default
 
         // Ambil cpny_id dari SPPT (kalau kolom BQ wajib)
         $cpny_id = null;
@@ -3280,8 +3419,8 @@ class SpptController extends Controller
         }
 
         // Grand total header
-        $grandMat  = $tempData->sum(fn($r) => (float) ($r->total_est_material_price ?? 0));
-        $grandJasa = $tempData->sum(fn($r) => (float) ($r->total_est_jasa_price ?? 0));
+        $grandMat = $tempData->sum(fn ($r) => (float) ($r->total_est_material_price ?? 0));
+        $grandJasa = $tempData->sum(fn ($r) => (float) ($r->total_est_jasa_price ?? 0));
 
         DB::beginTransaction(); // kalau semua di PG, bisa pakai DB::connection('pgsql')->beginTransaction();
         try {
@@ -3320,46 +3459,45 @@ class SpptController extends Controller
             );
             $urutan = (int) $auto['next'];
 
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $bqid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            $tglbln = substr((string) $year, 2).$month;   // YYMM
+            $bqid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             $sppt->bqid = $bqid;
             $sppt->save();
 
             // ===== Insert HEADER: tr_bq =====
             $bq = Bq::create([
-                'bqid'                           => $bqid,
-                'sppjtid'                        => $sppjtid,
-                'cpny_id'                        => $cpny_id,
-                'bq_type'                        => $bq_type,
+                'bqid' => $bqid,
+                'sppjtid' => $sppjtid,
+                'cpny_id' => $cpny_id,
+                'bq_type' => $bq_type,
                 'grand_total_est_material_price' => $grandMat,
-                'grand_total_est_jasa_price'     => $grandJasa,
-                'status'                         => 'P',
-                'created_by'                     => $username,
-                'updated_by'                     => $username,
+                'grand_total_est_jasa_price' => $grandJasa,
+                'status' => 'P',
+                'created_by' => $username,
+                'updated_by' => $username,
             ]);
 
             // ===== Insert DETAIL: tr_bq_detail =====
             $seq = 1; // nomor urut dimulai dari 1
             foreach ($tempData as $row) {
                 BqDetail::create([
-                    'bqid'                     => $bqid,
-                    'sppjtid'                  => $row->sppjtid,
-                    'bq_no'                    => $seq++,            // <<=== no urut
-                    'bq_line_no'               => $row->bq_line_no,  // tetap simpan line no asli jika diperlukan
-                    'bq_descr'                 => $row->bq_descr,
-                    'qty'                      => $row->qty,
-                    'uom'                      => $row->uom,
-                    'est_material_price'       => $row->est_material_price,
+                    'bqid' => $bqid,
+                    'sppjtid' => $row->sppjtid,
+                    'bq_no' => $seq++,            // <<=== no urut
+                    'bq_line_no' => $row->bq_line_no,  // tetap simpan line no asli jika diperlukan
+                    'bq_descr' => $row->bq_descr,
+                    'qty' => $row->qty,
+                    'uom' => $row->uom,
+                    'est_material_price' => $row->est_material_price,
                     'total_est_material_price' => $row->total_est_material_price,
-                    'est_jasa_price'           => $row->est_jasa_price,
-                    'total_est_jasa_price'     => $row->total_est_jasa_price,
-                    'status'                   => 'P',
-                    'created_by'               => $username,
-                    'updated_by'               => $username,
+                    'est_jasa_price' => $row->est_jasa_price,
+                    'total_est_jasa_price' => $row->total_est_jasa_price,
+                    'status' => 'P',
+                    'created_by' => $username,
+                    'updated_by' => $username,
                 ]);
             }
-
 
             // ===== Hapus temp batch =====
             BqDetailTemp::where('temp_id', $temp_id)->delete();
@@ -3368,12 +3506,12 @@ class SpptController extends Controller
 
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $bqid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $cpny_id,
+                    'refnbr' => $bqid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $cpny_id,
                     'departementid' => $deptid,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $username,
                 ];
 
                 $files = (array) $request->file('attachments');
@@ -3384,20 +3522,22 @@ class SpptController extends Controller
                     // tidak return di sini!
                 } catch (\Throwable $e) {
                     \DB::rollBack();
+
                     return response()->json([
                         'message' => 'Failed to create PB',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             } else {
                 $uploadResult = null; // tidak ada attachment
             }
 
-
             DB::commit();
+
             return response()->json(['success' => true, 'bq' => $bq]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json(['error' => 'Gagal menyimpan BQ', 'message' => $e->getMessage()], 500);
         }
     }
@@ -3411,13 +3551,13 @@ class SpptController extends Controller
             // 'attachments.*' => 'file|mimes:jpg,jpeg,png,webp,gif,bmp,svg|max:5120', // opsional validasi file
         ]);
 
-        $doctype  = 'BQ';
-        $user     = $request->user();
+        $doctype = 'BQ';
+        $user = $request->user();
         $username = Auth::user()->username ?? 'system';
-        $now      = Carbon::now();
+        $now = Carbon::now();
 
         $bq = Bq::findOrFail($id);
-        $bqid    = $bq->bqid;                 // <-- dipertahankan (tidak generate baru)
+        $bqid = $bq->bqid;                 // <-- dipertahankan (tidak generate baru)
         $sppjtid = $bq->sppjtid ?? $request->input('sppjtid');
 
         $sppt = TrSPPT::where('spptid', $sppjtid)
@@ -3426,7 +3566,7 @@ class SpptController extends Controller
         $deptid = $sppt->department_id ?? $sppt->departmentid ?? null;
 
         // Ambil temp data jika ada
-        $tempId   = $request->input('temp_id');
+        $tempId = $request->input('temp_id');
         $tempData = collect();
         if ($tempId) {
             $tempData = BqDetailTemp::where('temp_id', $tempId)
@@ -3441,10 +3581,10 @@ class SpptController extends Controller
             //  - jika ada tempData → pakai tempData
             //  - jika tidak ada → hitung dari detail existing agar tetap konsisten
             if ($tempData->isNotEmpty()) {
-                $grandMat  = $tempData->sum(fn($r) => (float) ($r->total_est_material_price ?? 0));
-                $grandJasa = $tempData->sum(fn($r) => (float) ($r->total_est_jasa_price ?? 0));
+                $grandMat = $tempData->sum(fn ($r) => (float) ($r->total_est_material_price ?? 0));
+                $grandJasa = $tempData->sum(fn ($r) => (float) ($r->total_est_jasa_price ?? 0));
             } else {
-                $grandMat  = (float) BqDetail::where('bqid', $bqid)->sum('total_est_material_price');
+                $grandMat = (float) BqDetail::where('bqid', $bqid)->sum('total_est_material_price');
                 $grandJasa = (float) BqDetail::where('bqid', $bqid)->sum('total_est_jasa_price');
             }
 
@@ -3456,7 +3596,7 @@ class SpptController extends Controller
             // }
 
             $bq->grand_total_est_material_price = $grandMat;
-            $bq->grand_total_est_jasa_price     = $grandJasa;
+            $bq->grand_total_est_jasa_price = $grandJasa;
             if ($request->filled('bq_type')) {
                 $bq->bq_type = $request->input('bq_type');
             }
@@ -3473,20 +3613,20 @@ class SpptController extends Controller
                 $seq = 1;
                 foreach ($tempData as $row) {
                     BqDetail::create([
-                        'bqid'                     => $bqid,
-                        'sppjtid'                  => $row->sppjtid,
-                        'bq_no'                    => $seq++,
-                        'bq_line_no'               => $row->bq_line_no,
-                        'bq_descr'                 => $row->bq_descr,
-                        'qty'                      => $row->qty,
-                        'uom'                      => $row->uom,
-                        'est_material_price'       => $row->est_material_price,
+                        'bqid' => $bqid,
+                        'sppjtid' => $row->sppjtid,
+                        'bq_no' => $seq++,
+                        'bq_line_no' => $row->bq_line_no,
+                        'bq_descr' => $row->bq_descr,
+                        'qty' => $row->qty,
+                        'uom' => $row->uom,
+                        'est_material_price' => $row->est_material_price,
                         'total_est_material_price' => $row->total_est_material_price,
-                        'est_jasa_price'           => $row->est_jasa_price,
-                        'total_est_jasa_price'     => $row->total_est_jasa_price,
-                        'status'                   => 'P',
-                        'created_by'               => $username,
-                        'updated_by'               => $username,
+                        'est_jasa_price' => $row->est_jasa_price,
+                        'total_est_jasa_price' => $row->total_est_jasa_price,
+                        'status' => 'P',
+                        'created_by' => $username,
+                        'updated_by' => $username,
                     ]);
                 }
 
@@ -3497,12 +3637,12 @@ class SpptController extends Controller
             // ===================== ATTACHMENTS (tambahan) =====================
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr'        => $bqid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $cpny_id,
+                    'refnbr' => $bqid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $cpny_id,
                     'departementid' => $deptid,
-                    'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by'    => $user->username,
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
+                    'created_by' => $user->username,
                 ];
 
                 $files = (array) $request->file('attachments');
@@ -3513,9 +3653,10 @@ class SpptController extends Controller
                     // tidak return di sini!
                 } catch (\Throwable $e) {
                     \DB::rollBack();
+
                     return response()->json([
                         'message' => 'Failed to create PB',
-                        'error'   => 'Gagal upload attachment: '.$e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             } else {
@@ -3523,19 +3664,20 @@ class SpptController extends Controller
             }
 
             DB::commit();
+
             return response()->json(['success' => true, 'bq' => $bq]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
-                'error'   => 'Gagal mengupdate BQ',
-                'message' => $e->getMessage()
+                'error' => 'Gagal mengupdate BQ',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function cancelSppt(Request $request, string $hash)
     {
-
         // decode hash -> id (sesuaikan kalau tidak pakai Hashids)
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Invalid document');
@@ -3561,6 +3703,7 @@ class SpptController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to cancel document.',
@@ -3592,19 +3735,19 @@ class SpptController extends Controller
         $company = MsCompany::where('cpny_id', $bq->cpny_id)->first();
 
         $data = [
-            'title'               => 'Bills of Quantities (BQ)',
-            'doc_type'            => 'BQ',
-            'cpny_id'             => $company->cpny_id,
-            'cpny_name'           => $company->cpny_name,
-            'keperluan'           => $sppt->keperluan,
+            'title' => 'Bills of Quantities (BQ)',
+            'doc_type' => 'BQ',
+            'cpny_id' => $company->cpny_id,
+            'cpny_name' => $company->cpny_name,
+            'keperluan' => $sppt->keperluan,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.sppts.pdfbq_sppt',
             array_merge($data, [
-                'bq'             => $bq,
-                'bqdetail'         => $bqdetail,
+                'bq' => $bq,
+                'bqdetail' => $bqdetail,
             ])
         );
 
@@ -3613,10 +3756,4 @@ class SpptController extends Controller
 
         return $pdf->stream("pdfbq_sppt_{$bq->bqid}.pdf");
     }
-
-
-
-
-
-
 }

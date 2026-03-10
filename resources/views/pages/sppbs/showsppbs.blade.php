@@ -83,92 +83,121 @@
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
-                            {{-- Reusable Classes --}}
                             @php
                                 $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                                 $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                                 $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
-
-                                $fields = [
-                                    [
-                                        'icon' => 'building-office',
-                                        'label' => 'Company',
-                                        'value' => $sppb->cpny_id,
-                                    ],
-                                    [
-                                        'icon' => 'squares-2x2',
-                                        'label' => 'Department',
-                                        'value' => $sppb->department_id,
-                                    ],
-                                    [
-                                        'icon' => 'calendar',
-                                        'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($sppb->sppbdate)),
-                                    ],
-                                    [
-                                        'icon' => 'user-circle',
-                                        'label' => 'Created User',
-                                        'value' => ucwords(strtolower(optional($sppb->creator)->name)),
-                                    ],
-                                ];
                             @endphp
 
-                            {{-- Top fields --}}
-                            @foreach ($fields as $f)
+                            {{-- Company --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-building-office class="h-5 w-5 text-gray-400" />
+                                    <span>Company</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $sppb->cpny_id }}</span>
+                            </div>
+
+                            {{-- Department --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-squares-2x2 class="h-5 w-5 text-gray-400" />
+                                    <span>Department</span>
+                                </div>
+                                <span class="{{ $value }}">{{ $sppb->department_id }}</span>
+                            </div>
+
+                            {{-- Date --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-calendar class="h-5 w-5 text-gray-400" />
+                                    <span>Date</span>
+                                </div>
+                                <span class="{{ $value }}">
+                                    {{ date('j F Y', strtotime($sppb->sppbdate)) }}
+                                </span>
+                            </div>
+
+                            {{-- Created User --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-user-circle class="h-5 w-5 text-gray-400" />
+                                    <span>Created User</span>
+                                </div>
+                                <span class="{{ $value }}">
+                                    {{ ucwords(strtolower(optional($sppb->creator)->name)) }}
+                                </span>
+                            </div>
+
+                            {{-- SPB --}}
+                            @if ($spbNos->isNotEmpty())
                                 <div class="{{ $row }}">
                                     <div class="{{ $label }}">
-                                        <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
-                                        <span>{{ $f['label'] }}</span>
+                                        <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                        <span>SPB No</span>
                                     </div>
-                                    <span class="{{ $value }}">{{ $f['value'] }}</span>
+                                    <span class="{{ $value }}">
+                                        {{ $spbNos->implode(', ') }}
+                                    </span>
                                 </div>
-                            @endforeach
+                            @endif
 
+                            {{-- WO --}}
                             @if (!empty($woData))
-                                <div class="col-span-2 flex items-start gap-2 p-2">
-                                    <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">WO</span>
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5 text-gray-400" />
+                                        <span>WO</span>
+                                    </div>
 
-                                    <div class="flex flex-col">
+                                    <span class="{{ $value }}">
                                         <a href="{{ url('/showwos/' . $woHash) }}" target="_blank"
                                             class="font-semibold text-indigo-600 hover:underline">
                                             {{ $woData->woid }}
                                         </a>
-                                        <span
-                                            class="whitespace-pre-line break-words text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $woData->keperluan }}
-                                        </span>
-                                    </div>
+                                    </span>
                                 </div>
                             @endif
 
-                            {{-- Request Type + Purpose (same card style as your system) --}}
+                            {{-- Request Type + Purpose --}}
                             <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
 
-                                {{-- Request Type --}}
                                 <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-list class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Request Type</span>
-                                        <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                        <span class="font-medium text-gray-900 dark:text-gray-300">
                                             {{ optional($sppb->requestType)->requesttype_name }}
                                         </span>
                                     </div>
                                 </div>
 
-                                {{-- Purpose --}}
                                 <div class="flex flex-1 items-center gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
                                         <span class="text-gray-500">Purpose</span>
-                                        <span
-                                            class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300">
+                                        <span class="font-medium text-gray-900 dark:text-gray-300">
                                             {{ $sppb->keperluan }}
                                         </span>
                                     </div>
                                 </div>
 
                             </div>
+
+                            {{-- WO Purpose --}}
+                            @if (!empty($woData) && !empty($woData->keperluan))
+                                <div class="col-span-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                    <div class="flex items-start gap-2">
+                                        <x-heroicon-o-wrench-screwdriver class="h-5 w-5 text-gray-400" />
+                                        <div class="flex flex-col">
+                                            <span class="text-gray-500">WO Purpose</span>
+                                            <span class="text-gray-900 dark:text-gray-300">
+                                                {{ $woData->keperluan }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
 
                         </div>
                     </div>
@@ -305,33 +334,47 @@
             <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-base font-semibold">📝 SPPB Detail</h2>
-                    {{-- Button Edit COA --}}
+
+                    <!-- Left -->
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-base font-semibold">📝 SPPB Detail</h2>
+
+                        <a href="{{ route('sppb.export', $sppb->id) }}"
+                            class="inline-flex items-center gap-1.5 rounded-md bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 transition hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50">
+                            Export Excel
+                        </a>
+                    </div>
+
+                    <!-- Right -->
                     @if ($akses_cc)
                         <button id="btnEditCoa"
                             class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
                             </svg>
+
                             Edit COA
                         </button>
                     @endif
+
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                             <tr>
-                                <th class="px-4 py-2">No</th>
-                                <th class="px-4 py-2">Inventory ID</th>
-                                <th class="px-4 py-2">Description / Note</th>
-                                <th class="px-4 py-2">Qty / UoM</th>
-                                <th class="px-4 py-2">Location</th>
-                                <th class="px-4 py-2">Budget Department</th>
-                                <th class="px-4 py-2">Ordered</th>
-                                <th class="px-4 py-2">Rejectordered</th>
-                                <th class="px-4 py-2">Completeordered</th>
+                                <th class="px-4 py-3 text-left">No</th>
+                                <th class="px-4 py-2 text-left">Inventory ID</th>
+                                <th class="px-4 py-2 text-left">Description / Note</th>
+                                <th class="px-4 py-2 text-center">Qty / UoM</th>
+                                <th class="px-4 py-3 text-left">Location</th>
+                                <th class="px-4 py-3 text-left">Budget</th>
+                                <th class="px-4 py-3 text-right">Ordered</th>
+                                <th class="px-4 py-3 text-right">Rejected</th>
+                                <th class="px-4 py-3 text-right">Completed</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -347,51 +390,187 @@
                                 @endphp
 
                                 <tr
-                                    class="{{ $rowClass }} border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
 
-                                    <td class="px-4 py-2">{{ $item->sppb_no }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
-                                    <td class="px-4 py-2">
-                                        {{ $item->inventory_descr }}<br>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                                            Note: {{ $item->note }}
-                                        </span>
+                                    <!-- Number -->
+                                    <td class="px-4 py-3 font-semibold">
+                                        {{ $item->sppb_no }}
                                     </td>
 
-                                    <td class="px-4 py-2">
-                                        {{ number_format($item->qty, 2, ',', '.') }}<br>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                            {{ $item->inventoryid }}
+                                        </div>
+
+                                    </td>
+
+                                    <!-- Description -->
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                            {{ $item->inventory_descr }}
+                                        </div>
+
+                                        @if ($item->note)
+                                            <div class="mt-1 text-xs text-gray-400">
+                                                Note: {{ $item->note }}
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    <!-- Qty -->
+                                    <td class="px-4 py-3 text-center">
+                                        <div class="font-semibold">
+                                            {{ number_format($item->qty, 2, ',', '.') }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
                                             {{ $item->uom }}
-                                        </span>
+                                        </div>
                                     </td>
 
-                                    <td class="px-4 py-2">
-                                        {{ optional($item->location)->location_name }} -
-                                        {{ optional($item->subLocation)->sub_location_name }}
+                                    <!-- Location -->
+                                    <td class="px-4 py-3">
+                                        <div>
+                                            {{ optional($item->location)->location_name }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {{ optional($item->subLocation)->sub_location_name }}
+                                        </div>
                                     </td>
 
-                                    <td class="px-4 py-2">
-                                        {{ $item->budget_department_fin_id }} -
-                                        {{ $item->budget_account_id }} -
-                                        {{ $item->budget_activity_descr }}
-                                        <br>
-                                        <strong>
-                                            Business Unit : {{ $item->budget_business_unit_id }}
-                                        </strong>
+                                    <!-- Budget with Tooltip -->
+                                    <td class="px-4 py-3">
 
+                                        <div class="group relative inline-block cursor-help">
+                                            @php
+                                                $budgetData = $item->budget_data;
+
+                                                $budget = (float) ($budgetData->totalbudget ?? 0);
+                                                $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                $used = (float) ($budgetData->total_used ?? 0);
+
+                                                $totalBudget = $budget + $additional;
+
+                                                $available = $totalBudget - $reserved - $used;
+                                            @endphp
+
+                                            <div class="budget-trigger" data-budget="{{ $budget }}"
+                                                data-additional="{{ $additional }}"
+                                                data-reserved="{{ $reserved }}" data-used="{{ $used }}"
+                                                data-available="{{ $available }}"
+                                                data-desc="{{ $item->budget_activity_descr }}"
+                                                data-account="{{ $item->budget_account_id }}"
+                                                data-coa="{{ optional($item->budget_data)->account_descr }}"
+                                                data-bu="{{ $item->budget_business_unit_id }}">
+
+                                                <div class="flex items-center gap-2 text-sm">
+
+                                                    {{-- Department --}}
+                                                    @if (!empty($item->budget_department_fin_id))
+                                                        <span
+                                                            class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                            {{ $item->budget_department_fin_id }}
+                                                        </span>
+                                                    @endif
+
+                                                    {{-- Business Unit --}}
+                                                    @if (!empty($item->budget_business_unit_id))
+                                                        <span
+                                                            class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                            {{ $item->budget_business_unit_id }}
+                                                        </span>
+                                                    @endif
+
+                                                    {{-- Account --}}
+                                                    <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                        {{ $item->budget_account_id ?? '-' }}
+                                                    </span>
+
+                                                    <span class="text-gray-400 dark:text-gray-500">•</span>
+
+                                                    {{-- Activity --}}
+                                                    <span
+                                                        class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
+                                                        {{ $item->budget_activity_descr ?? '-' }}
+                                                    </span>
+
+                                                </div>
+                                            </div>
+
+                                            <!-- Tooltip -->
+                                            <div id="budgetTooltip"
+                                                class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900">
+
+                                                <div class="space-y-1">
+
+                                                    <div id="ttDesc"
+                                                        class="font-semibold text-gray-900 dark:text-white"></div>
+
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+
+                                                        <span id="ttAccount"></span>
+                                                        <span class="mx-1 text-gray-300">|</span>
+                                                        <span id="ttCoa"></span>
+                                                        <span class="mx-1 text-gray-300">|</span>
+                                                        <span id="ttBU"></span>
+
+                                                    </div>
+                                                </div>
+
+                                                <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                                <div class="space-y-1.5">
+
+                                                    <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                        <span>Budget</span>
+                                                        <span id="ttBudget"></span>
+                                                    </div>
+
+                                                    <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                        <span>Additional</span>
+                                                        <span id="ttAdditional"></span>
+                                                    </div>
+
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-500">Reserved</span>
+                                                        <span id="ttReserved" class="text-red-500"></span>
+                                                    </div>
+
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-500">Used</span>
+                                                        <span id="ttUsed" class="text-red-500"></span>
+                                                    </div>
+
+                                                    <div class="my-2 border-t border-gray-200 dark:border-gray-700">
+                                                    </div>
+
+                                                    <div class="flex justify-between font-semibold">
+                                                        <span class="text-gray-700 dark:text-gray-300">Available</span>
+                                                        <span id="ttAvailable"></span>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
                                     </td>
 
-                                    <td class="px-4 py-2">
+                                    <!-- Ordered -->
+                                    <td class="px-4 py-3 text-right">
                                         {{ number_format($item->ordered, 2, ',', '.') }}
                                     </td>
 
-                                    <td class="px-4 py-2">
+                                    <!-- Reject -->
+                                    <td class="px-4 py-3 text-right">
                                         {{ number_format($item->rejectordered, 2, ',', '.') }}
                                     </td>
 
-                                    <td class="px-4 py-2">
+                                    <!-- Completed -->
+                                    <td class="px-4 py-3 text-right font-semibold text-green-600">
                                         {{ number_format($item->completeordered, 2, ',', '.') }}
                                     </td>
+
                                 </tr>
                             @endforeach
                         </tbody>
@@ -1811,9 +1990,77 @@
 
                 closePicker();
             });
-
         });
     </script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const tooltip = document.getElementById("budgetTooltip");
+
+            document.querySelectorAll(".budget-trigger").forEach(el => {
+
+                el.addEventListener("mouseenter", function() {
+
+                    const desc = this.dataset.desc || "";
+                    const account = this.dataset.account || "";
+                    const coa = this.dataset.coa || "";
+                    const bu = this.dataset.bu || "";
+
+                    const budget = Number(this.dataset.budget || 0);
+                    const additional = Number(this.dataset.additional || 0);
+                    const reserved = Number(this.dataset.reserved || 0);
+                    const used = Number(this.dataset.used || 0);
+                    const available = Number(this.dataset.available || 0);
+
+                    document.getElementById("ttDesc").innerText = desc;
+                    document.getElementById("ttAccount").innerText = account;
+                    document.getElementById("ttCoa").innerText = coa;
+                    document.getElementById("ttBU").innerText = bu;
+
+                    document.getElementById("ttBudget").innerText =
+                        budget.toLocaleString("id-ID");
+
+                    document.getElementById("ttAdditional").innerText =
+                        additional.toLocaleString("id-ID");
+
+                    document.getElementById("ttReserved").innerText =
+                        reserved.toLocaleString("id-ID");
+
+                    document.getElementById("ttUsed").innerText =
+                        used.toLocaleString("id-ID");
+
+                    const availableEl = document.getElementById("ttAvailable");
+                    availableEl.innerText = available.toLocaleString("id-ID");
+
+                    if (available < 0) {
+                        availableEl.classList.remove("text-emerald-500");
+                        availableEl.classList.add("text-red-500");
+                    } else {
+                        availableEl.classList.remove("text-red-500");
+                        availableEl.classList.add("text-emerald-500");
+                    }
+
+                    tooltip.classList.remove("hidden");
+
+                });
+
+                el.addEventListener("mousemove", function(e) {
+
+                    tooltip.style.left = (e.pageX + 15) + "px";
+                    tooltip.style.top = (e.pageY + 15) + "px";
+
+                });
+
+                el.addEventListener("mouseleave", function() {
+
+                    tooltip.classList.add("hidden");
+
+                });
+
+            });
+
+        });
+    </script>
 
 </x-app-layout>

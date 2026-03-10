@@ -112,7 +112,7 @@
                                     ],
                                     [
                                         'label' => 'Date',
-                                        'value' => date('j F Y', strtotime($budget->budget_date)),
+                                        'value' => \Carbon\Carbon::parse($budget->budget_date)->format('j F Y'),
                                         'icon' => 'calendar',
                                     ],
                                     [
@@ -785,7 +785,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -853,7 +853,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -1104,7 +1104,7 @@
 
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let budget_id = "{{ $budget->budget_id }}"; // Ambil Task ID dari modal        
+            let budget_id = "{{ $budget->budget_id }}"; // Ambil Task ID dari modal
             approveBudget(budget_id);
         });
 

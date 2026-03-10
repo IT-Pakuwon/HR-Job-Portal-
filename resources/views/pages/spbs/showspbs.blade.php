@@ -80,76 +80,82 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
+
                         @php
-                            // Reusable classes
                             $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
 
-                            // Build field list
                             $fields = [
                                 [
                                     'icon' => 'building-office',
                                     'label' => 'Company',
                                     'value' => $spb->cpny_id,
                                 ],
+
                                 [
                                     'icon' => 'squares-2x2',
                                     'label' => 'Department',
                                     'value' => $spb->department_id,
                                 ],
+
                                 [
                                     'icon' => 'calendar',
                                     'label' => 'Date',
-                                    'value' => date('j F Y', strtotime($spb->spbdate)),
+                                    'value' => \Carbon\Carbon::parse($spb->spbdate)->format('j F Y'),
                                 ],
+
                                 [
                                     'icon' => 'user-circle',
                                     'label' => 'Created User',
                                     'value' => ucwords(strtolower(optional($spb->creator)->name)),
                                 ],
+                                [
+                                    'icon' => 'wrench-screwdriver',
+                                    'label' => 'WO',
+                                    'value' => !empty($woData) ? $woData->woid : '-',
+                                    'link' => !empty($woHash) ? url('/showwos/' . $woHash) : null,
+                                ],
                             ];
 
-                            // Worktype + Subworktype
                             $worktypeText = optional($spb->worktype)->worktype_name ?? '-';
                             $subText = optional($spb->subworktype)->subworktype_name;
+
                             if ($subText) {
                                 $worktypeText .= ' — ' . $subText;
                             }
                         @endphp
 
+
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
-                            {{-- Top Fields --}}
+                            {{-- SIMPLE HEADER FIELDS --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
+
                                     <div class="{{ $label }}">
                                         <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
                                         <span>{{ $f['label'] }}</span>
                                     </div>
-                                    <span class="{{ $value }}">{{ $f['value'] }}</span>
+
+                                    <span class="{{ $value }}">
+                                        @if (!empty($f['link']))
+                                            <a href="{{ $f['link'] }}" target="_blank"
+                                                class="font-semibold text-indigo-600 hover:underline">
+                                                {{ $f['value'] }}
+                                            </a>
+                                        @else
+                                            {{ $f['value'] }}
+                                        @endif
+                                    </span>
+
                                 </div>
                             @endforeach
 
-                            @if (!empty($woData))
-                                <div class="col-span-2 flex items-start gap-2 p-2">
-                                    <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
-                                    <span class="min-w-32 max-w-32 text-gray-500">WO</span>
-
-                                    <div class="flex flex-col">
-                                        <a href="{{ url('/showwos/' . $woHash) }}" target="_blank"
-                                            class="font-semibold text-indigo-600 hover:underline">
-                                            {{ $woData->woid }}
-                                        </a>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $woData->keperluan }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endif
 
                             {{-- JENIS PEKERJAAN --}}
                             <div class="col-span-2 grid gap-3 sm:grid-cols-2">
+
                                 <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                     <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
                                     <div class="flex flex-col">
@@ -160,34 +166,51 @@
                                     </div>
                                 </div>
 
-                                {{-- WO ID --}}
-                                <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                    <x-heroicon-o-document-text class="mt-0.5 h-5 w-5 text-gray-400" />
-                                    <div class="flex flex-col">
-                                        <span class="text-gray-500">WO ID</span>
-                                        <span class="font-medium text-gray-900 dark:text-gray-300">
-                                            {{ $spb->woid ?? '-' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {{-- DESCRIPTION --}}
-                            <div class="col-span-2">
                                 <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+
                                     <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
+
                                     <div class="flex flex-col">
+
                                         <span class="text-gray-500">Description</span>
+
                                         <span class="font-medium text-gray-900 dark:text-gray-300">
                                             {{ $spb->keperluan }}
                                         </span>
+
                                     </div>
+
                                 </div>
+
                             </div>
 
-                        </div>
-                    </div>
+                            @if (!empty($woData))
+                                <div class="col-span-2">
 
+                                    <div class="flex items-start gap-3 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+
+                                        <x-heroicon-o-wrench-screwdriver class="mt-0.5 h-5 w-5 text-gray-400" />
+
+                                        <div class="flex flex-col">
+
+                                            <span class="text-gray-500">WO Purpose</span>
+
+                                            <span class="font-medium text-gray-900 dark:text-gray-300">
+                                                {{ $woData->keperluan }}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            @endif
+
+
+                        </div>
+
+                    </div>
 
 
                 </div>
@@ -326,18 +349,33 @@
             <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-base font-semibold">📝 SPB Detail</h2>
+
+                    <!-- Left -->
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-base font-semibold">📝 SPB Detail</h2>
+
+                        <a href="{{ route('spb.export', $spb->id) }}"
+                            class="inline-flex items-center gap-1.5 rounded-md bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 transition hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50">
+                            Export Excel
+                        </a>
+                    </div>
+
+                    <!-- Right -->
                     @if ($akses_cc)
                         <button id="btnEditCoa"
-                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                            class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
                             </svg>
+
                             Edit COA
                         </button>
                     @endif
+
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
@@ -358,31 +396,103 @@
                             @foreach ($spbdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
-                                    <td class="px-4 py-2">{{ $item->spb_no }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventoryid }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventory_descr }}<br>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                                            Note: {{ $item->note }}
-                                        </span>
+
+                                    <!-- No -->
+                                    <td class="px-4 py-3 font-semibold">
+                                        {{ $item->spb_no }}
                                     </td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty, 2, ',', '.') }}<br>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $item->uom }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-2">{{ optional($item->location)->location_name }} -
-                                        {{ optional($item->subLocation)->sub_location_name }}</td>
-                                    <td class="px-4 py-2">{{ $item->budget_department_fin_id }} -
-                                        {{ $item->budget_account_id }} - {{ $item->budget_activity_descr }}
-                                        <br>
-                                        <strong>
-                                            Business Unit : {{ $item->budget_business_unit_id }}
-                                        </strong>
+
+
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                            {{ $item->inventoryid }}
+                                        </div>
 
                                     </td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty_issued, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty_sppb, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-2">{{ number_format($item->qty_sisa, 2, ',', '.') }}</td>
+
+                                    <!-- Description -->
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                            {{ $item->inventory_descr }}
+                                        </div>
+
+                                        @if ($item->note)
+                                            <div class="mt-1 text-xs text-gray-400">
+                                                Note: {{ $item->note }}
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    <!-- Qty -->
+                                    <td class="px-4 py-3 text-center">
+                                        <div class="font-semibold">
+                                            {{ number_format($item->qty, 2, ',', '.') }}
+                                        </div>
+
+                                        <div class="text-xs text-gray-500">
+                                            {{ $item->uom }}
+                                        </div>
+                                    </td>
+
+                                    <!-- Location -->
+                                    <td class="px-4 py-3">
+                                        <div>
+                                            {{ optional($item->location)->location_name }}
+                                        </div>
+
+                                        <div class="text-xs text-gray-500">
+                                            {{ optional($item->subLocation)->sub_location_name }}
+                                        </div>
+                                    </td>
+
+                                    <!-- Budget -->
+                                    <td class="px-4 py-3">
+
+                                        <div class="flex items-center gap-2 text-sm">
+
+                                            <!-- Department -->
+                                            <span
+                                                class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                {{ $item->budget_department_fin_id }}
+                                            </span>
+
+                                            <!-- Business Unit -->
+                                            <span
+                                                class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                {{ $item->budget_business_unit_id }}
+                                            </span>
+
+                                            <!-- Account -->
+                                            <span class="font-medium text-gray-700 dark:text-gray-200">
+                                                {{ $item->budget_account_id }}
+                                            </span>
+
+                                            <span class="text-gray-400">•</span>
+
+                                            <!-- Activity -->
+                                            <span class="truncate text-gray-500">
+                                                {{ $item->budget_activity_descr }}
+                                            </span>
+
+                                        </div>
+
+                                    </td>
+
+                                    <!-- Issue -->
+                                    <td class="px-4 py-3 text-right">
+                                        {{ number_format($item->qty_issued, 2, ',', '.') }}
+                                    </td>
+
+                                    <!-- SPPB -->
+                                    <td class="px-4 py-3 text-right">
+                                        {{ number_format($item->qty_sppb, 2, ',', '.') }}
+                                    </td>
+
+                                    <!-- Open -->
+                                    <td class="px-4 py-3 text-right font-semibold text-amber-600">
+                                        {{ number_format($item->qty_sisa, 2, ',', '.') }}
+                                    </td>
+
                                 </tr>
                             @endforeach
                         </tbody>

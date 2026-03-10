@@ -3040,8 +3040,33 @@ class CanvassController extends Controller
             ];
         }
 
+        // $loginUsername = $user->username ?? $user->name ?? null;
+        // $canUpload     = $cs->created_by === $loginUsername;        
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $cs->created_by === $loginUsername;        
+
+        // created_by boleh upload
+        $isCreator = $cs->created_by === $loginUsername;
+
+        // approver waiting approval juga boleh upload
+        $isWaitingApprover = false;
+
+        if ($loginUsername) {
+            $isWaitingApprover = TrApproval::query()
+                ->where('refnbr', $cs->csid) // kalau approval CS pakai csid
+                // ->where('status', 'P')
+                // ->whereNotNull('aprv_datebefore')
+                ->where(function ($q) use ($loginUsername) {
+                    $u = trim((string) $loginUsername);
+
+                    $q->where('aprv_username', $u)
+                    ->orWhere('aprv_username', 'ilike', $u . ',%')
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u);
+                })
+                ->exists();
+        }
+
+        $canUpload = $isCreator || $isWaitingApprover;
 
         return view('pages.canvass.showcs', [
             'cs'         => $cs,           

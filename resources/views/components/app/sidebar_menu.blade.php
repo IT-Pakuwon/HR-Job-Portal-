@@ -327,6 +327,9 @@
                                         <li><a href="{{ route('department') }}"
                                                 class="{{ Request::segment(1) === 'department' ? 'text-violet-600' : '' }} sidebar-link text-sm">Department</a>
                                         </li>
+                                        <li><a href="{{ route('business-units') }}"
+                                                class="{{ Request::segment(1) === 'business-units' ? 'text-violet-600' : '' }} sidebar-link text-sm">Business Units</a>
+                                        </li>
                                         <li><a href="{{ route('tenants') }}"
                                                 class="{{ Request::segment(1) === 'tenants' ? 'text-violet-600' : '' }} sidebar-link text-sm">Tenants</a>
                                         </li>
@@ -371,6 +374,15 @@
                                         </li>
                                         <li><a href="{{ route('tops') }}"
                                                 class="{{ Request::segment(1) === 'tops' ? 'text-violet-600' : '' }} sidebar-link text-sm">TOPS</a>
+                                        </li>
+                                        <li><a href="{{ route('sys-calendar') }}"
+                                                class="{{ Request::segment(1) === 'sys-calendar' ? 'text-violet-600' : '' }} sidebar-link text-sm">Calendar Exception</a>
+                                        </li>
+                                        <li><a href="{{ route('attachments-master') }}"
+                                                    class="{{ Request::segment(1) === 'attachments-master' ? 'text-violet-600' : '' }} sidebar-link text-sm">Attachments Master</a>
+                                        </li>
+                                        <li><a href="{{ route('kendaraan') }}"
+                                                class="{{ Request::segment(1) === 'kendaraan' ? 'text-violet-600' : '' }} sidebar-link text-sm">Kendaraan</a>
                                         </li>
                                     </ul>
                                 </li>

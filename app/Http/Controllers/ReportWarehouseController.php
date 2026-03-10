@@ -50,6 +50,7 @@ class ReportWarehouseController extends Controller
                 'd.inventory_descr',
                 'd.qty',
                 'd.issue_qty',
+                'd.sppbid',
 
                 'd.location_id',
                 'd.sub_location_id',
@@ -441,6 +442,8 @@ class ReportWarehouseController extends Controller
                         : '',
 
                 'SPB No' => $row->spbid,
+
+                'SPPB No' => $row->sppbid ?? '',
 
                 'Created By' =>
                     $users[$row->created_by] ?? $row->created_by,
