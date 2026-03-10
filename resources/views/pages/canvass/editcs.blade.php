@@ -1447,16 +1447,31 @@
 
 
         // helpers number
-        function numFromText(t) {
-            t = String(t || '');
-            t = t.replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
-            const n = parseFloat(t);
-            return isNaN(n) ? 0 : n;
+        // function numFromText(t) {
+        //     t = String(t || '');
+        //     t = t.replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
+        //     const n = parseFloat(t);
+        //     return isNaN(n) ? 0 : n;
+        // }
+
+        // function round2(n) {
+        //     return Math.round((+n + Number.EPSILON) * 100) / 100;
+        // }
+        function numFromText(text) {
+            if (!text) return 0;
+
+            return parseFloat(
+                String(text)
+                    .trim()
+                    .replace(/\./g, '')
+                    .replace(',', '.')
+                    .replace(/[^0-9.-]/g, '')
+            ) || 0;
         }
 
-        function round2(n) {
-            return Math.round((+n + Number.EPSILON) * 100) / 100;
-        }
+    function round2(n) {
+        return Math.round((+n + Number.EPSILON) * 100) / 100;
+    }
     </script>
 
     <script>

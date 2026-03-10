@@ -1226,6 +1226,11 @@ class CanvassController extends Controller
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
 
+        $round2 = fn($n) => round((float)$n, 2);
+        $docSelectedGrand = collect($vendors)->sum(function ($v) use ($round2) {
+            return $round2($v['selected_grand'] ?? 0);
+        });
+
         // === Ambil inventoryid unik dari payload ===
         $invIds = collect($details)
             ->pluck('inventoryid')
@@ -1271,7 +1276,7 @@ class CanvassController extends Controller
         $datestamp = $dt->toDateTimeString();
 
 
-        $round2 = fn($n) => round((float)$n, 2);
+        
         $safeSet = function ($model, string $table, string $column, $value) {
             if (\Illuminate\Support\Facades\Schema::connection('pgsql')->hasColumn($table, $column)) {
                 $model->{$column} = $value;
@@ -1426,41 +1431,14 @@ class CanvassController extends Controller
             $safeSet($cs, $csTable, 'woid',           $woid           ?? null);
             $safeSet($cs, $csTable, 'spbid',          $spbid          ?? null);
 
-            // Header vendor (display)
-            // for ($slot = 1; $slot <= 6; $slot++) {
-            //     $v = $vendors[$slot-1] ?? null;
-
-            //     $safeSet($cs, $csTable, "vendorid{$slot}",      $v['vendorid']     ?? null);
-            //     $safeSet($cs, $csTable, "vendorname{$slot}",    $v['vendorname']   ?? null);
-            //     $safeSet($cs, $csTable, "vendoralamat{$slot}",  $v['vendoralamat'] ?? null);
-            //     $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
-            //     $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
-            //     $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
-            //     $safeSet($cs, $csTable, "vendornote{$slot}",    $v['vendornote']   ?? null);
-
-            //     $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
-            //     $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
-            //     $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
-            //     $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
-            //     $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
-            //     $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
-
-            //     // akan diisi ulang setelah detail
-            //     $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
-            //     $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
-            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
-            // }
-
-            // Header vendor (display)
+           
             for ($slot = 1; $slot <= 6; $slot++) {
                 $v = $vendors[$slot - 1] ?? null;
 
-                // ===== vendornote: trim + kosong jadi null + limit panjang =====
                 $vendorNote = $v['vendornote'] ?? null;
                 if ($vendorNote !== null) {
                     $vendorNote = trim((string) $vendorNote);
                     if ($vendorNote === '') $vendorNote = null;
-                    // batasi panjang (sesuaikan dengan tipe kolom kamu)
                     if ($vendorNote !== null) $vendorNote = mb_substr($vendorNote, 0, 500);
                 }
 
@@ -1470,21 +1448,18 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "vendortelp{$slot}",    $v['vendortelp']   ?? null);
                 $safeSet($cs, $csTable, "vendorcp{$slot}",      $v['vendorcp']     ?? null);
                 $safeSet($cs, $csTable, "vendortop{$slot}",     $v['vendortop']    ?? null);
-
-                // ✅ vendor note masuk ke vendornote1..6
                 $safeSet($cs, $csTable, "vendornote{$slot}",    $vendorNote);
 
                 $safeSet($cs, $csTable, "totalvendor{$slot}",              $round2($v['total'] ?? 0));
-                $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode']   ?? null);
-                $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn']   ?? 0));
-                $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph']   ?? 0));
-                $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax']   ?? 0));
+                $safeSet($cs, $csTable, "taxcodevendor{$slot}",            $v['taxcode'] ?? null);
+                $safeSet($cs, $csTable, "ppnvendor{$slot}",                $round2($v['ppn'] ?? 0));
+                $safeSet($cs, $csTable, "pphvendor{$slot}",                $round2($v['pph'] ?? 0));
+                $safeSet($cs, $csTable, "taxvendor{$slot}",                $round2($v['tax'] ?? 0));
                 $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
 
-                // akan diisi ulang setelah detail
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
+                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($v['selected_total'] ?? 0));
+                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($v['selected_tax'] ?? 0));
+                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($v['selected_grand'] ?? 0));
             }
 
 
@@ -1493,10 +1468,10 @@ class CanvassController extends Controller
             // 8) DETAIL TrCSdetail + akumulasi header vendor selected
             $lineNo           = 0;
             $docSelectedGrand = 0.0;
-            $selectedByVendor = [];
-            for ($i = 1; $i <= 6; $i++) {
-                $selectedByVendor[$i] = ['total' => 0.0, 'tax' => 0.0, 'grand' => 0.0];
-            }
+            // $selectedByVendor = [];
+            // for ($i = 1; $i <= 6; $i++) {
+            //     $selectedByVendor[$i] = ['total' => 0.0, 'tax' => 0.0, 'grand' => 0.0];
+            // }
 
             foreach ($details as $d) {
                 $lineNo++;
@@ -1577,7 +1552,7 @@ class CanvassController extends Controller
 
 
                 // harga vendor + akumulasi selected
-                $selectedGrandThisRow = 0.0;
+                // $selectedGrandThisRow = 0.0;
 
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
                     $slot  = $i + 1;
@@ -1596,15 +1571,15 @@ class CanvassController extends Controller
                     $det->{"vendortotalprice{$slot}"} = $total;
                     $det->{"vendor{$slot}selected"}   = (bool)$sel;
 
-                    if ($sel) {
-                        $selectedGrandThisRow = $grand;
-                        $selectedByVendor[$slot]['total'] += $total;
-                        $selectedByVendor[$slot]['tax']   += $tax;
-                        $selectedByVendor[$slot]['grand'] += $grand;
-                    }
+                    // if ($sel) {
+                    //     $selectedGrandThisRow = $grand;
+                    //     $selectedByVendor[$slot]['total'] += $total;
+                    //     $selectedByVendor[$slot]['tax']   += $tax;
+                    //     $selectedByVendor[$slot]['grand'] += $grand;
+                    // }
                 }
 
-                $docSelectedGrand += $selectedGrandThisRow;
+                // $docSelectedGrand += $selectedGrandThisRow;
 
                 $det->status     = 'H';   // sementara draft, nanti di-set 'P'
                 $det->created_by = $username;
@@ -1612,11 +1587,11 @@ class CanvassController extends Controller
             }
 
             // 9) Update kolom selected vendor di HEADER
-            for ($slot = 1; $slot <= 6; $slot++) {
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($selectedByVendor[$slot]['total']));
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($selectedByVendor[$slot]['tax']));
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedByVendor[$slot]['grand']));
-            }
+            // for ($slot = 1; $slot <= 6; $slot++) {
+            //     $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($selectedByVendor[$slot]['total']));
+            //     $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($selectedByVendor[$slot]['tax']));
+            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedByVendor[$slot]['grand']));
+            // }
             $cs->save();
 
             // 10) Attachments (kalau ada)
@@ -2408,8 +2383,17 @@ class CanvassController extends Controller
         ]);
 
         // 2) Decode JSON dari form
+        // $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
+        // $details = json_decode($request->input('details', '[]'), true) ?: [];
+
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
+
+        $round2 = fn($n) => round((float)$n, 2);
+
+        $docSelectedGrand = collect($vendors)->sum(function ($v) use ($round2) {
+            return $round2($v['selected_grand'] ?? 0);
+        });
 
         // === Ambil inventoryid unik dari payload ===
         $invIds = collect($details)
@@ -2530,6 +2514,7 @@ class CanvassController extends Controller
             $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? null);
             $safeSet($cs, $csTable, 'woid',           $srcHeader->woid           ?? null);
             $safeSet($cs, $csTable, 'spbid',          $srcHeader->spbid          ?? null);
+            
 
             // Tulis ulang vendor header & reset kolom selected
             // Tulis ulang vendor header & reset kolom selected
@@ -2563,9 +2548,12 @@ class CanvassController extends Controller
                 $safeSet($cs, $csTable, "grandtotalvendor{$slot}",         $round2($v['grand'] ?? 0));
 
                 // reset kolom selected
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
+                // $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      0);
+                // $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        0);
+                // $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", 0);
+                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($v['selected_total']  ?? 0));
+                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($v['selected_tax']    ?? 0));
+                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($v['selected_grand']  ?? 0));
             }
 
      
@@ -2578,11 +2566,11 @@ class CanvassController extends Controller
             \App\Models\TrCSdetail::on('pgsql')->where('csid', $csid)->delete();
 
             $lineNo           = 0;
-            $docSelectedGrand = 0.0;
-            $selectedByVendor = [];
-            for ($i = 1; $i <= 6; $i++) {
-                $selectedByVendor[$i] = ['total'=>0.0,'tax'=>0.0,'grand'=>0.0];
-            }
+            // $docSelectedGrand = 0.0;
+            // $selectedByVendor = [];
+            // for ($i = 1; $i <= 6; $i++) {
+            //     $selectedByVendor[$i] = ['total'=>0.0,'tax'=>0.0,'grand'=>0.0];
+            // }
 
             foreach ($details as $d) {
                 $lineNo++;
@@ -2629,7 +2617,35 @@ class CanvassController extends Controller
                 $det->budget_activity_id        = $src->budget_activity_id        ?? null;
                 $det->budget_activity_descr     = $src->budget_activity_descr     ?? null;
 
-                $selectedGrandThisRow = 0.0;
+                // $selectedGrandThisRow = 0.0;
+
+                // for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
+                //     $slot  = $i + 1;
+                //     $vrow  = $d['vendor'][$i];
+                //     $vid   = $vrow['vendorid'] ?? null;
+                //     $price = $round2($vrow['price'] ?? 0);
+                //     $total = $round2($vrow['total'] ?? 0);
+                //     $ppn   = $round2($vrow['ppn']   ?? 0);
+                //     $pph   = $round2($vrow['pph']   ?? 0);
+                //     $tax   = $round2($vrow['tax']   ?? ($ppn + $pph));
+                //     $grand = $round2($vrow['grand'] ?? ($total + $tax));
+                //     $sel   = !empty($vrow['selected']);
+
+                //     $det->{"vendorid{$slot}"}         = $vid;
+                //     $det->{"vendorprice{$slot}"}      = $price;
+                //     $det->{"vendortotalprice{$slot}"} = $total;
+                //     $det->{"vendor{$slot}selected"}   = (bool)$sel;
+
+                //     // if ($sel) {
+                //     //     $selectedGrandThisRow = $grand;
+                //     //     $selectedByVendor[$slot]['total'] += $total;
+                //     //     $selectedByVendor[$slot]['tax']   += $tax;
+                //     //     $selectedByVendor[$slot]['grand'] += $grand;
+                //     // }
+                // }
+                // $docSelectedGrand = collect($vendors)->sum(function ($v) use ($round2) {
+                //     return $round2($v['selected_grand'] ?? 0);
+                // });
 
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); $i++) {
                     $slot  = $i + 1;
@@ -2637,26 +2653,15 @@ class CanvassController extends Controller
                     $vid   = $vrow['vendorid'] ?? null;
                     $price = $round2($vrow['price'] ?? 0);
                     $total = $round2($vrow['total'] ?? 0);
-                    $ppn   = $round2($vrow['ppn']   ?? 0);
-                    $pph   = $round2($vrow['pph']   ?? 0);
-                    $tax   = $round2($vrow['tax']   ?? ($ppn + $pph));
-                    $grand = $round2($vrow['grand'] ?? ($total + $tax));
                     $sel   = !empty($vrow['selected']);
 
                     $det->{"vendorid{$slot}"}         = $vid;
                     $det->{"vendorprice{$slot}"}      = $price;
                     $det->{"vendortotalprice{$slot}"} = $total;
-                    $det->{"vendor{$slot}selected"}   = (bool)$sel;
-
-                    if ($sel) {
-                        $selectedGrandThisRow = $grand;
-                        $selectedByVendor[$slot]['total'] += $total;
-                        $selectedByVendor[$slot]['tax']   += $tax;
-                        $selectedByVendor[$slot]['grand'] += $grand;
-                    }
+                    $det->{"vendor{$slot}selected"}   = (bool) $sel;
                 }
 
-                $docSelectedGrand += $selectedGrandThisRow;
+                // $docSelectedGrand += $selectedGrandThisRow;
 
                 $det->status     = 'H';   // draft dulu, jadi 'P' saat submit
                 $det->created_by = $username;
@@ -2664,11 +2669,11 @@ class CanvassController extends Controller
             }
 
             // 9) Update header selected vendor
-            for ($slot = 1; $slot <= 6; $slot++) {
-                $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($selectedByVendor[$slot]['total']));
-                $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($selectedByVendor[$slot]['tax']));
-                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedByVendor[$slot]['grand']));
-            }
+            // for ($slot = 1; $slot <= 6; $slot++) {
+            //     $safeSet($cs, $csTable, "totalselectedvendor{$slot}",      $round2($selectedByVendor[$slot]['total']));
+            //     $safeSet($cs, $csTable, "taxselectedvendor{$slot}",        $round2($selectedByVendor[$slot]['tax']));
+            //     $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedByVendor[$slot]['grand']));
+            // }
             $cs->save();
 
             // 10) Attachments BARU

@@ -60,64 +60,7 @@ use App\Models\ViewInventoryPSAIfca;
 class MasterController extends Controller
 {
 
-    public function InventoryList_xxx(Request $request)
-    {
-        $type    = strtoupper($request->get('type', 'GI')); // STOCK | NONSTOCK | JASA | ALL
-        $search  = trim($request->get('search', ''));
-        $page    = max((int) $request->get('page', 1), 1);
-        $perPage = max((int) $request->get('per_page', 10), 1);
-
-        // Selalu pakai MsInventory
-        $query = MsInventory::query()
-            ->select(
-                'inventoryid',
-                'inventory_descr',
-                'stock_unit',
-                'item_type',               
-                'item_category',
-                // 'account_id',     // pastikan kolom ada di MsInventory
-                'purchase_unit',  // untuk dikirim ke view
-                'item_sub_type',                
-            );
-
-        // If hanya untuk STOCK, else untuk tipe lain
-        if ($type === 'GI') {
-            $query->where('item_type', 'GI');
-        } else if ($type === 'SE') {
-            $query->where('item_type', 'SE');
-        } else if ($type === 'NS') {
-            $query->where('item_type', 'NS');
-        } else {
-            // semua selain STOCK dan JASA
-            $query->whereNotIn('item_type', ['GI', 'SE']);
-        }
-
-        
-        // Pencarian (Postgres ILIKE)
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('inventoryid',      'ilike', "%{$search}%")
-                ->orWhere('inventory_descr','ilike', "%{$search}%")
-                ->orWhere('stock_unit',     'ilike', "%{$search}%")
-                ->orWhere('purchase_unit',  'ilike', "%{$search}%");
-            });
-        }
-
-        $total = (clone $query)->count();
-
-        $rows = $query->orderBy('inventory_descr')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get();
-
-        return response()->json([
-            'data'     => $rows,
-            'total'    => $total,
-            'page'     => $page,
-            'per_page' => $perPage,
-        ]);
-    }
-
+   
     public function InventoryList(Request $request)
     {
         $type    = strtoupper($request->get('type', 'GI')); // GI | SE | NS | dll
@@ -139,7 +82,8 @@ class MasterController extends Controller
                 'purchase_unit',
                 'item_sub_type',
                 'item_class'      // ← penting untuk filter & debugging
-            );
+            )
+            ->where('status', 'A');
 
         /**
          * Filter item_type
@@ -334,6 +278,7 @@ class MasterController extends Controller
                 'item_type','item_category','purchase_unit',
                 'item_sub_type','item_class'
             ])
+            ->where('status', 'A')            
             ->whereIn('item_class', $classes);
 
         if ($search !== '') {
@@ -490,252 +435,7 @@ class MasterController extends Controller
         ]);
     }
 
- 
-    public function InventoryByWorktype_old(Request $request)
-    {
-        // dd($request->all());
-        $worktypeid = trim($request->get('worktypeid', ''));
-        $cpnyid     = strtoupper(trim($request->get('cpnyid', '')));
-        $search     = trim($request->get('search', ''));
-        $page       = max((int) $request->get('page', 1), 1);
-        $perPage    = min(max((int) $request->get('per_page', 10), 1), 100);
-
-        // 1) Ambil item_class utk worktype + ATK
-        $classesQ = \App\Models\MsWorktypeItem::query();
-        if ($worktypeid !== '') {
-            // $classesQ->where(function($q) use ($worktypeid){
-            //     $q->where('worktypeid', $worktypeid)
-            //     ->orWhere('worktypeid', 'ATK');
-            // });
-            $classesQ->where(function($q) use ($worktypeid){
-                $q->where('worktypeid', $worktypeid);
-            });
-        } else {
-            $classesQ->where('worktypeid', 'ATK');
-        }
-        $classes = $classesQ->pluck('item_class')
-            ->filter(fn($v) => $v !== null && $v !== '')
-            ->values();
-        
-        if ($classes->isEmpty()) {
-            return response()->json([
-                'data' => [], 'total' => 0,
-                'page' => $page, 'per_page' => $perPage,
-                'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
-            ]);
-        }
-
-        // 2) Query PG: ambil inventory + paging
-        $pg = \App\Models\MsInventory::query()
-            ->select([
-                'inventoryid','inventory_descr','stock_unit',
-                'item_type','item_category','purchase_unit',
-                'item_sub_type','item_class'
-            ])
-            ->whereIn('item_class', $classes);
-
-        if ($search !== '') {
-            $pg->where(function ($q) use ($search) {
-                $q->where('inventoryid', 'ilike', "%{$search}%")
-                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-                ->orWhere('stock_unit', 'ilike', "%{$search}%")
-                ->orWhere('purchase_unit', 'ilike', "%{$search}%")
-                ->orWhere('item_class', 'ilike', "%{$search}%");
-            });
-        }
-
-        $total = (clone $pg)->count();
-
-        $rows = $pg->distinct()
-            ->groupBy([
-                'inventoryid', 'inventory_descr', 'stock_unit',
-                'item_type', 'item_category', 'purchase_unit',
-                'item_sub_type', 'item_class'
-            ])
-            ->orderBy('inventoryid', 'asc')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get();
-
-
-        // Kalau tidak ada data PG → balikin cepat
-        if ($rows->isEmpty()) {
-            return response()->json([
-                'data' => [], 'total' => 0,
-                'page' => $page, 'per_page' => $perPage,
-                'meta' => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
-            ]);
-        }
-
-        // 3) Ambil stok/cost dari SQL Server berdasarkan invtid & cpnyid
-        //    Ganti nama kolom di selectRaw di bawah sesuai HASIL TINKER kamu!
-        $invIds = $rows->pluck('inventoryid')->map(fn($v) => (string)$v)->unique()->values();
-
-
-        // Tentukan model berdasarkan cpnyid
-        switch ($cpnyid) {
-            case 'AW':
-                $model = \App\Models\ViewInventoryAW::class;
-                break;
-            case 'EP':
-                $model = \App\Models\ViewInventoryEPH::class;
-                break;
-            case 'O8':
-                $model = \App\Models\ViewInventoryO8::class;
-                break;
-            case 'PSA':
-                $model = \App\Models\ViewInventoryPSA::class;
-                break;
-            case 'GPS':
-                $model = \App\Models\ViewInventoryGPSIfca::class;
-                break;
-            default:
-                return response()->json([
-                    'message' => "Unknown cpnyid: {$cpnyid}",
-                    'data' => [],
-                    'total' => 0
-                ], 422);
-        }
-
-        // 🟢 QUERY STOCK & COST dari SQL Server (dinamis modelnya)
-        $awRows = $model::query()
-            ->selectRaw("
-                invtid,
-                cpnyid,
-                siteid,                       
-                CAST(stock AS float) AS stock,
-                CAST(cost  AS float) AS cost
-            ")
-            ->whereIn('invtid', $invIds)
-            ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
-            ->get();
-
-
-                // --- GroupBy: key = UPPER(TRIM(invtid)) → bisa >1 row per invtid ---
-        $awGroups = $awRows->groupBy(function ($r) {
-            return strtoupper(trim((string)$r->invtid));
-        });
-
-        // --- Fan-out: 1 inventoryid PG bisa jadi beberapa baris (per siteid) ---
-        $expanded = collect();
-
-        foreach ($rows as $r) {
-            $key   = strtoupper(trim((string)$r->inventoryid));
-            $group = $awGroups->get($key);
-
-            // kalau tidak ada data stok → tetap keluarkan 1 baris (siteid/stock/cost null)
-            if (!$group || $group->isEmpty()) {
-                $clone = clone $r;
-                $clone->stock  = null;
-                $clone->cost   = null;
-                $clone->siteid = null;
-                $expanded->push($clone);
-                continue;
-            }
-
-            // ada beberapa baris di SQL Server (beda siteid) → keluarkan semua
-            foreach ($group as $aw) {
-                $clone = clone $r;
-                $clone->stock  = $aw->stock;
-                $clone->cost   = $aw->cost;
-                $clone->siteid = $aw->siteid;
-                $expanded->push($clone);
-            }
-        }
-
-        $rows = $expanded;
-
-                // (opsional) log yang benar-benar membandingkan key hasil normalisasi
-        if (config('app.debug')) {
-            $pgKeys = $rows->pluck('inventoryid')->map(fn($v) => strtoupper(trim((string)$v)))->unique()->values();
-            $awKeys = $awGroups->keys()->values();
-            $missing = $pgKeys->reject(fn($k) => $awKeys->contains($k))->values();
-
-            \Log::info('[INV-BY-WORKTYPE-NORM] pgKeys='.json_encode($pgKeys->take(10)).
-                ' awKeys='.json_encode($awKeys->take(10)).
-                ' missing='.json_encode($missing->take(10)));
-        }
-
-        return response()->json([
-            'data'     => $rows,
-            'total'    => $total,
-            'page'     => $page,
-            'per_page' => $perPage,
-            'meta'     => ['worktypeid' => $worktypeid, 'cpnyid' => $cpnyid],
-        ]);
-    }
-
-    public function InventoryByWorktype_xxx(Request $request)
-    {        
-        
-        $worktypeid  = trim($request->get('worktypeid', ''));      // <-- baru
-        $search      = trim($request->get('search', ''));
-        $page        = max((int) $request->get('page', 1), 1);
-        $perPage     = min(max((int) $request->get('per_page', 10), 1), 100);
-
-        $query = MsInventory::query()->select(
-            'inventoryid',
-            'inventory_descr',
-            'stock_unit',
-            'item_type',
-            'item_category',
-            'purchase_unit',
-            'item_sub_type',
-            'item_class'
-        );
-
-        // === Filter by worktype → item_class in (select item_class from ms_worktype_item where worktypeid=?)
-        if ($worktypeid !== '') {
-            $classes = MsWorktypeItem::query()
-                ->where(function ($q) use ($worktypeid) {
-                    $q->where('worktypeid', $worktypeid)
-                    ->orWhere('worktypeid', 'ATK');    
-                })
-                ->pluck('item_class')
-                ->filter(fn ($c) => $c !== null && $c !== '')
-                ->values();
-
-            // kalau worktype tidak memiliki mapping class → kembalikan kosong
-            if ($classes->isEmpty()) {
-                return response()->json([
-                    'data' => [],
-                    'total' => 0,
-                    'page' => $page,
-                    'per_page' => $perPage,
-                    'meta' => ['worktypeid' => $worktypeid],
-                ]);
-            }
-
-            $query->whereIn('item_class', $classes);
-        }
-       
-        // === Search (Postgres ILIKE)
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('inventoryid',       'ilike', "%{$search}%")
-                ->orWhere('inventory_descr', 'ilike', "%{$search}%")
-                ->orWhere('stock_unit',      'ilike', "%{$search}%")
-                ->orWhere('purchase_unit',   'ilike', "%{$search}%")
-                ->orWhere('item_class',      'ilike', "%{$search}%");
-            });
-        }
-
-        $total = (clone $query)->count();
-
-        $rows = $query->orderBy('inventory_descr')
-            ->offset(($page - 1) * $perPage)
-            ->limit($perPage)
-            ->get();
-
-        return response()->json([
-            'data'      => $rows,
-            'total'     => $total,
-            'page'      => $page,
-            'per_page'  => $perPage,
-            'meta'      => ['worktypeid' => $worktypeid],
-        ]);
-    }
-
+   
     public function RequestType(Request $request)
     {
         $doctype  = $request->query('doctype');
@@ -3110,7 +2810,8 @@ class MasterController extends Controller
                 'purchase_unit',
                 'item_sub_type',
                 'item_class',
-            ]);
+            ])
+            ->where('status', 'A');
 
         // Filter item_type
         if ($type === 'GI') {

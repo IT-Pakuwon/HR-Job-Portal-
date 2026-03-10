@@ -748,36 +748,37 @@
                 $('#cvBody tr').each(function(rowIdx) {
 
                     const $input = $(`
-                        <input
-                            type="text"
-                            class="price-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                            data-row="${rowIdx}" data-vendor="${id}"
-                            value="0" inputmode="decimal" autocomplete="off" placeholder="0">
+                    <input
+                        type="text"
+                        class="price-input  w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                        data-row="${rowIdx}" data-vendor="${id}"
+                        value="0" inputmode="decimal" autocomplete="off" placeholder="0">
                     `);
 
                     const $td = $(`
-                        <td class="border px-3 py-2">
-                            <div class="flex flex-col items-center gap-0.5 w-full"></div>
-                        </td>
+                    <td class="border px-3 py-2">
+                        <div class="flex flex-col items-center gap-0.5 w-full"></div>
+                    </td>
                     `);
 
-                    const $total = $(`<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0,00</small>`);
+                    const $total = $(
+                        `<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0</small>`
+                    );
                     const $radio = $(`
-                        <div class="flex justify-center mt-0.5">
-                            <input type="radio" name="selected_vendor_${rowIdx}" value="${id}"
-                                class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                        </div>
+                    <div class="flex justify-center mt-0.5">
+                        <input type="radio" name="selected_vendor_${rowIdx}" value="${id}"
+                            class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                    </div>
                     `);
 
                     $td.find('div').append($input, $total, $radio);
                     $(this).append($td);
 
+                    // hitung ulang begitu harga berubah / diformat
                     $input.on('input', function() {
-                        window.calcCellTotal($(this));
+                        calcCellTotal($(this));
                     });
                 });
-
-                setTimeout(() => recalcSummaryVendor(String(id)), 0);
             }
 
 
@@ -798,9 +799,10 @@
                 const price = parsePrice($input.val());
                 const total = qty * price;
 
-                $input.closest('td').find('.total-label').text(formatNum(total));
+                // safer: find the label within the same TD as the price input
+                $input.closest('td').find('.total-label').text(total.toLocaleString('id-ID'));
 
-                recalcSummaryVendor(String($input.data('vendor')));
+                recalcSummaryVendor(Number($input.data('vendor')));
             };
 
 
@@ -831,11 +833,8 @@
 
             // ===== Helper format =====
             window.formatNum = function(n) {
-                return (+n || 0).toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            };
+                return (+n || 0).toLocaleString('id-ID');
+            }
 
             // ===== Ringkasan per-vendor =====
             // window.recalcSummaryVendor = function(vendorId) {
@@ -875,47 +874,45 @@
             // }
 
             window.recalcSummaryVendor = function(vendorId) {
-                vendorId = String(vendorId);
+                vendorId = String(vendorId); // <- pastikan string
 
-                const $sumCell = $(`#td-sum-${vendorId}`);
-                if (!$sumCell.length) return;
-
+                // Total semua baris (harga x qty) utk vendor ini
                 let total = 0;
-                let selBase = 0;
-
-                $('#cvBody tr').each(function() {
-                    const $tr = $(this);
-
-                    const qty = parseQty($tr.find('.qty-input').val());
-                    const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
-                    const price = parsePrice($priceInput.val());
-                    const lineTotal = qty * price;
-
-                    total += lineTotal;
-
-                    const picked = String($tr.find('input.pick-vendor:checked').val() || '');
-                    if (picked === vendorId) {
-                        selBase += lineTotal;
-                    }
-
-                    // update total-label per cell sekalian
-                    $priceInput.closest('td').find('.total-label').text(formatNum(lineTotal));
+                $(`input.price-input[data-vendor="${vendorId}"]`).each(function() {
+                    const price = parsePrice($(this).val());
+                    const qty = parseQty($(this).closest('tr').find('.qty-input').val());
+                    total += qty * price;
                 });
 
+                const $sumCell = $(`#td-sum-${CSS.escape(vendorId)}`);
                 $sumCell.find('.sum-total').text(formatNum(total));
 
                 const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
                 const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+                const grand = total * (1 + ppn + pph);
+                $sumCell.find('.sum-grand').text(formatNum(grand) + ',00');
 
-                const grand = total + (total * ppn) + (total * pph);
-                const selTax = selBase * ppn + selBase * pph;
-                const selGrand = selBase + selTax;
+                // Total baris TERPILIH utk vendor ini
+                let selTotal = 0;
+                $('#cvBody tr').each(function() {
+                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
+                    if (picked === vendorId) {
+                        const lbl = $(this)
+                            .find(`input.price-input[data-vendor="${vendorId}"]`)
+                            .closest('td').find('.total-label');
+                        selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                    }
+                });
 
-                $sumCell.find('.sum-grand').text(formatNum(grand));
-                $sumCell.find('.sum-selected').text(formatNum(selGrand));
-                // $sumCell.find('.sum-selected-base').text(selBase.toFixed(2));
-                $sumCell.find('.sum-selected-base').text(String(selBase));
+                // Jika "G.Total Selected" harus termasuk PPN/PPh, pakai ini:
+                const selTax = selTotal * (ppn + pph);
+                const selGrand = selTotal + selTax;
+                $sumCell.find('.sum-selected').text(formatNum(selGrand) + ',00');
+
+                // Kalau mau yang tanpa pajak, ganti baris di atas menjadi:
+                // $sumCell.find('.sum-selected').text(formatNum(selTotal));
             };
+
 
         });
     </script>
@@ -1349,22 +1346,11 @@
 
 
         // helpers number
-        // function numFromText(t) {
-        //     t = String(t || '');
-        //     t = t.replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
-        //     const n = parseFloat(t);
-        //     return isNaN(n) ? 0 : n;
-        // }
-        function numFromText(text) {
-            if (!text) return 0;
-
-            return parseFloat(
-                String(text)
-                    .trim()
-                    .replace(/\./g, '')
-                    .replace(',', '.')
-                    .replace(/[^0-9.-]/g, '')
-            ) || 0;
+        function numFromText(t) {
+            t = String(t || '');
+            t = t.replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
+            const n = parseFloat(t);
+            return isNaN(n) ? 0 : n;
         }
 
         function round2(n) {
@@ -1596,15 +1582,15 @@
         });
 
         // Helpers
-        // function numFromText(t) {
-        //     t = String(t || '').replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
-        //     const n = parseFloat(t);
-        //     return isNaN(n) ? 0 : n;
-        // }
+        function numFromText(t) {
+            t = String(t || '').replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
+            const n = parseFloat(t);
+            return isNaN(n) ? 0 : n;
+        }
 
-        // function round2(n) {
-        //     return Math.round((+n + Number.EPSILON) * 100) / 100;
-        // }
+        function round2(n) {
+            return Math.round((+n + Number.EPSILON) * 100) / 100;
+        }
     </script>
 
 
