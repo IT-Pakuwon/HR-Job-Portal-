@@ -573,30 +573,7 @@ public function json(Request $request)
         $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
 
         DB::beginTransaction();
-        try {
-            // === Nomor otomatis (YYMM + running) ===
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr((string)$year, 2) . $month; // YYMM
-            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+        try {           
 
             $auto = $this->nextAutonbr(
                 $doctype,
@@ -996,6 +973,7 @@ public function json(Request $request)
         $locIds         = array_values($request->input('location_id', []));
         $subLocIds      = array_values($request->input('sub_location_id', []));
         $actIds         = array_values($request->input('activity_id', []));
+        $actDescrs         = array_values($request->input('activity_descr', []));
         $buIds          = array_values($request->input('business_unit_id', []));
         $deptFinIds     = array_values($request->input('department_fin_id', []));
         $coaIds         = array_values($request->input('coa_id', []));
@@ -1079,6 +1057,7 @@ public function json(Request $request)
                     'budget_department_fin_id' => $deptFinIds[$i] ?? null,
                     'budget_account_id'        => $coaIds[$i] ?? null,
                     'budget_activity_id'       => $actIds[$i] ?? null,
+                    'budget_activity_descr'    => $actDescrs[$i] ?? null,
 
                     // extra (ikuti model)
                     'stock_qty'                => null,

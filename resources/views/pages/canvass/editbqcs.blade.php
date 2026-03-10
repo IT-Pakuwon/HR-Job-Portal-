@@ -63,15 +63,13 @@
                     </div>
                     <div class="mb-3 flex justify-end">
                         <button type="button" id="btnAddRow"
-                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
                             + Add Row
                         </button>
                     </div>
-
                 </div>
 
                 <div class="rounded-base relative overflow-x-auto">
-
                     <table class="text-body w-full table-auto text-left text-sm rtl:text-right" id="bqTable">
                         <thead
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
@@ -84,7 +82,6 @@
                                 <th class="border px-4 py-3 text-left font-semibold">Estimates</th>
                                 @foreach ($vendors as $v)
                                     <th class="align-center border px-4 py-3 text-left">
-
                                         <div class="flex items-start justify-between gap-1">
                                             <div class="space-y-0.5">
                                                 <div class="text-sm font-semibold">
@@ -92,72 +89,44 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Tooltip -->
                                             <div class="group relative">
                                                 <span
                                                     class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
 
                                                 <div
                                                     class="absolute right-0 top-5 z-40 hidden w-56 rounded-md border bg-white p-3 text-sm shadow-lg group-hover:block">
-                                                    <div><strong>Contact:</strong> {{ $v['cp'] ?: '-' }}
-                                                    </div>
-                                                    <div><strong>Phone:</strong> {{ $v['telp'] ?: '-' }}
-                                                    </div>
-                                                    <div><strong>Address:</strong> {{ $v['addr'] ?: '-' }}
-                                                    </div>
+                                                    <div><strong>Contact:</strong> {{ $v['cp'] ?: '-' }}</div>
+                                                    <div><strong>Phone:</strong> {{ $v['telp'] ?: '-' }}</div>
+                                                    <div><strong>Address:</strong> {{ $v['addr'] ?: '-' }}</div>
                                                 </div>
                                             </div>
                                         </div>
-
                                     </th>
                                 @endforeach
                                 <th class="border px-4 py-3 text-center font-semibold">Action</th>
-
                             </tr>
                         </thead>
 
-                        <!-- BODY -->
                         <tbody class="#">
                             @foreach ($details as $d)
-                                {{-- <tr class="block border-b md:table-row dark:border-gray-700"> --}}
                                 @php
-                                    // bq_source: 0 = source awal, 1 = input/manual
                                     $removable = (int) ($d->bq_source ?? 0) === 1 ? 1 : 0;
                                 @endphp
 
                                 <tr class="border-b dark:border-gray-700" data-removable="{{ $removable }}"
                                     data-source="{{ (int) ($d->bq_source ?? 0) }}">
 
-                                    <!-- No -->
                                     <td class="border px-4 py-2">
-
                                         <span class="font-medium md:hidden">No:</span>
                                         <span class="bq-no-text">{{ $d->bq_no }}</span>
                                     </td>
 
-                                    <!-- Line -->
                                     <td class="border px-4 py-2">
-
                                         <span class="font-medium md:hidden">Line:</span>
                                         <span class="bq-line-text">{{ $d->bq_line_no }}</span>
                                     </td>
 
-
-                                    {{-- <!-- No -->
-                                        <td class="block border px-4 py-2 md:table-cell md:border">
-                                            <span class="font-medium md:hidden">No:</span>
-                                            {{ $d->bq_no }}
-                                        </td>
-
-                                        <!-- Line -->
-                                        <td class="block border px-4 py-2 md:table-cell md:border">
-                                            <span class="font-medium md:hidden">Line:</span>
-                                            {{ $d->bq_line_no }}
-                                        </td> --}}
-
-                                    <!-- Description (plain text like Create) -->
                                     <td class="border px-4 py-2">
-
                                         <span class="font-medium md:hidden">Description:</span>
                                         <div
                                             class="bq-descr whitespace-normal break-words text-gray-800 dark:text-gray-200">
@@ -165,27 +134,21 @@
                                         </div>
                                     </td>
 
-                                    <!-- Qty (same as Create) -->
                                     <td class="border px-4 py-2">
-
                                         <span class="font-medium md:hidden">Qty:</span>
                                         <input type="number" step="0.01" min="0"
                                             class="bq-qty w-full rounded-lg border px-2 py-1 text-right md:w-24 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                                             value="{{ number_format((float) $d->qty, 2, '.', '') }}">
                                     </td>
 
-                                    <!-- UoM (plain text like Create) -->
                                     <td class="border px-4 py-2">
-
                                         <span class="font-medium md:hidden">UoM:</span>
                                         <div class="bq-uom text-center text-gray-800 md:w-20 dark:text-gray-200">
                                             {{ $d->uom }}
                                         </div>
                                     </td>
 
-                                    <!-- Estimates (same as Create) -->
                                     <td class="border px-4 py-2">
-
                                         <span class="font-medium md:hidden">Estimates:</span>
 
                                         <div class="grid grid-cols-2 gap-3 text-sm">
@@ -205,7 +168,6 @@
                                         </div>
                                     </td>
 
-                                    <!-- Vendor Columns -->
                                     @foreach ($vendors as $v)
                                         @php
                                             $i = $v['idx'];
@@ -214,7 +176,6 @@
                                         @endphp
 
                                         <td class="border px-4 py-2">
-
                                             <span class="font-medium md:hidden">{{ $v['name'] }}:</span>
 
                                             <div class="grid grid-cols-2 gap-3 text-sm">
@@ -234,10 +195,11 @@
                                             </div>
                                         </td>
                                     @endforeach
+
                                     <td class="border px-4 py-2 text-center align-middle">
                                         @if ((int) ($d->bq_source ?? 0) === 1)
                                             <button type="button" title="Remove row"
-                                                class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
+                                                class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
                                                 🗑️
                                             </button>
                                         @else
@@ -250,9 +212,6 @@
                                 </tr>
                             @endforeach
                         </tbody>
-
-
-
 
                         <tfoot class="bg-gray-100 font-medium dark:bg-gray-700">
                             <tr>
@@ -287,14 +246,97 @@
                         class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
                         Back
                     </a>
+
                     <button type="button" id="btnSaveBQ"
-                        class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        Save
+                        class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-60">
+                        <svg id="btnSaveBQSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                        <span id="btnSaveBQText">Save</span>
                     </button>
                 </div>
             </div>
         </form>
     </div>
+
+    <style>
+        #loadingSpinnerContainer {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(2px);
+        }
+
+        #loadingSpinnerContainer .loading-card {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            color: #111827;
+            padding: 16px 20px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+            min-width: 220px;
+        }
+
+        #loadingSpinnerContainer .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #dbeafe;
+            border-top-color: #2563eb;
+            border-radius: 9999px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        #loadingSpinnerContainer .loading-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .loading-ellipsis span {
+            animation: blink 1.4s infinite both;
+        }
+
+        .loading-ellipsis span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        .loading-ellipsis span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        .swal2-container {
+            z-index: 20000 !important;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes blink {
+
+            0%,
+            80%,
+            100% {
+                opacity: 0.2;
+            }
+
+            40% {
+                opacity: 1;
+            }
+        }
+    </style>
 
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
@@ -305,7 +347,9 @@
             </div>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         function showOverlay(text = 'Processing') {
             const $ov = $('#loadingSpinnerContainer');
@@ -313,7 +357,6 @@
                 (text || 'Processing') +
                 '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
             );
-            // pastikan tampil (tetap bisa fadeIn)
             $ov.stop(true, true).fadeIn(120);
         }
 
@@ -324,29 +367,64 @@
 
     <script>
         (function() {
-            const vendors = @json($vendors); // dari controller (ambil vendor via TrCS)
-
+            const vendors = @json($vendors);
             const $form = document.getElementById('bqForm');
             const $btn = document.getElementById('btnSaveBQ');
-            // const VENDOR_OFFSET = 5;
+            const $btnText = document.getElementById('btnSaveBQText');
+            const $btnSpinner = document.getElementById('btnSaveBQSpinner');
+            const $btnAddRow = document.getElementById('btnAddRow');
             const VENDOR_OFFSET = 6;
-
+            let isSubmitting = false;
 
             const nf = new Intl.NumberFormat('id-ID', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+
             const toNum = v => isNaN(parseFloat(v)) ? 0 : parseFloat(v);
             const toFixed2 = n => Math.round(Number(n || 0) * 100) / 100;
 
-            function cellText(td) {
-                return (td?.textContent || '').trim();
-            }
+            function setSavingState(saving) {
+                isSubmitting = saving;
 
-            function cellTextOrInput(td, inputSelector) {
-                const inp = td?.querySelector(inputSelector);
-                if (inp) return (inp.value || '').trim();
-                return cellText(td);
+                if ($btn) {
+                    $btn.disabled = saving;
+                    $btn.classList.toggle('opacity-60', saving);
+                    $btn.classList.toggle('cursor-not-allowed', saving);
+                }
+
+                if ($btnAddRow) {
+                    $btnAddRow.disabled = saving;
+                    $btnAddRow.classList.toggle('opacity-60', saving);
+                    $btnAddRow.classList.toggle('cursor-not-allowed', saving);
+                }
+
+                if ($btnText) {
+                    $btnText.textContent = saving ? 'Saving...' : 'Save';
+                }
+
+                if ($btnSpinner) {
+                    $btnSpinner.classList.toggle('hidden', !saving);
+                }
+
+                $form.querySelectorAll('input, select, textarea, button').forEach(el => {
+                    if (el.id === 'btnSaveBQ') return;
+
+                    if (saving) {
+                        el.setAttribute('data-prev-disabled', el.disabled ? '1' : '0');
+                        el.disabled = true;
+                    } else {
+                        const prev = el.getAttribute('data-prev-disabled');
+                        if (prev === '0') el.disabled = false;
+                        el.removeAttribute('data-prev-disabled');
+                    }
+                });
+
+                if (saving) {
+                    showOverlay('Saving BQ');
+                } else {
+                    hideOverlay();
+                }
             }
 
             function readNo(tr, tds) {
@@ -379,7 +457,6 @@
                     const uomDiv = tds[4]?.querySelector('.bq-uom');
                     const uom = (uomInp ? uomInp.value : (uomDiv ? uomDiv.textContent : '')).trim();
 
-                    // bq_source dari dataset row (kalau sudah kamu set)
                     const bq_source = parseInt(tr.dataset.source || '0', 10);
 
                     const rowVendors = [];
@@ -407,57 +484,26 @@
                 return rows;
             }
 
-
-
-
-            // function collectPayload() {
-            //     const rows = [];
-            //     document.querySelectorAll('#bqTable tbody tr').forEach(tr => {
-            //         const tds = tr.children;
-            //         const bq_no = tds[0].textContent.trim();
-            //         const line = tds[1].textContent.trim();
-            //         const descr = tds[2].querySelector('.bq-descr').value.trim();
-            //         const qty = toFixed2(tds[3].querySelector('.bq-qty').value);
-            //         const uom = tds[4].querySelector('.bq-uom').value.trim();
-
-            //         const rowVendors = [];
-            //         vendors.forEach((v, i) => {
-            //             const td = tds[VENDOR_OFFSET + i];
-            //             const mat = toFixed2(td.querySelector('.bq-price-mat').value);
-            //             const jsa = toFixed2(td.querySelector('.bq-price-jsa').value);
-            //             rowVendors.push({
-            //                 idx: i + 1,
-            //                 product_price: mat,
-            //                 jasa_price: jsa
-            //             });
-            //         });
-
-            //         rows.push({
-            //             bq_no,
-            //             bq_line_no: line,
-            //             bq_descr: descr,
-            //             qty,
-            //             uom,
-            //             vendor: rowVendors
-            //         });
-            //     });
-            //     return rows;
-            // }
-
             function recalcVendor(idx) {
                 let sumMat = 0,
                     sumJsa = 0;
+
                 document.querySelectorAll('#bqTable tbody tr').forEach(tr => {
                     const qty = toNum(tr.querySelector('.bq-qty')?.value || 0);
                     const td = tr.children[VENDOR_OFFSET + (idx - 1)];
-                    const mat = toNum(td.querySelector('.bq-price-mat')?.value || 0);
-                    const jsa = toNum(td.querySelector('.bq-price-jsa')?.value || 0);
+                    const mat = toNum(td?.querySelector('.bq-price-mat')?.value || 0);
+                    const jsa = toNum(td?.querySelector('.bq-price-jsa')?.value || 0);
                     sumMat += qty * mat;
                     sumJsa += qty * jsa;
                 });
-                document.querySelector(`.sum-mat[data-vendor="${idx}"]`).textContent = nf.format(sumMat);
-                document.querySelector(`.sum-jsa[data-vendor="${idx}"]`).textContent = nf.format(sumJsa);
-                document.querySelector(`.sum-grand[data-vendor="${idx}"]`).textContent = nf.format(sumMat + sumJsa);
+
+                const elMat = document.querySelector(`.sum-mat[data-vendor="${idx}"]`);
+                const elJsa = document.querySelector(`.sum-jsa[data-vendor="${idx}"]`);
+                const elGrand = document.querySelector(`.sum-grand[data-vendor="${idx}"]`);
+
+                if (elMat) elMat.textContent = nf.format(sumMat);
+                if (elJsa) elJsa.textContent = nf.format(sumJsa);
+                if (elGrand) elGrand.textContent = nf.format(sumMat + sumJsa);
             }
 
             function recalcAll() {
@@ -467,13 +513,16 @@
             document.getElementById('bqTable').addEventListener('input', e => {
                 if (e.target.matches('.bq-qty,.bq-price-mat,.bq-price-jsa')) recalcAll();
             });
+
             document.addEventListener('DOMContentLoaded', recalcAll);
+            recalcAll();
 
             $btn.addEventListener('click', async function() {
+                if (isSubmitting) return;
+
                 try {
                     const fd = new FormData($form);
 
-                    // kirim vendors juga (minimal id & name) → WAJIB agar lolos validasi controller
                     const vendorsSlim = vendors.slice(0, 6).map(v => ({
                         id: v.id ?? v.vendor_id ?? null,
                         name: v.name ?? v.vendor_name ?? ''
@@ -481,50 +530,66 @@
 
                     fd.append('vendors', JSON.stringify(vendorsSlim));
                     fd.append('details', JSON.stringify(collectPayload()));
-
-                    // kalau route update pakai PUT, sertakan _method
                     fd.append('_method', 'PUT');
 
-                    showOverlay('Submitting');
+                    setSavingState(true);
 
                     const res = await fetch("{{ route('bqcs.update', $hash_id) }}", {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json' // pastikan server balas JSON saat error
+                            'Accept': 'application/json'
                         },
                         body: fd
                     });
 
-                    // aman-kan parsing: cek content-type
                     const ct = res.headers.get('content-type') || '';
                     const data = ct.includes('application/json') ? await res.json() : {
                         ok: false,
                         msg: await res.text()
                     };
 
+                    setSavingState(false);
+
                     if (res.ok && data.ok) {
-                        hideOverlay();
-                        toastr.success('BQ updated: ' + data.bqid);
+                        await Swal.fire({
+                            title: '✅ BQ Updated Successfully',
+                            text: 'BQ ID: ' + data.bqid,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#4F46E5',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        });
+
                         window.location.href = "/editcs/{{ $cs_eid }}";
-                        // alert('BQ updated: ' + data.bqid);
                     } else {
-                        alert('Update failed: ' + (data.msg || res.statusText));
-                        // console.debug(data);
+                        await Swal.fire({
+                            title: '❌ Update Failed',
+                            text: data.msg || res.statusText || 'Unknown error.',
+                            icon: 'error',
+                            confirmButtonText: 'Close'
+                        });
                     }
                 } catch (err) {
-                    alert('Error: ' + err);
+                    setSavingState(false);
+
+                    await Swal.fire({
+                        title: '❌ Error',
+                        text: err?.message || String(err),
+                        icon: 'error',
+                        confirmButtonText: 'Close'
+                    });
                 }
             });
         })();
     </script>
 
-
     <script>
-        // filter input numerik decimal (qty & price)
         (function() {
             const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
             const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
+
             document.addEventListener('keydown', e => {
                 if (!e.target.matches(selector)) return;
                 const k = e.key;
@@ -541,6 +606,7 @@
                 }
                 e.preventDefault();
             });
+
             document.addEventListener('input', e => {
                 if (!e.target.matches(selector)) return;
                 let v = e.target.value || '';
@@ -563,12 +629,14 @@
             function tdInput(cls, placeholder, type = 'text', value = '') {
                 const td = document.createElement('td');
                 td.className = 'block border px-4 py-2 md:table-cell md:border';
+
                 const input = document.createElement('input');
                 input.type = type;
                 input.placeholder = placeholder || '';
                 input.value = value;
                 input.className = cls +
                     ' w-full rounded-lg border px-2 py-1 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200';
+
                 td.appendChild(input);
                 return td;
             }
@@ -588,7 +656,7 @@
                 const td = document.createElement('td');
                 td.className = 'block border px-4 py-2 md:table-cell md:border';
                 td.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3  text-sm ">
+                    <div class="grid grid-cols-2 gap-3 text-sm">
                         <div class="flex flex-col gap-1">
                             <span>Est. Material</span><span class="text-gray-800 dark:text-gray-200">0,00</span>
                         </div>
@@ -604,7 +672,7 @@
                 const td = document.createElement('td');
                 td.className = 'block border px-4 py-2 md:table-cell md:border';
                 td.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3  text-sm ">
+                    <div class="grid grid-cols-2 gap-3 text-sm">
                         <label class="flex flex-col gap-1">
                             <span>Total Material</span>
                             <input type="number" step="0.01" min="0"
@@ -628,21 +696,22 @@
 
                 if (!removable) {
                     td.innerHTML = `
-                    <button type="button"
-                        class="btn-remove-row h-9 w-9  cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400"
-                        disabled>🗑️</button>`;
+                        <button type="button"
+                            class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400"
+                            disabled>🗑️</button>`;
                 } else {
                     td.innerHTML = `
-                    <button type="button"
-                        class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
-                        🗑️
-                    </button>`;
+                        <button type="button"
+                            class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
+                            🗑️
+                        </button>`;
                 }
                 return td;
             }
 
-            // Add row
             btnAdd?.addEventListener('click', () => {
+                if (btnAdd.disabled) return;
+
                 const tr = document.createElement('tr');
                 tr.className = 'block border-b md:table-row dark:border-gray-700';
                 tr.dataset.removable = "1";
@@ -660,28 +729,26 @@
 
                 tbody.appendChild(tr);
 
-                // trigger recalc via input event (biar footer update)
                 tr.querySelector('.bq-qty')?.dispatchEvent(new Event('input', {
                     bubbles: true
                 }));
             });
 
-            // Remove row (delegation)
             tbody?.addEventListener('click', (e) => {
                 const btn = e.target.closest('.btn-remove-row');
                 if (!btn) return;
+                if (btn.disabled) return;
 
                 const tr = btn.closest('tr');
                 if (!tr) return;
-
-                if (tr.dataset.removable !== "1") return; // existing row tidak boleh
+                if (tr.dataset.removable !== "1") return;
 
                 tr.remove();
+
                 document.getElementById('bqTable')?.dispatchEvent(new Event('input', {
                     bubbles: true
                 }));
             });
         })();
     </script>
-
 </x-app-layout>

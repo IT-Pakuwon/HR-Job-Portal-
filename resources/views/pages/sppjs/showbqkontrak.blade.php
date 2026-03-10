@@ -80,7 +80,9 @@
                                     [
                                         'icon' => 'hashtag',
                                         'label' => 'ID SPPJ',
-                                        'value' => $bq->sppjtid,
+                                        'value' => !empty($sppjHash)
+                                            ? '<a href="'.url('/showsppjs/'.$sppjHash).'" target="_blank" class="font-semibold text-indigo-600 hover:underline">'.$bq->sppjtid.'</a>'
+                                            : $bq->sppjtid,
                                     ],
                                     [
                                         'icon' => 'building-office',
@@ -110,7 +112,7 @@
                                     </div>
 
                                     <span class="{{ $value }}">
-                                        {{ $f['value'] }}
+                                        {!! $f['value'] !!}
                                     </span>
                                 </div>
                             @endforeach

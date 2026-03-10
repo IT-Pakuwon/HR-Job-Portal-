@@ -130,7 +130,7 @@
                             </div>
 
                             {{-- SPB --}}
-                            @if ($spbNos->isNotEmpty())
+                            {{-- @if ($spbNos->isNotEmpty())
                                 <div class="{{ $row }}">
                                     <div class="{{ $label }}">
                                         <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
@@ -138,6 +138,22 @@
                                     </div>
                                     <span class="{{ $value }}">
                                         {{ $spbNos->implode(', ') }}
+                                    </span>
+                                </div>
+                            @endif --}}
+                            {{-- SPB --}}
+                            @if (!empty($spbData))
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                        <span>SPB No</span>
+                                    </div>
+
+                                    <span class="{{ $value }}">
+                                        <a href="{{ url('/showspbs/' . $spbData->hash) }}" target="_blank"
+                                            class="font-semibold text-indigo-600 hover:underline">
+                                            {{ $spbData->spbid }}
+                                        </a>
                                     </span>
                                 </div>
                             @endif

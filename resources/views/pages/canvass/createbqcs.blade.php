@@ -14,9 +14,7 @@
                     </h2>
                 </div>
 
-                <!-- Grid Form -->
                 <div class="flex flex-col gap-4 text-sm">
-                    <!-- Row 1 -->
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
                         <div>
                             <span class="block font-medium text-gray-700 dark:text-gray-300">Company</span>
@@ -66,7 +64,7 @@
                     </div>
                     <div class="mb-3 flex justify-end">
                         <button type="button" id="btnAddRow"
-                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
                             + Add Row
                         </button>
                     </div>
@@ -93,7 +91,6 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Tooltip -->
                                             <div class="group relative">
                                                 <span
                                                     class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-300 text-[10px] font-bold">i</span>
@@ -112,29 +109,24 @@
                             </tr>
                         </thead>
 
-                        <!-- BODY -->
                         <tbody class="#">
                             @foreach ($bqDetails as $d)
                                 <tr class="border-b dark:border-gray-700" data-removable="0" data-bq-source="0">
-                                    <!-- No -->
                                     <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">No:</span>
                                         {{ $d->bq_no }}
                                     </td>
 
-                                    <!-- Line -->
                                     <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">Line:</span>
                                         {{ $d->bq_line_no }}
                                     </td>
 
-                                    <!-- Description -->
                                     <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">Description:</span>
                                         {{ $d->bq_descr }}
                                     </td>
 
-                                    <!-- Qty -->
                                     <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">Qty:</span>
                                         <input type="number" step="0.01" min="0"
@@ -142,13 +134,11 @@
                                             value="{{ number_format((float) ($d->qty ?? 0), 2, '.', '') }}">
                                     </td>
 
-                                    <!-- UoM -->
                                     <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">UoM:</span>
                                         {{ $d->uom }}
                                     </td>
 
-                                    <!-- Estimates -->
                                     <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">Estimates:</span>
                                         <div class="grid grid-cols-2 gap-3 text-sm">
@@ -163,7 +153,6 @@
                                         </div>
                                     </td>
 
-                                    <!-- Vendor Columns -->
                                     @foreach ($vendors as $v)
                                         <td class="block border px-4 py-2 md:table-cell md:border">
                                             <span class="font-medium md:hidden">{{ $v['name'] }}:</span>
@@ -193,7 +182,6 @@
                             @endforeach
                         </tbody>
 
-                        <!-- FOOTER -->
                         <tfoot class="hidden bg-gray-100 md:table-footer-group dark:bg-gray-700">
                             <tr>
                                 <td colspan="6" class="border px-4 py-4 text-right font-bold">Grand Total per Vendor
@@ -214,7 +202,6 @@
                     </table>
                 </div>
 
-                <!-- Action Buttons -->
                 <div
                     class="flex justify-end gap-3 rounded-b-xl border-t border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-700/40">
                     <a href="{{ url()->previous() }}"
@@ -237,7 +224,16 @@
         </form>
     </div>
 
-    <!-- Overlay Loading -->
+    <style>
+        #loadingOverlay {
+            z-index: 9999;
+        }
+
+        .swal2-container {
+            z-index: 20000 !important;
+        }
+    </style>
+
     <div id="loadingOverlay" class="fixed inset-0 z-[9999] hidden bg-black/40 backdrop-blur-[2px]">
         <div class="flex h-full w-full items-center justify-center">
             <div class="rounded-xl bg-white px-6 py-4 shadow-xl dark:bg-gray-800">
@@ -248,14 +244,29 @@
                             stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                     </svg>
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">Saving BQ...</span>
+                    <span id="loadingOverlayText" class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                        Saving BQ...
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tambahkan di <head> atau sebelum </body> -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function showOverlay(text = 'Saving BQ...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const textEl = document.getElementById('loadingOverlayText');
+            if (textEl) textEl.textContent = text;
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function hideOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+    </script>
 
     <script>
         (function() {
@@ -264,7 +275,6 @@
             const $btn = document.getElementById('btnSaveBQ');
             const $btnText = document.getElementById('btnSaveBQText');
             const $btnSpinner = document.getElementById('btnSaveBQSpinner');
-            const $loadingOverlay = document.getElementById('loadingOverlay');
             const $btnAddRow = document.getElementById('btnAddRow');
             let isSubmitting = false;
 
@@ -302,8 +312,10 @@
                     $btnSpinner.classList.toggle('hidden', !saving);
                 }
 
-                if ($loadingOverlay) {
-                    $loadingOverlay.classList.toggle('hidden', !saving);
+                if (saving) {
+                    showOverlay('Saving BQ...');
+                } else {
+                    hideOverlay();
                 }
 
                 $form.querySelectorAll('input, select, textarea, button').forEach(el => {
@@ -404,7 +416,6 @@
                         return data;
                     })
                     .then(res => {
-                        // PENTING: matikan loading dulu
                         setSavingState(false);
 
                         if (res.ok) {
@@ -415,10 +426,7 @@
                                 confirmButtonText: 'OK',
                                 confirmButtonColor: '#4F46E5',
                                 allowOutsideClick: false,
-                                allowEscapeKey: false,
-                                customClass: {
-                                    popup: 'swal2-front'
-                                }
+                                allowEscapeKey: false
                             }).then(() => {
                                 window.location.href = "{{ url('/csjobs') }}";
                             });
@@ -646,7 +654,7 @@
                 } else {
                     td.innerHTML = `
                         <button type="button"
-                            class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
+                            class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
                             🗑️
                         </button>`;
                 }
@@ -706,12 +714,10 @@
             tbody.addEventListener('click', function(e) {
                 const btn = e.target.closest('.btn-remove-row');
                 if (!btn) return;
-
                 if (btn.disabled) return;
 
                 const tr = btn.closest('tr');
                 if (!tr) return;
-
                 if (tr.dataset.removable !== "1") return;
 
                 tr.remove();

@@ -3494,18 +3494,18 @@ class SppjController extends Controller
             ->whereNotNull('aprv_datebefore')
             ->exists();
 
-        // 2️⃣ Approver level 1 boleh edit (rule lama)
+        // 2️⃣ Approver level 1 boleh edit
         $canApproveEdit = TrApproval::where('refnbr', $bq->sppjtid)
             ->where('aprv_leveling', '1')
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
             ->where(function ($q) use ($loginUsername) {
-                $u = $loginUsername;
+                $u = trim((string) $loginUsername);
 
                 $q->where('aprv_username', $u)
-                ->orWhere('ilike', $u.',%')
-                ->orWhere('ilike', '%,'.$u.',%')
-                ->orWhere('ilike', '%,'.$u);
+                    ->orWhere('aprv_username', 'ilike', $u . ',%')
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
+                    ->orWhere('aprv_username', 'ilike', '%,' . $u);
             })
             ->exists();
 
@@ -3518,7 +3518,20 @@ class SppjController extends Controller
 
         $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
 
-        return view('pages.sppjs.showbqkontrak', compact('bq', 'bqdetail', 'canEdit', 'hash'));
+        // ambil hash untuk SPPJ
+        $sppj = \App\Models\TrSPPJ::select('id', 'sppjid')
+            ->where('sppjid', $bq->sppjtid)
+            ->first();
+
+        $sppjHash = $sppj ? Hashids::encode($sppj->id) : null;
+
+        return view('pages.sppjs.showbqkontrak', compact(
+            'bq',
+            'bqdetail',
+            'canEdit',
+            'hash',
+            'sppjHash'
+        ));
     }
 
     public function editBqKontrak_zzz($id)

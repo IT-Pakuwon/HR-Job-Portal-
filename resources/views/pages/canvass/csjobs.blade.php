@@ -336,7 +336,7 @@
 
             function renderDocBtn(row) {
                 const base = mapShowUrl[row.doc_type] || '#';
-                return `<a href="/${base}/${row.eid}" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 '>${row.doc_no}</a>`;
+                return `<a href="/${base}/${row.eid}" class='inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ' target="_blank">${row.doc_no}</a>`;
             }
 
             function colSetWithoutCreate() {
@@ -586,7 +586,7 @@
 
                             return `
                                 <a href="/${base}/${row.sppbjkt_eid}"
-                                class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ">
+                                class="inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 " target="_blank">
                                     ${v}
                                 </a>
                             `;

@@ -19,6 +19,7 @@ use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrReceipt;
 use App\Models\TrReceiptdetail;
+use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
 use App\Models\TrSPPB;
 use App\Models\TrSPPBdetail;
@@ -1363,10 +1364,18 @@ class SppbController extends Controller
         ])
         ->findOrFail($id);
 
-        $spbNos = TrSPBdetail::where('sppbid', $sppb->sppbid)
-        ->pluck('spbid')
-        ->unique()
-        ->values();
+        // $spbNos = TrSPBdetail::where('sppbid', $sppb->sppbid)
+        // ->pluck('spbid')
+        // ->unique()
+        // ->values();
+        $spbData = TrSPB::query()
+            ->select('id', 'spbid', 'sppbid')
+            ->where('spbid', $sppb->spbid)
+            ->first();
+
+        if ($spbData) {
+            $spbData->hash = Hashids::encode($spbData->id);
+        }
 
         $sppbdetail = TrSPPBdetail::with([
             'location:location_id,location_name',
@@ -1440,55 +1449,7 @@ class SppbController extends Controller
                 $item->budget_remaining = 0;
             }
         }
-        // $spbIds = $sppbdetail->pluck('spbid')->unique()->filter()->values();
-
-        // ---------- ambil lampiran dari tr_attachment ----------
-        // $rows = TrAttachment::where('refnbr', $sppb->sppbid)
-        //     ->where('status', 'A')
-        //     ->orderBy('created_at', 'desc')
-        //     ->get();
-
-        // // siapkan Signed URL dari GCS
-        // $config = config('filesystems.disks.gcs');
-        // $keyFilePath = $config['key_file'];
-        // if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-        //     $keyFilePath = base_path($keyFilePath);
-        // }
-
-        // $storage = new StorageClient([
-        //     'projectId'   => $config['project_id'],
-        //     'keyFilePath' => $keyFilePath,
-        // ]);
-        // $bucket = $storage->bucket($config['bucket']);
-
-        // // map jadi data siap pakai di view
-        // $attachments = $rows->map(function ($r) use ($bucket) {
-        //     $objectPath = rtrim($r->folder, '/').'/'.$r->filename;   // ex: att-purchasing-app/wo/2025/xxxx-file.pdf
-        //     $object     = $bucket->object($objectPath);
-
-        //     // Signed URL 10 menit
-        //     $signedUrl = null;
-        //     try {
-        //         $signedUrl = $object->signedUrl(
-        //             new \DateTimeImmutable('+10 minutes'),
-        //             ['version' => 'v4']
-        //         );
-        //     } catch (\Throwable $e) {
-        //         // kalau gagal signed URL, biarkan null; di UI tampilkan nama saja
-        //         \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-        //     }
-
-        //     return (object) [
-        //         'display_name' => $r->attachment_name,         // nama yang enak dibaca
-        //         'created_by'   => $r->created_by,
-        //         'created_at'   => $r->created_at,
-        //         'url'          => $signedUrl,                  // bisa null jika gagal
-        //         'folder'       => $r->folder,
-        //         'filename'     => $r->filename,
-        //         'extention'    => $r->extention,
-        //         'size'         => $r->filesize,
-        //     ];
-        // });
+      
 
         $attachmentPB = $this->mapAttachmentsToSignedUrl($sppb->sppbid);
 
@@ -1538,7 +1499,7 @@ class SppbController extends Controller
             }
         }
 
-        return view('pages.sppbs.showsppbs', compact('sppb', 'spbNos', 'sppbdetail', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'attachmentPB', 'attachmentWO', 'woData', 'woHash'
+        return view('pages.sppbs.showsppbs', compact('sppb', 'spbData', 'sppbdetail', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'attachmentPB', 'attachmentWO', 'woData', 'woHash'
         ));
     }
 
