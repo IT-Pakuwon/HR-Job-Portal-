@@ -17,10 +17,12 @@
                     {{-- <input type="hidden" name="bqtype" value="{{ $header->bqtype ?? '' }}"> --}}
                     <input type="hidden" name="bqtype" value="{{ $bqtype ?? ($header->bqtype ?? '') }}">
                     {{-- <input type="hidden" name="budget_perpost" value="{{ $header->budget_perpost ?? '' }}"> --}}
-                    <input type="hidden" name="budget_perpost" value="{{ $budget_perpost ?? ($header->budget_perpost ?? '') }}">
+                    <input type="hidden" name="budget_perpost"
+                        value="{{ $budget_perpost ?? ($header->budget_perpost ?? '') }}">
                     {{-- <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}"> --}}
                     {{-- <input type="hidden" name="user_peminta" value="{{ $header->created_by }}"> --}}
-                    <input type="hidden" name="user_peminta" value="{{ $user_peminta ?? ($header->created_by ?? '') }}">
+                    <input type="hidden" name="user_peminta"
+                        value="{{ $user_peminta ?? ($header->created_by ?? '') }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
                     {{-- <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}"> --}}
                     <input type="hidden" name="prev_csid" value="{{ $prev_csid ?? ($poHeader->csid ?? '') }}">
@@ -381,9 +383,8 @@
                                 <!-- Save Button -->
                                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                     <button type="button" id="saveBtn"
-                                        class="<span id= mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto"
-                                        saveText>Save
-                                        CS</span>
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
+                                        <span id="saveText">Save CS</span>
                                         <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -663,6 +664,7 @@
                     <!-- Vendor Note -->
                     <div class="mt-2">
                         <textarea
+                         id="vendornote_${id}"
                             name="vendornote_${id}"
                             class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
                                 focus:border-indigo-500 focus:ring focus:ring-indigo-500/50
@@ -761,7 +763,9 @@
                         </td>
                     `);
 
-                    const $total = $(`<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0,00</small>`);
+                    const $total = $(
+                        `<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0,00</small>`
+                    );
                     const $radio = $(`
                         <div class="flex justify-center mt-0.5">
                             <input type="radio" name="selected_vendor_${rowIdx}" value="${id}"
@@ -1260,7 +1264,8 @@
                     vendortelp: String($th.data('vendor-phone') || ''),
                     vendorcp: String($th.data('vendor-cp') || ''),
                     vendortop: $th.find('select.cara-bayar').val() || '',
-                    vendornote: String($th.find('textarea.vendornote').val() || ''),
+                    // vendornote: String($th.find('textarea.vendornote').val() || ''),
+                    vendornote: String($(`#vendornote_${vid}`).val() || ''),
 
                     total: round2(total),
                     ppn: round2(ppn),
@@ -1360,10 +1365,10 @@
 
             return parseFloat(
                 String(text)
-                    .trim()
-                    .replace(/\./g, '')
-                    .replace(',', '.')
-                    .replace(/[^0-9.-]/g, '')
+                .trim()
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .replace(/[^0-9.-]/g, '')
             ) || 0;
         }
 

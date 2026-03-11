@@ -11,21 +11,24 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasProfilePhoto, Notifiable, TwoFactorAuthenticatable;
+    use HasApiTokens;
+    use HasFactory;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
 
-  
-    // protected $table = 'ms_user';    
+    // protected $table = 'ms_user';
     // protected $primaryKey = 'user_id';
     protected $connection = 'mysql2';
-    protected $table = "users";   
+    protected $table = 'users';
 
     /**
-     * Menentukan apakah primary key menggunakan auto-increment
+     * Menentukan apakah primary key menggunakan auto-increment.
      */
     public $incrementing = true;
 
     /**
-     * Menentukan tipe data primary key
+     * Menentukan tipe data primary key.
      */
     protected $keyType = 'int';
 
@@ -37,7 +40,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',       
+        'password',
         'username',
         'status',
         'role',
@@ -53,7 +56,7 @@ class User extends Authenticatable
         'job_level',
         'approval_line',
         'npk',
-        'profile_photo_path'
+        'profile_photo_path',
     ];
 
     /**
@@ -89,8 +92,7 @@ class User extends Authenticatable
     public function getProfilePhotoUrlAttribute()
     {
         return $this->profile_photo_path
-            ? asset('storage/' . $this->profile_photo_path)
-            : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+            ? asset('storage/'.$this->profile_photo_path)
+            : 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&color=7F9CF5&background=EBF4FF';
     }
-
 }

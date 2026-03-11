@@ -380,8 +380,8 @@
 
                                     <!-- Save -->
                                     <button type="button" id="saveBtn"
-                                        class="<span id= mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto"saveText">Save
-                                        CS</span>
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
+                                        <span id="saveText">Save CS</span>
                                         <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -861,7 +861,11 @@
                     const id = String(v.vendor_id);
                     const $th = $(`#th-vendor-${CSS.escape(id)}`);
                     const $sum = $(`#td-sum-${CSS.escape(id)}`);
-                    if ($th.length) $th.find('select.cara-bayar').val(v.top || '30D');
+                    if ($th.length) {
+                        $th.find('select.cara-bayar').val(v.top || '30D');
+                        $th.find('textarea.vendornote').val(v.vendornote || '');
+                    }
+
                     if ($sum.length) {
                         $sum.find('.sum-ppn').val((v.ppn ?? 11).toFixed(2));
                         $sum.find('.sum-pph').val((v.pph ?? 0).toFixed(2));
@@ -1418,7 +1422,8 @@
             fd.append('vendors', JSON.stringify(vendors));
             fd.append('details', JSON.stringify(details));
             fd.append('action', 'save');
-
+            // console.log("VENDORS PAYLOAD:", vendors);
+            // console.log("DETAILS PAYLOAD:", details);
             showOverlay('Submitting');
 
             $.ajax({
@@ -1462,16 +1467,16 @@
 
             return parseFloat(
                 String(text)
-                    .trim()
-                    .replace(/\./g, '')
-                    .replace(',', '.')
-                    .replace(/[^0-9.-]/g, '')
+                .trim()
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .replace(/[^0-9.-]/g, '')
             ) || 0;
         }
 
-    function round2(n) {
-        return Math.round((+n + Number.EPSILON) * 100) / 100;
-    }
+        function round2(n) {
+            return Math.round((+n + Number.EPSILON) * 100) / 100;
+        }
     </script>
 
     <script>
@@ -1589,7 +1594,7 @@
                     vendortelp: String($th.data('vendor-phone') || ''),
                     vendorcp: String($th.data('vendor-cp') || ''),
                     vendortop: $th.find('select.cara-bayar').val() || '',
-                    vendornote: String($th.find('textarea.vendornote').val() || ''),
+                    vendornote: String($(`#vendornote_${vid}`).val() || ''),
 
                     total: round2(total),
                     ppn: round2(ppn),

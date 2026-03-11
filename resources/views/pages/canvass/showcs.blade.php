@@ -429,6 +429,13 @@
                                                         <span class="font-semibold">{{ $v['vendortop'] }}</span>
                                                     </div>
                                                 @endif
+
+                                                @if (!empty($v['vendornote']))
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                        Note:
+                                                        <span class="italic">{{ $v['vendornote'] }}</span>
+                                                    </div>
+                                                @endif
                                             </div>
 
                                             <!-- Tooltip -->
@@ -1475,10 +1482,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
