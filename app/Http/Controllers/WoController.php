@@ -1916,14 +1916,14 @@ class WoController extends Controller
             ]);
         }
 
-        // 📌 Company bisa multi
+        // Company multi
         if (is_string($user->cpny_id)) {
             $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
         } else {
             $cpnyIds = (array) $user->cpny_id;
         }
 
-        // 📌 Department bisa multi
+        // Department multi
         if (is_string($user->department_id)) {
             $deptIds = array_map('trim', explode(',', $user->department_id));
         } else {
@@ -1943,7 +1943,7 @@ class WoController extends Controller
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $jobStatus = (string) $request->query('job_status', ''); // H/P/R/C atau kosong
+        $jobStatus = (string) $request->query('job_status', '');
 
         $columns = [
             0 => 'wo.woid',
@@ -1961,43 +1961,45 @@ class WoController extends Controller
         $orderCol = $columns[$orderIdx] ?? 'wo.woid';
 
         $base = TrWO::from('tr_wo as wo')
+
             ->leftJoin('ms_worktype as wt', function ($j) {
                 $j->on('wt.worktypeid', '=', 'wo.worktypeid');
             })
+
             ->join('ms_worktype_dept as wtd', function ($j) {
                 $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
             })
 
-    // ✅ LOCATION
-    ->leftJoin('ms_location as loc', function ($j) {
-        $j->on('loc.location_id', '=', 'wo.location_id');
-    })
+            // LOCATION
+            ->leftJoin('ms_location as loc', function ($j) {
+                $j->on('loc.location_id', '=', 'wo.location_id');
+            })
 
-    // ✅ SUB LOCATION (correct table + column)
-    ->leftJoin('ms_sub_location as subloc', function ($j) {
-        $j->on('subloc.sub_location_id', '=', 'wo.sub_location_id');
-    })
+            // SUB LOCATION
+            ->leftJoin('ms_sub_location as subloc', function ($j) {
+                $j->on('subloc.sub_location_id', '=', 'wo.sub_location_id');
+            })
 
             ->whereIn('wo.cpny_id', $cpnyIds)
             ->whereIn('wtd.department_id', $deptIds);
 
-        // filter berdasarkan status_pekerjaan (H / P / R / C), kalau kosong = semua
+        // Filter job status
         if ($jobStatus !== '') {
             $base->where('wo.status_pekerjaan', $jobStatus);
         }
 
         $recordsTotal = (clone $base)->distinct()->count('wo.woid');
 
+        // Search
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('wo.woid', 'ilike', "%{$search}%")
-                ->orWhere('wo.cpny_id', 'ilike', "%{$search}%")
-                ->orWhere('wo.department_id', 'ilike', "%{$search}%")
-                ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
-                ->orWhere('wo.worequest', 'ilike', "%{$search}%")
-                ->orWhere('wo.keperluan', 'ilike', "%{$search}%")
-                ->orWhere('wo.status', 'ilike', "%{$search}%")
-                ->orWhere('wo.status_pekerjaan', 'ilike', "%{$search}%");
+                  ->orWhere('wo.cpny_id', 'ilike', "%{$search}%")
+                  ->orWhere('wo.department_id', 'ilike', "%{$search}%")
+                  ->orWhere('wt.worktype_name', 'ilike', "%{$search}%")
+                  ->orWhere('wo.worequest', 'ilike', "%{$search}%")
+                  ->orWhere('wo.keperluan', 'ilike', "%{$search}%")
+                  ->orWhere('wo.status_pekerjaan', 'ilike', "%{$search}%");
             });
         }
 
@@ -2017,18 +2019,20 @@ class WoController extends Controller
             'wo.keperluan',
 
             'loc.location_name',
-            'subloc.sublocation_name',
+
+            // FIXED COLUMN NAME
+            'subloc.sub_location_name as sublocation_name',
 
             'wo.status',
             'wo.status_pekerjaan',
             'wo.created_by'
         )
             ->orderBy($orderCol, $orderDir)
-                        ->orderBy('wo.woid', 'desc')
-                        ->distinct('wo.woid')
-                        ->skip($start)
-                        ->take($length)
-                        ->get();
+            ->orderBy('wo.woid', 'desc')
+            ->distinct('wo.woid')
+            ->skip($start)
+            ->take($length)
+            ->get();
 
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
