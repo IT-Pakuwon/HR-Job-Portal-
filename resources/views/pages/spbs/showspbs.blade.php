@@ -804,7 +804,7 @@
     <script>
         $(document).ready(function() {
             const spbid = "{{ $spb->spbid }}";
-            const doctype = "SPB";
+            const doctype = "RB";
 
             loadComments(spbid, doctype);
 

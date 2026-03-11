@@ -78,7 +78,28 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
+
         $(document).ready(function() {
             let table = $('#screensTable').DataTable({
                 ajax: {
@@ -187,6 +208,7 @@
 
                 $('#screenModalTitle').text("Loading...");
                 $('#screenModal').removeClass('hidden');
+                showLoading();
 
                 $.get(`/screens/${id}/edit`, function(data) {
                     $('#screenModalTitle').text("Edit Screen");
@@ -194,6 +216,18 @@
                     $('#screen_id').val(data.screen_id);
                     $('#screen_name').val(data.screen_name);
                     $('#application_id').val(data.application_id);
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+                    $('#screenModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load screen data'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -230,6 +264,9 @@
                     formData.append('_method', 'PUT');
                 }
 
+                showLoading();
+                $('#screenForm button[type="submit"]').prop('disabled', true);
+
                 $.ajax({
                     url: url,
                     type: method,
@@ -240,17 +277,38 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#screenForm button[type="submit"]').prop('disabled', false);
+
                         $('#screenModal').addClass('hidden');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Screen saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
+                        hideLoading();
+                        $('#screenForm button[type="submit"]').prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal menyimpan screen'
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan screen');
                     }
                 });
             });
 
             $('#closeScreenModal').click(function() {
+                $('#screenForm')[0].reset();
+                $('#id').val('');
                 $('#screenModal').addClass('hidden');
             });
         });

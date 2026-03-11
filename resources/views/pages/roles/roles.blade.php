@@ -61,7 +61,28 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="bg-white rounded-xl px-6 py-4 shadow-lg flex items-center gap-3">
+            <svg class="animate-spin h-6 w-6 text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
+
         $(document).ready(function() {
             let table = $('#rolesTable').DataTable({
                 ajax: {
@@ -197,17 +218,21 @@
             });
 
             // Submit (create / update)
-            $('#roleForm').submit(function(e) {
+           $('#roleForm').submit(function(e) {
                 e.preventDefault();
 
                 let id = $('#id').val();
                 let url = id ? `/roles/${id}` : "{{ route('roles.store') }}";
                 let method = 'POST';
+
                 let formData = new FormData(document.getElementById('roleForm'));
 
                 if (id) {
                     formData.append('_method', 'PUT');
                 }
+
+                showLoading();
+                $('#roleForm button[type=submit]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -219,12 +244,34 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+
+                        hideLoading();
+                        $('#roleForm button[type=submit]').prop('disabled', false);
+
                         $('#roleModal').addClass('hidden');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Role saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
                     },
                     error: function(xhr) {
+
+                        hideLoading();
+                        $('#roleForm button[type=submit]').prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed saving role'
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan data role');
                     }
                 });
             });

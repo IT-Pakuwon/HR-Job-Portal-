@@ -1614,18 +1614,53 @@
             return new Date(y, m - 1, d);
         }
 
+        // function formatYMD(date) {
+        //     return date.toISOString().split('T')[0];
+        // }
+
         function formatYMD(date) {
-            return date.toISOString().split('T')[0];
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
 
+        // function countWorkingDays(start, end) {
+
+        //     let count = 0;
+        //     const type = $('#work_day_type').val();
+        //     const cur = new Date(start);
+
+        //     while (cur <= end) {
+
+        //         const day = cur.getDay();
+        //         const dateStr = formatYMD(cur);
+
+        //         const isWeekend = (day === 0 || day === 6);
+        //         const isHoliday = HOLIDAYS.includes(dateStr);
+
+        //         if (type === 'INCLUDE') {
+        //             count++;
+        //         } else {
+        //             if (!isWeekend && !isHoliday) {
+        //                 count++;
+        //             }
+        //         }
+
+        //         cur.setDate(cur.getDate() + 1);
+        //     }
+
+        //     return count;
+        // }
+
         function countWorkingDays(start, end) {
-
             let count = 0;
-            const type = $('#work_day_type').val();
-            const cur = new Date(start);
+            const type = ($('#work_day_type').val() || 'EXCLUDE').toUpperCase();
 
-            while (cur <= end) {
+            const cur = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
+            while (cur <= last) {
                 const day = cur.getDay();
                 const dateStr = formatYMD(cur);
 
@@ -1646,10 +1681,31 @@
             return count;
         }
 
-        function updateWorkingDays() {
+        // function updateWorkingDays() {
 
+        //     const from = $('#work_date_from').val();
+        //     const to = $('#work_date_to').val();
+
+        //     const d1 = parseDate(from);
+        //     const d2 = parseDate(to);
+
+        //     if (!d1 || !d2) {
+        //         $('#work_days').val('');
+        //         return;
+        //     }
+
+        //     if (d2 < d1) {
+        //         $('#work_days').val('');
+        //         return;
+        //     }
+
+        //     const result = countWorkingDays(d1, d2);
+        //     $('#work_days').val(result);
+        // }
+
+        function updateWorkingDays() {
             const from = $('#work_date_from').val();
-            const to = $('#work_date_to').val();
+            const to   = $('#work_date_to').val();
 
             const d1 = parseDate(from);
             const d2 = parseDate(to);
@@ -1721,13 +1777,44 @@
             }
 
             function validateInfoForm() {
-
-                updateWorkingDays(); // ensure latest calculation
-
                 clearMarks();
 
                 const errors = [];
                 const val = (id) => ($("#" + id).val() ?? '').toString().trim();
+
+                // =========================
+                // VALIDASI PO
+                // =========================
+                if (isPO) {
+                    if (!val('podeliverydate')) {
+                        errors.push({
+                            id: 'podeliverydate',
+                            msg: 'Delivery Date is required.'
+                        });
+                    }
+
+                    if (errors.length) {
+                        errors.forEach(e => markInvalid($('#' + e.id)));
+
+                        const first = errors[0];
+                        const $first = $('#' + first.id);
+
+                        $first.focus()[0]?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+
+                        toastr.error(first.msg);
+                        return { ok: false };
+                    }
+
+                    return { ok: true };
+                }
+
+                // =========================
+                // VALIDASI SPK
+                // =========================
+                updateWorkingDays();
 
                 if (!val('work_date_from')) {
                     errors.push({
@@ -1841,21 +1928,23 @@
                     });
                 }
 
-                const d1 = new Date(val('work_date_from'));
-                const d2 = new Date(val('work_date_to'));
+                const fromVal = val('work_date_from');
+                const toVal   = val('work_date_to');
 
-                if (d1 && d2 && d2 < d1) {
-                    errors.push({
-                        id: 'work_date_to',
-                        msg: 'End Date cannot be earlier than Start Date.'
-                    });
+                if (fromVal && toVal) {
+                    const d1 = new Date(fromVal);
+                    const d2 = new Date(toVal);
+
+                    if (d2 < d1) {
+                        errors.push({
+                            id: 'work_date_to',
+                            msg: 'End Date cannot be earlier than Start Date.'
+                        });
+                    }
                 }
 
                 if (errors.length) {
-
-                    errors.forEach(e => {
-                        markInvalid($('#' + e.id));
-                    });
+                    errors.forEach(e => markInvalid($('#' + e.id)));
 
                     const first = errors[0];
                     const $first = $('#' + first.id);
@@ -1866,16 +1955,168 @@
                     });
 
                     toastr.error(first.msg);
-
-                    return {
-                        ok: false
-                    };
+                    return { ok: false };
                 }
 
-                return {
-                    ok: true
-                };
+                return { ok: true };
             }
+
+            // function validateInfoForm() {
+
+            //     updateWorkingDays(); // ensure latest calculation
+
+            //     clearMarks();
+
+            //     const errors = [];
+            //     const val = (id) => ($("#" + id).val() ?? '').toString().trim();
+
+            //     if (!val('work_date_from')) {
+            //         errors.push({
+            //             id: 'work_date_from',
+            //             msg: 'Work Start Date is required.'
+            //         });
+            //     }
+
+            //     if (!val('work_date_to')) {
+            //         errors.push({
+            //             id: 'work_date_to',
+            //             msg: 'Work End Date is required.'
+            //         });
+            //     }
+
+            //     if (!val('work_day_from')) {
+            //         errors.push({
+            //             id: 'work_day_from',
+            //             msg: 'Working Day (From) is required.'
+            //         });
+            //     }
+
+            //     if (!val('work_day_to')) {
+            //         errors.push({
+            //             id: 'work_day_to',
+            //             msg: 'Working Day (To) is required.'
+            //         });
+            //     }
+
+            //     if (!val('work_time_from')) {
+            //         errors.push({
+            //             id: 'work_time_from',
+            //             msg: 'Working Time (From) is required.'
+            //         });
+            //     }
+
+            //     if (!val('work_time_to')) {
+            //         errors.push({
+            //             id: 'work_time_to',
+            //             msg: 'Working Time (To) is required.'
+            //         });
+            //     }
+
+            //     if (!val('manpower_total')) {
+            //         errors.push({
+            //             id: 'manpower_total',
+            //             msg: 'Man Power is required.'
+            //         });
+            //     }
+
+            //     if (!val('warranty')) {
+            //         errors.push({
+            //             id: 'warranty',
+            //             msg: 'Warranty is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkpic')) {
+            //         errors.push({
+            //             id: 'spkpic',
+            //             msg: 'Internal PIC Name is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkpicjabatan')) {
+            //         errors.push({
+            //             id: 'spkpicjabatan',
+            //             msg: 'Internal PIC Position is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkpicphone')) {
+            //         errors.push({
+            //             id: 'spkpicphone',
+            //             msg: 'Internal PIC Phone is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkpicemail')) {
+            //         errors.push({
+            //             id: 'spkpicemail',
+            //             msg: 'Internal PIC Email is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkvendor')) {
+            //         errors.push({
+            //             id: 'spkvendor',
+            //             msg: 'Vendor PIC Name is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkvendorjabatan')) {
+            //         errors.push({
+            //             id: 'spkvendorjabatan',
+            //             msg: 'Vendor PIC Position is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkvendorphone')) {
+            //         errors.push({
+            //             id: 'spkvendorphone',
+            //             msg: 'Vendor PIC Phone is required.'
+            //         });
+            //     }
+
+            //     if (!val('spkvendoremail')) {
+            //         errors.push({
+            //             id: 'spkvendoremail',
+            //             msg: 'Vendor PIC Email is required.'
+            //         });
+            //     }
+
+            //     const d1 = new Date(val('work_date_from'));
+            //     const d2 = new Date(val('work_date_to'));
+
+            //     if (d1 && d2 && d2 < d1) {
+            //         errors.push({
+            //             id: 'work_date_to',
+            //             msg: 'End Date cannot be earlier than Start Date.'
+            //         });
+            //     }
+
+            //     if (errors.length) {
+
+            //         errors.forEach(e => {
+            //             markInvalid($('#' + e.id));
+            //         });
+
+            //         const first = errors[0];
+            //         const $first = $('#' + first.id);
+
+            //         $first.focus()[0]?.scrollIntoView({
+            //             behavior: 'smooth',
+            //             block: 'center'
+            //         });
+
+            //         toastr.error(first.msg);
+
+            //         return {
+            //             ok: false
+            //         };
+            //     }
+
+            //     return {
+            //         ok: true
+            //     };
+            // }
 
             /*
             ========================

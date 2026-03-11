@@ -2207,6 +2207,7 @@ class SppbController extends Controller
                     'cpny_id' => $csHeader->cpny_id,
                     'department_id' => $csHeader->department_id,
                     'keperluan' => $csHeader->keperluan,
+                    'created_by' => $csHeader->created_by,
                     'status' => $csHeader->status,
                     'completed_by' => $csHeader->completed_by,
                     'completed_at' => $fmt($csHeader->completed_at),
@@ -2224,6 +2225,7 @@ class SppbController extends Controller
                     'department_id' => $poHeader->department_id,
                     'vendorname' => $poHeader->vendorname,
                     'status' => $poHeader->status,
+                    'created_by' => $poHeader->created_by,
                     'completed_by' => $poHeader->completed_by,
                     'completed_at' => $fmt($poHeader->completed_at),
                     'is_approved' => $approved($poHeader),
@@ -2239,6 +2241,7 @@ class SppbController extends Controller
                     'department_id' => $receiptHeader->department_id,
                     'vendorname' => $receiptHeader->vendorname,
                     'status' => $receiptHeader->status,
+                    'created_by' => $receiptHeader->created_by,
                     'completed_by' => $receiptHeader->completed_by,
                     'completed_at' => $fmt($receiptHeader->completed_at),
                     'is_approved' => $approved($receiptHeader),
@@ -2314,30 +2317,7 @@ class SppbController extends Controller
 
             $d = $h ? TrCSdetail::where('csid', $doc)
                 ->whereNull('deleted_at')
-                ->orderBy('id')->get() : collect();
-            // $tbl = (new TrCSdetail)->getTable();
-
-            // $d = $h ? TrCSdetail::query()
-            //     ->leftJoin('ms_vendor as v', 'v.vendor_id', '=', $tbl.'.vendor_id_selected') // ⬅ kolom sesuaikan
-            //     ->where($tbl.'.csid', $doc)
-            //     ->whereNull($tbl.'.deleted_at')
-            //     ->select([
-            //         $tbl.'.*',
-            //         'v.vendor_name as vendorname_selected'
-            //     ])
-            //     ->orderBy($tbl.'.id')
-            //     ->get()
-            // : collect();
-            // $d = $h ? TrCSdetail::where('csid',$doc)
-            //     ->whereNull('deleted_at')
-            //     ->orderBy('id')
-            //     ->get()
-            //     ->map(function($row){
-            //         $vendor = \App\Models\MsVendor::where('vendor_id', $row->vendor_id_selected)->first();
-            //         $row->vendorname_selected = $vendor->vendor_name ?? null;
-            //         return $row;
-            //     })
-            // : collect();
+                ->orderBy('id')->get() : collect();   
 
             return response()->json([
                 'header' => $h ? [
@@ -2347,6 +2327,7 @@ class SppbController extends Controller
                     'department_id' => $h->department_id,
                     'keperluan' => $h->keperluan,
                     'status' => $h->status,
+                    'created_by' => $h->created_by,
                     'completed_by' => $h->completed_by,
                     'completed_at' => $fmt($h->completed_at),
                     'is_approved' => $approved($h),
@@ -2377,6 +2358,7 @@ class SppbController extends Controller
                     'department_id' => $h->department_id,
                     'vendorname' => $h->vendorname,
                     'status' => $h->status,
+                    'created_by' => $h->created_by,
                     'completed_by' => $h->completed_by,
                     'completed_at' => $fmt($h->completed_at),
                     'is_approved' => $approved($h),
@@ -2406,6 +2388,7 @@ class SppbController extends Controller
                 'department_id' => $h->department_id,
                 'vendorname' => $h->vendorname,
                 'status' => $h->status,
+                'created_by' => $h->created_by,
                 'completed_by' => $h->completed_by,
                 'completed_at' => $fmt($h->completed_at),
                 'is_approved' => $approved($h),

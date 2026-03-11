@@ -126,7 +126,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPB All
+                                SPB Summary
                             </p>
                         </div>
 
@@ -144,7 +144,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                WO → SPB
+                                SPB by WO
                             </p>
                         </div>
 
@@ -835,24 +835,62 @@
                 ];
             }
 
+            // function orderFor(sc) {
+            //     const type = scopeType(sc);
+            //     if (type === 'spb') {
+            //         return [
+            //             [3, 'desc'], // spbdate
+            //             [2, 'desc'] // spbid
+            //         ];
+            //     }
+            //     if (type === 'issue') {
+            //         return [
+            //             [2, 'desc'], // issuedate
+            //             [1, 'desc'] // issueid
+            //         ];
+            //     }
+            //     // sppb
+            //     return [
+            //         [2, 'desc'], // sppbdate
+            //         [1, 'desc'] // sppbid
+            //     ];
+            // }
+
             function orderFor(sc) {
                 const type = scopeType(sc);
+
                 if (type === 'spb') {
+                    // scope yang diminta: order by SPBID desc
+                    if (['issuejobsnew', 'issuejobs', 'onprogress'].includes(sc)) {
+                        return [
+                            [2, 'desc'] // spbid
+                        ];
+                    }
+
+                    // scope flow / all tetap bisa pakai tanggal dulu
+                    if (sc === 'spball') {
+                        return [
+                            [2, 'desc'] // spbid (karena spball hide action, index spbid jadi 1? lihat catatan bawah)
+                        ];
+                    }
+
                     return [
                         [3, 'desc'], // spbdate
-                        [2, 'desc'] // spbid
+                        [2, 'desc']  // spbid
                     ];
                 }
+
                 if (type === 'issue') {
                     return [
                         [2, 'desc'], // issuedate
-                        [1, 'desc'] // issueid
+                        [1, 'desc']  // issueid
                     ];
                 }
+
                 // sppb
                 return [
                     [2, 'desc'], // sppbdate
-                    [1, 'desc'] // sppbid
+                    [1, 'desc']  // sppbid
                 ];
             }
 

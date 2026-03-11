@@ -121,7 +121,28 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
+
         $(document).ready(function() {
             let table = $('#roleMenusTable').DataTable({
                 ajax: {
@@ -217,25 +238,30 @@
             // ===== Filter Role =====
             $('#filterRole').on('change', function() {
                 const val = $(this).val();
-                // Kolom role_id = index 1
-                table.column(1).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true,
-                    false).draw();
+
+                table
+                    .column(2) // role_id
+                    .search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false)
+                    .draw();
             });
 
             // ===== Filter Menu =====
             $('#filterMenu').on('change', function() {
                 const val = $(this).val();
-                // Kolom menu_id = index 2
-                table.column(2).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true,
-                    false).draw();
+
+                table
+                    .column(3) // menu_id
+                    .search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false)
+                    .draw();
             });
 
             // ===== Clear Filter =====
-            $('#clearFilters').on('click', function() {
+            $('#clearUserFilters').on('click', function() {
                 $('#filterRole').val('');
                 $('#filterMenu').val('');
-                table.column(1).search('');
+
                 table.column(2).search('');
+                table.column(3).search('');
                 table.draw();
             });
 
@@ -252,20 +278,36 @@
 
             // Edit
             // Edit
-            $(document).on('click', '.editRoleMenuBtn', function() {
-                let id = $(this).data('id'); // ← ini id row, bukan role_id
+           $(document).on('click', '.editRoleMenuBtn', function() {
+                let id = $(this).data('id');
 
                 $('#roleMenuModalTitle').text("Loading...");
                 $('#roleMenuModal').removeClass('hidden');
+                showLoading();
 
                 $.get(`/role-menus/${id}/edit`, function(data) {
                     $('#roleMenuModalTitle').text("Edit Role Menu");
-                    $('#id').val(data.id); // id row utk URL PUT
-                    $('#role_id').val(data.role_id); // set role
-                    $('#parent_menu_id').val(data.parent_menu_id);
+                    $('#id').val(data.id);
+                    $('#role_id').val(data.role_id);
 
-                    // Set multiple menu selection
+                    if ($('#parent_menu_id').length) {
+                        $('#parent_menu_id').val(data.parent_menu_id);
+                    }
+
                     $('#menu_id').val(data.menu_ids).change();
+
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+                    $('#roleMenuModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load role menu data'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -303,6 +345,9 @@
                     formData.append('_method', 'PUT');
                 }
 
+                showLoading();
+                $('#roleMenuForm button[type="submit"]').prop('disabled', true);
+
                 $.ajax({
                     url: url,
                     type: method,
@@ -313,17 +358,39 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#roleMenuForm button[type="submit"]').prop('disabled', false);
+
                         $('#roleMenuModal').addClass('hidden');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Role menu saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
+                        hideLoading();
+                        $('#roleMenuForm button[type="submit"]').prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal menyimpan data role menu'
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan data role menu');
                     }
                 });
             });
 
             $('#closeRoleMenuModal').click(function() {
+                $('#roleMenuForm')[0].reset();
+                $('#id').val('');
+                $('#menu_id').val([]).change();
                 $('#roleMenuModal').addClass('hidden');
             });
         });

@@ -608,6 +608,9 @@
                             <div><span class="text-gray-500">Department:</span>
                                 <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
                             </div>
+                            <div><span class="text-gray-500">Created By:</span>
+                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.created_by || '-')}</span>
+                            </div>
 
                             ${header.vendorname !== undefined
                                 ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>

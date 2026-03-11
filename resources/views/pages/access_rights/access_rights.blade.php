@@ -182,7 +182,27 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
         $(document).ready(function() {
             let table = $('#accessRightsTable').DataTable({
                 ajax: {
@@ -291,33 +311,33 @@
                 ]
             });
 
-            // ===== Filter ROLE (kolom index 1) =====
+            // ===== Filter ROLE =====
             $('#filterRole').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(1) // role_id
+                    .column(2) // role_id
                     .search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false)
                     .draw();
             });
 
-            // ===== Filter SCREEN ID (kolom index 2) =====
+            // ===== Filter SCREEN ID =====
             $('#filterScreen').on('change', function() {
                 const val = $(this).val();
 
                 table
-                    .column(2) // screen_id
+                    .column(3) // screen_id
                     .search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false)
                     .draw();
             });
 
             // ===== Clear Filter =====
-            $('#clearFilters').on('click', function() {
+            $('#clearUserFilters').on('click', function() {
                 $('#filterRole').val('');
                 $('#filterScreen').val('');
 
-                table.column(1).search('');
                 table.column(2).search('');
+                table.column(3).search('');
                 table.draw();
             });
 
@@ -391,6 +411,7 @@
                 $('#accessRightModalTitle').text("Loading...");
                 resetAccessModal();
                 $('#accessRightModal').removeClass('hidden');
+                showLoading();
 
                 $.get(`/access-rights/${id}/edit`, function(data) {
                     $('#accessRightModalTitle').text("Edit Access Right");
@@ -400,7 +421,6 @@
                     $('#application_id').val(data.application_id);
                     $('#access_type').val(data.access_type);
 
-                    // access_names = array dari controller
                     let names = data.access_names || [];
                     names.forEach(function(n) {
                         let up = (n || '').toUpperCase();
@@ -413,10 +433,22 @@
                         } else if (up === 'DELETE') {
                             $('#chk_delete').prop('checked', true);
                         } else if (up) {
-                            // nama lain masuk ke checkbox custom
                             addCustomCheckbox(up, true);
                         }
                     });
+
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+                    $('#accessRightModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load access right data'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -453,6 +485,9 @@
                     formData.append('_method', 'PUT');
                 }
 
+                showLoading();
+                $('#accessRightForm button[type="submit"]').prop('disabled', true);
+
                 $.ajax({
                     url: url,
                     type: method,
@@ -463,17 +498,36 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#accessRightForm button[type="submit"]').prop('disabled', false);
+
                         $('#accessRightModal').addClass('hidden');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Access right saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
+                        hideLoading();
+                        $('#accessRightForm button[type="submit"]').prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal menyimpan access right'
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan access right');
                     }
                 });
             });
-
             $('#closeAccessRightModal').click(function() {
+                resetAccessModal();
                 $('#accessRightModal').addClass('hidden');
             });
         });

@@ -189,26 +189,26 @@ Route::middleware(['auth'])->group(function () {
     //     })->name($screen->screen_name);
     // }
 
-    Route::get('/screens', [MsScreenController::class, 'index'])->name('screens');
-    Route::get('/screens/json', [MsScreenController::class, 'json'])->name('screens.json'); // Untuk Fetch API
-    Route::post('/screens', [MsScreenController::class, 'store'])->name('screens.store');
-    Route::get('/screens/{id}/edit', [MsScreenController::class, 'edit'])->name('screens.edit');
-    Route::put('/screens/{post}', [MsScreenController::class, 'update'])->name('screens.update');
-    Route::put('/screens/{id}/toggle-status', [MsScreenController::class, 'toggleStatus']);
+    // Route::get('/screens', [MsScreenController::class, 'index'])->name('screens');
+    // Route::get('/screens/json', [MsScreenController::class, 'json'])->name('screens.json'); // Untuk Fetch API
+    // Route::post('/screens', [MsScreenController::class, 'store'])->name('screens.store');
+    // Route::get('/screens/{id}/edit', [MsScreenController::class, 'edit'])->name('screens.edit');
+    // Route::put('/screens/{post}', [MsScreenController::class, 'update'])->name('screens.update');
+    // Route::put('/screens/{id}/toggle-status', [MsScreenController::class, 'toggleStatus']);
 
-    Route::get('/applications', [MsApplicationController::class, 'index'])->name('applications');
-    Route::get('/applications/json', [MsApplicationController::class, 'json'])->name('applications.json'); // Untuk Fetch API
-    Route::post('/applications', [MsApplicationController::class, 'store'])->name('applications.store');
-    Route::get('/applications/{id}/edit', [MsApplicationController::class, 'edit'])->name('applications.edit');
-    Route::put('/applications/{post}', [MsApplicationController::class, 'update'])->name('applications.update');
-    Route::put('/applications/{id}/toggle-status', [MsApplicationController::class, 'toggleStatus']);
+    // Route::get('/applications', [MsApplicationController::class, 'index'])->name('applications');
+    // Route::get('/applications/json', [MsApplicationController::class, 'json'])->name('applications.json'); // Untuk Fetch API
+    // Route::post('/applications', [MsApplicationController::class, 'store'])->name('applications.store');
+    // Route::get('/applications/{id}/edit', [MsApplicationController::class, 'edit'])->name('applications.edit');
+    // Route::put('/applications/{post}', [MsApplicationController::class, 'update'])->name('applications.update');
+    // Route::put('/applications/{id}/toggle-status', [MsApplicationController::class, 'toggleStatus']);
 
-    Route::get('/groups', [MsGroupController::class, 'index'])->name('groups');
-    Route::get('/groups/json', [MsGroupController::class, 'json'])->name('groups.json'); // Untuk Fetch API
-    Route::post('/groups', [MsGroupController::class, 'store'])->name('groups.store');
-    Route::get('/groups/{id}/edit', [MsGroupController::class, 'edit'])->name('groups.edit');
-    Route::put('/groups/{post}', [MsGroupController::class, 'update'])->name('groups.update');
-    Route::put('/groups/{id}/toggle-status', [MsGroupController::class, 'toggleStatus']);
+    // Route::get('/groups', [MsGroupController::class, 'index'])->name('groups');
+    // Route::get('/groups/json', [MsGroupController::class, 'json'])->name('groups.json'); // Untuk Fetch API
+    // Route::post('/groups', [MsGroupController::class, 'store'])->name('groups.store');
+    // Route::get('/groups/{id}/edit', [MsGroupController::class, 'edit'])->name('groups.edit');
+    // Route::put('/groups/{post}', [MsGroupController::class, 'update'])->name('groups.update');
+    // Route::put('/groups/{id}/toggle-status', [MsGroupController::class, 'toggleStatus']);
 
     // Route::get('/agendas', [AgendaController::class, 'index']);
     // Route::post('/agendas/store', [AgendaController::class, 'store']);

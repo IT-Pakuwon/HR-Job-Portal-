@@ -207,7 +207,18 @@
             </div>
         </div>
     </div>
+    <div id="saveOverlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-5 py-4 shadow-lg dark:bg-gray-800">
+            <svg class="h-6 w-6 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Saving user...</span>
+        </div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
@@ -404,7 +415,13 @@
                 $('#modalTitle').text("Add User");
                 $('#appForm')[0].reset();
                 $('#id').val('');
-                $('.select2').val(null).trigger('change'); // termasuk role_ids[]
+                $('.select2').val(null).trigger('change');
+
+                const $submitBtn = $('#appForm').find('button[type="submit"]');
+                $submitBtn.data('loading', false);
+                $submitBtn.prop('disabled', false).text('Save');
+
+                $('#closeModal').prop('disabled', false);
                 $('#appModal').removeClass('hidden');
             });
 
@@ -412,22 +429,26 @@
 
             $(document).on('click', '.editAppBtn', function() {
                 let appId = $(this).data('id');
+
+                const $submitBtn = $('#appForm').find('button[type="submit"]');
+                $submitBtn.data('loading', false);
+                $submitBtn.prop('disabled', false).text('Save');
+
+                $('#closeModal').prop('disabled', false);
+
                 $.get(`/users/${appId}/edit`, function(app) {
                     $('#modalTitle').text("Edit User");
                     $('#id').val(app.id);
                     $('#name').val(app.name);
                     $('#email').val(app.email);
                     $('#npk').val(app.npk);
-                    // $('#jabatan').val(app.jabatan);
+
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
                     $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
                     $('select[name="division_id[]"]').val(app.division_id).trigger('change');
-                    $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(
-                        'change');
+                    $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger('change');
                     $('select[name="role"]').val(app.role).trigger('change');
-
-                    // ⬇️ Set app roles (sys_user_role)
                     $('select[name="role_ids[]"]').val(app.role_ids).trigger('change');
 
                     $('#appModal').removeClass('hidden');
@@ -458,15 +479,30 @@
 
             $('#appForm').submit(function(e) {
                 e.preventDefault();
+
+                const $form = $('#appForm');
+                const $submitBtn = $form.find('button[type="submit"]');
+                const $closeBtn = $('#closeModal');
+                const $overlay = $('#saveOverlay');
+
+                if ($submitBtn.data('loading') === true) {
+                    return;
+                }
+
                 let appId = $('#id').val();
                 let url = appId ? `/users/${appId}` : "{{ route('users.store') }}";
-                let method = 'POST'; // <-- selalu POST
+                let method = 'POST';
 
                 let formData = new FormData(document.getElementById('appForm'));
 
                 if (appId) {
-                    formData.append('_method', 'PUT'); // <-- spoof PUT method
+                    formData.append('_method', 'PUT');
                 }
+
+                $submitBtn.data('loading', true);
+                $submitBtn.prop('disabled', true).text('Saving...');
+                $closeBtn.prop('disabled', true);
+                $overlay.removeClass('hidden').addClass('flex');
 
                 $.ajax({
                     url: url,
@@ -477,14 +513,47 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    success: function() {
+                    success: function(res) {
                         $('#appModal').addClass('hidden');
-                        table.ajax.reload();
+                        table.ajax.reload(null, false);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Successfully!',
+                            text: appId ? 'User berhasil diupdate.' : 'User berhasil ditambahkan.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        let message = 'Gagal menyimpan data user.';
+
+                        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                            message = Object.values(xhr.responseJSON.errors)
+                                .flat()
+                                .join('\n');
+                        } else if (xhr.responseJSON?.message) {
+                            message = xhr.responseJSON.message;
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed!',
+                            text: message
+                        });
+                    },
+                    complete: function() {
+                        $submitBtn.data('loading', false);
+                        $submitBtn.prop('disabled', false).text('Save');
+                        $closeBtn.prop('disabled', false);
+                        $overlay.removeClass('flex').addClass('hidden');
                     }
                 });
             });
 
             $('#closeModal').click(function() {
+                const $submitBtn = $('#appForm').find('button[type="submit"]');
+                if ($submitBtn.data('loading') === true) return;
                 $('#appModal').addClass('hidden');
             });
         });

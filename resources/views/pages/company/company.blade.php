@@ -117,7 +117,27 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
         $(document).ready(function() {
             let table = $('#companiesTable').DataTable({
                 ajax: "{{ route('companies.json') }}",
@@ -224,6 +244,9 @@
             // Edit
             $(document).on('click', '.editCompanyBtn', function() {
                 let id = $(this).data('id');
+
+                showLoading();
+
                 $.get(`/companies/${id}/edit`, function(c) {
                     $('#modalTitle').text("Edit Company");
                     $('#id').val(c.id);
@@ -241,6 +264,17 @@
                     $('#warehouse_note').val(c.warehouse_note);
 
                     $('#companyModal').removeClass('hidden');
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load company data'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -267,6 +301,7 @@
             // Submit form (create / update)
             $('#companyForm').submit(function(e) {
                 e.preventDefault();
+
                 let id = $('#id').val();
                 let url = id ? `/companies/${id}` : "{{ route('companies.store') }}";
                 let method = 'POST';
@@ -275,6 +310,9 @@
                 if (id) {
                     formData.append('_method', 'PUT');
                 }
+
+                showLoading();
+                $('#companyForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -286,17 +324,38 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#companyForm button[type="submit"]').prop('disabled', false);
+
                         $('#companyModal').addClass('hidden');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Company saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
+                        hideLoading();
+                        $('#companyForm button[type="submit"]').prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal menyimpan data company'
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan data company');
                     }
                 });
             });
 
             $('#closeModal').click(function() {
+                $('#companyForm')[0].reset();
+                $('#id').val('');
                 $('#companyModal').addClass('hidden');
             });
         });

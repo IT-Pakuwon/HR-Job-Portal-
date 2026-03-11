@@ -183,9 +183,24 @@
             </div>
         </div>
     </div>
+    <div id="saveOverlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-5 py-4 shadow-lg dark:bg-gray-800">
+            <svg class="h-6 w-6 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <div class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                Saving approval...
+            </div>
+        </div>
+    </div>
+
     {{-- Select2 CDN --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const TYPE_OPTIONS = @json($type->pluck('category_name')->values());
         const COND_OPTIONS = @json($condition->pluck('category_name')->values());
@@ -556,12 +571,15 @@
                 $('#addLineBtn').removeClass('hidden');
                 $('#linesContainer').empty();
 
-                $('#aprv_cpnyid_select').val('').trigger('change');
+                $('#approvalForm button[type="submit"]')
+                    .data('submitting', false)
+                    .prop('disabled', false)
+                    .text('Save');
 
-                // set doctype kosong & load dept default
-                $('#aprv_doctype').val('').trigger(
-                    'change'); // ini akan memanggil handler change -> loadDepartmentsByDoctype('')
-                // jadi tidak perlu panggil loadDepartmentsByDoctype lagi di sini
+                $('#closeApprovalModal').prop('disabled', false);
+
+                $('#aprv_cpnyid_select').val('').trigger('change');
+                $('#aprv_doctype').val('').trigger('change');
 
                 lineIdxCounter = 0;
                 addLineRow();
@@ -579,6 +597,13 @@
                 $('#linesContainer').empty();
                 $('#addLineBtn').addClass('hidden');
 
+                $('#approvalForm button[type="submit"]')
+                    .data('submitting', false)
+                    .prop('disabled', false)
+                    .text('Save');
+
+                $('#closeApprovalModal').prop('disabled', false);
+
                 lineIdxCounter = 0;
 
                 $('#approvalModal').removeClass('hidden');
@@ -586,8 +611,6 @@
                 $.get(`/approvals/${id}/edit`, function(data) {
                     $('#approvalModalTitle').text("Edit Approval");
 
-                    // $('#aprv_doctype').val(data.aprv_doctype).trigger('change');
-                    // $('#aprv_departementid').val(data.aprv_departementid).trigger('change');
                     $('#aprv_doctype').val(data.aprv_doctype).trigger('change');
                     loadDepartmentsByDoctype(data.aprv_doctype, data.aprv_departementid);
 
@@ -628,13 +651,24 @@
             $('#approvalForm').submit(function(e) {
                 e.preventDefault();
 
+                const $submitBtn = $('#approvalForm button[type="submit"]');
+                const $closeBtn = $('#closeApprovalModal');
+                const $overlay = $('#saveOverlay');
+
+                if ($submitBtn.data('submitting') === true) {
+                    return;
+                }
+
                 const dt = $('#aprv_doctype').val();
                 const cp = $('#aprv_cpnyid_select').val();
                 const dep = $('#aprv_departementid').val();
 
-
                 if (!dt || !cp || !dep) {
-                    alert('Doctype, Company, dan Department wajib diisi.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Warning',
+                        text: 'Doctype, Company, dan Department wajib diisi.'
+                    });
                     return;
                 }
 
@@ -648,8 +682,13 @@
                         return false;
                     }
                 });
+
                 if (errorMsg) {
-                    alert(errorMsg);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Input tidak valid',
+                        text: errorMsg
+                    });
                     return;
                 }
 
@@ -661,16 +700,15 @@
                         return false;
                     }
                 });
+
                 if (errorMsg) {
-                    alert(errorMsg);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Input tidak valid',
+                        text: errorMsg
+                    });
                     return;
                 }
-
-                console.log('dept select val:', $('#aprv_departementid').val());
-                console.log('dept select selected text:', $('#aprv_departementid option:selected').text());
-                console.log('dept select name:', $('#aprv_departementid').attr('name'));
-                console.log('dept select disabled:', $('#aprv_departementid').prop('disabled'));
-
 
                 let id = $('#id').val();
                 let url = id ? `/approvals/${id}` : "{{ route('approvals.store') }}";
@@ -681,6 +719,11 @@
                 if (id) {
                     formData.append('_method', 'PUT');
                 }
+
+                // lock UI
+                $submitBtn.data('submitting', true).prop('disabled', true).text('Saving...');
+                $closeBtn.prop('disabled', true);
+                $overlay.removeClass('hidden').addClass('flex');
 
                 $.ajax({
                     url: url,
@@ -693,19 +736,38 @@
                     contentType: false,
                     success: function() {
                         $('#approvalModal').addClass('hidden');
-                        table.ajax.reload();
+                        table.ajax.reload(null, false);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Approval berhasil disimpan.',
+                            timer: 1800,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);
 
                         let msg = 'Gagal menyimpan data approval';
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                            msg = 'Mohon periksa input:\n';
-                            Object.values(xhr.responseJSON.errors).forEach(function(arr) {
-                                msg += '- ' + arr.join(', ') + '\n';
-                            });
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(function(arr) {
+                                    return arr.join(', ');
+                                })
+                                .join('\n');
                         }
-                        alert(msg);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: msg
+                        });
+                    },
+                    complete: function() {
+                        $submitBtn.data('submitting', false).prop('disabled', false).text('Save');
+                        $closeBtn.prop('disabled', false);
+                        $overlay.removeClass('flex').addClass('hidden');
                     }
                 });
             });
