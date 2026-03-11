@@ -483,7 +483,7 @@
 
 
             function initNormal() {
-                mode = 'NORMAL';
+                mode = 'normal';
 
                 dt = $('#spbsTable').DataTable({
                     processing: true,
@@ -543,10 +543,10 @@
 
                             d.mode = mode; // ✅ REQUIRED
                             d.department_extra = deptFilter; // ✅ REQUIRED
-                            console.log('[NORMAL] send status =', d.status);
+                            console.log('[normal] send status =', d.status);
                         },
                         error: function(xhr) {
-                            console.error('[NORMAL] ajax error', xhr.status, xhr.responseText);
+                            console.error('[normal] ajax error', xhr.status, xhr.responseText);
                         }
                     },
                     order: [
@@ -825,7 +825,7 @@
 
             $(document).ready(function() {
                 // init default NORMAL
-                switchMode('NORMAL');
+                switchMode('normal');
 
                 // active default
                 document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
@@ -878,7 +878,7 @@
 
                     if (dt) dt.ajax.reload(null, true);
 
-                    switchMode('NORMAL');
+                    switchMode('normal');
 
                 });
             });
