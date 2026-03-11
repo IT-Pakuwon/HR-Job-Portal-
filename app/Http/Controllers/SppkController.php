@@ -37,6 +37,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use Vinkla\Hashids\Facades\Hashids;
 
+
 class SppkController extends Controller
 {
     use HasAutonbr;
@@ -842,6 +843,35 @@ class SppkController extends Controller
 
                 return $d;
             });
+
+        $detailBuIds = $sppkdetail
+            ->pluck('budget_business_unit_id')
+            ->filter(fn ($v) => !blank($v))
+            ->unique()
+            ->values();
+
+        $selectedBuId = $detailBuIds->first();
+
+        $selectedBuName = null;
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        // Inject ke object $sppk supaya Blade existing tetap jalan
+        $sppk->business_unit_id = $selectedBuId;
+        $sppk->business_unit_name = $selectedBuName;
+
+        // Optional: log kalau ternyata 1 SPPK punya lebih dari 1 BU di detail
+        if ($detailBuIds->count() > 1) {
+            \Log::warning('SPPK memiliki lebih dari satu budget_business_unit_id pada detail', [
+                'sppkid' => $sppk->sppkid,
+                'budget_business_unit_ids' => $detailBuIds->toArray(),
+            ]);
+        }
 
         $user = request()->user();
         $usercpny = Usercpny::where('username', $user->username)->get();

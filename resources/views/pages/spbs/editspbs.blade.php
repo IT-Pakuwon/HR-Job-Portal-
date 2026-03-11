@@ -341,6 +341,9 @@
                                                                 <input type="hidden" name="activity_id[]"
                                                                     class="activityIdField"
                                                                     value="{{ $d->budget_activity_id }}">
+                                                                <input type="hidden" name="activity_descr[]"
+                                                                    class="activityDescrField"
+                                                                    value="{{ $d->budget_activity_descr ?? $d->activity_descr ?? '' }}">
                                                                 <input type="hidden" name="business_unit_id[]"
                                                                     class="businessUnitIdField"
                                                                     value="{{ $d->budget_business_unit_id }}">
@@ -444,8 +447,8 @@
                                                         </td>
                                                         <td class="border p-3">
                                                             <div class="flex items-center gap-2">
-                                                                <input type="hidden" name="activity_id[]"
-                                                                    class="activityIdField">
+                                                                <input type="hidden" name="activity_id[]" class="activityIdField">
+                                                                <input type="hidden" name="activity_descr[]" class="activityDescrField">
                                                                 <input type="hidden" name="business_unit_id[]"
                                                                     class="businessUnitIdField">
                                                                 <input type="hidden" name="department_fin_id[]"
@@ -1057,6 +1060,7 @@
                     <td class="p-3 border">
                         <div class="flex items-center gap-2">
                             <input type="hidden" name="activity_id[]" class="activityIdField">
+                            <input type="hidden" name="activity_descr[]" class="activityDescrField">
                             <input type="hidden" name="business_unit_id[]" class="businessUnitIdField">
                             <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
                             <input type="hidden" name="coa_id[]" class="coaIdField">
@@ -2177,6 +2181,7 @@
                                             <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
                                                 data-id="${esc(id)}"
                                                 data-activity_id="${esc(actId)}"
+                                                data-activity_descr="${esc(actDetail)}"
                                                 data-business_unit_id="${esc(buId)}"
                                                 data-department_fin_id="${esc(deptFinId)}"
                                                 data-label="${esc(id)}">
@@ -2211,12 +2216,14 @@
                 if (!currentCoaRow) return;
                 const id = $(this).data('id');
                 const actId = $(this).data('activity_id');
+                const actDescr = $(this).data('activity_descr');
                 const label = $(this).data('label');
                 const buId = $(this).data('business_unit_id');
                 const deptFinId = $(this).data('department_fin_id');
 
                 currentCoaRow.find('.coaIdField').val(id);
                 currentCoaRow.find('.activityIdField').val(actId); // ⬅️ simpan activity_id hidden
+                currentCoaRow.find('.activityDescrField').val(actDescr || '');
                 currentCoaRow.find('.coaNameField').val(label);
                 currentCoaRow.find('.businessUnitIdField').val(buId);
                 currentCoaRow.find('.departmentFinIdField').val(deptFinId);
@@ -3130,6 +3137,7 @@
                     $tr.find('.coaIdField').val('');
                     $tr.find('.coaNameField').val('');
                     $tr.find('.activityIdField').val('');
+                    $tr.find('.activityDescrField').val('');
                     $tr.find('.businessUnitIdField').val('');
                     $tr.find('.departmentFinIdField').val('');
 

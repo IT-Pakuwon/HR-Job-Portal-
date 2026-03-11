@@ -28,6 +28,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Mail;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\BusinessUnit;
 
 class SpbController extends Controller
 {
@@ -819,6 +820,135 @@ class SpbController extends Controller
     }
 
     public function editSpb($hash)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $spb = TrSPB::findOrFail($id);
+
+        // Ambil detail + eager load relasi lokasi & sublokasi
+        $spbdetail = TrSPBdetail::with([
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])
+            ->where('spbid', $spb->spbid)
+            ->get()
+            ->map(function ($d) {
+                // Sematkan nama ke attribute agar Blade lama tetap jalan
+                $d->location_name = optional($d->location)->location_name;
+                $d->sub_location_name = optional($d->subLocation)->sub_location_name;
+
+                return $d;
+            });
+
+        /*
+        |--------------------------------------------------------------------------
+        | BUSINESS UNIT HEADER HARUS AMBIL DARI DETAIL
+        |--------------------------------------------------------------------------
+        | Ambil budget_business_unit_id dari detail SPB, bukan dari header TrSPB
+        */
+        $detailBuIds = $spbdetail
+            ->pluck('budget_business_unit_id')
+            ->filter(fn ($v) => !blank($v))
+            ->unique()
+            ->values();
+
+        $selectedBuId = $detailBuIds->first();
+
+        $selectedBuName = null;
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        // Inject ke object $spb supaya Blade existing tetap jalan
+        $spb->business_unit_id = $selectedBuId;
+        $spb->business_unit_name = $selectedBuName;
+
+        // Optional: log kalau ternyata 1 SPB punya lebih dari 1 BU di detail
+        if ($detailBuIds->count() > 1) {
+            \Log::warning('SPB memiliki lebih dari satu budget_business_unit_id pada detail', [
+                'spbid' => $spb->spbid,
+                'budget_business_unit_ids' => $detailBuIds->toArray(),
+            ]);
+        }
+
+        $user = request()->user();
+        $usercpny = Usercpny::where('username', $user->username)->get();
+        $usercpny2 = Usercpny::where('username', $user->username)->first();
+        $userdept = Userdept::where('username', $user->username)->get();
+        $userdept2 = Userdept::where('username', $user->username)->first();
+
+        $rows = TrAttachment::where('refnbr', $spb->spbid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
+            $object = $bucket->object($objectPath);
+            $signedUrl = null;
+
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', [
+                    'path'  => $objectPath,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            return (object) [
+                'id'           => $r->id,
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        return view('pages.spbs.editspbs', compact(
+            'spb',
+            'spbdetail',
+            'usercpny',
+            'usercpny2',
+            'userdept',
+            'userdept2',
+            'attachments',
+            'hash'
+        ));
+    }
+
+    public function editSpb_xxx($hash)
     {
         $user = Auth::user();
 

@@ -44,6 +44,7 @@ use PDF;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Vinkla\Hashids\Facades\Hashids;
 
+
 class SpptController extends Controller
 {
     use HasAutonbr;
@@ -875,6 +876,35 @@ class SpptController extends Controller
 
                 return $d;
             });
+
+        $detailBuIds = $spptdetail
+            ->pluck('budget_business_unit_id')
+            ->filter(fn ($v) => !blank($v))
+            ->unique()
+            ->values();
+
+        $selectedBuId = $detailBuIds->first();
+
+        $selectedBuName = null;
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        // Inject ke object $sppt supaya Blade existing tetap jalan
+        $sppt->business_unit_id = $selectedBuId;
+        $sppt->business_unit_name = $selectedBuName;
+
+        // Optional: log kalau ternyata 1 SPPT punya lebih dari 1 BU di detail
+        if ($detailBuIds->count() > 1) {
+            \Log::warning('SPPT memiliki lebih dari satu budget_business_unit_id pada detail', [
+                'spptid' => $sppt->spptid,
+                'budget_business_unit_ids' => $detailBuIds->toArray(),
+            ]);
+        }
 
         $user = request()->user();
         $usercpny = Usercpny::where('username', $user->username)->get();

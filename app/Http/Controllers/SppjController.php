@@ -42,6 +42,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Vinkla\Hashids\Facades\Hashids;
 
+
 class SppjController extends Controller
 {
     use HasAutonbr;
@@ -809,6 +810,35 @@ class SppjController extends Controller
 
                 return $d;
             });
+
+        $detailBuIds = $sppjdetail
+            ->pluck('budget_business_unit_id')
+            ->filter(fn ($v) => !blank($v))
+            ->unique()
+            ->values();
+
+        $selectedBuId = $detailBuIds->first();
+
+        $selectedBuName = null;
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        // Inject ke object $sppj supaya Blade existing tetap jalan
+        $sppj->business_unit_id = $selectedBuId;
+        $sppj->business_unit_name = $selectedBuName;
+
+        // Optional: log kalau ternyata 1 SPPJ punya lebih dari 1 BU di detail
+        if ($detailBuIds->count() > 1) {
+            \Log::warning('SPPJ memiliki lebih dari satu budget_business_unit_id pada detail', [
+                'sppjid' => $sppj->sppjid,
+                'budget_business_unit_ids' => $detailBuIds->toArray(),
+            ]);
+        }
 
         $user = request()->user();
         $usercpny = Usercpny::where('username', $user->username)->get();

@@ -41,6 +41,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Mail;
 use PDF;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\BusinessUnit;
 
 class SppbController extends Controller
 {
@@ -607,37 +608,7 @@ class SppbController extends Controller
             $header->totalopenordered = $totalQty;
             $header->save();
 
-            // // === 4) copy line approval (M_approval -> T_approval) ===
-            // $approvals = M_approval::where([
-            //     ['status', '=', 'A'],
-            //     ['aprvcpnyid', '=', $request->cpnyid],
-            //     ['aprvdeptid', '=', $request->departementid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->get();
-
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $docid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_by'   => $username,
-            //     ]);
-            // }
-
-            // $firstApprovalUsernames = optional($approvals->first())->aprvusername; // bisa comma-separated
-            // if ($firstApprovalUsernames) {
-            //     $header->completed_by = $firstApprovalUsernames;
-            //     $header->completed_at = $dt; // atau Carbon::now()
-            //     $header->save();
-            // }
-
+           
             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
 
@@ -689,39 +660,7 @@ class SppbController extends Controller
                 $header->save();
             }
 
-            // === 5) attachments (opsional) ===
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }
+          
 
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -766,54 +705,7 @@ class SppbController extends Controller
                 ]
             );
 
-            // === 6) kirim email ke approver pertama ===
-            // $firstApproval = T_approval::where('docid', $docid)
-            //     ->where('status', 'P')
-            //     ->orderBy('aprvid')
-            //     ->first();
-
-            // if ($firstApproval) {
-
-            //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-
-            //     $subjectMap = [
-            //         'P' => 'Waiting Approval',
-            //         'R' => 'Rejected Approval',
-            //         'D' => 'Revise Approval',
-            //         'A' => 'Approved',
-            //         'C' => 'Completed',
-            //     ];
-            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            //     $eid = Hashids::encode($header->id);
-
-            //     $data = [
-            //         'docid'    => $firstApproval->docid,
-            //         'cpnyid'   => $firstApproval->aprvcpnyid,
-            //         'deptname' => $firstApproval->aprvdeptid,
-            //         'date'     => $firstApproval->aprvdatebefore,
-            //         'name'     => $firstApproval->name,
-            //         'createdby'=> $header->created_by,
-            //         'info'     => $request->keperluan,
-            //         'status'   => $status,
-            //         'docname'  => 'SPPB',
-            //         'url'      => url('/showsppbs/' . $eid),
-            //     ];
-
-            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-            //     $emails = User::whereIn('username', $approvers)
-            //         ->where('status', 'A')
-            //         ->pluck('notification_email');
-
-            //     foreach ($emails as $email) {
-            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
-            //             $message->to($email)
-            //                 ->subject($data['docid'].' - Waiting Approval SPPB')
-            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //         });
-            //     }
-            // }
-
+           
             DB::commit();
 
             return response()->json([
@@ -861,6 +753,35 @@ class SppbController extends Controller
 
                 return $d;
             });
+
+        $detailBuIds = $sppbdetail
+            ->pluck('budget_business_unit_id')
+            ->filter(fn ($v) => !blank($v))
+            ->unique()
+            ->values();
+
+        $selectedBuId = $detailBuIds->first();
+
+        $selectedBuName = null;
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        // Inject ke object $sppb supaya Blade existing tetap jalan
+        $sppb->business_unit_id = $selectedBuId;
+        $sppb->business_unit_name = $selectedBuName;
+
+        // Optional: log kalau ternyata 1 SPPB punya lebih dari 1 BU di detail
+        if ($detailBuIds->count() > 1) {
+            \Log::warning('SPPB memiliki lebih dari satu budget_business_unit_id pada detail', [
+                'sppbid' => $sppb->sppbid,
+                'budget_business_unit_ids' => $detailBuIds->toArray(),
+            ]);
+        }
 
         $user = request()->user();
         $usercpny = Usercpny::where('username', $user->username)->get();
@@ -1119,72 +1040,7 @@ class SppbController extends Controller
             $header->totalqty = $totalQty;
             $header->totalopenordered = $totalQty;
             $header->save();
-
-            // // === regenerasi T_approval (opsional, ikuti logikamu) ===
-            // $approvals = M_approval::where([
-            //     ['status', '=', 'A'],
-            //     ['aprvcpnyid', '=', $request->cpnyid],
-            //     ['aprvdeptid', '=', $request->departementid],
-            //     ['aprvdoctype', '=', $doctype],
-            // ])->get();
-
-            // foreach ($approvals as $a) {
-            //     T_approval::create([
-            //         'docid'          => $header->sppbid,
-            //         'aprvid'         => $a->aprvid,
-            //         'aprvdoctype'    => $a->aprvdoctype,
-            //         'aprvcpnyid'     => $a->aprvcpnyid,
-            //         'aprvdeptid'     => $a->aprvdeptid,
-            //         'aprvusername'   => $a->aprvusername,
-            //         'name'           => $a->name,
-            //         'aprvdatebefore' => $a->aprvid == 1 ? $datestamp : null,
-            //         'aprvtotalday'   => 1,
-            //         'status'         => 'P',
-            //         'created_by'   => $username,
-            //     ]);
-            // }
-
-            // $firstApprovalUsernames = optional($approvals->first())->aprvusername;
-            // if ($firstApprovalUsernames) {
-            //     $header->completed_by = $firstApprovalUsernames;
-            //     $header->completed_at = $dt;
-            //     $header->save();
-            // }
-
-            // attachments (tetap)
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $header->sppbid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }
-
+           
             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
 
@@ -1261,53 +1117,7 @@ class SppbController extends Controller
                 }
             }
 
-            // // email approver pertama (tetap)
-            // $firstApproval = T_approval::where('docid', $header->sppbid)
-            //     ->where('status', 'P')
-            //     ->orderBy('aprvid')
-            //     ->first();
-
-            // if ($firstApproval) {
-            //     $status = $header->status; // 'P' | 'R' | 'D' | 'A' | 'C'
-
-            //     $subjectMap = [
-            //         'P' => 'Waiting Approval',
-            //         'R' => 'Rejected Approval',
-            //         'D' => 'Revise Approval',
-            //         'A' => 'Approved',
-            //         'C' => 'Completed',
-            //     ];
-            //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-            //     $eid = Hashids::encode($header->id);
-
-            //     $data = [
-            //         'docid'    => $firstApproval->docid,
-            //         'cpnyid'   => $firstApproval->aprvcpnyid,
-            //         'deptname' => $firstApproval->aprvdeptid,
-            //         'date'     => $firstApproval->aprvdatebefore,
-            //         'name'     => $firstApproval->name,
-            //         'createdby'=> $header->created_by,
-            //         'info'     => $request->keperluan,
-            //         'status'   => $status,
-            //         'docname'  => 'SPPB',
-            //         'url'      => url('/showsppbs/' . $eid),
-            //     ];
-
-            //     $approvers = array_filter(array_map('trim', explode(',', (string)$firstApproval->aprvusername)));
-            //     $emails = User::whereIn('username', $approvers)
-            //         ->where('status', 'A')
-            //         ->pluck('notification_email');
-
-            //     foreach ($emails as $email) {
-            //         \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data) {
-            //             $message->to($email)
-            //                 ->subject($data['docid'].' - Waiting Approval SPPB')
-            //                 ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //         });
-            //     }
-            // }
-
+            
             $eid = Hashids::encode($header->id);
 
             $approvalCtl->notifyFirstApprover(
