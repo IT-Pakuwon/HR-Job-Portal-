@@ -1,134 +1,118 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Str;
-use App\Models\User;
-use App\Models\UserGoogle;
-use App\Models\SysMenu;
-use App\Models\SysRoleMenu;
-use App\Models\SysUserRole;
-
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DataFeedController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\MemberController;
-use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\JobController;
-use App\Http\Controllers\CampaignController;
-use App\Http\Controllers\MsScreenController;
-use App\Http\Controllers\MsApplicationController;
-use App\Http\Controllers\MsGroupController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\NewsController;
-use App\Http\Controllers\PersonnelController;
-use App\Http\Controllers\UsersController;
-use App\Http\Controllers\ManpowerController;
-use App\Http\Controllers\CareerController;
-use App\Http\Controllers\JobpostingController;
 use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssessmentController;
-use App\Http\Controllers\WorkInstructionController;
-use App\Http\Controllers\JobapplicantController;
-use App\Models\MsScreen;
-use App\Http\Controllers\OrgChartController;
-use App\Http\Controllers\StrukturOrgController;
-use App\Http\Controllers\UsersEngController;
 use App\Http\Controllers\AssetsLocationController;
-use App\Http\Controllers\WorksCategoryController;
-use App\Http\Controllers\BudgetController;
-use App\Http\Controllers\VendorController;
-use App\Http\Controllers\ChangeStoController;
-use App\Http\Controllers\MasterController;
-use App\Http\Controllers\SppbController;
-use App\Http\Controllers\SppjController;
-use App\Http\Controllers\SpptController;
-use App\Http\Controllers\SppkController;
 use App\Http\Controllers\AssignListController;
+use App\Http\Controllers\AttachmentMasterController;
+use App\Http\Controllers\AutonbrController;
+use App\Http\Controllers\BastController;
+use App\Http\Controllers\BastListController;
+use App\Http\Controllers\BQCSController;
+use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\BudgetMonitorController;
+use App\Http\Controllers\BusinessUnitController;
+use App\Http\Controllers\CalrController;
+use App\Http\Controllers\CalrListController;
+use App\Http\Controllers\CanvassController;
+use App\Http\Controllers\CanvassxController;
+use App\Http\Controllers\CareerController;
+use App\Http\Controllers\ChangeStoController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
-use App\Http\Controllers\CanvassController;
-use App\Http\Controllers\BQCSController;
-use App\Http\Controllers\PoListController;
-use App\Http\Controllers\PoController;
-use App\Http\Controllers\ReceiptListController;
-use App\Http\Controllers\ReceiptController;
-use App\Http\Controllers\WoController;
-use App\Http\Controllers\TrAttachmentController;
-use App\Http\Controllers\SpbController;
-use App\Http\Controllers\IssueListController;
-use App\Http\Controllers\IssueController;
-use App\Http\Controllers\SpbJobsController;
-use App\Http\Controllers\IMBudgetController;
-use App\Http\Controllers\SendCommentController;
-use App\Http\Controllers\ApprovalController;
-use App\Http\Controllers\BastListController;
-use App\Http\Controllers\BastController;
-use App\Http\Controllers\RfcaListController;
-use App\Http\Controllers\CalrListController;
-use App\Http\Controllers\CalrController;
-use App\Http\Controllers\CanvassxController;
-use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
-use App\Http\Controllers\ItemRequestController;
-use App\Http\Controllers\SysApplicationController;
-use App\Http\Controllers\SysScreenController;
-use App\Http\Controllers\SysMenuController;
-use App\Http\Controllers\SysRoleMenuController;
-use App\Http\Controllers\SysAccessRightController;
-use App\Http\Controllers\SysRoleController;
-use App\Http\Controllers\MsApprovalController;
-use App\Http\Controllers\MsCategoryController;
-use App\Http\Controllers\AutonbrController;
-use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\TopController;
-use App\Http\Controllers\TenantController;
-use App\Http\Controllers\StockJobsController;
-use App\Http\Controllers\NonstockJobsController;
-use App\Http\Controllers\BudgetMonitorController;
-use App\Http\Controllers\LastOrderController;
-use App\Http\Controllers\SelfRegisterApplicantController;
-use App\Http\Controllers\KontrakController;
-use App\Http\Controllers\UserSyncController;
-use App\Http\Controllers\InventoryUserController;
-use App\Http\Controllers\SysCalendarController;
-use App\Http\Controllers\BusinessUnitController;
-use App\Http\Controllers\AttachmentMasterController;
-use App\Http\Controllers\KendaraanController;
-
-// INTEGRATION
-use App\Http\Controllers\Integration\IFCAIntegrationController;
+use App\Http\Controllers\GoogleCalendarApiController;
+use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\IMBudgetController;
+use App\Http\Controllers\Integration\AcumVmsStagingController;
+use App\Http\Controllers\Integration\IFCAAPIBASTController;
+use App\Http\Controllers\Integration\IFCAAPIGRNController;
+use App\Http\Controllers\Integration\IFCAAPIIssueController;
 use App\Http\Controllers\Integration\IFCAAPINonStockController;
+use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\Integration\IFCAAPIStockController;
 use App\Http\Controllers\Integration\IFCAAPISupplierController;
-use App\Http\Controllers\Integration\IFCAAPIPOController;
-use App\Http\Controllers\Integration\IFCAAPIGRNController;
-use App\Http\Controllers\Integration\IFCAAPIBASTController;
-use App\Http\Controllers\Integration\IFCAAPIIssueController;
-use App\Http\Controllers\Integration\SLAPIIssueController;
+use App\Http\Controllers\Integration\IFCAIntegrationController;
 use App\Http\Controllers\Integration\SLAPIGRNController;
-
-use App\Http\Controllers\MappingPoERPController;
-use App\Http\Controllers\Integration\AcumVmsStagingController;
+use App\Http\Controllers\Integration\SLAPIIssueController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\InventoryUserController;
+use App\Http\Controllers\IssueController;
+use App\Http\Controllers\IssueListController;
+use App\Http\Controllers\ItemRequestController;
+use App\Http\Controllers\JobapplicantController;
+use App\Http\Controllers\JobpostingController;
+use App\Http\Controllers\KendaraanController;
+use App\Http\Controllers\KontrakController;
+use App\Http\Controllers\LastOrderController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\ManpowerController;
 use App\Http\Controllers\MappingIssueERPController;
-
-use App\Http\Controllers\GoogleCalendarController;
-use App\Http\Controllers\GoogleCalendarApiController;
+use App\Http\Controllers\MappingPoERPController;
+use App\Http\Controllers\MasterController;
 use App\Http\Controllers\MasterTrainingController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\TrainingRegistrationController;
-
+use App\Http\Controllers\MsApplicationController;
+use App\Http\Controllers\MsApprovalController;
+use App\Http\Controllers\MsCategoryController;
+use App\Http\Controllers\MsGroupController;
+use App\Http\Controllers\MsScreenController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\NonstockJobsController;
+use App\Http\Controllers\OrgChartController;
+use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\PoController;
+use App\Http\Controllers\PoListController;
+use App\Http\Controllers\ProjectTaskController;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ReceiptListController;
+use App\Http\Controllers\ReportCanvassSheetController;
 use App\Http\Controllers\ReportWarehouseController;
-
+use App\Http\Controllers\RfcaListController;
+use App\Http\Controllers\SelfRegisterApplicantController;
+use App\Http\Controllers\SendCommentController;
+use App\Http\Controllers\SpbController;
+use App\Http\Controllers\SpbJobsController;
+use App\Http\Controllers\SppbController;
+use App\Http\Controllers\SppjController;
+use App\Http\Controllers\SppkController;
+use App\Http\Controllers\SpptController;
+use App\Http\Controllers\StockJobsController;
+use App\Http\Controllers\StrukturOrgController;
+use App\Http\Controllers\SysAccessRightController;
+use App\Http\Controllers\SysApplicationController;
+use App\Http\Controllers\SysCalendarController;
+use App\Http\Controllers\SysMenuController;
+use App\Http\Controllers\SysRoleController;
+use App\Http\Controllers\SysRoleMenuController;
+use App\Http\Controllers\SysScreenController;
+use App\Http\Controllers\TaskController;
+// INTEGRATION
+use App\Http\Controllers\TenantController;
+use App\Http\Controllers\TopController;
+use App\Http\Controllers\TrainingRegistrationController;
+use App\Http\Controllers\TrAttachmentController;
+use App\Http\Controllers\UsersController;
+use App\Http\Controllers\UsersEngController;
+use App\Http\Controllers\UserSyncController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\WoController;
+use App\Http\Controllers\WorkInstructionController;
+use App\Http\Controllers\WorksCategoryController;
+use App\Models\MsScreen;
+use App\Models\SysMenu;
+use App\Models\SysRoleMenu;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 
 // use Illuminate\Support\Facades\Response;
 // use Illuminate\Support\Facades\File;
@@ -148,15 +132,12 @@ use Illuminate\Support\Facades\Response;
 //     ]);
 // });
 
-
-Route::get('/avatar/{filename}', function($filename){
+Route::get('/avatar/{filename}', function ($filename) {
     return response($filename, 200, [
         'Access-Control-Allow-Origin' => '*',
-        'X-Debug-Header' => 'ROUTE AVATAR TES'
+        'X-Debug-Header' => 'ROUTE AVATAR TES',
     ]);
 });
-
-
 
 Route::redirect('/', 'login');
 Route::get('/login', function () {
@@ -178,35 +159,27 @@ Route::post('/login', function (Request $request) {
                 ->first();
 
     if (!$user || !Auth::attempt(['email' => $user->email, 'password' => $credentials['password']])) {
-        throw ValidationException::withMessages([
-            'login' => ['These credentials do not match our records.'],
-        ]);
+        throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
     }
 
     return redirect()->intended('/dashboard');
 })->name('login');
 
-
-
 Route::get('/modules', function () {
     return view('layouts.module');
 })->name('modules');
 
-
 Route::post('/logout', function () {
     Auth::logout();
+
     return redirect('/login');
 })->name('logout');
 
-
-    // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-    Route::middleware(['auth'])->group(function () {
-
+// Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Dashboard Approval JSON endpoints
     Route::get('/waitingjson', [DashboardController::class, 'Waitingjson'])->name('dashboard.waitingjson');
     Route::get('/approvejson', [DashboardController::class, 'Approvejson'])->name('dashboard.approvejson');
-
-
 
     // Ambil semua screens dan buat route otomatis
     // $screens = MsScreen::all();
@@ -247,7 +220,6 @@ Route::post('/logout', function () {
     // Route::put('/api/agendas/{id}', [AgendaController::class, 'update'])->name('agendas.update');
     // Route::get('/api/agendas/month', [AgendaController::class, 'getMonthlyAgendas']);
 
-
     Route::get('/news', [NewsController::class, 'index'])->name('news');
     Route::get('/news/json', [NewsController::class, 'json'])->name('news.json');
     Route::get('/createnews', [NewsController::class, 'createNews']);
@@ -287,7 +259,6 @@ Route::post('/logout', function () {
     Route::get('/attachments/view/{id}', [PersonnelController::class, 'viewAttachment'])->name('attachments.view');
     Route::get('/hr/departments', [PersonnelController::class, 'byDivision'])->name('hr.departments');
 
-
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/json', [ProjectTaskController::class, 'json'])->name('tasks.json');
     Route::get('/createtasks', [ProjectTaskController::class, 'createTask']);
@@ -312,7 +283,6 @@ Route::post('/logout', function () {
     Route::get('/wi/locations', [WorkInstructionController::class, 'getLocations'])->name('wi.locations');
     Route::get('/wi/sublocations', [WorkInstructionController::class, 'getSubLocations'])->name('wi.sublocations');
     Route::get('/wi/workers', [WorkInstructionController::class, 'getWorkers'])->name('wi.workers');
-
 
     Route::get('/manpowers', [ManpowerController::class, 'index'])->name('manpowers');
     Route::get('/manpowers/json', [ManpowerController::class, 'json'])->name('manpowers.json');
@@ -348,7 +318,6 @@ Route::post('/logout', function () {
     Route::get('/company-address/{site}', [AgendaController::class, 'getBySite']);
 
     Route::get('/send_email_all', [AgendaController::class, 'send_email_all'])->name('send_email_all');
-
 
     Route::get('/careers', [CareerController::class, 'index'])->name('careers');
     Route::get('/careers/json', [CareerController::class, 'json'])->name('careers.json');
@@ -395,10 +364,6 @@ Route::post('/logout', function () {
     Route::get('/payrollconfirm/{id}', [CareerController::class, 'getPayroll'])->name('payrollconfirm.get');
     Route::get('/checklist/{id}/view', [CareerController::class, 'viewDocument'])->name('checklist.view');
 
-
-
-
-
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json');
     Route::get('/showjobpostings/{id}', [JobpostingController::class, 'showJobposting']);
@@ -413,8 +378,6 @@ Route::post('/logout', function () {
     Route::get('/selfregister', [SelfRegisterApplicantController::class, 'index'])->name('selfregister');
     Route::get('/selfregister/json', [SelfRegisterApplicantController::class, 'json'])->name('selfregister.json');
     Route::get('/showselfregister/{hash}', [SelfRegisterApplicantController::class, 'showSelfRegister']);
-
-
 
     Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants');
     Route::get('/applicants/json', [ApplicantController::class, 'json'])->name('applicants.json');
@@ -433,8 +396,6 @@ Route::post('/logout', function () {
     // Route::post('/orgchart/store', [OrgChartController::class, 'store'])->name('orgchart.store');
     // Route::get('/orgchart/employee/by-dept/{dept_id}', [OrgChartController::class, 'getEmployeesByDept']);
     // Route::post('/sto/storehd', [OrgChartController::class, 'storeDraft'])->name('sto.storehd');
-
-
 
     Route::get('/stos', [StrukturOrgController::class, 'index'])->name('stos');
     Route::get('/stos/json', [StrukturOrgController::class, 'json'])->name('stos.json');
@@ -496,7 +457,6 @@ Route::post('/logout', function () {
     // Route::put('/changestos/remove-attachment/{id}', [ChangeStoController::class, 'removeAttachment']);
     // Route::get('/changesto/{id}/check-approval/{action}', [ChangeStoController::class, 'checkApproval']);
 
-
     // Route::get('/budgets', [BudgetController::class, 'index'])->name('budgets');
     // Route::get('/budgets/json', [BudgetController::class, 'json'])->name('budgets.json');
     // Route::get('/createbudgets', [BudgetController::class, 'createBudget'])->name('budget.create');
@@ -539,8 +499,6 @@ Route::post('/logout', function () {
         Route::get('/mapping-issue-erp/integration-types', [MappingIssueERPController::class, 'integrationTypes'])->name('mapping_issue_erp.integration-types');
         Route::get('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'showMapping'])->whereNumber('id')->name('mapping_issue_erp.show');
         Route::put('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'updateMapping'])->whereNumber('id')->name('mapping_issue_erp.update');
-
-
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {
@@ -559,7 +517,7 @@ Route::post('/logout', function () {
         Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
     });
 
-   // 👀 VIEW SPPB
+    // 👀 VIEW SPPB
     Route::middleware('access:SPPB,VIEW')->group(function () {
         Route::get('/sppbs', [SppbController::class, 'index'])->name('sppbs');
         Route::get('/sppbs/json', [SppbController::class, 'json'])->name('sppbs.json');
@@ -587,8 +545,8 @@ Route::post('/logout', function () {
         Route::put('/sppbs/remove-attachment/{id}', [SppbController::class, 'removeAttachment']);
 
         Route::post('/sppb/{id}/approve', [SppbController::class, 'approveSppb']);
-        Route::post('/sppb/{id}/reject',  [SppbController::class, 'rejectSppb']);
-        Route::post('/sppb/{id}/revise',  [SppbController::class, 'reviseSppb']);
+        Route::post('/sppb/{id}/reject', [SppbController::class, 'rejectSppb']);
+        Route::post('/sppb/{id}/revise', [SppbController::class, 'reviseSppb']);
         Route::put('/sppbs/{hash}/cancel', [SppbController::class, 'cancelSppb'])->name('sppbs.cancel');
     });
 
@@ -606,12 +564,11 @@ Route::post('/logout', function () {
 
         Route::get('/createbqkontrak/{sppjId}/categories', [SppjController::class, 'categoriesBqKontrak'])->name('bqkontrak.categories');
         Route::get('/showbqkontrak/{hash}', [SppjController::class, 'showBqKontrak'])->name('bqkontrak.show');
-        Route::get('/sppj/export/{id}', [SPPJController::class, 'exportDetail'])
+        Route::get('/sppj/export/{id}', [SppjController::class, 'exportDetail'])
         ->name('sppj.export');
     });
 
     Route::middleware('access:SPPJ,CREATE')->group(function () {
-
         Route::get('/createsppjs', [SppjController::class, 'createSppj']);
         Route::post('/sppjs', [SppjController::class, 'storeSppj'])->name('sppjs.store');
         // BQ CREATE
@@ -622,7 +579,6 @@ Route::post('/logout', function () {
         Route::get('/createbqkontrak/{sppjId}', [SppjController::class, 'createBqKontrak'])->name('bqkontrak.create');
         Route::post('/createbqkontrak/{sppjId}/pick-category', [SppjController::class, 'pickCategoryBqKontrak'])->name('bqkontrak.pickCategory');
         Route::post('/createbqkontrak/{sppjId}/save', [SppjController::class, 'saveBqKontrak'])->name('bqkontrak.save');
-
     });
 
     Route::middleware('access:SPPJ,EDIT')->group(function () {
@@ -631,8 +587,8 @@ Route::post('/logout', function () {
         Route::put('/sppjs/remove-attachment/{id}', [SppjController::class, 'removeAttachment']);
         // approval actions
         Route::post('/sppj/{id}/approve', [SppjController::class, 'approveSppj']);
-        Route::post('/sppj/{id}/reject',  [SppjController::class, 'rejectSppj']);
-        Route::post('/sppj/{id}/revise',  [SppjController::class, 'reviseSppj']);
+        Route::post('/sppj/{id}/reject', [SppjController::class, 'rejectSppj']);
+        Route::post('/sppj/{id}/revise', [SppjController::class, 'reviseSppj']);
         // BQ (Bill of Quantity) EDIT
         Route::get('/editbqsppjs/{id}', [SppjController::class, 'editBQ'])->name('bqsppj.edit');
         Route::put('/bqsppj/{id}', [SppjController::class, 'updateBQ'])->name('bqsppj.update');
@@ -670,8 +626,8 @@ Route::post('/logout', function () {
         Route::put('/sppks/{id}', [SppkController::class, 'updateSppk'])->name('sppks.update');
         Route::put('/sppks/remove-attachment/{id}', [SppkController::class, 'removeAttachment']);
         Route::post('/sppk/{id}/approve', [SppkController::class, 'approveSppk']);
-        Route::post('/sppk/{id}/reject',  [SppkController::class, 'rejectSppk']);
-        Route::post('/sppk/{id}/revise',  [SppkController::class, 'reviseSppk']);
+        Route::post('/sppk/{id}/reject', [SppkController::class, 'rejectSppk']);
+        Route::post('/sppk/{id}/revise', [SppkController::class, 'reviseSppk']);
         Route::put('/sppks/{hash}/cancel', [SppkController::class, 'cancelSppk'])->name('sppks.cancel');
     });
 
@@ -705,8 +661,8 @@ Route::post('/logout', function () {
         Route::put('/sppts/remove-attachment/{id}', [SpptController::class, 'removeAttachment']);
         // Approvals
         Route::post('/sppt/{id}/approve', [SpptController::class, 'approveSppt']);
-        Route::post('/sppt/{id}/reject',  [SpptController::class, 'rejectSppt']);
-        Route::post('/sppt/{id}/revise',  [SpptController::class, 'reviseSppt']);
+        Route::post('/sppt/{id}/reject', [SpptController::class, 'rejectSppt']);
+        Route::post('/sppt/{id}/revise', [SpptController::class, 'reviseSppt']);
         // BQ EDIT
         Route::get('/editbqsppts/{id}', [SpptController::class, 'editBQ'])->name('bqsppt.edit');
         Route::put('/bqsppt/{id}', [SpptController::class, 'updateBQ'])->name('bqsppt.update');
@@ -732,14 +688,13 @@ Route::post('/logout', function () {
     Route::middleware('access:CSJOBS,VIEW')->group(function () {
         Route::get('/csjobs', [CsJobController::class, 'CsJobs'])->name('csjobs');
         Route::get('/csjobs/mine/json', [CsJobController::class, 'CsJobsMineJson'])->name('csjobs.mine.json');
-        Route::get('/csjobs/all/json',  [CsJobController::class, 'CsJobsAllJson'])->name('csjobs.all.json');
+        Route::get('/csjobs/all/json', [CsJobController::class, 'CsJobsAllJson'])->name('csjobs.all.json');
         Route::get('/csjobs/revision/json', [CsJobController::class, 'CsJobsRevisionJson'])->name('csjobs.revision.json');
         Route::get('/csjobs/sppbjkt-progress/json', [CsJobController::class, 'SppbjktOnProgressJson'])->name('csjobs.sppbjkt.progress.json');
         Route::get('/csjobs/completed/json', [CsJobController::class, 'CsJobsCompletedJson'])->name('csjobs.completed.json');
-        Route::get('/csjobs/counts', [CsJobController::class,'CsJobsCounts'])->name('csjobs.counts');
+        Route::get('/csjobs/counts', [CsJobController::class, 'CsJobsCounts'])->name('csjobs.counts');
         Route::get('/csjobs/entry.json', [CsJobController::class, 'CsJobsEntryJson'])->name('csjobs.entry.json');
-        Route::get('/csjobs/dataset-counts', [CsJobController::class,'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');
-
+        Route::get('/csjobs/dataset-counts', [CsJobController::class, 'CsJobsDatasetCounts'])->name('csjobs.dataset.counts');
     });
 
     Route::middleware('access:CSJOBS,EDIT')->group(function () {
@@ -749,27 +704,26 @@ Route::post('/logout', function () {
         // CREATE CS (CANVASS SHEET)
         Route::get('/createcs/{doc}/{hash}', [CanvassController::class, 'createCS'])
             ->where([
-                'doc'  => 'SPPB|SPPJ|SPPK|SPPT|PO',
+                'doc' => 'SPPB|SPPJ|SPPK|SPPT|PO',
                 'hash' => '[A-Za-z0-9]+',
             ])
             ->name('canvass.createcs');
 
         Route::get('/createcsrev/{doc}/{hash}', [CanvassController::class, 'createCSReuse'])
         ->where([
-            'doc'  => 'PO',
+            'doc' => 'PO',
             'hash' => '[A-Za-z0-9]+',
         ])
         ->name('canvass.createcsreuse');
 
         // SAVE / STORE CANVASS SHEET
         Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
-        Route::post('/cssave',  [CanvassController::class, 'saveCS'])->name('cs.save');
+        Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
         Route::get('/editcs/{eid}', [CanvassController::class, 'editCS'])->name('csjobs.edit');
         Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');
         Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
         Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
         Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
-
 
         Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
         Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
@@ -779,10 +733,7 @@ Route::post('/logout', function () {
         Route::post('/cs/check-qty', [CsJobController::class, 'checkQtyBeforeSubmit'])->name('cs.check-qty');
         Route::put('/csjobs/{csid}/cancel', [CsJobController::class, 'cancelCS'])->name('csjobs.cancel');
         Route::post('/csjobs/revise', [CsJobController::class, 'reviseSPPBJKT'])->name('csjobs.revise');
-
     });
-
-
 
     Route::middleware('access:CSLIST,VIEW')->group(function () {
         Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
@@ -795,17 +746,15 @@ Route::post('/logout', function () {
         // Route::get('/pdf_bqcs/{hash}', [BQCSController::class, 'printBQCS']);
         Route::get('/pdf_bqcs/{hash}/{idx}', [BQCSController::class, 'printBQCSVend'])->whereNumber('idx')->name('bqcs.print.vendor');
 
-
         Route::get('/purchasing/last-order', [LastOrderController::class, 'index'])->name('lastorder');
         Route::get('/purchasing/last-order/inventory/json', [LastOrderController::class, 'inventoryJson'])->name('lastorder.inventory.json');
         Route::get('/purchasing/last-order/bq/json', [LastOrderController::class, 'bqJson'])->name('lastorder.bq.json');
-
     });
 
     Route::middleware('access:POLIST,VIEW')->group(function () {
         // PO LIST
-        Route::get('/polist',       [PoListController::class, 'index'])->name('polist');
-        Route::get('/polist/json',  [PoListController::class, 'json'])->name('polist.json');
+        Route::get('/polist', [PoListController::class, 'index'])->name('polist');
+        Route::get('/polist/json', [PoListController::class, 'json'])->name('polist.json');
         // VIEW PO
         Route::get('/showpo/{hash}', [PoController::class, 'showPo']);
         Route::get('/pdf_po/{hash}', [PoController::class, 'printPO']);
@@ -817,9 +766,9 @@ Route::post('/logout', function () {
 
     Route::middleware('access:POLIST,EDIT')->group(function () {
         // ACTIONS
-        Route::post('/po/{poid}/submit',       [PoController::class, 'submitPO'])->name('po.submit');
+        Route::post('/po/{poid}/submit', [PoController::class, 'submitPO'])->name('po.submit');
         Route::post('/po/{poid}/cancel-reuse', [PoController::class, 'ReusePO'])->name('po.cancel_reuse');
-        Route::post('/po/{poid}/cancel',       [PoController::class, 'cancelPO'])->name('po.cancel');
+        Route::post('/po/{poid}/cancel', [PoController::class, 'cancelPO'])->name('po.cancel');
         // SEND EMAIL
         Route::post('/po/{ponbr}/email/send', [PoController::class, 'sendNowPO'])->name('po.email.send');
         Route::post('/po/{ponbr}/complete-partial', [PoController::class, 'completePartial'])->name('po.complete-partial');
@@ -833,7 +782,6 @@ Route::post('/logout', function () {
         Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
         Route::get('/receipts/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
         // Lookup sites / warehouse
-
     });
 
     Route::middleware('access:RECEIPTLIST,CREATE')->group(function () {
@@ -851,8 +799,8 @@ Route::post('/logout', function () {
         Route::put('/editreceipts/{hash}', [ReceiptController::class, 'updateReceipt'])->name('receipt.update');
         // Approval actions
         Route::post('/receipt/{id}/approve', [ReceiptController::class, 'approveReceipt']);
-        Route::post('/receipt/{id}/reject',  [ReceiptController::class, 'rejectReceipt']);
-        Route::post('/receipt/{id}/revise',  [ReceiptController::class, 'reviseReceipt']);
+        Route::post('/receipt/{id}/reject', [ReceiptController::class, 'rejectReceipt']);
+        Route::post('/receipt/{id}/revise', [ReceiptController::class, 'reviseReceipt']);
 
         Route::get('/receipt/{receiptnbr}/validate-approve', [ReceiptController::class, 'validateApprove'])->name('receipt.validate-approve');
     });
@@ -882,13 +830,12 @@ Route::post('/logout', function () {
         Route::put('/wos/{id}', [WoController::class, 'updateWo'])->name('wos.update');
         // Approval Actions
         Route::post('/wo/{id}/approve', [WoController::class, 'approveWo']);
-        Route::post('/wo/{id}/reject',  [WoController::class, 'rejectWo']);
-        Route::post('/wo/{id}/revise',  [WoController::class, 'reviseWo']);
+        Route::post('/wo/{id}/reject', [WoController::class, 'rejectWo']);
+        Route::post('/wo/{id}/revise', [WoController::class, 'reviseWo']);
         // WO Job Actions (affects process)
         Route::post('/wo/{woid}/process', [WoController::class, 'processWo'])->name('wo.process');
         Route::post('/wo/{woid}/job-status', [WoController::class, 'updateJobStatus'])->name('wo.jobstatus');
     });
-
 
     Route::middleware('access:SPBLIST,VIEW')->group(function () {
         Route::get('/spbs', [SpbController::class, 'index'])->name('spbs');
@@ -910,14 +857,13 @@ Route::post('/logout', function () {
         Route::get('/editspbs/{hash}', [SpbController::class, 'editSpb']);
         Route::put('/spbs/{id}', [SpbController::class, 'updateSpb'])->name('spbs.update');
         Route::post('/spb/{id}/approve', [SpbController::class, 'approveSpb']);
-        Route::post('/spb/{id}/reject',  [SpbController::class, 'rejectSpb']);
-        Route::post('/spb/{id}/revise',  [SpbController::class, 'reviseSpb']);
+        Route::post('/spb/{id}/reject', [SpbController::class, 'rejectSpb']);
+        Route::post('/spb/{id}/revise', [SpbController::class, 'reviseSpb']);
     });
 
     Route::middleware('access:SPBJOBS,VIEW')->group(function () {
         Route::get('/spbjobs', [SpbJobsController::class, 'index'])->name('spbjobs');
         Route::get('/spbjobs/json', [SpbJobsController::class, 'json'])->name('spbjobs.json');
-
     });
 
     Route::middleware('access:SPBJOBS,CREATE')->group(function () {
@@ -936,7 +882,7 @@ Route::post('/logout', function () {
         Route::get('/showissue/{hash}', [IssueController::class, 'showIssue']);
         // Printing
         Route::get('/issue/print/{hash}', [IssueController::class, 'printIssue'])->name('issues.print');
-        Route::get('/pdf_issues/{hash}',  [IssueController::class, 'printIssue']);
+        Route::get('/pdf_issues/{hash}', [IssueController::class, 'printIssue']);
     });
 
     Route::middleware('access:ISSUELIST,CREATE')->group(function () {
@@ -944,17 +890,17 @@ Route::post('/logout', function () {
         Route::post('/issues', [IssueController::class, 'storeIssue'])->name('issue.store');
         // Create Issue Return
         Route::get('/issue-return/create', [IssueController::class, 'createReturn'])->name('issue.return.create');
-        Route::post('/issue-return',        [IssueController::class, 'storeReturn'])->name('issue.return.store');
+        Route::post('/issue-return', [IssueController::class, 'storeReturn'])->name('issue.return.store');
     });
 
     Route::middleware('access:ISSUELIST,EDIT')->group(function () {
         // Edit Issue
         Route::get('/editissues/{hash}', [IssueController::class, 'editIssue'])->name('issue.edit');
-        Route::put('/issues/{hash}',     [IssueController::class, 'updateIssue'])->name('issue.update');
+        Route::put('/issues/{hash}', [IssueController::class, 'updateIssue'])->name('issue.update');
         // Approval Actions
         Route::post('/issue/{id}/approve', [IssueController::class, 'approveIssue']);
-        Route::post('/issue/{id}/reject',  [IssueController::class, 'rejectIssue']);
-        Route::post('/issue/{id}/revise',  [IssueController::class, 'reviseIssue']);
+        Route::post('/issue/{id}/reject', [IssueController::class, 'rejectIssue']);
+        Route::post('/issue/{id}/revise', [IssueController::class, 'reviseIssue']);
     });
 
     Route::middleware('access:IMBUDGET,VIEW')->group(function () {
@@ -974,7 +920,6 @@ Route::post('/logout', function () {
     });
 
     Route::middleware('access:IMBUDGET,EDIT')->group(function () {
-
         Route::put('/imbudgets/{id}', [IMBudgetController::class, 'updateIMBudget'])->name('imbudgets.update');
 
         // Comments (create)
@@ -982,8 +927,8 @@ Route::post('/logout', function () {
 
         // Approval actions
         Route::post('/imbudget/{id}/approve', [IMBudgetController::class, 'approveIMBudget']);
-        Route::post('/imbudget/{id}/reject',  [IMBudgetController::class, 'rejectIMBudget']);
-        Route::post('/imbudget/{id}/revise',  [IMBudgetController::class, 'reviseIMBudget']);
+        Route::post('/imbudget/{id}/reject', [IMBudgetController::class, 'rejectIMBudget']);
+        Route::post('/imbudget/{id}/revise', [IMBudgetController::class, 'reviseIMBudget']);
     });
 
     Route::middleware('access:BASTLIST,VIEW')->group(function () {
@@ -1008,8 +953,8 @@ Route::post('/logout', function () {
 
         // Approval Actions
         Route::post('/bast/{id}/approve', [BastController::class, 'approveBast']);
-        Route::post('/bast/{id}/reject',  [BastController::class, 'rejectBast']);
-        Route::post('/bast/{id}/revise',  [BastController::class, 'reviseBast']);
+        Route::post('/bast/{id}/reject', [BastController::class, 'rejectBast']);
+        Route::post('/bast/{id}/revise', [BastController::class, 'reviseBast']);
     });
 
     Route::middleware('access:RFCALIST,VIEW')->group(function () {
@@ -1031,20 +976,20 @@ Route::post('/logout', function () {
         Route::get('/calrlist/json', [CalrListController::class, 'json'])->name('calrlist.json');
         Route::get('/showcalr/{hash}', [CalrController::class, 'showCalr']);
         // PDF (internal & vendor)
-        Route::get('/pdf_calr/{hash}',         [CalrController::class, 'printCalr'])->name('calrs.print');
-        Route::get('/pdf_calr_vendor/{hash}',  [CalrController::class, 'printCalrVendor'])->name('calrs.printvendor');
+        Route::get('/pdf_calr/{hash}', [CalrController::class, 'printCalr'])->name('calrs.print');
+        Route::get('/pdf_calr_vendor/{hash}', [CalrController::class, 'printCalrVendor'])->name('calrs.printvendor');
     });
     Route::middleware('access:CALRLIST,CREATE')->group(function () {
         Route::get('/calr/create', [CalrController::class, 'createCalr'])->name('calr.create');
-        Route::post('/calr',       [CalrController::class, 'storeCalr'])->name('calr.store');
+        Route::post('/calr', [CalrController::class, 'storeCalr'])->name('calr.store');
     });
 
     Route::middleware('access:CALRLIST,EDIT')->group(function () {
         Route::get('/editcalrs/{hash}', [CalrController::class, 'editCalr'])->name('calr.edit');
         Route::put('/editcalrs/{hash}', [CalrController::class, 'updateCalr'])->name('calr.update');
         Route::post('/calr/{id}/approve', [CalrController::class, 'approveCalr']);
-        Route::post('/calr/{id}/reject',  [CalrController::class, 'rejectCalr']);
-        Route::post('/calr/{id}/revise',  [CalrController::class, 'reviseCalr']);
+        Route::post('/calr/{id}/reject', [CalrController::class, 'rejectCalr']);
+        Route::post('/calr/{id}/revise', [CalrController::class, 'reviseCalr']);
     });
 
     // 👀 VIEW ITEMREQ
@@ -1070,8 +1015,8 @@ Route::post('/logout', function () {
         Route::put('/itemreq/remove-attachment/{id}', [ItemRequestController::class, 'removeAttachment']);
 
         Route::post('/itemreq/{id}/approve', [ItemRequestController::class, 'approveItemReq']);
-        Route::post('/itemreq/{id}/reject',  [ItemRequestController::class, 'rejectItemReq']);
-        Route::post('/itemreq/{id}/revise',  [ItemRequestController::class, 'reviseItemReq']);
+        Route::post('/itemreq/{id}/reject', [ItemRequestController::class, 'rejectItemReq']);
+        Route::post('/itemreq/{id}/revise', [ItemRequestController::class, 'reviseItemReq']);
     });
 
     Route::middleware('access:STOCKJOBS,VIEW')->group(function () {
@@ -1112,8 +1057,8 @@ Route::post('/logout', function () {
         Route::put('/nonstockjobs/{eid}/rollback', [NonstockJobsController::class, 'rollbackInventory'])->name('nonstockjobs.rollback');
     });
 
-    Route::get('/kontrak',       [KontrakController::class, 'index'])->name('kontrak');
-    Route::get('/kontrak/json',  [KontrakController::class, 'json'])->name('kontrak.json');
+    Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak');
+    Route::get('/kontrak/json', [KontrakController::class, 'json'])->name('kontrak.json');
     Route::get('/showkontrak/{hash}', [KontrakController::class, 'showKontrak'])->name('kontrak.show');
     Route::get('/createkontrak/{hash}', [KontrakController::class, 'createKontrak'])->name('kontrak.create');
     Route::post('/kontrak/{kontrakid}/submit', [KontrakController::class, 'submitKontrak'])->name('kontrak.submit');
@@ -1121,10 +1066,9 @@ Route::post('/logout', function () {
     Route::post('/kontrak/{eid}/reuse', [KontrakController::class, 'reuse'])->name('kontrak.reuse');
     Route::post('/kontrak/{eid}/terminate', [KontrakController::class, 'terminate'])->name('kontrak.terminate');
 
-
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
-    Route::get('/lookup/tenants',  [MasterController::class, 'tenants'])->name('tenants.search');
-    Route::get('/lookup/users',    [MasterController::class, 'users'])->name('users.search');
+    Route::get('/lookup/tenants', [MasterController::class, 'tenants'])->name('tenants.search');
+    Route::get('/lookup/users', [MasterController::class, 'users'])->name('users.search');
     Route::get('/api/tenants/show', [MasterController::class, 'showTenant'])->name('tenants.show');
     Route::get('/vendorscs', [MasterController::class, 'vendors']);
     Route::get('/taxes', [MasterController::class, 'taxes'])->name('taxes.index');
@@ -1136,14 +1080,14 @@ Route::post('/logout', function () {
     Route::get('/sublocations/by-location', [MasterController::class, 'SubLocation'])->name('sublocations.byLocation');
     Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
     Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');
-    Route::get('/coa/by-wo',   [MasterController::class, 'CoaBudgetWo'])->name('coa.byWo');
-    Route::get('/coa/by-wo-spb',   [MasterController::class, 'CoaBudgetWoSPB'])->name('coa.byWoSPB');
+    Route::get('/coa/by-wo', [MasterController::class, 'CoaBudgetWo'])->name('coa.byWo');
+    Route::get('/coa/by-wo-spb', [MasterController::class, 'CoaBudgetWoSPB'])->name('coa.byWoSPB');
     Route::get('/editcoa/by-dept', [MasterController::class, 'editCoaBudget'])->name('editcoa.byDept');
     Route::get('/uom/by-inventory', [MasterController::class, 'UomInventory'])->name('uom.byInventory');
     Route::get('/wos/ajax/categories/{categoryid}', [MasterController::class, 'getCategories']);
-    Route::get('/wos/ajax/worktypes',               [MasterController::class, 'getWorktypes']);
+    Route::get('/wos/ajax/worktypes', [MasterController::class, 'getWorktypes']);
     Route::get('/wos/ajax/subworktypes/{worktypeid}', [MasterController::class, 'getSubWorktypes']);
-    Route::get('/wos/ajax/locations/{cpny_id}',     [MasterController::class, 'getLocations']);
+    Route::get('/wos/ajax/locations/{cpny_id}', [MasterController::class, 'getLocations']);
     Route::get('/wos/ajax/sublocations/{cpny_id}/{location_id}', [MasterController::class, 'getSubLocations']);
     Route::get('/wos/ajax/wos', [MasterController::class, 'getWoComplated'])->name('wos.ajax.index');
     Route::get('/inventory/by-worktype', [MasterController::class, 'InventoryByWorktype'])->name('inventory.byWorktype');
@@ -1153,18 +1097,14 @@ Route::post('/logout', function () {
     Route::get('/users/businessunits/by-cpny', [MasterController::class, 'businessUnitsByCpny'])->name('businessunits.byCpny');
     Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
 
-
-
-
-    Route::post('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
-    Route::get ('/attachments/{doctype}/{refnbr}',  [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
-    Route::delete('/attachments/{id}',               [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
+    Route::post('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
+    Route::get('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
+    Route::delete('/attachments/{id}', [TrAttachmentController::class, 'deleteAttachment'])->name('attachments.delete');
     Route::put('/remove-attachment/{id}', [TrAttachmentController::class, 'removeAttachment']);
-    Route::get('/comments/{doctype}/{id}',  [SendCommentController::class, 'fetchComments']);
+    Route::get('/comments/{doctype}/{id}', [SendCommentController::class, 'fetchComments']);
     Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
     Route::get('/approval/{refnbr}/{doctype}', [ApprovalController::class, 'getApprovalByDocument'])->name('approval.get');
     Route::get('/approval/{refnbr}/check/{action}', [ApprovalController::class, 'checkApproval'])->name('approval.check');
-
 
     Route::get('/eng/users', [UsersEngController::class, 'index'])->name('userseng');
     Route::get('/eng/users/json', [UsersEngController::class, 'json'])->name('userseng.json');
@@ -1200,8 +1140,6 @@ Route::post('/logout', function () {
     Route::get('/mastercard', [DashboardController::class, 'analytics'])->name('mastercard');
 
     Route::get('/test', [DashboardController::class, 'test'])->name('test');
-
-
 
     // Route::get('/settings/account', function () {
     //     return view('profile/show');
@@ -1269,8 +1207,6 @@ Route::post('/logout', function () {
     Route::put('/access-rights/{id}', [SysAccessRightController::class, 'update'])->name('access_rights.update');
     Route::put('/access-rights/{id}/toggle-status', [SysAccessRightController::class, 'toggleStatus'])->name('access_rights.toggle-status');
 
-
-
     Route::get('/approvals', [MsApprovalController::class, 'index'])->name('approvals');
     Route::get('/approvals/json', [MsApprovalController::class, 'json'])->name('approvals.json');
     Route::post('/approvals', [MsApprovalController::class, 'store'])->name('approvals.store');
@@ -1278,8 +1214,6 @@ Route::post('/logout', function () {
     Route::put('/approvals/{id}', [MsApprovalController::class, 'update']);
     Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
     Route::get('/approvals/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals.departments');
-
-
 
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
     Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
@@ -1302,11 +1236,11 @@ Route::post('/logout', function () {
     Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
     Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
 
-    Route::get('/autonbrs',        [AutonbrController::class, 'index'])->name('autonbrs');
-    Route::get('/autonbrs/json',   [AutonbrController::class, 'json'])->name('autonbrs.json');
-    Route::post('/autonbrs',       [AutonbrController::class, 'store'])->name('autonbrs.store');
+    Route::get('/autonbrs', [AutonbrController::class, 'index'])->name('autonbrs');
+    Route::get('/autonbrs/json', [AutonbrController::class, 'json'])->name('autonbrs.json');
+    Route::post('/autonbrs', [AutonbrController::class, 'store'])->name('autonbrs.store');
     Route::get('/autonbrs/{id}/edit', [AutonbrController::class, 'edit']);
-    Route::put('/autonbrs/{id}',   [AutonbrController::class, 'update']);
+    Route::put('/autonbrs/{id}', [AutonbrController::class, 'update']);
     Route::put('/autonbrs/{id}/toggle-status', [AutonbrController::class, 'toggleStatus']);
 
     Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
@@ -1325,8 +1259,6 @@ Route::post('/logout', function () {
 
     Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
     Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');
-
-
 
     Route::get('/locations', [LocationController::class, 'index'])->name('locations');
 
@@ -1360,25 +1292,25 @@ Route::post('/logout', function () {
     Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
     Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
     Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
-    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');    
+    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
 
     Route::get('/sys-calendar', [SysCalendarController::class, 'index'])->name('sys-calendar');
     Route::get('/sys-calendar/json', [SysCalendarController::class, 'json'])->name('sys-calendar.json');
     Route::post('/sys-calendar', [SysCalendarController::class, 'store'])->name('sys-calendar.store');
     Route::get('/sys-calendar/{id}/edit', [SysCalendarController::class, 'edit'])->name('sys-calendar.edit');
     Route::post('/sys-calendar/{id}', [SysCalendarController::class, 'update'])->name('sys-calendar.update');
-    Route::put('/sys-calendar/{id}/toggle-status', [SysCalendarController::class, 'toggleStatus'])->name('sys-calendar.toggle-status');  
+    Route::put('/sys-calendar/{id}/toggle-status', [SysCalendarController::class, 'toggleStatus'])->name('sys-calendar.toggle-status');
 
     Route::get('/business-units', [BusinessUnitController::class, 'index'])->name('business-units');
     Route::get('/business-units/json', [BusinessUnitController::class, 'json'])->name('business-units.json');
     Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
     Route::get('/business-units/{id}/edit', [BusinessUnitController::class, 'edit'])->name('business-units.edit');
     Route::post('/business-units/{id}', [BusinessUnitController::class, 'update'])->name('business-units.update');
-    Route::put('/business-units/{id}/toggle-status', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle-status');    
+    Route::put('/business-units/{id}/toggle-status', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle-status');
 
     Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
-    Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');   
-    Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');    
+    Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
+    Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
 
     Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
     Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
@@ -1405,7 +1337,6 @@ Route::post('/logout', function () {
     Route::get('/user-sync', [UserSyncController::class, 'index'])->name('user_sync.index');
     Route::post('/user-sync/run', [UserSyncController::class, 'run'])->name('user_sync.run');
 
-
     // User must be logged in to START OAuth
     Route::get('/google/calendar/connect', [GoogleCalendarController::class, 'redirect'])
         ->middleware('auth');
@@ -1419,7 +1350,6 @@ Route::post('/logout', function () {
 |--------------------------------------------------------------------------
 */
     Route::middleware('auth')->group(function () {
-
         // 🔹 Google calendar (read / write)
         Route::get('/google/calendar/status', [GoogleCalendarApiController::class, 'status']);
         Route::get('/google/calendar/events', [GoogleCalendarApiController::class, 'events']);
@@ -1431,9 +1361,7 @@ Route::post('/logout', function () {
         Route::put('/tasks/{id}', [TaskController::class, 'update']);
         Route::post('/tasks/{id}/move', [TaskController::class, 'move']);
         Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
-
     });
-
 
     Route::prefix('mastertraining')->group(function () {
         Route::get('/mastertraining', [MasterTrainingController::class, 'index'])
@@ -1448,11 +1376,10 @@ Route::post('/logout', function () {
         Route::get('/{id}', [MasterTrainingController::class, 'show'])
             ->name('mastertraining.show');
 
-        Route::get('/mastertraining/{id}/edit', [MasterTrainingController::class, 'edit']) ->name('mastertraining.edit');
+        Route::get('/mastertraining/{id}/edit', [MasterTrainingController::class, 'edit'])->name('mastertraining.edit');
 
         Route::put('/mastertraining/{id}', [MasterTrainingController::class, 'update'])
             ->name('mastertraining.update');
-
     });
 
     Route::get('/training-events', [TrainingRegistrationController::class, 'index'])
@@ -1468,9 +1395,7 @@ Route::post('/logout', function () {
     Route::get('/training', [TrainingRegistrationController::class, 'index'])
         ->name('training.list');
 
-
     Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent = null, $child = null) {
-
         $user = Auth::user();
 
         if (!$user) {
@@ -1508,11 +1433,9 @@ Route::post('/logout', function () {
             ->keyBy('menu_id');
 
         foreach ($allowedIds as $id) {
-
             $menu = $allMenus->get($id);
 
             while ($menu && $menu->parent_menu_id) {
-
                 if (!in_array($menu->parent_menu_id, $allowedIds)) {
                     $allowedIds[] = $menu->parent_menu_id;
                 }
@@ -1533,14 +1456,12 @@ Route::post('/logout', function () {
             ->whereIn('menu_id', $allowedIds)
             ->where('status', 'A')
             ->with(['children' => function ($q) use ($allowedIds) {
-
                 $q->whereIn('menu_id', $allowedIds)
                 ->where('status', 'A')
                 ->with(['children' => function ($qq) use ($allowedIds) {
                     $qq->whereIn('menu_id', $allowedIds)
                         ->where('status', 'A');
                 }]);
-
             }])
             ->orderBy('menu_sort_order')
             ->get();
@@ -1578,22 +1499,19 @@ Route::post('/logout', function () {
         */
 
         return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
-
     })->middleware('auth')->name('manual');
 
     Route::prefix('report-warehouse')->group(function () {
-
-        Route::get('/', [ReportWarehouseController::class,'index'])
+        Route::get('/', [ReportWarehouseController::class, 'index'])
             ->name('reportwh');
 
-        Route::get('/json', [ReportWarehouseController::class,'json'])
+        Route::get('/json', [ReportWarehouseController::class, 'json'])
             ->name('report.warehouse.json');
 
-        Route::get('/export',[ReportWarehouseController::class,'export'])
+        Route::get('/export', [ReportWarehouseController::class, 'export'])
             ->name('report.warehouse.export');
 
         Route::get('/view/{type}', function ($type) {
-
             if ($type == 'spb') {
                 return view('pages.report-warehouse.spb-detail');
             }
@@ -1605,16 +1523,28 @@ Route::post('/logout', function () {
             if ($type == 'receipt') {
                 return view('pages.report-warehouse.receipt-detail');
             }
-
         });
+    });
 
+    Route::prefix('report-cs')->group(function () {
+        Route::get('/', [ReportCanvassSheetController::class, 'index'])
+            ->name('reportcs');
+
+        Route::get('/json', [ReportCanvassSheetController::class, 'json'])
+            ->name('report.cs.json');
+
+        Route::get('/export', [ReportCanvassSheetController::class, 'export'])
+            ->name('report.cs.export');
+
+        Route::get('/view/detail', function () {
+            return view('pages.report-cs.canvas-detail');
+        });
     });
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
     // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');
     // Route::post('/ifcaintegration/nonstock/process', [IFCAIntegrationController::class, 'processNonStock'])->name('integration.ifcaintegration.nonstock.process');
     Route::prefix('integration')->name('integration.')->group(function () {
-
         // UI shell
         Route::get('ifcaintegration', [IFCAIntegrationController::class, 'index'])
             ->name('ifcaintegration');
@@ -1627,8 +1557,8 @@ Route::post('/logout', function () {
 
         // ✅ module: Stock API endpoints
         Route::prefix('ifcaintegration/stock')->name('ifcaintegration.stock.')->group(function () {
-        Route::get('list', [IFCAAPIStockController::class, 'list'])->name('list');
-        Route::post('process', [IFCAAPIStockController::class, 'process'])->name('process');
+            Route::get('list', [IFCAAPIStockController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIStockController::class, 'process'])->name('process');
         });
 
         // ✅ module: Supplier API endpoints
@@ -1669,9 +1599,8 @@ Route::post('/logout', function () {
 
         // ✅ module: GRN Solomon
         Route::prefix('ifcaintegration/grnsolomon')->name('ifcaintegration.grnsolomon.')->group(function () {
-            Route::get('list',    [SLAPIGRNController::class, 'list'])->name('list');
-            Route::post('process',[SLAPIGRNController::class, 'process'])->name('process');
+            Route::get('list', [SLAPIGRNController::class, 'list'])->name('list');
+            Route::post('process', [SLAPIGRNController::class, 'process'])->name('process');
         });
-
     });
 });
