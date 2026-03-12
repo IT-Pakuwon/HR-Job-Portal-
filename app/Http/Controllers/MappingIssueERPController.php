@@ -39,6 +39,12 @@ class MappingIssueERPController extends Controller
         $user = Auth::user();
         if (!$user) return response()->json(['data' => []], 401);
 
+        if (is_string($user->cpny_id)) {
+            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+        } else {
+            $cpnyIds = (array) $user->cpny_id;
+        }
+
         $status = strtoupper(trim((string) $req->query('status', '')));
         $search = trim((string) $req->query('search', ''));
 
@@ -46,7 +52,10 @@ class MappingIssueERPController extends Controller
             ->selectRaw('MAX(id) AS id')
             ->groupBy('cpny_id', 'issue_id');
 
-        $q = StagingIfcaIcStkIssue::query()->whereIn('id', $sub);
+        // $q = StagingIfcaIcStkIssue::query()->whereIn('id', $sub);
+        $q = StagingIfcaIcStkIssue::query()
+            ->whereIn('id', $sub)
+            ->whereIn('cpny_id', $cpnyIds);
 
         if (in_array($status, ['D', 'P', 'C'], true)) {
             $q->where('status', $status);

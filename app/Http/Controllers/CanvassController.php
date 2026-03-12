@@ -1320,13 +1320,7 @@ class CanvassController extends Controller
             }
         }
 
-        // 3) Context user & waktu
-        // $user     = $request->user();
-        // $username = $user->username ?? 'system';
-
-        // $dt    = \Carbon\Carbon::now();
-        // $year  = (int) $dt->year;
-        // $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        // 3) Context user & waktu        
         $doctype = 'CS';
         $user = $request->user();
         $username = $user->username ?? 'system';
@@ -1424,31 +1418,7 @@ class CanvassController extends Controller
                         strtoupper(trim($pd->inventory_descr ?? ''));
                     $prevLocIndex[$key] = $pd; // simpan row prev utk ambil location
                 }
-            }
-
-            // 6) Generate autonbr CS (lock)
-            // $autonbr = \App\Models\Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year',   $year)
-            //     ->where('month',  $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = \App\Models\Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr($year, 2) . $month; // YYMM
-            // $csid   = $doctype . $tglbln . sprintf("%04d", $urutan);
+            }         
 
             $auto = $this->nextAutonbr(
                 $doctype,
@@ -2435,7 +2405,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
-        // dd($request->all());
+        dd($request->all());
         // 1) Validasi payload dasar
         $request->validate([
             'doc' => 'required|string',     // SPPB|SPPJ|SPPK|SPPT

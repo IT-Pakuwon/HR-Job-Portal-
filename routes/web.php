@@ -1525,19 +1525,20 @@ Route::middleware(['auth'])->group(function () {
             }
         });
     });
+    Route::middleware('access:REPORTCS,VIEW')->group(function () {
+        Route::prefix('report-cs')->group(function () {
+            Route::get('/', [ReportCanvassSheetController::class, 'index'])
+                ->name('reportcs');
 
-    Route::prefix('report-cs')->group(function () {
-        Route::get('/', [ReportCanvassSheetController::class, 'index'])
-            ->name('reportcs');
+            Route::get('/json', [ReportCanvassSheetController::class, 'json'])
+                ->name('report.cs.json');
 
-        Route::get('/json', [ReportCanvassSheetController::class, 'json'])
-            ->name('report.cs.json');
+            Route::get('/export', [ReportCanvassSheetController::class, 'export'])
+                ->name('report.cs.export');
 
-        Route::get('/export', [ReportCanvassSheetController::class, 'export'])
-            ->name('report.cs.export');
-
-        Route::get('/view/detail', function () {
-            return view('pages.report-cs.canvas-detail');
+            Route::get('/view/detail', function () {
+                return view('pages.report-cs.canvas-detail');
+            });
         });
     });
     // === IFCA Integration MASTER ===

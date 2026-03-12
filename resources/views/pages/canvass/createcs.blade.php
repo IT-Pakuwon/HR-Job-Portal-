@@ -711,7 +711,7 @@
                                         data-for="ppn" data-vendor="${id}" title="Pilih PPN">
                                         🔍
                                     </button>
-                                    <input type="hidden" class="sum-ppn-id" value="">
+                                    <input type="hidden" class="sum-ppn-id" value="PPN11">
                                 </div>
 
                                 <!-- PPh -->
