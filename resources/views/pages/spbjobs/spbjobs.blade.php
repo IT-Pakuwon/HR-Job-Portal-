@@ -50,7 +50,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="whitespace-normal break-words text-sm font-medium leading-tight">
-                                SPB To SPPB
+                                SPPB Jobs
                             </p>
                         </div>
 
@@ -271,23 +271,23 @@
         <th></th>
 
         ${!hideAction ? `
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                        Action
-                        </th>` : ``}
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                Action
+                                </th>` : ``}
 
         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
         SPB ID
         </th>
 
         ${isWoFlow ? `
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                        WO ID
-                        </th>` : ``}
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                WO ID
+                                </th>` : ``}
 
         ${isSpbFlow ? `
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                        SPPB ID
-                        </th>` : ``}
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                SPPB ID
+                                </th>` : ``}
 
         <th class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
         SPB Date
@@ -310,16 +310,16 @@
         </th>
 
         ${isSpbAll ? `
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                        Status SPB
-                        </th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                        Status Issue
-                        </th>
-                        ` : !hideStatus ? `
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
-                        ${isSppbJobs ? 'Status SPPB' : 'Issue Status'}
-                        </th>` : ``}
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                Status SPB
+                                </th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                Status Issue
+                                </th>
+                                ` : !hideStatus ? `
+                                <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">
+                                ${isSppbJobs ? 'Status SPPB' : 'Issue Status'}
+                                </th>` : ``}
         `;
                 }
 
@@ -857,40 +857,48 @@
             // }
 
             function orderFor(sc) {
+
                 const type = scopeType(sc);
 
+                // =========================
+                // SPB TABLE
+                // =========================
                 if (type === 'spb') {
-                    // scope yang diminta: order by SPBID desc
-                    if (['issuejobsnew', 'issuejobs', 'onprogress'].includes(sc)) {
-                        return [
-                            [2, 'desc'] // spbid
-                        ];
-                    }
 
-                    // scope flow / all tetap bisa pakai tanggal dulu
-                    if (sc === 'spball') {
-                        return [
-                            [2, 'desc'] // spbid (karena spball hide action, index spbid jadi 1? lihat catatan bawah)
-                        ];
-                    }
+                    const isSpbAll = (sc === 'spball');
+                    const isWoFlow = (sc === 'woflow');
+                    const isSpbFlow = (sc === 'spbflow');
+
+                    // scopes that hide action column
+                    const hideAction = (sc === 'spbprogress' || isSpbAll || isWoFlow || isSpbFlow);
+
+                    // column index shifts depending on action column
+                    const dateIndex = hideAction ? 2 : 3;
+                    const idIndex = hideAction ? 1 : 2;
 
                     return [
-                        [3, 'desc'], // spbdate
-                        [2, 'desc']  // spbid
+                        [dateIndex, 'desc'], // newest date first
+                        [idIndex, 'desc'] // fallback by ID
                     ];
                 }
 
+                // =========================
+                // ISSUE TABLE
+                // =========================
                 if (type === 'issue') {
+
                     return [
                         [2, 'desc'], // issuedate
-                        [1, 'desc']  // issueid
+                        [1, 'desc'] // issueid
                     ];
                 }
 
-                // sppb
+                // =========================
+                // SPPB TABLE
+                // =========================
                 return [
                     [2, 'desc'], // sppbdate
-                    [1, 'desc']  // sppbid
+                    [1, 'desc'] // sppbid
                 ];
             }
 
