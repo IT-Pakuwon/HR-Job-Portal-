@@ -1529,7 +1529,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('report-purchasing')->group(function () {
         Route::get('/', [ReportPurchasingController::class, 'index'])
-            ->name('report.purchasing');
+            ->name('reportpurchasing');
 
         Route::get('/json', [ReportPurchasingController::class, 'json'])
             ->name('report.purchasing.json');
