@@ -133,8 +133,29 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
         $(document).ready(function() {
             if ($.fn.DataTable.isDataTable('#businessUnitTable')) {
                 $('#businessUnitTable').DataTable().clear().destroy();
@@ -271,12 +292,18 @@
             });
 
             $('#btnFilter').click(function() {
-                table.ajax.reload(null, true);
+                showLoading();
+                table.ajax.reload(function() {
+                    hideLoading();
+                }, true);
             });
 
             $('#btnResetFilter').click(function() {
                 $('#filterCompany').val('');
-                table.ajax.reload(null, true);
+                showLoading();
+                table.ajax.reload(function() {
+                    hideLoading();
+                }, true);
             });
 
             $('#addBusinessUnitBtn').click(function() {
@@ -289,6 +316,8 @@
             $(document).on('click', '.editBusinessUnitBtn', function() {
                 let id = $(this).data('id');
 
+                showLoading();
+
                 $.get(`/business-units/${id}/edit`, function(c) {
                     $('#modalTitle').text("Edit Business Unit");
                     $('#id').val(c.id);
@@ -299,10 +328,19 @@
                     $('#solomon_cpny_id').val(c.solomon_cpny_id);
                     $('#solomon_allocation_cd').val(c.solomon_allocation_cd);
                     $('#integration_type').val(c.integration_type);
+
                     $('#businessUnitModal').removeClass('hidden').addClass('flex');
+                    hideLoading();
                 }).fail(function(xhr) {
+                    hideLoading();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data business unit'
+                    });
+
                     console.error(xhr.responseText);
-                    alert('Gagal mengambil data business unit');
                 });
             });
 
@@ -337,6 +375,13 @@
                 let url = id ? `/business-units/${id}` : "{{ route('business-units.store') }}";
                 let formData = new FormData(document.getElementById('businessUnitForm'));
 
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
+
+                showLoading();
+                $('#businessUnitForm button[type="submit"]').prop('disabled', true);
+
                 $.ajax({
                     url: url,
                     type: 'POST',
@@ -347,19 +392,40 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#businessUnitForm button[type="submit"]').prop('disabled', false);
+
                         $('#businessUnitModal').addClass('hidden').removeClass('flex');
                         $('#businessUnitForm')[0].reset();
                         $('#id').val('');
                         table.ajax.reload(null, false);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Business unit saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
+                        hideLoading();
+                        $('#businessUnitForm button[type="submit"]').prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal menyimpan data business unit'
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan data business unit');
                     }
                 });
             });
 
             $('#closeModal').click(function() {
+                $('#businessUnitForm')[0].reset();
+                $('#id').val('');
                 $('#businessUnitModal').addClass('hidden').removeClass('flex');
             });
         });

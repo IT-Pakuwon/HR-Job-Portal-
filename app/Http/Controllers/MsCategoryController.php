@@ -14,15 +14,15 @@ class MsCategoryController extends Controller
     public function index()
     {
         $user = Auth::user();
-        if (!$user) return redirect()->route('login');
-        
-        // Doctype diambil dari Autonbr
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $doctypes = Autonbr::select('doctype')
             ->distinct()
             ->orderBy('doctype')
             ->get();
 
-        // Username diambil dari user
         $users = User::select('username', 'name')
             ->orderBy('username')
             ->get();
@@ -49,7 +49,9 @@ class MsCategoryController extends Controller
             ->orderBy('categoryid')
             ->get();
 
-        return response()->json(['data' => $rows]);
+        return response()->json([
+            'data' => $rows,
+        ]);
     }
 
     public function store(Request $request)
@@ -58,37 +60,38 @@ class MsCategoryController extends Controller
             'doctype'       => 'required|string|max:50',
             'categoryid'    => 'required|string|max:50',
             'category_name' => 'required|string|max:200',
-            'groups'        => 'nullable|string|max:100',
-            'username'      => 'nullable|string|max:100',
+            'groups'        => 'nullable|integer',
+            'username'      => 'nullable|integer',
             'type'          => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
 
-        $user    = Auth::user();
-        $now       = now();
-        $createdBy = $user->username ?? 'system';
-
         try {
-            // Kalau mau simpan created_by, silakan tambahkan kolom & fillable dulu di model
-            MsCategory::create([
-                'doctype'       => $request->doctype,
-                'categoryid'    => strtolower($request->categoryid),
-                'category_name' => $request->category_name,
-                'groups'        => $request->groups,
-                'username'      => $request->username,
-                'type'          => $request->type,
+            $user = Auth::user();
+            $now = now();
+            $createdBy = $user->username ?? 'system';
+
+            $row = MsCategory::create([
+                'doctype'       => trim($request->doctype),
+                'categoryid'    => strtolower(trim($request->categoryid)),
+                'category_name' => trim($request->category_name),
+                'groups'        => $request->filled('groups') ? (int) $request->groups : null,
+                'username'      => $request->filled('username') ? (int) $request->username : null,
+                'type'          => $request->filled('type') ? trim($request->type) : null,
                 'status'        => 'A',
-                'created_by'         => $createdBy,
-                'created_at'         => $now,
+                'created_by'    => $createdBy,
+                'created_at'    => $now,
             ]);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
+                'data'    => $row,
+                'message' => 'Category berhasil disimpan',
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             return response()->json([
@@ -117,32 +120,32 @@ class MsCategoryController extends Controller
 
     public function update(Request $request, $id)
     {
-        $user    = Auth::user();
-        $now       = now();
-        $updateBy = $user->username ?? 'system';
-
         $row = MsCategory::findOrFail($id);
 
         $request->validate([
             'doctype'       => 'required|string|max:50',
-            'categoryid'    => 'required|string|max:50|unique:pgsql2.ms_category,categoryid,' . $row->id,
+            'categoryid'    => 'required|string|max:50',
             'category_name' => 'required|string|max:200',
-            'groups'        => 'nullable|string|max:100',
-            'username'      => 'nullable|string|max:100',
+            'groups'        => 'nullable|integer',
+            'username'      => 'nullable|integer',
             'type'          => 'nullable|string|max:50',
         ]);
 
         DB::beginTransaction();
 
         try {
+            $user = Auth::user();
+            $now = now();
+            $updatedBy = $user->username ?? 'system';
+
             $row->update([
-                'doctype'       => $request->doctype,
-                'categoryid'    => strtolower($request->categoryid),
-                'category_name' => $request->category_name,
-                'groups'        => $request->groups,
-                'username'      => $request->username,
-                'type'          => $request->type,
-                'updated_by'    => $updateBy,
+                'doctype'       => trim($request->doctype),
+                'categoryid'    => strtolower(trim($request->categoryid)),
+                'category_name' => trim($request->category_name),
+                'groups'        => $request->filled('groups') ? (int) $request->groups : null,
+                'username'      => $request->filled('username') ? (int) $request->username : null,
+                'type'          => $request->filled('type') ? trim($request->type) : null,
+                'updated_by'    => $updatedBy,
                 'updated_at'    => $now,
             ]);
 
@@ -150,8 +153,9 @@ class MsCategoryController extends Controller
 
             return response()->json([
                 'success' => true,
+                'message' => 'Category berhasil diupdate',
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             return response()->json([
@@ -162,18 +166,25 @@ class MsCategoryController extends Controller
         }
     }
 
-    public function toggleStatus($id)
+    public function toggleStatus(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'required|in:A,X',
+        ]);
+
         $row = MsCategory::findOrFail($id);
-        $newStatus = request('status'); // 'A' atau 'X'
+        $user = Auth::user();
 
         $row->update([
-            'status' => $newStatus,
+            'status'     => $request->status,
+            'updated_by' => $user->username ?? 'system',
+            'updated_at' => now(),
         ]);
 
         return response()->json([
             'success' => true,
-            'status'  => $newStatus,
+            'status'  => $request->status,
+            'message' => 'Status berhasil diupdate',
         ]);
     }
 }

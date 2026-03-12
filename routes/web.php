@@ -1220,7 +1220,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
     Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
-    Route::post('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
     Route::put('/companies/{id}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
 
     Route::get('/department', [DepartmentsController::class, 'index'])->name('department');
@@ -1306,7 +1306,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/business-units/json', [BusinessUnitController::class, 'json'])->name('business-units.json');
     Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
     Route::get('/business-units/{id}/edit', [BusinessUnitController::class, 'edit'])->name('business-units.edit');
-    Route::post('/business-units/{id}', [BusinessUnitController::class, 'update'])->name('business-units.update');
+    Route::put('/business-units/{id}', [BusinessUnitController::class, 'update'])->name('business-units.update');
     Route::put('/business-units/{id}/toggle-status', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle-status');
 
     Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
@@ -1317,7 +1317,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
     Route::post('/kendaraan', [KendaraanController::class, 'store'])->name('kendaraan.store');
     Route::get('/kendaraan/{id}/edit', [KendaraanController::class, 'edit'])->name('kendaraan.edit');
-    Route::post('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
+    Route::put('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
     Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
 
     Route::middleware(['auth'])->group(function () {

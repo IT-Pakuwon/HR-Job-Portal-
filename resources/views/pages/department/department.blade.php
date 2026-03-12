@@ -63,8 +63,29 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
         $(document).ready(function() {
             if ($.fn.DataTable.isDataTable('#departmentTable')) {
                 $('#departmentTable').DataTable().clear().destroy();
@@ -193,6 +214,7 @@
 
                 $('#modalTitle').text("Loading...");
                 $('#departmentModal').removeClass('hidden');
+                showLoading();
 
                 $.get(`/department/${id}/edit`, function(c) {
                     $('#modalTitle').text("Edit Department");
@@ -200,10 +222,18 @@
                     $('#department_id').val(c.department_id);
                     $('#department_name').val(c.department_name);
                     $('#department_fin_id').val(c.department_fin_id);
+                    hideLoading();
                 }).fail(function(xhr) {
-                    console.error(xhr.responseText);
-                    alert('Gagal mengambil data department');
+                    hideLoading();
                     $('#departmentModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data department'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -242,6 +272,9 @@
                     formData.append('_method', 'PUT');
                 }
 
+                showLoading();
+                $('#departmentForm button[type="submit"]').prop('disabled', true);
+
                 $.ajax({
                     url: url,
                     type: 'POST',
@@ -252,19 +285,40 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#departmentForm button[type="submit"]').prop('disabled', false);
+
                         $('#departmentModal').addClass('hidden');
                         $('#departmentForm')[0].reset();
                         $('#id').val('');
                         table.ajax.reload(null, false);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Department saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
+                        hideLoading();
+                        $('#departmentForm button[type="submit"]').prop('disabled', false);
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal menyimpan data department'
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan data department');
                     }
                 });
             });
 
             $('#closeModal').click(function() {
+                $('#departmentForm')[0].reset();
+                $('#id').val('');
                 $('#departmentModal').addClass('hidden');
             });
         });

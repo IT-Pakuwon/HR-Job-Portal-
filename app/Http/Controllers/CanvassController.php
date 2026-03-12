@@ -2159,9 +2159,25 @@ class CanvassController extends Controller
                 continue;
             }
 
+            $taxcode = trim((string) ($cs->{"taxcodevendor{$i}"} ?? ''));
+            $parts = array_values(array_filter(array_map('trim', explode('+', $taxcode))));
+
+            $ppnId = null;
+            $pphId = null;
+
+            foreach ($parts as $part) {
+                if (stripos($part, 'PPN') === 0) {
+                    $ppnId = $part;
+                } elseif (stripos($part, 'PPH') === 0) {
+                    $pphId = $part;
+                } elseif (strtoupper($part) === 'NONTAX') {
+                    $ppnId = 'NONTAX';
+                }
+            }
+
             $vendorsUsed[] = [
-                'id' => $vid, // pakai kode sebagai id kolom
-                'vendor_id' => $vid, // kode (untuk dicocokkan di detail)
+                'id' => $vid,
+                'vendor_id' => $vid,
                 'vendor_name' => $cs->{"vendorname{$i}"} ?? '',
                 'vendor_addr1' => $cs->{"vendoralamat{$i}"} ?? '',
                 'phone_number' => $cs->{"vendortelp{$i}"} ?? '',
@@ -2169,9 +2185,8 @@ class CanvassController extends Controller
                 'top' => $cs->{"vendortop{$i}"} ?? '30D',
                 'vendornote' => $cs->{"vendornote{$i}"} ?? '',
 
-                // pajak & ringkasan
-                'taxcode' => $cs->{"taxcodevendor{$i}"} ?? '',
-                'ppn' => (float) ($cs->{"ppnvendor{$i}"} ?? 11),
+                'taxcode' => $taxcode,
+                'ppn' => (float) ($cs->{"ppnvendor{$i}"} ?? 0),
                 'pph' => (float) ($cs->{"pphvendor{$i}"} ?? 0),
                 'total' => (float) ($cs->{"totalvendor{$i}"} ?? 0),
                 'tax' => (float) ($cs->{"taxvendor{$i}"} ?? 0),
@@ -2179,11 +2194,37 @@ class CanvassController extends Controller
                 'sel_total' => (float) ($cs->{"totalselectedvendor{$i}"} ?? 0),
                 'sel_tax' => (float) ($cs->{"taxselectedvendor{$i}"} ?? 0),
                 'sel_grand' => (float) ($cs->{"grandtotalselectedvendor{$i}"} ?? 0),
-                // optional: jika kamu simpan tax id terpisah, isi di sini (sekarang tidak ada)
-                'ppn_id' => null,
-                'pph_id' => null,
+
+                'ppn_id' => $ppnId,
+                'pph_id' => $pphId,
             ];
+
+            // $vendorsUsed[] = [
+            //     'id' => $vid, // pakai kode sebagai id kolom
+            //     'vendor_id' => $vid, // kode (untuk dicocokkan di detail)
+            //     'vendor_name' => $cs->{"vendorname{$i}"} ?? '',
+            //     'vendor_addr1' => $cs->{"vendoralamat{$i}"} ?? '',
+            //     'phone_number' => $cs->{"vendortelp{$i}"} ?? '',
+            //     'contact_person' => $cs->{"vendorcp{$i}"} ?? '',
+            //     'top' => $cs->{"vendortop{$i}"} ?? '30D',
+            //     'vendornote' => $cs->{"vendornote{$i}"} ?? '',
+
+            //     // pajak & ringkasan
+            //     'taxcode' => $cs->{"taxcodevendor{$i}"} ?? '',
+            //     'ppn' => (float) ($cs->{"ppnvendor{$i}"} ?? 11),
+            //     'pph' => (float) ($cs->{"pphvendor{$i}"} ?? 0),
+            //     'total' => (float) ($cs->{"totalvendor{$i}"} ?? 0),
+            //     'tax' => (float) ($cs->{"taxvendor{$i}"} ?? 0),
+            //     'grand' => (float) ($cs->{"grandtotalvendor{$i}"} ?? 0),
+            //     'sel_total' => (float) ($cs->{"totalselectedvendor{$i}"} ?? 0),
+            //     'sel_tax' => (float) ($cs->{"taxselectedvendor{$i}"} ?? 0),
+            //     'sel_grand' => (float) ($cs->{"grandtotalselectedvendor{$i}"} ?? 0),
+            //     // optional: jika kamu simpan tax id terpisah, isi di sini (sekarang tidak ada)
+            //     'ppn_id' => null,
+            //     'pph_id' => null,
+            // ];
         }
+       
 
         // === Matriks detail per baris-per vendor dari TrCSdetail ===
         // DETAIL_MATRIX[rowIndex][vendor_code] = ['price'=>..., 'total'=>..., 'selected'=>bool]
@@ -2405,7 +2446,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
-        dd($request->all());
+        // dd($request->all());
         // 1) Validasi payload dasar
         $request->validate([
             'doc' => 'required|string',     // SPPB|SPPJ|SPPK|SPPT
@@ -3861,6 +3902,7 @@ class CanvassController extends Controller
                 $vendorTelp = $cs->{"vendortelp{$i}"} ?? null;
                 $vendorCP = $cs->{"vendorcp{$i}"} ?? null;
                 $vendorTOP = $cs->{"vendortop{$i}"} ?? null;
+                $vendornote = $cs->{"vendornote{$i}"} ?? null;
 
                 if (!$vendorId) {
                     continue;
@@ -3896,6 +3938,7 @@ class CanvassController extends Controller
                 $po->vendortelp = $vendorTelp;
                 $po->vendorcp = $vendorCP;
                 $po->vendortop = $vendorTOP;
+                $po->vendornote = $vendornote;
 
                 // total akan dihitung dari detail:
                 $po->totalamt = 0;

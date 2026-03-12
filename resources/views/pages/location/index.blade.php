@@ -146,8 +146,29 @@
                 </form>
             </div>
         </div>
+        <div id="loadingOverlay"
+            class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+            <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+                <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                        stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span class="text-sm font-semibold text-gray-700">Processing...</span>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
+            function showLoading() {
+                $('#loadingOverlay').removeClass('hidden');
+            }
+
+            function hideLoading() {
+                $('#loadingOverlay').addClass('hidden');
+            }
             $(document).ready(function() {
                 let selectedLocationId = null;
 
@@ -326,11 +347,15 @@
                 });
 
                 $('#closeLocationModal').click(function() {
+                    $('#locationForm')[0].reset();
+                    $('#loc_id').val('');
                     $('#locationModal').addClass('hidden').removeClass('flex');
                 });
 
                 $(document).on('click', '.editLocationBtn', function() {
                     let id = $(this).data('id');
+                    showLoading();
+
                     $.get(`/locations/${id}/edit`, function(d) {
                         $('#locationModalTitle').text('Edit Location');
                         $('#loc_id').val(d.id);
@@ -338,15 +363,33 @@
                         $('#loc_location_id').val(d.location_id);
                         $('#loc_location_name').val(d.location_name);
                         $('#locationModal').removeClass('hidden').addClass('flex');
+                        hideLoading();
+                    }).fail(function(xhr) {
+                        hideLoading();
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal mengambil data location'
+                        });
+
+                        console.error(xhr.responseText);
                     });
                 });
 
                 $('#locationForm').submit(function(e) {
                     e.preventDefault();
+
                     let id = $('#loc_id').val();
                     let url = id ? `/locations/${id}` : "{{ route('locations.store') }}";
                     let formData = new FormData(document.getElementById('locationForm'));
-                    if (id) formData.append('_method', 'PUT');
+
+                    if (id) {
+                        formData.append('_method', 'PUT');
+                    }
+
+                    showLoading();
+                    $('#locationForm button[type="submit"]').prop('disabled', true);
 
                     $.ajax({
                         url: url,
@@ -358,12 +401,33 @@
                         processData: false,
                         contentType: false,
                         success: function() {
+                            hideLoading();
+                            $('#locationForm button[type="submit"]').prop('disabled', false);
+
                             $('#locationModal').addClass('hidden').removeClass('flex');
+                            $('#locationForm')[0].reset();
+                            $('#loc_id').val('');
                             locationTable.ajax.reload(null, false);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: 'Location saved successfully',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
                         },
                         error: function(xhr) {
+                            hideLoading();
+                            $('#locationForm button[type="submit"]').prop('disabled', false);
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Gagal menyimpan location'
+                            });
+
                             console.error(xhr.responseText);
-                            alert('Gagal menyimpan location');
                         }
                     });
                 });
@@ -411,11 +475,15 @@
                 });
 
                 $('#closeSubLocationModal').click(function() {
+                    $('#subLocationForm')[0].reset();
+                    $('#sub_id').val('');
                     $('#subLocationModal').addClass('hidden').removeClass('flex');
                 });
 
                 $(document).on('click', '.editSubBtn', function() {
                     let id = $(this).data('id');
+                    showLoading();
+
                     $.get(`/sub-locations/${id}/edit`, function(d) {
                         $('#subLocationModalTitle').text('Edit Sub Location');
                         $('#sub_id').val(d.id);
@@ -424,15 +492,33 @@
                         $('#sub_location_code').val(d.sub_location_id);
                         $('#sub_location_name').val(d.sub_location_name);
                         $('#subLocationModal').removeClass('hidden').addClass('flex');
+                        hideLoading();
+                    }).fail(function(xhr) {
+                        hideLoading();
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal mengambil data sub location'
+                        });
+
+                        console.error(xhr.responseText);
                     });
                 });
 
                 $('#subLocationForm').submit(function(e) {
                     e.preventDefault();
+
                     let id = $('#sub_id').val();
                     let url = id ? `/sub-locations/${id}` : "{{ route('sub_locations.store') }}";
                     let formData = new FormData(document.getElementById('subLocationForm'));
-                    if (id) formData.append('_method', 'PUT');
+
+                    if (id) {
+                        formData.append('_method', 'PUT');
+                    }
+
+                    showLoading();
+                    $('#subLocationForm button[type="submit"]').prop('disabled', true);
 
                     $.ajax({
                         url: url,
@@ -444,12 +530,33 @@
                         processData: false,
                         contentType: false,
                         success: function() {
+                            hideLoading();
+                            $('#subLocationForm button[type="submit"]').prop('disabled', false);
+
                             $('#subLocationModal').addClass('hidden').removeClass('flex');
+                            $('#subLocationForm')[0].reset();
+                            $('#sub_id').val('');
                             subTable.ajax.reload(null, false);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: 'Sub location saved successfully',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
                         },
                         error: function(xhr) {
+                            hideLoading();
+                            $('#subLocationForm button[type="submit"]').prop('disabled', false);
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Gagal menyimpan sub location'
+                            });
+
                             console.error(xhr.responseText);
-                            alert('Gagal menyimpan sub location');
                         }
                     });
                 });

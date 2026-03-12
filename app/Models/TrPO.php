@@ -17,7 +17,7 @@ class TrPO extends Model
     protected $fillable = [      
 
         'ponbr' , 'poautonbr' , 'podate' , 'potype' , 'cpny_id' , 'csid' , 'sppbjktid' , 'department_id' , 'user_peminta' , 
-        'keperluan' , 'ponote' , 'vendorid' , 'vendorname' , 'vendoralamat' , 'vendortelp' , 'vendorcp' , 'vendortop' , 
+        'keperluan' , 'ponote' , 'vendorid' , 'vendorname' , 'vendoralamat' , 'vendortelp' , 'vendorcp' , 'vendornote','vendortop' , 
         'totalamt' , 'taxcodeid' , 'taxamt' , 'grandtotalamt' , 'totalqty' , 'totalqtyreceived' , 'submitdate' , 'podeliverydate' , 
         'spkstartworkingdate' , 'spkendtworkingdate' , 'spktotalday' , 'spkworkschedule' , 'spkmanpower' , 'spkpic' ,
         'spkpicjabatan' , 'spkpicphone' , 'spkpicemail' , 'spkvendor' , 'spkvendorjabatan' , 'spkvendorphone' , 'spkvendoremail' ,

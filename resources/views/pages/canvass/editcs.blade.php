@@ -786,31 +786,39 @@
                 $('#cvTable thead tr').append($th);
 
                 const $sumTd = $(`
-            <td id="td-sum-${idKey}" class="border px-3 py-2  text-xs  align-top" style="width:${colWidth};max-width:${colWidth};">
-                <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
-                <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
-                <div class="flex justify-between gap-2">
-                    <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">
-    PPN
-</span>
+                    <td id="td-sum-${idKey}" class="border px-3 py-2 text-xs align-top" style="width:${colWidth};max-width:${colWidth};">
+                        <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
+                            <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
 
-                    <input type="number" class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right  text-xs  focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="11.00" step="0.01" min="0">
-                    <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1  text-xs  text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="ppn" data-vendor="${idKey}" title="Pilih PPN">🔍</button>
-                    <input type="hidden" class="sum-ppn-id" value="">
-                    </div>
-                    <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
-                    <input type="number" class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right  text-xs  focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200" value="0" step="0.01" min="0">
-                    <button type="button" class="btn-pick-tax rounded bg-indigo-100 px-1  text-xs  text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700" data-for="pph" data-vendor="${idKey}" title="Pilih PPh">🔍</button>
-                    <input type="hidden" class="sum-pph-id" value="">
-                    </div>
-                </div>
-                <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0</span></div>
-                <div><span class="font-semibold">G.Total Selected:</span><span class="sum-selected" data-raw="0">0</span></div>
-                </div>
-            </td>
-            `);
+                            <div class="flex justify-between gap-2">
+                                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPN</span>
+                                    <input type="number"
+                                        class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                        value="11.00" step="0.01" min="0">
+                                    <button type="button"
+                                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                        data-for="ppn" data-vendor="${idKey}" title="Pilih PPN">🔍</button>
+                                    <input type="hidden" class="sum-ppn-id" value="PPN11">
+                                </div>
+
+                                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
+                                    <input type="number"
+                                        class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                        value="0" step="0.01" min="0">
+                                    <button type="button"
+                                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                        data-for="pph" data-vendor="${idKey}" title="Pilih PPh">🔍</button>
+                                    <input type="hidden" class="sum-pph-id" value="">
+                                </div>
+                            </div>
+
+                            <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0</span></div>
+                            <div><span class="font-semibold">G.Total Selected:</span><span class="sum-selected" data-raw="0">0</span></div>
+                        </div>
+                    </td>
+                `);
                 $('#summaryRow').append($sumTd);
 
                 // perubahan pajak -> recalc
@@ -867,23 +875,43 @@
                     }
 
                     if ($sum.length) {
-                        $sum.find('.sum-ppn').val((v.ppn ?? 11).toFixed(2));
-                        $sum.find('.sum-pph').val((v.pph ?? 0).toFixed(2));
-                        $sum.find('.sum-ppn-id').val(v.ppn_id || '');
-                        $sum.find('.sum-pph-id').val(v.pph_id || '');
-                        if (v.total != null) $sum.find('.sum-total').text((+v.total).toLocaleString(
-                            'id-ID'));
-                        if (v.grand != null) $sum.find('.sum-grand').text((+v.grand).toLocaleString(
-                            'id-ID'));
-                        // if (v.sel_total != null) $sum.find('.sum-selected').text((+v.sel_total)
-                        //     .toLocaleString('id-ID'));
+                        const preloadTaxcode = String(v.taxcode || '').trim().toUpperCase();
+                        const preloadPpn = Number(v.ppn ?? 0);
+                        const preloadPph = Number(v.pph ?? 0);
+
+                        $sum.find('.sum-ppn').val(preloadPpn.toFixed(2));
+                        $sum.find('.sum-pph').val(preloadPph.toFixed(2));
+
+                        let ppnId = v.ppn_id || '';
+                        let pphId = v.pph_id || '';
+
+                        if (!ppnId && preloadTaxcode === 'PPN11') {
+                            ppnId = 'PPN11';
+                        }
+
+                        if (!ppnId && preloadTaxcode === 'NONTAX') {
+                            ppnId = 'NONTAX';
+                        }
+
+                        $sum.find('.sum-ppn-id').val(ppnId);
+                        $sum.find('.sum-pph-id').val(pphId);
+
+                        if (v.total != null) {
+                            $sum.find('.sum-total').text((+v.total).toLocaleString('id-ID'));
+                        }
+
+                        if (v.grand != null) {
+                            $sum.find('.sum-grand').text((+v.grand).toLocaleString('id-ID'));
+                        }
+
                         if (v.sel_total != null) {
-                            const selTotal = +v.sel_total || 0; // NET (tanpa pajak) dari server
-                            const ppn = +(v.ppn ?? 11) / 100;
-                            const pph = +(v.pph ?? 0) / 100;
-                            const selGrand = selTotal * (1 + ppn + pph); // GROSS utk tampilan
+                            const selTotal = +v.sel_total || 0;
+                            const ppn = preloadPpn / 100;
+                            const pph = preloadPph / 100;
+                            const selGrand = selTotal * (1 + ppn + pph);
+
                             $sum.find('.sum-selected')
-                                .attr('data-raw', String(selTotal)) // simpan NET untuk payload
+                                .attr('data-raw', String(selTotal))
                                 .text(selGrand.toLocaleString('id-ID'));
                         }
                     }
@@ -1323,11 +1351,28 @@
 
                 // const $sum = $(`#td-sum-${vid}`);
                 const $sum = $(`#td-sum-${CSS.escape(vid)}`);
+                // const total = numFromText($sum.find('.sum-total').text());
+                // const ppn = Number($sum.find('.sum-ppn').val() || 0);
+                // const pph = Number($sum.find('.sum-pph').val() || 0);
+                // const ppnId = $sum.find('.sum-ppn-id').val() || '';
+                // const pphId = $sum.find('.sum-pph-id').val() || '';
+                // const tax = total * (ppn / 100) + total * (pph / 100);
+                // const grand = total + tax;
                 const total = numFromText($sum.find('.sum-total').text());
                 const ppn = Number($sum.find('.sum-ppn').val() || 0);
                 const pph = Number($sum.find('.sum-pph').val() || 0);
-                const ppnId = $sum.find('.sum-ppn-id').val() || '';
-                const pphId = $sum.find('.sum-pph-id').val() || '';
+
+                let ppnId = $sum.find('.sum-ppn-id').val() || '';
+                let pphId = $sum.find('.sum-pph-id').val() || '';
+
+                if (!ppnId) {
+                    if (ppn === 11) {
+                        ppnId = 'PPN11';
+                    } else if (ppn === 0 && pph === 0) {
+                        ppnId = 'NONTAX';
+                    }
+                }
+
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
                 // const selTotal = numFromText($sum.find('.sum-selected').text());
@@ -1557,12 +1602,27 @@
                 const vcode = String($th.data('vendor-code'));
 
                 const $sum = $(`#td-sum-${CSS.escape(vid)}`);
+                // const total = numFromText($sum.find('.sum-total').text());
+                // const ppn = Number($sum.find('.sum-ppn').val() || 0);
+                // const pph = Number($sum.find('.sum-pph').val() || 0);
+                // const ppnId = $sum.find('.sum-ppn-id').val() || '';
+                // const pphId = $sum.find('.sum-pph-id').val() || '';
+                // const tax = total * (ppn / 100) + total * (pph / 100);
+                // const grand = total + tax;
                 const total = numFromText($sum.find('.sum-total').text());
-
                 const ppn = Number($sum.find('.sum-ppn').val() || 0);
                 const pph = Number($sum.find('.sum-pph').val() || 0);
-                const ppnId = $sum.find('.sum-ppn-id').val() || '';
-                const pphId = $sum.find('.sum-pph-id').val() || '';
+
+                let ppnId = $sum.find('.sum-ppn-id').val() || '';
+                let pphId = $sum.find('.sum-pph-id').val() || '';
+
+                if (!ppnId) {
+                    if (ppn === 11) {
+                        ppnId = 'PPN11';
+                    } else if (ppn === 0 && pph === 0) {
+                        ppnId = 'NONTAX';
+                    }
+                }
 
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;

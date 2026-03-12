@@ -338,13 +338,13 @@ class PoController extends Controller
                 $this->insertPoLastPrice($po);
             }
 
-            // $this->syncPoTermsFromTop($po);
-            // $this->generateRfcaFromPo($po);
+            $this->syncPoTermsFromTop($po);
+            $this->generateRfcaFromPo($po);
 
-            // DB::connection('pgsql')->statement(
-            //     'CALL public.sp_process_budget(?, ?, ?, ?)',
-            //     ['PO', $po->ponbr, 'Submit', $username]
-            // );
+            DB::connection('pgsql')->statement(
+                'CALL public.sp_process_budget(?, ?, ?, ?)',
+                ['PO', $po->ponbr, $po->cpny_id,'Submit', $username]
+            );
 
             $po->status = 'P';
             $po->send_email = false;
@@ -1454,6 +1454,7 @@ $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
         // ===== lampiran GCS (bagian kamu tetap) =====
         $rows = TrAttachment::where('refnbr', $po->ponbr)
             ->where('status', 'A')
+            ->where('cpny_id', $po->cpny_id)
             ->orderBy('created_at', 'desc')
             ->get();
 
