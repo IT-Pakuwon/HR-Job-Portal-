@@ -204,6 +204,24 @@ class ReportPurchasingController extends Controller
 
         return $query;
     }
+
+    private function applyUserScope($query)
+    {
+        $user = auth()->user();
+
+        $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
+        $isWarehouse = $user->hasRole('WHSACCESS');
+
+        // always filter by company
+        $query->where('h.cpny_id', $user->cpny_id);
+
+        // department restriction
+        if (!$isCostCtrl && !$isWarehouse) {
+            $query->where('h.department_id', $user->department_id);
+        }
+
+        return $query;
+    }
     /*
     |--------------------------------------------------------------------------
     | JSON DATATABLE
@@ -224,6 +242,7 @@ class ReportPurchasingController extends Controller
         }
 
         $query = $this->applyFilters($query, $request, $report);
+        $query = $this->applyUserScope($query);
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -303,7 +322,9 @@ class ReportPurchasingController extends Controller
             $this->sppbQuery(),
             $request,
             'sppb'
-        )->get();
+        );
+
+        $rows = $this->applyUserScope($rows)->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -363,7 +384,9 @@ class ReportPurchasingController extends Controller
             $this->sppjQuery(),
             $request,
             'sppj'
-        )->get();
+        );
+
+        $rows = $this->applyUserScope($rows)->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -425,7 +448,9 @@ class ReportPurchasingController extends Controller
             $this->sppkQuery(),
             $request,
             'sppk'
-        )->get();
+        );
+
+        $rows = $this->applyUserScope($rows)->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -487,7 +512,9 @@ class ReportPurchasingController extends Controller
             $this->spptQuery(),
             $request,
             'sppt'
-        )->get();
+        );
+
+        $rows = $this->applyUserScope($rows)->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
