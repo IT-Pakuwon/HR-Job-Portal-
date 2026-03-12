@@ -356,11 +356,11 @@
                 </td>
             </tr>
 
-            {{-- <tr>
+            <tr>
                 <td>5. <span class="bold">Cara Pembayaran</span></td>
                 <td>: Transfer</td>
 
-                <td>
+                {{-- <td>
                     : a. Uang Muka :
 
                     @if ($dpTerm)
@@ -400,8 +400,8 @@
                         - Rp {{ $nf2($grand) }}
 
                     @endif
-                </td>
-            </tr> --}}
+                </td> --}}
+            </tr>
             <tr>
                 <td>6. <span class=bold>Garansi Pekerjaan</span></td>
                 <td>: {{ $po->spkwarranty ?? '-' }}</td>
