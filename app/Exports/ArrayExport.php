@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
@@ -15,7 +14,9 @@ class ArrayExport implements FromCollection, WithHeadings
     {
         $this->rows = collect($rows);
 
-        $this->headers = count($rows) ? array_keys($rows->first()) : [];
+        $first = $this->rows->first();
+
+        $this->headers = $first ? array_keys($first) : [];
     }
 
     public function collection()
