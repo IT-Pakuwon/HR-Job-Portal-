@@ -71,6 +71,7 @@ use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReportCanvassSheetController;
+use App\Http\Controllers\ReportPurchasingController;
 use App\Http\Controllers\ReportWarehouseController;
 use App\Http\Controllers\RfcaListController;
 use App\Http\Controllers\SelfRegisterApplicantController;
@@ -1525,6 +1526,18 @@ Route::middleware(['auth'])->group(function () {
             }
         });
     });
+
+    Route::prefix('report-purchasing')->group(function () {
+        Route::get('/', [ReportPurchasingController::class, 'index'])
+            ->name('report.purchasing');
+
+        Route::get('/json', [ReportPurchasingController::class, 'json'])
+            ->name('report.purchasing.json');
+
+        Route::get('/export', [ReportPurchasingController::class, 'export'])
+            ->name('report.purchasing.export');
+    });
+
     Route::middleware('access:REPORTCS,VIEW')->group(function () {
         Route::prefix('report-cs')->group(function () {
             Route::get('/', [ReportCanvassSheetController::class, 'index'])
