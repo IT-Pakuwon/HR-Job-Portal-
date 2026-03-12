@@ -283,6 +283,7 @@ class ReportPurchasingController extends Controller
                 'C' => '<span class="px-2 py-1 text-xs text-white bg-green-500 rounded">Completed</span>',
                 'D' => '<span class="px-2 py-1 text-xs text-white bg-gray-500 rounded">Draft</span>',
                 'X' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
+                'R' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
             ][$row->status] ?? $row->status;
         });
 
@@ -582,10 +583,11 @@ class ReportPurchasingController extends Controller
     {
         return [
             'N' => 'New',
-            'D' => 'Draft',
+            'D' => 'Revised',
             'P' => 'On Progress',
             'C' => 'Completed',
             'X' => 'Cancelled',
+            'R' => 'Reject',
         ][$status] ?? $status;
     }
 }
