@@ -126,10 +126,30 @@
         </div>
 
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
         $(document).ready(function() {
 
             // DataTable
@@ -254,6 +274,10 @@
 
             // Close modal
             $('#closeCategoryModal').click(function() {
+                $('#categoryForm')[0].reset();
+                $('#id').val('');
+                $('#doctype').val('').trigger('change');
+                $('#username').val('').trigger('change');
                 $('#categoryModal').addClass('hidden');
             });
 
@@ -265,6 +289,7 @@
                 $('#categoryForm')[0].reset();
                 $('#id').val(id);
                 $('#categoryModal').removeClass('hidden');
+                showLoading();
 
                 $.get(`/categories/${id}/edit`, function(data) {
                     $('#categoryModalTitle').text("Edit Category");
@@ -275,6 +300,19 @@
                     $('#groups').val(data.groups);
                     $('#username').val(data.username).trigger('change');
                     $('#type').val(data.type);
+
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+                    $('#categoryModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data category'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -311,6 +349,9 @@
                     formData.append('_method', 'PUT');
                 }
 
+                showLoading();
+                $('#categoryForm button[type="submit"]').prop('disabled', true);
+
                 $.ajax({
                     url: url,
                     type: method,
@@ -321,21 +362,43 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#categoryForm button[type="submit"]').prop('disabled', false);
+
                         $('#categoryModal').addClass('hidden');
+                        $('#categoryForm')[0].reset();
+                        $('#id').val('');
+                        $('#doctype').val('').trigger('change');
+                        $('#username').val('').trigger('change');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Category saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
-                        console.error(xhr.responseText);
+                        hideLoading();
+                        $('#categoryForm button[type="submit"]').prop('disabled', false);
+
                         let msg = 'Gagal menyimpan data category';
 
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                            msg = 'Mohon periksa input:\n';
-                            Object.values(xhr.responseJSON.errors).forEach(function(arr) {
-                                msg += '- ' + arr.join(', ') + '\n';
-                            });
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(arr => arr.join(', '))
+                                .join('\n');
                         }
 
-                        alert(msg);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+
+                        console.error(xhr.responseText);
                     }
                 });
             });

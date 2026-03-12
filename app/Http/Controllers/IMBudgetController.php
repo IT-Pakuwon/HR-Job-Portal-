@@ -51,23 +51,24 @@ class IMBudgetController extends Controller
             return redirect()->route('login');
         }
 
-        $u       = $user->username ?? '';
-        $deptId  = $user->department_id ?? null;
-        $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $u        = $user->username ?? '';
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $deptRaw  = $user->department_id ?? '';
 
-        // Cek role FINACCESS
+        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $deptList = $deptRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $deptRaw)))) : [];
+
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
             ->exists();
 
-        // Base filter: always filter by cpny_id; tambah department_id jika bukan FINACCESS
-        $baseFilter = function ($q) use ($cpnyList, $isFinanceAccess, $deptId) {
+        $baseFilter = function ($q) use ($cpnyList, $deptList, $isFinanceAccess) {
             if (!empty($cpnyList)) {
                 $q->whereIn('cpny_id', $cpnyList);
             }
-            if (!$isFinanceAccess && $deptId) {
-                $q->where('department_id', $deptId);
+
+            if (!$isFinanceAccess && !empty($deptList)) {
+                $q->whereIn('department_id', $deptList);
             }
         };
 
@@ -122,11 +123,12 @@ class IMBudgetController extends Controller
         }
 
         $u        = $user->username ?? '';
-        $deptId   = $user->department_id ?? null;
         $cpnyRaw  = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $deptRaw  = $user->department_id ?? '';
 
-        // cek FINACCESS
+        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $deptList = $deptRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $deptRaw)))) : [];
+
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
             ->exists();
@@ -135,9 +137,9 @@ class IMBudgetController extends Controller
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $status = (string) $request->query('status', ''); // bisa 'H', 'D', 'H,D', atau ''
+        $status = (string) $request->query('status', '');
 
-        $baseTable = (new TrIMBudget)->getTable(); // "tr_imbudget"
+        $baseTable = (new TrIMBudget)->getTable();
 
         $columns = [
             0 => 'imb.imbudgetid',
@@ -157,11 +159,10 @@ class IMBudgetController extends Controller
             ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
                 $q->whereIn('imb.cpny_id', $cpnyList);
             })
-            ->when(!$isFinanceAccess && $deptId, function ($q) use ($deptId) {
-                $q->where('imb.department_id', $deptId);
+            ->when(!$isFinanceAccess && !empty($deptList), function ($q) use ($deptList) {
+                $q->whereIn('imb.department_id', $deptList);
             });
 
-        // === Filter status (dukung CSV: "H,D") ===
         if ($status !== '') {
             $statuses = array_values(array_filter(array_map('trim', explode(',', $status))));
             if (!empty($statuses)) {
@@ -169,10 +170,8 @@ class IMBudgetController extends Controller
             }
         }
 
-        // total sebelum filter search
         $recordsTotal = (clone $base)->count();
 
-        // search (PostgreSQL ILIKE)
         if ($search !== '') {
             $like = "%{$search}%";
             $base->where(function ($q) use ($like) {
@@ -185,7 +184,6 @@ class IMBudgetController extends Controller
             });
         }
 
-        // total setelah search
         $recordsFiltered = (clone $base)->count();
 
         $rows = $base->select(
@@ -210,14 +208,14 @@ class IMBudgetController extends Controller
                 ? \Carbon\Carbon::parse($row->imbudgetdate)->format('Y-m-d')
                 : null;
 
-            // Hashids berbasis PK numerik
             $row->eid = null;
             if (!is_null($row->rid)) {
                 $row->eid = \Vinkla\Hashids\Facades\Hashids::encode((int) $row->rid);
             }
             if (!$row->eid && $row->imbudgetid) {
-                $row->eid = rawurlencode($row->imbudgetid); // fallback aman
+                $row->eid = rawurlencode($row->imbudgetid);
             }
+
             unset($row->rid);
             return $row;
         });
