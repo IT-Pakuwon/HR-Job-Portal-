@@ -264,11 +264,11 @@
         <table style="margin-top:10px;">
             <tr>
                 <td style="width:160px;">Perusahaan</td>
-                <td>: {{ ucwords(strtolower($company->cpny_name)) }}</td>
+                <td>: {{ $company->cpny_name }}</td>
             </tr>
             <tr>
                 <td>Alamat</td>
-                <td>: {{ ucwords(strtolower($company->address_line1)) }}</td>
+                <td>: {{ $company->address_line1 }}</td>
             </tr>
             <tr>
                 <td>NPWP</td>
@@ -276,7 +276,7 @@
             </tr>
             <tr>
                 <td>Alamat NPWP</td>
-                <td>: {{ ucwords(strtolower($company->tax_address_line)) }}</td>
+                <td>: {{ $company->tax_address_line }}</td>
             </tr>
         </table>
 
@@ -356,12 +356,11 @@
                 </td>
             </tr>
 
-            <tr>
+            {{-- <tr>
                 <td>5. <span class="bold">Cara Pembayaran</span></td>
+                <td>: Transfer</td>
 
                 <td>
-
-                    {{-- ================= DP ================= --}}
                     : a. Uang Muka :
 
                     @if ($dpTerm)
@@ -376,8 +375,6 @@
                     @endif
 
                     <br>
-
-                    {{-- ================= PAYMENT TERMS ================= --}}
                     &nbsp;&nbsp; b. Sistem Pembayaran :
 
                     @php
@@ -404,16 +401,16 @@
 
                     @endif
                 </td>
-            </tr>
+            </tr> --}}
             <tr>
                 <td>6. <span class=bold>Garansi Pekerjaan</span></td>
                 <td>: {{ $po->spkwarranty ?? '-' }}</td>
             </tr>
 
-            <tr>
+            {{-- <tr>
                 <td>7. <span class=bold>Nilai Garansi Pekerjaan</span></td>
                 <td>: Rp {{ $nf2($grand * 0.05) }}</td>
-            </tr>
+            </tr> --}}
         </table>
 
 
@@ -509,26 +506,27 @@
                         Rp {{ $nf2($retensi) }} &nbsp;&nbsp; (5%)
                     </td>
                 </tr>
+
+
+
+                {{-- SYARAT KHUSUS --}}
+                <tr>
+                    <td style="padding-top:6px;">
+                        Syarat Khusus
+                    </td>
+
+                    <td style="text-align:center; padding-top:6px;">
+                        :
+                    </td>
+
+                    <td style="padding-top:6px; text-align:justify;">
+                        Pencairan Retensi Pekerjaan dilaksanakan setelah BAST Retensi ditandatangani oleh <span
+                            class=bold>
+                            PARA
+                            PIHAK.</span>
+                    </td>
+                </tr>
             @endif
-
-
-            {{-- SYARAT KHUSUS --}}
-            <tr>
-                <td style="padding-top:6px;">
-                    Syarat Khusus
-                </td>
-
-                <td style="text-align:center; padding-top:6px;">
-                    :
-                </td>
-
-                <td style="padding-top:6px; text-align:justify;">
-                    Pencairan Retensi Pekerjaan dilaksanakan setelah BAST Retensi ditandatangani oleh <span class=bold>
-                        PARA
-                        PIHAK.</span>
-                </td>
-            </tr>
-
 
             {{-- CONTACT PERSON --}}
             <tr>
@@ -679,7 +677,7 @@
                         <ol class="alpha">
 
                             <li>
-                                Dalam pelaksanaan Pekerjaan, dokumen dokumen berikut merupakan kesatuan dan bagian
+                                Dalam pelaksanaan Pekerjaan, dokumen-dokumen berikut merupakan kesatuan dan bagian
                                 yang tidak terpisahkan dari SPK:
 
                                 <ol class="num">
@@ -699,7 +697,7 @@
                             <li>
                                 Apabila terjadi pertentangan ketentuan antara suatu dokumen dengan ketentuan dalam
                                 dokumen yang lain, maka yang berlaku adalah ketentuan dalam dokumen yang lebih
-                                tinggi berdasarkan urutan hierarki pada ayat 1.10 huruf a diatas.
+                                tinggi berdasarkan urutan hierarki pada ayat 1.11 huruf a diatas.
                             </li>
 
                         </ol>
@@ -753,7 +751,7 @@
                 <ol class="sub">
 
                     <li>
-                        PIHAK KEDUA wajib menyerahkan dokumen-dokumen Garansi/warranty, salinan dokumen jaminan
+                        PIHAK KEDUA wajib menyerahkan dokumen-dokumen garansi ( warranty ), salinan dokumen jaminan
                         kualitas, hasil pengujian dan sertifikat bahan/barang dan dokumen-dokumen lainnya sesuai
                         ketentuan dalam SPK ini.
                     </li>
@@ -765,10 +763,10 @@
                     </li>
 
                     <li>
-                        Garansi dari PIHAK KEDUA kepada PIHAK PERTAMA berlaku setelah ditanda tanganinya Berita Acara
+                        Garansi dari PIHAK KEDUA kepada PIHAK PERTAMA berlaku sejak ditandatanganinya Berita Acara
                         Serah Terima ("<span class="bold">BAST</span>") dimana Pekerjaan telah diterima dengan baik,
                         tepat dan benar sesuai
-                        permintaan dari PIHAK PERTAMA. Masa berlaku Garansi tertulis dalam SPK ini.
+                        permintaan dari PIHAK PERTAMA. Masa berlaku garansi tertulis dalam SPK ini.
                     </li>
 
                     <li>
@@ -781,14 +779,13 @@
                             </li>
 
                             <li>
-                                PIHAK KEDUA wajib memelihara masa berlaku Garansi tersebut sampai dengan Jangka Waktu
+                                PIHAK KEDUA wajib memastikan masa berlaku garansi tersebut sampai dengan jangka waktu
                                 yang disepakati PARA PIHAK berakhir.
                             </li>
 
                         </ol>
 
                     </li>
-
                     <li>
                         Jika ada klaim atas Pekerjaan PIHAK KEDUA maka PIHAK PERTAMA melakukan korespondensi kepada
                         PIHAK KEDUA baik melalui email dan/atau surat yang ditujukan kepada PIHAK KEDUA, sejak dari
@@ -827,7 +824,8 @@
                     </li>
 
                     <li>
-                        Harga-harga mengikat sampai dengan Lingkup Pekerjaan dan selesainya Jangka Waktu SPK.
+                        Harga Pekerjaan berlaku hingga seluruh Lingkup Pekerjaan selesai dilaksanakan sesuai dengan
+                        Jangka Waktu SPK.
                     </li>
 
                     <li>
@@ -843,7 +841,7 @@
                             <li>SPK Asli yang telah ditandatangani dan di stempel perusahaan oleh PIHAK KEDUA.</li>
 
                             <li>
-                                BAST Pekerjaan, formulir BAST akan diberikan oleh PIHAK PERTAMA untuk ditanda tangani
+                                BAST Pekerjaan, formulir BAST akan diberikan oleh PIHAK PERTAMA untuk ditandatangani
                                 dan di stempel perusahaan oleh PIHAK KEDUA (dibuat 2 rangkap Asli), berikut dengan
                                 foto-foto Pekerjaan yang telah dilakukan oleh PIHAK KEDUA. Penandatanganan PIHAK PERTAMA
                                 diwakili oleh <span class="italic">Person In Charge</span> (PIC) yang tercantum di dalam
@@ -977,13 +975,13 @@
                 <ol class="sub">
 
                     <li>
-                        SPK ini berakhir demi hukum setelah terpenuhinya seluruhnya kewajiban Para Pihak
+                        SPK ini berakhir demi hukum setelah terpenuhinya seluruh kewajiban PARA PIHAK
                         sesuai Jangka Waktu SPK ini dan dibuktikan dengan BAST.
                     </li>
 
                     <li>
                         Apabila PIHAK KEDUA dalam melaksanakan Pekerjaan tidak memenuhi persyaratan
-                        sebagaimana yang disetujui PARA PIHAK atau tidak mampu menyelesaikan Pekerjaan
+                        sebagaimana yang disetujui PARA PIHAK atau tidak mampu menyelesaikan Pekerjaan,
                         maka PIHAK PERTAMA akan membuat surat teguran kepada PIHAK KEDUA, dan apabila
                         sampai dengan batas maksimal yaitu 3 (tiga) kali diterbitkannya surat peringatan
                         kepada PIHAK KEDUA, selanjutnya akan dilakukan pengakhiran SPK secara sepihak
@@ -1110,7 +1108,7 @@
                     <li>
                         Keadaan <span style="font-style:italic;">Force Majeure</span> adalah segala keadaan atau
                         peristiwa yang terjadi di luar kekuasaan PARA PIHAK untuk mengatasinya, termasuk namun
-                        tidak terbatas pada kebijakan pemerintah, politik, militer, peperangan, huru hara,
+                        tidak terbatas pada kebijakan pemerintah, politik, militer, peperangan, huru-hara,
                         bencana alam, pemogokan oleh karyawan PARA PIHAK, epidemi, pandemi, blokade,
                         pemberontakan, kebanjiran, kebakaran besar, gangguan listrik dan telekomunikasi yang
                         menghalangi secara langsung untuk melaksanakan kewajiban-kewajiban sesuai SPK ini.
@@ -1397,7 +1395,7 @@
         </ol>
 
         <p>Demikian SPK ini dibuat untuk dapat dilaksanakan PIHAK KEDUA, dengan catatan jika dalam waktu 7 (tujuh) hari
-            SPK ini tidak ditanda tangani / dikembalikan, maka PIHAK PERTAMA dapat membatalkan SPK ini secara sepihak
+            SPK ini tidak ditandatangani / dikembalikan, maka PIHAK PERTAMA dapat membatalkan SPK ini secara sepihak
             dengan / tanpa pemberitahuan terlebih dahulu kepada PIHAK KEDUA.</p>
         <br><br>
 
