@@ -13,6 +13,7 @@
                 <thead
                     class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                     <tr>
+                        <th></th>
                         <th class="w-32 px-4 py-3 text-center">Actions</th>
                         <th class="px-4 py-3 text-left">Doctype</th>
                         <th class="w-24 px-4 py-3 text-right">Year</th>
@@ -84,7 +85,27 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
         $(document).ready(function() {
 
             // ===== DataTable =====
@@ -212,14 +233,28 @@
                 $('#autonbrForm')[0].reset();
                 $('#id').val(id);
                 $('#autonbrModal').removeClass('hidden');
+                showLoading();
 
                 $.get(`/autonbrs/${id}/edit`, function(data) {
                     $('#autonbrModalTitle').text("Edit Autonbr");
-
                     $('#doctype').val(data.doctype);
                     $('#year').val(data.year);
-                    $('#month').val(data.month);
+                    // $('#month').val(data.month);
+                    let month = parseInt(data.month, 10); // convert "01" -> 1
+                    $('#month').val(month);
                     $('#number').val(data.number);
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+                    $('#autonbrModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data autonbr'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -257,6 +292,9 @@
                     formData.append('_method', 'PUT');
                 }
 
+                showLoading();
+                $('#autonbrForm button[type="submit"]').prop('disabled', true);
+
                 $.ajax({
                     url: url,
                     type: method,
@@ -267,29 +305,50 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#autonbrForm button[type="submit"]').prop('disabled', false);
+
                         $('#autonbrModal').addClass('hidden');
+                        $('#autonbrForm')[0].reset();
+                        $('#id').val('');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Autonbr saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
-                        console.error(xhr.responseText);
+                        hideLoading();
+                        $('#autonbrForm button[type="submit"]').prop('disabled', false);
 
                         let msg = 'Gagal menyimpan autonbr';
 
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                            msg = 'Mohon periksa input:\n';
-                            Object.values(xhr.responseJSON.errors).forEach(function(arr) {
-                                msg += '- ' + arr.join(', ') + '\n';
-                            });
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(arr => arr.join(', '))
+                                .join('\n');
                         } else if (xhr.responseJSON && xhr.responseJSON.message) {
                             msg = xhr.responseJSON.message;
                         }
 
-                        alert(msg);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+
+                        console.error(xhr.responseText);
                     }
                 });
             });
 
             $('#closeAutonbrModal').click(function() {
+                $('#autonbrForm')[0].reset();
+                $('#id').val('');
                 $('#autonbrModal').addClass('hidden');
             });
         });

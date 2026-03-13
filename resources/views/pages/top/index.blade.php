@@ -198,8 +198,27 @@
                 </form>
             </div>
         </div>
+        <div id="loadingOverlay"
+            class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+            <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+                <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                        stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span class="text-sm font-semibold text-gray-700">Processing...</span>
+            </div>
+        </div>
 
         <script>
+            function showLoading(){
+                $('#loadingOverlay').removeClass('hidden');
+            }
+
+            function hideLoading(){
+                $('#loadingOverlay').addClass('hidden');
+            }
             $(document).ready(function() {
                 let selectedTopId = null;
                 let selectedTopType = null;
@@ -434,7 +453,10 @@
                     selectedTopName = row.top_name;
 
                     $('#selectedTopText').text(`${selectedTopId} - ${selectedTopName}`);
-                    detailTable.ajax.reload();
+                    showLoading();
+                    detailTable.ajax.reload(function(){
+                        hideLoading();
+                    });
                 });
 
                 /* ========== TOP MODAL ========== */
@@ -451,6 +473,7 @@
 
                 $(document).on('click', '.editTopBtn', function() {
                     let id = $(this).data('id');
+                    showLoading();
                     $.get(`/tops/${id}/edit`, function(d) {
                         $('#topModalTitle').text('Edit TOP');
                         $('#top_id').val(d.id);
@@ -461,6 +484,7 @@
                         $('#is_rfca').prop('checked', !!d.is_rfca);
                         $('#is_fastapprove').prop('checked', !!d.is_fastapprove);
                         $('#topModal').removeClass('hidden').addClass('flex');
+                        hideLoading();
                     });
                 });
 
@@ -470,7 +494,7 @@
                     let url = id ? `/tops/${id}` : "{{ route('tops.store') }}";
                     let formData = new FormData(document.getElementById('topForm'));
                     if (id) formData.append('_method', 'PUT');
-
+                    showLoading();
                     $.ajax({
                         url: url,
                         type: 'POST',
@@ -481,10 +505,12 @@
                         processData: false,
                         contentType: false,
                         success: function() {
+                            hideLoading();
                             $('#topModal').addClass('hidden').removeClass('flex');
                             topTable.ajax.reload(null, false);
                         },
                         error: function(xhr) {
+                            hideLoading();
                             console.error(xhr.responseText);
                             alert('Gagal menyimpan TOP');
                         }
@@ -557,7 +583,7 @@
                     let url = id ? `/top-details/${id}` : "{{ route('top_details.store') }}";
                     let formData = new FormData(document.getElementById('topDetailForm'));
                     if (id) formData.append('_method', 'PUT');
-
+                    showLoading();
                     $.ajax({
                         url: url,
                         type: 'POST',
@@ -568,10 +594,12 @@
                         processData: false,
                         contentType: false,
                         success: function() {
+                            hideLoading();
                             $('#topDetailModal').addClass('hidden').removeClass('flex');
                             detailTable.ajax.reload(null, false);
                         },
                         error: function(xhr) {
+                            hideLoading();
                             console.error(xhr.responseText);
                             alert('Gagal menyimpan TOP Detail');
                         }

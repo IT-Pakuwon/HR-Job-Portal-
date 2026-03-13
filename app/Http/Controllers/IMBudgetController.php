@@ -717,6 +717,7 @@ class IMBudgetController extends Controller
 
         // Ambil header IM
         $header = TrIMBudget::findOrFail($id);
+        $cpnyid = $header->cpny_id;
 
         // Validasi minimal (kalau perlu)
         // $request->validate([...]);
@@ -806,7 +807,7 @@ class IMBudgetController extends Controller
             $activity = 'Submit';
             $docid = $header->imbudgetid;
 
-            $this->reserveBudget($doctype, $docid, $activity, $username);
+            $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
 
             // 4) Generate TrApproval utk dokumen IM
             $ctx = [
@@ -1081,6 +1082,8 @@ class IMBudgetController extends Controller
         $imbudget = \App\Models\TrIMBudget::with('creator')->where('imbudgetid', $docid)->first();
         if (!$imbudget) return response()->json(['success'=>false,'message'=>'IMBudget not found'],404);
 
+        $cpnyid = $imbudget->cpny_id;
+
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($imbudget->id);
         $docUrl   = url('/showimbudgets/' . $eid);
         $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
@@ -1102,7 +1105,7 @@ class IMBudgetController extends Controller
                 $username = auth()->user()->username;
                 $doctype = 'IM';
 
-                $this->reserveBudget($doctype, $docid, $activity, $username);
+                $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
 
                 $csid = $imbudget->csid;
                 $statusIm = 'R';           
@@ -1149,6 +1152,7 @@ class IMBudgetController extends Controller
 
         $imbudget = \App\Models\TrIMBudget::with('creator')->where('imbudgetid', $docid)->first();
         if (!$imbudget) return response()->json(['success'=>false,'message'=>'IMBudget not found'],404);
+        $cpnyid = $imbudget->cpny_id;
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($imbudget->id);
         $docUrl   = url('/showimbudgets/' . $eid);
@@ -1171,7 +1175,7 @@ class IMBudgetController extends Controller
                 $username = auth()->user()->username;
                 $doctype = 'IM';
 
-                $this->reserveBudget($doctype, $docid, $activity, $username);
+                $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
 
                 $csid = $imbudget->csid;
                 $statusIm = 'D';           
@@ -1412,12 +1416,12 @@ class IMBudgetController extends Controller
         return $pdf->stream("pdf_imbudgets_{$imbudget->imbudgetid}.pdf");
     }
 
-    private function reserveBudget(string $doctype, string $docid, string $activity, string $username): void
+    private function reserveBudget(string $doctype, string $docid, string $cpnyid,string $activity, string $username): void
     {
         // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
         DB::connection('pgsql')->statement(
-            'CALL public.sp_process_budget(?, ?, ?, ?)',
-            [strtoupper($doctype), $docid, $activity, $username]
+            'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
+            [strtoupper($doctype), $docid,$cpnyid, $activity, $username]
         );
     }
 

@@ -405,25 +405,59 @@
                 return ok;
             }
 
-            function validateStockNotZero() {
-                let ok = true;
+            // function validateStockNotZero() {
+            //     let ok = true;
+
+            //     $('.qtyIssue').each(function() {
+            //         const $qty = $(this);
+
+            //         const stockUnit = parseFloat(String($qty.data('stock-unit') ?? '0')) || 0;
+
+            //         const rawIssue = String($qty.val() || '').replace(/,/g, '.');
+            //         const qtyIssue = parseFloat(rawIssue) || 0;
+
+            //         // Jika user isi qty > 0 tapi stock = 0
+            //         if (qtyIssue > 0 && stockUnit <= 0) {
+            //             ok = false;
+            //             window.addError($qty, 'Stock tidak tersedia (0). Tidak bisa melakukan Issue.');
+            //         }
+            //     });
+
+            //     return ok;
+            // }
+
+            function warnStockZeroRows() {
+                const warningItems = [];
 
                 $('.qtyIssue').each(function() {
                     const $qty = $(this);
 
-                    const stockUnit = parseFloat(String($qty.data('stock-unit') ?? '0')) || 0;
+                    const stockUnit = parseFloat(String($qty.data('stock-unit') ?? '0').replace(',', '.')) || 0;
+                    const qtyIssue  = parseFloat(String($qty.val() || '0').replace(',', '.')) || 0;
 
-                    const rawIssue = String($qty.val() || '').replace(/,/g, '.');
-                    const qtyIssue = parseFloat(rawIssue) || 0;
+                    // bersihkan marker warning lama untuk qty
+                    $qty.removeClass('is-warning');
+                    $qty.next('.warning-feedback').remove();
 
-                    // Jika user isi qty > 0 tapi stock = 0
                     if (qtyIssue > 0 && stockUnit <= 0) {
-                        ok = false;
-                        window.addError($qty, 'Stock tidak tersedia (0). Tidak bisa melakukan Issue.');
+                        const $row = $qty.closest('tr');
+                        const inventoryId = $.trim($row.find('td').eq(0).text()) || 'Unknown Item';
+
+                        warningItems.push({
+                            inventoryId,
+                            qtyIssue,
+                            stockUnit
+                        });
+
+                        $qty.addClass('is-warning');
+
+                        if ($qty.next('.warning-feedback').length === 0) {
+                            $qty.after('<small class="warning-feedback text-amber-600">Stock item ini = 0, namun submit tetap dilanjutkan.</small>');
+                        }
                     }
                 });
 
-                return ok;
+                return warningItems;
             }
 
 
@@ -432,13 +466,24 @@
                 clearFormErrors();
 
                 // ✅ Validasi stock tidak boleh 0
-                if (!validateStockNotZero()) {
-                    const $firstInvalid = $('.qtyIssue.is-invalid').first();
-                    if ($firstInvalid.length) $firstInvalid.focus();
-                    if (window.toastr) toastr.error(
-                        'Ada item dengan Stock = 0 yang tetap di-issue. Mohon cek kembali.'
-                    );
-                    return;
+                // if (!validateStockNotZero()) {
+                //     const $firstInvalid = $('.qtyIssue.is-invalid').first();
+                //     if ($firstInvalid.length) $firstInvalid.focus();
+                //     if (window.toastr) toastr.error(
+                //         'Ada item dengan Stock = 0 yang tetap di-issue. Mohon cek kembali.'
+                //     );
+                //     return;
+                // }
+                const stockWarnings = warnStockZeroRows();
+                if (stockWarnings.length > 0) {
+                    const items = stockWarnings.map(x => x.inventoryId).join(', ');
+                    if (window.toastr) {
+                        toastr.warning(
+                            'Perhatian: ada item dengan Stock = 0 tetapi tetap di-submit. Item: ' + items,
+                            'Warning',
+                            { timeOut: 5000 }
+                        );
+                    }
                 }
 
                 if (!hasAtLeastOneQty()) {

@@ -342,7 +342,7 @@ class PoController extends Controller
             $this->generateRfcaFromPo($po);
 
             DB::connection('pgsql')->statement(
-                'CALL public.sp_process_budget(?, ?, ?, ?)',
+                'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
                 ['PO', $po->ponbr, $po->cpny_id,'Submit', $username]
             );
 

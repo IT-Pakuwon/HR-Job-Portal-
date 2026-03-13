@@ -83,6 +83,41 @@
                             <input type="text" id="phone_number" name="phone_number"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
                         </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">NPWP</label>
+                            <input type="text" id="npwp" name="npwp"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Contact Email</label>
+                            <input type="email" id="contact_email" name="contact_email"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Contact Number 1</label>
+                            <input type="text" id="contact_number1" name="contact_number1"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Contact Number 2</label>
+                            <input type="text" id="contact_number2" name="contact_number2"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Fax No</label>
+                            <input type="text" id="fax_no" name="fax_no"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Postal Code</label>
+                            <input type="text" id="post_cd" name="post_cd"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
                     </div>
 
                     <div class="mt-4 flex justify-end space-x-2">
@@ -94,7 +129,27 @@
             </div>
         </div>
     </div>
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+        <div class="flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-lg">
+            <svg class="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10"
+                    stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">Processing...</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function showLoading() {
+            $('#loadingOverlay').removeClass('hidden');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('hidden');
+        }
         $(document).ready(function() {
             let table = $('#vendorsTable').DataTable({
                 ajax: "{{ route('vendors.json') }}",
@@ -206,6 +261,8 @@
             // Edit
             $(document).on('click', '.editVendorBtn', function() {
                 let id = $(this).data('id');
+                showLoading();
+
                 $.get(`/vendors/${id}/edit`, function(v) {
                     $('#vendorModalTitle').text("Edit Vendor");
                     $('#id').val(v.id);
@@ -216,7 +273,25 @@
                     $('#email').val(v.email);
                     $('#contact_person').val(v.contact_person);
                     $('#phone_number').val(v.phone_number);
+                    $('#npwp').val(v.npwp);
+                    $('#contact_email').val(v.contact_email);
+                    $('#contact_number1').val(v.contact_number1);
+                    $('#contact_number2').val(v.contact_number2);
+                    $('#fax_no').val(v.fax_no);
+                    $('#post_cd').val(v.post_cd);
+
                     $('#vendorModal').removeClass('hidden');
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data vendor'
+                    });
+
+                    console.error(xhr.responseText);
                 });
             });
 
@@ -243,12 +318,16 @@
             // Submit form (create / update)
             $('#vendorForm').submit(function(e) {
                 e.preventDefault();
+
                 let id = $('#id').val();
                 let url = id ? `/vendors/${id}` : "{{ route('vendors.store') }}";
                 let method = 'POST';
                 let formData = new FormData(document.getElementById('vendorForm'));
 
                 if (id) formData.append('_method', 'PUT');
+
+                showLoading();
+                $('#vendorForm button[type="submit"]').prop('disabled', true);
 
                 $.ajax({
                     url: url,
@@ -260,17 +339,48 @@
                     processData: false,
                     contentType: false,
                     success: function() {
+                        hideLoading();
+                        $('#vendorForm button[type="submit"]').prop('disabled', false);
+
                         $('#vendorModal').addClass('hidden');
+                        $('#vendorForm')[0].reset();
+                        $('#id').val('');
                         table.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Vendor saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
+                        hideLoading();
+                        $('#vendorForm button[type="submit"]').prop('disabled', false);
+
+                        let msg = 'Gagal menyimpan data vendor';
+
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(arr => arr.join(', '))
+                                .join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+
                         console.error(xhr.responseText);
-                        alert('Gagal menyimpan data vendor');
                     }
                 });
             });
 
             $('#closeVendorModal').click(function() {
+                $('#vendorForm')[0].reset();
+                $('#id').val('');
                 $('#vendorModal').addClass('hidden');
             });
         });

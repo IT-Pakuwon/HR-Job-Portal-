@@ -12,17 +12,33 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $days = [
+            Schedule::MONDAY,
+            Schedule::TUESDAY,
+            Schedule::WEDNESDAY,
+            Schedule::THURSDAY,
+            Schedule::FRIDAY,
+        ];
+
+        // Email pending approval
         $schedule->command('email:approval-pending')
-            ->days([
-                \Illuminate\Console\Scheduling\Schedule::MONDAY,
-                \Illuminate\Console\Scheduling\Schedule::TUESDAY,
-                \Illuminate\Console\Scheduling\Schedule::WEDNESDAY,
-                \Illuminate\Console\Scheduling\Schedule::THURSDAY,
-                \Illuminate\Console\Scheduling\Schedule::FRIDAY,
-            ])
+            ->days($days)
             ->at('07:00')
             ->withoutOverlapping();
+
+        // Email declined approval
+        $schedule->command('email:approval-declined')
+            ->days($days)
+            ->at('07:05')
+            ->withoutOverlapping();
+
+        // Sync user DAS ke PostgreSQL tiap 5 menit
+        $schedule->command('sync:users-das-to-pg --chunk=500')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
+
     /**
      * Register the commands for the application.
      */
@@ -32,5 +48,4 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
-    
 }

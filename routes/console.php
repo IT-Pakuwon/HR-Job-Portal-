@@ -19,8 +19,8 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-// tiap 5 menit
-Schedule::command('sync:users-das-to-pg --chunk=500')
-    ->everyFiveMinutes()
-    ->withoutOverlapping()
-    ->runInBackground();
+// // tiap 5 menit
+// Schedule::command('sync:users-das-to-pg --chunk=500')
+//     ->everyFiveMinutes()
+//     ->withoutOverlapping()
+//     ->runInBackground();

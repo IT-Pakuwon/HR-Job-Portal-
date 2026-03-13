@@ -143,6 +143,7 @@ class SendEmailApproval extends Command
             'IS'   => 'Issue',
             'WO'   => 'Work Order',
             'BA' => 'BAST',
+            'CA' => 'CALR',
         ];
 
         return $map[$docType] ?? ($docType !== '' ? $docType : 'Document');
