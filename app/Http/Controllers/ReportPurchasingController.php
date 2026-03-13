@@ -212,12 +212,23 @@ class ReportPurchasingController extends Controller
         $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
         $isWarehouse = $user->hasRole('WHSACCESS');
 
-        // always filter by company
-        $query->where('h.cpny_id', $user->cpny_id);
+        // company scope
+        $companyIds = DB::table('usercpny')
+            ->where('username', $user->username)
+            ->pluck('cpny_id');
 
-        // department restriction
+        $query->whereIn('h.cpny_id', $companyIds);
+
+        // department scope
         if (!$isCostCtrl && !$isWarehouse) {
-            $query->where('h.department_id', $user->department_id);
+            $deptIds = DB::table('userdept')
+                ->where('username', $user->username)
+                ->pluck('department_id');
+
+            $query->where(function ($q) use ($deptIds, $user) {
+                $q->whereIn('h.department_id', $deptIds)
+                  ->orWhere('h.created_by', $user->username);
+            });
         }
 
         return $query;

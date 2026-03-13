@@ -1320,7 +1320,7 @@ class CanvassController extends Controller
             }
         }
 
-        // 3) Context user & waktu        
+        // 3) Context user & waktu
         $doctype = 'CS';
         $user = $request->user();
         $username = $user->username ?? 'system';
@@ -1418,7 +1418,7 @@ class CanvassController extends Controller
                         strtoupper(trim($pd->inventory_descr ?? ''));
                     $prevLocIndex[$key] = $pd; // simpan row prev utk ambil location
                 }
-            }         
+            }
 
             $auto = $this->nextAutonbr(
                 $doctype,
@@ -2224,7 +2224,6 @@ class CanvassController extends Controller
             //     'pph_id' => null,
             // ];
         }
-       
 
         // === Matriks detail per baris-per vendor dari TrCSdetail ===
         // DETAIL_MATRIX[rowIndex][vendor_code] = ['price'=>..., 'total'=>..., 'selected'=>bool]
@@ -3804,6 +3803,7 @@ class CanvassController extends Controller
             'title' => 'Canvass Sheet',
             'doc_type' => 'CS',
             'docid' => $cs->csid,
+            'user_peminta' => ucwords(strtolower($cs->user_peminta)),
             'department_id' => $cs->department_id,
             'cpnyname' => optional($company)->cpny_name,
             'parent' => optional($company)->parent,

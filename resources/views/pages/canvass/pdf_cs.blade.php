@@ -201,7 +201,7 @@
         <td class="value">{{ $department_id }}</td>
 
         <td class="label">Requester</td>
-        <td class="value">{{ $created_by_name ?? $created_by_username }}</td>
+        <td class="value">{{ $user_peminta }}</td>
 
         <td class="label">Purchaser</td>
         <td class="value">{{ $created_by_name }}</td>

@@ -1,15 +1,18 @@
 <x-app-layout>
     @php
-        $hasWHS = auth()->user()->hasRole('WHSACCESS');
+        $user = auth()->user();
 
-        // If WHS only → show 1 card
-        if ($hasWHS) {
-            $xlCols = 1;
+        $hasCostCtrl = $user->hasRole('COSTCTRLACCESS');
+        $hasWHS = $user->hasRole('WHSACCESS');
+
+        if ($hasCostCtrl) {
+            $xlCols = 4; // full reports
+        } elseif ($hasWHS) {
+            $xlCols = 1; // only SPPB
         } else {
             $xlCols = 4;
         }
     @endphp
-
     <div class="max-w-9xl mx-auto space-y-4 p-2">
 
         {{-- REPORT SELECTOR --}}
@@ -37,8 +40,7 @@
                 </div>
 
             </a>
-
-            @if (!$hasWHS)
+            @if (!$hasWHS || $hasCostCtrl)
                 {{-- SPPJ --}}
                 <a href="#" data-report="sppj"
                     class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
