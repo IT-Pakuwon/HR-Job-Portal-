@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-use App\Models\ViewStagingIssue;       // source list
-use App\Models\ViewStagingSLIssue;     // header solomon
-use App\Models\ViewStagingSLIssueDt;   // detail solomon
+use App\Models\ViewStagingIssue;       // ✅ ganti source untuk list
+use App\Models\ViewStagingSLIssue;     // tetap dipakai process header
+use App\Models\ViewStagingSLIssueDt;   // tetap dipakai process detail
 use App\Models\StagingIfcaIcStkIssue;
 use App\Models\SLSPBHdr;
 use App\Models\SLSPBDet;
@@ -19,9 +19,8 @@ use Carbon\Carbon;
 class SLAPIIssueController extends Controller
 {
     /**
-     * LIST (AJAX JSON)
-     * Route:
-     * integration.ifcaintegration.issuesolomon.list
+     * LIST (AJAX JSON) - Issue Solomon
+     * Route name JANGAN diubah: route('integration.ifcaintegration.issuesolomon.list')
      */
     public function list(Request $request)
     {
@@ -30,27 +29,23 @@ class SLAPIIssueController extends Controller
 
         if ($fromStr === '' || $toStr === '') {
             return response()->json([
-                'ok'      => false,
+                'ok' => false,
                 'message' => 'Start Date dan End Date wajib diisi.',
-                'data'    => [],
+                'data' => [],
             ], 422);
         }
 
         $parseDate = function (string $s): ?Carbon {
             $s = trim($s);
-            if ($s === '') {
-                return null;
-            }
+            if ($s === '') return null;
 
             try {
                 if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
                     return Carbon::createFromFormat('Y-m-d', $s);
                 }
-
                 if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $s)) {
                     return Carbon::createFromFormat('d/m/Y', $s);
                 }
-
                 return Carbon::parse($s);
             } catch (\Throwable $e) {
                 return null;
@@ -62,65 +57,55 @@ class SLAPIIssueController extends Controller
 
         if (!$from || !$to) {
             return response()->json([
-                'ok'      => false,
+                'ok' => false,
                 'message' => 'Format tanggal tidak valid. Gunakan dd/mm/yyyy atau yyyy-mm-dd.',
-                'data'    => [],
+                'data' => [],
             ], 422);
         }
 
         if ($to->lt($from)) {
             return response()->json([
-                'ok'      => false,
+                'ok' => false,
                 'message' => 'End Date harus >= Start Date.',
-                'data'    => [],
+                'data' => [],
             ], 422);
         }
 
         if ($from->diffInDays($to) > 31) {
             return response()->json([
-                'ok'      => false,
+                'ok' => false,
                 'message' => 'Range tanggal maksimal 31 hari.',
-                'data'    => [],
+                'data' => [],
             ], 422);
         }
 
         $fromDt = $from->copy()->startOfDay();
         $toDt   = $to->copy()->endOfDay();
 
+        // ✅ mirror IFCA: group header from ViewStagingIssue
         $srcRows = ViewStagingIssue::query()
             ->select([
                 'cpny_id',
                 'issue_id',
                 DB::raw('MIN(issue_date) as issue_date'),
                 DB::raw('MIN(reference_no) as reference_no'),
-                DB::raw('MIN(department_id) as department_id'),
-                DB::raw('MIN(user_peminta) as user_peminta'),
-                DB::raw('MIN(wo_id) as wo_id'),
-                DB::raw('COUNT(*) as total_record'),
-                DB::raw('MIN(created_at) as created_at'),
             ])
             ->whereBetween('issue_date', [$fromDt, $toDt])
             ->groupBy('cpny_id', 'issue_id')
-            ->orderByDesc(DB::raw('MIN(issue_date)'))
             ->orderByDesc('issue_id')
             ->limit(100)
             ->get();
 
         if ($srcRows->isEmpty()) {
-            return response()->json([
-                'ok'   => true,
-                'data' => [],
-            ]);
+            return response()->json(['ok' => true, 'data' => []]);
         }
 
         $keys = $srcRows
-            ->map(fn($r) => (string) $r->cpny_id . '||' . (string) $r->issue_id)
+            ->map(fn($r) => (string)$r->cpny_id . '||' . (string)$r->issue_id)
             ->values()
             ->all();
 
-        /**
-         * Ambil agregasi staging SOLOMON
-         */
+        // ✅ mirror IFCA: aggregate staging, tapi filter SOLOMON
         $stagingAgg = StagingIfcaIcStkIssue::query()
             ->select([
                 'cpny_id',
@@ -137,79 +122,62 @@ class SLAPIIssueController extends Controller
             ->whereIn(DB::raw("(cpny_id || '||' || issue_id)"), $keys)
             ->groupBy('cpny_id', 'issue_id')
             ->get()
-            ->keyBy(fn($r) => (string) $r->cpny_id . '||' . (string) $r->issue_id);
+            ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->issue_id);
 
         $rows = $srcRows->map(function ($r) use ($stagingAgg) {
-            $cpny = (string) $r->cpny_id;
-            $iss  = (string) $r->issue_id;
+            $cpny = (string)$r->cpny_id;
+            $iss  = (string)$r->issue_id;
             $key  = $cpny . '||' . $iss;
 
             $st = $stagingAgg->get($key);
 
-            // default kalau belum ada staging = D
-            // karena di legend kamu: D = waiting review, P = ready
-            $stage = 'D';
+            // default H kalau belum ada staging SOLOMON sama sekali
+            $stage = 'H';
             $note  = '';
             $last  = '';
-            $it    = 'SOLOMON';
+            $it    = '';
 
             if ($st) {
-                $cnt  = (int) ($st->cnt ?? 0);
-                $cntC = (int) ($st->cnt_c ?? 0);
-                $cntP = (int) ($st->cnt_p ?? 0);
-                $cntD = (int) ($st->cnt_d ?? 0);
+                $cnt   = (int)$st->cnt;
+                $cntC  = (int)$st->cnt_c;
+                $cntP  = (int)$st->cnt_p;
+                $cntD  = (int)$st->cnt_d;
 
-                if ($cnt > 0 && $cntC === $cnt) {
-                    $stage = 'C';
-                } elseif ($cnt > 0 && $cntP === $cnt) {
-                    $stage = 'P';
-                } elseif ($cnt > 0 && $cntD === $cnt) {
-                    $stage = 'D';
-                } else {
-                    $stage = 'D';
-                }
+                if ($cnt > 0 && $cntC === $cnt) $stage = 'C';
+                else if ($cnt > 0 && $cntP === $cnt) $stage = 'P';
+                else if ($cnt > 0 && $cntD === $cnt) $stage = 'D';
+                else $stage = 'D';
 
-                $note = (string) ($st->process_note ?? '');
-                $it   = strtoupper((string) ($st->integration_type ?? 'SOLOMON'));
+                $note = (string)($st->process_note ?? '');
+                $last = optional($st->last_update)->format('Y-m-d H:i:s') ?? '';
+                $it   = strtoupper((string)($st->integration_type ?? ''));
+            }
 
-                try {
-                    $last = $st->last_update
-                        ? Carbon::parse($st->last_update)->format('Y-m-d H:i:s')
-                        : '';
-                } catch (\Throwable $e) {
-                    $last = (string) ($st->last_update ?? '');
-                }
+            $stageLabel = $stage;
+            if ($stage === 'P') {
+                $stageLabel = 'P' . ($it !== '' ? ('-' . $it) : '');
             }
 
             return [
                 'key'              => $key,
                 'cpny_id'          => $cpny,
                 'issue_id'         => $iss,
-                'issue_date'       => $r->issue_date ? Carbon::parse($r->issue_date)->format('Y-m-d H:i:s') : '',
-                'reference_no'     => (string) ($r->reference_no ?? ''),
-                'department_id'           => (string) ($r->department_id ?? ''),
-                'user_peminta'          => (string) ($r->user_peminta ?? ''),
-                'wo_id'             => (string) ($r->wo_id ?? ''),
-                'total_record'     => (int) ($r->total_record ?? 0),
-                'created_at'    => $r->created_at ? Carbon::parse($r->created_at)->format('Y-m-d H:i:s') : '',
+                'issue_date'       => Carbon::parse($r->issue_date)->format('Y-m-d H:i:s'),
+                'reference_no'     => (string)($r->reference_no ?? ''),
                 'stage_status'     => $stage,
-                'stage_label'      => $stage,
+                'stage_label'      => $stageLabel,
                 'integration_type' => $it,
                 'payload_response' => $note,
                 'last_update'      => $last,
             ];
         })->values();
 
-        return response()->json([
-            'ok'   => true,
-            'data' => $rows,
-        ]);
+        return response()->json(['ok' => true, 'data' => $rows]);
     }
 
     /**
-     * PROCESS (AJAX JSON)
-     * Route:
-     * integration.ifcaintegration.issuesolomon.process
+     * PROCESS (AJAX JSON) - insert to SQL Server + update staging status P->C
+     * Route name JANGAN diubah: route('integration.ifcaintegration.issuesolomon.process')
      */
     public function process(Request $request)
     {
@@ -224,21 +192,15 @@ class SLAPIIssueController extends Controller
         $pairs = [];
         foreach ($request->ids as $key) {
             $key = trim((string) $key);
-            if ($key === '' || $key === 'undefined') {
-                continue;
-            }
+            if ($key === '' || $key === 'undefined') continue;
 
             $parts = explode('||', $key, 2);
-            if (count($parts) !== 2) {
-                continue;
-            }
+            if (count($parts) !== 2) continue;
 
             $cpnyId  = strtoupper(trim($parts[0]));
             $issueId = trim($parts[1]);
 
-            if ($cpnyId === '' || $issueId === '') {
-                continue;
-            }
+            if ($cpnyId === '' || $issueId === '') continue;
 
             $pairs[] = [
                 'cpny_id'  => $cpnyId,
@@ -248,14 +210,14 @@ class SLAPIIssueController extends Controller
 
         if (empty($pairs)) {
             return response()->json([
-                'ok'      => false,
+                'ok' => false,
                 'message' => 'Tidak ada data valid untuk diproses.',
             ], 422);
         }
 
-        $sentOk   = 0;
+        $sentOk = 0;
         $sentFail = 0;
-        $failed   = [];
+        $failed = [];
 
         foreach ($pairs as $p) {
             $cpnyId  = $p['cpny_id'];
@@ -270,7 +232,7 @@ class SLAPIIssueController extends Controller
                     ->exists();
 
                 if (!$stillP) {
-                    throw new \RuntimeException("Issue {$cpnyId}||{$issueId} bukan status P.");
+                    continue;
                 }
 
                 $hdr = ViewStagingSLIssue::query()
@@ -293,6 +255,7 @@ class SLAPIIssueController extends Controller
                 }
 
                 SLSPBHdr::query()->getConnection()->transaction(function () use ($hdr, $dts) {
+
                     $hdrPayload = [
                         'CpnyID'           => $hdr->cpny_id,
                         'Crtd_DateTime'    => $hdr->crtd_datetime,
@@ -311,14 +274,14 @@ class SLAPIIssueController extends Controller
                         'SPBID'            => $hdr->spbid,
                         'User01'           => $hdr->user01,
                         'User02'           => $hdr->user02,
-                        'User03'           => (float) ($hdr->user03 ?? 0),
-                        'User04'           => (float) ($hdr->user04 ?? 0),
+                        'User03'           => (float) $hdr->user03,
+                        'User04'           => (float) $hdr->user04,
                         'User05'           => $hdr->user05,
                         'User06'           => $hdr->user06,
                         'User07'           => $hdr->user07,
                         'User08'           => $hdr->user08,
                         'WOID'             => $hdr->woid,
-                        'TotalRecord'      => (float) ($hdr->total_record ?? 0),
+                        'TotalRecord'      => (float) $hdr->total_record,
                         'Process_Flag'     => 0,
                         'Created_DateTime' => now(),
                         'Process_DateTime' => null,
@@ -344,13 +307,13 @@ class SLAPIIssueController extends Controller
                             'DeptID'        => $dt->deptid,
                             'InfoDT'        => $dt->infodt,
                             'InvtID'        => $dt->invtid,
-                            'IsTransfer'    => (int) ($dt->istransfer ?? 0),
+                            'IsTransfer'    => (int) $dt->istransfer,
                             'LUpd_DateTime' => $dt->lupd_datetime,
                             'Lupd_Prog'     => $dt->lupd_prog,
                             'LUpd_User'     => $dt->lupd_user,
-                            'Qty'           => (float) ($dt->qty ?? 0),
-                            'QtyIssued'     => (float) ($dt->qtyissued ?? 0),
-                            'QtyReturn'     => (float) ($dt->qtyreturn ?? 0),
+                            'Qty'           => (float) $dt->qty,
+                            'QtyIssued'     => (float) $dt->qtyissued,
+                            'QtyReturn'     => (float) $dt->qtyreturn,
                             'ReasonCD'      => $dt->reason_cd,
                             'RefNbr'        => $dt->refnbr,
                             'SPBAcct'       => $dt->spbacct,
@@ -359,8 +322,8 @@ class SLAPIIssueController extends Controller
                             'UnitDes'       => $dt->unitdes,
                             'User01'        => $dt->user01,
                             'User02'        => $dt->user02,
-                            'User03'        => (float) ($dt->user03 ?? 0),
-                            'User04'        => (float) ($dt->user04 ?? 0),
+                            'User03'        => (float) $dt->user03,
+                            'User04'        => (float) $dt->user04,
                             'User05'        => $dt->user05,
                             'User06'        => $dt->user06,
                             'User07'        => $dt->user07,
@@ -404,13 +367,10 @@ class SLAPIIssueController extends Controller
         }
 
         return response()->json([
-            'ok'                  => $sentFail === 0,
+            'ok' => $sentFail === 0,
             'sent_success_P_to_C' => $sentOk,
-            'sent_failed'         => $sentFail,
-            'failed'              => $failed,
-            'message'             => $sentFail === 0
-                ? 'Process selesai.'
-                : 'Sebagian data gagal diproses.',
+            'sent_failed' => $sentFail,
+            'failed' => $failed,
         ]);
     }
 }
