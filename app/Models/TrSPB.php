@@ -12,7 +12,7 @@ class TrSPB extends Model
 
     protected $fillable = [
         'spbid' , 'spbdate' , 'cpny_id' , 'department_id' , 'worktypeid' , 'subworktypeid' , 'keperluan' , 'budget_perpost' ,
-        'woid' , 'grandtotalcost' , 'totalspbqty' , 'totalissueqty' , 'totalreturnqty' , 'totalsppbqty' , 'totalcompleteqty' ,
+        'woid' , 'grandtotalcost' , 'totalspbqty' , 'totalissueqty' , 'totalreturnqty' , 'totalsppbqty' , 'totalsppbreceiptqty','totalcompleteqty' ,
         'sppbid' , 'status' , 'status_sppb' , 'status_issue' , 'created_by' , 'created_at' , 'updated_by' , 'updated_at' ,
         'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at'
     ];

@@ -31,6 +31,9 @@ use App\Models\TrApproval;
 use App\Http\Controllers\Traits\HasAutonbr;
 use setasign\Fpdi\Fpdi;
 use setasign\Fpdf\Fpdf;
+use App\Models\TrSPB;
+use App\Models\TrSPBdetail;
+use Illuminate\Support\Facades\Log;
 
 class ReceiptController extends Controller
 {
@@ -802,37 +805,106 @@ class ReceiptController extends Controller
     }
 
 
- 
-
     public function approveReceipt(Request $request, $docid)
     {
         $user    = $request->user();
         $doctype = 'GR';
 
         $receipt = TrReceipt::with('creator')->where('receiptnbr', $docid)->first();
+        if (!$receipt) {
+            return response()->json(['success' => false, 'message' => 'Receipt not found'], 404);
+        }
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
+        $docUrl   = url('/showreceipt/' . $eid);
+        $fullname = data_get($receipt, 'creator.name') ?: $receipt->created_by;
+
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $receipt->receiptnbr,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            function (string $refnbr, \Carbon\Carbon $now) use ($receipt, $fullname, $docUrl, $request, $user) {
+                $receipt->status       = 'C';
+                $receipt->completed_by = $receipt->completed_by ?: (auth()->user()->username ?? $receipt->completed_by);
+                $receipt->completed_at = $now;
+                $receipt->save();
+
+                $this->updateSPPBQtyReceipt($receipt, $user->username, $now);
+
+                TrReceiptdetail::where('receiptnbr', $receipt->receiptnbr)->update([
+                    'status'     => 'C',
+                    'updated_by' => $user->username,
+                    'updated_at' => $now,
+                ]);
+
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $receipt->receiptnbr,
+                    'Receipt',
+                    'C',
+                    $receipt->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'    => $receipt->cpny_id ?? $receipt->cpnyid ?? '',
+                        'deptname'  => $receipt->department_id ?? $receipt->departementid ?? '',
+                        'date'      => $receipt->receiptdate,
+                        'info'      => $receipt->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
+            },
+
+            function ($next, \Carbon\Carbon $now) use ($receipt, $docUrl) {
+                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                    $receipt->receiptnbr,
+                    'GR',
+                    'P',
+                    'Receipt',
+                    $docUrl,
+                    [
+                        'info'      => $receipt->keperluan,
+                        'createdby' => $receipt->created_by,
+                        'date'      => $now->toDateTimeString(),
+                    ]
+                );
+
+                $receipt->completed_by = auth()->user()->username ?? $receipt->completed_by;
+                $receipt->completed_at = $now;
+                $receipt->save();
+            }
+        );
+
+        \Log::info('approveReceipt approveStep result', [
+            'receiptnbr' => $receipt->receiptnbr,
+            'doctype'    => $doctype,
+            'user'       => $user->username,
+            'result'     => $result,
+        ]);
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task approved successfully'
+        ]);
+    }
+
+    public function approveReceipt_xxx(Request $request, $docid)
+    {
+        $user    = $request->user();
+        $doctype = 'GR';
+
+        $receipt = TrReceipt::with('creator')->where('receiptnbr', $docid)->first();
         if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
-
-        // ================== VALIDASI: BLOCK APPROVE JIKA PO SUDAH FULL RECEIVED ==================
-        // $ponbr = $receipt->ponbr ?? null;
-
-        // if ($ponbr) {
-        //     $totalLines = TrPOdetail::where('ponbr', $ponbr)->count();
-
-        //     if ($totalLines > 0) {
-        //         $fullLines = TrPOdetail::where('ponbr', $ponbr)
-        //             ->whereRaw('COALESCE(qty_received, 0) >= COALESCE(qty, 0)')
-        //             ->count();
-
-        //         if ($fullLines >= $totalLines) {
-        //             return response()->json([
-        //                 'success' => false,
-        //                 'code'    => 'PO_ALREADY_FULLY_RECEIVED',
-        //                 'message' => "Tidak bisa approve karena PO {$ponbr} sudah di-receipt (qty received sudah sama). Silahkan Reject transaksi ini."
-        //             ], 422);
-        //         }
-        //     }
-        // }
-        // =================================================================================================
+        
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
         $docUrl   = url('/showreceipt/' . $eid);
@@ -2232,6 +2304,95 @@ class ReceiptController extends Controller
         });
     }
 
+    protected function updateSPPBQtyReceipt(TrReceipt $receipt, string $username, Carbon $now): void
+    {
+        // Ambil key header SPB/SPPB dari receipt
+        // Silakan sesuaikan prioritas field ini jika di tabel receipt kamu pakai field lain
+        $sppbId = $receipt->sppbjktid ?? null;
+
+        if (!$sppbId) {
+            Log::warning('updateSPPBQtyReceipt: sppbid tidak ditemukan di receipt header', [
+                'receiptnbr' => $receipt->receiptnbr,
+                'receipt_id' => $receipt->id ?? null,
+            ]);
+            return;
+        }
+
+        // Ambil semua inventory yang ada di receipt detail
+        $receiptDetails = TrReceiptdetail::query()
+            ->where('receiptnbr', $receipt->receiptnbr)
+            ->select(
+                'inventoryid',
+                DB::raw('SUM(COALESCE(qty_received, 0)) as qty_received'),
+                DB::raw('SUM(COALESCE(base_qty_received, 0)) as base_qty_received')
+            )
+            ->groupBy('inventoryid')
+            ->get();
+
+        if ($receiptDetails->isEmpty()) {
+            Log::info('updateSPPBQtyReceipt: tidak ada receipt detail', [
+                'receiptnbr' => $receipt->receiptnbr,
+                'sppbid'      => $sppbId,
+            ]);
+            return;
+        }
+
+        foreach ($receiptDetails as $rd) {
+            $spbDetail = TrSPBdetail::query()
+                ->where('sppbid', $sppbId)
+                ->where('inventoryid', $rd->inventoryid)
+                ->first();
+
+            if (!$spbDetail) {
+                Log::warning('updateSPPBQtyReceipt: detail SPB tidak ditemukan', [
+                    'receiptnbr'  => $receipt->receiptnbr,
+                    'sppbid'       => $sppbId,
+                    'inventoryid' => $rd->inventoryid,
+                ]);
+                continue;
+            }
+
+            // Pindahkan nilai sppb_qty -> sppb_receipt_qty
+            // lalu nolkan sppb_qty agar bisa issue lagi
+            $oldSppbQty         = (float) ($spbDetail->sppb_qty ?? 0);
+            $oldBaseSppbQty     = (float) ($spbDetail->base_sppb_qty ?? 0);
+            $oldReceiptQty      = (float) ($spbDetail->sppb_receipt_qty ?? 0);
+            $oldBaseReceiptQty  = (float) ($spbDetail->base_sppb_receipt_qty ?? 0);
+
+            $spbDetail->sppb_receipt_qty      = $oldReceiptQty + $oldSppbQty;
+            $spbDetail->base_sppb_receipt_qty = $oldBaseReceiptQty + $oldBaseSppbQty;
+
+            $spbDetail->sppb_qty      = 0;
+            $spbDetail->base_sppb_qty = 0;
+
+            $spbDetail->updated_by = $username;
+            $spbDetail->updated_at = $now;
+            $spbDetail->save();
+        }
+
+        // Update header SPB
+        $spbHeader = TrSPB::query()
+            ->where('sppbid', $sppbId)
+            ->first();
+
+        if (!$spbHeader) {
+            Log::warning('updateSPPBQtyReceipt: header SPB tidak ditemukan', [
+                'receiptnbr' => $receipt->receiptnbr,
+                'sppbid'      => $sppbId,
+            ]);
+            return;
+        }
+
+        $oldTotalSppbQty        = (float) ($spbHeader->totalsppbqty ?? 0);
+        $oldTotalSppbReceiptQty = (float) ($spbHeader->totalsppbreceiptqty ?? 0);
+
+        $spbHeader->totalsppbreceiptqty = $oldTotalSppbReceiptQty + $oldTotalSppbQty;
+        $spbHeader->totalsppbqty        = 0;
+        $spbHeader->status_issue        = 'Open';
+        $spbHeader->updated_by          = $username;
+        $spbHeader->updated_at          = $now;
+        $spbHeader->save();
+    }
 
 
     

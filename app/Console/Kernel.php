@@ -37,6 +37,11 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping()
             ->runInBackground();
+
+             // Restart PostgreSQL setiap hari jam 04:00
+        $schedule->exec('sudo /bin/systemctl restart postgresql')
+            ->dailyAt('04:00')
+            ->withoutOverlapping();
     }
 
     /**
