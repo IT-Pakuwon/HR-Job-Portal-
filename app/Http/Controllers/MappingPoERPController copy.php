@@ -50,7 +50,7 @@ class MappingPoERPController extends Controller
                   ->orWhere('supplier_cd', 'ilike', "%{$search}%")
                   ->orWhere('remark', 'ilike', "%{$search}%")
                   ->orWhere('ref_no_cs', 'ilike', "%{$search}%")
-                  ->orWhere('ref_no_spbjkt', 'ilike', "%{$search}%")
+                  ->orWhere('ref_no_sppbjkt', 'ilike', "%{$search}%")
                   ->orWhere('cpny_id', 'ilike', "%{$search}%");
             });
         }

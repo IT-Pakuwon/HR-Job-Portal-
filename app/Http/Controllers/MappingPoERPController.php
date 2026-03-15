@@ -69,7 +69,7 @@ class MappingPoERPController extends Controller
                     ->orWhere('supplier_cd', 'ilike', "%{$search}%")
                     ->orWhere('remark', 'ilike', "%{$search}%")
                     ->orWhere('ref_no_cs', 'ilike', "%{$search}%")
-                    ->orWhere('ref_no_spbjkt', 'ilike', "%{$search}%")
+                    ->orWhere('ref_no_sppbjkt', 'ilike', "%{$search}%")
                     ->orWhere('cpny_id', 'ilike', "%{$search}%");
             });
         }
@@ -80,7 +80,7 @@ class MappingPoERPController extends Controller
             'order_no',
             'order_date',
             'supplier_cd',
-            'ref_no_spbjkt',
+            'ref_no_sppbjkt',
             'ref_no_cs',
             'status'
         ]);
@@ -167,7 +167,7 @@ class MappingPoERPController extends Controller
             'supplier_cd'      => $row->supplier_cd,
             'vendor_name'      => $vendorName,
             'remark'           => $row->remark,
-            'ref_no_spbjkt'    => $row->ref_no_spbjkt,
+            'ref_no_sppbjkt'    => $row->ref_no_sppbjkt,
             'ref_no_cs'        => $row->ref_no_cs,
             'status'           => $row->status,
             'status_label'     => $this->statusLabel($row->status ?? null),

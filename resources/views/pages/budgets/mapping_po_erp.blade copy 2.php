@@ -57,7 +57,7 @@
                                 <th class="px-4 py-3">Order No</th>
                                 <th class="px-4 py-3">Order Date</th>
                                 <th class="px-4 py-3">Vendor</th>
-                                <th class="px-4 py-3">Ref SPBJKT</th>
+                                <th class="px-4 py-3">Ref SPPBJKT</th>
                                 <th class="px-4 py-3">Ref CS</th>
                                 <th class="px-4 py-3">Status</th>
                             </tr>
@@ -96,8 +96,8 @@
                         <input id="mCpny" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
-                        <div class="text-gray-500">Sppjkt</div><div>:</div>
-                        <input id="mSppjkt" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                        <div class="text-gray-500">Sppbjkt</div><div>:</div>
+                        <input id="mSppbjkt" readonly class="w-full rounded-md border border-gray-300 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     </div>
 
                     <div class="grid grid-cols-[120px_12px_1fr] items-center gap-2 text-sm">
@@ -259,7 +259,7 @@
                     <td class="px-4 py-3">${r.order_no ?? ''}</td>
                     <td class="px-4 py-3">${r.order_date ?? ''}</td>
                     <td class="px-4 py-3">${vendor}</td>
-                    <td class="px-4 py-3">${r.ref_no_spbjkt ?? ''}</td>
+                    <td class="px-4 py-3">${r.ref_no_sppbjkt ?? ''}</td>
                     <td class="px-4 py-3">${r.ref_no_cs ?? ''}</td>
                     <td class="px-4 py-3">${statusBadge(r.status)}</td>
                 </tr>
@@ -288,7 +288,7 @@
 
         // header
         document.getElementById('mCpny').value      = header.cpny_id ?? '';
-        document.getElementById('mSppjkt').value    = header.ref_no_spbjkt ?? '';
+        document.getElementById('mSppbjkt').value    = header.ref_no_sppbjkt ?? '';
         document.getElementById('mOrderNo').value   = header.order_no ?? '';
         document.getElementById('mCs').value        = header.ref_no_cs ?? '';
         document.getElementById('mOrderDate').value = header.order_date ?? '';

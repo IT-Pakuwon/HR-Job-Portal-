@@ -12,7 +12,7 @@ class StagingIfcaPoApprove  extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'cpny_id' , 'entity_cd' , 'order_no' , 'order_type' , 'order_date' , 'supplier_cd' , 'remark' , 
-        'ref_no_spbjkt' , 'ref_no_cs' , 'department_id' , 'user_peminta' , 'purchaser' , 'topid' , 
+        'ref_no_sppbjkt' , 'ref_no_cs' , 'department_id' , 'user_peminta' , 'purchaser' , 'topid' , 
         'credit_terms' , 'currency_cd' , 'currency_rate' , 'total_record' , 'order_line' , 'item_cd' , 'item_remark' , 
         'uom' , 'order_qty' , 'item_cost' , 'schedule_dt' , 'acct_type' , 'location_cd' , 
         'budget_business_unit_id' , 'budget_department_fin_id' , 'budget_account_id' , 
