@@ -136,6 +136,9 @@ class ReportCanvassSheetController extends Controller
         $user = auth()->user();
 
         $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
+        $isPurch = $user->hasRole('PURCHACCESS');
+
+        $isGlobalAccess = $isCostCtrl || $isPurch;
 
         /*
         |------------------------------------------------
@@ -154,7 +157,7 @@ class ReportCanvassSheetController extends Controller
         |------------------------------------------------
         */
 
-        if (!$isCostCtrl) {
+        if (!$isGlobalAccess) {
             $deptIds = \App\Models\Userdept::where('username', $user->username)
                 ->pluck('department_id');
 

@@ -165,6 +165,13 @@
                 "rt" +
                 "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
 
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+
+            pageLength: 10,
+
             ajax: {
                 url: "{{ route('report.cs.json') }}",
                 data: function(d) {
