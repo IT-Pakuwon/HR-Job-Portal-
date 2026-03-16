@@ -131,6 +131,43 @@ class ReportCanvassSheetController extends Controller
         return $query;
     }
 
+    private function applyUserScope($query)
+    {
+        $user = auth()->user();
+
+        $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
+
+        /*
+        |------------------------------------------------
+        | Company scope
+        |------------------------------------------------
+        */
+
+        $companyIds = \App\Models\Usercpny::where('username', $user->username)
+            ->pluck('cpny_id');
+
+        $query->whereIn('h.cpny_id', $companyIds);
+
+        /*
+        |------------------------------------------------
+        | Department scope
+        |------------------------------------------------
+        */
+
+        if (!$isCostCtrl) {
+            $deptIds = \App\Models\Userdept::where('username', $user->username)
+                ->pluck('department_id');
+
+            $query->where(function ($q) use ($deptIds, $user) {
+                $q->whereIn('h.department_id', $deptIds)
+                  ->orWhere('h.created_by', $user->username)
+                  ->orWhere('h.user_peminta', $user->username);
+            });
+        }
+
+        return $query;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Datatable JSON
@@ -143,6 +180,8 @@ class ReportCanvassSheetController extends Controller
             $this->csDetailQuery(),
             $request
         );
+
+        $query = $this->applyUserScope($query);
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -344,10 +383,14 @@ class ReportCanvassSheetController extends Controller
 
     private function exportDetail(Request $request)
     {
-        $rows = $this->applyFilters(
+        $query = $this->applyFilters(
             $this->csDetailQuery(),
             $request
-        )->get();
+        );
+
+        $query = $this->applyUserScope($query);
+
+        $rows = $query->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');

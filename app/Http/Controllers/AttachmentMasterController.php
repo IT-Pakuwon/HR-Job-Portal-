@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsCompany;
+use App\Models\TrAttachment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\TrAttachment;
-use App\Models\MsCompany;
 
 class AttachmentMasterController extends Controller
 {
@@ -23,9 +23,9 @@ class AttachmentMasterController extends Controller
 
     public function json(Request $request)
     {
-        $cpnyId  = $request->get('cpny_id');
+        $cpnyId = $request->get('cpny_id');
         $doctype = $request->get('doctype');
-        $search  = trim((string) $request->get('search', ''));
+        $search = trim((string) $request->get('search', ''));
 
         $query = TrAttachment::query()
             ->select([
@@ -48,18 +48,18 @@ class AttachmentMasterController extends Controller
         }
 
         if ($doctype !== '') {
-            $query->where('doctype', 'ilike', '%' . $doctype . '%');
+            $query->where('doctype', 'ilike', '%'.$doctype.'%');
         }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('refnbr', 'ilike', '%' . $search . '%')
-                    ->orWhere('doctype', 'ilike', '%' . $search . '%')
-                    ->orWhere('attachment_name', 'ilike', '%' . $search . '%')
-                    ->orWhere('filename', 'ilike', '%' . $search . '%')
-                    ->orWhere('folder', 'ilike', '%' . $search . '%')
-                    ->orWhere('department_id', 'ilike', '%' . $search . '%')
-                    ->orWhere('extention', 'ilike', '%' . $search . '%');
+                $q->where('refnbr', 'ilike', '%'.$search.'%')
+                    ->orWhere('doctype', 'ilike', '%'.$search.'%')
+                    ->orWhere('attachment_name', 'ilike', '%'.$search.'%')
+                    ->orWhere('filename', 'ilike', '%'.$search.'%')
+                    ->orWhere('folder', 'ilike', '%'.$search.'%')
+                    ->orWhere('department_id', 'ilike', '%'.$search.'%')
+                    ->orWhere('extention', 'ilike', '%'.$search.'%');
             });
         }
 
@@ -68,18 +68,18 @@ class AttachmentMasterController extends Controller
             ->get()
             ->map(function ($row) {
                 return [
-                    'id'              => $row->id,
-                    'refnbr'          => $row->refnbr,
-                    'doctype'         => $row->doctype,
+                    'id' => $row->id,
+                    'refnbr' => $row->refnbr,
+                    'doctype' => $row->doctype,
                     'attachment_date' => $row->attachment_date ? date('Y-m-d', strtotime($row->attachment_date)) : null,
-                    'cpny_id'         => $row->cpny_id,
-                    'department_id'   => $row->department_id,
+                    'cpny_id' => $row->cpny_id,
+                    'department_id' => $row->department_id,
                     'attachment_name' => $row->attachment_name,
-                    'folder'          => $row->folder,
-                    'filename'        => $row->filename,
-                    'filesize'        => $row->filesize,
-                    'extention'       => $row->extention,
-                    'status'          => $row->status,
+                    'folder' => $row->folder,
+                    'filename' => $row->filename,
+                    'filesize' => $row->filesize,
+                    'extention' => $row->extention,
+                    'status' => $row->status,
                 ];
             });
 
@@ -92,10 +92,31 @@ class AttachmentMasterController extends Controller
         $loginUser = Auth::user();
 
         $row->update([
-            'status'     => $request->status,
+            'status' => $request->status,
             'updated_by' => $loginUser->username ?? 'system',
         ]);
 
         return response()->json(['message' => 'Status updated']);
+    }
+
+    public function delete($id)
+    {
+        $attachment = TrAttachment::findOrFail($id);
+
+        // Build file path
+        $filePath = public_path($attachment->folder.'/'.$attachment->filename);
+
+        // Delete physical file if exists
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        // Delete database record
+        $attachment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Attachment deleted successfully.',
+        ]);
     }
 }

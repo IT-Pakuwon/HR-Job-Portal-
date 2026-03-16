@@ -1312,6 +1312,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
     Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
     Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
+    Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
+    ->name('attachments.delete');
 
     Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
     Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
@@ -1538,22 +1540,24 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.purchasing.export');
     });
 
-    Route::middleware('access:REPORTCS,VIEW')->group(function () {
-        Route::prefix('report-cs')->group(function () {
-            Route::get('/', [ReportCanvassSheetController::class, 'index'])
-                ->name('reportcs');
+    Route::prefix('report-cs')->group(function () {
+        Route::get('/', [ReportCanvassSheetController::class, 'index'])
+            ->name('reportcs');
 
-            Route::get('/json', [ReportCanvassSheetController::class, 'json'])
-                ->name('report.cs.json');
+        Route::get('/json', [ReportCanvassSheetController::class, 'json'])
+            ->name('report.cs.json');
 
-            Route::get('/export', [ReportCanvassSheetController::class, 'export'])
-                ->name('report.cs.export');
+        Route::get('/export', [ReportCanvassSheetController::class, 'export'])
+            ->name('report.cs.export');
 
-            Route::get('/view/detail', function () {
-                return view('pages.report-cs.canvas-detail');
-            });
+        Route::get('/view/detail', function () {
+            return view('pages.report-cs.canvas-detail');
         });
     });
+
+    // Route::middleware('access:REPORTCS,VIEW')->group(function () {
+
+    // });
     // === IFCA Integration MASTER ===
     // Route::get('/ifcaintegration', [IFCAIntegrationController::class, 'index'])->name('integration.ifcaintegration');
     // Route::get('/ifcaintegration/nonstock', [IFCAIntegrationController::class, 'nonStockList'])->name('integration.ifcaintegration.nonstock.list');

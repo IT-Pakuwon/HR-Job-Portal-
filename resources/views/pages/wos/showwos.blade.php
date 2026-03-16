@@ -568,7 +568,8 @@
                                 Attachment
                             </label>
 
-                            <input type="file" id="jobAttachment" name="job_attachment"
+                            <input type="file" id="jobAttachment" name="attachments[]" multiple
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
 
                             <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -945,22 +946,42 @@
                     }
                 });
             }
+
             $("#jobAttachment").on("change", function() {
 
                 const mode = $("#btnJobProcess").attr("data-mode");
 
-                // ❌ Only allow upload when editing
-                if (mode !== "save") {
-                    toastr.warning("Click Edit before uploading attachment.");
-                    $(this).val(""); // reset file input
+                if ($("#btnJobProcess").attr("data-mode") !== "save") {
+                    toastr.warning("Cannot upload after job is saved.");
+                    $(this).val("");
                     return;
                 }
+                const files = this.files;
 
-                const file = this.files[0];
-                if (!file) return;
+                if (!files.length) return;
 
                 const fd = new FormData();
-                fd.append("attachments[]", file);
+
+                const maxSize = 5 * 1024 * 1024;
+                const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+
+                for (let i = 0; i < files.length; i++) {
+
+                    const file = files[i];
+
+                    if (file.size > maxSize) {
+                        toastr.error(file.name + " exceeds 5MB.");
+                        continue;
+                    }
+
+                    if (!allowedTypes.includes(file.type)) {
+                        toastr.error(file.name + " invalid format.");
+                        continue;
+                    }
+
+                    fd.append("attachments[]", file);
+                }
+
                 fd.append("cpnyid", "{{ $wo->cpny_id }}");
                 fd.append("departementid", "{{ $wo->department_id }}");
                 fd.append("_token", "{{ csrf_token() }}");
@@ -981,28 +1002,48 @@
 
                         jobAttachmentUploaded = true;
 
-                        // 🔹 Show uploaded file preview
-                        const fileUrl = res.url ?? "";
-                        const fileName = res.name ?? file.name;
+                        let html = "✔ Attachments uploaded";
+
+                        if (res.attachments) {
+
+                            html += "<div class='mt-2 space-y-1'>";
+                            const locked = $("#btnJobProcess").attr("data-mode") !== "save";
+
+                            res.attachments.forEach(file => {
+
+                                html += `
+        <div class="flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+
+            <div class="flex items-center gap-2 overflow-hidden">
+                <span class="text-gray-400">📎</span>
+
+                <a href="${file.url}" target="_blank"
+                    class="text-sm text-gray-800 dark:text-gray-200 hover:underline truncate">
+                    ${file.name}
+                </a>
+            </div>
+
+            ${
+                locked
+                ? `<span class="text-xs text-gray-400">Locked</span>`
+                : `<button
+                                            class="deleteJobAttachment px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition"
+                                            data-id="${file.id}">
+                                            Delete
+                                       </button>`
+            }
+
+        </div>
+    `;
+                            });
+                            html += "</div>";
+                        }
 
                         $("#jobAttachmentUploaded")
                             .removeClass("hidden")
-                            .html(`
-                    ✔ Attachment uploaded
-                    <div class="mt-1">
-                        <a href="${fileUrl}" target="_blank"
-                        class="text-indigo-600 hover:underline">
-                        📎 ${fileName}
-                        </a>
-                    </div>
-                `);
+                            .html(html);
 
-                        toastr.success("Attachment uploaded successfully.");
-
-                        // 🔄 refresh attachment tab
-                        if (typeof refreshSppbAttachments === "function") {
-                            refreshSppbAttachments();
-                        }
+                        toastr.success("Attachments uploaded successfully.");
 
                     },
 
@@ -1012,6 +1053,42 @@
                         toastr.error("Upload failed.");
 
                     }
+
+                });
+
+            });
+
+            $(document).on("click", ".deleteJobAttachment", function() {
+
+                const id = $(this).data("id");
+
+                if (!confirm("Delete this attachment?")) return;
+
+                $.ajax({
+
+                    url: "/attachments/" + id,
+                    type: "DELETE",
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+
+                    success: function(res) {
+
+                        if (!res.success) {
+                            toastr.error(res.message || "Delete failed.");
+                            return;
+                        }
+
+                        toastr.success("Attachment deleted.");
+
+                        $(`[data-id='${id}']`).closest("div").remove();
+
+                    },
+
+                    error: function() {
+                        toastr.error("Delete failed.");
+                    }
+
                 });
 
             });
@@ -1565,6 +1642,8 @@
                 $comment.prop("disabled", false);
                 $flag.prop("disabled", false);
                 $dept.prop("disabled", false);
+
+                $("#jobAttachment").prop("disabled", false);
             }
 
             /* =====================================
@@ -1577,6 +1656,8 @@
             if (initialJobStatus === 'C' || initialJobStatus === 'X') {
                 lockForm();
                 setButtonMode("locked");
+
+                $("#jobAttachment").prop("disabled", true);
 
             } else if (isPicWo) {
                 lockForm();
@@ -1655,7 +1736,15 @@
                             if (jobStatus === 'C' || jobStatus === 'X') {
                                 lockForm();
                                 setButtonMode("locked");
+
+
+                                $("#jobAttachmentBox").hide(); // hide attachment section
                                 toastr.success("WO is now locked.");
+
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+
                                 return;
                             }
 
@@ -1663,6 +1752,11 @@
                             lockForm();
                             setButtonMode("edit");
                             toastr.success("Saved successfully.");
+
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+
                         },
                         error: function(xhr) {
                             toastr.error(xhr.responseJSON?.message || "Save failed.");
