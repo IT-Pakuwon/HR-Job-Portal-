@@ -458,6 +458,7 @@ class IFCAAPIPOController extends Controller
                         'item_cd' => (string)$ln->item_cd,
                         'item_remark' => (string)$ln->item_remark,
                         'uom' => (string)$ln->uom,
+                        'taxid' => (string)$ln->taxid,
                         'order_qty' => (float)$ln->order_qty,
                         'item_cost' => (float)$ln->item_cost,
                         'schedule_dt' => $ln->schedule_dt,
