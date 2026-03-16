@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\BusinessUnit;
 use App\Models\MsDepartment;
 use App\Models\User;
+use App\Models\Usercpny;
+use App\Models\Userdept;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -205,43 +207,52 @@ class ReportPurchasingController extends Controller
         return $query;
     }
 
-    private function applyUserScope($query)
+    private function applyUserScope($query, $report)
     {
         $user = auth()->user();
 
         $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
         $isWarehouse = $user->hasRole('WHSACCESS');
 
-        // company scope
-        $companyIds = DB::table('usercpny')
-            ->where('username', $user->username)
+        // Company scope (always applied)
+        $companyIds = Usercpny::where('username', $user->username)
             ->pluck('cpny_id');
 
         $query->whereIn('h.cpny_id', $companyIds);
 
-        // department scope
-        if (!$isCostCtrl && !$isWarehouse) {
-            $deptIds = DB::table('userdept')
-                ->where('username', $user->username)
-                ->pluck('department_id');
+        // Department list
+        $deptIds = Userdept::where('username', $user->username)
+            ->pluck('department_id');
 
-            $query->where(function ($q) use ($deptIds, $user) {
-                $q->whereIn('h.department_id', $deptIds)
-                  ->orWhere('h.created_by', $user->username);
-            });
+        /*
+        ROLE RULES
+        */
+
+        // Cost Control → see everything
+        if ($isCostCtrl) {
+            return $query;
         }
+
+        // Warehouse → only SPPB see all departments
+        if ($isWarehouse && $report === 'sppb') {
+            return $query;
+        }
+
+        // All other cases → restrict by department
+        $query->whereIn('h.department_id', $deptIds);
 
         return $query;
     }
+
     /*
     |--------------------------------------------------------------------------
     | JSON DATATABLE
     |--------------------------------------------------------------------------
     */
-
     public function json(Request $request)
     {
         $report = $request->report ?? 'sppb';
+
         if ($report === 'sppj') {
             $query = $this->sppjQuery();
         } elseif ($report === 'sppk') {
@@ -253,7 +264,9 @@ class ReportPurchasingController extends Controller
         }
 
         $query = $this->applyFilters($query, $request, $report);
-        $query = $this->applyUserScope($query);
+
+        // IMPORTANT
+        $query = $this->applyUserScope($query, $report);
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -261,42 +274,42 @@ class ReportPurchasingController extends Controller
 
         $table = DataTables::of($query)
 
-        ->editColumn($report.'date', function ($row) use ($report) {
-            $date = $row->{$report.'date'} ?? null;
+            ->editColumn($report.'date', function ($row) use ($report) {
+                $date = $row->{$report.'date'} ?? null;
 
-            return $date
-                ? Carbon::parse($date)->format('d-M-Y')
-                : '';
-        })
+                return $date
+                    ? Carbon::parse($date)->format('d-M-Y')
+                    : '';
+            })
 
-        ->editColumn('qty', fn ($row) => number_format($row->qty ?? 0, 3))
+            ->editColumn('qty', fn ($row) => number_format($row->qty ?? 0, 3))
 
-        ->addColumn('department_name', function ($row) use ($departments) {
-            return $departments[$row->department_id] ?? '';
-        })
+            ->addColumn('department_name', function ($row) use ($departments) {
+                return $departments[$row->department_id] ?? '';
+            })
 
-        ->addColumn('requester', function ($row) use ($users) {
-            return $users[$row->created_by] ?? $row->created_by;
-        })
+            ->addColumn('requester', function ($row) use ($users) {
+                return $users[$row->created_by] ?? $row->created_by;
+            })
 
-        ->addColumn('purchasing', function ($row) use ($users) {
-            return $users[$row->assignpurchasing] ?? $row->assignpurchasing;
-        })
+            ->addColumn('purchasing', function ($row) use ($users) {
+                return $users[$row->assignpurchasing] ?? $row->assignpurchasing;
+            })
 
-        ->addColumn('business_unit_name', function ($row) use ($businessUnits) {
-            return $businessUnits[$row->budget_business_unit_id] ?? '';
-        })
+            ->addColumn('business_unit_name', function ($row) use ($businessUnits) {
+                return $businessUnits[$row->budget_business_unit_id] ?? '';
+            })
 
-        ->editColumn('status', function ($row) {
-            return [
-                'N' => '<span class="px-2 py-1 text-xs text-white bg-blue-500 rounded">New</span>',
-                'P' => '<span class="px-2 py-1 text-xs text-white bg-yellow-500 rounded">On Progress</span>',
-                'C' => '<span class="px-2 py-1 text-xs text-white bg-green-500 rounded">Completed</span>',
-                'D' => '<span class="px-2 py-1 text-xs text-white bg-gray-500 rounded">Draft</span>',
-                'X' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
-                'R' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
-            ][$row->status] ?? $row->status;
-        });
+            ->editColumn('status', function ($row) {
+                return [
+                    'N' => '<span class="px-2 py-1 text-xs text-white bg-blue-500 rounded">New</span>',
+                    'P' => '<span class="px-2 py-1 text-xs text-white bg-yellow-500 rounded">On Progress</span>',
+                    'C' => '<span class="px-2 py-1 text-xs text-white bg-green-500 rounded">Completed</span>',
+                    'D' => '<span class="px-2 py-1 text-xs text-white bg-gray-500 rounded">Draft</span>',
+                    'X' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
+                    'R' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
+                ][$row->status] ?? $row->status;
+            });
 
         return $table
             ->rawColumns(['status'])
@@ -330,13 +343,15 @@ class ReportPurchasingController extends Controller
 
     private function exportSppb(Request $request)
     {
-        $rows = $this->applyFilters(
+        $query = $this->applyFilters(
             $this->sppbQuery(),
             $request,
             'sppb'
         );
 
-        $rows = $this->applyUserScope($rows)->get();
+        $query = $this->applyUserScope($query);
+
+        $rows = $query->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -392,13 +407,15 @@ class ReportPurchasingController extends Controller
 
     private function exportSppj(Request $request)
     {
-        $rows = $this->applyFilters(
+        $query = $this->applyFilters(
             $this->sppjQuery(),
             $request,
             'sppj'
         );
 
-        $rows = $this->applyUserScope($rows)->get();
+        $query = $this->applyUserScope($query);
+
+        $rows = $query->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -456,13 +473,15 @@ class ReportPurchasingController extends Controller
 
     private function exportSppk(Request $request)
     {
-        $rows = $this->applyFilters(
+        $query = $this->applyFilters(
             $this->sppkQuery(),
             $request,
             'sppk'
         );
 
-        $rows = $this->applyUserScope($rows)->get();
+        $query = $this->applyUserScope($query);
+
+        $rows = $query->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
@@ -520,13 +539,15 @@ class ReportPurchasingController extends Controller
 
     private function exportSppt(Request $request)
     {
-        $rows = $this->applyFilters(
+        $query = $this->applyFilters(
             $this->spptQuery(),
             $request,
             'sppt'
         );
 
-        $rows = $this->applyUserScope($rows)->get();
+        $query = $this->applyUserScope($query);
+
+        $rows = $query->get();
 
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');

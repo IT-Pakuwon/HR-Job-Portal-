@@ -19,7 +19,7 @@
 
             <div>
                 <label class="text-xs text-gray-500">SPPB No</label>
-                <input type="date" id="sppbid"
+                <input type="text" id="sppbid" placeholder="PB-xxxx"
                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
             </div>
 

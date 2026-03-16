@@ -1,22 +1,13 @@
 <x-app-layout>
     @php
         $user = auth()->user();
-
-        $hasCostCtrl = $user->hasRole('COSTCTRLACCESS');
-        $hasWHS = $user->hasRole('WHSACCESS');
-
-        if ($hasCostCtrl) {
-            $xlCols = 4; // full reports
-        } elseif ($hasWHS) {
-            $xlCols = 1; // only SPPB
-        } else {
-            $xlCols = 4;
-        }
+        $isWarehouse = $user->hasRole('WHSACCESS');
+        $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
     @endphp
     <div class="max-w-9xl mx-auto space-y-4 p-2">
 
         {{-- REPORT SELECTOR --}}
-        <div class="md:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
 
             {{-- SPPB --}}
             <a href="#" data-report="sppb"
@@ -40,7 +31,7 @@
                 </div>
 
             </a>
-            @if (!$hasWHS || $hasCostCtrl)
+            @if (!$isWarehouse || $isCostCtrl)
                 {{-- SPPJ --}}
                 <a href="#" data-report="sppj"
                     class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
@@ -123,20 +114,17 @@
                 @include('pages.report-purchasing.sppb-detail')
             </div>
 
-            @if (!$hasWHS)
-                <div id="report-sppj" class="hidden">
-                    @include('pages.report-purchasing.sppj-detail')
-                </div>
+            <div id="report-sppj" class="hidden">
+                @include('pages.report-purchasing.sppj-detail')
+            </div>
 
-                <div id="report-sppt" class="hidden">
-                    @include('pages.report-purchasing.sppt-detail')
-                </div>
+            <div id="report-sppt" class="hidden">
+                @include('pages.report-purchasing.sppt-detail')
+            </div>
 
-                <div id="report-sppk" class="hidden">
-                    @include('pages.report-purchasing.sppk-detail')
-                </div>
-            @endif
-
+            <div id="report-sppk" class="hidden">
+                @include('pages.report-purchasing.sppk-detail')
+            </div>
         </div>
     </div>
 

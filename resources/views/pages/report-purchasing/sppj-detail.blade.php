@@ -19,7 +19,7 @@
 
             <div>
                 <label class="text-xs text-gray-500">SPPJ No</label>
-                <input type="text" id="sppjid"
+                <input type="text" id="sppjid" placeholder="PJ-xxxx"
                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
