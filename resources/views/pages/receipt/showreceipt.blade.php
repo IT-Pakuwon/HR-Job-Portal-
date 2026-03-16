@@ -503,7 +503,12 @@
                                     <td class="px-4 py-2">{{ $i + 1 }}</td>
                                     <td class="hidden px-4 py-2">{{ $item->inventory_type }}</td>
                                     <td class="px-4 py-2">{{ $item->inventoryid }}</td>
-                                    <td class="px-4 py-2">{{ $item->inventory_descr }}</td>
+                                    <td class="px-4 py-2">{{ $item->inventory_descr }}
+                                        <br>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                                            Note: {{ $item->receiptnote_detail }}
+                                        </span>
+                                    </td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->qtyordered) }}</td>
                                     <td class="px-4 py-2">{{ $item->uom }}</td>
                                     <td class="px-4 py-2 text-right">{{ $nf2($item->qty_received) }}</td>
@@ -677,7 +682,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let receiptnbr = "{{ $rcp->receiptnbr }}"; // Ambil Task ID dari modal        
+            let receiptnbr = "{{ $rcp->receiptnbr }}"; // Ambil Task ID dari modal
             approveReceipt(receiptnbr);
         });
 
@@ -755,7 +760,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -823,7 +828,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 

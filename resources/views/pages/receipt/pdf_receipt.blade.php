@@ -94,7 +94,12 @@
                 <tr>
                     <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $i + 1 }}</td>
                     <td style="border:1px solid #000;padding:4px;">{{ $item->inventoryid }}</td>
-                    <td style="border:1px solid #000;padding:4px;">{{ $item->inventory_descr }}</td>
+                    <td style="border:1px solid #000;padding:4px;">{{ $item->inventory_descr }}
+                        <br>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            Note: {{ $item->receiptnote_detail }}
+                        </span>
+                    </td>
                     <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->siteid }}</td>
                     <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->uom }}</td>
                     <td style="border:1px solid #000;text-align:center;padding:4px;">
