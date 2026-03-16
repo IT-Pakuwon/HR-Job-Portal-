@@ -159,17 +159,19 @@
             function headerFor(sc) {
                 if (sc === 'receiptjobs') {
 
-                    return `
+                   return `
                     <th></th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Date</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Delivery Date</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
-                                <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
-                            `;
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">PO Nbr</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">PO Date</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Vendor</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Delivery Date</th>
+                    <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Total Qty</th>
+                    <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Total Qty Received</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Status</th>
+                    `;
                 }
                 if (sc === 'returnjobs') {
                     return `
@@ -230,6 +232,16 @@
                             className: 'text-left'
                         },
                         {
+                            data: 'totalqty',
+                            render: (_v, _t, row) => row.totalqty_fmt ?? '0.00',
+                            className: 'text-right'
+                        },
+                        {
+                            data: 'totalqtyreceived',
+                            render: (_v, _t, row) => row.totalqtyreceived_fmt ?? '0.00',
+                            className: 'text-right'
+                        },
+                        {
                             data: 'created_by'
                         },
                         {
@@ -239,7 +251,6 @@
                             render: (_v, _t, row) => renderStatusBadge(row),
                             className: 'text-left'
                         },
-
                     ];
                 }
                 if (sc === 'returnjobs') {

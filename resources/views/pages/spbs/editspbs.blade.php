@@ -1380,6 +1380,7 @@
 
             // Load Inventory from API
             function loadInventory() {
+                const businessUnitId = ($('#business_unit_id').val() || '').trim();
                 $tbody.html(`<tr><td colspan="7" class="p-3 text-center">Loading...</td></tr>`);
 
                 $.getJSON("{{ route('inventory.byWorktype') }}", {
@@ -1387,6 +1388,7 @@
                         search: invState.search,
                         page: invState.page,
                         per_page: invState.per_page,
+                        business_unit_id: businessUnitId,
                         worktypeid: ($('#worktypeid').val() || '').trim(), // <-- kirim worktypeid
                         cpnyid: ($('select[name="cpnyid"]').val() || '').trim()
                     })

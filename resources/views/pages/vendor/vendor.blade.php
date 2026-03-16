@@ -7,10 +7,18 @@
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h2 class="text-base font-bold text-gray-800 dark:text-white">🏷️ Vendor List</h2>
-                <button id="addVendorBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                    + Add Vendor
-                </button>
+
+                <div class="flex items-center gap-2">
+                    <button id="syncVendorBtn"
+                        class="inline-flex items-center rounded-md bg-green-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-green-700">
+                        ⟳ Sync Vendor
+                    </button>
+
+                    <button id="addVendorBtn"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        + Add Vendor
+                    </button>
+                </div>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
@@ -383,6 +391,61 @@
                 $('#id').val('');
                 $('#vendorModal').addClass('hidden');
             });
+
+            // Sync vendor dari ViewVendorVMS ke ms_vendor
+            $('#syncVendorBtn').click(function() {
+                Swal.fire({
+                    title: 'Sync Vendor?',
+                    text: 'Data vendor dari VMS akan disinkronkan ke master vendor.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Sync',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#16a34a',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    showLoading();
+                    $('#syncVendorBtn').prop('disabled', true);
+
+                    $.ajax({
+                        url: "{{ route('vendors.sync') }}",
+                        type: "POST",
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function(res) {
+                            hideLoading();
+                            $('#syncVendorBtn').prop('disabled', false);
+                            table.ajax.reload(null, false);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: res.message || 'Sync vendor berhasil',
+                            });
+                        },
+                        error: function(xhr) {
+                            hideLoading();
+                            $('#syncVendorBtn').prop('disabled', false);
+
+                            let msg = 'Gagal sync vendor';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                msg = xhr.responseJSON.message;
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: msg
+                            });
+
+                            console.error(xhr.responseText);
+                        }
+                    });
+                });
+            });
+
         });
     </script>
 </x-app-layout>

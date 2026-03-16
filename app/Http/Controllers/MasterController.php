@@ -157,6 +157,7 @@ class MasterController extends Controller
 
     public function InventoryByWorktype(Request $request)
     {
+        // dd($request->all());
         $worktypeid      = trim((string) $request->get('worktypeid', ''));
         $cpnyid          = strtoupper(trim((string) $request->get('cpnyid', '')));
         $businessUnitId  = trim((string) $request->get('business_unit_id', '')); // ✅ NEW
@@ -2712,6 +2713,7 @@ class MasterController extends Controller
 
     public function InventoryListJoin(Request $request)
     {
+        // dd($request->all());
         $type    = strtoupper($request->get('type', 'GI'));
         $cpnyid  = strtoupper(trim((string) $request->get('cpnyid', '')));
         $search  = trim((string) $request->get('search', ''));

@@ -1250,6 +1250,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vendors/{id}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
     Route::put('/vendors/{id}', [VendorController::class, 'update'])->name('vendors.update');
     Route::put('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
+    Route::post('/vendors/sync', [VendorController::class, 'syncVendor'])->name('vendors.sync');
 
     Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories');
     Route::get('/inventories/json', [InventoryController::class, 'json'])->name('inventories.json');

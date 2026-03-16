@@ -2509,23 +2509,21 @@ class SppjController extends Controller
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)
+            ->where('refnbr', $refnbr)           
             ->where('status', '<>', 'X')
-            ->where('created_at', function ($q) use ($refnbr, $apprTable) {
-                $q->selectRaw('MAX(created_at)')
-                ->from($apprTable)
-                ->where('refnbr', $refnbr)
-                ->where('status', '<>', 'X');
-            })
-            ->orderByRaw("
-                CASE
-                    WHEN trim(coalesce(aprv_leveling::text, '')) ~ '^[0-9]+(\\.[0-9]+)?$'
-                    THEN trim(aprv_leveling::text)::numeric
-                    ELSE NULL
-                END ASC
-            ")
+            ->reorder()
+            ->orderBy('created_at', 'asc')
+            ->orderBy('aprv_leveling', 'asc')
             ->orderBy('id', 'asc')
-            ->get();
+            ->get([
+                'aprv_leveling',
+                'aprv_name',
+                'aprv_datebefore',
+                'aprv_dateafter',
+                'status',
+                'aprv_type',
+                'aprv_condition',
+            ]);
 
         $approve_count = $approval->count();
 

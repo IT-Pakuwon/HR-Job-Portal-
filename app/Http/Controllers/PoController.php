@@ -1358,7 +1358,7 @@ $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
             'to'      => ['required'],
             'cc'      => ['nullable'],
             'bcc'     => ['nullable'],
-            'subject' => ['required','string','max:200'],
+            'subject' => ['required','string','max:1000'],
             'html'    => ['required','string'],
             'bq_vendor_idx' => ['nullable','integer','min:1','max:6'],
 

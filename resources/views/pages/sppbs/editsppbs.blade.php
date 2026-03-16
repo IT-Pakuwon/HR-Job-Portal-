@@ -1518,6 +1518,7 @@
             function loadInventory() {
                 const cpnyid = getCpnyId();
                 const deptId = getDeptId();
+                const businessUnitId = ($('#business_unit_id').val() || '').trim();
 
                 if (!cpnyid || !deptId) {
                     $tbody.html(
@@ -1535,6 +1536,7 @@
                         search: invState.search,
                         departementid: deptId,
                         cpnyid: cpnyid,
+                        business_unit_id: businessUnitId,
                         page: invState.page,
                         per_page: invState.per_page
                     })

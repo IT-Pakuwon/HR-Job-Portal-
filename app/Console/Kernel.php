@@ -38,10 +38,23 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
-             // Restart PostgreSQL setiap hari jam 04:00
+        // Restart PostgreSQL setiap hari jam 04:00
         $schedule->exec('sudo /bin/systemctl restart postgresql')
             ->dailyAt('04:00')
-            ->withoutOverlapping();
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/restart-postgresql.log'));
+
+        // Cek jumlah koneksi PostgreSQL tiap 5 menit
+        $schedule->command('postgres:check-connections')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/postgres-check-connections.log'));
+
+        // Staging ACUMVMS setiap hari jam 23:00
+        $schedule->command('staging:acumvms')
+            ->dailyAt('23:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/staging.log'));
     }
 
     /**

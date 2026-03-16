@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\MsVendor;
+use App\Models\ViewVendorVMS;
 
 class VendorController extends Controller
 {
@@ -33,7 +34,7 @@ class VendorController extends Controller
                 'post_cd',
                 'status',
             ])
-            ->orderByDesc('id')
+            ->orderByDesc('vendor_id')
             ->get();
 
         return response()->json(['data' => $vendors]);
@@ -185,5 +186,162 @@ class VendorController extends Controller
             'success' => true,
             'message' => 'Status updated'
         ]);
+    }
+
+    public function syncVendor(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+            $loginUser = Auth::user();
+            $username = $loginUser->username ?? 'system';
+
+            $sourceVendors = ViewVendorVMS::query()
+                ->select([
+                    'second_vendor_id',
+                    'vendor_nama',
+                    'address1',
+                    'address2',
+                    'emailaddr',
+                    'attention',
+                    'phone',
+                    'npwp',
+                    'postal_code',
+                    'Statuss',
+                ])
+                ->orderBy('second_vendor_id')
+                ->get();
+
+            if ($sourceVendors->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data vendor dari ViewVendorVMS tidak ditemukan.'
+                ], 404);
+            }
+
+            $inserted = 0;
+            $updated  = 0;
+            $skipped  = 0;
+
+            foreach ($sourceVendors as $row) {
+                $vendorId = trim((string) $row->second_vendor_id);
+
+                if ($vendorId === '') {
+                    $skipped++;
+                    continue;
+                }
+
+                $firstEmail  = $this->takeFirstEmail($row->emailaddr);
+                $phone1      = $this->takePhonePart($row->phone, 1);
+                $phone2      = $this->takePhonePart($row->phone, 2);
+
+                $payload = [
+                    'vendor_name'     => $this->limitText(strtoupper(trim((string) $row->vendor_nama)), 200),
+                    'vendor_addr1'    => $this->limitText($row->address1, 255),
+                    'vendor_addr2'    => $this->limitText($row->address2, 255),
+                    'email'           => $this->limitText($firstEmail, 150),
+                    'contact_person'  => $this->limitText($row->attention, 150),
+
+                    // jangan isi gabungan panjang
+                    'phone_number'    => $this->limitText($phone1, 50),
+
+                    'npwp'            => $this->limitText($row->npwp, 100),
+
+                    // simpan email utama saja supaya tidak melebihi limit
+                    'contact_email'   => $this->limitText($firstEmail, 150),
+
+                    'contact_number1' => $this->limitText($phone1, 50),
+                    'contact_number2' => $this->limitText($phone2, 50),
+
+                    'fax_no'          => null,
+                    'post_cd'         => $this->limitText($row->postal_code, 20),
+                    'status'          => strtoupper(trim((string) ($row->Statuss ?? 'A'))) === 'A' ? 'A' : 'X',
+                ];
+
+                $vendor = MsVendor::where('vendor_id', $vendorId)->first();
+
+                if ($vendor) {
+                    $vendor->update(array_merge($payload, [
+                        'updated_by' => $username,
+                        'updated_at' => now(),
+                    ]));
+                    $updated++;
+                } else {
+                    MsVendor::create(array_merge($payload, [
+                        'vendor_id'   => $vendorId,
+                        'created_by'  => $username,
+                        'created_at'  => now(),
+                    ]));
+                    $inserted++;
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success'  => true,
+                'message'  => "Sync vendor berhasil. Inserted: {$inserted}, Updated: {$updated}, Skipped: {$skipped}",
+                'inserted' => $inserted,
+                'updated'  => $updated,
+                'skipped'  => $skipped,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal sync vendor: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function limitText($value, int $max)
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        return mb_substr($value, 0, $max);
+    }
+
+    private function takeFirstEmail($email)
+    {
+        $email = trim((string) $email);
+
+        if ($email === '') {
+            return null;
+        }
+
+        $parts = preg_split('/\s*;\s*/', $email);
+
+        return trim($parts[0] ?? '');
+    }
+
+    private function takePhonePart($phone, $index = 1)
+    {
+        $phone = trim((string) $phone);
+
+        if ($phone === '') {
+            return null;
+        }
+
+        $parts = preg_split('/\s*,\s*/', $phone);
+
+        if ($index === 1) {
+            return trim($parts[0] ?? '');
+        }
+
+        if ($index === 2) {
+            return trim($parts[1] ?? '');
+        }
+
+        return null;
     }
 }

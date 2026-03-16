@@ -79,23 +79,41 @@ class ReceiptListController extends Controller
             $base = vPoPending::with('creator')
                 ->when($cpny_id, fn($q)=>$q->where('cpny_id', $cpny_id))
                 ->select([
-                    'id','ponbr','podate','cpny_id','vendorname',
-                    'podeliverydate','created_by','status'
+                    'id',
+                    'ponbr',
+                    'podate',
+                    'cpny_id',
+                    'vendorname',
+                    'podeliverydate',
+                    'created_by',
+                    'status',
+                    'totalqty',
+                    'totalqtyreceived',
                 ]);
 
             $orderColumns = [
-                0=>'ponbr', 1=>'ponbr', 2=>'podate', 3=>'cpny_id',
-                4=>'vendorname', 5=>'podeliverydate', 6=>'created_by', 7=>'status'
+                0 => 'ponbr',
+                1 => 'ponbr',
+                2 => 'podate',
+                3 => 'cpny_id',
+                4 => 'vendorname',
+                5 => 'podeliverydate',
+                6 => 'totalqty',
+                7 => 'totalqtyreceived',
+                8 => 'created_by',
+                9 => 'status',
             ];
 
             if ($search !== '') {
                 $base->where(function($q) use ($search){
                     $q->where('ponbr','ilike',"%{$search}%")
-                      ->orWhere('cpny_id','ilike',"%{$search}%")
-                      ->orWhere('vendorname','ilike',"%{$search}%")
-                      ->orWhere('created_by','ilike',"%{$search}%")
-                      ->orWhereRaw("TO_CHAR(podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
-                      ->orWhereRaw("TO_CHAR(podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+                    ->orWhere('cpny_id','ilike',"%{$search}%")
+                    ->orWhere('vendorname','ilike',"%{$search}%")
+                    ->orWhere('created_by','ilike',"%{$search}%")
+                    ->orWhereRaw("CAST(totalqty AS TEXT) ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("CAST(totalqtyreceived AS TEXT) ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
                 });
             }
         } else {
@@ -181,9 +199,12 @@ class ReceiptListController extends Controller
 
         $rows->transform(function($r) use ($scope, $poIdMap) {
             if ($scope === 'receiptjobs') {
-                $r->podate_fmt     = $r->podate ? Carbon::parse($r->podate)->format('Y-m-d') : null;
-                $r->podelivery_fmt = $r->podeliverydate ? Carbon::parse($r->podeliverydate)->format('Y-m-d') : null;
-                $r->ponbr_eid      = Hashids::encode((string)$r->id);
+                $r->podate_fmt          = $r->podate ? Carbon::parse($r->podate)->format('Y-m-d') : null;
+                $r->podelivery_fmt      = $r->podeliverydate ? Carbon::parse($r->podeliverydate)->format('Y-m-d') : null;
+                $r->ponbr_eid           = Hashids::encode((string)$r->id);
+                $r->totalqty_fmt        = number_format((float) ($r->totalqty ?? 0), 2);
+                $r->totalqtyreceived_fmt = number_format((float) ($r->totalqtyreceived ?? 0), 2);
+
             } else {
                 $r->receiptdate_fmt = $r->receiptdate ? Carbon::parse($r->receiptdate)->format('Y-m-d') : null;
                 $r->receiptnbr_eid  = Hashids::encode((string)$r->id);
