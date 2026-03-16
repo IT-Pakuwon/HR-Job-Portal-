@@ -2056,7 +2056,6 @@ class WoController extends Controller
 
         $wo = TrWO::where('woid', $woid)->firstOrFail();
 
-        // jika sudah ada PIC jangan overwrite
         if ($wo->pic_wo) {
             return response()->json([
                 'success' => false,
@@ -2065,8 +2064,11 @@ class WoController extends Controller
         }
 
         $wo->pic_wo = $user->username;
-        $wo->pic_department = $user->department_id ?? null;
-        $wo->status_pekerjaan = 'P'; // 🔥 langsung On Progress
+
+        // REMOVE this if column does not exist
+        // $wo->pic_department = $user->department_id ?? null;
+
+        $wo->status_pekerjaan = 'P';
 
         $wo->save();
 
@@ -2084,31 +2086,61 @@ class WoController extends Controller
             'status_pekerjaan' => 'required|in:P,X,C',
             'pic_wo_comment' => 'nullable|string',
             'pic_department' => 'nullable|string',
-            'flag_sppbjkt' => 'nullable', // checkbox (akan dinormalisasi)
+            'flag_sppbjkt' => 'nullable',
+            'attachment' => 'nullable|file|max:10240', // 10MB
         ]);
 
         $wo = TrWO::where('woid', $woid)->firstOrFail();
 
+        // =========================
+        // UPDATE JOB STATUS
+        // =========================
         $wo->status_pekerjaan = $req->status_pekerjaan;
         $wo->pic_wo_comment = $req->pic_wo_comment;
         $wo->pic_department = $req->pic_department;
 
-        // ✅ jika Completed → isi timestamp pic_completed_wo
+        // =========================
+        // COMPLETED TIMESTAMP
+        // =========================
         if ($req->status_pekerjaan === 'C') {
             $wo->pic_completed_wo = now();
         }
 
-        // ✅ normalisasi flag dari checkbox: true jika "1", 1, true, "true"
-        $flag = filter_var($req->input('flag_sppbjkt'), FILTER_VALIDATE_BOOLEAN) || $req->input('flag_sppbjkt') == 1;
+        // =========================
+        // FLAG NORMALIZATION
+        // =========================
+        $flag = filter_var($req->input('flag_sppbjkt'), FILTER_VALIDATE_BOOLEAN)
+                || $req->input('flag_sppbjkt') == 1;
 
-        // === Pilih salah satu sesuai tipe kolom di DB ===
-        // A) Jika kolom boolean / integer(1):
-        // $wo->flag_sppbjkt = $flag ? 1 : 0;
-
-        // B) Jika kolom char/varchar 'Y'/'N' (sering dipakai di projekmu):
         $wo->flag_sppbjkt = $flag ? 'Y' : 'N';
 
         $wo->save();
+
+        // =========================
+        // ATTACHMENT UPLOAD
+        // =========================
+        if ($req->hasFile('attachment')) {
+            $meta = [
+                'refnbr' => $wo->woid,
+                'doctype' => 'WO',
+                'cpnyid' => $wo->cpny_id,
+                'departementid' => $wo->department_id,
+                'base_folder' => 'att-purchasing-app/wo-job',
+                'created_by' => auth()->user()->username,
+            ];
+
+            $files = [$req->file('attachment')];
+
+            try {
+                app(TrAttachmentController::class)->uploadInternal($meta, $files);
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Attachment upload failed',
+                    'error' => $e->getMessage(),
+                ], 500);
+            }
+        }
 
         return response()->json([
             'success' => true,

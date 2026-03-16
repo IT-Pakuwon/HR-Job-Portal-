@@ -473,7 +473,7 @@
 
                             <p class="text-sm text-gray-600 dark:text-gray-300">
                                 PIC:
-                                <span class="font-semibold text-indigo-600 dark:text-indigo-400">
+                                <span id="picName" class="font-semibold text-indigo-600 dark:text-indigo-400">
                                     {{ $wo->pic_wo ?: '-' }}
                                 </span>
                             </p>
@@ -481,7 +481,7 @@
                         </div>
 
                         {{-- RIGHT SIDE BUTTON --}}
-                        <button id="btnJobProcess"
+                        <button id="btnJobProcess" type="button"
                             class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:scale-[1.02] hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                             data-mode="{{ $isPicWo ? 'save' : 'process' }}">
 
@@ -559,6 +559,27 @@
                             <textarea id="jobComment" rows="4"
                                 class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-0 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                                 placeholder="Tuliskan catatan untuk pekerjaan ini...">{{ $wo->pic_wo_comment }}</textarea>
+                        </div>
+
+                        {{-- ATTACHMENT (JOB PROCESS) --}}
+                        <div id="jobAttachmentBox" class="space-y-3">
+
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                Attachment
+                            </label>
+
+                            <input type="file" id="jobAttachment" name="job_attachment"
+                                class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Required when status is <b>Completed</b>.
+                            </p>
+
+                            <div id="jobAttachmentUploaded"
+                                class="hidden rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+                                ✔ Attachment uploaded
+                            </div>
+
                         </div>
 
                     </div>
@@ -702,8 +723,155 @@
         $(document).ready(function() {
             const woid = "{{ $wo->woid }}";
             const doctype = "WO";
+            let jobAttachmentUploaded = false;
+
+
+
+            const isPicWo = {{ $isPicWo ? 'true' : 'false' }};
+            const initialJobStatus = @json($wo->status_pekerjaan ?? '');
+
+            const $spinner = $("#loadingSpinnerContainer");
+            const $btn = $("#btnJobProcess");
 
             loadComments(woid, doctype);
+
+            $("#btnJobProcess").on("click", function(e) {
+
+                e.preventDefault();
+
+                const btn = $(this);
+                const mode = btn.data("mode");
+
+                // =========================
+                // LOCKED
+                // =========================
+                if (mode === "locked") {
+                    toastr.info("WO already completed.");
+                    return;
+                }
+
+                // =========================
+                // PROCESS MODE
+                // =========================
+                if (mode === "process") {
+
+                    $.ajax({
+                        url: "{{ route('wo.process', $wo->woid) }}",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+
+                        success: function(res) {
+
+                            if (!res.success) {
+                                toastr.error(res.message);
+                                return;
+                            }
+
+                            toastr.success("You are now the PIC for this WO.");
+
+                            $("#picName").text(res.pic_wo);
+                            $("#jobStatusBadge").text("On Progress");
+
+                            $("#jobForm").removeClass("hidden");
+
+                            // switch button to SAVE mode
+                            btn.data("mode", "save");
+                            btn.find("span").text("Save");
+
+                        },
+
+                        error: function(xhr) {
+
+                            if (xhr.responseJSON?.message) {
+                                toastr.error(xhr.responseJSON.message);
+                            } else {
+                                toastr.error("Failed to process WO.");
+                            }
+
+                        }
+                    });
+
+                    return;
+                }
+
+                // =========================
+                // SAVE MODE
+                // =========================
+                if (mode === "save") {
+
+                    let formData = new FormData();
+
+                    formData.append("_token", "{{ csrf_token() }}");
+                    formData.append("status_pekerjaan", $("#status_pekerjaan").val());
+                    formData.append("pic_department", $("#pic_department").val());
+                    formData.append("pic_wo_comment", $("#pic_wo_comment").val());
+
+                    if ($("#flag_sppbjkt").is(":checked")) {
+                        formData.append("flag_sppbjkt", 1);
+                    }
+
+                    const file = $("#job_attachment")[0].files[0];
+
+                    if (file) {
+                        formData.append("attachment", file);
+                    }
+
+                    // attachment required if completed
+                    if ($("#status_pekerjaan").val() === "C" && !file) {
+                        toastr.error("Attachment required when completing job.");
+                        return;
+                    }
+
+                    $.ajax({
+                        url: "{{ route('wo.jobstatus', $wo->woid) }}",
+                        type: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+
+                        success: function(res) {
+
+                            if (!res.success) {
+                                toastr.error(res.message);
+                                return;
+                            }
+
+                            toastr.success("Job status updated.");
+
+                            $("#jobStatusBadge").text(res.data.status_pekerjaan);
+
+                            // if completed → lock
+                            if (res.data.status_pekerjaan === "C") {
+
+                                btn.data("mode", "locked");
+                                btn.prop("disabled", true);
+                                btn.find("span").text("Locked");
+
+                                // 🔒 disable attachment input
+                                $("#jobAttachment").prop("disabled", true);
+
+                                toastr.success("WO is now locked.");
+
+                            }
+
+                        },
+
+                        error: function(xhr) {
+
+                            if (xhr.responseJSON?.message) {
+                                toastr.error(xhr.responseJSON.message);
+                            } else {
+                                toastr.error("Failed to save job status.");
+                            }
+
+                        }
+                    });
+
+                }
+
+            });
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
@@ -777,6 +945,76 @@
                     }
                 });
             }
+            $("#jobAttachment").on("change", function() {
+
+                const mode = $("#btnJobProcess").attr("data-mode");
+
+                // ❌ Only allow upload when editing
+                if (mode !== "save") {
+                    toastr.warning("Click Edit before uploading attachment.");
+                    $(this).val(""); // reset file input
+                    return;
+                }
+
+                const file = this.files[0];
+                if (!file) return;
+
+                const fd = new FormData();
+                fd.append("attachments[]", file);
+                fd.append("cpnyid", "{{ $wo->cpny_id }}");
+                fd.append("departementid", "{{ $wo->department_id }}");
+                fd.append("_token", "{{ csrf_token() }}");
+
+                $.ajax({
+                    url: "{{ route('attachments.upload', ['doctype' => 'WO', 'refnbr' => $wo->woid]) }}",
+                    method: "POST",
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(res) {
+
+                        if (!res.success) {
+                            toastr.error(res.message || "Upload failed.");
+                            return;
+                        }
+
+                        jobAttachmentUploaded = true;
+
+                        // 🔹 Show uploaded file preview
+                        const fileUrl = res.url ?? "";
+                        const fileName = res.name ?? file.name;
+
+                        $("#jobAttachmentUploaded")
+                            .removeClass("hidden")
+                            .html(`
+                    ✔ Attachment uploaded
+                    <div class="mt-1">
+                        <a href="${fileUrl}" target="_blank"
+                        class="text-indigo-600 hover:underline">
+                        📎 ${fileName}
+                        </a>
+                    </div>
+                `);
+
+                        toastr.success("Attachment uploaded successfully.");
+
+                        // 🔄 refresh attachment tab
+                        if (typeof refreshSppbAttachments === "function") {
+                            refreshSppbAttachments();
+                        }
+
+                    },
+
+                    error: function(xhr) {
+
+                        console.error(xhr.responseText);
+                        toastr.error("Upload failed.");
+
+                    }
+                });
+
+            });
 
             $(document).on('click', '#postCommentBtn', function(e) {
                 e.preventDefault();
@@ -1318,6 +1556,8 @@
                 $comment.prop("disabled", true);
                 $flag.prop("disabled", true);
                 $dept.prop("disabled", true);
+
+                $("#jobAttachment").prop("disabled", true);
             }
 
             function unlockForm() {
@@ -1382,6 +1622,15 @@
                         toastr.warning("Please select Status first.");
                         return;
                     }
+
+                    const fileInput = $("#jobAttachment")[0];
+                    const hasFileSelected = fileInput && fileInput.files.length > 0;
+
+                    if (jobStatus === "C" && !jobAttachmentUploaded && !hasFileSelected) {
+                        toastr.error("Attachment is required when status is Completed.");
+                        return;
+                    }
+
 
                     $spinner.fadeIn();
 
