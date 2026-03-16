@@ -14,7 +14,7 @@ class StagingIfcaPoApprove  extends Model
         'cpny_id' , 'entity_cd' , 'order_no' , 'order_type' , 'order_date' , 'supplier_cd' , 'remark' , 
         'ref_no_sppbjkt' , 'ref_no_cs' , 'department_id' , 'user_peminta' , 'purchaser' , 'topid' , 
         'credit_terms' , 'currency_cd' , 'currency_rate' , 'total_record' , 'order_line' , 'item_cd' , 'item_remark' , 
-        'uom' , 'order_qty' , 'item_cost' , 'schedule_dt' , 'acct_type' , 'location_cd' , 
+        'uom' , 'taxid', 'order_qty' , 'item_cost' , 'schedule_dt' , 'acct_type' , 'location_cd' , 
         'budget_business_unit_id' , 'budget_department_fin_id' , 'budget_account_id' , 
         'integration_type' , 'acct_cd' , 'div_cd' , 'dept_cd' , 'solomon_acct_cd' , 'solomon_allocation_cd' , 
         'solomon_subaccount_dept' , 'process_flag' , 'create_date' , 'process_dt' , 'process_note' , 'status' , 
