@@ -111,62 +111,7 @@ class PersonnelController extends Controller
         return $q->whereIn('division_id', $divisionIds);
     }
 
-    private function userDivisionIds_xxx($user): array
-    {
-        $deptIds = $this->userDeptIds($user);
-        if (empty($deptIds)) return [];
-
-        // 1) Utama: mapping dari ms_department (pgsql2) -> department_hr_id kamu isi division_id
-        $divisions = MsDepartment::query()
-            ->whereIn('department_id', $deptIds)
-            ->whereNotNull('department_hr_id')
-            ->pluck('department_hr_id')
-            ->map(fn($x) => trim((string)$x))
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
-        if (!empty($divisions)) return $divisions;
-
-        // 2) Fallback: dari hr_ms_department (mysql3)
-        $divisions2 = DepartmentHR::query()
-            ->whereIn('department_id', $deptIds)
-            ->whereNotNull('division_id')
-            ->pluck('division_id')
-            ->map(fn($x) => trim((string)$x))
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
-        return $divisions2;
-    }
-
-    private function personnelScopeForUser_xxx($user)
-    {
-        $cpnyIds = $this->userCpnyIds($user);
-
-        $q = Personnel::query();
-
-        // wajib punya cpny
-        if (empty($cpnyIds)) return $q->whereRaw('1=0');
-
-        // filter cpnyid user (AW,EP,PSA,GPS)
-        $q->whereIn('cpnyid', $cpnyIds);
-
-        // role all dept -> bisa lihat semua division
-        if ($this->hasRoleAllDept($user)) {
-            return $q;
-        }
-
-        // selain itu: filter division_id
-        $divisionIds = $this->userDivisionIds($user);
-        if (empty($divisionIds)) return $q->whereRaw('1=0');
-
-        return $q->whereIn('division_id', $divisionIds);
-    }
-
+ 
     public function index()
     {
         $user = Auth::user();
