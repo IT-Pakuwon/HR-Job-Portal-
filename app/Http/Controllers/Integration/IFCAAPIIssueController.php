@@ -7,7 +7,7 @@ use App\Models\ViewStagingIssue;
 use App\Models\StagingIfcaIcStkIssue;
 use App\Models\BusinessUnit;
 use App\Models\DepartmentFin;
-use App\Models\MsCOA;
+use App\Models\MsCoa;
 use App\Models\MsIntegrationSetting;
 use App\Models\TrIntegrationLog;
 use Illuminate\Http\Request;
@@ -285,7 +285,7 @@ class IFCAAPIIssueController extends Controller
 
                 $deptMap = $deptRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->department_fin_id);
 
-                $coaRows = MsCOA::query()
+                $coaRows = MsCoa::query()
                     ->select([
                         'cpny_id','account_id','ifca_acct_cd','solomon_acct_cd'
                     ])
