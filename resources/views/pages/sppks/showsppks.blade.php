@@ -416,6 +416,9 @@
                                         <div class="font-medium">
                                             {{ $item->inventoryid }}
                                         </div>
+                                        <div class="mt-1 text-xs text-gray-400">
+                                            {{ $item->inventory_sub_type }} - {{ $item->inventory_category }}
+                                        </div>
 
                                     </td>
 
@@ -730,7 +733,7 @@
 
                     {{-- Filters --}}
                     <div
-                        class="grid grid-cols-1 gap-3 border-b border-gray-200 p-4 sm:grid-cols-4 dark:border-gray-700">
+                        class="grid grid-cols-1 gap-3 border-b border-gray-200 p-4 dark:border-gray-700 sm:grid-cols-4">
                         <div>
                             <label
                                 class="mb-1 block text-xs font-semibold text-gray-700 dark:text-gray-200">Company</label>

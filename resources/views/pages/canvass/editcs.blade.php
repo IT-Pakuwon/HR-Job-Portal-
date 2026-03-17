@@ -171,7 +171,26 @@
                                                 data-lastprice="{{ $row->last_unitcost ?? 0 }}"
                                                 data-original_qty="{{ (float) $row->qty }}"
                                                 data-note="{{ $row->csnote_detail ?? '' }}">
-                                                <td class="border px-3 py-2">{{ $row->inventory_descr }}</td>
+                                                <td class="border px-3 py-2 align-top">
+                                                    <div class="flex flex-col gap-1">
+
+                                                        {{-- Main Description --}}
+                                                        <span class="font-medium text-gray-800 dark:text-gray-100">
+                                                            {{ $row->inventory_descr ?? '-' }}
+                                                        </span>
+
+                                                        {{-- Subtype + Category --}}
+                                                        @if (!empty($row->inventory_sub_type) || !empty($row->inventory_category))
+                                                            <div class="text-xs text-gray-400">
+                                                                {{ $row->inventory_sub_type ?? '-' }}
+                                                                @if (!empty($row->inventory_sub_type) && !empty($row->inventory_category))
+                                                                    -
+                                                                @endif
+                                                                {{ $row->inventory_category ?? '-' }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </td>
                                                 <td class="border px-3 py-2 text-center">
                                                     <input type="text"
                                                         class="qty-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"

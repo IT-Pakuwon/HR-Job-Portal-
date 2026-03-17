@@ -471,14 +471,32 @@
                                                         {{-- Inventory + Note (di bawahnya) --}}
                                                         <td class="w-64 px-3 py-2 align-top">
                                                             <div class="flex flex-col gap-1">
-                                                                <span>{{ $row->inventory_descr }}</span>
 
+                                                                {{-- Description --}}
+                                                                <span
+                                                                    class="font-medium text-gray-800 dark:text-gray-100">
+                                                                    {{ $row->inventory_descr ?? '-' }}
+                                                                </span>
+
+                                                                {{-- Sub Type + Category --}}
+                                                                @if (!empty($row->inventory_sub_type) || !empty($row->inventory_category))
+                                                                    <div class="mt-1 text-xs text-gray-400">
+                                                                        {{ $row->inventory_sub_type ?? '-' }}
+                                                                        @if (!empty($row->inventory_sub_type) && !empty($row->inventory_category))
+                                                                            -
+                                                                        @endif
+                                                                        {{ $row->inventory_category ?? '-' }}
+                                                                    </div>
+                                                                @endif
+
+                                                                {{-- Note --}}
                                                                 @if (!empty($row->csnote_detail))
                                                                     <span
-                                                                        class="text-sm text-gray-500 dark:text-gray-400">
+                                                                        class="text-sm italic text-gray-500 dark:text-gray-400">
                                                                         Note: {{ $row->csnote_detail }}
                                                                     </span>
                                                                 @endif
+
                                                             </div>
                                                         </td>
 
@@ -1482,10 +1500,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
