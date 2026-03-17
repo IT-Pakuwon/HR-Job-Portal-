@@ -208,24 +208,64 @@
                         defaultContent: ''
                     }, // DTR control
                     {
-
                         data: 'eid',
                         render: function(data, type, row) {
-                            let url = `/showpersonnels/${row.eid}`;
+                            const showUrl = `/showpersonnels/${row.eid}`;
+                            let mainUrl = showUrl;
                             let buttonClass =
-                                'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
-                            let buttonText = row.docid; // Menggunakan row.docid untuk teks tombol
+                                'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-gray-600 hover:bg-gray-700';
+                            const buttonText = row.docid;
 
-                            // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
-                            if (row.status === 'D' && row.created_user === currentUser) {
-                                url = `/editpersonnels/${row.eid}`;
+                            const isReviseOwner = row.status === 'D' && row.created_user === currentUser;
+
+                            if (isReviseOwner) {
+                                mainUrl = `/editpersonnels/${row.eid}`;
                                 buttonClass =
-                                    'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                                    'inline-flex justify-center items-center min-w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
 
-                            return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
+                            if (isReviseOwner) {
+                                return `
+                                    <div class="flex items-center gap-2">
+                                        <a href="${mainUrl}" class="${buttonClass}">
+                                            ${buttonText}
+                                        </a>
+
+                                        <a href="${showUrl}"
+                                        class="inline-flex h-9 w-9 items-center justify-center rounded bg-sky-500 text-white transition-colors duration-200 hover:bg-sky-600"
+                                        title="View">
+                                            <i class="fas fa-eye text-sm"></i>
+                                        </a>
+                                    </div>
+                                `;
+                            }
+
+                            return `
+                                <a href="${mainUrl}" class="${buttonClass}">
+                                    ${buttonText}
+                                </a>
+                            `;
                         }
                     },
+                    // {
+
+                    //     data: 'eid',
+                    //     render: function(data, type, row) {
+                    //         let url = `/showpersonnels/${row.eid}`;
+                    //         let buttonClass =
+                    //             'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200  bg-gray-600 hover:bg-gray-700 ';
+                    //         let buttonText = row.docid; // Menggunakan row.docid untuk teks tombol
+
+                    //         // Cek apakah user yang login sama dengan created_user dan status = D (Revise/Draft)
+                    //         if (row.status === 'D' && row.created_user === currentUser) {
+                    //             url = `/editpersonnels/${row.eid}`;
+                    //             buttonClass =
+                    //                 'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
+                    //         }
+
+                    //         return `<a href="${url}" class="px-3 py-1 ${buttonClass} text-white rounded">${buttonText}</a>`;
+                    //     }
+                    // },
                     {
                         data: 'date',
                         className: 'no-pointer'

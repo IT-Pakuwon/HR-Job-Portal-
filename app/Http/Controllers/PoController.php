@@ -357,206 +357,7 @@ class PoController extends Controller
         ]);
     }
 
-    public function submitPO_xxx(Request $req, $ponbr)
-    {
-        // dd($req->all());
-        $po = TrPO::where('ponbr', $ponbr)
-            ->where('cpny_id', $req->input('cpny_id'))
-            ->firstOrFail();
-
-        if ($po->status !== 'H') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Dokumen hanya bisa di-Submit jika status = HOLD (H).'
-            ], 422);
-        }
-
-        // Terima kedua nama field: po_deliverydate (dari view lama) atau podeliverydate (kolom DB)
-        $deliveryDate = $req->input('podeliverydate') ?? $req->input('po_deliverydate');
-
-        // Validasi dinamis sesuai po type
-        if (strtoupper($po->potype ?? '') === 'PO') {
-            $req->validate([
-                'podeliverydate' => ['nullable','date'],
-            ]);
-
-            if (empty($deliveryDate)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The podeliverydate field is required.'
-                ], 422);
-            }
-        } else {
-            $req->validate([
-                'work_date_from' => ['required','date'],
-                'work_date_to'   => ['required','date','after_or_equal:work_date_from'],
-                'work_days'      => ['required','integer','min:0'],
-                'work_day_from'  => ['required','string'],
-                'work_day_to'    => ['required','string'],
-                'work_time_from' => ['required','date_format:H:i'],
-                'work_time_to'   => ['required','date_format:H:i'],
-                'manpower_total' => ['required','integer','min:0'],
-
-                // Internal Pakuwon
-                'spkpic'         => ['required','string'],
-                'spkpicphone'    => ['required','string'],
-
-                // Vendor
-                'spkvendor'      => ['required','string'],
-                'spkvendorphone' => ['required','string'],
-
-                'warranty'       => ['required','string'],
-            ]);
-        }
-
-        $start = Carbon::parse($req->input('work_date_from'));
-        $end   = Carbon::parse($req->input('work_date_to'));
-
-        $holidays = SysCalendar::query()
-            ->where('status', 'Z')
-            ->whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
-            ->whereNull('deleted_at')
-            ->pluck('date_calendar')
-            ->toArray();
-
-        $calculatedWorkingDays = 0;
-        $current = $start->copy();
-
-        $type = $req->input('work_day_type', 'EXCLUDE');
-
-
-        while ($current <= $end) {
-
-            $isWeekend = $current->isWeekend();
-            $isHoliday = in_array($current->format('Y-m-d'), $holidays);
-
-            if ($type === 'INCLUDE') {
-                $calculatedWorkingDays++;
-            } else {
-                if (!$isWeekend && !$isHoliday) {
-                    $calculatedWorkingDays++;
-                }
-            }
-
-            $current->addDay();
-        }
-        if (strtoupper($po->potype ?? '') === 'SPK') {
-            // Compare with input
-            // if ((int)$req->input('work_days') !== $calculatedWorkingDays) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Working days mismatch. Please recheck selected dates.'
-            //     ], 422);
-            // }
-            $inputWorkDays = (int) $req->input('work_days');
-
-            if ($inputWorkDays !== $calculatedWorkingDays) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Working days mismatch. Input: {$inputWorkDays}, Calculated: {$calculatedWorkingDays}. Please recheck selected dates."
-                ], 422);
-            }
-        }
-
-
-        DB::transaction(function () use ($po, $req, $deliveryDate) {
-            $now = Carbon::now();
-            $po->submitdate = $now;
-            $po->updated_by = Auth::user()->username ?? 'system';
-
-            if (strtoupper($po->potype ?? '') === 'PO') {
-                // hanya simpan tanggal delivery
-                $po->podeliverydate = $deliveryDate ? Carbon::parse($deliveryDate) : null;
-
-                // (opsional) catat sedikit ringkasan di ponote
-                // if ($deliveryDate) {
-                //     $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '') .
-                //         'Delivery Date: '.Carbon::parse($deliveryDate)->format('d/m/Y'));
-                // }
-            } else {
-                // simpan field SPK ke kolom yang tersedia di model
-                $po->spkstartworkingdate = $req->input('work_date_from');
-                $po->spkendtworkingdate  = $req->input('work_date_to');
-                // $po->spktotalday         = $req->input('work_days');
-                $po->spktotalday = $calculatedWorkingDays;
-                $po->spkcarabayar        = 'Transfer';
-
-                // schedule: "Hari X s/d Y Pukul a s/d b WIB"
-                $schedule = sprintf(
-                    'Hari %s s/d %s Pukul %s s/d %s WIB',
-                    $req->input('work_day_from'),
-                    $req->input('work_day_to'),
-                    $req->input('work_time_from'),
-                    $req->input('work_time_to')
-                );
-                $po->spkworkschedule = $schedule;
-
-                // manpower & PIC
-                $po->spkmanpower = $req->input('manpower_total');
-
-                // Internal Pakuwon
-                $po->spkpic         = $req->input('spkpic');
-                $po->spkpicjabatan  = $req->input('spkpicjabatan');
-                $po->spkpicphone    = $req->input('spkpicphone');
-                $po->spkpicemail    = $req->input('spkpicemail');
-
-                // Vendor
-                $po->spkvendor         = $req->input('spkvendor');
-                $po->spkvendorjabatan  = $req->input('spkvendorjabatan');
-                $po->spkvendorphone    = $req->input('spkvendorphone');
-                $po->spkvendoremail    = $req->input('spkvendoremail');
-
-                $po->spkwarranty = $req->input('warranty');
-
-                // simpan "cara pembayaran" ke ponote (kolom yang ada) — gunakan variabel berbeda!
-                $pm = strtoupper($req->input('payment_method', '')); // <- TIDAK menimpa $po
-                if (!empty($pm)) {
-                    $po->ponote = trim(($po->ponote ? $po->ponote."\n" : '')."Cara Pembayaran: {$pm}");
-                }
-            }
-
-            // 1. Cek Detail PO ada sebelum Used Budget
-            $detailCount = TrPODetail::where('ponbr', $po->ponbr)
-                ->where('budget_cpny_id', $po->cpny_id)
-                ->count();
-            if ($detailCount <= 0) {
-                throw new \Exception("PO Detail kosong. Tidak bisa proses budget untuk PO {$po->ponbr}");
-            }
-
-
-            // ✅ INSERT/UPDATE last price
-            if ($po->potype == 'PO'){
-                $this->insertPoLastPrice($po);
-            }
-
-            // 3. Sync term dari TOP
-            $this->syncPoTermsFromTop($po);
-
-            // 4. Generate RFCA dari term DP
-            $this->generateRfcaFromPo($po);
-
-            // Used budget via SP (Submit)
-            DB::connection('pgsql')->statement(
-                'CALL public.sp_process_budget(?, ?, ?, ?)',
-                ['PO', $po->ponbr, 'Submit', Auth::user()->username]
-            );
-
-            // 5. Update status ke Purchase Order
-            $po->status = 'P';
-            $po->send_email = false; // reset flag email
-            $po->save();
-
-
-
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Submit berhasil. Status berubah menjadi Purchase Order.'
-        ]);
-    }
-
-
+ 
     /** POST /po/{ponbr}/cancel-reuse */
     public function ReusePO(Request $req, $hash)
     {
@@ -597,8 +398,8 @@ class PoController extends Controller
 
         // Used budget via SP (Reuse)
         DB::connection('pgsql')->statement(
-            'CALL public.sp_process_budget(?, ?, ?, ?)',
-            ['PO', $po->ponbr, 'Reuse', Auth::user()->username]
+            'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
+            ['PO', $po->ponbr,$po->cpny_id, 'Reuse', Auth::user()->username]
         );
 
         return response()->json([
@@ -642,8 +443,8 @@ class PoController extends Controller
 
         // Used budget via SP (Cancel)
         DB::connection('pgsql')->statement(
-            'CALL public.sp_process_budget(?, ?, ?, ?)',
-            ['PO', $po->ponbr, 'Cancel', Auth::user()->username]
+            'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
+            ['PO', $po->ponbr, $po->cpny_id,'Cancel', Auth::user()->username]
         );
 
         return response()->json([
@@ -651,75 +452,7 @@ class PoController extends Controller
             'message' => 'Status diubah menjadi CANCEL (X).'
         ]);
     }
-
-
-
-    public function uploadAttachments_xxx(Request $request, $poid)
-    {
-        try {
-            // $user = $request->user();
-            $user = Auth::user();
-            $username = $user ? $user->username : 'system';
-            $year = (int) ($request->input('year') ?? now()->year);
-
-            $created = [];
-
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $randomNumber = random_int(10000000, 99999999);
-                    $filename     = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-
-                    // bersihkan nama original dari %
-                    $originalName = str_replace('%', '', $file->getClientOriginalName());
-                    $ext        = $file->getClientOriginalExtension();
-                    $attachfile = md5($randomNumber) . '.' . $ext;
-
-                    // folder tujuan
-                    $folder_attach = public_path('attachments/'.$year);
-                    if (!is_dir($folder_attach)) {
-                        @mkdir($folder_attach, 0777, true);
-                    }
-
-                    // pindahkan file (tanpa ekstensi di nama file, sesuai contoh kamu)
-                    $file->move($folder_attach, $attachfile);
-
-                    // simpan DB
-                    $attach = new Attachment();
-                    $attach->docid       = $poid;
-                    $attach->name        = $filename; // tampilkan nama tanpa ekstensi
-                    $attach->attachfile  = $attachfile;
-                    $attach->status      = 'A';
-                    $attach->extention   = $file->getClientOriginalExtension();
-                    $attach->created_user= $user->username ?? 'system';
-                    $attach->save();
-
-                    $created[] = [
-                        'id'         => $attach->id,
-                        'name'       => $attach->name,
-                        'attachfile' => $attach->attachfile,
-                        'ext'        => $attach->extention,
-                        'year'       => $year,
-                    ];
-                }
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No files received.'
-                ], 422);
-            }
-
-            return response()->json([
-                'success'     => true,
-                'attachments' => $created
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
+ 
     public function uploadAttachments(Request $request, $hash)
     {
         try {
@@ -1064,47 +797,47 @@ class PoController extends Controller
         $dompdf = $pdf->getDomPDF();
         $dompdf->render();
 
-   $canvas  = $dompdf->get_canvas();
-$w       = $canvas->get_width();
-$h       = $canvas->get_height();
+        $canvas  = $dompdf->get_canvas();
+        $w       = $canvas->get_width();
+        $h       = $canvas->get_height();
 
-$metrics = $dompdf->getFontMetrics();
-$font    = $metrics->get_font('sans-serif', 'normal');
-$size    = 7;
+        $metrics = $dompdf->getFontMetrics();
+        $font    = $metrics->get_font('sans-serif', 'normal');
+        $size    = 7;
 
-$now = $data['now'];
+        $now = $data['now'];
 
-$leftTxt  = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
-$pageTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
-$parafTxt = "Paraf PIHAK KEDUA";
+        $leftTxt  = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+        $pageTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $parafTxt = "Paraf PIHAK KEDUA";
 
-$margin = 20;
+        $margin = 20;
 
-/* ============================= */
-/* LEFT TEXT */
-/* ============================= */
+        /* ============================= */
+        /* LEFT TEXT */
+        /* ============================= */
 
-$canvas->page_text(
-    $margin,
-    $h - 22,
-    $leftTxt,
-    $font,
-    $size,
-    [0,0,0]
-);
+        $canvas->page_text(
+            $margin,
+            $h - 22,
+            $leftTxt,
+            $font,
+            $size,
+            [0,0,0]
+        );
 
-/* ============================= */
-/* RIGHT BLOCK (justify-end) */
-/* ============================= */
+        /* ============================= */
+        /* RIGHT BLOCK (justify-end) */
+        /* ============================= */
 
-$pageWidth  = $metrics->getTextWidth($pageTpl, $font, $size);
-$parafWidth = $metrics->getTextWidth($parafTxt, $font, $size);
+        $pageWidth  = $metrics->getTextWidth($pageTpl, $font, $size);
+        $parafWidth = $metrics->getTextWidth($parafTxt, $font, $size);
 
-$xPage  = $w - $pageWidth  - $margin;
-$xParaf = $w - $parafWidth - $margin;
+        $xPage  = $w - $pageWidth  - $margin;
+        $xParaf = $w - $parafWidth - $margin;
 
-$canvas->page_text($xParaf, $h - 36, $parafTxt, $font, $size, [0,0,0]);
-$canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
+        $canvas->page_text($xParaf, $h - 36, $parafTxt, $font, $size, [0,0,0]);
+        $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
         $basename = ($potype === 'PO') ? 'PO' : 'SPK';
         return $dompdf->stream("{$basename}_{$po->ponbr}.pdf", ['Attachment' => false]);
     }
@@ -1374,24 +1107,131 @@ $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
             ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')->get();
 
-        $dpp       = $po->totalamt;
-        $ppn       = $po->taxamt;
-        $grand     = $po->grandtotalamt;
-        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-        $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
+        // $dpp       = $po->totalamt;
+        // $ppn       = $po->taxamt;
+        // $grand     = $po->grandtotalamt;
+        // $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+        // $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
 
+        // $purchaser = ucwords(strtolower($authUser->name ?? 'System'));
+
+        // $viewData = [
+        //     'po'        => $po,
+        //     'podetail'  => $podetail,
+        //     'dpp'       => $dpp,
+        //     'ppn'       => $ppn,
+        //     'grand'     => $grand,
+        //     'terbilang' => $terbilang,
+        //     'company'   => $company,
+        //     'now'       => Carbon::now(),
+        //     'purchaser' => $purchaser,
+        // ];
+
+        // =========================
+        // COMPANY
+        // =========================
+        $company = MsCompany::where('cpny_id', $po->cpny_id)->first();
+
+        // =========================
+        // TERM OF PAYMENT (TOP)
+        // =========================
+        $poTerms = MsTop::where('top_type', $po->potype)
+            ->where('topid', $po->vendortop)
+            ->first();
+
+        // =========================
+        // PO TERMS (DP / PAYMENT)
+        // =========================
+        $poTermDetails = TrPOterm::where('ponbr', $po->ponbr)
+            ->where('cpny_id', $po->cpny_id)
+            ->orderBy('order_term')
+            ->get();
+
+        $dpTerm = $poTermDetails->firstWhere('term_type', 'DP');
+        $paymentTerms = $poTermDetails->where('term_type', '<>', 'DP');
+
+        // =========================
+        // AMOUNT
+        // =========================
+        $dpp   = (float) ($po->totalamt ?? 0);
+        $ppn   = (float) ($po->taxamt ?? 0);
+        $grand = (float) ($po->grandtotalamt ?? 0);
+
+        // =========================
+        // DP AMOUNT
+        // =========================
+        $dpAmount = 0;
+        if ($dpTerm) {
+            $dpAmount = ($dpTerm->payment_pct / 100) * $grand;
+        }
+
+        // =========================
+        // RETENTION
+        // =========================
+        $retensi = MsTopdetail::where('topid', $po->vendortop)
+            ->where('top_type', $po->potype)
+            ->where('terms_type', 'RET')
+            ->first();
+
+        $retentionValue = null;
+        if ($retensi) {
+            $retentionValue = ($retensi->payment_pct / 100) * $grand;
+        }
+
+        // =========================
+        // LOCATION FROM CS DETAIL
+        // =========================
+        $location = '-';
+
+        if ($po->csid) {
+            $csDetail = \App\Models\TrCSdetail::with(['location', 'subLocation'])
+                ->where('csid', $po->csid)
+                ->first();
+
+            if ($csDetail) {
+                $loc = optional($csDetail->location)->location_name;
+                $sub = optional($csDetail->subLocation)->sub_location_name;
+
+                if ($loc) {
+                    $location = $loc;
+                }
+
+                if ($sub) {
+                    $location .= ' - ' . $sub;
+                }
+            }
+        }
+
+        // =========================
+        // TERBILANG
+        // =========================
+        $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
+
+        // =========================
+        // PURCHASER
+        // =========================
         $purchaser = ucwords(strtolower($authUser->name ?? 'System'));
 
+        // =========================
+        // DATA FOR VIEW
+        // =========================
         $viewData = [
-            'po'        => $po,
-            'podetail'  => $podetail,
-            'dpp'       => $dpp,
-            'ppn'       => $ppn,
-            'grand'     => $grand,
-            'terbilang' => $terbilang,
-            'company'   => $company,
-            'now'       => Carbon::now(),
-            'purchaser' => $purchaser,
+            'po'            => $po,
+            'podetail'      => $podetail,
+            'poTerms'       => $poTerms,
+            'poTermDetails' => $poTermDetails,
+            'dpTerm'        => $dpTerm,
+            'dpAmount'      => $dpAmount,
+            'paymentTerms'  => $paymentTerms,
+            'retensi'       => $retentionValue,
+            'location'      => $location,
+            'dpp'           => $dpp,
+            'ppn'           => $ppn,
+            'grand'         => $grand,
+            'terbilang'     => $terbilang,
+            'company'       => $company,
+            'now'           => Carbon::now(),
+            'purchaser'     => $purchaser,
         ];
 
         $senderName = User::where('notification_email', $data['from'])->value('name')
@@ -1493,8 +1333,43 @@ $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
         }
 
         // ===== generate PDF (bagian kamu tetap) =====
-        $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
-        $pdf  = PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
+        // $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
+        // $pdf  = PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
+
+        // $dompdf = $pdf->getDomPDF();
+        // $dompdf->render();
+
+        // $canvas  = $dompdf->get_canvas();
+        // $w       = $canvas->get_width();
+        // $h       = $canvas->get_height();
+
+        // $metrics = $dompdf->getFontMetrics();
+        // $font    = $metrics->get_font('sans-serif', 'normal');
+        // $size    = 9;
+
+        // $now       = $viewData['now'];
+        // $leftTxt   = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+        // $rightTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        // $rightW    = $metrics->getTextWidth($rightTpl, $font, $size);
+
+        // $y = $h - 28;
+        // $x = $canvas->get_width() - $w - 75;
+
+        // $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
+        // $canvas->page_text($w - $x - $rightW - 20, $y, $rightTpl, $font, $size, [0,0,0]);
+
+        // $pdfBinary = $dompdf->output();
+        // $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
+
+        $potype = strtoupper((string) ($po->potype ?? ''));
+
+        if ($potype === 'PO') {
+            $view = 'pages.purchase.pdf_po';
+        } else {
+            $view = 'pages.purchase.pdf_spk';
+        }
+
+        $pdf = PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
 
         $dompdf = $pdf->getDomPDF();
         $dompdf->render();
@@ -1505,21 +1380,37 @@ $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
 
         $metrics = $dompdf->getFontMetrics();
         $font    = $metrics->get_font('sans-serif', 'normal');
-        $size    = 9;
+        $size    = 7;
 
-        $now       = $viewData['now'];
-        $leftTxt   = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
-        $rightTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
-        $rightW    = $metrics->getTextWidth($rightTpl, $font, $size);
+        $now = $viewData['now'];
 
-        $y = $h - 28;
-        $x = $canvas->get_width() - $w - 75;
+        $leftTxt  = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
+        $pageTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $parafTxt = "Paraf PIHAK KEDUA";
 
-        $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
-        $canvas->page_text($w - $x - $rightW - 20, $y, $rightTpl, $font, $size, [0,0,0]);
+        $margin = 20;
+
+        // left
+        $canvas->page_text(
+            $margin,
+            $h - 22,
+            $leftTxt,
+            $font,
+            $size,
+            [0, 0, 0]
+        );
+
+        // right
+        $pageWidth  = $metrics->getTextWidth($pageTpl, $font, $size);
+        $parafWidth = $metrics->getTextWidth($parafTxt, $font, $size);
+
+        $xParaf = $w - $parafWidth - $margin;
+
+        $canvas->page_text($xParaf, $h - 36, $parafTxt, $font, $size, [0, 0, 0]);
+        $canvas->page_text($xParaf, $h - 23, $pageTpl, $font, $size, [0, 0, 0]);
 
         $pdfBinary = $dompdf->output();
-        $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
+        $pdfName   = ($potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
 
         // =========================
         // (FIX) Generate PDF BQCS Vendor berdasarkan PO->vendorid (ONLY)
@@ -1632,129 +1523,7 @@ $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
                 'error' => $e->getMessage(),
             ]);
         }
-
-
-        // $bqPdfBinary = null;
-        // $bqPdfName   = null;
-
-        // try {
-        //     // ambil CS dari po->csid untuk dapat bqid (sesuaikan jika kolom beda)
-        //     $cs = TrCS::on('pgsql')
-        //         ->where('csid', $po->csid)
-        //         ->first();
-
-        //     if ($cs) {
-        //         $bqid = $cs->bqid ?? null;
-
-        //         if ($bqid) {
-        //             // cari BQCS header berdasarkan bqid + csid
-        //             $bq = TrBQCS::on('pgsql')
-        //                 ->where('bqid', $bqid)
-        //                 ->where('csid', $po->csid)
-        //                 ->first();
-
-        //             if ($bq) {
-
-        //                 // =========================
-        //                 // 1) Tentukan vendor idx dari PO->vendorid
-        //                 // =========================
-        //                 $poVendorId = (string) ($po->vendorid ?? '');
-        //                 $idx = null;
-
-        //                 if ($poVendorId !== '') {
-        //                     for ($i = 1; $i <= 6; $i++) {
-        //                         $csVendorId = (string) ($cs->{"vendorid{$i}"} ?? '');
-        //                         if ($csVendorId !== '' && strcasecmp($csVendorId, $poVendorId) === 0) {
-        //                             $idx = $i;
-        //                             break;
-        //                         }
-        //                     }
-        //                 }
-
-        //                 // Jika vendor PO tidak ditemukan pada CS vendor1..6, STOP (jangan generate PDF salah vendor)
-        //                 if (!$idx) {
-        //                     \Log::warning('BQCS vendor idx not found by PO vendorid', [
-        //                         'ponbr'     => $po->ponbr,
-        //                         'po_vendor' => $poVendorId,
-        //                         'csid'      => $po->csid,
-        //                         'bqid'      => $bqid,
-        //                     ]);
-        //                 } else {
-
-        //                     // =========================
-        //                     // 2) Ambil vendor data sesuai idx tersebut (ONLY)
-        //                     // =========================
-        //                     $vendor = [
-        //                         'id'   => $cs->{"vendorid{$idx}"} ?? null,
-        //                         'name' => $cs->{"vendorname{$idx}"} ?? null,
-        //                         'addr' => $cs->{"vendoralamat{$idx}"} ?? null,
-        //                         'cp'   => $cs->{"vendorcp{$idx}"} ?? null,
-        //                         'telp' => $cs->{"vendortelp{$idx}"} ?? null,
-        //                         'top'  => $cs->{"vendortop{$idx}"} ?? null,
-        //                     ];
-
-        //                     // =========================
-        //                     // 3) Ambil detail BQ
-        //                     // =========================
-        //                     $bqdetail = TrBQCSDetail::on('pgsql')
-        //                         ->where('bqid', $bq->bqid)
-        //                         ->orderBy('bq_no')
-        //                         ->orderBy('bq_line_no')
-        //                         ->get();
-
-        //                     // =========================
-        //                     // 4) Hitung total khusus vendor idx itu
-        //                     // =========================
-        //                     $grandTotalMaterial = 0;
-        //                     $grandTotalJasa     = 0;
-
-        //                     foreach ($bqdetail as $item) {
-        //                         $qty  = (float) ($item->qty ?? 0);
-        //                         $mat  = (float) ($item->{"vendorproductprice{$idx}"} ?? 0);
-        //                         $jasa = (float) ($item->{"vendorjasaprice{$idx}"} ?? 0);
-
-        //                         $grandTotalMaterial += $qty * $mat;
-        //                         $grandTotalJasa     += $qty * $jasa;
-        //                     }
-
-        //                     $companyBq = MsCompany::where('cpny_id', $bq->cpny_id)->first();
-
-        //                     $bqData = [
-        //                         'title'     => 'CS Bills of Quantities (BQ)',
-        //                         'doc_type'  => 'BQ',
-        //                         'cpny_id'   => $companyBq->cpny_id ?? $bq->cpny_id,
-        //                         'cpny_name' => $companyBq->cpny_name ?? '',
-        //                         'vendor'    => $vendor,
-        //                         'idx'       => $idx,
-        //                         'grandTotalMaterial' => $grandTotalMaterial,
-        //                         'grandTotalJasa'     => $grandTotalJasa,
-        //                         'bq'        => $bq,
-        //                         'bqdetail'  => $bqdetail,
-        //                     ];
-
-        //                     // =========================
-        //                     // 5) Generate PDF
-        //                     // =========================
-        //                     $bqPdf = \PDF::loadView('pages.canvass.pdfbq_cs_vendor', $bqData)->setPaper('A4');
-
-        //                     $bqDompdf = $bqPdf->getDomPDF();
-        //                     $bqDompdf->render();
-
-        //                     $bqPdfBinary = $bqDompdf->output();
-        //                     $bqPdfName   = "BQCS_{$bq->bqid}_VENDOR_{$poVendorId}.pdf";
-        //                 }
-        //             }
-        //         }
-        //     }
-        // } catch (\Throwable $e) {
-        //     \Log::warning('Generate BQCS PDF failed', [
-        //         'ponbr' => $po->ponbr,
-        //         'error' => $e->getMessage(),
-        //     ]);
-        // }
-
-
-
+       
         // ===== kirim email =====
         Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $gcsAttachments, $senderName,$bqPdfBinary, $bqPdfName) {
             $message->from($data['from'], $senderName);
@@ -2420,8 +2189,8 @@ $canvas->page_text($xParaf,  $h - 23, $pageTpl,  $font, $size, [0,0,0]);
 
             // Used budget via SP (Completed)
             DB::connection('pgsql')->statement(
-                'CALL public.sp_process_budget(?, ?, ?, ?)',
-                ['PO', $po->ponbr, 'Completed', Auth::user()->username]
+                'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
+                ['PO', $po->ponbr, $po->cpny_id,'Completed', Auth::user()->username]
             );
 
             $po->updated_by = $user->username ?? $user->name ?? 'system';

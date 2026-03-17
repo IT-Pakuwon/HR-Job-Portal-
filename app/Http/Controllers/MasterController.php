@@ -643,14 +643,14 @@ class MasterController extends Controller
                 'message' => "Department {$deptid} tidak ditemukan / tidak aktif."
             ]);
         }
-
+                        
         $hasAccessBu = Userbusinessunit::query()
             ->where('username', $user->username)
             ->where('cpny_id', $cpnyid)
             ->where('business_unit_id', $businessUnitId)
             ->where('status', 'A')
             ->exists();
-
+                        
         if (!$hasAccessBu) {
             return response()->json([
                 'data' => [],
@@ -702,7 +702,7 @@ class MasterController extends Controller
             //     $qq->whereIn('b.business_unit_id', $businessUnitIds)
             // )
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
-
+// dd($q);
         if ($search !== '') {
             $q->where(function ($w) use ($search) {
                 $w->where('b.account_id', 'ilike', "%{$search}%")

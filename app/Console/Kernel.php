@@ -39,10 +39,10 @@ class Kernel extends ConsoleKernel
             ->runInBackground();
 
         // Restart PostgreSQL setiap hari jam 04:00
-        $schedule->exec('sudo /bin/systemctl restart postgresql')
-            ->dailyAt('04:00')
-            ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/restart-postgresql.log'));
+        // $schedule->exec('sudo /bin/systemctl restart postgresql')
+        //     ->dailyAt('04:00')
+        //     ->withoutOverlapping()
+        //     ->appendOutputTo(storage_path('logs/restart-postgresql.log'));
 
         // Cek jumlah koneksi PostgreSQL tiap 5 menit
         $schedule->command('postgres:check-connections')
@@ -52,7 +52,7 @@ class Kernel extends ConsoleKernel
 
         // Staging ACUMVMS setiap hari jam 23:00
         $schedule->command('staging:acumvms')
-            ->dailyAt('23:00')
+            ->dailyAt('19:00')
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/staging.log'));
     }
