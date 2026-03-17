@@ -43,6 +43,9 @@ class ReportCanvassSheetController extends Controller
                 'h.user_peminta',
                 'h.created_by as cs_created_by',
 
+                'h.budget_perpost',
+                'd.budget_business_unit_id',
+
                 'd.ponbr',
 
                 'd.inventoryid',
@@ -51,6 +54,7 @@ class ReportCanvassSheetController extends Controller
                 'd.uom',
                 'd.budget_department_fin_id',
                 'd.budget_account_id',
+                'd.budget_activity_descr',
 
                 'd.vendorprice1',
                 'd.vendorprice2',
@@ -384,6 +388,132 @@ class ReportCanvassSheetController extends Controller
         // }
     }
 
+    // private function exportDetail(Request $request)
+    // {
+    //     $query = $this->applyFilters(
+    //         $this->csDetailQuery(),
+    //         $request
+    //     );
+
+    //     $query = $this->applyUserScope($query);
+
+    //     $rows = $query->get();
+
+    //     $users = User::pluck('name', 'username');
+    //     $departments = MsDepartment::pluck('department_name', 'department_id');
+
+    //     $rows = $rows->map(function ($row) use ($users, $departments) {
+    //         $unit_price = 0;
+    //         $total_price = 0;
+    //         $vendor_name = '';
+
+    //         if ($row->vendor1selected) {
+    //             $unit_price = $row->vendorprice1;
+    //             $total_price = $row->vendortotalprice1;
+    //             $vendor_name = $row->vendorname1;
+    //         } elseif ($row->vendor2selected) {
+    //             $unit_price = $row->vendorprice2;
+    //             $total_price = $row->vendortotalprice2;
+    //             $vendor_name = $row->vendorname2;
+    //         } elseif ($row->vendor3selected) {
+    //             $unit_price = $row->vendorprice3;
+    //             $total_price = $row->vendortotalprice3;
+    //             $vendor_name = $row->vendorname3;
+    //         } elseif ($row->vendor4selected) {
+    //             $unit_price = $row->vendorprice4;
+    //             $total_price = $row->vendortotalprice4;
+    //             $vendor_name = $row->vendorname4;
+    //         } elseif ($row->vendor5selected) {
+    //             $unit_price = $row->vendorprice5;
+    //             $total_price = $row->vendortotalprice5;
+    //             $vendor_name = $row->vendorname5;
+    //         } elseif ($row->vendor6selected) {
+    //             $unit_price = $row->vendorprice6;
+    //             $total_price = $row->vendortotalprice6;
+    //             $vendor_name = $row->vendorname6;
+    //         }
+
+    //         // return [
+    //         //     'Date' => $row->csdate
+    //         //             ? Carbon::parse($row->csdate)->format('Y-m-d')
+    //         //             : '',
+
+    //         //     'CS No' => $row->csid,
+
+    //         //     'SPPB/J/K/T' => $row->sppbjktid,
+
+    //         //     'PO / SPK' => $row->ponbr ?? '',
+
+    //         //     'Department' => $departments[$row->department_id] ?? '',
+
+    //         //     'Requester' => $users[$row->user_peminta] ?? $row->user_peminta,
+
+    //         //     'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
+
+    //         //     'Purpose' => $row->keperluan,
+
+    //         //     'Inventory ID' => $row->inventoryid ?? '',
+
+    //         //     'Inventory Description' => $row->inventory_descr ?? '',
+
+    //         //     'Qty' => number_format($row->qty ?? 0, 2, '.', ''),
+
+    //         //     'UOM' => $row->uom ?? '',
+
+    //         //     'Budget Department' => $row->budget_department_fin_id ?? '',
+
+    //         //     'Vendor' => $vendor_name,
+
+    //         //     'Unit Price' => number_format($unit_price, 2, '.', ''),
+
+    //         //     'Total Price' => number_format($total_price, 2, '.', ''),
+    //         // ];
+
+    //         return [
+    //             'Date' => $row->csdate
+    //                     ? Carbon::parse($row->csdate)->format('Y-m-d')
+    //                     : '',
+
+    //             'CS No' => $row->csid,
+
+    //             'SPPB/J/K/T' => $row->sppbjktid,
+
+    //             'PO / SPK' => $row->ponbr ?? '',
+
+    //             'Department' => $departments[$row->department_id] ?? '',
+
+    //             'Requester' => $users[$row->user_peminta] ?? $row->user_peminta,
+
+    //             'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
+
+    //             'Purpose' => $row->keperluan,
+
+    //             'Inventory ID' => $row->inventoryid ?? '',
+
+    //             'Inventory Description' => $row->inventory_descr ?? '',
+
+    //             'Qty' => number_format($row->qty ?? 0, 2, '.', ''),
+
+    //             'UOM' => $row->uom ?? '',
+
+    //             'Budget Department' => $departments[$row->budget_department_fin_id] ?? '',
+
+    //             'Account ID' => $row->budget_account_id ?? '',   // NEW COLUMN
+
+    //             'Vendor' => $vendor_name,
+
+    //             'Unit Price' => number_format($unit_price, 2, '.', ''),
+
+    //             'Total Price' => number_format($total_price, 2, '.', ''),
+    //         ];
+    //     });
+
+    //     return Excel::download(
+    //         new \App\Exports\ArrayExport($rows),
+    //         'report_canvass_sheet_detail.xlsx'
+    //     );
+    // }
+
     private function exportDetail(Request $request)
     {
         $query = $this->applyFilters(
@@ -399,108 +529,101 @@ class ReportCanvassSheetController extends Controller
         $departments = MsDepartment::pluck('department_name', 'department_id');
 
         $rows = $rows->map(function ($row) use ($users, $departments) {
-            $unit_price = 0;
-            $total_price = 0;
-            $vendor_name = '';
+            /*
+            |------------------------------------------
+            | Detect Selected Vendor
+            |------------------------------------------
+            */
+
+            $vendor = '';
+            $unitPrice = 0;
+            $dpp = 0;
+            $tax = 0;
+            $total = 0;
 
             if ($row->vendor1selected) {
-                $unit_price = $row->vendorprice1;
-                $total_price = $row->vendortotalprice1;
-                $vendor_name = $row->vendorname1;
+                $vendor = $row->vendorname1;
+                $unitPrice = $row->vendorprice1;
+                $dpp = $row->vendortotalprice1;
             } elseif ($row->vendor2selected) {
-                $unit_price = $row->vendorprice2;
-                $total_price = $row->vendortotalprice2;
-                $vendor_name = $row->vendorname2;
+                $vendor = $row->vendorname2;
+                $unitPrice = $row->vendorprice2;
+                $dpp = $row->vendortotalprice2;
             } elseif ($row->vendor3selected) {
-                $unit_price = $row->vendorprice3;
-                $total_price = $row->vendortotalprice3;
-                $vendor_name = $row->vendorname3;
+                $vendor = $row->vendorname3;
+                $unitPrice = $row->vendorprice3;
+                $dpp = $row->vendortotalprice3;
             } elseif ($row->vendor4selected) {
-                $unit_price = $row->vendorprice4;
-                $total_price = $row->vendortotalprice4;
-                $vendor_name = $row->vendorname4;
+                $vendor = $row->vendorname4;
+                $unitPrice = $row->vendorprice4;
+                $dpp = $row->vendortotalprice4;
             } elseif ($row->vendor5selected) {
-                $unit_price = $row->vendorprice5;
-                $total_price = $row->vendortotalprice5;
-                $vendor_name = $row->vendorname5;
+                $vendor = $row->vendorname5;
+                $unitPrice = $row->vendorprice5;
+                $dpp = $row->vendortotalprice5;
             } elseif ($row->vendor6selected) {
-                $unit_price = $row->vendorprice6;
-                $total_price = $row->vendortotalprice6;
-                $vendor_name = $row->vendorname6;
+                $vendor = $row->vendorname6;
+                $unitPrice = $row->vendorprice6;
+                $dpp = $row->vendortotalprice6;
             }
 
-            // return [
-            //     'Date' => $row->csdate
-            //             ? Carbon::parse($row->csdate)->format('Y-m-d')
-            //             : '',
+            /*
+            |------------------------------------------
+            | Calculate Tax + Total
+            |------------------------------------------
+            */
 
-            //     'CS No' => $row->csid,
-
-            //     'SPPB/J/K/T' => $row->sppbjktid,
-
-            //     'PO / SPK' => $row->ponbr ?? '',
-
-            //     'Department' => $departments[$row->department_id] ?? '',
-
-            //     'Requester' => $users[$row->user_peminta] ?? $row->user_peminta,
-
-            //     'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
-
-            //     'Purpose' => $row->keperluan,
-
-            //     'Inventory ID' => $row->inventoryid ?? '',
-
-            //     'Inventory Description' => $row->inventory_descr ?? '',
-
-            //     'Qty' => number_format($row->qty ?? 0, 2, '.', ''),
-
-            //     'UOM' => $row->uom ?? '',
-
-            //     'Budget Department' => $row->budget_department_fin_id ?? '',
-
-            //     'Vendor' => $vendor_name,
-
-            //     'Unit Price' => number_format($unit_price, 2, '.', ''),
-
-            //     'Total Price' => number_format($total_price, 2, '.', ''),
-            // ];
+            $tax = $dpp * 0.11;   // adjust if tax code dynamic
+            $total = $dpp + $tax;
 
             return [
+                'CS_ID' => $row->csid,
+
                 'Date' => $row->csdate
-                        ? Carbon::parse($row->csdate)->format('Y-m-d')
-                        : '',
+                    ? Carbon::parse($row->csdate)->format('Y-m-d')
+                    : '',
 
-                'CS No' => $row->csid,
+                'Cpny' => $row->cpny_id,
 
-                'SPPB/J/K/T' => $row->sppbjktid,
+                'PO' => $row->ponbr ?? '',
 
-                'PO / SPK' => $row->ponbr ?? '',
+                'SPPBJKT' => $row->sppbjktid,
+
+                'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
 
                 'Department' => $departments[$row->department_id] ?? '',
 
                 'Requester' => $users[$row->user_peminta] ?? $row->user_peminta,
 
-                'Purchasing' => $users[$row->cs_created_by] ?? $row->cs_created_by,
-
                 'Purpose' => $row->keperluan,
 
-                'Inventory ID' => $row->inventoryid ?? '',
+                'InventoryID' => $row->inventoryid,
 
-                'Inventory Description' => $row->inventory_descr ?? '',
+                'Description' => $row->inventory_descr,
 
                 'Qty' => number_format($row->qty ?? 0, 2, '.', ''),
 
-                'UOM' => $row->uom ?? '',
+                'UOM' => $row->uom,
+
+                'Vendor' => $vendor,
+
+                'Unit Price' => number_format($unitPrice ?? 0, 2, '.', ''),
+
+                'DPP' => number_format($dpp ?? 0, 2, '.', ''),
+
+                'Tax' => number_format($tax ?? 0, 2, '.', ''),
+
+                'Grand Total' => number_format($total ?? 0, 2, '.', ''),
+
+                'Budget Year' => $row->budget_perpost ?? '',
+
+                'Budget Business Unit' => $row->budget_business_unit_id ?? '',
 
                 'Budget Department' => $departments[$row->budget_department_fin_id] ?? '',
 
-                'Account ID' => $row->budget_account_id ?? '',   // NEW COLUMN
+                'Activity Account' => $row->budget_account_id ?? '',
 
-                'Vendor' => $vendor_name,
-
-                'Unit Price' => number_format($unit_price, 2, '.', ''),
-
-                'Total Price' => number_format($total_price, 2, '.', ''),
+                'Acitivty Description' => $row->budget_activity_descr ?? '',
             ];
         });
 
