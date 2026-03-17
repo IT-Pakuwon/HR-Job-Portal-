@@ -7,6 +7,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\Budget;
 use App\Models\BudgetDetail;
+use App\Models\BusinessUnit;
 use App\Models\MsCompany;
 use App\Models\MsSite;
 use App\Models\Site;
@@ -39,9 +40,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Mail;
-use PDF;
 use Vinkla\Hashids\Facades\Hashids;
-use App\Models\BusinessUnit;
 
 class SppbController extends Controller
 {
@@ -608,7 +607,6 @@ class SppbController extends Controller
             $header->totalopenordered = $totalQty;
             $header->save();
 
-           
             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
 
@@ -660,8 +658,6 @@ class SppbController extends Controller
                 $header->save();
             }
 
-          
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $docid,
@@ -705,7 +701,6 @@ class SppbController extends Controller
                 ]
             );
 
-           
             DB::commit();
 
             return response()->json([
@@ -1040,7 +1035,7 @@ class SppbController extends Controller
             $header->totalqty = $totalQty;
             $header->totalopenordered = $totalQty;
             $header->save();
-           
+
             // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
             $isUrgent = (bool) $request->input('is_urgent', false);
 
@@ -1117,7 +1112,6 @@ class SppbController extends Controller
                 }
             }
 
-            
             $eid = Hashids::encode($header->id);
 
             $approvalCtl->notifyFirstApprover(
@@ -1199,20 +1193,21 @@ class SppbController extends Controller
             $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
                 ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
         })
-                ->select(
-                    'ms_budget.cpny_id',
-                    'ms_budget.business_unit_id',
-                    'ms_budget.department_fin_id',
-                    'ms_budget.account_id',
-                    'ms_budget.activity_id',
-                    'ms_budget.activity_descr',
-                    'ms_budget.perpost',
-                    'ms_budget.totalbudget',
-                    'ms_budget.totalbudget_add',
-                    'ms_budget.total_reserve',
-                    'ms_budget.total_used',
-                    'ms_coa.account_descr as account_descr'
-                )
+            ->where('ms_budget.status', 'C')
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_id',
+                'ms_budget.activity_descr',
+                'ms_budget.perpost',
+                'ms_budget.totalbudget',
+                'ms_budget.totalbudget_add',
+                'ms_budget.total_reserve',
+                'ms_budget.total_used',
+                'ms_coa.account_descr as account_descr'
+            )
                 ->get();
 
         $budgetMap = [];
@@ -1259,7 +1254,6 @@ class SppbController extends Controller
                 $item->budget_remaining = 0;
             }
         }
-      
 
         $attachmentPB = $this->mapAttachmentsToSignedUrl($sppb->sppbid);
 
@@ -2317,7 +2311,7 @@ class SppbController extends Controller
 
             $d = $h ? TrCSdetail::where('csid', $doc)
                 ->whereNull('deleted_at')
-                ->orderBy('id')->get() : collect();   
+                ->orderBy('id')->get() : collect();
 
             return response()->json([
                 'header' => $h ? [
@@ -2576,7 +2570,7 @@ class SppbController extends Controller
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
             ->reorder()
             ->orderBy('created_at', 'asc')
@@ -2592,7 +2586,7 @@ class SppbController extends Controller
                 'aprv_condition',
             ]);
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
             ->reorder()
             ->orderBy('created_at', 'asc')

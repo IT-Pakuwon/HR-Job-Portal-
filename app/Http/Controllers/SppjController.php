@@ -42,7 +42,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Vinkla\Hashids\Facades\Hashids;
 
-
 class SppjController extends Controller
 {
     use HasAutonbr;
@@ -1387,6 +1386,7 @@ class SppjController extends Controller
             $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
                 ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
         })
+                ->where('ms_budget.status', 'C')
                 ->select(
                     'ms_budget.cpny_id',
                     'ms_budget.business_unit_id',
@@ -2509,7 +2509,7 @@ class SppjController extends Controller
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
             ->reorder()
             ->orderBy('created_at', 'asc')
@@ -3531,9 +3531,9 @@ class SppjController extends Controller
                 $u = trim((string) $loginUsername);
 
                 $q->where('aprv_username', $u)
-                    ->orWhere('aprv_username', 'ilike', $u . ',%')
-                    ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
-                    ->orWhere('aprv_username', 'ilike', '%,' . $u);
+                    ->orWhere('aprv_username', 'ilike', $u.',%')
+                    ->orWhere('aprv_username', 'ilike', '%,'.$u.',%')
+                    ->orWhere('aprv_username', 'ilike', '%,'.$u);
             })
             ->exists();
 
@@ -3547,7 +3547,7 @@ class SppjController extends Controller
         $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
 
         // ambil hash untuk SPPJ
-        $sppj = \App\Models\TrSPPJ::select('id', 'sppjid')
+        $sppj = TrSPPJ::select('id', 'sppjid')
             ->where('sppjid', $bq->sppjtid)
             ->first();
 

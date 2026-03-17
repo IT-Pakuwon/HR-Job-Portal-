@@ -37,7 +37,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use Vinkla\Hashids\Facades\Hashids;
 
-
 class SppkController extends Controller
 {
     use HasAutonbr;
@@ -1446,6 +1445,7 @@ class SppkController extends Controller
             $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
                 ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
         })
+                ->where('ms_budget.status', 'C')
                 ->select(
                     'ms_budget.cpny_id',
                     'ms_budget.business_unit_id',
@@ -2465,7 +2465,7 @@ class SppkController extends Controller
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
             ->reorder()
             ->orderBy('created_at', 'asc')
