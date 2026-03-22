@@ -254,7 +254,7 @@
         el.tbody.innerHTML = rows.map(r => {
             const stage = String(r.stage_status ?? 'D').toUpperCase();
             const cpny = String(r.cpny_id ?? '');
-            const grnNo = String(r.grn_no ?? r.receiptnbr ?? '');
+            const grnNo = String(r.grn_no ?? r.receipt_no ?? '');
             const key = String(r.key ?? `${cpny}||${grnNo}`);
             const disabled = stage !== 'P' ? 'disabled' : '';
             const rowClass = stage === 'C' ? 'opacity-70' : '';
@@ -270,9 +270,10 @@
                     </td>
                     <td class="px-4 py-2">${escapeHtml(cpny)}</td>
                     <td class="px-4 py-2">${escapeHtml(grnNo)}</td>
-                    <td class="px-4 py-2">${escapeHtml(fmtDate(r.grn_date ?? r.receiptdate ?? ''))}</td>
+
+                    <td class="px-4 py-2">${escapeHtml(fmtDate(r.grn_date ?? r.receipt_date ?? ''))}</td>
                     <td class="px-4 py-2">${escapeHtml(r.po_no ?? r.ponbr ?? '')}</td>
-                    <td class="px-4 py-2">${escapeHtml(r.supplier_cd ?? r.vendorid ?? '')}</td>
+                    <td class="px-4 py-2">${escapeHtml(r.supplier_cd ?? r.vendor_name ?? r.vendor_id ?? '')}</td>
                     <td class="px-4 py-2">${escapeHtml(fmtDate(r.created_at ?? r.crtd_datetime ?? ''))}</td>
                     <td class="px-4 py-2 text-center">${badge(stage)}</td>
                 </tr>

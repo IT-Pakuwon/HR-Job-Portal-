@@ -80,11 +80,13 @@ class SLAPIGRNController extends Controller
             ], 422);
         }
 
+        $limit = 100;
+
         $srcRows = ViewStagingSLGrn::query()
             ->whereBetween('receiptdate', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
             ->orderByDesc('receiptdate')
             ->orderByDesc('crtd_datetime')
-            ->limit(100)
+            ->limit($limit)
             ->get();
 
         if ($srcRows->isEmpty()) {
@@ -104,6 +106,7 @@ class SLAPIGRNController extends Controller
         })->values();
 
         $stgRows = StagingIfcaPoGrn::query()
+            // ->where('integration_type', 'SOLOMON')
             ->whereIn('status', ['P', 'D', 'C'])
             ->where(function ($q) use ($pairs) {
                 foreach ($pairs as $p) {
@@ -118,10 +121,10 @@ class SLAPIGRNController extends Controller
         $agg = [];
         foreach ($stgRows as $s) {
             $grnNo = (string) ($s->grn_no ?? '');
-            $key = (string) $s->cpny_id . '||' . $grnNo;
+            $k = (string) $s->cpny_id . '||' . $grnNo;
 
-            if (!isset($agg[$key])) {
-                $agg[$key] = [
+            if (!isset($agg[$k])) {
+                $agg[$k] = [
                     'cnt' => 0,
                     'cnt_c' => 0,
                     'cnt_p' => 0,
@@ -130,26 +133,26 @@ class SLAPIGRNController extends Controller
                 ];
             }
 
-            $agg[$key]['cnt']++;
+            $agg[$k]['cnt']++;
 
             $st = strtoupper((string) $s->status);
             if ($st === 'C') {
-                $agg[$key]['cnt_c']++;
+                $agg[$k]['cnt_c']++;
             } elseif ($st === 'D') {
-                $agg[$key]['cnt_d']++;
+                $agg[$k]['cnt_d']++;
             } elseif ($st === 'P') {
-                $agg[$key]['cnt_p']++;
+                $agg[$k]['cnt_p']++;
             }
 
             $upd = $s->updated_at ?? null;
-            if ($upd && (!$agg[$key]['last_update'] || Carbon::parse($upd)->gt(Carbon::parse($agg[$key]['last_update'])))) {
-                $agg[$key]['last_update'] = $upd;
+            if ($upd && (!$agg[$k]['last_update'] || Carbon::parse($upd)->gt(Carbon::parse($agg[$k]['last_update'])))) {
+                $agg[$k]['last_update'] = $upd;
             }
         }
 
         $data = $srcRows->map(function ($r) use ($agg) {
-            $key = (string) $r->cpny_id . '||' . (string) $r->receiptnbr;
-            $a = $agg[$key] ?? null;
+            $k = (string) $r->cpny_id . '||' . (string) $r->receiptnbr;
+            $a = $agg[$k] ?? null;
 
             $stage = 'P';
             if ($a) {
@@ -163,24 +166,19 @@ class SLAPIGRNController extends Controller
             }
 
             return [
-                'key'          => $key,
-                'cpny_id'      => (string) $r->cpny_id,
-                'grn_no'       => (string) $r->receiptnbr,
-                'grn_date'     => $r->receiptdate ? Carbon::parse($r->receiptdate)->format('Y-m-d H:i:s') : '',
-                'po_no'        => (string) ($r->ponbr ?? ''),
-                'supplier_cd'  => (string) ($r->vendname ?: ($r->vendid ?? '')),
-                'created_at'   => $r->crtd_datetime ? Carbon::parse($r->crtd_datetime)->format('Y-m-d H:i:s') : '',
-                'stage_status' => $stage,
-                'last_update'  => !empty($a['last_update'])
-                    ? Carbon::parse($a['last_update'])->format('Y-m-d H:i:s')
-                    : null,
-
-                // optional alias supaya aman bila blade lama masih baca nama lama
-                'receipt_no'    => (string) $r->receiptnbr,
-                'receipt_date'  => $r->receiptdate ? Carbon::parse($r->receiptdate)->format('Y-m-d H:i:s') : '',
-                'vendor_id'     => (string) ($r->vendid ?? ''),
-                'vendor_name'   => (string) ($r->vendname ?? ''),
-                'crtd_datetime' => $r->crtd_datetime ? Carbon::parse($r->crtd_datetime)->format('Y-m-d H:i:s') : '',
+                'cpny_id'       => $r->cpny_id,
+                'receipt_no'    => $r->receiptnbr,
+                'receipt_date'  => $r->receiptdate,
+                'po_no'         => $r->ponbr ?? '',
+                'vendor_id'     => $r->vendid ?? '',
+                'vendor_name'   => $r->vendname ?? '',
+                'requestor'     => $r->requestor ?? '',
+                'total_qty'     => $r->tot_qty ?? '',
+                'total_amount'  => $r->tot_amount ?? '',
+                'total_record'  => $r->total_record ?? '',
+                'crtd_datetime' => $r->crtd_datetime ?? null,
+                'stage_status'  => $stage,
+                'last_update'   => $a['last_update'] ?? null,
             ];
         })->values();
 
@@ -251,7 +249,7 @@ class SLAPIGRNController extends Controller
                 }
 
                 $hdr = ViewStagingSLGrn::query()
-                    ->where('cpnyid', $cpnyId)
+                    ->where('cpny_id', $cpnyId)
                     ->where('receiptnbr', $receiptNo)
                     ->first();
 
@@ -273,7 +271,7 @@ class SLAPIGRNController extends Controller
                     $hdrPayload = [
                         'AcumCrtdBy'       => $hdr->acumcrtdby,
                         'AcumCrtdOn'       => $hdr->acumcrtdon,
-                        'CpnyID'           => $hdr->cpnyid,
+                        'CpnyID'           => $hdr->cpny_id,
                         'Crtd_DateTime'    => $hdr->crtd_datetime,
                         'Crtd_Prog'        => $hdr->crtd_prog,
                         'CurryID'          => $hdr->curryid,
@@ -309,7 +307,7 @@ class SLAPIGRNController extends Controller
                     ];
 
                     $hdrRow = SLGRNHdr::query()
-                        ->where('CpnyID', $hdr->cpnyid)
+                        ->where('CpnyID', $hdr->cpny_id)
                         ->where('ReceiptNbr', $hdr->receiptnbr)
                         ->first();
 
@@ -320,7 +318,6 @@ class SLAPIGRNController extends Controller
                     }
 
                     foreach ($dts as $dt) {
-                        // $dtCpny = $dt->cpnyid ?? $dt->cpny_id ?? null;
                         $dtPayload = [
                             'AcumCrtdBy'    => $dt->acumcrtdby,
                             'AcumCrtdOn'    => $dt->acumcrtdon,
@@ -363,7 +360,7 @@ class SLAPIGRNController extends Controller
                         ];
 
                         $dtRow = SLGRNDet::query()
-                            ->where('CpnyID', $dt->cpnyid)
+                            ->where('CpnyID', $dt->cpny_id)
                             ->where('ReceiptNbr', $dt->receiptnbr)
                             ->where('LineID', $dt->lineid)
                             ->first();
