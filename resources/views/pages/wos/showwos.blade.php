@@ -736,143 +736,144 @@
 
             loadComments(woid, doctype);
 
-            $("#btnJobProcess").on("click", function(e) {
+            // $("#btnJobProcess").on("click", function(e) {
 
-                e.preventDefault();
+            //     e.preventDefault();
 
-                const btn = $(this);
-                const mode = btn.data("mode");
+            //     const btn = $(this);
+            //     const mode = btn.data("mode");
 
-                // =========================
-                // LOCKED
-                // =========================
-                if (mode === "locked") {
-                    toastr.info("WO already completed.");
-                    return;
-                }
+            //     // =========================
+            //     // LOCKED
+            //     // =========================
+            //     if (mode === "locked") {
+            //         toastr.info("WO already completed.");
+            //         return;
+            //     }
 
-                // =========================
-                // PROCESS MODE
-                // =========================
-                if (mode === "process") {
+            //     // =========================
+            //     // PROCESS MODE
+            //     // =========================
+            //     if (mode === "process") {
 
-                    $.ajax({
-                        url: "{{ route('wo.process', $wo->woid) }}",
-                        type: "POST",
-                        data: {
-                            _token: "{{ csrf_token() }}"
-                        },
+            //         $.ajax({
+            //             url: "{{ route('wo.process', $wo->woid) }}",
+            //             type: "POST",
+            //             data: {
+            //                 _token: "{{ csrf_token() }}"
+            //             },
 
-                        success: function(res) {
+            //             success: function(res) {
 
-                            if (!res.success) {
-                                toastr.error(res.message);
-                                return;
-                            }
+            //                 if (!res.success) {
+            //                     toastr.error(res.message);
+            //                     return;
+            //                 }
 
-                            toastr.success("You are now the PIC for this WO.");
+            //                 toastr.success("You are now the PIC for this WO.");
 
-                            $("#picName").text(res.pic_wo);
-                            $("#jobStatusBadge").text("On Progress");
+            //                 $("#picName").text(res.pic_wo);
+            //                 $("#jobStatusBadge").text("On Progress");
 
-                            $("#jobForm").removeClass("hidden");
+            //                 $("#jobForm").removeClass("hidden");
 
-                            // switch button to SAVE mode
-                            btn.data("mode", "save");
-                            btn.find("span").text("Save");
+            //                 // switch button to SAVE mode
+            //                 btn.data("mode", "save");
+            //                 btn.find("span").text("Save");
 
-                        },
+            //             },
 
-                        error: function(xhr) {
+            //             error: function(xhr) {
 
-                            if (xhr.responseJSON?.message) {
-                                toastr.error(xhr.responseJSON.message);
-                            } else {
-                                toastr.error("Failed to process WO.");
-                            }
+            //                 if (xhr.responseJSON?.message) {
+            //                     toastr.error(xhr.responseJSON.message);
+            //                 } else {
+            //                     toastr.error("Failed to process WO.");
+            //                 }
 
-                        }
-                    });
+            //             }
+            //         });
 
-                    return;
-                }
+            //         return;
+            //     }
 
-                // =========================
-                // SAVE MODE
-                // =========================
-                if (mode === "save") {
+            //     // =========================
+            //     // SAVE MODE
+            //     // =========================
+            //     if (mode === "save") {
 
-                    let formData = new FormData();
+            //         let formData = new FormData();
 
-                    formData.append("_token", "{{ csrf_token() }}");
-                    formData.append("status_pekerjaan", $("#status_pekerjaan").val());
-                    formData.append("pic_department", $("#pic_department").val());
-                    formData.append("pic_wo_comment", $("#pic_wo_comment").val());
+            //         formData.append("_token", "{{ csrf_token() }}");
+            //         formData.append("status_pekerjaan", $("#jobStatusSelect").val());
+            //         formData.append("pic_department", $("#pic_department").val());
+            //         formData.append("pic_wo_comment", $("#jobComment").val());
 
-                    if ($("#flag_sppbjkt").is(":checked")) {
-                        formData.append("flag_sppbjkt", 1);
-                    }
+            //         if ($("#flagSppbJkt").is(":checked")) {
+            //             formData.append("flag_sppbjkt", 1);
+            //         }
 
-                    const file = $("#job_attachment")[0].files[0];
+            //         const file = $("#jobAttachment")[0].files[0];
 
-                    if (file) {
-                        formData.append("attachment", file);
-                    }
+            //         if (file) {
+            //             formData.append("attachment", file);
+            //         }
 
-                    // attachment required if completed
-                    if ($("#status_pekerjaan").val() === "C" && !file) {
-                        toastr.error("Attachment required when completing job.");
-                        return;
-                    }
+            //         // attachment required if completed
+            //         if ($("#jobStatusSelect").val() === "C" && !file) {
+            //             toastr.error("Attachment required when completing job.");
+            //             return;
+            //         }
 
-                    $.ajax({
-                        url: "{{ route('wo.jobstatus', $wo->woid) }}",
-                        type: "POST",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
 
-                        success: function(res) {
+            //         $.ajax({
+            //             url: "{{ route('wo.jobstatus', $wo->woid) }}",
+            //             type: "POST",
+            //             data: formData,
+            //             processData: false,
+            //             contentType: false,
 
-                            if (!res.success) {
-                                toastr.error(res.message);
-                                return;
-                            }
+            //             success: function(res) {
 
-                            toastr.success("Job status updated.");
+            //                 if (!res.success) {
+            //                     toastr.error(res.message);
+            //                     return;
+            //                 }
 
-                            $("#jobStatusBadge").text(res.data.status_pekerjaan);
+            //                 toastr.success("Job status updated.");
 
-                            // if completed → lock
-                            if (res.data.status_pekerjaan === "C") {
+            //                 $("#jobStatusBadge").text(res.data.status_pekerjaan);
 
-                                btn.data("mode", "locked");
-                                btn.prop("disabled", true);
-                                btn.find("span").text("Locked");
+            //                 // if completed → lock
+            //                 if (res.data.status_pekerjaan === "C") {
 
-                                // 🔒 disable attachment input
-                                $("#jobAttachment").prop("disabled", true);
+            //                     btn.data("mode", "locked");
+            //                     btn.prop("disabled", true);
+            //                     btn.find("span").text("Locked");
 
-                                toastr.success("WO is now locked.");
+            //                     // 🔒 disable attachment input
+            //                     $("#jobAttachment").prop("disabled", true);
 
-                            }
+            //                     toastr.success("WO is now locked.");
 
-                        },
+            //                 }
 
-                        error: function(xhr) {
+            //             },
 
-                            if (xhr.responseJSON?.message) {
-                                toastr.error(xhr.responseJSON.message);
-                            } else {
-                                toastr.error("Failed to save job status.");
-                            }
+            //             error: function(xhr) {
 
-                        }
-                    });
+            //                 if (xhr.responseJSON?.message) {
+            //                     toastr.error(xhr.responseJSON.message);
+            //                 } else {
+            //                     toastr.error("Failed to save job status.");
+            //                 }
 
-                }
+            //             }
+            //         });
 
-            });
+            //     }
+
+            // });
 
             function loadComments(refnbr, doctype) {
                 let commentList = $('#commentList');
@@ -1027,10 +1028,10 @@
                 locked
                 ? `<span class="text-xs text-gray-400">Locked</span>`
                 : `<button
-                                            class="deleteJobAttachment px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition"
-                                            data-id="${file.id}">
-                                            Delete
-                                       </button>`
+                                                    class="deleteJobAttachment px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition"
+                                                    data-id="${file.id}">
+                                                    Delete
+                                               </button>`
             }
 
         </div>
@@ -1678,9 +1679,41 @@
 
                 // ===== PROCESS =====
                 if (mode === "process") {
-                    $form.removeClass("hidden"); // 🔥 SHOW FORM
-                    unlockForm();
-                    setButtonMode("save");
+
+                    $spinner.fadeIn();
+
+                    $.ajax({
+                        url: "/wo/" + encodeURIComponent(woid) + "/process",
+                        type: "POST",
+                        data: {
+                            _token: csrf
+                        },
+
+                        success: function(res) {
+                            if (!res.success) {
+                                toastr.error(res.message);
+                                return;
+                            }
+
+                            toastr.success("You are now the PIC for this WO.");
+
+                            $("#picName").text(res.pic_wo);
+
+                            // THEN continue UI logic
+                            $form.removeClass("hidden");
+                            unlockForm();
+                            setButtonMode("save");
+                        },
+
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || "Failed to process WO.");
+                        },
+
+                        complete: function() {
+                            $spinner.fadeOut();
+                        }
+                    });
+
                     return;
                 }
 
