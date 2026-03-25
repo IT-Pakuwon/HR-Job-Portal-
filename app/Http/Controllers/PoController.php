@@ -1034,8 +1034,8 @@ class PoController extends Controller
         $user = User::where('username', $po->created_by)
             ->first(['name', 'notification_email','email']);
 
-        // $fromEmail = $user->notification_email;
-        $fromEmail = $user->email;
+        $fromEmail = $user->notification_email;
+        // $fromEmail = $user->email;
 
         $purchaser = ucwords(strtolower($user->name));
 
