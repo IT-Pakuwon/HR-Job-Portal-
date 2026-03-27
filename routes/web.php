@@ -40,6 +40,7 @@ use App\Http\Controllers\Integration\IFCAAPISupplierController;
 use App\Http\Controllers\Integration\IFCAIntegrationController;
 use App\Http\Controllers\Integration\SLAPIGRNController;
 use App\Http\Controllers\Integration\SLAPIIssueController;
+use App\Http\Controllers\Integration\SLAPIPOController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryUserController;
 use App\Http\Controllers\IssueController;
@@ -1621,5 +1622,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('list', [SLAPIGRNController::class, 'list'])->name('list');
             Route::post('process', [SLAPIGRNController::class, 'process'])->name('process');
         });
+
+        // ✅ module: PO Solomon
+        Route::prefix('ifcaintegration/posolomon')->name('ifcaintegration.posolomon.')->group(function () {
+            Route::get('list', [SLAPIPOController::class, 'list'])->name('list');
+            Route::post('process', [SLAPIPOController::class, 'process'])->name('process');
+        });
+        
     });
 });
