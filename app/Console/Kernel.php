@@ -39,10 +39,10 @@ class Kernel extends ConsoleKernel
             ->runInBackground();
 
         // Restart PostgreSQL setiap hari jam 04:00
-        // $schedule->exec('sudo /bin/systemctl restart postgresql')
-        //     ->dailyAt('04:00')
-        //     ->withoutOverlapping()
-        //     ->appendOutputTo(storage_path('logs/restart-postgresql.log'));
+        $schedule->exec('sudo /usr/bin/systemctl restart postgresql')
+            ->dailyAt('04:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/restart-postgresql.log'));
 
         // Cek jumlah koneksi PostgreSQL tiap 5 menit
         $schedule->command('postgres:check-connections')

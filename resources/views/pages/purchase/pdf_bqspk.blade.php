@@ -84,7 +84,7 @@
 
     <div class="header">
         <div class="title">ATTACHMENT</div>
-        @if($businessUnit)
+        @if ($businessUnit)
             <div style="font-size:12px;">
                 {{ $businessUnit->business_unit_name }}
             </div>
@@ -163,9 +163,9 @@
             </tr>
 
             @php
-                $total = $sumMat + $sumJsa;
-                $ppn = round($total * 0.11);
-                $grand = $total + $ppn;
+                $total = (float) ($po->totalamt ?? $sumMat + $sumJsa);
+                $ppn = (float) ($po->taxamt ?? 0);
+                $grand = (float) ($po->grandtotalamt ?? $total + $ppn);
             @endphp
 
             <tr class="summary">

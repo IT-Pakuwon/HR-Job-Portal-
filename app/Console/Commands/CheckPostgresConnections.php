@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CheckPostgresConnections extends Command
@@ -14,59 +13,66 @@ class CheckPostgresConnections extends Command
     public function handle()
     {
         try {
-            // Ambil max_connections
-            $maxConnRow = DB::connection('pgsql')->selectOne('SHOW max_connections');
-            $maxConnections = (int) ($maxConnRow->max_connections ?? 0);
+            $host = env('PG_MONITOR_HOST', '127.0.0.1');
+            $port = env('PG_MONITOR_PORT', '5432');
+            $db   = env('PG_MONITOR_DATABASE', 'postgres');
+            $user = env('PG_MONITOR_USERNAME', 'postgres');
+            $pass = env('PG_MONITOR_PASSWORD', '');
 
-            if ($maxConnections <= 0) {
-                $msg = 'postgres:check-connections gagal membaca max_connections';
+            $maxConnections = $this->runPsqlScalar(
+                $host,
+                $port,
+                $db,
+                $user,
+                $pass,
+                "SHOW max_connections;"
+            );
+
+            if (!is_numeric($maxConnections) || (int) $maxConnections <= 0) {
+                $msg = 'postgres:check-connections gagal membaca max_connections via psql';
                 $this->error($msg);
-                Log::warning($msg);
+                Log::warning($msg, ['raw' => $maxConnections]);
                 return self::FAILURE;
             }
 
-            // Hitung jumlah koneksi aktif
-            $activityCountRow = DB::connection('pgsql')->selectOne("
-                SELECT COUNT(*) AS total
-                FROM pg_stat_activity
-            ");
-            $activityCount = (int) ($activityCountRow->total ?? 0);
+            $maxConnections = (int) $maxConnections;
 
-            // Ambil detail koneksi untuk log
-            $activities = DB::connection('pgsql')->select("
-                SELECT
-                    pid,
-                    usename,
-                    datname,
-                    client_addr,
-                    application_name,
-                    state,
-                    backend_start,
-                    xact_start,
-                    query_start,
-                    wait_event_type,
-                    wait_event,
-                    query
-                FROM pg_stat_activity
-                ORDER BY backend_start
-            ");
+            $activityCount = $this->runPsqlScalar(
+                $host,
+                $port,
+                $db,
+                $user,
+                $pass,
+                "SELECT COUNT(*) FROM pg_stat_activity;"
+            );
+
+            if (!is_numeric($activityCount)) {
+                $msg = 'postgres:check-connections gagal membaca pg_stat_activity via psql';
+                $this->error($msg);
+                Log::warning($msg, ['raw' => $activityCount]);
+                return self::FAILURE;
+            }
+
+            $activityCount = (int) $activityCount;
+
+            $this->info("max_connections: {$maxConnections}");
+            $this->info("pg_stat_activity count: {$activityCount}");
 
             Log::info('postgres:check-connections result', [
                 'max_connections' => $maxConnections,
                 'activity_count'  => $activityCount,
             ]);
 
-            $this->info("max_connections: {$maxConnections}");
-            $this->info("pg_stat_activity count: {$activityCount}");
+            $threshold = (int) floor($maxConnections * 0.95);
 
-            // Jalankan restart kalau melebihi / sama dengan max_connections
-            if ($activityCount >= $maxConnections) {
-                $cmd = 'sudo /bin/systemctl restart postgresql';
+            if ($activityCount >= $threshold) {
+                $cmd = 'sudo /usr/bin/systemctl restart postgresql';
 
                 exec($cmd . ' 2>&1', $output, $exitCode);
 
-                Log::warning('PostgreSQL restarted because connections reached max limit', [
+                Log::warning('PostgreSQL restart attempt because connections reached threshold', [
                     'max_connections' => $maxConnections,
+                    'threshold'       => $threshold,
                     'activity_count'  => $activityCount,
                     'command'         => $cmd,
                     'exit_code'       => $exitCode,
@@ -79,20 +85,52 @@ class CheckPostgresConnections extends Command
                     return self::FAILURE;
                 }
 
-                $this->warn('PostgreSQL restarted successfully because max_connections was reached.');
+                $this->warn("PostgreSQL restarted successfully because connection count reached threshold {$threshold}.");
             } else {
-                $this->info('Connections are still below max_connections. No restart needed.');
+                $this->info("Connections are still below threshold {$threshold}. No restart needed.");
             }
 
             return self::SUCCESS;
         } catch (\Throwable $e) {
             Log::error('postgres:check-connections error', [
                 'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
             ]);
 
             $this->error($e->getMessage());
             return self::FAILURE;
         }
+    }
+
+    protected function runPsqlScalar(
+        string $host,
+        string $port,
+        string $database,
+        string $username,
+        string $password,
+        string $sql
+    ): string {
+        $escapedHost = escapeshellarg($host);
+        $escapedPort = escapeshellarg($port);
+        $escapedDb   = escapeshellarg($database);
+        $escapedUser = escapeshellarg($username);
+        $escapedSql  = escapeshellarg($sql);
+
+        $prefix = '';
+        if ($password !== '') {
+            $prefix = 'PGPASSWORD=' . escapeshellarg($password) . ' ';
+        }
+
+        $cmd = $prefix
+            . "psql -h {$escapedHost} -p {$escapedPort} -U {$escapedUser} -d {$escapedDb} -t -A -c {$escapedSql} 2>&1";
+
+        exec($cmd, $output, $exitCode);
+
+        $result = trim(implode("\n", $output));
+
+        if ($exitCode !== 0) {
+            throw new \RuntimeException("psql command failed: " . $result);
+        }
+
+        return trim($result);
     }
 }
