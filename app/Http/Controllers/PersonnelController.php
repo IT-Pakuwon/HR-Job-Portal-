@@ -729,7 +729,9 @@ class PersonnelController extends Controller
                 ], 422);
             }
 
-            $groupGrade = (string)($grading->group_grade ?? ''); // ex: "Staff" / "Manager"
+            // $groupGrade = (string)($grading->group_grade ?? ''); // ex: "Staff" / "Manager"
+            $groupGrade = (string)($grading->group_grade ?? '');
+            $positionCondition = strtolower(trim($request->job_type . ' ' . $groupGrade));
 
             // Update header personnel
             $personnel->update([
@@ -759,15 +761,28 @@ class PersonnelController extends Controller
 
             // ===== Rebuild Approval Lines (hapus pending lama, build ulang dari master) =====
             // Ambil baris approval: Normal + Condition yang cocok dengan group_grade
+            // $msApproval = MsApproval::where('aprv_doctype', $doctype)
+            //     ->where('aprv_cpnyid', $request->cpnyid)
+            //     ->where('aprv_departementid', $request->departementid)
+            //     ->where('status', 'A')
+            //     ->where(function ($q) use ($groupGrade) {
+            //         $q->where('aprv_type', 'Normal')
+            //         ->orWhere(function ($q2) use ($groupGrade) {
+            //             $q2->where('aprv_type', 'Condition')
+            //                 ->where('aprv_condition', $groupGrade);
+            //         });
+            //     })
+            //     ->orderBy('aprv_leveling', 'asc')
+            //     ->get();
             $msApproval = MsApproval::where('aprv_doctype', $doctype)
                 ->where('aprv_cpnyid', $request->cpnyid)
                 ->where('aprv_departementid', $request->departementid)
                 ->where('status', 'A')
-                ->where(function ($q) use ($groupGrade) {
+                ->where(function ($q) use ($positionCondition) {
                     $q->where('aprv_type', 'Normal')
-                    ->orWhere(function ($q2) use ($groupGrade) {
+                    ->orWhere(function ($q2) use ($positionCondition) {
                         $q2->where('aprv_type', 'Condition')
-                            ->where('aprv_condition', $groupGrade);
+                            ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
                     });
                 })
                 ->orderBy('aprv_leveling', 'asc')

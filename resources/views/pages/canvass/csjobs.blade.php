@@ -340,55 +340,136 @@
             }
 
             function colSetWithoutCreate() {
-                return [{
+                return [
+                    {
                         data: null,
+                        name: 'doc_no',
                         className: 'text-left',
                         render: (_d, _t, row) => renderDocBtn(row)
                     },
                     {
                         data: 'assigndate',
+                        name: 'assigndate',
                         className: 'text-center',
-                        render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+                        render: function (data, type) {
+                            if (!data) return '';
+                            if (type === 'sort' || type === 'type') return data;
+                            return new Date(data).toLocaleDateString('id-ID');
+                        }
                     },
                     {
                         data: 'doc_date',
+                        name: 'doc_date',
                         className: 'text-left',
-                        render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+                        render: function (data, type) {
+                            if (!data) return '';
+                            if (type === 'sort' || type === 'type') return data;
+                            return new Date(data).toLocaleDateString('id-ID');
+                        }
                     },
                     {
                         data: 'cpny_id',
+                        name: 'cpny_id',
                         className: 'text-left'
                     },
                     {
                         data: 'created_by_name',
+                        name: 'created_by',
                         className: 'text-left',
                         defaultContent: '-'
                     },
                     {
                         data: 'assignpurchasing',
+                        name: 'assignpurchasing',
                         className: 'text-left',
                         defaultContent: ''
                     },
                     {
                         data: 'assignby',
+                        name: 'assignby',
                         className: 'text-left',
                         defaultContent: ''
                     },
                     {
                         data: 'department_id',
+                        name: 'department_id',
                         className: 'text-left'
                     },
                     {
                         data: 'keperluan',
+                        name: 'keperluan',
                         className: 'text-left'
                     },
                 ];
             }
 
+            // function colSetWithoutCreate() {
+            //     return [{
+            //             data: null,
+            //             className: 'text-left',
+            //             render: (_d, _t, row) => renderDocBtn(row)
+            //         },
+            //         {
+            //             data: 'assigndate',
+            //             className: 'text-center',
+            //             render: function (data, type) {
+            //                 if (!data) return '';
+
+            //                 if (type === 'sort' || type === 'type') {
+            //                     return data; // pakai raw date untuk sorting
+            //                 }
+
+            //                 return new Date(data).toLocaleDateString('id-ID');
+            //             }
+            //         },
+            //         {
+            //             data: 'doc_date',
+            //             className: 'text-left',
+            //             render: function (data, type) {
+            //                 if (!data) return '';
+
+            //                 if (type === 'sort' || type === 'type') {
+            //                     return data;
+            //                 }
+
+            //                 return new Date(data).toLocaleDateString('id-ID');
+            //             }
+            //         },
+            //         {
+            //             data: 'cpny_id',
+            //             className: 'text-left'
+            //         },
+            //         {
+            //             data: 'created_by_name',
+            //             className: 'text-left',
+            //             defaultContent: '-'
+            //         },
+            //         {
+            //             data: 'assignpurchasing',
+            //             className: 'text-left',
+            //             defaultContent: ''
+            //         },
+            //         {
+            //             data: 'assignby',
+            //             className: 'text-left',
+            //             defaultContent: ''
+            //         },
+            //         {
+            //             data: 'department_id',
+            //             className: 'text-left'
+            //         },
+            //         {
+            //             data: 'keperluan',
+            //             className: 'text-left'
+            //         },
+            //     ];
+            // }
+
 
             function colSetWithCreate() {
                 const actionCol = {
                     data: null,
+                    name: '',
                     orderable: false,
                     searchable: false,
                     className: 'text-left',
@@ -424,8 +505,17 @@
                 return [actionCol, ...colSetWithoutCreate()];
             }
 
+            // const dtControlColumn = {
+            //     data: null,
+            //     width: '28px',
+            //     className: 'dtr-control',
+            //     orderable: false,
+            //     searchable: false,
+            //     defaultContent: ''
+            // };
             const dtControlColumn = {
                 data: null,
+                name: '',
                 width: '28px',
                 className: 'dtr-control',
                 orderable: false,
@@ -489,9 +579,13 @@
                     url: "{{ route('csjobs.mine.json') }}",
                     type: "GET"
                 },
+                // order: [
+                //     [3, 'desc'],
+                //     [1, 'desc']
+                // ],
                 order: [
-                    [3, 'desc'],
-                    [1, 'desc']
+                    [3, 'desc'], // Assign Date
+                    [4, 'desc']  // Date
                 ],
                 columns: [dtControlColumn, ...colSetWithCreate()],
                 searchDelay: 400,
@@ -595,8 +689,15 @@
                     {
                         data: 'csdate',
                         className: 'text-center',
-                        render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString(
-                            'id-ID')) : ''
+                        render: function (data, type) {
+                            if (!data) return '';
+
+                            if (type === 'sort' || type === 'type') {
+                                return data;
+                            }
+
+                            return new Date(data).toLocaleDateString('id-ID');
+                        }
                     },
                     {
                         data: 'cpny_id',
@@ -678,7 +779,7 @@
                 },
                 order: [
                     [2, 'desc'],
-                    [0, 'desc']
+                    [3, 'desc']
                 ],
                 columns: [dtControlColumn, ...colSetWithoutCreate()],
                 searchDelay: 400,
@@ -801,7 +902,7 @@
                 },
                 order: [
                     [2, 'desc'],
-                    [0, 'desc']
+                    [3, 'desc']
                 ],
                 columns: [dtControlColumn, ...colSetWithoutCreate()],
                 searchDelay: 400,
@@ -864,8 +965,8 @@
                     type: "GET"
                 },
                 order: [
-                    [1, 'desc'], // doc_date
-                    [0, 'desc'] // doc_no
+                    [2, 'desc'],
+                    [3, 'desc']
                 ],
                 // columns: [
                 //     {
@@ -964,6 +1065,7 @@
         function colSetRevision() {
             const actionCol = {
                 data: null,
+                name: '',
                 orderable: false,
                 searchable: false,
                 className: 'text-left',
@@ -1012,7 +1114,15 @@
                 {
                     data: 'podate',
                     className: 'text-center',
-                    render: v => v ? (isNaN(new Date(v)) ? v : new Date(v).toLocaleDateString('id-ID')) : ''
+                    render: function (data, type) {
+                        if (!data) return '';
+
+                        if (type === 'sort' || type === 'type') {
+                            return data;
+                        }
+
+                        return new Date(data).toLocaleDateString('id-ID');
+                    }
                 },
                 { data: 'csid', className: 'text-center', defaultContent: '-' },
                 { data: 'sppbjktid', className: 'text-center', defaultContent: '-' },

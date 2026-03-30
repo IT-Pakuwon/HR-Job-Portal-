@@ -4018,12 +4018,12 @@ class CanvassController extends Controller
                     $pd->budget_perpost = $row->budget_perpost ?? null;
 
                     $pd->status = 'H';
-                    $pd->created_by = $user->username ?? 'system';
+                    $pd->created_by =$cs->created_by ?? 'system';
                     $pd->save();
 
                     // === UPDATE TrCSdetail: set ponbr ===
                     $row->ponbr = $ponbr;
-                    $row->updated_by = $user->username ?? 'system'; // kalau ada field ini
+                    $row->updated_by =$cs->created_by ?? 'system'; // kalau ada field ini
                     $row->updated_at = now();                       // kalau pakai timestamps
                     $row->save();
 

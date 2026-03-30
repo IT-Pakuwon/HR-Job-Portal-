@@ -115,20 +115,40 @@ class CsJobController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $doc    = (string) $request->query('doc', '');
 
-        $columns = [
-            0 => 'assigndate',
-            1 => 'doc_no',
-            2 => 'doc_date',
-            3 => 'cpny_id',
-            4 => 'created_by',
-            5 => 'assignpurchasing',
-            6 => 'assignby',
-            7 => 'department_id',
-            8 => 'keperluan',
-        ];
-        $orderIdx = (int) $request->input('order.0.column', 2);
+        // $columns = [
+        //     0 => 'assigndate',
+        //     1 => 'doc_no',
+        //     2 => 'doc_date',
+        //     3 => 'cpny_id',
+        //     4 => 'created_by',
+        //     5 => 'assignpurchasing',
+        //     6 => 'assignby',
+        //     7 => 'department_id',
+        //     8 => 'keperluan',
+        // ];
+        // $orderIdx = (int) $request->input('order.0.column', 2);
+        // $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        // $orderCol = $columns[$orderIdx] ?? 'doc_date';
+        $orderIdx = (int) $request->input('order.0.column', 0);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'doc_date';
+
+        $orderCol = $request->input("columns.$orderIdx.name", 'doc_date');
+
+        $allowedOrderColumns = [
+            'doc_no',
+            'assigndate',
+            'doc_date',
+            'cpny_id',
+            'created_by',
+            'assignpurchasing',
+            'assignby',
+            'department_id',
+            'keperluan',
+        ];
+
+        if (!in_array($orderCol, $allowedOrderColumns, true)) {
+            $orderCol = 'doc_date';
+        }
 
         $base->with('creator:username,name');
 
