@@ -82,7 +82,7 @@ class AcumVmsStagingController extends Controller
             $setting->status = $request->input('status');
         }
 
-        $setting->lastupdate_user = $user->username ?? 'SYSTEM';
+        $setting->lastupdate_user = $runBy;
         $setting->lastupdate_datetime = now();
         $setting->save();
 
@@ -145,7 +145,7 @@ class AcumVmsStagingController extends Controller
     // =====================================================================
     // RUNNER (INI LOGIKA STAGING YANG DULU ADA DI AcumVmsStagingController)
     // =====================================================================
-    public function run(string $appId = 'ACUMVMS'): array
+    public function run(string $appId = 'ACUMVMS', string $runBy = 'SYSTEM'): array
     {
         // =========================
         // LOCK (ANTI DOUBLE CRON/UI)
@@ -189,14 +189,40 @@ class AcumVmsStagingController extends Controller
             $poHeaders = TrPO::query()
                 ->where(function ($q) use ($from, $to) {
                     $q->whereBetween('submitdate', [$from, $to])
-                      ->orWhereBetween('updated_at', [$from, $to]);
+                    ->orWhereBetween('updated_at', [$from, $to]);
                 })
                 ->select(['id', 'ponbr', 'cpny_id'])
                 ->get();
 
             $poHeaderIds = $poHeaders->pluck('id')->all();
-            $ponbrList   = $poHeaders->pluck('ponbr')->filter()->unique()->values()->all();
-            $poCpnyMap   = $poHeaders->pluck('cpny_id', 'ponbr')->all();
+
+            /**
+             * Simpan pair unik PO header:
+             * [
+             *   ['ponbr' => '1000000001', 'cpny_id' => 'AW'],
+             *   ['ponbr' => '1000000001', 'cpny_id' => 'EP'],
+             * ]
+             */
+            $poHeaderPairs = $poHeaders
+                ->map(fn ($r) => [
+                    'ponbr'   => (string) $r->ponbr,
+                    'cpny_id' => (string) $r->cpny_id,
+                ])
+                ->filter(fn ($r) => $r['ponbr'] !== '' && $r['cpny_id'] !== '')
+                ->unique(fn ($r) => $r['ponbr'] . '|' . $r['cpny_id'])
+                ->values();
+
+            // $poHeaders = TrPO::query()
+            //     ->where(function ($q) use ($from, $to) {
+            //         $q->whereBetween('submitdate', [$from, $to])
+            //           ->orWhereBetween('updated_at', [$from, $to]);
+            //     })
+            //     ->select(['id', 'ponbr', 'cpny_id'])
+            //     ->get();
+
+            // $poHeaderIds = $poHeaders->pluck('id')->all();
+            // $ponbrList   = $poHeaders->pluck('ponbr')->filter()->unique()->values()->all();
+            // $poCpnyMap   = $poHeaders->pluck('cpny_id', 'ponbr')->all();
 
             // =========================
             // 3) STAGING PO
@@ -256,26 +282,45 @@ class AcumVmsStagingController extends Controller
             // =========================
             // 4) STAGING PO DETAIL
             // =========================
-            if (!empty($ponbrList)) {
+            if ($poHeaderPairs->isNotEmpty()) {
                 TrPOdetail::query()
-                    ->whereIn('ponbr', $ponbrList)
+                    ->where(function ($q) use ($poHeaderPairs) {
+                        foreach ($poHeaderPairs as $pair) {
+                            $q->orWhere(function ($sub) use ($pair) {
+                                $sub->where('ponbr', $pair['ponbr'])
+                                    ->where('budget_cpny_id', $pair['cpny_id']);
+                            });
+                        }
+                    })
                     ->select([
-                        'id','ponbr',
-                        'inventoryid','inventory_descr','qty','uom',
-                        'unitcost','taxcodeid','taxamt','totalcost',
-                        'status','created_by','created_at'
+                        'id',
+                        'ponbr',
+                        'budget_cpny_id',
+                        'inventoryid',
+                        'inventory_descr',
+                        'qty',
+                        'uom',
+                        'unitcost',
+                        'taxcodeid',
+                        'taxamt',
+                        'totalcost',
+                        'status',
+                        'created_by',
+                        'created_at'
                     ])
                     ->orderBy('id')
-                    ->chunkById(1000, function ($rows) use (&$result, $poCpnyMap) {
-
+                    ->chunkById(1000, function ($rows) use (&$result) {
                         $payload = [];
+
                         foreach ($rows as $d) {
-                            $cpny = $poCpnyMap[$d->ponbr] ?? null;
-                            if (!$cpny) continue;
+                            $cpny = (string) ($d->budget_cpny_id ?? '');
+                            if ($cpny === '') {
+                                continue;
+                            }
 
                             $payload[] = [
                                 'ponbr'           => $d->ponbr,
-                                'cpny_id'         => $cpny,
+                                'cpny_id'         => $cpny, // ambil dari budget_cpny_id
                                 'linenbr'         => (int) $d->id,
                                 'inventoryid'     => $d->inventoryid,
                                 'inventory_descr' => $d->inventory_descr,
@@ -294,16 +339,75 @@ class AcumVmsStagingController extends Controller
                         $this->upsertMysql7(
                             'staging_po_detail',
                             $payload,
-                            ['ponbr','cpny_id','linenbr'],
+                            ['ponbr', 'cpny_id', 'linenbr'],
                             [
-                                'inventoryid','inventory_descr','qty','uom',
-                                'unitcost','taxcodeid','taxamt','totalcost','status'
+                                'inventoryid',
+                                'inventory_descr',
+                                'qty',
+                                'uom',
+                                'unitcost',
+                                'taxcodeid',
+                                'taxamt',
+                                'totalcost',
+                                'status'
                             ]
                         );
 
                         $result['po_detail'] += count($payload);
                     });
             }
+
+            // // =========================
+            // // 4) STAGING PO DETAIL
+            // // =========================
+            // if (!empty($ponbrList)) {
+            //     TrPOdetail::query()
+            //         ->whereIn('ponbr', $ponbrList)
+            //         ->select([
+            //             'id','ponbr',
+            //             'inventoryid','inventory_descr','qty','uom',
+            //             'unitcost','taxcodeid','taxamt','totalcost',
+            //             'status','created_by','created_at'
+            //         ])
+            //         ->orderBy('id')
+            //         ->chunkById(1000, function ($rows) use (&$result, $poCpnyMap) {
+
+            //             $payload = [];
+            //             foreach ($rows as $d) {
+            //                 $cpny = $poCpnyMap[$d->ponbr] ?? null;
+            //                 if (!$cpny) continue;
+
+            //                 $payload[] = [
+            //                     'ponbr'           => $d->ponbr,
+            //                     'cpny_id'         => $cpny,
+            //                     'linenbr'         => (int) $d->id,
+            //                     'inventoryid'     => $d->inventoryid,
+            //                     'inventory_descr' => $d->inventory_descr,
+            //                     'qty'             => $d->qty,
+            //                     'uom'             => $d->uom,
+            //                     'unitcost'        => $d->unitcost,
+            //                     'taxcodeid'       => $d->taxcodeid,
+            //                     'taxamt'          => $d->taxamt,
+            //                     'totalcost'       => $d->totalcost,
+            //                     'status'          => $d->status,
+            //                     'created_by'      => $d->created_by,
+            //                     'created_at'      => $d->created_at,
+            //                 ];
+            //             }
+
+            //             $this->upsertMysql7(
+            //                 'staging_po_detail',
+            //                 $payload,
+            //                 ['ponbr','cpny_id','linenbr'],
+            //                 [
+            //                     'inventoryid','inventory_descr','qty','uom',
+            //                     'unitcost','taxcodeid','taxamt','totalcost','status'
+            //                 ]
+            //             );
+
+            //             $result['po_detail'] += count($payload);
+            //         });
+            // }
 
             // =========================
             // 5) STAGING RECEIPT
@@ -481,7 +585,7 @@ class AcumVmsStagingController extends Controller
             $setting->last_update = $nextDay->copy()->setTime(0, 1, 0);   // D+1 00:01:00
             $setting->next_update = $nextDay->copy()->setTime(23, 59, 0); // D+1 23:59:00
 
-            $setting->lastupdate_user = $user->username ?? 'SYSTEM'; // lebih bagus siapa yang run
+            $setting->lastupdate_user = $runBy; // lebih bagus siapa yang run
             $setting->lastupdate_datetime = now();
             $setting->save();
 

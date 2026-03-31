@@ -3436,7 +3436,7 @@ class CanvassController extends Controller
             $user->name,         // actor
 
             // CALLBACK saat reject benar-benar dieksekusi
-            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username,$cpnyId) {
                 \DB::connection('pgsql')->beginTransaction();
                 try {
                     if ($cs->bqtype !== 'Kontrak') {
@@ -3532,7 +3532,7 @@ class CanvassController extends Controller
             $user->name,         // actor
 
             // CALLBACK saat revise benar-benar dieksekusi
-            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username,$cpnyId) {
                 \DB::connection('pgsql')->beginTransaction();
                 try {
                     if ($cs->bqtype !== 'Kontrak') {
@@ -3544,7 +3544,7 @@ class CanvassController extends Controller
                     $this->rollbackOrderedOnSourceForRevise($cs, auth()->user()->username);
 
                     // Header -> H
-                    $cs->status = 'H';
+                    $cs->status = 'D';
                     $cs->completed_by = auth()->user()->username;
                     $cs->completed_at = $now;
                     $cs->save();

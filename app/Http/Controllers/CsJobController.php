@@ -437,7 +437,7 @@ class CsJobController extends Controller
 
         // base query
         $base = TrCS::query()
-            ->where('status', 'H')
+            ->whereIn('status', ['H', 'D']) // Hold/Revise
             ->where('created_by', $username);
 
         $columns = [

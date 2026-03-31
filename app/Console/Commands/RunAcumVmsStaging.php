@@ -15,7 +15,7 @@ class RunAcumVmsStaging extends Command
         $appId = $this->option('app') ?? 'ACUMVMS';
 
         $runner = app(AcumVmsStagingController::class);
-        $res = $runner->run($appId);
+        $res = $runner->run($appId, 'SCHEDULER');
 
         $this->info(json_encode($res, JSON_PRETTY_PRINT));
 

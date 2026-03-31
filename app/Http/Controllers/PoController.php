@@ -343,6 +343,177 @@ class PoController extends Controller
 
             DB::connection('pgsql')->statement(
                 'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
+                ['PO', $po->ponbr, $po->cpny_id, 'Submit', $username]
+            );
+
+            $po->status = 'P';
+            $po->send_email = false;
+            $po->save();
+        });
+
+        // =========================
+        // STAGING 1 PO KE ACUMVMS
+        // =========================
+        $stagingRes = app(\App\Http\Controllers\Integration\AcumVmsPoSubmitController::class)
+            ->runByPo($po->ponbr, $po->cpny_id, $username);
+
+        if (!($stagingRes['ok'] ?? false)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Submit berhasil, tetapi staging ACUMVMS gagal.',
+                'staging' => $stagingRes,
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Submit berhasil. Status berubah menjadi Purchase Order',
+            'staging' => $stagingRes,
+        ]);
+    }
+
+    public function submitPO_ori(Request $req, $ponbr)
+    {
+        $username = Auth::user()->username ?? 'system';
+
+        $po = TrPO::where('ponbr', $ponbr)
+            ->where('cpny_id', $req->input('cpny_id'))
+            ->firstOrFail();
+
+        if ($po->status !== 'H') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dokumen hanya bisa di-Submit jika status = HOLD (H).'
+            ], 422);
+        }
+
+        $poType = strtoupper((string) ($po->potype ?? ''));
+        $deliveryDate = $req->input('podeliverydate') ?? $req->input('po_deliverydate');
+
+        if ($poType === 'PO') {
+            $req->validate([
+                'podeliverydate' => ['nullable', 'date'],
+            ]);
+
+            if (empty($deliveryDate)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The podeliverydate field is required.'
+                ], 422);
+            }
+        } else {
+            $req->validate([
+                'work_date_from'  => ['required', 'date'],
+                'work_date_to'    => ['required', 'date', 'after_or_equal:work_date_from'],
+                'work_days'       => ['required', 'integer', 'min:0'],
+                'work_day_from'   => ['required', 'string'],
+                'work_day_to'     => ['required', 'string'],
+                'work_time_from'  => ['required', 'date_format:H:i'],
+                'work_time_to'    => ['required', 'date_format:H:i'],
+                'manpower_total'  => ['required', 'integer', 'min:0'],
+                'spkpic'          => ['required', 'string'],
+                'spkpicphone'     => ['required', 'string'],
+                'spkvendor'       => ['required', 'string'],
+                'spkvendorphone'  => ['required', 'string'],
+                'warranty'        => ['required', 'string'],
+            ]);
+
+            $start = Carbon::parse($req->input('work_date_from'));
+            $end   = Carbon::parse($req->input('work_date_to'));
+
+            $holidays = SysCalendar::query()
+                ->where('status', 'Z')
+                ->whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
+                ->whereNull('deleted_at')
+                ->pluck('date_calendar')
+                ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
+                ->toArray();
+
+            $calculatedWorkingDays = 0;
+            $current = $start->copy();
+            $type = strtoupper((string) $req->input('work_day_type', 'EXCLUDE'));
+
+            while ($current->lte($end)) {
+                $isWeekend = $current->isWeekend();
+                $isHoliday = in_array($current->format('Y-m-d'), $holidays);
+
+                if ($type === 'INCLUDE') {
+                    $calculatedWorkingDays++;
+                } else {
+                    if (!$isWeekend && !$isHoliday) {
+                        $calculatedWorkingDays++;
+                    }
+                }
+
+                $current->addDay();
+            }
+
+            if ((int) $req->input('work_days') !== $calculatedWorkingDays) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Working days mismatch. Please recheck selected dates.'
+                ], 422);
+            }
+        }
+
+        DB::transaction(function () use ($po, $req, $deliveryDate, $poType, $username) {
+            $po->submitdate = Carbon::now();
+            $po->updated_by = $username;
+
+            if ($poType === 'PO') {
+                $po->podeliverydate = $deliveryDate ? Carbon::parse($deliveryDate) : null;
+            } else {
+                $po->spkstartworkingdate = $req->input('work_date_from');
+                $po->spkendtworkingdate  = $req->input('work_date_to');
+                $po->spktotalday         = (int) $req->input('work_days');
+                $po->spkcarabayar        = 'Transfer';
+
+                $schedule = sprintf(
+                    'Hari %s s/d %s Pukul %s s/d %s WIB',
+                    $req->input('work_day_from'),
+                    $req->input('work_day_to'),
+                    $req->input('work_time_from'),
+                    $req->input('work_time_to')
+                );
+
+                $po->spkworkschedule = $schedule;
+                $po->spkmanpower     = (int) $req->input('manpower_total');
+
+                $po->spkpic         = $req->input('spkpic');
+                $po->spkpicjabatan  = $req->input('spkpicjabatan');
+                $po->spkpicphone    = $req->input('spkpicphone');
+                $po->spkpicemail    = $req->input('spkpicemail');
+
+                $po->spkvendor         = $req->input('spkvendor');
+                $po->spkvendorjabatan  = $req->input('spkvendorjabatan');
+                $po->spkvendorphone    = $req->input('spkvendorphone');
+                $po->spkvendoremail    = $req->input('spkvendoremail');
+
+                $po->spkwarranty = $req->input('warranty');
+
+                $pm = strtoupper((string) $req->input('payment_method', ''));
+                if ($pm !== '') {
+                    $po->ponote = trim(($po->ponote ? $po->ponote . "\n" : '') . "Cara Pembayaran: {$pm}");
+                }
+            }
+
+            $detailCount = TrPODetail::where('ponbr', $po->ponbr)
+                ->where('budget_cpny_id', $po->cpny_id)
+                ->count();
+
+            if ($detailCount <= 0) {
+                throw new \Exception("PO Detail kosong. Tidak bisa proses budget untuk PO {$po->ponbr}");
+            }
+
+            if ($poType === 'PO') {
+                $this->insertPoLastPrice($po);
+            }
+
+            $this->syncPoTermsFromTop($po);
+            $this->generateRfcaFromPo($po);
+
+            DB::connection('pgsql')->statement(
+                'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
                 ['PO', $po->ponbr, $po->cpny_id,'Submit', $username]
             );
 
@@ -1260,15 +1431,29 @@ class PoController extends Controller
         // =========================
         // CC dari table (default cc rules)
         // =========================
-        $ccFromTable = MsEmailCcRule::query()
-            ->where('status', 'A')
-            ->where('cpny_id', $po->cpny_id)
-            // ->where('department_id', $po->department_id) // pastikan kolom PO = department_id
-            ->pluck('email')
-            ->map(fn($e) => trim((string)$e))
-            ->filter(fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
-            ->values()
-            ->all();
+        $potype = strtoupper(trim((string) ($po->potype ?? '')));
+
+        $ccFromTable = [];
+        if ($potype === 'PO') {
+            $ccFromTable = MsEmailCcRule::query()
+                ->where('status', 'A')
+                ->where('cpny_id', $po->cpny_id)
+                // ->where('department_id', $po->department_id) // aktifkan kalau memang perlu filter dept
+                ->pluck('email')
+                ->map(fn($e) => trim((string) $e))
+                ->filter(fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
+                ->values()
+                ->all();
+        }
+        // $ccFromTable = MsEmailCcRule::query()
+        //     ->where('status', 'A')
+        //     ->where('cpny_id', $po->cpny_id)
+        //     // ->where('department_id', $po->department_id) // pastikan kolom PO = department_id
+        //     ->pluck('email')
+        //     ->map(fn($e) => trim((string)$e))
+        //     ->filter(fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
+        //     ->values()
+        //     ->all();
 
         // // CC dari request (kalau ada)
         // $ccFromRequest = $norm($data['cc'] ?? []);
