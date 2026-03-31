@@ -135,9 +135,13 @@
 
                         <th class="px-3 py-3 text-left">Inventory ID</th>
                         <th class="px-3 py-3 text-left">Item Description</th>
+                        <th class="px-3 py-3 text-right">Qty</th>
+                        <th class="px-3 py-3 text-left">UOM</th>
 
                         <th class="px-3 py-3 text-left">Budget Department</th>
                         <th class="px-3 py-3 text-left">Vendor</th>
+                        <th class="px-3 py-3 text-right">Unit Price</th>
+                        <th class="px-3 py-3 text-right">Total Price</th>
                     </tr>
 
                 </thead>
@@ -238,6 +242,22 @@
                 {
                     data: 'inventory_descr'
                 },
+                {
+                    data: 'qty',
+                    className: 'text-right',
+                    render: function(data) {
+                        if (!data) return '0';
+                        return parseFloat(data).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                },
+                {
+                    data: 'uom',
+                    defaultContent: '-',
+                    className: 'text-left'
+                },
                 // {
                 //     data: 'qty',
                 //     className: 'text-right'
@@ -269,6 +289,28 @@
                 {
                     data: 'vendor_name'
                 },
+                {
+                    data: 'unit_price',
+                    className: 'text-left',
+                    render: function(data) {
+                        if (!data) return '-';
+                        return parseFloat(data).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                },
+                {
+                    data: 'total_price',
+                    className: 'text-left font-semibold',
+                    render: function(data) {
+                        if (!data) return '-';
+                        return parseFloat(data).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
+                }
 
 
             ],

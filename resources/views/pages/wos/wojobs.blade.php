@@ -83,10 +83,26 @@
             </button>
         </div>
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">WO Jobs List</h1>
-            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
+                <!-- LEFT -->
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">
+                    WO Jobs List
+                </h1>
+
+                <!-- RIGHT -->
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-gray-600 dark:text-gray-300">
+                        Business Unit:
+                    </label>
+
+                    <select id="filterBusinessUnit"
+                        class="w-full rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Business Unit</option>
+                    </select>
+                </div>
+
+            </div>
             <div class="rounded-base relative overflow-x-auto">
                 <table id="wosTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
@@ -101,7 +117,9 @@
                                 Company</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Department</th>
-
+                            <th class="w-32 px-6 py-2 font-medium">
+                                Business Unit
+                            </th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 PIC</th>
                             <th class="w-32 px-6 py-2 font-medium">
@@ -186,7 +204,8 @@
                     url: "{{ route('wos.jsonJobs') }}",
                     type: "GET",
                     data: function(d) {
-                        d.job_status = jobStatusFilter ?? ''; // 🔥 hanya ini yg dikirim
+                        d.job_status = jobStatusFilter ?? '';
+                        d.business_unit = $('#filterBusinessUnit').val(); // 🔥 ADD THIS
                     }
                 },
                 order: [
@@ -222,11 +241,16 @@
                     },
                     {
                         data: 'cpny_id',
-                        className: 'text-center w-32'
+                        className: 'text-left w-32'
                     },
                     {
                         data: 'department_id',
-                        className: 'text-center whitespace-normal break-words'
+                        className: 'text-left whitespace-normal break-words'
+                    },
+                    {
+                        data: 'budget_business_unit_id',
+                        defaultContent: '-',
+                        className: 'text-left'
                     },
                     {
                         data: 'pic_wo',
@@ -300,6 +324,21 @@
                 responsive: true
             });
 
+            function loadBusinessUnits() {
+                $.get('/wo-business-units', function(data) {
+                    let select = $('#filterBusinessUnit');
+
+                    select.empty();
+                    select.append(`<option value="">All Business Unit</option>`);
+
+                    data.forEach(val => {
+                        select.append(`<option value="${val}">${val}</option>`);
+                    });
+                });
+            }
+
+            loadBusinessUnits();
+
             // Helper highlight: aktifkan tombol sesuai jobStatusFilter
             function setActiveCards() {
                 document.querySelectorAll('.status-filter, .job-filter').forEach(b => b.classList.remove('active'));
@@ -320,6 +359,10 @@
                 jobStatusFilter = $(this).data('status') || ''; // '' = All job statuses
                 setActiveCards();
                 table.ajax.reload(null, true);
+            });
+
+            $('#filterBusinessUnit').on('change', function() {
+                table.ajax.reload();
             });
 
             $('.job-filter').on('click', function(e) {

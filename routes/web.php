@@ -818,6 +818,7 @@ Route::middleware(['auth'])->group(function () {
         // Job Monitoring (READ ONLY)
         Route::get('/wojobs', [WoController::class, 'woJobs'])->name('wojobs');
         Route::get('/wos/jsonJobs', [WoController::class, 'jsonJobs'])->name('wos.jsonJobs');
+        Route::get('/wo-business-units', [WoController::class, 'businessUnits']);
     });
 
     Route::middleware('access:WOLIST,CREATE')->group(function () {
@@ -1628,6 +1629,5 @@ Route::middleware(['auth'])->group(function () {
             Route::get('list', [SLAPIPOController::class, 'list'])->name('list');
             Route::post('process', [SLAPIPOController::class, 'process'])->name('process');
         });
-        
     });
 });

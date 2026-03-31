@@ -340,8 +340,7 @@
             }
 
             function colSetWithoutCreate() {
-                return [
-                    {
+                return [{
                         data: null,
                         name: 'doc_no',
                         className: 'text-left',
@@ -351,9 +350,13 @@
                         data: 'assigndate',
                         name: 'assigndate',
                         className: 'text-center',
-                        render: function (data, type) {
+                        render: function(data, type) {
                             if (!data) return '';
-                            if (type === 'sort' || type === 'type') return data;
+
+                            if (type === 'sort' || type === 'type') {
+                                return new Date(data).getTime(); // 🔥 FIX HERE
+                            }
+
                             return new Date(data).toLocaleDateString('id-ID');
                         }
                     },
@@ -361,7 +364,7 @@
                         data: 'doc_date',
                         name: 'doc_date',
                         className: 'text-left',
-                        render: function (data, type) {
+                        render: function(data, type) {
                             if (!data) return '';
                             if (type === 'sort' || type === 'type') return data;
                             return new Date(data).toLocaleDateString('id-ID');
@@ -585,7 +588,7 @@
                 // ],
                 order: [
                     [3, 'desc'], // Assign Date
-                    [4, 'desc']  // Date
+                    [4, 'desc'] // Date
                 ],
                 columns: [dtControlColumn, ...colSetWithCreate()],
                 searchDelay: 400,
@@ -689,11 +692,11 @@
                     {
                         data: 'csdate',
                         className: 'text-center',
-                        render: function (data, type) {
+                        render: function(data, type) {
                             if (!data) return '';
 
                             if (type === 'sort' || type === 'type') {
-                                return data;
+                                return new Date(data).getTime(); // 🔥 FIX HERE
                             }
 
                             return new Date(data).toLocaleDateString('id-ID');
@@ -1094,13 +1097,13 @@
                         // ✅ showkontrak harus pakai hash id kontrak
                         const kontrakEid = row.kontrak_eid ? String(row.kontrak_eid) : '';
 
-                        const href = (cat === 'KONTRAK')
-                            ? (kontrakEid ? `/showkontrak/${kontrakEid}` : '#')
-                            : `/showpo/${row.eid}`;
+                        const href = (cat === 'KONTRAK') ?
+                            (kontrakEid ? `/showkontrak/${kontrakEid}` : '#') :
+                            `/showpo/${row.eid}`;
 
-                        const disabled = (cat === 'KONTRAK' && !kontrakEid)
-                            ? 'opacity-50 pointer-events-none'
-                            : '';
+                        const disabled = (cat === 'KONTRAK' && !kontrakEid) ?
+                            'opacity-50 pointer-events-none' :
+                            '';
 
                         return `
                             <a href="${href}" target="_blank"
@@ -1114,7 +1117,7 @@
                 {
                     data: 'podate',
                     className: 'text-center',
-                    render: function (data, type) {
+                    render: function(data, type) {
                         if (!data) return '';
 
                         if (type === 'sort' || type === 'type') {
@@ -1124,11 +1127,31 @@
                         return new Date(data).toLocaleDateString('id-ID');
                     }
                 },
-                { data: 'csid', className: 'text-center', defaultContent: '-' },
-                { data: 'sppbjktid', className: 'text-center', defaultContent: '-' },
-                { data: 'cpny_id', className: 'text-center', defaultContent: '-' },
-                { data: 'department_id', className: 'text-center', defaultContent: '-' },
-                { data: 'vendorname', className: 'text-left', defaultContent: '-' },
+                {
+                    data: 'csid',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'sppbjktid',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'cpny_id',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'department_id',
+                    className: 'text-center',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'vendorname',
+                    className: 'text-left',
+                    defaultContent: '-'
+                },
             ];
         }
     </script>

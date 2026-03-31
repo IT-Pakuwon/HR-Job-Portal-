@@ -1779,7 +1779,7 @@ class WoController extends Controller
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
             ->reorder()
             ->orderBy('created_at', 'asc')
@@ -1942,6 +1942,7 @@ class WoController extends Controller
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
         $jobStatus = (string) $request->query('job_status', '');
+        $businessUnit = (string) $request->query('business_unit', '');
 
         $columns = [
             0 => 'wo.woid',
@@ -1986,6 +1987,10 @@ class WoController extends Controller
             $base->where('wo.status_pekerjaan', $jobStatus);
         }
 
+        if ($businessUnit !== '') {
+            $base->where('wo.budget_business_unit_id', $businessUnit);
+        }
+
         $recordsTotal = (clone $base)->distinct()->count('wo.woid');
 
         // Search
@@ -2016,6 +2021,8 @@ class WoController extends Controller
             'wo.worequest',
             'wo.keperluan',
 
+            'wo.budget_business_unit_id',
+
             'loc.location_name',
 
             // FIXED COLUMN NAME
@@ -2045,6 +2052,31 @@ class WoController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    public function businessUnits()
+    {
+        $user = Auth::user();
+
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_map('trim', explode(',', $user->cpny_id))
+            : (array) $user->cpny_id;
+
+        $deptIds = is_string($user->department_id)
+            ? array_map('trim', explode(',', $user->department_id))
+            : (array) $user->department_id;
+
+        $data = TrWO::from('tr_wo as wo')
+            ->join('ms_worktype_dept as wtd', function ($j) {
+                $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
+            })
+            ->whereIn('wo.cpny_id', $cpnyIds)
+            ->whereIn('wtd.department_id', $deptIds)
+            ->whereNotNull('wo.budget_business_unit_id')
+            ->distinct()
+            ->pluck('wo.budget_business_unit_id');
+
+        return response()->json($data);
     }
 
     // POST /wo/{woid}/process
