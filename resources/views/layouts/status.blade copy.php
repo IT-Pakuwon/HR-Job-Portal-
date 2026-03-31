@@ -573,7 +573,7 @@
             margin-left: 4px;
         }
 
-        .track-tab {
+        .track-tab, .track-tab-sppb {
             padding: .4rem .75rem;
             border-radius: .5rem;
             font-size: .875rem;
@@ -582,11 +582,11 @@
             white-space: nowrap;
         }
 
-        .track-tab:hover {
+        .track-tab:hover, .track-tab-sppb:hover {
             background: rgba(0, 0, 0, .05)
         }
 
-        .track-tab.active {
+        .track-tab.active, .track-tab-sppb.active {
             background: rgba(79, 70, 229, .12);
             color: #4338ca
         }

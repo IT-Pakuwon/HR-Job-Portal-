@@ -217,6 +217,78 @@
                 </style>
             </div>
         </div>
+
+        <!-- ================== SPPB TRACKING MODAL ================== -->
+        <div id="trackingModalSppb" class="fixed inset-0 z-50 hidden bg-black/50">
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div
+                    class="max-h-[90vh] w-full max-w-7xl overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-800">
+
+                    <div class="flex items-center justify-between border-b px-4 py-3">
+                        <h3 class="text-sm font-semibold">
+                            Tracking Detail <span id="trackDocSppb" class="font-bold text-indigo-600"></span>
+                        </h3>
+                        <button type="button" id="closeTrackingSppb"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="border-b border-gray-200 px-4 dark:border-gray-700">
+                        <div class="flex gap-2 overflow-x-auto py-2" id="trackTabsSppb">
+                            <button class="track-tab-sppb active" data-tab="tab-sppb-sppb">SPPB</button>
+                            <button class="track-tab-sppb" data-tab="tab-cs-sppb">CS</button>
+                            <button class="track-tab-sppb" data-tab="tab-po-sppb">PO</button>
+                            <button class="track-tab-sppb" data-tab="tab-receipt-sppb">Receipt</button>
+                        </div>
+                    </div>
+
+                    <div class="max-h-[calc(90vh-110px)] overflow-y-auto p-4">
+                        <div id="tlLoadingSppb"
+                            class="hidden items-center gap-2 text-sm text-gray-500 dark:text-gray-300">
+                            <span
+                                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                            Loading...
+                        </div>
+
+                        <div id="tab-sppb-sppb" class="track-pane-sppb">
+                            <div id="sppbHeaderBoxSppb"></div>
+                            <div class="mt-3" id="sppbDetailBoxSppb"></div>
+                        </div>
+
+                        <div id="tab-cs-sppb" class="track-pane-sppb hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select CS</label>
+                                <select id="selCsSppb"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="csHeaderBoxSppb"></div>
+                            <div class="mt-3" id="csDetailBoxSppb"></div>
+                        </div>
+
+                        <div id="tab-po-sppb" class="track-pane-sppb hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select PO</label>
+                                <select id="selPoSppb"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="poHeaderBoxSppb"></div>
+                            <div class="mt-3" id="poDetailBoxSppb"></div>
+                        </div>
+
+                        <div id="tab-receipt-sppb" class="track-pane-sppb hidden">
+                            <div class="mb-2">
+                                <label class="text-xs text-gray-500">Select Receipt</label>
+                                <select id="selReceiptSppb"
+                                    class="w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"></select>
+                            </div>
+                            <div id="receiptHeaderBoxSppb"></div>
+                            <div class="mt-3" id="receiptDetailBoxSppb"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -419,9 +491,11 @@
                 return `
             <tr>
                 <th></th>
-                <th>Issue ID</th>
                 <th>SPB ID</th>
                 <th>SPPB ID</th>
+                <th>WO ID</th>
+                <th>Issue ID</th>         // ✅ NEW
+                <th>SPB Purpose</th>
                 <th>Total SPB</th>
                 <th>Total Issue</th>
                 <th>Total Return</th>
@@ -726,19 +800,7 @@
                     columns: [
                         dtControlColumn,
                         // Issue ID button
-                        {
-                            data: 'issueid',
-                            render: function(data, type, row) {
-                                const text = data || '';
-                                const eid = row.eid_issue || '';
-                                const url = `/showissue/${eid}`; // 🔥 ganti sesuai route issue kamu
-                                return `
-                            <a href="${url}"
-                            class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-amber-600 hover:bg-amber-700">
-                            ${text}
-                            </a>`;
-                            }
-                        },
+
 
                         // SPB ID button (ke showspbs seperti normal)
                         {
@@ -758,17 +820,83 @@
                         // SPPB ID button
                         {
                             data: 'sppbid',
-                            defaultContent: '',
                             render: function(data, type, row) {
-                                const text = data || '';
-                                const eid = row.eid_sppb || '';
-                                if (!text || !eid) return '';
-                                const url = `/showsppbs/${eid}`; // 🔥 ganti sesuai route sppb kamu
+
+                                if (!data || !row.eid_sppb) {
+                                    return `<span class="text-gray-400 italic">No SPPB</span>`;
+                                }
+
                                 return `
-                            <a href="${url}"
-                            class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-emerald-600 hover:bg-emerald-700">
-                            ${text}
-                            </a>`;
+            <div class="flex gap-2 items-center">
+
+                <a href="/showsppbs/${row.eid_sppb}"
+                    class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-green-600 hover:bg-green-700">
+                   ${data}
+                </a>
+
+                <button
+                    class="tracking-btn-sppb inline-flex items-center justify-center rounded-full p-2
+                                            text-red-600 hover:text-red-700 hover:bg-red-50"
+                    data-id="${row.eid_sppb}"
+                    data-doc="${data}"aria-label="Tracking" title="Tracking">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                </button>
+
+            </div>
+        `;
+                            }
+                        },
+                        // WO ID
+                        {
+                            data: 'woid',
+                            render: function(data, type, row) {
+                                if (!data || !row.eid_wo) {
+                                    return `
+                <span class="text-gray-400 italic">No WO</span>
+            `;
+                                }
+
+                                const url = `/showwos/${row.eid_wo}`;
+
+                                return `
+            <a href="${url}" target="_blank"
+               class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-purple-600 hover:bg-purple-700">
+               ${data}
+            </a>
+        `;
+                            }
+                        },
+                        {
+                            data: 'issueid',
+                            render: function(data, type, row) {
+                                if (!data) {
+                                    return `
+                <span class="text-gray-400 italic">Not Issue Yet</span>
+            `;
+                                }
+
+                                const url = `/showissue/${row.eid_issue}`;
+
+                                return `
+            <a href="${url}"
+               class="inline-flex justify-center items-center w-[140px] px-3 py-1.5 text-sm font-semibold text-white rounded bg-amber-600 hover:bg-amber-700">
+               ${data}
+            </a>
+        `;
+                            }
+                        },
+                        // Purpose
+                        {
+                            data: 'keperluan',
+                            render: function(data) {
+                                if (!data) return '-';
+
+                                return `
+            <div class="max-w-[220px] truncate cursor-pointer"
+                 title="${data}">
+                ${data}
+            </div>
+        `;
                             }
                         },
 
@@ -892,6 +1020,513 @@
                 if (dt) dt.ajax.reload();
             });
         })();
+
+        function fmt2(val) {
+            if (val === null || val === undefined || val === '') return '0.00';
+            const num = Number(val);
+            if (isNaN(num)) return '0.00';
+            return num.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        (function() {
+            // ---------- Modal open/close ----------
+            function openTrackingModalSppb(docText) {
+                document.getElementById('trackDocSppb').textContent = docText ? `(${docText})` : '';
+                const modal = document.getElementById('trackingModalSppb');
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeTrackingModal() {
+                document.getElementById('trackingModalSppb')?.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            document.getElementById('closeTrackingSppb')?.addEventListener('click', closeTrackingModal);
+            document.getElementById('trackingModalSppb')?.addEventListener('click', (e) => {
+                if (e.target.id === 'trackingModalSppb') closeTrackingModal();
+            });
+
+            // ---------- Tabs ----------
+            (function() {
+                const tabs = document.getElementById('trackTabsSppb');
+                if (!tabs) return;
+
+                tabs.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.track-tab-sppb');
+                    if (!btn) return;
+
+                    document.querySelectorAll('.track-tab-sppb').forEach(x => x.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const target = btn.dataset.tab;
+                    document.querySelectorAll('.track-pane-sppb').forEach(p => p.classList.add('hidden'));
+                    document.getElementById(target)?.classList.remove('hidden');
+                });
+            })();
+
+            function resetToSppbTab() {
+                document.querySelectorAll('.track-tab-sppb').forEach(x => x.classList.remove('active'));
+                document.querySelector('.track-tab-sppb[data-tab="tab-sppb-sppb"]')?.classList.add('active');
+                document.querySelectorAll('.track-pane-sppb').forEach(p => p.classList.add('hidden'));
+                document.getElementById('tab-sppb-sppb')?.classList.remove('hidden');
+            }
+
+            // ---------- Utilities ----------
+            function esc(s) {
+                return String(s ?? '')
+                    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+            }
+
+            function setLoading(on) {
+                const el = document.getElementById('tlLoadingSppb');
+                if (!el) return;
+                el.classList.toggle('hidden', !on);
+                el.classList.toggle('flex', on);
+            }
+
+            function statusLabel(st) {
+                st = String(st || '').toUpperCase();
+
+                const map = {
+                    'C': {
+                        text: 'Completed',
+                        cls: 'bg-green-100 text-green-700'
+                    },
+                    'P': {
+                        text: 'On Progress',
+                        cls: 'bg-yellow-100 text-yellow-700'
+                    },
+                    'R': {
+                        text: 'Rejected',
+                        cls: 'bg-red-100 text-red-700'
+                    },
+                    'D': {
+                        text: 'Revise',
+                        cls: 'bg-blue-100 text-blue-700'
+                    }
+                };
+
+                const it = map[st] || {
+                    text: st || '-',
+                    cls: 'bg-gray-100 text-gray-700'
+                };
+
+                return `
+                <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold ${it.cls}">
+                    ${it.text}
+                </span>
+            `;
+            }
+
+            function statusLabel2(st) {
+                st = String(st || '').toUpperCase();
+                switch (st) {
+                    case 'P':
+                        return 'On Progress';
+                    case 'C':
+                        return 'Completed';
+                    case 'R':
+                        return 'Rejected';
+                    case 'D':
+                        return 'Revise';
+                    default:
+                        return st || '-';
+                }
+            }
+
+            function badgeApproved(isApproved) {
+                if (isApproved) {
+                    return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
+                }
+                return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
+            }
+
+            function resetBoxes() {
+                [
+                    'sppbHeaderBoxSppb', 'csHeaderBoxSppb', 'poHeaderBoxSppb', 'receiptHeaderBoxSppb',
+                    'sppbDetailBoxSppb', 'csDetailBoxSppb', 'poDetailBoxSppb', 'receiptDetailBoxSppb'
+                ].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '';
+                });
+            }
+
+            function renderHeader(boxId, header, title) {
+                const box = document.getElementById(boxId);
+                if (!box) return;
+
+                if (!header) {
+                    box.innerHTML = `
+                        <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
+                            ${esc(title)} not created yet.
+                        </div>`;
+                    return;
+                }
+
+                // ✅ HARUS DI DALAM renderHeader (biar scope benar)
+                const la = header.last_approval || null;
+
+                let lastApprovalHtml = '';
+                if (la) {
+                    const st = String(la.status || '').toUpperCase();
+                    const stText = st === 'P' ? 'Pending Approval' : (st === 'A' ? 'Approved' : st);
+
+                    const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
+                    const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null) ?
+                        `Lvl ${esc(la.aprv_leveling)}` :
+                        '';
+                    const dtb = la.date_before ? esc(la.date_before) : '';
+                    const dta = la.date_after ? esc(la.date_after) : '';
+
+                    lastApprovalHtml = `
+                        <div class="sm:col-span-2 mt-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-700/40 dark:bg-indigo-900/20">
+                            <div class="flex items-center justify-between">
+                                <div class="font-semibold text-indigo-700 dark:text-indigo-300">Last Approval</div>
+                                <div class="text-xs text-indigo-700/80 dark:text-indigo-300/80">
+                                    ${esc(stText)} ${lvl ? `• ${lvl}` : ''}
+                                </div>
+                            </div>
+                            <div class="mt-1 text-gray-700 dark:text-gray-200">
+                                <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
+                                ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
+                                ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                box.innerHTML = `
+                    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-800 dark:text-white">
+                                    ${esc(title)} : ${esc(header.doc)}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-300">${esc(header.date || '')}</div>
+                            </div>
+                            ${statusLabel(header.status)}
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                            <div><span class="text-gray-500">Company:</span>
+                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
+                            </div>
+                            <div><span class="text-gray-500">Department:</span>
+                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
+                            </div>
+                            <div><span class="text-gray-500">Created By:</span>
+                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.created_by || '-')}</span>
+                            </div>
+
+                            ${header.vendorname !== undefined
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
+                                                                                                                                                                                                                                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
+                                : ''
+                            }
+
+                            ${header.keperluan !== undefined
+                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
+                                                                                                                                                                                                                                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
+                                : ''
+                            }
+                        </div>
+
+                        ${lastApprovalHtml}
+                    </div>
+                `;
+            }
+
+            // ---------- Detail renderers ----------
+            function renderDetailSppb(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                const trs = rows.map(r => `
+            <tr class="border-b dark:border-gray-700">
+                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+                <td class="px-3 py-2">${esc(r.uom)}</td>
+                <td class="px-3 py-2">${esc(r.siteid)}</td>
+                <td class="px-3 py-2">${esc(r.ordered || '')}</td>
+            </tr>`).join('');
+                return `
+            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-700/30">
+                    <tr>
+                    <th class="px-3 py-2 text-left">Inventory</th>
+                    <th class="px-3 py-2 text-left">Description</th>
+                    <th class="px-3 py-2 text-right">Qty</th>
+                    <th class="px-3 py-2 text-left">UOM</th>
+                    <th class="px-3 py-2 text-left">Site</th>
+                    <th class="px-3 py-2 text-left">Ordered</th>
+                    </tr>
+                </thead>
+                <tbody>${trs}</tbody>
+                </table>
+            </div>`;
+            }
+
+            function renderDetailCs(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+
+                const trs = rows.map(r => `
+                <tr class="border-b dark:border-gray-700">
+                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+                <td class="px-3 py-2">${esc(r.uom)}</td>
+                <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>
+                </tr>
+            `).join('');
+
+                return `
+                <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-700/30">
+                    <tr>
+                        <th class="px-3 py-2 text-left">Inventory</th>
+                        <th class="px-3 py-2 text-left">Description</th>
+                        <th class="px-3 py-2 text-right">Qty</th>
+                        <th class="px-3 py-2 text-left">UOM</th>
+                        <th class="px-3 py-2 text-left">Selected Vendor</th>
+                    </tr>
+                    </thead>
+                    <tbody>${trs}</tbody>
+                </table>
+                </div>`;
+            }
+
+
+            function renderDetailPo(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                const trs = rows.map(r => `
+            <tr class="border-b dark:border-gray-700">
+                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+                <td class="px-3 py-2">${esc(r.uom)}</td>
+            </tr>`).join('');
+                return `
+            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-700/30">
+                    <tr>
+                    <th class="px-3 py-2 text-left">Inventory</th>
+                    <th class="px-3 py-2 text-left">Description</th>
+                    <th class="px-3 py-2 text-right">Qty</th>
+                    <th class="px-3 py-2 text-left">UOM</th>
+                    </tr>
+                </thead>
+                <tbody>${trs}</tbody>
+                </table>
+            </div>`;
+            }
+
+            function renderDetailReceipt(rows) {
+                if (!Array.isArray(rows) || rows.length === 0)
+                    return `<div class="text-sm text-gray-500">No detail.</div>`;
+                const trs = rows.map(r => `
+            <tr class="border-b dark:border-gray-700">
+                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                <td class="px-3 py-2 text-right">${fmt2(r.qtyordered)}</td>
+                <td class="px-3 py-2 text-right">${fmt2(r.qty_received)}</td>
+                <td class="px-3 py-2">${esc(r.uom)}</td>
+            </tr>`).join('');
+                return `
+            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-700/30">
+                    <tr>
+                    <th class="px-3 py-2 text-left">Inventory</th>
+                    <th class="px-3 py-2 text-left">Description</th>
+                    <th class="px-3 py-2 text-right">Qty Ordered</th>
+                    <th class="px-3 py-2 text-right">Qty Received</th>
+                    <th class="px-3 py-2 text-left">UOM</th>
+                    </tr>
+                </thead>
+                <tbody>${trs}</tbody>
+                </table>
+            </div>`;
+            }
+
+            // ---------- Select helpers ----------
+            function fillSelect(selectId, items, selectedDoc) {
+                const sel = document.getElementById(selectId);
+                if (!sel) return;
+
+                sel.innerHTML = '';
+
+                if (!items || items.length === 0) {
+                    sel.innerHTML = `<option value="">none </option>`;
+                    return;
+                }
+
+                items.forEach(it => {
+                    const opt = document.createElement('option');
+                    opt.value = it.doc;
+                    // opt.textContent = `${it.doc}${it.date ? ' | ' + it.date : ''}${it.is_approved ? ' | APPROVED' : ''}`;
+                    opt.textContent = `${it.doc}` +
+                        (it.date ? ` | ${it.date}` : '') +
+                        (it.status ? ` | ${statusLabel2(it.status)}` : '');
+
+                    if (selectedDoc && it.doc === selectedDoc) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+
+                // kalau selectedDoc kosong, auto pilih pertama
+                if (!selectedDoc && sel.options.length > 0) sel.selectedIndex = 0;
+            }
+
+            function filterReceiptsByPo(poDoc) {
+                const all = window.__receiptList || [];
+                if (!poDoc) return all;
+
+                // backend kamu harus kirim: lists.receipt[].ponbr atau .po
+                return all.filter(x => (x.ponbr === poDoc) || (x.po === poDoc));
+            }
+
+            // ---------- AJAX helpers (jQuery Deferred) ----------
+            function fetchItem(eid, type, doc) {
+                return $.ajax({
+                    url: `/sppbs/${eid}/tracking-detail/item`,
+                    method: 'GET',
+                    dataType: 'json',
+                    data: {
+                        type,
+                        doc
+                    }
+                });
+            }
+
+            // ---------- Change handlers (safe: off/on) ----------
+            $(document).off('change', '#selCsSppb').on('change', '#selCsSppb', function() {
+                const eid = window.__trackEid;
+                const doc = this.value;
+                if (!eid || !doc) return;
+
+                fetchItem(eid, 'cs', doc).done(res => {
+                    renderHeader('csHeaderBoxSppb', res.header, 'CS');
+                    document.getElementById('csDetailBoxSppb').innerHTML = renderDetailCs(res.details ||
+                        []);
+                });
+            });
+
+            $(document).off('change', '#selPoSppb').on('change', '#selPoSppb', function() {
+                const eid = window.__trackEid;
+                const doc = this.value;
+                if (!eid || !doc) return;
+
+                fetchItem(eid, 'po', doc).done(res => {
+                    renderHeader('poHeaderBoxSppb', res.header, 'PO');
+                    document.getElementById('poDetailBoxSppb').innerHTML = renderDetailPo(res.details ||
+                        []);
+                });
+
+                // filter receipt list by PO selected
+                const filtered = filterReceiptsByPo(doc);
+                fillSelect('selReceiptSppb', filtered, (filtered[0]?.doc || ''));
+
+                // auto load first receipt after filter
+                const first = filtered[0]?.doc;
+                if (first) {
+                    fetchItem(eid, 'receipt', first).done(res => {
+                        renderHeader('receiptHeaderBoxSppb', res.header, 'Receipt');
+                        document.getElementById('receiptDetailBoxSppb').innerHTML = renderDetailReceipt(
+                            res
+                            .details || []);
+                    });
+                } else {
+                    renderHeader('receiptHeaderBoxSppb', null, 'Receipt');
+                    document.getElementById('receiptDetailBoxSppb').innerHTML =
+                        `<div class="text-sm text-gray-500">No detail.</div>`;
+                }
+            });
+
+            $(document).off('change', '#selReceiptSppb').on('change', '#selReceiptSppb', function() {
+                const eid = window.__trackEid;
+                const doc = this.value;
+                if (!eid || !doc) return;
+
+                fetchItem(eid, 'receipt', doc).done(res => {
+                    renderHeader('receiptHeaderBoxSppb', res.header, 'Receipt');
+                    document.getElementById('receiptDetailBoxSppb').innerHTML = renderDetailReceipt(res
+                        .details || []);
+                });
+            });
+
+            // ---------- Main click handler (ONLY ONE) ----------
+            $(document).off('click', '.tracking-btn-sppb').on('click', '.tracking-btn-sppb', function() {
+                const eid = $(this).data('id');
+                const doc = $(this).data('doc') || '';
+                window.__trackEid = eid;
+
+                resetToSppbTab();
+                resetBoxes();
+                openTrackingModalSppb(doc);
+                setLoading(true);
+
+                $.ajax({
+                    url: `/sppbs/${eid}/tracking-detail`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(res) {
+                        setLoading(false);
+
+                        // simpan list untuk filtering
+                        window.__receiptList = res.lists?.receipt || [];
+
+                        // render header default (selected)
+                        renderHeader('sppbHeaderBoxSppb', res.sppb?.header, 'SPPB');
+                        renderHeader('csHeaderBoxSppb', res.cs?.header, 'CS');
+                        renderHeader('poHeaderBoxSppb', res.po?.header, 'PO');
+                        renderHeader('receiptHeaderBoxSppb', res.receipt?.header, 'Receipt');
+
+                        // render detail default (selected)
+                        document.getElementById('sppbDetailBoxSppb').innerHTML = renderDetailSppb(
+                            res
+                            .sppb?.details || []);
+                        document.getElementById('csDetailBoxSppb').innerHTML = renderDetailCs(res.cs
+                            ?.details || []);
+                        document.getElementById('poDetailBoxSppb').innerHTML = renderDetailPo(res.po
+                            ?.details || []);
+                        document.getElementById('receiptDetailBoxSppb').innerHTML =
+                            renderDetailReceipt(
+                                res.receipt?.details || []);
+
+                        // dropdown lists (support multiple)
+                        fillSelect('selCsSppb', res.lists?.cs || [], res.selected?.cs_no || '');
+                        fillSelect('selPoSppb', res.lists?.po || [], res.selected?.po_no || '');
+
+                        // receipt list default: filter by selected PO
+                        const poSelected = (res.selected?.po_no) || document.getElementById(
+                                'selPoSppb')
+                            ?.value || '';
+                        const filteredReceipt = filterReceiptsByPo(poSelected);
+                        const receiptSelected = res.selected?.receipt_no || (filteredReceipt[0]
+                            ?.doc || '');
+                        fillSelect('selReceiptSppb', filteredReceipt, receiptSelected);
+
+                    },
+                    error: function(xhr) {
+                        setLoading(false);
+                        document.getElementById('sppbHeaderBoxSppb').innerHTML =
+                            `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    Failed to load tracking (HTTP ${xhr.status || ''})
+                </div>`;
+                    }
+                });
+            });
+
+        })(); // end IIFE
     </script>
 
 

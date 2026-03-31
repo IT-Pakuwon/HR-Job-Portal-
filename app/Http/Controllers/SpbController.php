@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\SpbDetailExport;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Budget;
+use App\Models\BusinessUnit;
 use App\Models\MsCompany;
 use App\Models\SysUserRole;
 use App\Models\TrApproval;
@@ -28,7 +29,6 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Mail;
 use Vinkla\Hashids\Facades\Hashids;
-use App\Models\BusinessUnit;
 
 class SpbController extends Controller
 {
@@ -80,9 +80,14 @@ class SpbController extends Controller
                     ->whereIn('department_id', $deptIds)
                     ->count();
 
+        // $tracking = TrSPB::whereIn('cpny_id', $cpnyIds)
+        //     ->whereIn('department_id', $deptIds)
+        //     ->whereRaw('(COALESCE(totalissueqty,0) > 0 OR COALESCE(totalsppbqty,0) > 0 OR COALESCE(sppbid, \'\') <> \'\')')
+        //     ->count();
+
         $tracking = TrSPB::whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
-            ->whereRaw('(COALESCE(totalissueqty,0) > 0 OR COALESCE(totalsppbqty,0) > 0 OR COALESCE(sppbid, \'\') <> \'\')')
+            ->whereNotIn('status', ['R', 'D']) // ✅ align with table
             ->count();
 
         $allListCount = TrSPB::whereIn('cpny_id', $cpnyIds)
@@ -294,12 +299,13 @@ class SpbController extends Controller
         $orderCol = $cols[$orderIdx] ?? 'iss.issueid';
 
         // ✅ Master = tr_issue (1 row = 1 issue)
-        $base = TrIssue::from('tr_issue as iss')
-            ->join('tr_spb as spb', 'spb.spbid', '=', 'iss.spbid')
-            // join SPPB by sppbid (kalau tidak selalu ada, pakai leftJoin)
+        $base = TrSPB::from('tr_spb as spb')
+            ->leftJoin('tr_issue as iss', 'iss.spbid', '=', 'spb.spbid')
             ->leftJoin('tr_sppb as sppb', 'sppb.sppbid', '=', 'spb.sppbid')
+            ->leftJoin('tr_wo as wo', 'wo.woid', '=', 'spb.woid') // ✅ ADD THIS
             ->whereIn('spb.cpny_id', $cpnyIds)
-            ->whereIn('spb.department_id', $deptIds);
+            ->whereIn('spb.department_id', $deptIds)
+            ->whereNotIn('spb.status', ['R', 'D']);
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
@@ -320,6 +326,10 @@ class SpbController extends Controller
             'spb.sppbid',
             'sppb.id as sppb_row_id',
 
+            'wo.id as wo_row_id',
+            'spb.woid',       // ✅ ADD THIS
+            'spb.keperluan',     // ✅ ADD THIS
+
             'spb.totalspbqty',
             'spb.totalissueqty',
             'spb.totalreturnqty',
@@ -339,6 +349,10 @@ class SpbController extends Controller
 
             // sppb bisa null kalau leftJoin tidak ketemu
             $row->eid_sppb = $row->sppb_row_id ? \Hashids::encode($row->sppb_row_id) : null;
+
+            $row->eid_wo = $row->wo_row_id
+              ? \Hashids::encode($row->wo_row_id)
+              : null;
 
             return $row;
         });
@@ -900,14 +914,14 @@ class SpbController extends Controller
         }
 
         $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
+            'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
 
         $bucket = $storage->bucket($config['bucket']);
 
         $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
             $object = $bucket->object($objectPath);
             $signedUrl = null;
 
@@ -918,21 +932,21 @@ class SpbController extends Controller
                 );
             } catch (\Throwable $e) {
                 \Log::warning('Signed URL gagal', [
-                    'path'  => $objectPath,
-                    'error' => $e->getMessage()
+                    'path' => $objectPath,
+                    'error' => $e->getMessage(),
                 ]);
             }
 
             return (object) [
-                'id'           => $r->id,
+                'id' => $r->id,
                 'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
+                'created_by' => $r->created_by,
+                'created_at' => $r->created_at,
+                'url' => $signedUrl,
+                'folder' => $r->folder,
+                'filename' => $r->filename,
+                'extention' => $r->extention,
+                'size' => $r->filesize,
             ];
         });
 
@@ -2324,7 +2338,7 @@ class SpbController extends Controller
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
             ->reorder()
             ->orderBy('created_at', 'asc')

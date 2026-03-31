@@ -1194,7 +1194,8 @@ FORM HELPERS
 TRACK TAB UI
 ========================================================= */
 
-    .track-tab {
+    .track-tab,
+    .track-tab-sppb {
 
         padding: .4rem .75rem;
         border-radius: .5rem;
@@ -1206,26 +1207,31 @@ TRACK TAB UI
 
     }
 
-    .track-tab:hover {
+    .track-tab:hover,
+    .track-tab-sppb:hover {
         background: rgba(0, 0, 0, .05);
     }
 
-    .track-tab.active {
+    .track-tab.active,
+    .track-tab-sppb.active {
 
         background: rgba(79, 70, 229, .12);
         color: #4338ca;
 
     }
 
-    .dark .track-tab {
+    .dark .track-tab,
+    .dark .track-tab-sppb {
         color: #9ca3af;
     }
 
-    .dark .track-tab:hover {
+    .dark .track-tab:hover,
+    .dark .track-tab-sppb:hover {
         background: rgba(255, 255, 255, .05);
     }
 
-    .dark .track-tab.active {
+    .dark .track-tab.active,
+    .dark .track-tab-sppb.active {
 
         background: rgba(99, 102, 241, .25);
         color: #c7d2fe;
