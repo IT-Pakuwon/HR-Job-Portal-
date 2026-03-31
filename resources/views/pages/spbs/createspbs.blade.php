@@ -43,7 +43,7 @@
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPB</h2>
                         </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
@@ -81,23 +81,26 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
-                                    Pekerjaan</label>
-                                <div class="flex gap-2">
+                            <div class="flex min-w-0 flex-col gap-2 lg:col-span-1">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Jenis Pekerjaan
+                                </label>
+
+                                <div class="flex w-full items-stretch gap-2">
+                                    <!-- Input -->
                                     <input type="text" id="jenis_pekerjaan_display"
-                                        class="flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        class="min-w-0 flex-1 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-600 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                         placeholder="Pilih Worktype & Subworktype" readonly>
-                                    {{-- <button type="button" id="btnJenisPekerjaan"
-                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Pilih</button> --}}
+
+                                    <!-- Button -->
                                     <button type="button" id="btnJenisPekerjaan"
-                                        class="rounded border border-gray-500 px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white hover:bg-gray-100 active:scale-95 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
                                         title="Lookup">
                                         🔎
                                     </button>
-
                                 </div>
-                                <!-- hidden fields to submit -->
+
+                                <!-- Hidden fields -->
                                 <input type="hidden" name="worktypeid" id="worktypeid">
                                 <input type="hidden" name="subworktypeid" id="subworktypeid">
                             </div>
