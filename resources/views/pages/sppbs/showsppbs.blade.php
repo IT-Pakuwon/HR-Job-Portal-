@@ -581,11 +581,10 @@
                                     <!-- Ordered -->
                                     <td class="px-4 py-3 text-right">
                                         <span
-                                            class="{{ $isFull ? 'bg-green-100 text-green-700' : '' }} {{ $isPartial ? 'bg-red-100 text-red-700' : '' }} {{ $isZero ? 'bg-gray-100 text-gray-500' : '' }} rounded-md px-2 py-1 text-xs font-semibold">
+                                            class="{{ $isFull ? 'bg-green-100 text-green-700' : '' }} {{ !$isFull ? 'bg-red-100 text-red-700' : '' }} rounded-md px-2 py-1 text-xs font-semibold">
                                             {{ number_format($item->ordered, 2, ',', '.') }}
                                         </span>
                                     </td>
-
                                     <!-- Reject -->
                                     <td class="px-4 py-3 text-right">
                                         {{ number_format($item->rejectordered, 2, ',', '.') }}
