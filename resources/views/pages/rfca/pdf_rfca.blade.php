@@ -23,7 +23,6 @@
             border-collapse: collapse;
         }
 
-        /* Header */
         .left-header th:first-child,
         .right-header th:first-child {
             width: 70%;
@@ -39,7 +38,6 @@
             font-weight: bold;
         }
 
-        /* BODY FIELDS */
         .left-body th {
             text-align: left;
             vertical-align: top;
@@ -54,7 +52,6 @@
 
         .field-label {
             min-width: 110px;
-            /* font-weight: bold; */
         }
 
         .field-value-wrap {
@@ -63,7 +60,6 @@
             word-wrap: break-word;
         }
 
-        /* APPROVAL TABLE */
         .sig-table {
             width: 100%;
             border: 1px solid #000;
@@ -76,15 +72,8 @@
             padding: 8px;
             vertical-align: top;
             font-size: 11.5px;
-
-            /* Allow wrapping (FIX FOR LONG NAMES) */
             white-space: normal;
             word-wrap: break-word;
-        }
-
-        /* Equal width for approval columns */
-        .sig-table td.approval-cell {
-            width: 25%;
         }
 
         .sig-name {
@@ -116,12 +105,31 @@
         .status.orange {
             color: orange;
         }
+
+        .status.black {
+            color: black;
+        }
+
+        .blue {
+            color: blue;
+        }
+
+        .red {
+            color: red;
+        }
+
+        .orange {
+            color: orange;
+        }
+
+        .black {
+            color: black;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- HEADER -->
     <table style="margin-bottom:8px;">
         <tr class="left-header">
             <th style="text-align:left;">
@@ -144,8 +152,6 @@
 
     <hr style="border:0; border-top:2px solid #000; margin:0 0 10px 0;">
 
-
-    <!-- BODY FIELDS -->
     <table>
         <tr class="left-body">
             <th>
@@ -206,7 +212,7 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Tgl Diperlukan :</span>
-                    <span class="field-value-wrap"></span>
+                    <span class="field-value-wrap">{{ $required_date }}</span>
                 </div>
             </th>
         </tr>
@@ -215,37 +221,21 @@
             <th>
                 <div class="field-row">
                     <span class="field-label">Keperluan :</span>
-                    <span class="field-value-wrap whitespace-pre-line break-words">{{ $keperluan }}</span>
+                    <span class="field-value-wrap">{{ $keperluan }}</span>
                 </div>
             </th>
-
-            {{-- <th>
-                <div class="field-row">
-                    <span class="field-label">Lokasi :</span>
-                    <span class="field-value-wrap"></span>
-                </div>
-            </th> --}}
         </tr>
 
-        <tr class="left-body">
+        {{-- <tr class="left-body">
             <th>
                 <div class="field-row">
                     <span class="field-label">Created by :</span>
                     <span class="field-value-wrap">{{ $created_by_name }}</span>
                 </div>
             </th>
-
-            {{-- <th>
-                <div class="field-row">
-                    <span class="field-label">On :</span>
-                    <span class="field-value-wrap">11/25/2025 1:10 PM</span>
-                </div>
-            </th> --}}
-        </tr>
+        </tr> --}}
     </table>
 
-
-    {{-- Approvals --}}
     @php
         $stColor = match (true) {
             in_array($status_doc, ['Approved', 'Completed']) => 'blue',
@@ -254,20 +244,17 @@
             default => 'black',
         };
 
-        // Convert "Created by" into approver #1
         $prepared = collect([
             (object) [
-                'aprv_name' => $created_by_name ?? $created_by_username,
-                'status' => 'Created',
-                'aprv_dateafter' => $req_date_fmt,
+                'rfca_step_user' => $created_by_name ?? $created_by_username,
+                'status_rfca' => 'CREATED',
+                'rfca_step_date' => $req_date_fmt,
                 'is_creator' => true,
             ],
         ])->merge($approval);
 
-        // 5 columns per row — like "1 2 3 4 5"
         $colsPerRow = 5;
         $chunks = $prepared->values()->chunk($colsPerRow);
-
         $idx = 1;
     @endphp
 
@@ -286,40 +273,49 @@
                 <tr>
                     @foreach ($chunk as $dt2)
                         @php
-                            // Label + color
-                            if (isset($dt2->is_creator) && $dt2->is_creator) {
+                            if (!empty($dt2->is_creator)) {
                                 $label = 'Created';
                                 $color = 'blue';
-                                $dateStr = $dt2->aprv_dateafter;
+                                $dateStr = $dt2->rfca_step_date;
+                                $nameStr = $dt2->rfca_step_user;
                             } else {
-                                $label = match ($dt2->status) {
-                                    'A' => 'Approved',
-                                    'R' => 'Rejected',
-                                    'P' => 'Waiting',
-                                    default => 'Revised',
+                                $statusRaw = strtoupper((string) ($dt2->status_rfca ?? ''));
+
+                                $label = match ($statusRaw) {
+                                    'A', 'APPROVED' => 'Approved',
+                                    'R', 'REJECTED' => 'Rejected',
+                                    'P', 'WAITING' => 'Waiting',
+                                    'D', 'REVISED', 'REVISE' => 'Revised',
+                                    'C', 'COMPLETED' => 'Completed',
+                                    default => $statusRaw !== '' ? ucfirst(strtolower($statusRaw)) : 'Waiting',
                                 };
-                                $color = match ($dt2->status) {
-                                    'A' => 'blue',
-                                    'R' => 'red',
-                                    'P' => 'orange',
-                                    default => 'red',
+
+                                $color = match ($statusRaw) {
+                                    'A', 'APPROVED', 'C', 'COMPLETED' => 'blue',
+                                    'R', 'REJECTED' => 'red',
+                                    'P', 'WAITING' => 'orange',
+                                    'D', 'REVISED', 'REVISE' => 'red',
+                                    default => 'black',
                                 };
-                                $dateStr = $dt2->aprv_dateafter
-                                    ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
+
+                                $dateStr = !empty($dt2->rfca_step_date)
+                                    ? \Carbon\Carbon::parse($dt2->rfca_step_date)->format('d M Y H:i')
                                     : '';
+
+                                $nameStr = $dt2->rfca_step_user ?: ($dt2->rfca_step_descr ?? '-');
                             }
                         @endphp
 
                         <td style="width:20%;">
-                            <div><span class="sig-num">{{ $idx++ }}.</span>
-                                <span class="sig-name">{{ $dt2->aprv_name }}</span>
+                            <div>
+                                <span class="sig-num">{{ $idx++ }}.</span>
+                                <span class="sig-name">{{ $nameStr }}</span>
                             </div>
                             <div class="sig-status {{ $color }}">{{ $label }}</div>
                             <div>{{ $dateStr }}</div>
                         </td>
                     @endforeach
 
-                    {{-- Fill empty boxes to complete the row --}}
                     @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
                         <td style="width:20%;">&nbsp;</td>
                     @endfor

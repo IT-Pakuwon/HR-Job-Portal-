@@ -82,7 +82,7 @@ class AcumVmsStagingController extends Controller
             $setting->status = $request->input('status');
         }
 
-        $setting->lastupdate_user = $runBy;
+        $setting->lastupdate_user = $user->username ?? 'SYSTEM';
         $setting->lastupdate_datetime = now();
         $setting->save();
 

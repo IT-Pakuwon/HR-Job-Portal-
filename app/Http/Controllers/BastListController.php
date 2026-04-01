@@ -36,6 +36,7 @@ class BastListController extends Controller
             ->when(!empty($deptList), fn($q) => $q->whereIn('department_id', $deptList))
             ->where('flag_bast', true)
             ->whereNull('bastid')
+            ->where('status', 'A')
             ->count();
 
         // BAST stats (tanpa basttype, tanpa returnjobs, TANPA filter created_by)
@@ -109,6 +110,7 @@ class BastListController extends Controller
                 ->when(!empty($deptList), fn($q) => $q->whereIn('t.department_id', $deptList))
                 ->where('t.flag_bast', true)
                 ->whereNull('t.bastid')
+                ->where('t.status', 'A')
                 ->leftJoin('tr_po as p', function ($j) {
                     $j->on('p.ponbr', '=', 't.ponbr')
                     ->on('p.cpny_id', '=', 't.cpny_id'); // penting untuk multi company
@@ -128,7 +130,8 @@ class BastListController extends Controller
                     'p.spkendtworkingdate',
 
                     DB::raw("'HOLD' as status"),
-                ]);
+                ])
+                ->orderBy('t.order_term', 'asc');
 
 
 

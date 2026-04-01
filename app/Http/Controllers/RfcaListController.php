@@ -43,6 +43,7 @@ class RfcaListController extends Controller
                     $q->whereIn('cpny_id', $cpnyList);
                 })
                 ->where('created_by', $username)
+                ->where('status', 'A')
                 ->where(function ($q) {
                     $q->whereNull('rfca_type')
                     ->orWhere('rfca_type', '');
@@ -63,6 +64,7 @@ class RfcaListController extends Controller
         $financeReceived = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
+                ->where('status', 'A')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -80,6 +82,7 @@ class RfcaListController extends Controller
         $treasuryPayment = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
+                ->where('status', 'A')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -97,6 +100,7 @@ class RfcaListController extends Controller
         $completed = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
+                ->where('status', 'A')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -141,11 +145,13 @@ class RfcaListController extends Controller
             ->from('tr_rfca')
             ->leftJoin('tr_rfca_step as step', function ($join) {
                 $join->on('step.rfcaid', '=', 'tr_rfca.rfcaid')
+                
                     ->where('step.progress_approval', 't');
             })
             ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
                 $q->whereIn('tr_rfca.cpny_id', $cpnyList);
-            });
+            })
+            ->where('tr_rfca.status', 'A');
 
         // Scope filter
         switch ($scope) {
@@ -361,9 +367,19 @@ class RfcaListController extends Controller
             ->first();
 
         // === Flag: hanya creator yang boleh lihat tombol Submit ===
-        $loginUsername = $user->username ?? $user->name ?? null;
-        $canSubmit     = $rfca->created_by === $loginUsername;
+        // $loginUsername = $user->username ?? $user->name ?? null;
+        // $canSubmit     = $rfca->created_by === $loginUsername;
        
+        $loginUsername = $user->username ?? $user->name ?? null;
+
+        // cek apakah ada step
+        $hasSteps = $rfcaSteps->isNotEmpty();
+
+        // hanya boleh submit jika:
+        // 1. user adalah creator
+        // 2. DAN belum ada step
+        $canSubmit = ($rfca->created_by === $loginUsername) && !$hasSteps;
+
        // === Cek apakah user berhak memproses step ini (department bisa multi) ===
         $loginDept = $user->department_id ?? ''; 
         $loginDepartments = array_map('trim', explode(',', $loginDept)); // contoh: ACCOUNTING,COLLECTION → ['ACCOUNTING','COLLECTION']
@@ -578,7 +594,7 @@ class RfcaListController extends Controller
         }
     }
 
-     public function printRfca($hash)
+    public function printRfca($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -592,32 +608,31 @@ class RfcaListController extends Controller
         $rfca = TrRfca::with(['creator', 'userpeminta'])
             ->findOrFail($id);
 
-        // Approval list
-        // $approval = TrApproval::query()
-        //     ->where('refnbr', $rfca->csid)
-        //     ->where('status', '<>', 'X')
-        //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-        //     ->orderBy('created_at', 'ASC')
-        //     ->get();
+        // Approval list     
         $refnbr    = $rfca->csid;
         $apprTable = (new TrApproval)->getTable(); // "tr_approval"
 
-        $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
-            ->where('status', '<>', 'X')
-            ->reorder()
-            ->orderBy('created_at', 'asc')
-            ->orderBy('aprv_leveling', 'asc')
-            ->orderBy('id', 'asc')
-            ->get([
-                'aprv_leveling',
-                'aprv_name',
-                'aprv_datebefore',
-                'aprv_dateafter',
-                'status',
-                'aprv_type',
-                'aprv_condition',
-            ]);
+        // $approval = TrApproval::query()
+        //     ->where('refnbr', $refnbr)           
+        //     ->where('status', '<>', 'X')
+        //     ->reorder()
+        //     ->orderBy('created_at', 'asc')
+        //     ->orderBy('aprv_leveling', 'asc')
+        //     ->orderBy('id', 'asc')
+        //     ->get([
+        //         'aprv_leveling',
+        //         'aprv_name',
+        //         'aprv_datebefore',
+        //         'aprv_dateafter',
+        //         'status',
+        //         'aprv_type',
+        //         'aprv_condition',
+        //     ]);
+
+        $approval = TrRfcaStep::where('rfcaid', $rfca->rfcaid)                
+                ->orderBy('rfca_step_order')
+                ->get();
+
 
         $approve_count = $approval->count();
 
