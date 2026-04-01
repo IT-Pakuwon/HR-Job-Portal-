@@ -397,9 +397,10 @@
                             @foreach ($sppbdetail as $item)
                                 @php
                                     $isFull = $item->ordered >= $item->qty && $item->qty > 0;
-                                    $isPartial = $item->ordered > 0 && $item->ordered < $item->qty;
-                                    $isZero = $item->ordered == 0;
+                                    $isPartial = $item->ordered < $item->qty;
+                                @endphp
 
+                                @php
                                     $rowClass = $isFull
                                         ? 'bg-green-50 dark:bg-green-900/20'
                                         : ($isPartial
