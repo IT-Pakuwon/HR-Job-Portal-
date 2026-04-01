@@ -396,15 +396,13 @@
                         <tbody>
                             @foreach ($sppbdetail as $item)
                                 @php
+                                    $isStarted = $item->ordered > 0; // sudah jalan (ada CS)
                                     $isFull = $item->ordered >= $item->qty && $item->qty > 0;
-                                    $isPartial = $item->ordered < $item->qty;
-                                @endphp
 
-                                @php
                                     $rowClass = $isFull
                                         ? 'bg-green-50 dark:bg-green-900/20'
-                                        : ($isPartial
-                                            ? 'bg-red-50 dark:bg-red-900/20'
+                                        : ($isStarted
+                                            ? 'bg-blue-50 dark:bg-blue-900/20'
                                             : '');
                                 @endphp
 
@@ -581,7 +579,7 @@
                                     <!-- Ordered -->
                                     <td class="px-4 py-3 text-right">
                                         <span
-                                            class="{{ $isFull ? 'bg-green-100 text-green-700' : '' }} {{ !$isFull ? 'bg-red-100 text-red-700' : '' }} rounded-md px-2 py-1 text-xs font-semibold">
+                                            class="{{ $isFull ? 'bg-green-100 text-green-700' : '' }} {{ $isStarted && !$isFull ? 'bg-blue-100 text-blue-700' : '' }} rounded-md px-2 py-1 text-xs font-semibold">
                                             {{ number_format($item->ordered, 2, ',', '.') }}
                                         </span>
                                     </td>

@@ -71,6 +71,7 @@
                             <th
                                 class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 PO Nbr</th>
+                            <th class="w-32 px-6 py-2 font-medium">CS Number</th>
                             <th class="w-32 px-6 py-2 font-medium">PO Date</th>
                             <th class="w-32 px-6 py-2 font-medium">Company</th>
                             <th class="w-32 px-6 py-2 font-medium">PO Type</th>
@@ -238,6 +239,11 @@
                         className: 'text-left',
                         width: '42px',
                         render: (_v, t, row) => renderPONbr(_v, row),
+                    },
+                    {
+                        data: 'csid',
+                        className: 'text-left',
+                        render: (v) => v ?? '-'
                     },
                     {
                         data: 'podate',

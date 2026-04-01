@@ -237,12 +237,22 @@
 
                     <hr style="border:none; border-top:2px solid #000; margin:4px 0; margin-top:4px">
                     <div style="margin-top:4px">
-                        <p style="vertical-align: top; text-align: left; font-size:12px;  ">
+
+                        <p style="margin:0; font-size:12px;">
                             Jangka Waktu Pembayaran (Payment Terms) :
-                            <br><strong>{{ $poTerms->top_name ?? '' }}</strong>
+                            <br>
+                            <strong>{{ $poTerms->top_name ?? '-' }}</strong>
                         </p>
-                        <h2 style="font-size:12px;"><strong></strong></h2>
-                        <hr style="border:none; border-top:2px solid #000; margin:4px 0; margin-top:4px">
+
+                        @if (!empty($po->vendornote))
+                            <p style="margin:4px 0 0 0; font-size:12px;">
+                                <strong>Vendor Note :</strong>
+                                {{ $po->vendornote }}
+                            </p>
+                        @endif
+
+                        <hr style="border:none; border-top:2px solid #000; margin:6px 0 0 0">
+
                     </div>
                     <div style="margin-top:4px">
                         <p style="vertical-align: top; text-align: left; font-size:12px;  ">

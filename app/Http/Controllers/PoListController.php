@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
+use App\Models\SysUserRole;
 use App\Models\TrPO;
-use App\Models\SysUserRole; // <-- tambahkan
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // <-- tambahkan
 use Vinkla\Hashids\Facades\Hashids;
 
 class PoListController extends Controller
@@ -16,11 +14,13 @@ class PoListController extends Controller
     public function index()
     {
         $user = Auth::user();
-        if (!$user) return redirect()->route('login');
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
         $u = $user->username ?? '';
 
-        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyRaw = $user->cpny_id ?? '';
         $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
 
         $isFinanceAccess = SysUserRole::where('username', $u)
@@ -29,26 +29,25 @@ class PoListController extends Controller
 
         // kirim list company untuk dropdown + login user (untuk hidden creator kalau non-fin)
         return view('pages.purchase.polist', [
-            'companies'       => $cpnyList,
+            'companies' => $cpnyList,
             'isFinanceAccess' => $isFinanceAccess,
-            'loginUser'       => $u,
+            'loginUser' => $u,
         ]);
     }
-
 
     /** DataTables server-side */
     public function json(Request $req)
     {
         $user = Auth::user();
-        $u    = $user->username ?? '';
+        $u = $user->username ?? '';
 
-        $tab     = strtolower((string) $req->query('tab', 'my'));      // my | all
-        $status  = strtoupper(trim((string) $req->query('status', ''))); // H/P/O/C/X/D atau kosong
+        $tab = strtolower((string) $req->query('tab', 'my'));      // my | all
+        $status = strtoupper(trim((string) $req->query('status', ''))); // H/P/O/C/X/D atau kosong
         $company = strtoupper(trim((string) $req->query('company', ''))); // optional
         $creator = trim((string) $req->query('creator', ''));           // optional
 
         // company list user
-        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyRaw = $user->cpny_id ?? '';
         $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
 
         $isFinanceAccess = SysUserRole::where('username', $u)
@@ -84,7 +83,7 @@ class PoListController extends Controller
 
             // status filter (My PO saja) -> default ALL status
             if ($status !== '') {
-                $allowed = ['H','P','O','C','X','D'];
+                $allowed = ['H', 'P', 'O', 'C', 'X', 'D'];
                 if (in_array($status, $allowed, true)) {
                     $base->where('status', $status);
                 }
@@ -106,22 +105,21 @@ class PoListController extends Controller
         return $this->buildJsonTrPO($req, $base);
     }
 
-
     /** Builder hasil JSON */
     private function buildJsonTrPO(Request $req, $base)
     {
-        $draw   = (int) $req->input('draw', 1);
-        $start  = (int) $req->input('start', 0);
+        $draw = (int) $req->input('draw', 1);
+        $start = (int) $req->input('start', 0);
         $length = (int) $req->input('length', 25);
         $search = trim((string) $req->input('search.value', ''));
 
-        $poTable = (new TrPO)->getTable(); // ex: "tr_po"
+        $poTable = (new TrPO())->getTable(); // ex: "tr_po"
 
         // Urutan kolom sesuai permintaan
         $columns = [
             0 => "$poTable.ponbr",
             1 => "$poTable.podate",
-            2 => "$poTable.cpny_id",          
+            2 => "$poTable.cpny_id",
             3 => "$poTable.potype",
             4 => "$poTable.vendorname",
             5 => "$poTable.podeliverydate",
@@ -132,7 +130,6 @@ class PoListController extends Controller
             10 => "$poTable.created_by",
             11 => "$poTable.status",
         ];
-
 
         // $orderIdx = (int) $req->input('order.0.column', 1);
         // $orderDir = $req->input('ordFORCE order by podate DESC
@@ -155,13 +152,13 @@ class PoListController extends Controller
             });
         }
 
-
-        $recordsTotal    = (clone $base)->count();
+        $recordsTotal = (clone $base)->count();
         $recordsFiltered = (clone $base)->count();
 
         $rows = $base->select(
             "$poTable.id",
             "$poTable.ponbr",
+            "$poTable.csid",          // ✅ NEW
             "$poTable.podate",
             "$poTable.cpny_id",          // ✅ NEW
             "$poTable.potype",
@@ -179,39 +176,39 @@ class PoListController extends Controller
         ->skip($start)->take($length)
         ->get();
 
-
         $rows->transform(function ($r) {
             $r->eid = Hashids::encode($r->id);
 
-            $st = strtoupper((string)($r->status ?? ''));
+            $st = strtoupper((string) ($r->status ?? ''));
 
             // default
-            $statusText  = $st !== '' ? $st : 'Unknown';
+            $statusText = $st !== '' ? $st : 'Unknown';
             $statusClass = 'bg-gray-200/60 text-gray-700 border border-gray-500/40';
 
             // mapping status PO: H/P/O/C/X/R
             switch ($st) {
                 case 'H':
-                    $statusText  = 'Unsend';
+                    $statusText = 'Unsend';
                     $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
                     break;
                 case 'P':
-                    $statusText  = 'Purchase';
+                    $statusText = 'Purchase';
                     $statusClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300 border-yellow-200';
                     break;
                 case 'O':
-                    $statusText  = 'Partial';
+                    $statusText = 'Partial';
                     $statusClass = 'bg-amber-200/60 text-amber-800 border border-amber-600/40';
+                    // no break
                 case 'C':
-                    $statusText  = 'Completed';
+                    $statusText = 'Completed';
                     $statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
                     break;
                 case 'X':
-                    $statusText  = 'Canceled';
+                    $statusText = 'Canceled';
                     $statusClass = 'bg-red-200/60 text-red-800 border border-red-600/40';
                     break;
                 case 'D':
-                    $statusText  = 'Reuse';
+                    $statusText = 'Reuse';
                     $statusClass = 'bg-gray-200 text-gray-700 border-gray-300';
                     break;
             }
@@ -220,15 +217,15 @@ class PoListController extends Controller
             $r->status_class = $statusClass;
 
             unset($r->id);
+
             return $r;
         });
 
-
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $rows,
+            'data' => $rows,
         ]);
     }
 }
