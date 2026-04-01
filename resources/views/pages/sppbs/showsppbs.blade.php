@@ -396,17 +396,19 @@
                         <tbody>
                             @foreach ($sppbdetail as $item)
                                 @php
-                                    $rowClass = 'bg-white dark:bg-gray-900'; // default
+                                    $isFull = $item->ordered >= $item->qty && $item->qty > 0;
+                                    $isPartial = $item->ordered > 0 && $item->ordered < $item->qty;
+                                    $isZero = $item->ordered == 0;
 
-                                    if ($item->ordered == $item->qty && $item->qty > 0) {
-                                        $rowClass = 'bg-blue-100 dark:bg-blue-900/40';
-                                    } elseif ($item->ordered > 0 && $item->ordered < $item->qty) {
-                                        $rowClass = 'bg-yellow-100 dark:bg-yellow-900/40';
-                                    }
+                                    $rowClass = $isFull
+                                        ? 'bg-green-50 dark:bg-green-900/20'
+                                        : ($isPartial
+                                            ? 'bg-red-50 dark:bg-red-900/20'
+                                            : '');
                                 @endphp
 
                                 <tr
-                                    class="border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                                    class="{{ $rowClass }} border-t border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
 
                                     <!-- Number -->
                                     <td class="px-4 py-3 font-semibold">
@@ -577,7 +579,10 @@
 
                                     <!-- Ordered -->
                                     <td class="px-4 py-3 text-right">
-                                        {{ number_format($item->ordered, 2, ',', '.') }}
+                                        <span
+                                            class="{{ $isFull ? 'bg-green-100 text-green-700' : '' }} {{ $isPartial ? 'bg-red-100 text-red-700' : '' }} {{ $isZero ? 'bg-gray-100 text-gray-500' : '' }} rounded-md px-2 py-1 text-xs font-semibold">
+                                            {{ number_format($item->ordered, 2, ',', '.') }}
+                                        </span>
                                     </td>
 
                                     <!-- Reject -->

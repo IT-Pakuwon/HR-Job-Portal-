@@ -452,8 +452,17 @@
 
                 <tr>
                     <td style="padding-top:16px;">
-                        TOP&nbsp;&nbsp;:
-                        {{ $poTerms->top_name ?? '-' }}
+                        <div>
+                            TOP&nbsp;&nbsp;:
+                            {{ $poTerms->top_name ?? '-' }}
+                        </div>
+
+                        @if (!empty($po->vendornote))
+                            <div style="margin-top:4px;">
+                                <strong>Vendor Note :</strong>
+                                {{ $po->vendornote }}
+                            </div>
+                        @endif
                     </td>
 
                     <td style="padding-top:16px;">
@@ -465,7 +474,6 @@
                         </table>
                     </td>
                 </tr>
-
                 <tr>
                     <td style="padding-top:6px;">
                         <span class=bold>TOTAL :</span>
