@@ -2064,7 +2064,7 @@ class PoController extends Controller
                 'required_date'   => $now->copy()->addDays(9),
                 'calr_date'       => null,
 
-                'status'          => 'A',
+                'status'          => 'H',
                 'rfca_type'       => '',
                 'rfca_step_order' => null,
                 'rfca_step_id'    => null,
