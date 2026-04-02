@@ -20,7 +20,7 @@ use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Str;
 use App\Models\TrApproval;
 use App\Models\MsCompany;
-
+use App\Models\TrCalr;
 
 class RfcaListController extends Controller
 {
@@ -43,7 +43,7 @@ class RfcaListController extends Controller
                     $q->whereIn('cpny_id', $cpnyList);
                 })
                 ->where('created_by', $username)
-                ->where('status', 'A')
+                ->where('status', 'H')
                 ->where(function ($q) {
                     $q->whereNull('rfca_type')
                     ->orWhere('rfca_type', '');
@@ -64,7 +64,7 @@ class RfcaListController extends Controller
         $financeReceived = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
-                ->where('status', 'A')
+                ->where('status', 'H')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -82,7 +82,7 @@ class RfcaListController extends Controller
         $treasuryPayment = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
-                ->where('status', 'A')
+                ->where('status', 'H')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -100,7 +100,7 @@ class RfcaListController extends Controller
         $completed = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
-                ->where('status', 'A')
+                ->where('status', 'H')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -114,6 +114,7 @@ class RfcaListController extends Controller
         $all = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
+                ->whereNot('status', 'X')
                 ->count();
 
         return view('pages.rfca.rfcalist', compact(
@@ -151,7 +152,7 @@ class RfcaListController extends Controller
             ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
                 $q->whereIn('tr_rfca.cpny_id', $cpnyList);
             })
-            ->where('tr_rfca.status', 'A');
+            ->where('tr_rfca.status', 'H');
 
         // Scope filter
         switch ($scope) {
@@ -287,8 +288,131 @@ class RfcaListController extends Controller
         ]);
     }
 
-
     public function showRfca($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        // ===== Header Rfca
+        $rfca = TrRfca::findOrFail($id);
+
+        // ===== Link ke PO (opsional)
+        $poUrl = null;
+        if (!empty($rfca->ponbr)) {
+            $poId = TrPO::where('ponbr', $rfca->ponbr)
+                ->where('cpny_id', $rfca->cpny_id)
+                ->value('id');
+
+            if ($poId) {
+                $poHash = Hashids::encode($poId);
+                $poUrl  = url("/showpo/{$poHash}");
+            }
+        }
+
+        // ===== Link ke SPPB/J/K/T (opsional)
+        $sppbUrl   = null;
+        $sppbjktid = (string) ($rfca->sppbjktid ?? '');
+        $prefix    = strtoupper(substr($sppbjktid, 0, 2));
+
+        $routeMap = [
+            'PB' => 'showsppbs',
+            'PJ' => 'showsppjs',
+            'PK' => 'showsppks',
+            'PT' => 'showsppts',
+        ];
+
+        if ($sppbjktid !== '' && isset($routeMap[$prefix])) {
+            $docId = null;
+
+            if ($prefix === 'PB') {
+                $docId = TrSPPB::where('sppbid', $sppbjktid)->value('id');
+            } elseif ($prefix === 'PJ') {
+                $docId = TrSPPJ::where('sppjid', $sppbjktid)->value('id');
+            } elseif ($prefix === 'PK') {
+                $docId = TrSPPK::where('sppkid', $sppbjktid)->value('id');
+            } elseif ($prefix === 'PT') {
+                $docId = TrSPPT::where('spptid', $sppbjktid)->value('id');
+            }
+
+            if (!empty($docId)) {
+                $sppbHash = Hashids::encode($docId);
+                $sppbUrl  = url('/' . $routeMap[$prefix] . '/' . $sppbHash);
+            }
+        }
+
+        // ===== Link ke CS (opsional)
+        $csUrl = null;
+        if (!empty($rfca->csid)) {
+            $csId = TrCS::where('csid', $rfca->csid)->value('id');
+
+            if ($csId) {
+                $csHash = Hashids::encode($csId);
+                $csUrl  = url("/showcs/{$csHash}");
+            }
+        }
+
+        // ===== Link ke CALR (opsional)
+        $calrUrl = null;
+        if (!empty($rfca->calrid)) {
+            $calrId = TrCalr::where('calrid', $rfca->calrid)
+                ->where('cpny_id', $rfca->cpny_id)
+                ->value('id');
+
+            if ($calrId) {
+                $calrHash = Hashids::encode($calrId);
+                $calrUrl  = url("/showcalr/{$calrHash}");
+            }
+        }
+
+        // Untuk convenience (mis. kirim email dsb)
+        $eid_rfcaid = Hashids::encode($rfca->rfcaid);
+
+        // Detail step RFCA
+        $rfcaSteps = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+            ->orderBy('rfca_step_order')
+            ->get();
+
+        // STEP yang sedang aktif
+        $currentStep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+            ->where('progress_approval', true)
+            ->orderBy('rfca_step_order')
+            ->first();
+
+        // hanya creator yang boleh submit jika step belum ada
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $hasSteps = $rfcaSteps->isNotEmpty();
+        $canSubmit = ($rfca->created_by === $loginUsername) && !$hasSteps;
+
+        // === Cek apakah user berhak memproses step ini
+        $loginDept = $user->department_id ?? '';
+        $loginDepartments = array_map('trim', explode(',', $loginDept));
+
+        $canProcessStepDept = false;
+        if ($currentStep && in_array($currentStep->rfca_step_department_id, $loginDepartments)) {
+            $canProcessStepDept = true;
+        }
+
+        return view('pages.rfca.showrfca', [
+            'rfca'               => $rfca,
+            'hash'               => $hash,
+            'eid_rfcaid'         => $eid_rfcaid,
+            'poUrl'              => $poUrl,
+            'sppbUrl'            => $sppbUrl,
+            'csUrl'              => $csUrl,
+            'calrUrl'            => $calrUrl,
+            'rfcaSteps'          => $rfcaSteps,
+            'currentStep'        => $currentStep,
+            'canSubmit'          => $canSubmit,
+            'canProcessStepDept' => $canProcessStepDept,
+            'docPrefix'          => $prefix,
+        ]);
+    }
+
+
+    public function showRfca_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -640,7 +764,7 @@ class RfcaListController extends Controller
         $company = MsCompany::where('cpny_id', $rfca->cpny_id)->first();
 
         // Mapping status dokumen
-        switch ($rfca->status) {
+        switch ($rfca->status_rfca) {
             case 'R':
                 $status_doc = 'Rejected';
                 break;

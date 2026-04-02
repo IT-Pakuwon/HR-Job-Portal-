@@ -383,7 +383,7 @@
                 // create CALR → kirim hash id RFCA (rfca_eid dari controller)
                 const url = `{{ route('calr.create') }}` + `?rfca=${encodeURIComponent(row.rfca_eid ?? '')}`;
                 return `
-                            <a href="${url}"
+                            <a href="${url}" 
                             class="inline-flex justify-center items-center px-4 py-2  text-sm  leading-tight font-medium text-white rounded text-center transition-colors duration-200 bg-blue-500 hover:bg-blue-700">
                                 <i class="fas fa-plus"></i>
                             </a>`;
@@ -400,7 +400,7 @@
 
                 const url = `/showrfca/${encodeURIComponent(hash)}`;
                 return `
-                            <a href="${url}"
+                            <a href="${url}" target="_blank"
                             class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">
                             ${label}
                             </a>`;

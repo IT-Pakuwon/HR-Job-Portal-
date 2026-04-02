@@ -27,10 +27,12 @@ use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
+use App\Http\Controllers\Traits\HasAutonbr;
 
 
 class CalrController extends Controller
 {
+    use HasAutonbr;
     public function createCalr(Request $request)
     {
         $user = Auth::user();
@@ -68,6 +70,175 @@ class CalrController extends Controller
     }
 
     public function storeCalr(Request $request)
+    {
+        $request->validate([
+            'rfca_eid'      => 'required|string',
+            'calr_amount'   => 'required|numeric|min:0',
+            'attachments.*' => 'file|max:10240',
+        ]);
+
+        $decoded = Hashids::decode($request->input('rfca_eid'));
+        if (empty($decoded)) {
+            return response()->json(['message' => 'RFCA hash tidak valid.'], 422);
+        }
+
+        $rfcaPkId = (int) $decoded[0];
+        $rfca = TrRfca::find($rfcaPkId);
+
+        if (!$rfca) {
+            return response()->json(['message' => 'Data RFCA tidak ditemukan.'], 404);
+        }
+
+        $rfcaAmount = (float) ($rfca->rfca_amount ?? 0);
+        $calrAmount = (float) $request->input('calr_amount', 0);
+        $balance    = $rfcaAmount - $calrAmount;
+
+        $doctype  = 'CA';
+        $user     = $request->user();
+        $username = $user->username ?? 'system';
+
+        $dt        = Carbon::now('Asia/Jakarta');
+        $year      = (int) $dt->year;
+        $month     = str_pad((string) $dt->month, 2, '0', STR_PAD_LEFT);
+        $datestamp = $dt->toDateTimeString();
+
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $rfca->cpny_id, $rfca->department_id);
+
+        DB::beginTransaction();
+
+        try {
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'CALR'
+            );
+
+            $urutan = (int) $auto['next'];
+            $tglbln = substr((string) $year, 2) . $month;
+            $calrid = $doctype . $tglbln . sprintf("%04d", $urutan);
+
+            $docid = $calrid; // penting
+
+            $header = TrCalr::create([
+                'calrid'         => $calrid,
+                'calrdate'       => $dt->toDateString(),
+                'rfcaid'         => $rfca->rfcaid,
+                'rfca_type'      => $rfca->rfca_type ?? null,
+                'ponbr'          => $rfca->ponbr,
+                'cpny_id'        => $rfca->cpny_id,
+                'csid'           => $rfca->csid,
+                'sppbjktid'      => $rfca->sppbjktid ?? null,
+                'department_id'  => $rfca->department_id,
+                'user_peminta'   => $rfca->user_peminta ?? null,
+                'keperluan'      => $rfca->keperluan,
+                'vendorid'       => $rfca->vendorid ?? null,
+                'vendorname'     => $rfca->vendorname,
+                'rfca_amount'    => $rfcaAmount,
+                'calr_amount'    => $calrAmount,
+                'balance_amount' => $balance,
+                'status'         => 'P',
+                'created_by'     => $username,
+                'updated_by'     => $username,
+            ]);
+
+            if ($header->rfca_type == 'RFCA') {            
+                $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+                    ->where('ponbr', $rfca->ponbr)
+                    ->where('rfca_step_id', 'PC')
+                    ->first();
+
+                if (!$rfcastep) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Gagal membuat CALR',
+                        'error'   => 'Step RFCA dengan rfca_step_id = PC tidak ditemukan.'
+                    ], 422);
+                }
+
+                $rfcastep->rfca_step_user = $username;
+                $rfcastep->rfca_step_date = $datestamp;
+                $rfcastep->status_rfca    = 'C';
+                $rfcastep->updated_by     = $username;
+                $rfcastep->save();
+
+            }
+
+            $rfca->calrid           = $calrid;
+            $rfca->rfca_step_order  = $rfcastep->rfca_step_order;
+            $rfca->rfca_step_id     = $rfcastep->rfca_step_id;
+            $rfca->calr_date        = $datestamp;
+            $rfca->updated_by       = $username;
+            $rfca->updated_at       = $datestamp;
+            $rfca->save();
+
+            $ctx = [
+                'ignore_nominal' => true,
+            ];
+
+            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                $docid,
+                $doctype,
+                $rfca->cpny_id,
+                $rfca->department_id,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr'        => $docid,
+                    'doctype'       => $doctype,
+                    'cpnyid'        => $rfca->cpny_id,
+                    'departementid' => $rfca->department_id,
+                    'base_folder'   => 'att-purchasing-app/' . strtolower($doctype),
+                    'created_by'    => $username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                $uploader = app(TrAttachmentController::class);
+                $uploader->uploadInternal($meta, $files);
+            }
+
+            $eid = Hashids::encode((string) $header->id);
+
+            $approvalCtl->notifyFirstApprover(
+                $docid,
+                $doctype,
+                $header->status,
+                'CALR',
+                url('/showcalr/' . $eid),
+                [
+                    'info'      => $header->keperluan,
+                    'createdby' => $header->created_by,
+                    'date'      => $dt->toDateTimeString(),
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'ok'      => true,
+                'message' => 'Calr created successfully.',
+                'calrid'  => $header->calrid,
+                'eid'     => $eid,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'message' => 'Gagal membuat CALR.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function storeCalr_xxx(Request $request)
     {
         $request->validate([
             'rfca_eid'         => 'required|string',
@@ -110,32 +281,7 @@ class CalrController extends Controller
         $approvalCtl->loadLines($doctype, $rfca->cpny_id, $rfca->department_id);
 
         DB::beginTransaction();
-        try {
-            // === autonumber (lock) ===
-            /** @var \App\Models\Autonbr|null $autonbr */
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = (int) $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr((string) $year, 2) . $month; // YYMM
-            // $docid  = $doctype . $tglbln . sprintf('%04d', $urutan);
-            // $calrid = $docid;
+        try {      
 
             $auto = $this->nextAutonbr(
                 $doctype,
@@ -177,16 +323,31 @@ class CalrController extends Controller
             ]);
 
             // === update TrRfca & TrRfcaStep terkait ===
-            $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+            // $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+            //         ->where('ponbr', $rfca->ponbr)
+            //         ->where('rfca_step_id', 'PS')
+            //         ->first();
+            if ($header->rfca_type == 'RFCA') {  
+                $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
                     ->where('ponbr', $rfca->ponbr)
                     ->where('rfca_step_id', 'PC')
                     ->first();
 
-            $rfcastep->rfca_step_user   = $username;      
-            $rfcastep->rfca_step_date   = $datestamp; 
-            $rfcastep->status_rfca      = 'C'; 
-            $rfcastep->updated_by = $username;
-            $rfcastep->save();
+                if (!$rfcastep) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Gagal membuat CALR',
+                        'error'   => 'Step RFCA dengan rfca_step_id = PC tidak ditemukan.'
+                    ], 422);
+                }
+
+                $rfcastep->rfca_step_user   = $username;      
+                $rfcastep->rfca_step_date   = $datestamp; 
+                $rfcastep->status_rfca      = 'C'; 
+                $rfcastep->updated_by = $username;
+                $rfcastep->save();
+
+            }
 
             $rfca->calrid     = $calrid;
             $rfca->rfca_step_order = $rfcastep->rfca_step_order; 

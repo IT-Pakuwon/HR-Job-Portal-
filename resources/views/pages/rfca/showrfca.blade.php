@@ -1,27 +1,24 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-
-
     @php
-        // currentStep dikirim dari controller: TrRfcaStep dengan progress_approval = true
-        $stepCode = optional($currentStep)->rfca_step_id;
+        $stepCode = optional($currentStep)->rfca_step_id ?: $rfca->rfca_step_id;
+        $statusCode = $rfca->status_rfca;
 
-        $statusRfcaText = match ($stepCode) {
-            // PS bisa dianggap masih Jobs / Submitted
-            'PS' => 'RFCA Jobs',
-            'FR' => 'Finance Received',
-            'TP' => 'Treasury Payment',
-            'PC' => 'RFCA Completed',
-            null, '' => 'RFCA Jobs',
-            default => $currentStep->rfca_step_descr ?? 'RFCA Jobs',
+        $statusRfcaText = match (true) {
+            $stepCode === 'PC' || $statusCode === 'C' => 'RFCA Completed',
+            $stepCode === 'TP' => 'Treasury Payment',
+            $stepCode === 'FR' => 'Finance Received',
+            $stepCode === 'PS' => 'RFCA Jobs',
+            empty($stepCode) => 'RFCA Jobs',
+            default => optional($currentStep)->rfca_step_descr ?: 'RFCA Jobs',
         };
 
-        $statusRfcaClass = match ($stepCode) {
-            'FR' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-            'TP' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
-            'PC' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
-            'PS', null, '' => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+        $statusRfcaClass = match (true) {
+            $stepCode === 'PC' || $statusCode === 'C' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+            $stepCode === 'TP' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+            $stepCode === 'FR' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+            $stepCode === 'PS' || empty($stepCode) => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
     @endphp
@@ -170,6 +167,18 @@
                                         : e($rfca->sppbjktid),
                                 ],
 
+                                [
+                                    'icon' => 'document-check',
+                                    'label' => 'CALR ID',
+                                    'value' => !empty($calrUrl)
+                                        ? '<a href="' .
+                                            e($calrUrl) .
+                                            '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            e($rfca->calrid) .
+                                            '</a>'
+                                        : e($rfca->calrid ?: '-'),
+                                ],
+
                                 // ==== Financials ====
                                 [
                                     'icon' => 'currency-dollar',
@@ -277,14 +286,14 @@
                                             'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                         class="flex-1 px-4 py-2 text-center text-sm font-medium">Attachment
                                     </button>
-                                    <button @click="activeTab = 'approval'"
+                                    {{-- <button @click="activeTab = 'approval'"
                                         :class="activeTab === 'approval'
                                             ?
                                             'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
                                             'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                                         class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
                                         Approval Details
-                                    </button>
+                                    </button> --}}
 
                                     <button @click="activeTab = 'comments'"
                                         :class="activeTab === 'comments' ?
