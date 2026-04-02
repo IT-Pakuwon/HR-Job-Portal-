@@ -246,7 +246,7 @@
 
                         @if (!empty($po->vendornote))
                             <p style="margin:4px 0 0 0; font-size:12px;">
-                                <strong>Vendor Note :</strong>
+                                <strong>Note :</strong>
                                 {{ $po->vendornote }}
                             </p>
                         @endif
