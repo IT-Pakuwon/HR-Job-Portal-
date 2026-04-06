@@ -32,6 +32,15 @@
             <div class="flex flex-col justify-between gap-4 sm:flex-row">
                 <div>
                     <h1 class="text-lg font-bold dark:text-white">📝 Waiting Approval</h1>
+                    <button id="openAllWaiting"
+                    class="group inline-flex items-center gap-2 rounded-lg 
+                        bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600
+                        px-4 py-2 text-xs font-bold text-white 
+                        shadow-lg transition-all duration-300
+                        hover:scale-105 hover:shadow-xl">
+                    🚀 OPEN ALL DOCS
+                    <span class="animate-bounce text-[10px]">👇</span>
+                </button>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-[11px] text-gray-500 dark:text-gray-300">Auto refresh in</span>
@@ -40,7 +49,7 @@
                         01:00
                     </span>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2">                    
                     <select id="waitingDoctype"
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
                         <option value="ALL">ALL Doctype</option>
@@ -57,8 +66,14 @@
                         class="rounded-md border bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-700 dark:text-white" />
                 </div>               
             </div>
-            <div>
+            
+            <div>               
                 <p class="text-m ml-8 dark:text-white">See what's your task for today!</p>
+                {{-- <button id="openAllWaiting"
+                    class="rounded-md bg-green-600 px-3 py-2 text-xs text-white hover:bg-green-700">
+                    🚀 Open All Document
+                </button> --}}
+                
             </div>
         </div>
         <div class="mt-4 overflow-x-auto rounded-lg bg-white dark:bg-gray-800">
@@ -66,7 +81,7 @@
                 <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
                     <tr>
                         <th class="px-4 py-2 text-center uppercase">DocID</th>
-                        <th class="px-4 py-2 text-center uppercase">Date</th>
+                        <th class="px-4 py-2 text-center uppercase">Last Signed Date</th>
                         <th class="px-4 py-2 text-center uppercase">Company</th>
                         <th class="px-4 py-2 text-left uppercase">Department</th>
                         <th class="px-4 py-2 text-center uppercase">Info</th>
@@ -127,7 +142,7 @@
                 <thead class="bg-gray-200 text-xs text-gray-700 dark:bg-gray-700 dark:text-white">
                     <tr>
                         <th class="px-4 py-2 text-center uppercase">DocID</th>
-                        <th class="px-4 py-2 text-center uppercase">Date</th>
+                        <th class="px-4 py-2 text-center uppercase">Last Signed Date</th>
                         <th class="px-4 py-2 text-center uppercase">Company</th>
                         <th class="px-4 py-2 text-left uppercase">Department</th>
                         <th class="max-w-xs px-4 py-2 text-center uppercase">Info</th>
@@ -515,6 +530,47 @@
         }
     });
 
+    document.getElementById('openAllWaiting')?.addEventListener('click', function () {
+        if (!window.__approval) return;
+
+        const data = window.__approval.waitingData || [];
+
+        if (!data.length) {
+            alert('Tidak ada dokumen untuk dibuka');
+            return;
+        }
+
+        data.forEach(ap => {
+            if (ap.url && ap.hid) {
+                const href = `${ap.url}/${ap.hid}`;
+                window.open(href, '_blank');
+            }
+        });
+    });
+
+
+    // document.getElementById('openAllWaiting')?.addEventListener('click', function () {
+    //     if (!window.__approval) return;
+
+    //     const data = window.__approval.waitingData || [];
+
+    //     let i = 0;
+
+    //     function openNext() {
+    //         if (i >= data.length) return;
+
+    //         const ap = data[i];
+    //         if (ap.url && ap.hid) {
+    //             const href = `${ap.url}/${ap.hid}`;
+    //             window.open(href, '_blank');
+    //         }
+
+    //         i++;
+    //         setTimeout(openNext, 300); // delay 300ms
+    //     }
+
+    //     openNext();
+    // });
 
 
 

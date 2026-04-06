@@ -89,7 +89,7 @@
                                 <th class="px-3 py-2 text-left">Description</th>
                                 <th class="px-3 py-2 text-left">Qty</th>
                                 <th class="px-3 py-2 text-left">UOM</th>
-                                <th class="px-3 py-2 text-left">Duration (Bulan)</th>
+                                <th class="px-3 py-2 text-left">Duration</th>
                             </tr>
                         </thead>
 

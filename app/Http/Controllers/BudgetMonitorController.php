@@ -60,9 +60,15 @@ class BudgetMonitorController extends Controller
         // Ambil user full record (pgsql2.ms_user) supaya pasti dapat cpny_id dll
         $u = User::query()->where('username', $username)->first();
  
-        $allowedCpny = $this->csvToArray(optional($u)->cpny_id);
-        $allowedBU   = $this->csvToArray(optional($u)->business_unit_id);
-        $allowedDept = $this->csvToArray(optional($u)->department_id); // dipakai untuk department_fin_id
+        // $allowedCpny = $this->csvToArray(optional($u)->cpny_id);
+        // $allowedBU   = $this->csvToArray(optional($u)->business_unit_id);
+        // $allowedDept = $this->csvToArray(optional($u)->department_id); // dipakai untuk department_fin_id
+        $allowedCpny    = $this->csvToArray(optional($u)->cpny_id);
+        $allowedBU      = $this->csvToArray(optional($u)->business_unit_id);
+        $allowedDeptRaw = $this->csvToArray(optional($u)->department_id);
+
+        // mapping ms_user.department_id -> ms_department.department_fin_id
+        $allowedDept = $this->mapDeptUserToFin($allowedDeptRaw);
 
         return [
             'mode'          => $mode, // COSTCTRL / USERACCESS
@@ -194,10 +200,15 @@ class BudgetMonitorController extends Controller
         $defaultBU   = '';
         $defaultDept = '';
 
+        // if (($policy['mode'] ?? '') === 'USERACCESS') {
+        //     if (count($policy['allowed_cpny'] ?? []) === 1) $defaultCpny = $policy['allowed_cpny'][0];
+        //     if (count($policy['allowed_bu'] ?? []) === 1)   $defaultBU   = $policy['allowed_bu'][0];
+        //     if (count($policy['allowed_dept'] ?? []) === 1) $defaultDept = $policy['allowed_dept'][0];
+        // }
         if (($policy['mode'] ?? '') === 'USERACCESS') {
-            if (count($policy['allowed_cpny'] ?? []) === 1) $defaultCpny = $policy['allowed_cpny'][0];
-            if (count($policy['allowed_bu'] ?? []) === 1)   $defaultBU   = $policy['allowed_bu'][0];
-            if (count($policy['allowed_dept'] ?? []) === 1) $defaultDept = $policy['allowed_dept'][0];
+            $defaultCpny = $policy['allowed_cpny'][0] ?? '';
+            $defaultBU   = $policy['allowed_bu'][0] ?? '';
+            $defaultDept = $policy['allowed_dept'][0] ?? '';
         }
 
         return view('pages.budgets.monitor', [
@@ -387,6 +398,41 @@ class BudgetMonitorController extends Controller
     }
 
     private function mapDeptUserToFin(array $deptUserIds): array
+    {
+        $deptUserIds = collect($deptUserIds)
+            ->map(fn($x) => strtoupper(trim($x)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($deptUserIds)) return [];
+
+        $rows = MsDepartment::query()
+            ->select('department_id', 'department_fin_id')
+            ->whereIn('department_id', $deptUserIds)
+            ->whereNotNull('department_fin_id')
+            ->get();
+
+        $mapped = $rows->pluck('department_fin_id')
+            ->map(fn($x) => strtoupper(trim((string) $x)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        // fallback: jika ada dept yang tidak ketemu mappingnya,
+        // tetap ikutkan nilai aslinya
+        return collect($mapped)
+            ->merge($deptUserIds)
+            ->map(fn($x) => strtoupper(trim((string) $x)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function mapDeptUserToFin_xxx(array $deptUserIds): array
     {
         $deptUserIds = collect($deptUserIds)
             ->map(fn($x) => strtoupper(trim($x)))

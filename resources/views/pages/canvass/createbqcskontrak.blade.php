@@ -83,7 +83,7 @@
                                 <th class="border px-4 py-3 text-left font-semibold">Description</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Qty</th>
                                 <th class="border px-4 py-3 text-left font-semibold">UoM</th>
-                                <th class="border px-4 py-3 text-left font-semibold">Duration (Bulan)</th>
+                                <th class="border px-4 py-3 text-left font-semibold">Duration</th>
                                 <th class="border px-4 py-3 text-left font-semibold">Estimates</th>
 
                                 @foreach ($vendors as $v)
