@@ -40,13 +40,21 @@
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+
+                            @if (!is_null($sppb->is_urgent))
+                                <span
+                                    class="inline-flex animate-pulse items-center rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
+                                    🚨 URGENT
+                                </span>
+                            @endif
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
-                            {{ $sppb->sppbid }}
-                        </h1>
 
+                            {{ $sppb->sppbid }}
+
+                        </h1>
                         @php
                             $statusText = match ($sppb->status) {
                                 'D' => 'Revise',

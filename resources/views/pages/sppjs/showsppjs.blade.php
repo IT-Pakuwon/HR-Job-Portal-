@@ -52,8 +52,14 @@
                             };
                         @endphp
 
-                        <h1 class="flex items-center gap-3 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
 
+                            @if (!is_null($sppj->is_urgent))
+                                <span
+                                    class="inline-flex animate-pulse items-center rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
+                                    🚨 URGENT
+                                </span>
+                            @endif
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID

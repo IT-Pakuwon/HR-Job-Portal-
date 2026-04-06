@@ -453,6 +453,20 @@
                                                 </span>
                                             </div>
 
+                                            @if (!empty($po->vendornote))
+                                                <div class="mt-4">
+                                                    <p class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                        Vendor Note
+                                                    </p>
+
+                                                    <p
+                                                        class="mt-1 whitespace-pre-line rounded-md bg-white p-3 text-sm text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100">
+                                                        {{ $po->vendornote }}
+                                                    </p>
+                                                </div>
+                                            @endif
+
+
                                         </div>
                                     @else
                                         {{-- ====== TYPE: SPK or Other ====== --}}
@@ -999,6 +1013,21 @@
                                                             </div>
 
                                                         </div>
+
+                                                        @if (!empty($po->vendornote))
+                                                            <div class="mt-4">
+                                                                <p
+                                                                    class="text-[11px] uppercase tracking-wide text-gray-400">
+                                                                    Vendor Note
+                                                                </p>
+
+                                                                <p
+                                                                    class="mt-1 whitespace-pre-line rounded-md bg-white p-3 text-sm text-gray-800 shadow-sm dark:bg-gray-700 dark:text-gray-100">
+                                                                    {{ $po->vendornote }}
+                                                                </p>
+                                                            </div>
+                                                        @endif
+
 
                                                     </div>
 
@@ -1705,7 +1734,7 @@
 
         function updateWorkingDays() {
             const from = $('#work_date_from').val();
-            const to   = $('#work_date_to').val();
+            const to = $('#work_date_to').val();
 
             const d1 = parseDate(from);
             const d2 = parseDate(to);
@@ -1805,10 +1834,14 @@
                         });
 
                         toastr.error(first.msg);
-                        return { ok: false };
+                        return {
+                            ok: false
+                        };
                     }
 
-                    return { ok: true };
+                    return {
+                        ok: true
+                    };
                 }
 
                 // =========================
@@ -1929,7 +1962,7 @@
                 }
 
                 const fromVal = val('work_date_from');
-                const toVal   = val('work_date_to');
+                const toVal = val('work_date_to');
 
                 if (fromVal && toVal) {
                     const d1 = new Date(fromVal);
@@ -1955,10 +1988,14 @@
                     });
 
                     toastr.error(first.msg);
-                    return { ok: false };
+                    return {
+                        ok: false
+                    };
                 }
 
-                return { ok: true };
+                return {
+                    ok: true
+                };
             }
 
             // function validateInfoForm() {
