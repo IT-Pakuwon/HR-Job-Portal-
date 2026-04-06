@@ -302,7 +302,7 @@
     <table style="width:100%; font-size:12px; line-height:1.4; border-collapse:collapse; margin-top:25px;">
         <tr>
             <td style="width:50%; vertical-align:top;">
-                Dibuat Oleh Purchasing &nbsp; : &nbsp;
+                Dibuat Oleh &nbsp; : &nbsp;
                 {{ $created_by_name ?? $created_by_username }} - {{ $req_date_fmt }}
             </td>
             <td style="width:50%;"></td>
@@ -324,7 +324,7 @@
                 ( Nama dan Stempel Perusahaan )
             </td>
             <td style="width:50%;">
-                ( {{ $created_by_name ?? $created_by_username }} )
+                ( {{ $approval_level1_name ?? ($created_by_name ?? $created_by_username) }} )
             </td>
         </tr>
     </table>

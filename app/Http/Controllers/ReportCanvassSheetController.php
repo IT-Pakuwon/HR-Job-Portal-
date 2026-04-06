@@ -257,8 +257,8 @@ class ReportCanvassSheetController extends Controller
                 return 0;
             })
 
-            ->addColumn('budget_department_name', function ($row) use ($departments) {
-                return $departments[$row->budget_department_fin_id] ?? '';
+            ->addColumn('budget_department_name', function ($row) {
+                return $row->budget_department_fin_id ?? '';
             })
 
             ->addColumn('vendor_name', function ($row) {

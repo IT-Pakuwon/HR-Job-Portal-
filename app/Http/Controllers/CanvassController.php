@@ -1661,7 +1661,7 @@ class CanvassController extends Controller
                 }
                 if ($cs->bqtype !== 'Kontrak') {
                     // (c) Reserve budget via SP (Submit)
-                    $this->reserveBudget('CS', $cs->csid,$cpnyId, 'Submit', $username);
+                    $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                 }
             } else {
                 // Update ordered/openordered ke TrPOReuse + header PO
@@ -1669,7 +1669,7 @@ class CanvassController extends Controller
 
                 if ($cs->bqtype !== 'Kontrak') {
                     // Reserve budget via SP (Submit)
-                    $this->reserveBudget('CS', $cs->csid,$cpnyId, 'Submit', $username);
+                    $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                 }
             }
 
@@ -2801,7 +2801,7 @@ class CanvassController extends Controller
 
                     if ($cs->bqtype !== 'Kontrak') {
                         // (c) Reserve budget via SP (Submit)
-                        $this->reserveBudget('CS', $cs->csid,$cpnyId, 'Submit', $username);
+                        $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                     }
                 } else {
                     // CS REVISI → update ke TrPOReuse (dan header PO) saja
@@ -3436,12 +3436,12 @@ class CanvassController extends Controller
             $user->name,         // actor
 
             // CALLBACK saat reject benar-benar dieksekusi
-            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username,$cpnyId) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username, $cpnyId) {
                 \DB::connection('pgsql')->beginTransaction();
                 try {
                     if ($cs->bqtype !== 'Kontrak') {
                         // 1) Reserve budget via SP (Reject)
-                        $this->reserveBudget('CS', $cs->csid,$cpnyId, 'Reject', $username);
+                        $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Reject', $username);
                     }
 
                     // ✅ 2) Update rejectordered di dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
@@ -3532,12 +3532,12 @@ class CanvassController extends Controller
             $user->name,         // actor
 
             // CALLBACK saat revise benar-benar dieksekusi
-            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username,$cpnyId) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($cs, $fullname, $docUrl, $srcHeader, $username, $cpnyId) {
                 \DB::connection('pgsql')->beginTransaction();
                 try {
                     if ($cs->bqtype !== 'Kontrak') {
                         // 1) Reserve budget via SP (Revise)
-                        $this->reserveBudget('CS', $cs->csid, $cpnyId,'Revise', $username);
+                        $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Revise', $username);
                     }
 
                     // ✅ 2) rollback ordered/openordered ke dokumen sumber
@@ -3733,7 +3733,7 @@ class CanvassController extends Controller
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)           
+            ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
             ->reorder()
             ->orderBy('created_at', 'asc')
@@ -3818,6 +3818,7 @@ class CanvassController extends Controller
             'requesttype_name' => optional($cs->requestType)->requesttype_name,
             'vendors' => $vendors,
             'vendorCount' => $vendorCount,
+            'budget_business_unit_id' => optional($csdetail->first())->budget_business_unit_id,
         ];
 
         $pdf = \PDF::loadView('pages.canvass.pdf_cs', array_merge($data, [
@@ -4018,12 +4019,12 @@ class CanvassController extends Controller
                     $pd->budget_perpost = $row->budget_perpost ?? null;
 
                     $pd->status = 'H';
-                    $pd->created_by =$cs->created_by ?? 'system';
+                    $pd->created_by = $cs->created_by ?? 'system';
                     $pd->save();
 
                     // === UPDATE TrCSdetail: set ponbr ===
                     $row->ponbr = $ponbr;
-                    $row->updated_by =$cs->created_by ?? 'system'; // kalau ada field ini
+                    $row->updated_by = $cs->created_by ?? 'system'; // kalau ada field ini
                     $row->updated_at = now();                       // kalau pakai timestamps
                     $row->save();
 
@@ -4369,7 +4370,7 @@ class CanvassController extends Controller
         // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
         DB::connection('pgsql')->statement(
             'CALL public.sp_process_budget(?, ?, ?, ?,?)',
-            [strtoupper($doctype), $docid,$cpnyId,$activity, $username]
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
         );
     }
 

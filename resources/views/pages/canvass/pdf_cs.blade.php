@@ -197,6 +197,9 @@
         <td class="label">{{ $doc_type }} Date</td>
         <td class="value">{{ $csdate }}</td>
 
+        <td class="label">Business Unit</td>
+        <td class="value">{{ $budget_business_unit_id }}</td>
+
         <td class="label">Department</td>
         <td class="value">{{ $department_id }}</td>
 
@@ -205,12 +208,14 @@
 
         <td class="label">Purchaser</td>
         <td class="value">{{ $created_by_name }}</td>
+
+
     </tr>
 
     @if (!empty($requesttype_name))
         <tr>
             <td class="label">Request Type</td>
-            <td colspan="9" class="value">{{ $requesttype_name }}</td>
+            <td colspan="10" class="value">{{ $requesttype_name }}</td>
         </tr>
     @endif
 
