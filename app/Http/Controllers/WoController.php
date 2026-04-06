@@ -79,6 +79,14 @@ class WoController extends Controller
                 ->whereIn('department_id', $deptIds)
                 ->count();
 
+        $woAll = 0;
+
+        if ($user->hasRole('COSTCTRLACCESS')) {
+            $woAll = TrWO::whereIn('cpny_id', $cpnyIds)
+                ->whereIn('status', ['P', 'C']) // same logic as BAST All
+                ->count();
+        }
+
         // ===============================
         // 🔥 JOB STATUS (NEW)
         // ===============================
@@ -109,6 +117,7 @@ class WoController extends Controller
             'reject',
             'revise',
             'completed',
+            'woAll',
 
             // 👇 new variables
             'jobOnProgress',
@@ -140,6 +149,7 @@ class WoController extends Controller
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', ''); // '' = all
+        $scope = (string) $request->query('scope', '');
 
         $baseTable = (new TrWO())->getTable(); // "tr_wo"
 
@@ -166,8 +176,17 @@ class WoController extends Controller
                 $join->on('wt.worktypeid', '=', 'wo.worktypeid');
             })
             ->whereIn('wo.cpny_id', $cpnyIds)           // 🔹 filter cpny sesuai user
-            ->whereIn('wo.department_id', $deptIds);    // 🔹 filter dept sesuai user
+            // ✅ NORMAL MODE → filter by department
+            ->when(
+                $scope !== 'wo_all',
+                fn ($q) => $q->whereIn('wo.department_id', $deptIds)
+            )
 
+            // ✅ WO ALL MODE → cross department + status filter
+            ->when(
+                $scope === 'wo_all',
+                fn ($q) => $q->whereIn('wo.status', ['P', 'C'])
+            );
         if ($status !== '') {
             $base->where('wo.status', $status);
         }

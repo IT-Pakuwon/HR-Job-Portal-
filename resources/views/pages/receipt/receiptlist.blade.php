@@ -115,6 +115,27 @@
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Receipt</h1>
             </div>
 
+            <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+
+                {{-- PO Nbr --}}
+                <input type="text" id="filter_ponbr" placeholder="PO Number"
+                    class="w-full rounded border px-3 py-2 text-sm">
+
+                {{-- Vendor Dropdown --}}
+                <select id="filter_vendor" class="w-full rounded border px-3 py-2 text-sm">
+                    <option value="">All Vendor</option>
+                </select>
+
+                {{-- Delivery Date --}}
+                <input type="date" id="filter_delivery" class="w-full rounded border px-3 py-2 text-sm">
+
+                {{-- Reset --}}
+                <button onclick="resetFilters()" class="rounded bg-gray-500 px-3 py-2 text-white">
+                    Reset
+                </button>
+
+            </div>
+
             <div class="rounded-base relative overflow-x-auto">
                 <table id="receiptTable" class="text-body w-full text-left text-sm rtl:text-right">
                     <thead
@@ -159,7 +180,7 @@
             function headerFor(sc) {
                 if (sc === 'receiptjobs') {
 
-                   return `
+                    return `
                     <th></th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">PO Nbr</th>
@@ -441,6 +462,9 @@
                         type: "GET",
                         data: function(d) {
                             d.scope = sc;
+                            d.ponbr = $('#filter_ponbr').val();
+                            d.vendor = $('#filter_vendor').val();
+                            d.delivery_date = $('#filter_delivery').val();
                         }
                     },
                     columns: columnsFor(sc),
@@ -448,6 +472,38 @@
                     stateSave: false,
                     responsive: true
                 });
+
+                table.on('xhr', function() {
+                    const json = table.ajax.json();
+                    if (!json || !json.data) return;
+
+                    const vendors = new Set();
+
+                    json.data.forEach(row => {
+                        if (row.vendorname) vendors.add(row.vendorname);
+                    });
+
+                    const $vendor = $('#filter_vendor');
+
+                    if ($vendor.children().length <= 1) {
+                        vendors.forEach(v => {
+                            $vendor.append(`<option value="${v}">${v}</option>`);
+                        });
+                    }
+                });
+            }
+
+            $('#filter_ponbr, #filter_vendor, #filter_delivery')
+                .on('keyup change', function() {
+                    table.ajax.reload();
+                });
+
+            function resetFilters() {
+                $('#filter_ponbr').val('');
+                $('#filter_vendor').val('');
+                $('#filter_delivery').val('');
+
+                table.ajax.reload();
             }
 
             // function renderPlusCreate(row) {

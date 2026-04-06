@@ -2,8 +2,19 @@
     @php
         $currentPage = Route::currentRouteName() == 'wos' ? 'HR' : '';
     @endphp
+    @php
+        $hasWoAllAccess = auth()->user()->hasRole('COSTCTRLACCESS');
+
+        $xlCols = 5; // All, On Progress, Reject, Revise, Completed
+
+        if ($hasWoAllAccess) {
+            $xlCols++; // WO All
+        }
+    @endphp
+
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div
+            class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 
             {{-- All Status --}}
             <a href="#" class="status-filter group block h-full" data-status="">
@@ -80,6 +91,23 @@
                 </div>
             </a>
 
+            {{-- WO ALL (Cost Control Only) --}}
+            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+                <a href="#" class="status-filter group block h-full" data-scope="wo_all">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🌐</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">WO All</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-extrabold">{{ $woAll ?? 0 }}</p>
+                    </div>
+                </a>
+            @endif
+
         </div>
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -131,7 +159,7 @@
         <!-- ================== TRACKING MODAL ================== -->
         <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
 
                 <!-- Header -->
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -332,6 +360,7 @@
     </script>
 
     <script>
+        let scopeFilter = '';
         var currentUser = "{{ auth()->user()->username }}";
         $(document).ready(function() {
             let statusFilter = 'P';
@@ -391,6 +420,7 @@
                     type: "GET",
                     data: function(d) {
                         d.status = statusFilter ?? '';
+                        d.scope = scopeFilter ?? '';
                     }
                 },
                 order: [
@@ -531,11 +561,31 @@
                 responsive: true
             });
 
+
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
-                statusFilter = $(this).data('status') || '';
+
+                const status = $(this).data('status');
+                const scope = $(this).data('scope');
+
+                if (scope) {
+                    // 👉 WO ALL clicked
+                    scopeFilter = scope;
+                    statusFilter = ''; // 🔥 IMPORTANT RESET
+                } else {
+                    // 👉 Normal status clicked
+                    statusFilter = status ?? '';
+                    scopeFilter = ''; // 🔥 IMPORTANT RESET
+                }
+
                 table.ajax.reload(null, true);
             });
+
+            // $('.status-filter').on('click', function(e) {
+            //     e.preventDefault();
+            //     statusFilter = $(this).data('status') || '';
+            //     table.ajax.reload(null, true);
+            // });
 
             document.querySelectorAll('.status-filter').forEach(btn => {
                 btn.addEventListener('click', function(e) {

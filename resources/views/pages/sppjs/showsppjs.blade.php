@@ -2145,9 +2145,29 @@
 
                 el.addEventListener("mousemove", function(e) {
 
-                    tooltip.style.left = (e.pageX + 15) + "px";
-                    tooltip.style.top = (e.pageY + 15) + "px";
+                    const tooltipWidth = tooltip.offsetWidth;
+                    const tooltipHeight = tooltip.offsetHeight;
 
+                    const padding = 20;
+
+                    let left = e.pageX + 15;
+                    let top = e.pageY + 15;
+
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+
+                    // 👉 Prevent overflow RIGHT
+                    if (left + tooltipWidth + padding > viewportWidth) {
+                        left = e.pageX - tooltipWidth - 15;
+                    }
+
+                    // 👉 Prevent overflow BOTTOM
+                    if (top + tooltipHeight + padding > viewportHeight) {
+                        top = e.pageY - tooltipHeight - 15;
+                    }
+
+                    tooltip.style.left = left + "px";
+                    tooltip.style.top = top + "px";
                 });
 
                 el.addEventListener("mouseleave", function() {
