@@ -79,14 +79,18 @@ class CalrController extends Controller
 
         $decoded = Hashids::decode($request->input('rfca_eid'));
         if (empty($decoded)) {
-            return response()->json(['message' => 'RFCA hash tidak valid.'], 422);
+            return response()->json([
+                'message' => 'RFCA hash tidak valid.'
+            ], 422);
         }
 
         $rfcaPkId = (int) $decoded[0];
         $rfca = TrRfca::find($rfcaPkId);
 
         if (!$rfca) {
-            return response()->json(['message' => 'Data RFCA tidak ditemukan.'], 404);
+            return response()->json([
+                'message' => 'Data RFCA tidak ditemukan.'
+            ], 404);
         }
 
         $rfcaAmount = (float) ($rfca->rfca_amount ?? 0);
@@ -118,9 +122,8 @@ class CalrController extends Controller
 
             $urutan = (int) $auto['next'];
             $tglbln = substr((string) $year, 2) . $month;
-            $calrid = $doctype . $tglbln . sprintf("%04d", $urutan);
-
-            $docid = $calrid; // penting
+            $calrid = $doctype . $tglbln . sprintf('%04d', $urutan);
+            $docid  = $calrid;
 
             $header = TrCalr::create([
                 'calrid'         => $calrid,
@@ -144,7 +147,9 @@ class CalrController extends Controller
                 'updated_by'     => $username,
             ]);
 
-            if ($header->rfca_type == 'RFCA') {            
+            $rfcastep = null;
+
+            if (($header->rfca_type ?? null) === 'RFCA') {
                 $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
                     ->where('ponbr', $rfca->ponbr)
                     ->where('rfca_step_id', 'PC')
@@ -152,8 +157,9 @@ class CalrController extends Controller
 
                 if (!$rfcastep) {
                     DB::rollBack();
+
                     return response()->json([
-                        'message' => 'Gagal membuat CALR',
+                        'message' => 'Gagal membuat CALR.',
                         'error'   => 'Step RFCA dengan rfca_step_id = PC tidak ditemukan.'
                     ], 422);
                 }
@@ -163,16 +169,30 @@ class CalrController extends Controller
                 $rfcastep->status_rfca    = 'C';
                 $rfcastep->updated_by     = $username;
                 $rfcastep->save();
+            } else {
+                $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
+                    ->where('ponbr', $rfca->ponbr)
+                    ->orderBy('rfca_step_order', 'desc')
+                    ->first();
 
+                if (!$rfcastep) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => 'Gagal membuat CALR.',
+                        'error'   => 'Step RFCA untuk document ini tidak ditemukan.'
+                    ], 422);
+                }
             }
 
-            $rfca->calrid           = $calrid;
-            $rfca->rfca_step_order  = $rfcastep->rfca_step_order;
-            $rfca->rfca_step_id     = $rfcastep->rfca_step_id;
-            $rfca->calr_date        = $datestamp;
-            $rfca->updated_by       = $username;
-            $rfca->updated_at       = $datestamp;
+            $rfca->calrid          = $calrid;
+            $rfca->rfca_step_order = $rfcastep->rfca_step_order;
+            $rfca->rfca_step_id    = $rfcastep->rfca_step_id;
+            $rfca->calr_date       = $datestamp;
+            $rfca->updated_by      = $username;
+            $rfca->updated_at      = $datestamp;
             $rfca->save();
+
 
             $ctx = [
                 'ignore_nominal' => true,
