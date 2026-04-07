@@ -71,6 +71,7 @@ use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
+use App\Http\Controllers\ReportBastController;
 use App\Http\Controllers\ReportCanvassSheetController;
 use App\Http\Controllers\ReportOperationalController;
 use App\Http\Controllers\ReportPurchasingController;
@@ -1570,7 +1571,22 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.operational.export');
 
         Route::get('/view/operational', function () {
-            return view('pages.report-operational.canvas-operational');
+            return view('pages.report-operational.wo-detail');
+        });
+    });
+
+    Route::prefix('report-bast')->group(function () {
+        Route::get('/', [ReportBastController::class, 'index'])
+            ->name('reportbast');
+
+        Route::get('/json', [ReportBastController::class, 'json'])
+            ->name('report.bast.json');
+
+        Route::get('/export', [ReportBastController::class, 'export'])
+            ->name('report.bast.export');
+
+        Route::get('/view/detail', function () {
+            return view('pages.report-bast.bast-detail');
         });
     });
 
