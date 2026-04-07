@@ -574,6 +574,10 @@ class WoController extends Controller
             'location',       // MsLocation
             'sublocation',    // MsSubLocation
             'creator:username,name',
+            'spbs',
+            'sppbs',
+            'sppjs',
+            'sppts',
         ])->findOrFail($id);
 
         $user = request()->user();

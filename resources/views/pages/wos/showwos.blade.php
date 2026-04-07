@@ -101,7 +101,6 @@
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         @php
-                            // Reusable layout classes
                             $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
                             $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
@@ -117,18 +116,9 @@
                                         ? 'Penerima Kerja'
                                         : '-');
 
-                            // FIELD DEFINITIONS
                             $fields = [
-                                [
-                                    'icon' => 'building-office',
-                                    'label' => 'Company',
-                                    'value' => $wo->cpny_id,
-                                ],
-                                [
-                                    'icon' => 'squares-2x2',
-                                    'label' => 'Department',
-                                    'value' => $wo->department_id,
-                                ],
+                                ['icon' => 'building-office', 'label' => 'Company', 'value' => $wo->cpny_id],
+                                ['icon' => 'squares-2x2', 'label' => 'Department', 'value' => $wo->department_id],
                                 [
                                     'icon' => 'calendar',
                                     'label' => 'Date',
@@ -139,16 +129,8 @@
                                     'label' => 'Created User',
                                     'value' => ucwords(strtolower(optional($wo->creator)->name)),
                                 ],
-                                [
-                                    'icon' => 'document-text',
-                                    'label' => 'WO Type',
-                                    'value' => $wo->wotype,
-                                ],
-                                [
-                                    'icon' => 'question-mark-circle',
-                                    'label' => 'WO Request',
-                                    'value' => $wo->worequest,
-                                ],
+                                ['icon' => 'document-text', 'label' => 'WO Type', 'value' => $wo->wotype],
+                                ['icon' => 'question-mark-circle', 'label' => 'WO Request', 'value' => $wo->worequest],
                                 [
                                     'icon' => 'wrench-screwdriver',
                                     'label' => 'Jenis Pekerjaan',
@@ -159,16 +141,8 @@
                                     'label' => 'Sub Jenis Pekerjaan',
                                     'value' => optional($wo->subworktype)->subworktype_name ?? $wo->subworktypeid,
                                 ],
-                                [
-                                    'icon' => 'user',
-                                    'label' => 'PIC Request',
-                                    'value' => $wo->picrequester,
-                                ],
-                                [
-                                    'icon' => 'banknotes',
-                                    'label' => 'Biaya WO',
-                                    'value' => $biayaFormatted,
-                                ],
+                                ['icon' => 'user', 'label' => 'PIC Request', 'value' => $wo->picrequester],
+                                ['icon' => 'banknotes', 'label' => 'Biaya WO', 'value' => $biayaFormatted],
                                 [
                                     'icon' => 'map-pin',
                                     'label' => 'Location',
@@ -179,17 +153,13 @@
                                     'label' => 'Sub Location',
                                     'value' => optional($wo->sublocation)->sub_location_name ?? $wo->sub_location_id,
                                 ],
-                                [
-                                    'icon' => 'currency-dollar',
-                                    'label' => 'Budget',
-                                    'value' => $budgetText,
-                                ],
+                                ['icon' => 'currency-dollar', 'label' => 'Budget', 'value' => $budgetText],
                             ];
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
-                            {{-- Render all fields --}}
+                            {{-- ✅ NORMAL FIELD LOOP --}}
                             @foreach ($fields as $f)
                                 <div class="{{ $row }}">
                                     <div class="{{ $label }}">
@@ -197,26 +167,88 @@
                                         <span>{{ $f['label'] }}</span>
                                     </div>
 
-                                    {{-- value --}}
                                     <span class="{{ $value }}">{{ $f['value'] }}</span>
                                 </div>
                             @endforeach
 
-                            {{-- PURPOSE --}}
-                            <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="flex items-center gap-2 text-gray-500">
-                                    <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
-                                    <span>Purpose</span>
+
+                            {{-- ✅ RELATED DOCS (OUTSIDE LOOP) --}}
+                            <div class="{{ $row }}">
+                                <div class="{{ $label }}">
+                                    <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-400" />
+                                    <span>Related Docs</span>
                                 </div>
-                                <span
-                                    class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300">
-                                    {{ $wo->keperluan }}
-                                </span>
+
+                                <div class="{{ $value }} flex flex-wrap gap-2">
+
+                                    @php
+                                        $totalDocs =
+                                            (optional($wo->spbs)->count() ?? 0) +
+                                            (optional($wo->sppbs)->count() ?? 0) +
+                                            (optional($wo->sppjs)->count() ?? 0) +
+                                            // (optional($wo->sppks)->count() ?? 0) +
+                                            (optional($wo->sppts)->count() ?? 0);
+                                    @endphp
+
+                                    {{-- SPB --}}
+                                    @foreach ($wo->spbs ?? [] as $spb)
+                                        @php $hash = \Hashids::encode($spb->id); @endphp
+                                        <a href="{{ url('/showspbs/' . $hash) }}" target="_blank"
+                                            class="badge-doc bg-blue-100 text-blue-700">
+                                            SPB: {{ $spb->spbid }}
+                                        </a>
+                                    @endforeach
+
+                                    {{-- SPPB --}}
+                                    @foreach ($wo->sppbs ?? [] as $sppb)
+                                        @php $hash = \Hashids::encode($sppb->id); @endphp
+                                        <a href="{{ url('/showsppbs/' . $hash) }}" target="_blank"
+                                            class="badge-doc bg-green-100 text-green-700">
+                                            SPPB: {{ $sppb->sppbid }}
+                                        </a>
+                                    @endforeach
+
+                                    {{-- SPPJ --}}
+                                    @foreach ($wo->sppjs ?? [] as $sppj)
+                                        @php $hash = \Hashids::encode($sppj->id); @endphp
+                                        <a href="{{ url('/showsppjs/' . $hash) }}" target="_blank"
+                                            class="badge-doc bg-purple-100 text-purple-700">
+                                            SPPJ: {{ $sppj->sppjid }}
+                                        </a>
+                                    @endforeach
+
+
+                                    {{-- SPPT --}}
+                                    @foreach ($wo->sppts ?? [] as $sppt)
+                                        @php $hash = \Hashids::encode($sppt->id); @endphp
+                                        <a href="{{ url('/showsppts/' . $hash) }}" target="_blank"
+                                            class="badge-doc bg-pink-100 text-pink-700">
+                                            SPPT: {{ $sppt->spptid }}
+                                        </a>
+                                    @endforeach
+
+                                    {{-- EMPTY --}}
+                                    @if ($totalDocs === 0)
+                                        <span>-</span>
+                                    @endif
+
+                                </div>
                             </div>
 
                         </div>
-                    </div>
 
+                        {{-- PURPOSE --}}
+                        <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                            <div class="flex items-center gap-2 text-gray-500">
+                                <x-heroicon-o-clipboard-document-check class="h-5 w-5 text-gray-400" />
+                                <span>Purpose</span>
+                            </div>
+                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300">
+                                {{ $wo->keperluan }}
+                            </span>
+                        </div>
+
+                    </div>
 
 
                 </div>
@@ -1028,10 +1060,10 @@
                 locked
                 ? `<span class="text-xs text-gray-400">Locked</span>`
                 : `<button
-                                                    class="deleteJobAttachment px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition"
-                                                    data-id="${file.id}">
-                                                    Delete
-                                               </button>`
+                                                                                                    class="deleteJobAttachment px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 transition"
+                                                                                                    data-id="${file.id}">
+                                                                                                    Delete
+                                                                                               </button>`
             }
 
         </div>

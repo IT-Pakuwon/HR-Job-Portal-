@@ -72,6 +72,7 @@ use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReportCanvassSheetController;
+use App\Http\Controllers\ReportOperationalController;
 use App\Http\Controllers\ReportPurchasingController;
 use App\Http\Controllers\ReportWarehouseController;
 use App\Http\Controllers\RfcaListController;
@@ -1555,6 +1556,21 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/view/detail', function () {
             return view('pages.report-cs.canvas-detail');
+        });
+    });
+
+    Route::prefix('report-operational')->group(function () {
+        Route::get('/', [ReportOperationalController::class, 'index'])
+            ->name('reportoperational');
+
+        Route::get('/json', [ReportOperationalController::class, 'json'])
+            ->name('report.operational.json');
+
+        Route::get('/export', [ReportOperationalController::class, 'export'])
+            ->name('report.operational.export');
+
+        Route::get('/view/operational', function () {
+            return view('pages.report-operational.canvas-operational');
         });
     });
 
