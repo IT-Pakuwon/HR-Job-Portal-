@@ -149,11 +149,17 @@
                                         </div>
                                     </td>
 
-                                    <td class="border px-4 py-2">
+                                    {{-- <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">Duration:</span>
                                         <span class="bq-duration text-center">
                                             {{ (int) ($d->kontrak_duration_qty ?? 0) }}
                                         </span>
+                                    </td> --}}
+                                    <td class="border px-4 py-2">
+                                        <span class="font-medium md:hidden">Duration:</span>
+                                        <input type="number" min="0" step="1" inputmode="numeric"
+                                            class="bq-duration-input w-full rounded-lg border px-2 py-1 text-right md:w-20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                            value="{{ (int) ($d->kontrak_duration_qty ?? 0) }}">
                                     </td>
 
                                     <td class="border px-4 py-2">
@@ -465,14 +471,16 @@
                     const uomDiv = tds[4]?.querySelector('.bq-uom');
                     const uom = (uomInp ? uomInp.value : (uomDiv ? uomDiv.textContent : '')).trim();
 
-                    const durEl =
-                        tds[5]?.querySelector('.bq-duration') ||
-                        tds[5]?.querySelector('.bq-duration-input');
+                    // const durEl =
+                    //     tds[5]?.querySelector('.bq-duration') ||
+                    //     tds[5]?.querySelector('.bq-duration-input');
 
-                    const duration = parseInt(
-                        (durEl?.value ?? durEl?.textContent ?? '0'),
-                        10
-                    ) || 0;
+                    // const duration = parseInt(
+                    //     (durEl?.value ?? durEl?.textContent ?? '0'),
+                    //     10
+                    // ) || 0;
+                    const durEl = tds[5]?.querySelector('.bq-duration-input');
+                    const duration = parseInt(durEl?.value || '0', 10) || 0;
 
                     const bq_source = parseInt(tr.dataset.source || '0', 10);
 
@@ -509,11 +517,13 @@
                 document.querySelectorAll('#bqTable tbody tr').forEach(tr => {
                     const qty = toNum(tr.querySelector('.bq-qty')?.value || 0);
 
-                    const durEl =
-                        tr.querySelector('.bq-duration') ||
-                        tr.querySelector('.bq-duration-input');
+                    // const durEl =
+                    //     tr.querySelector('.bq-duration') ||
+                    //     tr.querySelector('.bq-duration-input');
 
-                    const duration = toNum(durEl?.value ?? durEl?.textContent ?? 0);
+                    // const duration = toNum(durEl?.value ?? durEl?.textContent ?? 0);
+                    const durEl = tr.querySelector('.bq-duration-input');
+                    const duration = parseInt(durEl?.value || '0', 10) || 0;
 
                     const td = tr.children[VENDOR_OFFSET + (idx - 1)];
                     const mat = toNum(td.querySelector('.bq-price-mat')?.value || 0);
@@ -615,8 +625,11 @@
 
     <script>
         (function() {
-            const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
+            // const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
+            const decimalSelector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
+            const integerSelector = '.bq-duration-input';
             const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
+            // const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
 
             document.addEventListener('keydown', e => {
                 if (!e.target.matches(selector)) return;
@@ -783,6 +796,66 @@
                 document.getElementById('bqTable')?.dispatchEvent(new Event('input', {
                     bubbles: true
                 }));
+            });
+        })();
+    </script>
+    <script>
+        (function() {
+            const decimalSelector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
+            const integerSelector = '.bq-duration-input';
+            const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);
+
+            document.addEventListener('keydown', e => {
+                // field decimal
+                if (e.target.matches(decimalSelector)) {
+                    const k = e.key;
+                    if (CTRL_KEYS.has(k)) return;
+                    if (k === 'e' || k === 'E' || k === '+' || k === '-') {
+                        e.preventDefault();
+                        return;
+                    }
+                    if (k >= '0' && k <= '9') return;
+                    if (k === '.') {
+                        const v = e.target.value || '';
+                        if (v.includes('.')) e.preventDefault();
+                        return;
+                    }
+                    e.preventDefault();
+                    return;
+                }
+
+                // field integer only
+                if (e.target.matches(integerSelector)) {
+                    const k = e.key;
+                    if (CTRL_KEYS.has(k)) return;
+                    if (k >= '0' && k <= '9') return;
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('input', e => {
+                if (e.target.matches(decimalSelector)) {
+                    let v = e.target.value || '';
+                    v = v.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+                    const parts = v.split('.');
+                    if (parts.length > 2) {
+                        v = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    e.target.value = v;
+                    return;
+                }
+
+                if (e.target.matches(integerSelector)) {
+                    e.target.value = (e.target.value || '').replace(/[^0-9]/g, '');
+                }
+            });
+
+            document.addEventListener('paste', e => {
+                if (!e.target.matches(integerSelector)) return;
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (!/^\d+$/.test(pasted)) {
+                    e.preventDefault();
+                }
             });
         })();
     </script>

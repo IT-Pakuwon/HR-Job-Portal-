@@ -159,11 +159,17 @@
                                         {{ $d->uom }}
                                     </td>
 
-                                    <td class="border px-4 py-2">
+                                    {{-- <td class="border px-4 py-2">
                                         <span class="font-medium md:hidden">Duration:</span>
                                         <span class="bq-duration">
                                             {{ (int) ($d->kontrak_duration_qty ?? 0) }}
                                         </span>
+                                    </td> --}}
+                                    <td class="border px-4 py-2">
+                                        <span class="font-medium md:hidden">Duration:</span>
+                                        <input type="number" min="0" step="1"
+                                            class="bq-duration-input w-full rounded-lg border px-2 py-1 text-right md:w-24"
+                                            value="{{ (int) ($d->kontrak_duration_qty ?? 0) }}">
                                     </td>
 
                                     <!-- Estimates -->
@@ -303,7 +309,8 @@
                     const uom = readCellTextOrInput(tds[4], '.bq-uom');
 
                     // ✅ duration
-                    const durEl = tds[5]?.querySelector('.bq-duration') || tds[5]?.querySelector('.bq-duration-input');
+                    // const durEl = tds[5]?.querySelector('.bq-duration') || tds[5]?.querySelector('.bq-duration-input');
+                    const durEl = tds[5]?.querySelector('.bq-duration-input');
                     const duration = parseInt((durEl ? (durEl.value ?? durEl.textContent) : '0') || '0', 10) || 0;
 
                     // ✅ source flag dari <tr data-bq-source="0|1">
@@ -526,7 +533,8 @@
 
     <script>
         (function() {
-            const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
+            // const selector = '.bq-qty,.bq-price-mat,.bq-price-jsa';
+            const selector = '.bq-qty,.bq-duration-input,.bq-price-mat,.bq-price-jsa';
 
             // Izinkan tombol kontrol
             const CTRL_KEYS = new Set(['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']);

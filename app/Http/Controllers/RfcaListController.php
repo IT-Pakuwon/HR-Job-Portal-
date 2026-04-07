@@ -294,17 +294,42 @@ class RfcaListController extends Controller
         abort_if(!$id, 404);
 
         $user = Auth::user();
-        if (!$user) return redirect()->route('login');
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
-        // ===== Header Rfca
+        // ===== Header RFCA
         $rfca = TrRfca::findOrFail($id);
 
-        // ===== Link ke PO (opsional)
+        $ponbr    = trim((string) ($rfca->ponbr ?? ''));
+        $cpnyId   = trim((string) ($rfca->cpny_id ?? ''));
+        $csid     = trim((string) ($rfca->csid ?? ''));
+        $calrid   = trim((string) ($rfca->calrid ?? ''));
+        $sppbjktid = trim((string) ($rfca->sppbjktid ?? ''));
+
+        // ===== Link ke PO (lebih fleksibel)
         $poUrl = null;
-        if (!empty($rfca->ponbr)) {
-            $poId = TrPO::where('ponbr', $rfca->ponbr)
-                ->where('cpny_id', $rfca->cpny_id)
-                ->value('id');
+        if ($ponbr !== '') {
+            $poQuery = TrPO::query()
+                ->whereRaw('TRIM(ponbr) = ?', [$ponbr]);
+
+            if ($cpnyId !== '') {
+                $poId = (clone $poQuery)
+                    ->whereRaw('TRIM(cpny_id) = ?', [$cpnyId])
+                    ->orderByDesc('id')
+                    ->value('id');
+
+                // fallback kalau tidak ketemu dengan company
+                if (!$poId) {
+                    $poId = (clone $poQuery)
+                        ->orderByDesc('id')
+                        ->value('id');
+                }
+            } else {
+                $poId = (clone $poQuery)
+                    ->orderByDesc('id')
+                    ->value('id');
+            }
 
             if ($poId) {
                 $poHash = Hashids::encode($poId);
@@ -312,10 +337,9 @@ class RfcaListController extends Controller
             }
         }
 
-        // ===== Link ke SPPB/J/K/T (opsional)
-        $sppbUrl   = null;
-        $sppbjktid = (string) ($rfca->sppbjktid ?? '');
-        $prefix    = strtoupper(substr($sppbjktid, 0, 2));
+        // ===== Link ke SPPB/J/K/T
+        $sppbUrl = null;
+        $prefix  = strtoupper(substr($sppbjktid, 0, 2));
 
         $routeMap = [
             'PB' => 'showsppbs',
@@ -328,13 +352,13 @@ class RfcaListController extends Controller
             $docId = null;
 
             if ($prefix === 'PB') {
-                $docId = TrSPPB::where('sppbid', $sppbjktid)->value('id');
+                $docId = TrSPPB::whereRaw('TRIM(sppbid) = ?', [$sppbjktid])->value('id');
             } elseif ($prefix === 'PJ') {
-                $docId = TrSPPJ::where('sppjid', $sppbjktid)->value('id');
+                $docId = TrSPPJ::whereRaw('TRIM(sppjid) = ?', [$sppbjktid])->value('id');
             } elseif ($prefix === 'PK') {
-                $docId = TrSPPK::where('sppkid', $sppbjktid)->value('id');
+                $docId = TrSPPK::whereRaw('TRIM(sppkid) = ?', [$sppbjktid])->value('id');
             } elseif ($prefix === 'PT') {
-                $docId = TrSPPT::where('spptid', $sppbjktid)->value('id');
+                $docId = TrSPPT::whereRaw('TRIM(spptid) = ?', [$sppbjktid])->value('id');
             }
 
             if (!empty($docId)) {
@@ -343,10 +367,31 @@ class RfcaListController extends Controller
             }
         }
 
-        // ===== Link ke CS (opsional)
+        // ===== Link ke CS (lebih fleksibel)
         $csUrl = null;
-        if (!empty($rfca->csid)) {
-            $csId = TrCS::where('csid', $rfca->csid)->value('id');
+        if ($csid !== '') {
+            $csQuery = TrCS::query()
+                ->whereRaw('TRIM(csid) = ?', [$csid]);
+
+            $csId = null;
+
+            if ($cpnyId !== '') {
+                $csId = (clone $csQuery)
+                    ->whereRaw('TRIM(cpny_id) = ?', [$cpnyId])
+                    ->orderByDesc('id')
+                    ->value('id');
+
+                // fallback kalau tidak ketemu dengan company
+                if (!$csId) {
+                    $csId = (clone $csQuery)
+                        ->orderByDesc('id')
+                        ->value('id');
+                }
+            } else {
+                $csId = (clone $csQuery)
+                    ->orderByDesc('id')
+                    ->value('id');
+            }
 
             if ($csId) {
                 $csHash = Hashids::encode($csId);
@@ -354,12 +399,30 @@ class RfcaListController extends Controller
             }
         }
 
-        // ===== Link ke CALR (opsional)
+        // ===== Link ke CALR
         $calrUrl = null;
-        if (!empty($rfca->calrid)) {
-            $calrId = TrCalr::where('calrid', $rfca->calrid)
-                ->where('cpny_id', $rfca->cpny_id)
-                ->value('id');
+        if ($calrid !== '') {
+            $calrQuery = TrCalr::query()
+                ->whereRaw('TRIM(calrid) = ?', [$calrid]);
+
+            $calrId = null;
+
+            if ($cpnyId !== '') {
+                $calrId = (clone $calrQuery)
+                    ->whereRaw('TRIM(cpny_id) = ?', [$cpnyId])
+                    ->orderByDesc('id')
+                    ->value('id');
+
+                if (!$calrId) {
+                    $calrId = (clone $calrQuery)
+                        ->orderByDesc('id')
+                        ->value('id');
+                }
+            } else {
+                $calrId = (clone $calrQuery)
+                    ->orderByDesc('id')
+                    ->value('id');
+            }
 
             if ($calrId) {
                 $calrHash = Hashids::encode($calrId);
@@ -367,26 +430,21 @@ class RfcaListController extends Controller
             }
         }
 
-        // Untuk convenience (mis. kirim email dsb)
         $eid_rfcaid = Hashids::encode($rfca->rfcaid);
 
-        // Detail step RFCA
         $rfcaSteps = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
             ->orderBy('rfca_step_order')
             ->get();
 
-        // STEP yang sedang aktif
         $currentStep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
             ->where('progress_approval', true)
             ->orderBy('rfca_step_order')
             ->first();
 
-        // hanya creator yang boleh submit jika step belum ada
         $loginUsername = $user->username ?? $user->name ?? null;
         $hasSteps = $rfcaSteps->isNotEmpty();
         $canSubmit = ($rfca->created_by === $loginUsername) && !$hasSteps;
 
-        // === Cek apakah user berhak memproses step ini
         $loginDept = $user->department_id ?? '';
         $loginDepartments = array_map('trim', explode(',', $loginDept));
 
@@ -736,26 +794,26 @@ class RfcaListController extends Controller
         $refnbr    = $rfca->csid;
         $apprTable = (new TrApproval)->getTable(); // "tr_approval"
 
-        // $approval = TrApproval::query()
-        //     ->where('refnbr', $refnbr)           
-        //     ->where('status', '<>', 'X')
-        //     ->reorder()
-        //     ->orderBy('created_at', 'asc')
-        //     ->orderBy('aprv_leveling', 'asc')
-        //     ->orderBy('id', 'asc')
-        //     ->get([
-        //         'aprv_leveling',
-        //         'aprv_name',
-        //         'aprv_datebefore',
-        //         'aprv_dateafter',
-        //         'status',
-        //         'aprv_type',
-        //         'aprv_condition',
-        //     ]);
+        $approval = TrApproval::query()
+            ->where('refnbr', $refnbr)           
+            ->where('status', '<>', 'X')
+            ->reorder()
+            ->orderBy('created_at', 'asc')
+            ->orderBy('aprv_leveling', 'asc')
+            ->orderBy('id', 'asc')
+            ->get([
+                'aprv_leveling',
+                'aprv_name',
+                'aprv_datebefore',
+                'aprv_dateafter',
+                'status',
+                'aprv_type',
+                'aprv_condition',
+            ]);
 
-        $approval = TrRfcaStep::where('rfcaid', $rfca->rfcaid)                
-                ->orderBy('rfca_step_order')
-                ->get();
+        // $approval = TrRfcaStep::where('rfcaid', $rfca->rfcaid)                
+        //         ->orderBy('rfca_step_order')
+        //         ->get();
 
 
         $approve_count = $approval->count();

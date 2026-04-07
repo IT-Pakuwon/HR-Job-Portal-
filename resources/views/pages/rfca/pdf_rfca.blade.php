@@ -224,16 +224,7 @@
                     <span class="field-value-wrap">{{ $keperluan }}</span>
                 </div>
             </th>
-        </tr>
-
-        {{-- <tr class="left-body">
-            <th>
-                <div class="field-row">
-                    <span class="field-label">Created by :</span>
-                    <span class="field-value-wrap">{{ $created_by_name }}</span>
-                </div>
-            </th>
-        </tr> --}}
+        </tr>      
     </table>
 
     @php
@@ -244,17 +235,20 @@
             default => 'black',
         };
 
+        // Convert "Created by" into approver #1
         $prepared = collect([
             (object) [
-                'rfca_step_user' => $created_by_name ?? $created_by_username,
-                'status_rfca' => 'CREATED',
-                'rfca_step_date' => $req_date_fmt,
+                'aprv_name' => $created_by_name ?? $created_by_username,
+                'status' => 'Created',
+                'aprv_dateafter' => $req_date_fmt,
                 'is_creator' => true,
             ],
         ])->merge($approval);
 
+        // Always 5 columns
         $colsPerRow = 5;
         $chunks = $prepared->values()->chunk($colsPerRow);
+
         $idx = 1;
     @endphp
 
@@ -273,56 +267,47 @@
                 <tr>
                     @foreach ($chunk as $dt2)
                         @php
-                            if (!empty($dt2->is_creator)) {
+                            if (isset($dt2->is_creator) && $dt2->is_creator) {
                                 $label = 'Created';
                                 $color = 'blue';
-                                $dateStr = $dt2->rfca_step_date;
-                                $nameStr = $dt2->rfca_step_user;
+                                $dateStr = $dt2->aprv_dateafter;
                             } else {
-                                $statusRaw = strtoupper((string) ($dt2->status_rfca ?? ''));
-
-                                $label = match ($statusRaw) {
-                                    'A', 'APPROVED' => 'Approved',
-                                    'R', 'REJECTED' => 'Rejected',
-                                    'P', 'WAITING' => 'Waiting',
-                                    'D', 'REVISED', 'REVISE' => 'Revised',
-                                    'C', 'COMPLETED' => 'Completed',
-                                    default => $statusRaw !== '' ? ucfirst(strtolower($statusRaw)) : 'Waiting',
+                                $label = match ($dt2->status) {
+                                    'A' => 'Approved',
+                                    'R' => 'Rejected',
+                                    'P' => 'Waiting',
+                                    default => 'Revised',
                                 };
-
-                                $color = match ($statusRaw) {
-                                    'A', 'APPROVED', 'C', 'COMPLETED' => 'blue',
-                                    'R', 'REJECTED' => 'red',
-                                    'P', 'WAITING' => 'orange',
-                                    'D', 'REVISED', 'REVISE' => 'red',
-                                    default => 'black',
+                                $color = match ($dt2->status) {
+                                    'A' => 'blue',
+                                    'R' => 'red',
+                                    'P' => 'orange',
+                                    default => 'red',
                                 };
-
-                                $dateStr = !empty($dt2->rfca_step_date)
-                                    ? \Carbon\Carbon::parse($dt2->rfca_step_date)->format('d M Y H:i')
+                                $dateStr = $dt2->aprv_dateafter
+                                    ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
                                     : '';
-
-                                $nameStr = $dt2->rfca_step_user ?: ($dt2->rfca_step_descr ?? '-');
                             }
                         @endphp
 
-                        <td style="width:20%;">
-                            <div>
-                                <span class="sig-num">{{ $idx++ }}.</span>
-                                <span class="sig-name">{{ $nameStr }}</span>
+                        <td>
+                            <div><span class="sig-num">{{ $idx++ }}.</span>
+                                <span class="sig-name">{{ $dt2->aprv_name }}</span>
                             </div>
                             <div class="sig-status {{ $color }}">{{ $label }}</div>
                             <div>{{ $dateStr }}</div>
                         </td>
                     @endforeach
 
+                    {{-- Fill empty cells --}}
                     @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
-                        <td style="width:20%;">&nbsp;</td>
+                        <td>&nbsp;</td>
                     @endfor
                 </tr>
             @endforeach
         </tbody>
     </table>
+    
 
 </body>
 
