@@ -85,6 +85,7 @@
                         <th class="text-center">SPPBJKT</th>
                         {{-- <th class="text-center">Duration</th> --}}
                         {{-- <th class="text-right">Cost</th> --}}
+                        {{-- <th>Budget Use</th> --}}
                         <th>Budget Info</th>
                         <th>Description</th>
                     </tr>
@@ -224,6 +225,9 @@
                     }
                 },
                 // {
+                //     data: 'budget_user'
+                // },
+                // {
                 //     data: 'duration',
                 //     className: 'text-center'
                 // },
@@ -241,27 +245,58 @@
                 // },
                 {
                     data: 'budget_info',
-                    className: 'text-left align-top !text-left', // 🔥 force override
-                    render: function(data) {
+                    className: 'text-left align-top',
+                    render: function(data, type, row) {
 
-                        if (!data || (!data.dept && !data.account && !data.activity)) {
-                            return '<div class="text-gray-300 italic text-left">No budget</div>';
+                        // 🔥 normalize values
+                        const dept = data?.dept && data.dept !== '-' ? data.dept : null;
+                        const account = data?.account && data.account !== '-' ? data.account :
+                            null;
+                        const activity = data?.activity && data.activity !== '-' ? data
+                            .activity : null;
+
+                        // 🔥 EMPTY STATE (NOW CORRECT)
+                        if (!dept && !account && !activity) {
+                            return `
+                <div class="text-left leading-tight w-full">
+                    ${row.budget_user ? `
+                        <div class="text-xs text-gray-700">
+                            👤 ${row.budget_user}
+                        </div>
+                    ` : ''}
+                    <div class="text-[11px] text-gray-400 italic">
+                        No budget assigned
+                    </div>
+                </div>
+            `;
                         }
 
                         return `
             <div class="text-left leading-tight space-y-1 w-full">
 
-                <div class="font-semibold text-gray-800 text-xs">
-                    🏢 ${data.dept ?? '-'}
-                </div>
+                ${dept ? `
+                    <div class="font-semibold text-gray-800 text-xs">
+                        🏢 ${dept}
+                    </div>
+                ` : ''}
 
-                <div class="text-[11px] text-gray-500">
-                    <span class="font-medium">Acc:</span> ${data.account ?? '-'}
-                </div>
+                ${row.budget_user ? `
+                    <div class="text-[11px] text-green-600">
+                        👤 ${row.budget_user}
+                    </div>
+                ` : ''}
 
-                <div class="text-[11px] text-indigo-600 break-words whitespace-normal">
-                    ${data.activity ?? '-'}
-                </div>
+                ${account ? `
+                    <div class="text-[11px] text-gray-500">
+                        <span class="font-medium">Acc:</span> ${account}
+                    </div>
+                ` : ''}
+
+                ${activity ? `
+                    <div class="text-[11px] text-indigo-600 break-words whitespace-normal">
+                        ${activity}
+                    </div>
+                ` : ''}
 
             </div>
         `;

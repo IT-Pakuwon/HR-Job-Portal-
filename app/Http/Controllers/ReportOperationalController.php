@@ -55,6 +55,7 @@ class ReportOperationalController extends Controller
                 'w.budget_account_id',
                 'w.budget_activity_id',
                 'w.budget_activity_descr',
+                'w.budget_use',
 
                 DB::raw('(SELECT COUNT(*) FROM tr_spb WHERE woid = w.woid) as spb_count'),
 
@@ -228,6 +229,11 @@ class ReportOperationalController extends Controller
                     'activity' => $row->budget_activity_descr ?? $row->budget_activity_id ?? '-',
                 ];
             })
+
+            ->addColumn('budget_user', function ($row) use ($users) {
+                return $users[$row->budget_use] ?? $row->budget_use ?? '-';
+            })
+
             ->addColumn('doc_status', function ($row) {
                 return match ($row->status) {
                     'P' => 'Pending',
