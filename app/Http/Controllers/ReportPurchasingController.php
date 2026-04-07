@@ -305,7 +305,7 @@ class ReportPurchasingController extends Controller
                     'N' => '<span class="px-2 py-1 text-xs text-white bg-blue-500 rounded">New</span>',
                     'P' => '<span class="px-2 py-1 text-xs text-white bg-yellow-500 rounded">On Progress</span>',
                     'C' => '<span class="px-2 py-1 text-xs text-white bg-green-500 rounded">Completed</span>',
-                    'D' => '<span class="px-2 py-1 text-xs text-white bg-gray-500 rounded">Draft</span>',
+                    'D' => '<span class="px-2 py-1 text-xs text-white bg-gray-500 rounded">Revised</span>',
                     'X' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
                     'R' => '<span class="px-2 py-1 text-xs text-white bg-red-500 rounded">Cancelled</span>',
                 ][$row->status] ?? $row->status;
