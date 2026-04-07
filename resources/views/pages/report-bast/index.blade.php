@@ -34,7 +34,7 @@
         {{-- Report Content --}}
         <div id="reportContainer">
             {{-- BAST --}}
-            <div id="report-bast" class="hidden">
+            <div id="report-bast">
                 @include('pages.report-bast.bast-detail')
             </div>
 

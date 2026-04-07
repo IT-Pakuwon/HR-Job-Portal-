@@ -74,16 +74,22 @@
 
                 <thead class="bg-gray-50 text-[11px] uppercase text-gray-500">
                     <tr>
-                        <th></th>
                         <th>Date</th>
+                        <th>CS No</th>
+                        <th>SPPBJKT No</th>
+                        <th>BQ No</th>
                         <th>BAST No</th>
+                        <th>Terms</th>
+                        <th>Location</th>
                         <th>Department</th>
                         <th>Requester</th>
                         <th>Vendor</th>
                         <th>Duration</th>
-                        <th class="text-right">Amount</th>
+                        <th>Progress</th>
+                        <th>Penalty</th>
+                        <th>Amount</th>
                         <th>Status</th>
-                        <th class="text-center">Rating</th>
+                        <th>Rating</th>
                         <th>Description</th>
                     </tr>
                 </thead>
@@ -116,19 +122,55 @@
                 }
             },
 
-            columns: [
-
-                {
-                    data: null,
-                    className: 'dtr-control',
-                    orderable: false
-                },
-
-                {
+            columns: [{
                     data: 'date'
                 },
                 {
+                    data: 'csid'
+                },
+                {
+                    data: 'sppbjktid'
+                },
+                {
+                    data: 'bqid'
+                },
+                {
                     data: 'bastid'
+                },
+                {
+                    data: 'terms_name'
+                },
+                {
+                    data: 'location_full',
+                    className: 'text-left align-top',
+                    createdCell: function(td) {
+                        $(td).css({
+                            'text-align': 'left',
+                            'vertical-align': 'top'
+                        });
+                    },
+                    render: function(data) {
+
+                        if (!data) {
+                            return '<span class="text-gray-300 italic block text-left">No location</span>';
+                        }
+
+                        return `
+            <div class="flex flex-col leading-tight text-left w-full text-left">
+
+                <div class="text-xs font-semibold text-gray-800 text-left">
+                    📍 ${data.main}
+                </div>
+
+                ${data.sub ? `
+                    <div class="text-[11px] text-gray-500 text-left">
+                        ${data.sub}
+                    </div>
+                ` : ''}
+
+            </div>
+        `;
+                    }
                 },
                 {
                     data: 'department_name'
@@ -144,7 +186,14 @@
                     data: 'duration',
                     className: 'text-center'
                 },
-
+                {
+                    data: 'progress_label',
+                    className: 'text-center'
+                },
+                {
+                    data: 'penalty_format',
+                    className: 'text-right'
+                },
                 {
                     data: 'bast_amount',
                     className: 'text-right',
@@ -153,7 +202,6 @@
                         return parseFloat(data).toLocaleString('en-US');
                     }
                 },
-
                 {
                     data: 'status',
                     render: function(data) {
@@ -169,7 +217,6 @@
                         return `<span class="px-2 py-1 text-xs rounded ${s[1]}">${s[0]}</span>`;
                     }
                 },
-
                 {
                     data: 'rating',
                     className: 'text-center',
