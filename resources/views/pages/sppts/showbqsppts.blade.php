@@ -180,7 +180,7 @@
                     <table class="w-full border-collapse text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-10 bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
                             <tr>
-                                <th class="px-4 py-2 text-left">Line No</th>
+                                <th class="px-4 py-2 text-left">No</th>
                                 <th class="px-4 py-2 text-left">Description</th>
                                 <th class="px-4 py-2 text-right">Qty</th>
                                 <th class="px-4 py-2 text-left">UoM</th>
@@ -194,7 +194,7 @@
                             @foreach ($bqdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 bg-white hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->bq_no }}</td>
                                     <td class="px-4 py-2">{{ $item->bq_descr }}</td>
                                     <td class="px-4 py-2 text-right">
                                         {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}

@@ -117,6 +117,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\TestEmailController;
 
 // use Illuminate\Support\Facades\Response;
 // use Illuminate\Support\Facades\File;
@@ -1145,6 +1146,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/mastercard', [DashboardController::class, 'analytics'])->name('mastercard');
 
     Route::get('/test', [DashboardController::class, 'test'])->name('test');
+
+    Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
+    Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
 
     // Route::get('/settings/account', function () {
     //     return view('profile/show');

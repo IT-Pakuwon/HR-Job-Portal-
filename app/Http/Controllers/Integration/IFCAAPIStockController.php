@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Models\MsInventory;
-use App\Models\StagingIfcaIcStkmas;
+use App\Models\StagingIfcaIcStkMas;
 use App\Models\MsIntegrationSetting;
 use App\Models\TrIntegrationLog;
 
@@ -51,7 +51,7 @@ class IFCAAPIStockController extends Controller
 
         $stockCds = $invRows->pluck('inventoryid')->map(fn($v) => (string)$v)->all();
         // 2) staging (pgsql3)
-        $stagingMap = StagingIfcaIcStkmas::query()
+        $stagingMap = StagingIfcaIcStkMas::query()
             ->whereIn('stock_cd', $stockCds)
             ->get(['stock_cd','process_flag'])
             ->keyBy('stock_cd');
@@ -147,7 +147,7 @@ class IFCAAPIStockController extends Controller
         $stockCds = $inventories->pluck('inventoryid')->map(fn ($v) => (string) $v)->values()->all();
                 
         // 2) Ambil staging existing (pgsql3)
-        $stagingMap = StagingIfcaIcStkmas::query()
+        $stagingMap = StagingIfcaIcStkMas::query()
             ->whereIn('stock_cd', $stockCds)
             ->get(['id', 'stock_cd', 'process_flag'])
             ->keyBy('stock_cd');
@@ -158,7 +158,7 @@ class IFCAAPIStockController extends Controller
         $skippedC  = 0;
 
         // STEP A: INSERT H -> P (hanya yang belum ada staging)
-        $stagingConn = (new StagingIfcaIcStkmas)->getConnectionName(); // 'pgsql3'
+        $stagingConn = (new StagingIfcaIcStkMas)->getConnectionName(); // 'pgsql3'
         DB::connection($stagingConn)->beginTransaction();
 
         try {
@@ -166,7 +166,7 @@ class IFCAAPIStockController extends Controller
                 $stockCd = (string) $inv->inventoryid;
 
                 if (!$stagingMap->has($stockCd )) {
-                    StagingIfcaIcStkmas::query()->create([
+                    StagingIfcaIcStkMas::query()->create([
                         'stock_cd'      => $stockCd,
                         'stock_descs'   => (string) $inv->inventory_descr,
                         'uom_cd'        => (string) ($inv->stock_unit ?? ''),
@@ -206,7 +206,7 @@ class IFCAAPIStockController extends Controller
         }
 
         // refresh staging map setelah insert
-        $stagingMap = StagingIfcaIcStkmas::query()
+        $stagingMap = StagingIfcaIcStkMas::query()
             ->whereIn('stock_cd', $stockCds)
             ->get(['id', 'stock_cd', 'process_flag'])
             ->keyBy('stock_cd');
@@ -229,12 +229,12 @@ class IFCAAPIStockController extends Controller
             }
 
             if ($st->process_flag === 'N') {
-                $item = StagingIfcaIcStkmas::query()->where('stock_cd', $stockCd)->first();
+                $item = StagingIfcaIcStkMas::query()->where('stock_cd', $stockCd)->first();
 
                 $res = $this->sendStockAPI($item, $token, $username);
 
                 if ($res['ok']) {
-                    StagingIfcaIcStkmas::query()
+                    StagingIfcaIcStkMas::query()
                         ->where('stock_cd', $stockCd )
                         ->update([
                             'process_flag' => 'Y',
@@ -245,7 +245,7 @@ class IFCAAPIStockController extends Controller
                         ]);
                     $sentOkP++;
                 } else {
-                    StagingIfcaIcStkmas::query()
+                    StagingIfcaIcStkMas::query()
                         ->where('stock_cd', $stockCd)
                         ->update([
                             'process_note' => substr((string)($res['response_body'] ?? 'ERROR'), 0, 255),
@@ -382,7 +382,7 @@ class IFCAAPIStockController extends Controller
         }
     }
 
-    private function sendStockAPI(StagingIfcaIcStkmas $item, string $token, string $usernameForLog): array
+    private function sendStockAPI(StagingIfcaIcStkMas $item, string $token, string $usernameForLog): array
     {
         $url = $this->buildUrl('api.StockItem.url');
         if ($url === '') throw new \RuntimeException('Setting api.StockItem.url kosong');

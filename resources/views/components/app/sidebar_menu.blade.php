@@ -427,6 +427,12 @@
                                                 User Sync
                                             </a>
                                         </li>
+                                         <li>
+                                            <a href="{{ route('test-email.index') }}"
+                                                class="{{ Request::segment(1) === 'test-email' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                TESTING EMAIL
+                                            </a>
+                                        </li>
 
 
                                     </ul>

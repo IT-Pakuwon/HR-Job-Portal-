@@ -135,7 +135,7 @@
         <tbody>
             @foreach ($bqdetail as $item)
                 <tr>
-                    <td align="center">{{ $item->bq_line_no }}</td>
+                    <td align="center">{{ $item->bq_no }}</td>
 
                     <td class="wrap">
                         {{ $item->bq_descr }}
