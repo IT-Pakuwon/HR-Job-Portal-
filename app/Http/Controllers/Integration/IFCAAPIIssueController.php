@@ -667,10 +667,10 @@ class IFCAAPIIssueController extends Controller
                 "issue_qty"       => (float)$r->issue_qty,
 
                 // doc example shows "Y"
-                "process_flag"    => "Y",
+                "process_flag"    => "N",
                 "create_date"     => Carbon::parse($r->create_date ?? now())->toISOString(),
-                "process_dt"      => Carbon::parse($r->process_dt ?? now())->toISOString(),
-                "process_note"    => $r->process_note,
+                // "process_dt"      => Carbon::parse($r->process_dt ?? now())->toISOString(),
+                // "process_note"    => $r->process_note,
             ];
         })->values()->all();
 
