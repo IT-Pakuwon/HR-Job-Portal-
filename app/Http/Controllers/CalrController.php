@@ -562,7 +562,7 @@ class CalrController extends Controller
         $user    = $request->user();
         $doctype = 'CA';
 
-        $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
+        $calr = \App\Models\TrCalr::with('creator')->where('calrid', $docid)->first();
         if (!$calr) {
             return response()->json(['success' => false, 'message' => 'CALR not found'], 404);
         }
@@ -646,7 +646,7 @@ class CalrController extends Controller
         $user    = $request->user();
         $doctype = 'CA';
 
-        $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
+        $calr = \App\Models\TrCalr::with('creator')->where('calrid', $docid)->first();
         if (!$calr) {
             return response()->json(['success' => false, 'message' => 'CALR not found'], 404);
         }
@@ -670,7 +670,7 @@ class CalrController extends Controller
                 $calr->save();
 
                 // optional: tandai detail R
-                // \App\Models\TrCALRdetail::where('calrid', $calr->calrid)->update(['status' => 'R']);
+                // \App\Models\TrCalrdetail::where('calrid', $calr->calrid)->update(['status' => 'R']);
 
                 // notify requester
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
@@ -719,7 +719,7 @@ class CalrController extends Controller
         $user    = $request->user();
         $doctype = 'CA';
 
-        $calr = \App\Models\TrCALR::with('creator')->where('calrid', $docid)->first();
+        $calr = \App\Models\TrCalr::with('creator')->where('calrid', $docid)->first();
         if (!$calr) return response()->json(['success'=>false,'message'=>'CALR not found'],404);
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
@@ -739,7 +739,7 @@ class CalrController extends Controller
                 $calr->save();
 
                 // (opsional) DETAIL -> D
-                // \App\Models\TrCALRdetail::where('calrid', $calr->calrid)->update(['status' => 'D']);
+                // \App\Models\TrCalrdetail::where('calrid', $calr->calrid)->update(['status' => 'D']);
 
                 // === Email ke requester ===
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
