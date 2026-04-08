@@ -14,14 +14,14 @@ class TrPO extends Model
     protected $primaryKey = 'id';
     public $timestamps = true;
 
-    protected $fillable = [      
+    protected $fillable = [
 
-        'ponbr' , 'poautonbr' , 'podate' , 'potype' , 'cpny_id' , 'csid' , 'sppbjktid' , 'department_id' , 'user_peminta' , 
-        'keperluan' , 'ponote' , 'vendorid' , 'vendorname' , 'vendoralamat' , 'vendortelp' , 'vendorcp' , 'vendornote','vendortop' , 
-        'totalamt' , 'taxcodeid' , 'taxamt' , 'grandtotalamt' , 'totalqty' , 'totalqtyreceived' , 'submitdate' , 'podeliverydate' , 
+        'ponbr' , 'poautonbr' , 'podate' , 'potype' , 'cpny_id' , 'csid' , 'sppbjktid' , 'department_id' , 'user_peminta' ,
+        'keperluan' , 'ponote' , 'vendorid' , 'vendorname' , 'vendoralamat' , 'vendortelp' , 'vendorcp' , 'vendornote','vendortop' ,
+        'totalamt' , 'taxcodeid' , 'taxamt' , 'grandtotalamt' , 'totalqty' , 'totalqtyreceived' , 'submitdate' , 'podeliverydate' ,
         'spkstartworkingdate' , 'spkendtworkingdate' , 'spktotalday' , 'spkworkschedule' , 'spkmanpower' , 'spkpic' ,
         'spkpicjabatan' , 'spkpicphone' , 'spkpicemail' , 'spkvendor' , 'spkvendorjabatan' , 'spkvendorphone' , 'spkvendoremail' ,
-        'spkwarranty' , 'spkcarabayar' , 'send_email' , 'send_email_at' , 'reuse' , 'reuse_at' , 'status' , 'created_by' , 'created_at' , 
+        'spkwarranty' , 'spkcarabayar' , 'send_email' , 'send_email_at' , 'reuse' , 'reuse_at' , 'status' , 'created_by' , 'created_at' ,
         'updated_by' , 'updated_at' , 'deleted_by' , 'deleted_at' , 'completed_by' , 'completed_at, is_transfer'
     ];
 
@@ -66,4 +66,9 @@ class TrPO extends Model
     {
         return $this->belongsTo(TrCS::class, 'csid', 'csid');
     }
+
+    public function vendor()
+{
+    return $this->belongsTo(MsVendor::class, 'vendorid', 'vendor_id');
+}
 }

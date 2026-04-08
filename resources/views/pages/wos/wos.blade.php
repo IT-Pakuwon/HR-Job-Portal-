@@ -2,20 +2,22 @@
     @php
         $currentPage = Route::currentRouteName() == 'wos' ? 'HR' : '';
     @endphp
-    {{-- @php
-        $hasWoAllAccess = auth()->user()->hasRole('COSTCTRLACCESS');
+    @php
+        $user = auth()->user();
 
-        $xlCols = 5; // All, On Progress, Reject, Revise, Completed
+        $hasWoAllAccess = $user->user_role === 'admin';
+
+        $xlCols = 5;
 
         if ($hasWoAllAccess) {
             $xlCols++; // WO All
         }
-    @endphp --}}
+    @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {{-- <div
-            class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"> --}}
+        {{-- <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"> --}}
+            <div
+            class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 
             {{-- All Status --}}
             <a href="#" class="status-filter group block h-full" data-status="">
@@ -93,7 +95,7 @@
             </a>
 
             {{-- WO ALL (Cost Control Only) --}}
-            {{-- @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if (auth()->user()->user_role === 'admin')
                 <a href="#" class="status-filter group block h-full" data-scope="wo_all">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
@@ -107,7 +109,7 @@
                         <p class="shrink-0 text-base font-extrabold">{{ $woAll ?? 0 }}</p>
                     </div>
                 </a>
-            @endif --}}
+            @endif
 
         </div>
 
@@ -160,11 +162,11 @@
         <!-- ================== TRACKING MODAL ================== -->
         <div id="trackingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
             <div
-                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
+                class="max-h-[90vh] w-[95vw] max-w-none overflow-y-auto rounded-xl bg-white p-4 sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl dark:bg-gray-800">
 
                 <!-- Header -->
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h3 class="text-sm font-semibold text-gray-800 dark:text-white">
+                    <h3 class="text-[12px] font-semibold text-gray-800 dark:text-white">
                         WO Tracking <span id="trackDoc" class="font-bold text-indigo-600"></span>
                     </h3>
                     <button id="closeTracking"
@@ -173,7 +175,7 @@
                     </button>
                 </div>
 
-                <!-- Controls (opsional) -->
+                {{-- <!-- Controls (opsional) -->
                 <div class="mb-3 flex items-center justify-end gap-2">
                     <button type="button" id="tlPrev"
                         class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
@@ -183,7 +185,7 @@
                         class="rounded-lg border px-3 py-1 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                         Next ›
                     </button>
-                </div>
+                </div> --}}
 
                 <!-- Timeline -->
                 <ul id="tlList"
@@ -205,160 +207,201 @@
         </div>
     </div>
     <script>
-        function renderTimeline(steps = []) {
+    function renderTimeline(steps = []) {
             const list = document.getElementById('tlList');
             if (!list) return;
 
             if (!Array.isArray(steps) || steps.length === 0) {
-                list.innerHTML = `<p class=" text-sm  text-gray-500">No tracking history found.</p>`;
+                list.innerHTML = `<p class="text-sm text-gray-500">No tracking history found.</p>`;
                 return;
             }
 
-            const MAP = {
-                C: {
-                    label: 'Completed',
-                    colorDot: 'bg-green-600',
-                    colorBorder: 'border-green-600',
-                    colorTitle: 'text-green-700'
-                },
-                P: {
-                    label: 'Waiting approval / in progress',
-                    colorDot: 'bg-yellow-500',
-                    colorBorder: 'border-yellow-500',
-                    colorTitle: 'text-yellow-700'
-                },
-                R: {
-                    label: 'Rejected',
-                    colorDot: 'bg-red-600',
-                    colorBorder: 'border-red-600',
-                    colorTitle: 'text-red-700'
-                },
-                D: {
-                    label: 'Revise',
-                    colorDot: 'bg-blue-600',
-                    colorBorder: 'border-blue-600',
-                    colorTitle: 'text-blue-700'
-                },
-                _: {
-                    label: '',
-                    colorDot: 'bg-gray-400',
-                    colorBorder: 'border-gray-400',
-                    colorTitle: 'text-gray-700'
-                },
-            };
+            // ✅ ONLY APPROVAL ITEMS
+            const approvals = steps.filter(s => s.type === 'approval');
 
-            list.innerHTML = steps.map((s, i) => {
-                const st = String(s.status || '').toUpperCase();
-                const C = MAP[st] || MAP._;
-                const title = (s.title && String(s.title).trim()) || 'WO';
+            const approvedCount = approvals.filter(a => a.status === 'C').length;
+            const total = approvals.length;
 
-                const when = (s.at && String(s.at).trim()) || '';
-                const by = (s.by && String(s.by).trim()) || '';
-                const statusText = (s.status_label && String(s.status_label).trim()) || C.label;
+            list.className = "px-2 py-3";
 
-                // tampilkan jadi multi-line: status, nama, waktu
-                let detailHtml = '';
-                if (statusText) detailHtml += `<p class=" text-sm  text-gray-500">${statusText}</p>`;
-                if (by) detailHtml += `<p class=" text-sm  text-gray-500">${by}</p>`;
-                if (when) detailHtml += `<p class=" text-sm  text-gray-500">${when}</p>`;
+            list.innerHTML = `
+                <div class="rounded-xl border border-gray-200 bg-white p-4">
 
-                const isLast = i === steps.length - 1;
-                const connector = !isLast ?
-                    'after:absolute after:top-1/2 after:left-7 after:h-0.5 after:w-[calc(100%-1.75rem)] after:-translate-y-1/2 after:bg-gray-300 dark:after:bg-gray-600' :
-                    '';
+                    <!-- HEADER -->
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-sm font-semibold text-gray-700">
+                        Approval Tracking
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            ${approvedCount}/${total} Approved
+                        </div>
+                    </div>
 
-                return `
-                        <li class="relative mr-12 flex shrink-0 snap-start pr-12 last:mr-0 last:pr-0 ${connector}">
-                            <div class="flex items-center">
-                            <div class="grid h-6 w-6 place-items-center rounded-full border-2 ${C.colorBorder} bg-white dark:bg-gray-800">
-                                <div class="h-2 w-2 rounded-full ${C.colorDot}"></div>
+                    <!-- SCROLL -->
+                    <div class="space-y-1 max-h-[400px] overflow-y-auto pr-2">
+
+                        ${steps.map(s => {
+
+                            // ======================
+                            // 🔹 CYCLE HEADER
+                            // ======================
+                            if (s.type === 'cycle') {
+                                return `
+                                <div class="flex items-center gap-2 my-3">
+                                    <div class="flex-1 h-px bg-gray-200"></div>
+                                    <div class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                                        ${s.title}
+                                    </div>
+                                    <div class="flex-1 h-px bg-gray-200"></div>
+                                </div>
+                                `;
+                            }
+
+                            // ======================
+                            // 🔹 SKIP NON APPROVAL (optional)
+                            // ======================
+                            if (s.type !== 'approval') return '';
+
+                            const st = String(s.status || '').toUpperCase();
+
+                            let badge = s.status_label || '-';
+                            let badgeClass = '';
+                            let dot = '';
+
+                            if (st === 'C') {
+                                badgeClass = 'text-green-600';
+                                dot = 'bg-green-500';
+                            } else if (st === 'P') {
+                                badgeClass = 'text-blue-600';
+                                dot = 'bg-blue-500';
+                            } else if (st === 'R') {
+                                badgeClass = 'text-red-600';
+                                dot = 'bg-red-500';
+                            } else if (st === 'D') {
+                                badgeClass = 'text-yellow-600';
+                                dot = 'bg-yellow-500';
+                            } else if (st === 'X') {
+                                badgeClass = 'text-gray-600';
+                                dot = 'bg-gray-500';
+                            }
+                            else {
+                                badgeClass = 'text-gray-400';
+                                dot = 'bg-gray-300';
+                            }
+
+                            const name = s.by || '-';
+                            const initials = name !== '-'
+                                ? name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()
+                                : '?';
+
+                            return `
+                            <div class="flex items-center justify-between py-3">
+
+                                <!-- LEFT -->
+                                <div class="flex items-center gap-3">
+
+                                    <div class="h-2 w-2 rounded-full ${dot}"></div>
+
+                                    <div class="h-8 w-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                                        ${initials}
+                                    </div>
+
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-800">
+                                            ${s.title}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            ${name}
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- RIGHT -->
+                                <div class="text-right">
+                                    <div class="text-xs font-medium ${badgeClass}">
+                                        ${badge}
+                                    </div>
+                                    <div class="text-[11px] text-gray-400">
+                                        ${s.at || '-'}
+                                    </div>
+                                </div>
+
                             </div>
-                            <div class="ml-3">
-                                <p class=" text-sm  font-semibold ${C.colorTitle}">${title}</p>
-                                ${detailHtml}
-                            </div>
-                            </div>
-                        </li>
-                        `;
-            }).join('');
-        }
-    </script>
+                            `;
+                        }).join('')}
 
-    <script>
-        // Scroll controls
-        (function() {
-            const scroller = document.getElementById('tlList');
-            document.getElementById('tlPrev')?.addEventListener('click', () =>
-                scroller.scrollBy({
-                    left: -300,
-                    behavior: 'smooth'
-                })
-            );
-            document.getElementById('tlNext')?.addEventListener('click', () =>
-                scroller.scrollBy({
-                    left: 300,
-                    behavior: 'smooth'
-                })
-            );
-        })();
+                    </div>
+                </div>
+            `;
+    }
+    // Scroll controls (VERTICAL)
+    (function() {
+        const scroller = document.getElementById('tlScroll');
 
-        // Open/Close modal
-        function openTrackingModal(docText) {
-            document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-            const modal = document.getElementById('trackingModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
+        document.getElementById('tlPrev')?.addEventListener('click', () =>
+            scroller?.scrollBy({ top: -200, behavior: 'smooth' })
+        );
 
-        function closeTrackingModal() {
-            const modal = document.getElementById('trackingModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-        document.getElementById('closeTracking').addEventListener('click', closeTrackingModal);
-        document.getElementById('trackingModal').addEventListener('click', (e) => {
-            if (e.target.id === 'trackingModal') closeTrackingModal();
-        });
+        document.getElementById('tlNext')?.addEventListener('click', () =>
+            scroller?.scrollBy({ top: 200, behavior: 'smooth' })
+        );
+    })();
 
+    // Open modal
+    function openTrackingModal(docText) {
+        document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+        const modal = document.getElementById('trackingModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
 
-        $(document).on('click', '.tracking-btn', function() {
-            const id = $(this).data('id');
-            const doc = $(this).data('doc') || '';
+    // Close modal
+    function closeTrackingModal() {
+        const modal = document.getElementById('trackingModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 
-            // Tampilkan modal dulu
-            openTrackingModal(doc);
+    document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
 
-            $.ajax({
-                url: `/wos/${id}/tracking`,
-                method: 'GET',
-                dataType: 'json',
-                success: function(res) {
-                    // langsung pakai struktur dari controller
-                    renderTimeline(res.steps || []);
-                },
-                error: function() {
-                    // fallback demo
-                    renderTimeline([{
-                            key: 'submitted',
-                            title: 'WO',
-                            status: 'C',
-                            status_label: 'Submitted',
-                            by: 'Williem Halim',
-                            at: '2025-08-10 09:00'
-                        },
-                        {
-                            key: 'approval',
-                            title: 'Approval',
-                            status: 'P',
-                            status_label: 'Waiting approval / in progress',
-                            by: null,
-                            at: null
-                        },
-                    ]);
+    document.getElementById('trackingModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'trackingModal') closeTrackingModal();
+    });
+
+    // Load tracking
+    $(document).on('click', '.tracking-btn', function() {
+        const id = $(this).data('id');
+        const doc = $(this).data('doc') || '';
+
+        openTrackingModal(doc);
+
+        $.ajax({
+            url: `/wos/${id}/tracking`,
+            method: 'GET',
+            dataType: 'json',
+
+            success: function(res) {
+                console.log('TRACKING RESPONSE:', res);
+
+                if (!res || !Array.isArray(res.steps)) {
+                    document.getElementById('tlList').innerHTML =
+                        `<p class="text-sm text-red-500">Invalid tracking data</p>`;
+                    return;
                 }
-            });
+
+                renderTimeline(res.steps);
+            },
+
+            error: function(err) {
+                console.error('Tracking API ERROR:', err);
+
+                document.getElementById('tlList').innerHTML =
+                    `<p class="text-sm text-red-500">Failed to load tracking data</p>`;
+            }
         });
-    </script>
+    });
+</script>
 
     <script>
         let scopeFilter = '';

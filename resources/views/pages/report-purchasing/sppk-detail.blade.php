@@ -1,216 +1,217 @@
 <div class="space-y-4">
+  <!-- FILTER PANEL -->
+  <div class="p-6 bg-gray-50/60 rounded-2xl border border-gray-200 shadow-sm">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-7">
+      <div>
+        <label class="text-xs text-gray-500">Date From</label>
+        <input
+          type="date"
+          id="sppk_date_from"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200"
+        />
+      </div>
 
-    <!-- FILTER PANEL -->
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+      <div>
+        <label class="text-xs text-gray-500">Date To</label>
+        <input
+          type="date"
+          id="sppk_date_to"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200"
+        />
+      </div>
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+      <div>
+        <label class="text-xs text-gray-500">SPPK No</label>
+        <input
+          type="text"
+          id="sppkid"
+          placeholder="PJ-xxxx"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200"
+        />
+      </div>
 
-            <div>
-                <label class="text-xs text-gray-500">Date From</label>
-                <input type="date" id="sppk_date_from"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-            </div>
+      <div>
+        <label class="text-xs text-gray-500">Inventory ID</label>
+        <input
+          type="text"
+          id="inventoryid_sppk"
+          placeholder="Item code"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200"
+        />
+      </div>
 
-            <div>
-                <label class="text-xs text-gray-500">Date To</label>
-                <input type="date" id="sppk_date_to"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-            </div>
+      <div>
+        <label class="text-xs text-gray-500">Status</label>
+        <select
+          id="status"
+          class="w-full px-3 py-2 text-sm bg-white rounded-lg border border-gray-200"
+        >
+          <option value="">All</option>
+          <option value="P">On Progress</option>
+          <option value="C">Completed</option>
+          <option value="R">Rejected</option>
+          <option value="D">Revise</option>
+          <option value="X">Cancel</option>
+        </select>
+      </div>
 
-            <div>
-                <label class="text-xs text-gray-500">SPPK No</label>
-                <input type="text" id="sppkid" placeholder="PJ-xxxx"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-            </div>
+      <div class="flex items-end gap-2 md:col-span-2">
+        <button
+          id="filterSppk"
+          class="px-4 py-2 text-sm text-white bg-gray-900 rounded-lg"
+        >
+          Apply
+        </button>
 
-            <div>
-                <label class="text-xs text-gray-500">Inventory ID</label>
-                <input type="text" id="inventoryid_sppk" placeholder="Item code"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
-            </div>
+        <button
+          id="resetSppk"
+          class="px-4 py-2 text-sm bg-white rounded-lg border border-gray-200"
+        >
+          Reset
+        </button>
 
-            <div class="flex items-end gap-2 md:col-span-2">
+        <button
+          id="exportSppk"
+          class="px-4 py-2 text-sm text-emerald-700 bg-emerald-50 rounded-lg border border-emerald-200"
+        >
+          Export
+        </button>
+      </div>
+    </div>
+  </div>
 
-                <button id="filterSppk" class="rounded-lg bg-gray-900 px-4 py-2 text-sm text-white">
-                    Apply
-                </button>
-
-                <button id="resetSppk" class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
-                    Reset
-                </button>
-
-                <button id="exportSppk"
-                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
-                    Export
-                </button>
-
-            </div>
-
-        </div>
-
+  <!-- TABLE -->
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-sm font-semibold text-gray-800">SPPK Detail</h2>
     </div>
 
-
-    <!-- TABLE -->
-    <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-
-        <div class="border-b border-gray-200 px-6 py-4">
-
-            <h2 class="text-sm font-semibold text-gray-800">
-                SPPK Detail
-            </h2>
-
-        </div>
-
-        <div class="overflow-x-auto p-5">
-
-            <table id="sppkTable" class="min-w-full text-sm">
-
-                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
-
-                    <tr>
-                        <th>Date</th>
-                        <th>SPPK No</th>
-                        <th>No Polisi</th>
-                        <th>Vehicle</th>
-                        <th>Department</th>
-                        <th>Requester</th>
-                        <th>Purchasing</th>
-                        <th>Inventory ID</th>
-                        <th>Description</th>
-                        <th>Qty</th>
-                        <th>UOM</th>
-                        <th>Warehouse</th>
-                        <th>Status</th>
-                    </tr>
-
-                </thead>
-
-            </table>
-
-        </div>
-
+    <div class="overflow-x-auto p-5">
+      <table id="sppkTable" class="min-w-full text-sm">
+        <thead class="text-xs text-gray-500 bg-gray-50 uppercase">
+          <tr>
+            <th>Date</th>
+            <th>SPPK No</th>
+            <th>No Polisi</th>
+            <th>Vehicle</th>
+            <th>Department</th>
+            <th>Requester</th>
+            <th>Purchasing</th>
+            <th>Inventory ID</th>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>UOM</th>
+            <th>Warehouse</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+      </table>
     </div>
-
+  </div>
 </div>
 
-
 <script>
-    $(function() {
+  $(function () {
+    var table = $('#sppkTable').DataTable({
+      processing: true,
+      serverSide: true,
+      responsive: true,
 
-        var table = $('#sppkTable').DataTable({
+      searching: false,
+      dom:
+        "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
+        'rt' +
+        "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
 
-            processing: true,
-            serverSide: true,
-            responsive: true,
+      lengthMenu: [
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, 'All'],
+      ],
 
-            searching: false,
-            dom: "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
-                "rt" +
-                "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
+      pageLength: 10,
 
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "All"]
-            ],
+      ajax: {
+        url: '{{ route("report.purchasing.json") }}',
+        data: function (d) {
+          d.report = 'sppk';
 
-            pageLength: 10,
+          d.date_from = $('#sppk_date_from').val();
+          d.date_to = $('#sppk_date_to').val();
 
-            ajax: {
-                url: "{{ route('report.purchasing.json') }}",
-                data: function(d) {
+          d.sppkid = $('#sppkid').val();
+          d.inventoryid = $('#inventoryid_sppk').val();
+          d.status = $('#status').val();
+        },
+      },
 
-                    d.report = 'sppk'
+      columns: [
+        {
+          data: 'sppkdate',
+        },
+        {
+          data: 'sppkid',
+        },
+        {
+          data: 'no_polisi',
+        },
+        {
+          data: 'namakendaraan',
+        },
+        {
+          data: 'department_name',
+        },
+        {
+          data: 'requester',
+        },
+        {
+          data: 'purchasing',
+        },
+        {
+          data: 'inventoryid',
+        },
+        {
+          data: 'inventory_descr',
+        },
+        {
+          data: 'qty',
+        },
+        {
+          data: 'uom',
+        },
+        {
+          data: 'siteid',
+        },
+        {
+          data: 'status',
+        },
+      ],
 
-                    d.date_from = $('#sppk_date_from').val()
-                    d.date_to = $('#sppk_date_to').val()
+      order: [[0, 'desc']],
+    });
 
-                    d.sppkid = $('#sppkid').val()
-                    d.inventoryid = $('#inventoryid_sppk').val()
+    $('#filterSppk').click(function () {
+      table.ajax.reload();
+    });
 
-                }
-            },
+    $('#resetSppk').click(function () {
+      $('#sppk_date_from').val('');
+      $('#sppk_date_to').val('');
+      $('#sppkid').val('');
+      $('#inventoryid_sppk').val('');
+      $('#status').val('');
 
-            columns: [
+      table.ajax.reload();
+    });
 
-                {
-                    data: 'sppkdate'
-                },
-                {
-                    data: 'sppkid'
-                },
-                {
-                    data: 'no_polisi'
-                },
-                {
-                    data: 'namakendaraan'
-                },
-                {
-                    data: 'department_name'
-                },
-                {
-                    data: 'requester'
-                },
-                {
-                    data: 'purchasing'
-                },
-                {
-                    data: 'inventoryid'
-                },
-                {
-                    data: 'inventory_descr'
-                },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'uom'
-                },
-                {
-                    data: 'siteid'
-                },
-                {
-                    data: 'status'
-                }
+    $('#exportSppk').click(function () {
+      let url = '{{ route("report.purchasing.export") }}?report=sppk';
 
-            ],
+      url += '&date_from=' + $('#sppk_date_from').val();
+      url += '&date_to=' + $('#sppk_date_to').val();
+      url += '&sppkid=' + $('#sppkid').val();
+      url += '&inventoryid=' + $('#inventoryid_sppk').val();
 
-            order: [
-                [0, 'desc']
-            ]
-
-        })
-
-
-        $('#filterSppk').click(function() {
-            table.ajax.reload()
-        })
-
-
-        $('#resetSppk').click(function() {
-
-            $('#sppk_date_from').val('')
-            $('#sppk_date_to').val('')
-            $('#sppkid').val('')
-            $('#inventoryid_sppk').val('')
-
-            table.ajax.reload()
-
-        })
-
-
-        $('#exportSppk').click(function() {
-
-            let url = "{{ route('report.purchasing.export') }}?report=sppk";
-
-            url += "&date_from=" + $('#sppk_date_from').val();
-            url += "&date_to=" + $('#sppk_date_to').val();
-            url += "&sppkid=" + $('#sppkid').val();
-            url += "&inventoryid=" + $('#inventoryid_sppk').val();
-
-            window.location.href = url;
-
-        })
-
-    })
+      window.location.href = url;
+    });
+  });
 </script>

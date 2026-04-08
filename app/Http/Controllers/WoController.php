@@ -577,6 +577,7 @@ class WoController extends Controller
             'spbs',
             'sppbs',
             'sppjs',
+            'sppks',
             'sppts',
         ])->findOrFail($id);
 
@@ -1252,526 +1253,652 @@ class WoController extends Controller
         return response()->json(['success' => true, 'message' => 'WO revised successfully']);
     }
 
-    // public function approveWo(Request $request, $docid)
+    // // public function approveWo(Request $request, $docid)
+    // // {
+    // //     $now  = Carbon::now();
+    // //     $user = $request->user();
+
+    // //     // $wo = TrWO::where('woid', $docid)->first();
+    // //     $wo = TrWO::with('creator')
+    // //         ->where('woid', $docid)
+    // //         ->first();
+    // //     $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
+
+    // //     if (!$wo) {
+    // //         return response()->json(['success' => false, 'message' => 'WO not found'], 404);
+    // //     }
+
+    // //     // pastikan user memang approver aktif (status P) di doc ini
+    // //     $tApproval = T_approval::where('docid', $wo->woid)
+    // //         ->where('status', 'P')
+    // //         ->where('aprvusername', 'ilike', "%{$user->username}%")
+    // //         ->whereNotNull('aprvdatebefore')
+    // //         ->orderBy('aprvid', 'ASC')
+    // //         ->first();
+
+    // //     if (!$tApproval) {
+    // //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
+    // //     }
+
+    // //     DB::beginTransaction();
+    // //     try {
+    // //         // Set current approver -> Approved
+    // //         $tApproval->status         = 'A';
+    // //         $tApproval->aprvdateafter  = $now;
+    // //         $tApproval->aprvusername   = $user->username;
+    // //         $tApproval->name           = $user->name;
+    // //         $tApproval->save();
+
+    // //         // Update header informasi "terakhir diproses"
+    // //         $wo->completed_by = $user->username;
+    // //         $wo->completed_at = $now;
+    // //         $wo->save();
+
+    // //         // Hitung sisa pending setelah approve ini
+    // //         $pendingCount = T_approval::where('docid', $wo->woid)
+    // //             ->where('status', 'P')
+    // //             ->count();
+
+    // //         // Pemetaan judul sesuai status
+    // //         $subjectMap = [
+    // //             'P' => 'Waiting Approval',
+    // //             'R' => 'Rejected Approval',
+    // //             'D' => 'Revise Approval',
+    // //             'A' => 'Approved',
+    // //             'C' => 'Completed',
+    // //         ];
+
+    // //         $eid = Hashids::encode($wo->id);
+
+    // //         if ($pendingCount === 0) {
+    // //             // Tidak ada approver lagi -> dokumen complete
+    // //             $wo->status       = 'C';
+    // //             $wo->completed_by = $user->username;
+    // //             $wo->completed_at = $now;
+    // //             $wo->save();
+
+    // //             // Kirim email ke requester (creator)
+    // //             $status        = 'C';
+    // //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    // //             $data = [
+    // //                 'docid'     => $wo->woid,
+    // //                 'cpnyid'    => $wo->cpny_id ?? $wo->cpnyid ?? '',
+    // //                 'deptname'  => $wo->department_id ?? $wo->departementid ?? '',
+    // //                 'date'      => $wo->wodate,
+    // //                 'fullname'  => $fullname,  // nama penerima di email
+    // //                 'name'      => $fullname,  // fallback
+    // //                 'createdby' => $fullname,
+    // //                 'docname'   => 'WO',
+    // //                 'info'      => $wo->keperluan,
+    // //                 'status'    => $status,
+    // //                 'url'       => url('/showwos/' . $eid),
+    // //             ];
+
+    // //             $recipients = User::where('username', $wo->created_by)
+    // //                 ->where('status', 'A')
+    // //                 ->get();
+
+    // //             foreach ($recipients as $rcp) {
+    // //                 try {
+    // //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    // //                         $to = $rcp->notification_email ?? $rcp->email; // pakai field yang memang ada
+    // //                         $message->to($to)
+    // //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
+    // //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    // //                     });
+    // //                 } catch (\Throwable $e) {
+    // //                     Log::error('Failed sending WO completion email', ['error' => $e->getMessage()]);
+    // //                 }
+    // //             }
+    // //         } else {
+    // //             // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
+    // //             $next = T_approval::where('docid', $wo->woid)
+    // //                 ->where('status', 'P')
+    // //                 ->orderBy('aprvid', 'ASC')
+    // //                 ->first();
+
+    // //             if ($next) {
+    // //                 // Stempel "datebefore" untuk approver berikutnya
+    // //                 $next->aprvdatebefore = $now;
+    // //                 $next->save();
+
+    // //                 // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
+    // //                 $status        = 'P';
+    // //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+
+    // //                 $data = [
+    // //                     'docid'     => $next->docid,
+    // //                     'cpnyid'    => $next->aprvcpnyid,
+    // //                     'deptname'  => $next->aprvdeptid,
+    // //                     'date'      => $next->aprvdatebefore,
+    // //                     'fullname'  => $next->name,
+    // //                     'name'      => $next->name,
+    // //                     'createdby' => $wo->created_by,
+    // //                     'docname'   => 'WO',
+    // //                     'info'      => $wo->keperluan,
+    // //                     'status'    => $status,
+    // //                     'url'       => url('/showwos/' . $eid),
+    // //                 ];
+
+    // //                 $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
+    // //                 if (!empty($usernames)) {
+    // //                     $recipients = User::whereIn('username', $usernames)
+    // //                         ->where('status', 'A')
+    // //                         ->get();
+
+    // //                     foreach ($recipients as $rcp) {
+    // //                         try {
+    // //                             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
+    // //                                 $to = $rcp->notification_email ?? $rcp->email;
+    // //                                 $message->to($to)
+    // //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
+    // //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    // //                             });
+    // //                         } catch (\Throwable $e) {
+    // //                             Log::error('Failed sending WO waiting-approval email', ['error' => $e->getMessage()]);
+    // //                         }
+    // //                     }
+    // //                 } else {
+    // //                     Log::warning('Next approver has empty aprvusername list', ['docid' => $wo->woid]);
+    // //                 }
+    // //             }
+    // //         }
+
+    // //         DB::commit();
+    // //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+    // //     } catch (\Throwable $e) {
+    // //         DB::rollBack();
+    // //         Log::error('Approve WO failed', ['error' => $e->getMessage()]);
+    // //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
+    // //     }
+    // // }
+
+    // // public function rejectWo(Request $request, $docid)
+    // // {
+    // //     $now  = Carbon::now();
+    // //     $user = $request->user();
+
+    // //     // $wo = TrWO::where('woid', $docid)->first();
+    // //     $wo = TrWO::with('creator')
+    // //         ->where('woid', $docid)
+    // //         ->first();
+    // //     $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
+
+    // //     if (!$wo) {
+    // //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    // //     }
+
+    // //     // Validasi: user harus approver aktif (status P) pada dokumen ini
+    // //     $tApproval = T_approval::where('docid', $wo->woid)
+    // //         ->where('status', 'P')
+    // //         ->where('aprvusername', 'ilike', "%{$user->username}%")
+    // //         ->whereNotNull('aprvdatebefore')
+    // //         ->orderBy('aprvid', 'ASC')
+    // //         ->first();
+
+    // //     if (!$tApproval) {
+    // //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
+    // //     }
+
+    // //     DB::beginTransaction();
+    // //     try {
+    // //         // Tandai approval saat ini sebagai Rejected
+    // //         $tApproval->status        = 'R';
+    // //         $tApproval->aprvdateafter = $now;
+    // //         $tApproval->aprvusername  = $user->username; // catat siapa yang reject
+    // //         $tApproval->name          = $user->name;
+    // //         $tApproval->save();
+
+    // //         // Update header WO
+    // //         $wo->status       = 'R';
+    // //         $wo->completed_by = $user->username;
+    // //         $wo->completed_at = $now;
+    // //         $wo->save();
+
+    // //         // Batalkan semua approval yang masih pending
+    // //         T_approval::where('docid', $wo->woid)
+    // //             ->where('status', 'P')
+    // //             ->update(['status' => 'X']);
+
+    // //         DB::commit();
+    // //     } catch (\Throwable $e) {
+    // //         DB::rollBack();
+    // //         Log::error('Reject WO failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    // //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
+    // //     }
+
+    // //     // === Kirim Email ke requester (creator) ===
+    // //     $status = 'R'; // Rejected
+    // //     $subjectMap = [
+    // //         'P' => 'Waiting Approval',
+    // //         'R' => 'Rejected Approval',
+    // //         'D' => 'Revise Approval',
+    // //         'A' => 'Approved',
+    // //         'C' => 'Completed',
+    // //     ];
+    // //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    // //     $eid = Hashids::encode($wo->id);
+
+    // //     $data = [
+    // //         'docid'     => $wo->woid,
+    // //         'cpnyid'    => $wo->cpny_id ?? $wo->cpnyid ?? '',
+    // //         'deptname'  => $wo->department_id ?? $wo->departementid ?? '',
+    // //         'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
+    // //         'fullname'  => $fullname,               // view email kita pakai $fullname
+    // //         'name'      => $fullname,               // fallback jika view pakai $name
+    // //         'createdby' => $fullname,
+    // //         'docname'   => 'WO',
+    // //         'info'      => $wo->keperluan,
+    // //         'status'    => $status,
+    // //         'url'       => url('/showwos/' . $eid),
+    // //     ];
+
+    // //     $recipients = User::where('username', $wo->created_by)
+    // //         ->where('status', 'A')
+    // //         ->get();
+
+    // //     foreach ($recipients as $rcp) {
+    // //         try {
+    // //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan field yang tersedia
+    // //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    // //                 $message->to($to)
+    // //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
+    // //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    // //             });
+    // //         } catch (\Throwable $e) {
+    // //             Log::error('Failed sending WO rejected email', [
+    // //                 'docid' => $data['docid'],
+    // //                 'to'    => $rcp->username,
+    // //                 'error' => $e->getMessage()
+    // //             ]);
+    // //         }
+    // //     }
+
+    // //     // Simpan komentar penolakan (jika ada)
+    // //     try {
+    // //         app('App\Http\Controllers\SendCommentController')
+    // //             ->sendmsg($wo->id, 'WO', $request);
+    // //     } catch (\Throwable $e) {
+    // //         Log::warning('SendComment after reject failed', [
+    // //             'docid' => $wo->woid,
+    // //             'error' => $e->getMessage()
+    // //         ]);
+    // //     }
+
+    // //     return response()->json(['success' => true, 'message' => 'WO rejected successfully']);
+    // // }
+
+    // // public function reviseWo(Request $request, $docid)
+    // // {
+    // //     $now  = Carbon::now();
+    // //     $user = $request->user();
+
+    // //     // $wo = TrWO::where('woid', $docid)->first();
+    // //     $wo = TrWO::with('creator')
+    // //         ->where('woid', $docid)
+    // //         ->first();
+    // //     $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
+
+    // //     if (!$wo) {
+    // //         return response()->json(['success' => false, 'message' => 'WO not found'], 404);
+    // //     }
+
+    // //     // Pastikan user adalah approver aktif (status P) dokumen ini
+    // //     $tApproval = T_approval::where('docid', $wo->woid)
+    // //         ->where('status', 'P')
+    // //         ->where('aprvusername', 'ilike', "%{$user->username}%")
+    // //         ->whereNotNull('aprvdatebefore')
+    // //         ->orderBy('aprvid', 'ASC')
+    // //         ->first();
+
+    // //     if (!$tApproval) {
+    // //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
+    // //     }
+
+    // //     DB::beginTransaction();
+    // //     try {
+    // //         // Tandai approval saat ini sebagai Revise (D)
+    // //         $tApproval->status        = 'D';
+    // //         $tApproval->aprvdateafter = $now;
+    // //         $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
+    // //         $tApproval->name          = $user->name;
+    // //         $tApproval->save();
+
+    // //         // Update header WO
+    // //         $wo->status       = 'D';
+    // //         $wo->completed_by = $user->username;        // mengikuti pola existing
+    // //         $wo->completed_at = $now;
+    // //         $wo->save();
+
+    // //         // Batalkan approval lain yang masih pending
+    // //         T_approval::where('docid', $wo->woid)
+    // //             ->where('status', 'P')
+    // //             ->update(['status' => 'X']);
+
+    // //         DB::commit();
+    // //     } catch (\Throwable $e) {
+    // //         DB::rollBack();
+    // //         Log::error('Revise WO failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    // //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
+    // //     }
+
+    // //     // === Kirim email ke requester (creator) ===
+    // //     $status = 'D'; // Revise
+    // //     $subjectMap = [
+    // //         'P' => 'Waiting Approval',
+    // //         'R' => 'Rejected Approval',
+    // //         'D' => 'Revise Approval',
+    // //         'A' => 'Approved',
+    // //         'C' => 'Completed',
+    // //     ];
+    // //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+    // //     $eid = Hashids::encode($wo->id);
+
+    // //     $data = [
+    // //         'docid'     => $wo->woid,
+    // //         'cpnyid'    => $wo->cpny_id ?? $wo->cpnyid ?? '',
+    // //         'deptname'  => $wo->department_id ?? $wo->departementid ?? '',
+    // //         'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
+    // //         'fullname'  => $fullname,             // template email pakai $fullname
+    // //         'name'      => $fullname,             // fallback jika view pakai $name
+    // //         'createdby' => $fullname,
+    // //         'docname'   => 'WO',
+    // //         'info'      => $wo->keperluan,
+    // //         'status'    => $status,
+    // //         'url'       => url('/showwos/' . $eid),
+    // //     ];
+
+    // //     $recipients = User::where('username', $wo->created_by)
+    // //         ->where('status', 'A')
+    // //         ->get();
+
+    // //     foreach ($recipients as $rcp) {
+    // //         try {
+    // //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
+    // //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
+    // //                 $message->to($to)
+    // //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
+    // //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+    // //             });
+    // //         } catch (\Throwable $e) {
+    // //             Log::error('Failed sending WO revise email', [
+    // //                 'docid' => $data['docid'],
+    // //                 'to'    => $rcp->username,
+    // //                 'error' => $e->getMessage()
+    // //             ]);
+    // //         }
+    // //     }
+
+    // //     // Simpan komentar revisi (jika ada)
+    // //     try {
+    // //         app('App\Http\Controllers\SendCommentController')
+    // //             ->sendmsg($wo->id, 'WO', $request);
+    // //     } catch (\Throwable $e) {
+    // //         Log::warning('SendComment after revise failed', [
+    // //             'docid' => $wo->woid,
+    // //             'error' => $e->getMessage()
+    // //         ]);
+    // //     }
+
+    // //     return response()->json(['success' => true, 'message' => 'WO revised successfully']);
+    // // }
+
+    // // public function checkApproval($id, $action)
+    // // {
+    // //     $user = Auth::user(); // Ambil user yang login
+    // //     // dd($action);
+    // //     // Query dasar untuk pengecekan
+    // //     $query = T_approval::where('docid', $id)
+    // //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
+    // //                 ->where('status', 'P');
+
+    // //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
+    // //     if (in_array($action, ['reject', 'revise','approve'])) {
+    // //         $query->whereNotNull('aprvdatebefore');
+    // //     }
+
+    // //     // Cek apakah user bisa melakukan aksi
+    // //     $canPerformAction = $query->exists();
+
+    // //     return response()->json(['canPerformAction' => $canPerformAction]);
+    // // }
+
+    // public function tracking($hash)
     // {
-    //     $now  = Carbon::now();
-    //     $user = $request->user();
+    //     $id = Hashids::decode($hash)[0] ?? null;
+    //     abort_if(!$id, 404);
 
-    //     // $wo = TrWO::where('woid', $docid)->first();
-    //     $wo = TrWO::with('creator')
-    //         ->where('woid', $docid)
-    //         ->first();
-    //     $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
+    //     $wo = TrWO::findOrFail($id);
 
-    //     if (!$wo) {
-    //         return response()->json(['success' => false, 'message' => 'WO not found'], 404);
-    //     }
+    //     $getName = function (?string $username) {
+    //         if (!$username) {
+    //             return null;
+    //         }
+    //         $u = User::where('username', $username)->first();
 
-    //     // pastikan user memang approver aktif (status P) di doc ini
-    //     $tApproval = T_approval::where('docid', $wo->woid)
-    //         ->where('status', 'P')
-    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore')
-    //         ->orderBy('aprvid', 'ASC')
-    //         ->first();
+    //         return $u->name ?? $username;
+    //     };
 
-    //     if (!$tApproval) {
-    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
-    //     }
+    //     $createdByName = $getName($wo->created_by ?? null);
+    //     $createdAt = $wo->created_at ? \Carbon\Carbon::parse($wo->created_at)->format('Y-m-d H:i') : null;
 
-    //     DB::beginTransaction();
-    //     try {
-    //         // Set current approver -> Approved
-    //         $tApproval->status         = 'A';
-    //         $tApproval->aprvdateafter  = $now;
-    //         $tApproval->aprvusername   = $user->username;
-    //         $tApproval->name           = $user->name;
-    //         $tApproval->save();
+    //     $completedByName = $getName($wo->completed_by ?? null);
+    //     $completedAt = $wo->completed_at ? \Carbon\Carbon::parse($wo->completed_at)->format('Y-m-d H:i') : null;
 
-    //         // Update header informasi "terakhir diproses"
-    //         $wo->completed_by = $user->username;
-    //         $wo->completed_at = $now;
-    //         $wo->save();
+    //     // kolom opsional, kalau tidak ada biarkan null
+    //     $rejectedByName = $getName($wo->rejected_by ?? null);
+    //     $rejectedAt = isset($wo->rejected_at) ? \Carbon\Carbon::parse($wo->rejected_at)->format('Y-m-d H:i') : null;
 
-    //         // Hitung sisa pending setelah approve ini
-    //         $pendingCount = T_approval::where('docid', $wo->woid)
-    //             ->where('status', 'P')
-    //             ->count();
+    //     $revisedByName = $getName($wo->revised_by ?? null);
+    //     $revisedAt = isset($wo->revised_at) ? \Carbon\Carbon::parse($wo->revised_at)->format('Y-m-d H:i') : null;
 
-    //         // Pemetaan judul sesuai status
-    //         $subjectMap = [
-    //             'P' => 'Waiting Approval',
-    //             'R' => 'Rejected Approval',
-    //             'D' => 'Revise Approval',
-    //             'A' => 'Approved',
-    //             'C' => 'Completed',
-    //         ];
+    //     $status = (string) ($wo->status ?? '');
+    //     $labelMap = [
+    //         'P' => 'Waiting approval',
+    //         'R' => 'Rejected',
+    //         'D' => 'Revise',
+    //         'C' => 'Completed',
+    //     ];
+    //     $statusLabel = $labelMap[$status] ?? $status;
 
-    //         $eid = Hashids::encode($wo->id);
+    //     // selalu mulai dari Submitted
+    //     $steps = [[
+    //         'key' => 'submitted',
+    //         'title' => 'WO',
+    //         'status' => 'C',              // dibuat = completed
+    //         'status_label' => 'Submitted',
+    //         'by' => $createdByName,
+    //         'at' => $createdAt,
+    //     ]];
 
-    //         if ($pendingCount === 0) {
-    //             // Tidak ada approver lagi -> dokumen complete
-    //             $wo->status       = 'C';
-    //             $wo->completed_by = $user->username;
-    //             $wo->completed_at = $now;
-    //             $wo->save();
-
-    //             // Kirim email ke requester (creator)
-    //             $status        = 'C';
-    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-    //             $data = [
-    //                 'docid'     => $wo->woid,
-    //                 'cpnyid'    => $wo->cpny_id ?? $wo->cpnyid ?? '',
-    //                 'deptname'  => $wo->department_id ?? $wo->departementid ?? '',
-    //                 'date'      => $wo->wodate,
-    //                 'fullname'  => $fullname,  // nama penerima di email
-    //                 'name'      => $fullname,  // fallback
-    //                 'createdby' => $fullname,
-    //                 'docname'   => 'WO',
-    //                 'info'      => $wo->keperluan,
-    //                 'status'    => $status,
-    //                 'url'       => url('/showwos/' . $eid),
+    //     switch ($status) {
+    //         case 'P':
+    //             // masih menunggu/berjalan → tampilkan Approval saja
+    //             $steps[] = [
+    //                 'key' => 'approval',
+    //                 'title' => 'Approval',
+    //                 'status' => 'P',
+    //                 'status_label' => 'Waiting approval',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
     //             ];
+    //             break;
 
-    //             $recipients = User::where('username', $wo->created_by)
-    //                 ->where('status', 'A')
-    //                 ->get();
+    //         case 'R':
+    //             // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+    //             $steps[] = [
+    //                 'key' => 'rejected',
+    //                 'title' => 'Rejected',
+    //                 'status' => 'R',
+    //                 'status_label' => 'Rejected',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
+    //             ];
+    //             break;
 
-    //             foreach ($recipients as $rcp) {
-    //                 try {
-    //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                         $to = $rcp->notification_email ?? $rcp->email; // pakai field yang memang ada
-    //                         $message->to($to)
-    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
-    //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //                     });
-    //                 } catch (\Throwable $e) {
-    //                     Log::error('Failed sending WO completion email', ['error' => $e->getMessage()]);
-    //                 }
-    //             }
-    //         } else {
-    //             // Masih ada approver berikutnya -> cari level berikutnya (P terrendah aprvid)
-    //             $next = T_approval::where('docid', $wo->woid)
-    //                 ->where('status', 'P')
-    //                 ->orderBy('aprvid', 'ASC')
-    //                 ->first();
+    //         case 'D':
+    //             // REVISE → Submitted → Revise
+    //             $steps[] = [
+    //                 'key' => 'revise',
+    //                 'title' => 'Revise',
+    //                 'status' => 'D',
+    //                 'status_label' => 'Revise',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
+    //             ];
+    //             break;
 
-    //             if ($next) {
-    //                 // Stempel "datebefore" untuk approver berikutnya
-    //                 $next->aprvdatebefore = $now;
-    //                 $next->save();
+    //         case 'C':
+    //             // SELESAI → bisa langsung Submitted → Completed
+    //             // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
+    //             // tambahkan step 'approval' sebelum 'completed')
+    //             $steps[] = [
+    //                 'key' => 'completed',
+    //                 'title' => 'Completed',
+    //                 'status' => 'C',
+    //                 'status_label' => 'Completed',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
+    //             ];
+    //             break;
 
-    //                 // Kirim email ke semua username yang ada di kolom aprvusername (dipisah koma)
-    //                 $status        = 'P';
-    //                 $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-
-    //                 $data = [
-    //                     'docid'     => $next->docid,
-    //                     'cpnyid'    => $next->aprvcpnyid,
-    //                     'deptname'  => $next->aprvdeptid,
-    //                     'date'      => $next->aprvdatebefore,
-    //                     'fullname'  => $next->name,
-    //                     'name'      => $next->name,
-    //                     'createdby' => $wo->created_by,
-    //                     'docname'   => 'WO',
-    //                     'info'      => $wo->keperluan,
-    //                     'status'    => $status,
-    //                     'url'       => url('/showwos/' . $eid),
-    //                 ];
-
-    //                 $usernames = array_filter(array_map('trim', explode(',', (string) $next->aprvusername)));
-    //                 if (!empty($usernames)) {
-    //                     $recipients = User::whereIn('username', $usernames)
-    //                         ->where('status', 'A')
-    //                         ->get();
-
-    //                     foreach ($recipients as $rcp) {
-    //                         try {
-    //                             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $rcp, $subjectSuffix) {
-    //                                 $to = $rcp->notification_email ?? $rcp->email;
-    //                                 $message->to($to)
-    //                                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
-    //                                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //                             });
-    //                         } catch (\Throwable $e) {
-    //                             Log::error('Failed sending WO waiting-approval email', ['error' => $e->getMessage()]);
-    //                         }
-    //                     }
-    //                 } else {
-    //                     Log::warning('Next approver has empty aprvusername list', ['docid' => $wo->woid]);
-    //                 }
-    //             }
-    //         }
-
-    //         DB::commit();
-    //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Approve WO failed', ['error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
-    //     }
-    // }
-
-    // public function rejectWo(Request $request, $docid)
-    // {
-    //     $now  = Carbon::now();
-    //     $user = $request->user();
-
-    //     // $wo = TrWO::where('woid', $docid)->first();
-    //     $wo = TrWO::with('creator')
-    //         ->where('woid', $docid)
-    //         ->first();
-    //     $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
-
-    //     if (!$wo) {
-    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    //         default:
+    //             // status tidak dikenal → biarkan hanya Submitted
+    //             break;
     //     }
 
-    //     // Validasi: user harus approver aktif (status P) pada dokumen ini
-    //     $tApproval = T_approval::where('docid', $wo->woid)
-    //         ->where('status', 'P')
-    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore')
-    //         ->orderBy('aprvid', 'ASC')
-    //         ->first();
-
-    //     if (!$tApproval) {
-    //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         // Tandai approval saat ini sebagai Rejected
-    //         $tApproval->status        = 'R';
-    //         $tApproval->aprvdateafter = $now;
-    //         $tApproval->aprvusername  = $user->username; // catat siapa yang reject
-    //         $tApproval->name          = $user->name;
-    //         $tApproval->save();
-
-    //         // Update header WO
-    //         $wo->status       = 'R';
-    //         $wo->completed_by = $user->username;
-    //         $wo->completed_at = $now;
-    //         $wo->save();
-
-    //         // Batalkan semua approval yang masih pending
-    //         T_approval::where('docid', $wo->woid)
-    //             ->where('status', 'P')
-    //             ->update(['status' => 'X']);
-
-    //         DB::commit();
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Reject WO failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
-    //     }
-
-    //     // === Kirim Email ke requester (creator) ===
-    //     $status = 'R'; // Rejected
-    //     $subjectMap = [
-    //         'P' => 'Waiting Approval',
-    //         'R' => 'Rejected Approval',
-    //         'D' => 'Revise Approval',
-    //         'A' => 'Approved',
-    //         'C' => 'Completed',
-    //     ];
-    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //     $eid = Hashids::encode($wo->id);
-
-    //     $data = [
-    //         'docid'     => $wo->woid,
-    //         'cpnyid'    => $wo->cpny_id ?? $wo->cpnyid ?? '',
-    //         'deptname'  => $wo->department_id ?? $wo->departementid ?? '',
-    //         'date'      => $now->toDateString(),            // bisa juga pakai $tApproval->aprvdateafter
-    //         'fullname'  => $fullname,               // view email kita pakai $fullname
-    //         'name'      => $fullname,               // fallback jika view pakai $name
-    //         'createdby' => $fullname,
-    //         'docname'   => 'WO',
-    //         'info'      => $wo->keperluan,
-    //         'status'    => $status,
-    //         'url'       => url('/showwos/' . $eid),
-    //     ];
-
-    //     $recipients = User::where('username', $wo->created_by)
-    //         ->where('status', 'A')
-    //         ->get();
-
-    //     foreach ($recipients as $rcp) {
-    //         try {
-    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan field yang tersedia
-    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-    //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
-    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //             });
-    //         } catch (\Throwable $e) {
-    //             Log::error('Failed sending WO rejected email', [
-    //                 'docid' => $data['docid'],
-    //                 'to'    => $rcp->username,
-    //                 'error' => $e->getMessage()
-    //             ]);
-    //         }
-    //     }
-
-    //     // Simpan komentar penolakan (jika ada)
-    //     try {
-    //         app('App\Http\Controllers\SendCommentController')
-    //             ->sendmsg($wo->id, 'WO', $request);
-    //     } catch (\Throwable $e) {
-    //         Log::warning('SendComment after reject failed', [
-    //             'docid' => $wo->woid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     return response()->json(['success' => true, 'message' => 'WO rejected successfully']);
-    // }
-
-    // public function reviseWo(Request $request, $docid)
-    // {
-    //     $now  = Carbon::now();
-    //     $user = $request->user();
-
-    //     // $wo = TrWO::where('woid', $docid)->first();
-    //     $wo = TrWO::with('creator')
-    //         ->where('woid', $docid)
-    //         ->first();
-    //     $fullname = data_get($wo, 'creator.name') ?: $wo->created_by;
-
-    //     if (!$wo) {
-    //         return response()->json(['success' => false, 'message' => 'WO not found'], 404);
-    //     }
-
-    //     // Pastikan user adalah approver aktif (status P) dokumen ini
-    //     $tApproval = T_approval::where('docid', $wo->woid)
-    //         ->where('status', 'P')
-    //         ->where('aprvusername', 'ilike', "%{$user->username}%")
-    //         ->whereNotNull('aprvdatebefore')
-    //         ->orderBy('aprvid', 'ASC')
-    //         ->first();
-
-    //     if (!$tApproval) {
-    //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         // Tandai approval saat ini sebagai Revise (D)
-    //         $tApproval->status        = 'D';
-    //         $tApproval->aprvdateafter = $now;
-    //         $tApproval->aprvusername  = $user->username;  // catat siapa yang revise
-    //         $tApproval->name          = $user->name;
-    //         $tApproval->save();
-
-    //         // Update header WO
-    //         $wo->status       = 'D';
-    //         $wo->completed_by = $user->username;        // mengikuti pola existing
-    //         $wo->completed_at = $now;
-    //         $wo->save();
-
-    //         // Batalkan approval lain yang masih pending
-    //         T_approval::where('docid', $wo->woid)
-    //             ->where('status', 'P')
-    //             ->update(['status' => 'X']);
-
-    //         DB::commit();
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Revise WO failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
-    //     }
-
-    //     // === Kirim email ke requester (creator) ===
-    //     $status = 'D'; // Revise
-    //     $subjectMap = [
-    //         'P' => 'Waiting Approval',
-    //         'R' => 'Rejected Approval',
-    //         'D' => 'Revise Approval',
-    //         'A' => 'Approved',
-    //         'C' => 'Completed',
-    //     ];
-    //     $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //     $eid = Hashids::encode($wo->id);
-
-    //     $data = [
-    //         'docid'     => $wo->woid,
-    //         'cpnyid'    => $wo->cpny_id ?? $wo->cpnyid ?? '',
-    //         'deptname'  => $wo->department_id ?? $wo->departementid ?? '',
-    //         'date'      => $now->toDateString(),          // atau $tApproval->aprvdateafter
-    //         'fullname'  => $fullname,             // template email pakai $fullname
-    //         'name'      => $fullname,             // fallback jika view pakai $name
-    //         'createdby' => $fullname,
-    //         'docname'   => 'WO',
-    //         'info'      => $wo->keperluan,
-    //         'status'    => $status,
-    //         'url'       => url('/showwos/' . $eid),
-    //     ];
-
-    //     $recipients = User::where('username', $wo->created_by)
-    //         ->where('status', 'A')
-    //         ->get();
-
-    //     foreach ($recipients as $rcp) {
-    //         try {
-    //             $to = $rcp->notification_email ?? $rcp->email; // sesuaikan dengan kolom yang ada
-    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-    //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' WO')
-    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //             });
-    //         } catch (\Throwable $e) {
-    //             Log::error('Failed sending WO revise email', [
-    //                 'docid' => $data['docid'],
-    //                 'to'    => $rcp->username,
-    //                 'error' => $e->getMessage()
-    //             ]);
-    //         }
-    //     }
-
-    //     // Simpan komentar revisi (jika ada)
-    //     try {
-    //         app('App\Http\Controllers\SendCommentController')
-    //             ->sendmsg($wo->id, 'WO', $request);
-    //     } catch (\Throwable $e) {
-    //         Log::warning('SendComment after revise failed', [
-    //             'docid' => $wo->woid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     return response()->json(['success' => true, 'message' => 'WO revised successfully']);
-    // }
-
-    // public function checkApproval($id, $action)
-    // {
-    //     $user = Auth::user(); // Ambil user yang login
-    //     // dd($action);
-    //     // Query dasar untuk pengecekan
-    //     $query = T_approval::where('docid', $id)
-    //                 ->where('aprvusername', 'ilike', '%' . $user->username . '%')
-    //                 ->where('status', 'P');
-
-    //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
-    //     if (in_array($action, ['reject', 'revise','approve'])) {
-    //         $query->whereNotNull('aprvdatebefore');
-    //     }
-
-    //     // Cek apakah user bisa melakukan aksi
-    //     $canPerformAction = $query->exists();
-
-    //     return response()->json(['canPerformAction' => $canPerformAction]);
+    //     return response()->json([
+    //         'doc' => $wo->woid ?? (string) $wo->id,
+    //         'steps' => $steps,
+    //         'status' => $status,
+    //         'status_label' => $statusLabel,
+    //     ]);
     // }
 
     public function tracking($hash)
     {
-        $id = Hashids::decode($hash)[0] ?? null;
+        $id = \Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $wo = TrWO::findOrFail($id);
+        $wo = \App\Models\TrWO::findOrFail($id);
 
         $getName = function (?string $username) {
-            if (!$username) {
-                return null;
-            }
-            $u = User::where('username', $username)->first();
-
+            if (!$username) return null;
+            $u = \App\Models\User::where('username', $username)->first();
             return $u->name ?? $username;
         };
 
-        $createdByName = $getName($wo->created_by ?? null);
-        $createdAt = $wo->created_at ? \Carbon\Carbon::parse($wo->created_at)->format('Y-m-d H:i') : null;
+        $steps = [];
 
-        $completedByName = $getName($wo->completed_by ?? null);
-        $completedAt = $wo->completed_at ? \Carbon\Carbon::parse($wo->completed_at)->format('Y-m-d H:i') : null;
-
-        // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName = $getName($wo->rejected_by ?? null);
-        $rejectedAt = isset($wo->rejected_at) ? \Carbon\Carbon::parse($wo->rejected_at)->format('Y-m-d H:i') : null;
-
-        $revisedByName = $getName($wo->revised_by ?? null);
-        $revisedAt = isset($wo->revised_at) ? \Carbon\Carbon::parse($wo->revised_at)->format('Y-m-d H:i') : null;
-
-        $status = (string) ($wo->status ?? '');
-        $labelMap = [
-            'P' => 'Waiting approval',
-            'R' => 'Rejected',
-            'D' => 'Revise',
-            'C' => 'Completed',
-        ];
-        $statusLabel = $labelMap[$status] ?? $status;
-
-        // selalu mulai dari Submitted
-        $steps = [[
-            'key' => 'submitted',
-            'title' => 'WO',
-            'status' => 'C',              // dibuat = completed
+        // ======================
+        // 1. SUBMITTED
+        // ======================
+        $steps[] = [
+            'type' => 'header',
+            'title' => 'WO Submitted',
+            'status' => 'C',
             'status_label' => 'Submitted',
-            'by' => $createdByName,
-            'at' => $createdAt,
-        ]];
+            'by' => $getName($wo->created_by),
+            'at' => optional($wo->created_at)->format('Y-m-d H:i'),
+        ];
 
-        switch ($status) {
-            case 'P':
-                // masih menunggu/berjalan → tampilkan Approval saja
+        // ======================
+        // 2. GET APPROVALS
+        // ======================
+        $all = \App\Models\TrApproval::where('refnbr', $wo->woid)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at')
+            ->get();
+
+        // ======================
+        // 3. GROUP INTO CYCLES
+        // ======================
+        $groups = $all->groupBy(function ($a) {
+            return \Carbon\Carbon::parse($a->created_at)->format('Y-m-d H:i:s');
+        });
+
+        $hasMultipleCycle = $groups->count() > 1;
+        $cycleIndex = 1;
+
+        foreach ($groups as $group) {
+
+            // ✅ SHOW cycle only if needed
+            if ($hasMultipleCycle) {
                 $steps[] = [
-                    'key' => 'approval',
-                    'title' => 'Approval',
-                    'status' => 'P',
-                    'status_label' => 'Waiting approval',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
+                    'type' => 'cycle',
+                    'title' => 'Cycle ' . $cycleIndex,
                 ];
-                break;
+            }
 
-            case 'R':
-                // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+            // sort by level
+            $sorted = $group->sortBy(fn($a) => (float)$a->aprv_leveling);
+
+            foreach ($sorted as $a) {
+
+                $map = match ($a->status) {
+                    'A' => ['label' => 'Approved', 'status' => 'C'],
+                    'P' => ['label' => 'Waiting Approval', 'status' => 'P'],
+                    'R' => ['label' => 'Rejected', 'status' => 'R'],
+                    'D' => ['label' => 'Revised', 'status' => 'D'],
+                    'X' => ['label' => 'Cancelled', 'status' => 'X'],
+                    default => ['label' => 'Pending', 'status' => '_']
+                };
+
                 $steps[] = [
-                    'key' => 'rejected',
-                    'title' => 'Rejected',
-                    'status' => 'R',
-                    'status_label' => 'Rejected',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
+                    'type' => 'approval',
+                    'title' => 'Approval Lv ' . $a->aprv_leveling,
+                    'status' => $map['status'],          // ✅ clean status
+                    'status_label' => $map['label'],     // ✅ clean label
+                    'by' => $getName($a->aprv_username),
+                    'at' => $a->aprv_dateafter
+                        ? \Carbon\Carbon::parse($a->aprv_dateafter)->format('Y-m-d H:i')
+                        : null,
                 ];
-                break;
+            }
 
-            case 'D':
-                // REVISE → Submitted → Revise
-                $steps[] = [
-                    'key' => 'revise',
-                    'title' => 'Revise',
-                    'status' => 'D',
-                    'status_label' => 'Revise',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
-                ];
-                break;
+            $cycleIndex++;
+        }
 
-            case 'C':
-                // SELESAI → bisa langsung Submitted → Completed
-                // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
-                // tambahkan step 'approval' sebelum 'completed')
-                $steps[] = [
-                    'key' => 'completed',
-                    'title' => 'Completed',
-                    'status' => 'C',
-                    'status_label' => 'Completed',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
-                ];
-                break;
+        // ======================
+        // 4. FINAL STATUS
+        // ======================
+        if ($wo->status === 'C') {
+            $steps[] = [
+                'type' => 'footer',
+                'title' => 'Completed',
+                'status' => 'C',
+                'status_label' => 'Completed',
+                'by' => $getName($wo->completed_by),
+                'at' => optional($wo->completed_at)->format('Y-m-d H:i'),
+            ];
+        }
 
-            default:
-                // status tidak dikenal → biarkan hanya Submitted
-                break;
+        if ($wo->status === 'R') {
+            $steps[] = [
+                'type' => 'footer',
+                'title' => 'Rejected',
+                'status' => 'R',
+                'status_label' => 'Rejected',
+                'by' => $getName($wo->completed_by),
+                'at' => optional($wo->completed_at)->format('Y-m-d H:i'),
+            ];
+        }
+
+        if ($wo->status === 'D') {
+            $steps[] = [
+                'type' => 'footer',
+                'title' => 'Revised',
+                'status' => 'D',
+                'status_label' => 'Revised',
+                'by' => $getName($wo->completed_by),
+                'at' => optional($wo->completed_at)->format('Y-m-d H:i'),
+            ];
         }
 
         return response()->json([
-            'doc' => $wo->woid ?? (string) $wo->id,
-            'steps' => $steps,
-            'status' => $status,
-            'status_label' => $statusLabel,
+            'doc' => $wo->woid,
+            'steps' => array_values($steps),
         ]);
     }
 

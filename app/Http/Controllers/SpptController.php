@@ -2530,6 +2530,8 @@ class SpptController extends Controller
                     'completed_at' => $fmt($sppt->completed_at),
                     'is_approved' => $approved($sppt),
                     'last_approval' => $lastApprSppj,
+                    'approval_list' => $this->getApprovalList($spptNo),
+
                 ],
                 'details' => $spptDetails,
             ],
@@ -2546,6 +2548,7 @@ class SpptController extends Controller
                     'completed_at' => $fmt($csHeader->completed_at),
                     'is_approved' => $approved($csHeader),
                     'last_approval' => $lastApprCs,
+                     'approval_list' => $this->getApprovalList($csHeader->csid),
                 ] : null,
                 'details' => $csDetails,
             ],
@@ -2577,6 +2580,7 @@ class SpptController extends Controller
                     'completed_at' => $fmt($bastHeader->completed_at),
                     'is_approved' => $approved($bastHeader),
                     'last_approval' => $lastApprBast,
+                        'approval_list' => $this->getApprovalList($bastHeader->bastid),
                 ] : null,
 
                 // ✅ tambahan info header buat isi "detail"
@@ -2940,6 +2944,27 @@ class SpptController extends Controller
             'status' => $status,
             'status_label' => $statusLabel,
         ]);
+    }
+
+    private function getApprovalList(string $refnbr)
+    {
+        return TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'level' => $row->aprv_leveling,
+                    'name' => $row->aprv_name,
+                    'username' => $row->aprv_username,
+                    'status' => $row->status, // P / A / R / D
+                    'date_before' => $row->aprv_datebefore,
+                    'date_after' => $row->aprv_dateafter,
+                ];
+            })
+            ->values();
     }
 
     public function showBQ_xxx($hash)

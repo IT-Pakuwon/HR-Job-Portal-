@@ -528,7 +528,7 @@ class PoController extends Controller
         ]);
     }
 
- 
+
     /** POST /po/{ponbr}/cancel-reuse */
     public function ReusePO(Request $req, $hash)
     {
@@ -623,7 +623,7 @@ class PoController extends Controller
             'message' => 'Status diubah menjadi CANCEL (X).'
         ]);
     }
- 
+
     public function uploadAttachments(Request $request, $hash)
     {
         try {
@@ -923,6 +923,7 @@ class PoController extends Controller
         // =========================
         $purchaser = ucwords(strtolower($po->created_by ?? 'System'));
 
+        $vendor = MsVendor::where('vendor_id', $po->vendorid)->first();
         // =========================
         // DATA FOR VIEW
         // =========================
@@ -943,6 +944,7 @@ class PoController extends Controller
             'company'       => $company,
             'now'           => Carbon::now(),
             'purchaser'     => $purchaser,
+            'vendor' => $vendor,
         ];
 
         // =========================
@@ -1708,7 +1710,7 @@ class PoController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
-       
+
         // ===== kirim email =====
         Mail::html($data['html'], function ($message) use ($data, $to, $cc, $bcc, $pdfBinary, $pdfName, $gcsAttachments, $senderName,$bqPdfBinary, $bqPdfName) {
             $message->from($data['from'], $senderName);

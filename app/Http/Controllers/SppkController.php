@@ -2024,6 +2024,7 @@ class SppkController extends Controller
                     'completed_at' => $fmt($sppk->completed_at),
                     'is_approved' => $approved($sppk),
                     'last_approval' => $lastApprSppj,
+                    'approval_list' => $this->getApprovalList($sppkNo),
                 ],
                 'details' => $sppkDetails,
             ],
@@ -2040,6 +2041,7 @@ class SppkController extends Controller
                     'completed_at' => $fmt($csHeader->completed_at),
                     'is_approved' => $approved($csHeader),
                     'last_approval' => $lastApprCs,
+                     'approval_list' => $this->getApprovalList($csHeader->csid),
                 ] : null,
                 'details' => $csDetails,
             ],
@@ -2071,6 +2073,7 @@ class SppkController extends Controller
                     'completed_at' => $fmt($bastHeader->completed_at),
                     'is_approved' => $approved($bastHeader),
                     'last_approval' => $lastApprBast,
+                    'approval_list' => $this->getApprovalList($bastHeader->bastid),
                 ] : null,
 
                 // ✅ tambahan info header buat isi "detail"
@@ -2323,6 +2326,28 @@ class SppkController extends Controller
             'condition' => $row->aprv_condition,
         ];
     }
+
+    private function getApprovalList(string $refnbr)
+    {
+        return TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'level' => $row->aprv_leveling,
+                    'name' => $row->aprv_name,
+                    'username' => $row->aprv_username,
+                    'status' => $row->status, // P / A / R / D
+                    'date_before' => $row->aprv_datebefore,
+                    'date_after' => $row->aprv_dateafter,
+                ];
+            })
+            ->values();
+    }
+
 
     public function tracking_xxx($hash)
     {

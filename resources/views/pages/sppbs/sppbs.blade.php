@@ -417,501 +417,618 @@
 
     <script>
         /* =========================================================
-                                                                                                                                                                                                                                                                                                        TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
-                                                                                                                                                                                                                                                                                                        ========================================================= */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            TRACKING DETAIL MODAL (TABS) - CLEAN VERSION
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ========================================================= */
 
         (function() {
-            // ---------- Modal open/close ----------
-            function openTrackingModal(docText) {
-                document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
-                const modal = document.getElementById('trackingModal');
-                modal.classList.remove('hidden');
-                document.body.classList.add('overflow-hidden');
-            }
+                // ---------- Modal open/close ----------
+                function openTrackingModal(docText) {
+                    document.getElementById('trackDoc').textContent = docText ? `(${docText})` : '';
+                    const modal = document.getElementById('trackingModal');
+                    modal.classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+                }
 
-            function closeTrackingModal() {
-                document.getElementById('trackingModal')?.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            }
+                function closeTrackingModal() {
+                    document.getElementById('trackingModal')?.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
 
-            document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
-            document.getElementById('trackingModal')?.addEventListener('click', (e) => {
-                if (e.target.id === 'trackingModal') closeTrackingModal();
-            });
-
-            // ---------- Tabs ----------
-            (function() {
-                const tabs = document.getElementById('trackTabs');
-                if (!tabs) return;
-
-                tabs.addEventListener('click', (e) => {
-                    const btn = e.target.closest('.track-tab');
-                    if (!btn) return;
-
-                    document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
-                    btn.classList.add('active');
-
-                    const target = btn.dataset.tab;
-                    document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
-                    document.getElementById(target)?.classList.remove('hidden');
+                document.getElementById('closeTracking')?.addEventListener('click', closeTrackingModal);
+                document.getElementById('trackingModal')?.addEventListener('click', (e) => {
+                    if (e.target.id === 'trackingModal') closeTrackingModal();
                 });
-            })();
 
-            function resetToSppbTab() {
-                document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
-                document.querySelector('.track-tab[data-tab="tab-sppb"]')?.classList.add('active');
-                document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
-                document.getElementById('tab-sppb')?.classList.remove('hidden');
-            }
+                // ---------- Tabs ----------
+                (function() {
+                    const tabs = document.getElementById('trackTabs');
+                    if (!tabs) return;
 
-            // ---------- Utilities ----------
-            function esc(s) {
-                return String(s ?? '')
-                    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
-                    .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
-            }
+                    tabs.addEventListener('click', (e) => {
+                        const btn = e.target.closest('.track-tab');
+                        if (!btn) return;
 
-            function setLoading(on) {
-                const el = document.getElementById('tlLoading');
-                if (!el) return;
-                el.classList.toggle('hidden', !on);
-                el.classList.toggle('flex', on);
-            }
+                        document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+                        btn.classList.add('active');
 
-            function statusLabel(st) {
-                st = String(st || '').toUpperCase();
+                        const target = btn.dataset.tab;
+                        document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+                        document.getElementById(target)?.classList.remove('hidden');
+                    });
+                })();
 
-                const map = {
-                    'C': {
-                        text: 'Completed',
-                        cls: 'bg-green-100 text-green-700'
-                    },
-                    'P': {
-                        text: 'On Progress',
-                        cls: 'bg-yellow-100 text-yellow-700'
-                    },
-                    'R': {
-                        text: 'Rejected',
-                        cls: 'bg-red-100 text-red-700'
-                    },
-                    'D': {
-                        text: 'Revise',
-                        cls: 'bg-blue-100 text-blue-700'
-                    }
-                };
+                function resetToSppbTab() {
+                    document.querySelectorAll('.track-tab').forEach(x => x.classList.remove('active'));
+                    document.querySelector('.track-tab[data-tab="tab-sppb"]')?.classList.add('active');
+                    document.querySelectorAll('.track-pane').forEach(p => p.classList.add('hidden'));
+                    document.getElementById('tab-sppb')?.classList.remove('hidden');
+                }
 
-                const it = map[st] || {
-                    text: st || '-',
-                    cls: 'bg-gray-100 text-gray-700'
-                };
+                // ---------- Utilities ----------
+                function esc(s) {
+                    return String(s ?? '')
+                        .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+                }
 
-                return `
+                function setLoading(on) {
+                    const el = document.getElementById('tlLoading');
+                    if (!el) return;
+                    el.classList.toggle('hidden', !on);
+                    el.classList.toggle('flex', on);
+                }
+
+                function statusLabel(st) {
+                    st = String(st || '').toUpperCase();
+
+                    const map = {
+                        'C': {
+                            text: 'Completed',
+                            cls: 'bg-green-100 text-green-700'
+                        },
+                        'P': {
+                            text: 'On Progress',
+                            cls: 'bg-yellow-100 text-yellow-700'
+                        },
+                        'R': {
+                            text: 'Rejected',
+                            cls: 'bg-red-100 text-red-700'
+                        },
+                        'D': {
+                            text: 'Revise',
+                            cls: 'bg-blue-100 text-blue-700'
+                        }
+                    };
+
+                    const it = map[st] || {
+                        text: st || '-',
+                        cls: 'bg-gray-100 text-gray-700'
+                    };
+
+                    return `
                 <span class="inline-block rounded px-2 py-0.5 text-xs font-semibold ${it.cls}">
                     ${it.text}
                 </span>
             `;
-            }
-
-            function statusLabel2(st) {
-                st = String(st || '').toUpperCase();
-                switch (st) {
-                    case 'P':
-                        return 'On Progress';
-                    case 'C':
-                        return 'Completed';
-                    case 'R':
-                        return 'Rejected';
-                    case 'D':
-                        return 'Revise';
-                    default:
-                        return st || '-';
                 }
-            }
 
-            function badgeApproved(isApproved) {
-                if (isApproved) {
-                    return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
+                function statusLabel2(st) {
+                    st = String(st || '').toUpperCase();
+                    switch (st) {
+                        case 'P':
+                            return 'On Progress';
+                        case 'C':
+                            return 'Completed';
+                        case 'R':
+                            return 'Rejected';
+                        case 'D':
+                            return 'Revise';
+                        default:
+                            return st || '-';
+                    }
                 }
-                return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
-            }
 
-            function resetBoxes() {
-                [
-                    'sppbHeaderBox', 'csHeaderBox', 'poHeaderBox', 'receiptHeaderBox',
-                    'sppbDetailBox', 'csDetailBox', 'poDetailBox', 'receiptDetailBox'
-                ].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.innerHTML = '';
-                });
-            }
+                function badgeApproved(isApproved) {
+                    if (isApproved) {
+                        return `<span class="inline-block rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">APPROVED</span>`;
+                    }
+                    return `<span class="inline-block rounded bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">IN PROGRESS</span>`;
+                }
 
-            function renderHeader(boxId, header, title) {
-                const box = document.getElementById(boxId);
-                if (!box) return;
+                function resetBoxes() {
+                    [
+                        'sppbHeaderBox', 'csHeaderBox', 'poHeaderBox', 'receiptHeaderBox',
+                        'sppbDetailBox', 'csDetailBox', 'poDetailBox', 'receiptDetailBox'
+                    ].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.innerHTML = '';
+                    });
+                }
 
-                if (!header) {
-                    box.innerHTML = `
+                function renderHeader(boxId, header, title) {
+                    const box = document.getElementById(boxId);
+                    if (!box) return;
+
+                    if (!header) {
+                        box.innerHTML = `
                         <div class="rounded-lg border border-gray-200 p-3 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-300">
                             ${esc(title)} not created yet.
                         </div>`;
-                    return;
-                }
+                        return;
+                    }
 
-                // ✅ HARUS DI DALAM renderHeader (biar scope benar)
-                const la = header.last_approval || null;
+                    // ✅ HARUS DI DALAM renderHeader (biar scope benar)
+                    // const la = header.last_approval || null;
+                    const approvals = header.approval_list || [];
+                    // console.log('APPROVAL LIST:', approvals);
 
-                let lastApprovalHtml = '';
-                if (la) {
-                    const st = String(la.status || '').toUpperCase();
-                    const stText = st === 'P' ? 'Pending Approval' : (st === 'A' ? 'Approved' : st);
+                    // let lastApprovalHtml = '';
+                    // if (la) {
+                    //     const st = String(la.status || '').toUpperCase();
+                    //     const stText = st === 'P' ? 'Pending Approval' : (st === 'A' ? 'Approved' : st);
 
-                    const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
-                    const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null) ?
-                        `Lvl ${esc(la.aprv_leveling)}` :
-                        '';
-                    const dtb = la.date_before ? esc(la.date_before) : '';
-                    const dta = la.date_after ? esc(la.date_after) : '';
+                    //     const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
+                    //     const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null) ?
+                    //         `Lvl ${esc(la.aprv_leveling)}` :
+                    //         '';
+                    //     const dtb = la.date_before ? esc(la.date_before) : '';
+                    //     const dta = la.date_after ? esc(la.date_after) : '';
 
-                    lastApprovalHtml = `
-                        <div class="sm:col-span-2 mt-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-700/40 dark:bg-indigo-900/20">
-                            <div class="flex items-center justify-between">
-                                <div class="font-semibold text-indigo-700 dark:text-indigo-300">Last Approval</div>
-                                <div class="text-xs text-indigo-700/80 dark:text-indigo-300/80">
-                                    ${esc(stText)} ${lvl ? `• ${lvl}` : ''}
+                    //     lastApprovalHtml = `
+                //         <div class="sm:col-span-2 mt-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-700/40 dark:bg-indigo-900/20">
+                //             <div class="flex items-center justify-between">
+                //                 <div class="font-semibold text-indigo-700 dark:text-indigo-300">Last Approval</div>
+                //                 <div class="text-xs text-indigo-700/80 dark:text-indigo-300/80">
+                //                     ${esc(stText)} ${lvl ? `• ${lvl}` : ''}
+                //                 </div>
+                //             </div>
+                //             <div class="mt-1 text-gray-700 dark:text-gray-200">
+                //                 <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
+                //                 ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
+                //                 ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+                //             </div>
+                //         </div>
+                //     `;
+                    // }
+                    let approvalHtml = '';
+
+
+                    if (approvals.length > 0) {
+
+                        approvalHtml = `
+                            <div class="sm:col-span-2 mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm">
+
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="font-semibold text-indigo-700">
+                                        Approval Flow
+                                    </div>
+                                    <div class="text-xs text-indigo-600">
+                                        ${approvals.filter(a => String(a.status).toUpperCase() === 'A').length}/${approvals.length} Approved
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mt-1 text-gray-700 dark:text-gray-200">
-                                <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
-                                ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
-                                ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
-                            </div>
+
+                                <div class="max-h-64 overflow-y-auto pr-1 space-y-2">
+        ${approvals.map(a => {
+
+            const st = String(a.status || '').toUpperCase();
+
+            let badge = '';
+            let color = '';
+            let dot = '';
+
+            if (st === 'A') {
+                badge = 'APPROVED';
+                color = 'text-green-700';
+                dot = 'bg-green-500';
+            } else if (st === 'P') {
+                badge = 'WAITING APPROVAL';
+                color = 'text-yellow-700 font-semibold';
+                dot = 'bg-yellow-500';
+            } else if (st === 'R') {
+                badge = 'REJECTED';
+                color = 'text-red-700';
+                dot = 'bg-red-500';
+            } else {
+                badge = 'WAITING';
+                color = 'text-gray-500';
+                dot = 'bg-gray-400';
+            }
+
+         return `
+<div class="flex items-start gap-3 border-b pb-2 last:border-0">
+
+    <div class="mt-1 h-2 w-2 rounded-full ${dot}"></div>
+
+    <div class="flex-1">
+
+        <div class="flex justify-between items-center">
+            <div class="font-semibold ${color}">
+                Lvl ${a.level} - ${esc(a.name || a.username || '-')}
+            </div>
+
+            <div class="text-[10px] font-semibold px-2 py-0.5 rounded bg-white border">
+                ${badge}
+            </div>
+        </div>
+
+        <div class="text-xs text-gray-500">
+            ${a.date_before || ''}
+            ${a.date_after ? ' → ' + a.date_after : ''}
+        </div>
+
+    </div>
+
+</div>
+`;
+        }).join('')}
+    </div>
+</div>
+`;
+                    }
+
+
+                        box.innerHTML = `
+<div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <div class="text-sm font-semibold text-gray-800 dark:text-white">
+                ${esc(title)}: ${esc(header.doc)}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-300">
+                ${esc(header.date || '')}
+            </div>
+        </div>
+
+        ${statusLabel(header.status)}
+    </div>
+
+    <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+
+        <div>
+            <span class="text-gray-500">Company:</span>
+            <span class="font-semibold text-gray-800 dark:text-white">
+                ${esc(header.cpny_id || '-')}
+            </span>
+        </div>
+
+        <div>
+            <span class="text-gray-500">Department:</span>
+            <span class="font-semibold text-gray-800 dark:text-white">
+                ${esc(header.department_id || '-')}
+            </span>
+        </div>
+
+        <div>
+            <span class="text-gray-500">Created By:</span>
+            <span class="font-semibold text-gray-800 dark:text-white">
+                ${esc(header.created_by || '-')}
+            </span>
+        </div>
+
+        ${
+            header.vendorname !== undefined
+                ? `
+        <div class="sm:col-span-2">
+            <span class="text-gray-500">Vendor:</span>
+            <span class="font-semibold text-gray-800 dark:text-white">
+                ${esc(header.vendorname || '-')}
+            </span>
+        </div>`
+                : ''
+        }
+
+        ${
+            header.keperluan !== undefined
+                ? `
+        <div class="sm:col-span-2">
+            <span class="text-gray-500">Keperluan:</span>
+            <span class="font-semibold text-gray-800 dark:text-white">
+                ${esc(header.keperluan || '-')}
+            </span>
+        </div>`
+                : ''
+        }
+
+    </div>
+
+    ${approvalHtml}
+
+</div>
+`;
+                    }
+
+                    function renderDetailCs(rows) {
+                        if (!Array.isArray(rows) || rows.length === 0)
+                            return `<div class="text-sm text-gray-500">No detail.</div>`;
+
+                        const trs = rows.map(r => `
+                                    <tr class="border-b dark:border-gray-700">
+                                    <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                                    <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                                    <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+                                    <td class="px-3 py-2">${esc(r.uom)}</td>
+                                    <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>
+                                    </tr>
+                                `).join('');
+
+                        return `
+                                    <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-50 dark:bg-gray-700/30">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left">Inventory</th>
+                                            <th class="px-3 py-2 text-left">Description</th>
+                                            <th class="px-3 py-2 text-right">Qty</th>
+                                            <th class="px-3 py-2 text-left">UOM</th>
+                                            <th class="px-3 py-2 text-left">Selected Vendor</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>${trs}</tbody>
+                                    </table>
+                                    </div>`;
+                    }
+
+
+                    function renderDetailPo(rows) {
+                        if (!Array.isArray(rows) || rows.length === 0)
+                            return `<div class="text-sm text-gray-500">No detail.</div>`;
+                        const trs = rows.map(r => `
+                                <tr class="border-b dark:border-gray-700">
+                                    <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                                    <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                                    <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+                                    <td class="px-3 py-2">${esc(r.uom)}</td>
+                                </tr>`).join('');
+                        return `
+                                <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                                    <table class="w-full text-sm">
+                                    <thead class="bg-gray-50 dark:bg-gray-700/30">
+                                        <tr>
+                                        <th class="px-3 py-2 text-left">Inventory</th>
+                                        <th class="px-3 py-2 text-left">Description</th>
+                                        <th class="px-3 py-2 text-right">Qty</th>
+                                        <th class="px-3 py-2 text-left">UOM</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${trs}</tbody>
+                                    </table>
+                                </div>`;
+                    }
+
+                    function renderDetailReceipt(rows) {
+                        if (!Array.isArray(rows) || rows.length === 0)
+                            return `<div class="text-sm text-gray-500">No detail.</div>`;
+                        const trs = rows.map(r => `
+                                <tr class="border-b dark:border-gray-700">
+                                    <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                                    <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                                    <td class="px-3 py-2 text-right">${fmt2(r.qtyordered)}</td>
+                                    <td class="px-3 py-2 text-right">${fmt2(r.qty_received)}</td>
+                                    <td class="px-3 py-2">${esc(r.uom)}</td>
+                                </tr>`).join('');
+                        return `
+                                <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                                    <table class="w-full text-sm">
+                                    <thead class="bg-gray-50 dark:bg-gray-700/30">
+                                        <tr>
+                                        <th class="px-3 py-2 text-left">Inventory</th>
+                                        <th class="px-3 py-2 text-left">Description</th>
+                                        <th class="px-3 py-2 text-right">Qty Ordered</th>
+                                        <th class="px-3 py-2 text-right">Qty Received</th>
+                                        <th class="px-3 py-2 text-left">UOM</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${trs}</tbody>
+                                    </table>
+                                </div>`;
+                    }
+
+                    // ---------- Select helpers ----------
+                    function fillSelect(selectId, items, selectedDoc) {
+                        const sel = document.getElementById(selectId);
+                        if (!sel) return;
+
+                        sel.innerHTML = '';
+
+                        if (!items || items.length === 0) {
+                            sel.innerHTML = `<option value="">none </option>`;
+                            return;
+                        }
+
+                        items.forEach(it => {
+                            const opt = document.createElement('option');
+                            opt.value = it.doc;
+                            // opt.textContent = `${it.doc}${it.date ? ' | ' + it.date : ''}${it.is_approved ? ' | APPROVED' : ''}`;
+                            opt.textContent = `${it.doc}` +
+                                (it.date ? ` | ${it.date}` : '') +
+                                (it.status ? ` | ${statusLabel2(it.status)}` : '');
+
+                            if (selectedDoc && it.doc === selectedDoc) opt.selected = true;
+                            sel.appendChild(opt);
+                        });
+
+                        // kalau selectedDoc kosong, auto pilih pertama
+                        if (!selectedDoc && sel.options.length > 0) sel.selectedIndex = 0;
+                    }
+
+                    function filterReceiptsByPo(poDoc) {
+                        const all = window.__receiptList || [];
+                        if (!poDoc) return all;
+
+                        // backend kamu harus kirim: lists.receipt[].ponbr atau .po
+                        return all.filter(x => (x.ponbr === poDoc) || (x.po === poDoc));
+                    }
+
+                    // ---------- AJAX helpers (jQuery Deferred) ----------
+                    function fetchItem(eid, type, doc) {
+                        return $.ajax({
+                            url: `/sppbs/${eid}/tracking-detail/item`,
+                            method: 'GET',
+                            dataType: 'json',
+                            data: {
+                                type,
+                                doc
+                            }
+                        });
+                    }
+
+                    function renderDetailSppb(rows) {
+
+                    if (!Array.isArray(rows) || rows.length === 0) {
+                        return `<div class="text-sm text-gray-500">No detail.</div>`;
+                    }
+
+                    const trs = rows.map(r => `
+                        <tr class="border-b dark:border-gray-700">
+                            <td class="px-3 py-2">${esc(r.inventoryid)}</td>
+                            <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
+                            <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
+                            <td class="px-3 py-2">${esc(r.uom)}</td>
+                            <td class="px-3 py-2">${esc(r.site || '-')}</td>
+                            <td class="px-3 py-2 text-right">${fmt2(r.qtyordered || 0)}</td>
+                        </tr>
+                    `).join('');
+
+                    return `
+                        <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 dark:bg-gray-700/30">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left">Inventory</th>
+                                        <th class="px-3 py-2 text-left">Description</th>
+                                        <th class="px-3 py-2 text-right">Qty</th>
+                                        <th class="px-3 py-2 text-left">UOM</th>
+                                        <th class="px-3 py-2 text-left">Site</th>
+                                        <th class="px-3 py-2 text-right">Ordered</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${trs}</tbody>
+                            </table>
                         </div>
                     `;
                 }
 
-                box.innerHTML = `
-                    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <div class="text-sm font-semibold text-gray-800 dark:text-white">
-                                    ${esc(title)} : ${esc(header.doc)}
-                                </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-300">${esc(header.date || '')}</div>
-                            </div>
-                            ${statusLabel(header.status)}
-                        </div>
+                    // ---------- Change handlers (safe: off/on) ----------
+                    $(document).off('change', '#selCs').on('change', '#selCs', function() {
+                        const eid = window.__trackEid;
+                        const doc = this.value;
+                        if (!eid || !doc) return;
 
-                        <div class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                            <div><span class="text-gray-500">Company:</span>
-                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.cpny_id || '-')}</span>
-                            </div>
-                            <div><span class="text-gray-500">Department:</span>
-                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.department_id || '-')}</span>
-                            </div>
-                            <div><span class="text-gray-500">Created By:</span>
-                                <span class="font-semibold text-gray-800 dark:text-white">${esc(header.created_by || '-')}</span>
-                            </div>
-
-                            ${header.vendorname !== undefined
-                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Vendor:</span>
-                                                                                                                                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.vendorname || '-')}</span></div>`
-                                : ''
-                            }
-
-                            ${header.keperluan !== undefined
-                                ? `<div class="sm:col-span-2"><span class="text-gray-500">Keperluan:</span>
-                                                                                                                                                                                                                                                                                        <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span></div>`
-                                : ''
-                            }
-                        </div>
-
-                        ${lastApprovalHtml}
-                    </div>
-                `;
-            }
-
-            // ---------- Detail renderers ----------
-            function renderDetailSppb(rows) {
-                if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
-                const trs = rows.map(r => `
-            <tr class="border-b dark:border-gray-700">
-                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
-                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
-                <td class="px-3 py-2">${esc(r.uom)}</td>
-                <td class="px-3 py-2">${esc(r.siteid)}</td>
-                <td class="px-3 py-2">${esc(r.ordered || '')}</td>
-            </tr>`).join('');
-                return `
-            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
-                <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-gray-700/30">
-                    <tr>
-                    <th class="px-3 py-2 text-left">Inventory</th>
-                    <th class="px-3 py-2 text-left">Description</th>
-                    <th class="px-3 py-2 text-right">Qty</th>
-                    <th class="px-3 py-2 text-left">UOM</th>
-                    <th class="px-3 py-2 text-left">Site</th>
-                    <th class="px-3 py-2 text-left">Ordered</th>
-                    </tr>
-                </thead>
-                <tbody>${trs}</tbody>
-                </table>
-            </div>`;
-            }
-
-            function renderDetailCs(rows) {
-                if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
-
-                const trs = rows.map(r => `
-                <tr class="border-b dark:border-gray-700">
-                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
-                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
-                <td class="px-3 py-2">${esc(r.uom)}</td>
-                <td class="px-3 py-2">${esc(r.vendorname_selected || '-')}</td>
-                </tr>
-            `).join('');
-
-                return `
-                <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-gray-700/30">
-                    <tr>
-                        <th class="px-3 py-2 text-left">Inventory</th>
-                        <th class="px-3 py-2 text-left">Description</th>
-                        <th class="px-3 py-2 text-right">Qty</th>
-                        <th class="px-3 py-2 text-left">UOM</th>
-                        <th class="px-3 py-2 text-left">Selected Vendor</th>
-                    </tr>
-                    </thead>
-                    <tbody>${trs}</tbody>
-                </table>
-                </div>`;
-            }
-
-
-            function renderDetailPo(rows) {
-                if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
-                const trs = rows.map(r => `
-            <tr class="border-b dark:border-gray-700">
-                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
-                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.qty)}</td>
-                <td class="px-3 py-2">${esc(r.uom)}</td>
-            </tr>`).join('');
-                return `
-            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
-                <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-gray-700/30">
-                    <tr>
-                    <th class="px-3 py-2 text-left">Inventory</th>
-                    <th class="px-3 py-2 text-left">Description</th>
-                    <th class="px-3 py-2 text-right">Qty</th>
-                    <th class="px-3 py-2 text-left">UOM</th>
-                    </tr>
-                </thead>
-                <tbody>${trs}</tbody>
-                </table>
-            </div>`;
-            }
-
-            function renderDetailReceipt(rows) {
-                if (!Array.isArray(rows) || rows.length === 0)
-                    return `<div class="text-sm text-gray-500">No detail.</div>`;
-                const trs = rows.map(r => `
-            <tr class="border-b dark:border-gray-700">
-                <td class="px-3 py-2">${esc(r.inventoryid)}</td>
-                <td class="px-3 py-2">${esc(r.inventory_descr)}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.qtyordered)}</td>
-                <td class="px-3 py-2 text-right">${fmt2(r.qty_received)}</td>
-                <td class="px-3 py-2">${esc(r.uom)}</td>
-            </tr>`).join('');
-                return `
-            <div class="rounded-lg border border-gray-200 overflow-x-auto dark:border-gray-700">
-                <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-gray-700/30">
-                    <tr>
-                    <th class="px-3 py-2 text-left">Inventory</th>
-                    <th class="px-3 py-2 text-left">Description</th>
-                    <th class="px-3 py-2 text-right">Qty Ordered</th>
-                    <th class="px-3 py-2 text-right">Qty Received</th>
-                    <th class="px-3 py-2 text-left">UOM</th>
-                    </tr>
-                </thead>
-                <tbody>${trs}</tbody>
-                </table>
-            </div>`;
-            }
-
-            // ---------- Select helpers ----------
-            function fillSelect(selectId, items, selectedDoc) {
-                const sel = document.getElementById(selectId);
-                if (!sel) return;
-
-                sel.innerHTML = '';
-
-                if (!items || items.length === 0) {
-                    sel.innerHTML = `<option value="">none </option>`;
-                    return;
-                }
-
-                items.forEach(it => {
-                    const opt = document.createElement('option');
-                    opt.value = it.doc;
-                    // opt.textContent = `${it.doc}${it.date ? ' | ' + it.date : ''}${it.is_approved ? ' | APPROVED' : ''}`;
-                    opt.textContent = `${it.doc}` +
-                        (it.date ? ` | ${it.date}` : '') +
-                        (it.status ? ` | ${statusLabel2(it.status)}` : '');
-
-                    if (selectedDoc && it.doc === selectedDoc) opt.selected = true;
-                    sel.appendChild(opt);
-                });
-
-                // kalau selectedDoc kosong, auto pilih pertama
-                if (!selectedDoc && sel.options.length > 0) sel.selectedIndex = 0;
-            }
-
-            function filterReceiptsByPo(poDoc) {
-                const all = window.__receiptList || [];
-                if (!poDoc) return all;
-
-                // backend kamu harus kirim: lists.receipt[].ponbr atau .po
-                return all.filter(x => (x.ponbr === poDoc) || (x.po === poDoc));
-            }
-
-            // ---------- AJAX helpers (jQuery Deferred) ----------
-            function fetchItem(eid, type, doc) {
-                return $.ajax({
-                    url: `/sppbs/${eid}/tracking-detail/item`,
-                    method: 'GET',
-                    dataType: 'json',
-                    data: {
-                        type,
-                        doc
-                    }
-                });
-            }
-
-            // ---------- Change handlers (safe: off/on) ----------
-            $(document).off('change', '#selCs').on('change', '#selCs', function() {
-                const eid = window.__trackEid;
-                const doc = this.value;
-                if (!eid || !doc) return;
-
-                fetchItem(eid, 'cs', doc).done(res => {
-                    renderHeader('csHeaderBox', res.header, 'CS');
-                    document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.details ||
-                []);
-                });
-            });
-
-            $(document).off('change', '#selPo').on('change', '#selPo', function() {
-                const eid = window.__trackEid;
-                const doc = this.value;
-                if (!eid || !doc) return;
-
-                fetchItem(eid, 'po', doc).done(res => {
-                    renderHeader('poHeaderBox', res.header, 'PO');
-                    document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.details ||
-                []);
-                });
-
-                // filter receipt list by PO selected
-                const filtered = filterReceiptsByPo(doc);
-                fillSelect('selReceipt', filtered, (filtered[0]?.doc || ''));
-
-                // auto load first receipt after filter
-                const first = filtered[0]?.doc;
-                if (first) {
-                    fetchItem(eid, 'receipt', first).done(res => {
-                        renderHeader('receiptHeaderBox', res.header, 'Receipt');
-                        document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res
-                            .details || []);
+                        fetchItem(eid, 'cs', doc).done(res => {
+                            renderHeader('csHeaderBox', res.header, 'CS');
+                            document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.details ||
+                                []);
+                        });
                     });
-                } else {
-                    renderHeader('receiptHeaderBox', null, 'Receipt');
-                    document.getElementById('receiptDetailBox').innerHTML =
-                        `<div class="text-sm text-gray-500">No detail.</div>`;
-                }
-            });
 
-            $(document).off('change', '#selReceipt').on('change', '#selReceipt', function() {
-                const eid = window.__trackEid;
-                const doc = this.value;
-                if (!eid || !doc) return;
+                    $(document).off('change', '#selPo').on('change', '#selPo', function() {
+                        const eid = window.__trackEid;
+                        const doc = this.value;
+                        if (!eid || !doc) return;
 
-                fetchItem(eid, 'receipt', doc).done(res => {
-                    renderHeader('receiptHeaderBox', res.header, 'Receipt');
-                    document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res
-                        .details || []);
-                });
-            });
+                        fetchItem(eid, 'po', doc).done(res => {
+                            renderHeader('poHeaderBox', res.header, 'PO');
+                            document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.details ||
+                                []);
+                        });
 
-            // ---------- Main click handler (ONLY ONE) ----------
-            $(document).off('click', '.tracking-btn').on('click', '.tracking-btn', function() {
-                const eid = $(this).data('id');
-                const doc = $(this).data('doc') || '';
-                window.__trackEid = eid;
+                        // filter receipt list by PO selected
+                        const filtered = filterReceiptsByPo(doc);
+                        fillSelect('selReceipt', filtered, (filtered[0]?.doc || ''));
 
-                resetToSppbTab();
-                resetBoxes();
-                openTrackingModal(doc);
-                setLoading(true);
+                        // auto load first receipt after filter
+                        const first = filtered[0]?.doc;
+                        if (first) {
+                            fetchItem(eid, 'receipt', first).done(res => {
+                                renderHeader('receiptHeaderBox', res.header, 'Receipt');
+                                document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(
+                                    res
+                                    .details || []);
+                            });
+                        } else {
+                            renderHeader('receiptHeaderBox', null, 'Receipt');
+                            document.getElementById('receiptDetailBox').innerHTML =
+                                `<div class="text-sm text-gray-500">No detail.</div>`;
+                        }
+                    });
 
-                $.ajax({
-                    url: `/sppbs/${eid}/tracking-detail`,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(res) {
-                        setLoading(false);
+                    $(document).off('change', '#selReceipt').on('change', '#selReceipt', function() {
+                        const eid = window.__trackEid;
+                        const doc = this.value;
+                        if (!eid || !doc) return;
 
-                        // simpan list untuk filtering
-                        window.__receiptList = res.lists?.receipt || [];
+                        fetchItem(eid, 'receipt', doc).done(res => {
+                            renderHeader('receiptHeaderBox', res.header, 'Receipt');
+                            document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(res
+                                .details || []);
+                        });
+                    });
 
-                        // render header default (selected)
-                        renderHeader('sppbHeaderBox', res.sppb?.header, 'SPPB');
-                        renderHeader('csHeaderBox', res.cs?.header, 'CS');
-                        renderHeader('poHeaderBox', res.po?.header, 'PO');
-                        renderHeader('receiptHeaderBox', res.receipt?.header, 'Receipt');
+                    // ---------- Main click handler (ONLY ONE) ----------
+                    $(document).off('click', '.tracking-btn').on('click', '.tracking-btn', function() {
+                        const eid = $(this).data('id');
+                        const doc = $(this).data('doc') || '';
+                        window.__trackEid = eid;
 
-                        // render detail default (selected)
-                        document.getElementById('sppbDetailBox').innerHTML = renderDetailSppb(res
-                            .sppb?.details || []);
-                        document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.cs
-                            ?.details || []);
-                        document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.po
-                            ?.details || []);
-                        document.getElementById('receiptDetailBox').innerHTML = renderDetailReceipt(
-                            res.receipt?.details || []);
+                        resetToSppbTab();
+                        resetBoxes();
+                        openTrackingModal(doc);
+                        setLoading(true);
 
-                        // dropdown lists (support multiple)
-                        fillSelect('selCs', res.lists?.cs || [], res.selected?.cs_no || '');
-                        fillSelect('selPo', res.lists?.po || [], res.selected?.po_no || '');
+                        $.ajax({
+                            url: `/sppbs/${eid}/tracking-detail`,
+                            method: 'GET',
+                            dataType: 'json',
+                            success: function(res) {
+                                setLoading(false);
 
-                        // receipt list default: filter by selected PO
-                        const poSelected = (res.selected?.po_no) || document.getElementById('selPo')
-                            ?.value || '';
-                        const filteredReceipt = filterReceiptsByPo(poSelected);
-                        const receiptSelected = res.selected?.receipt_no || (filteredReceipt[0]
-                            ?.doc || '');
-                        fillSelect('selReceipt', filteredReceipt, receiptSelected);
+                                // simpan list untuk filtering
+                                window.__receiptList = res.lists?.receipt || [];
 
-                    },
-                    error: function(xhr) {
-                        setLoading(false);
-                        document.getElementById('sppbHeaderBox').innerHTML =
-                            `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                    Failed to load tracking (HTTP ${xhr.status || ''})
-                </div>`;
-                    }
-                });
-            });
+                                // render header default (selected)
+                                renderHeader('sppbHeaderBox', res.sppb?.header, 'SPPB');
+                                renderHeader('csHeaderBox', res.cs?.header, 'CS');
+                                renderHeader('poHeaderBox', res.po?.header, 'PO');
+                                renderHeader('receiptHeaderBox', res.receipt?.header, 'Receipt');
 
-        })(); // end IIFE
+                                // render detail default (selected)
+                                document.getElementById('sppbDetailBox').innerHTML = renderDetailSppb(
+                                    res
+                                    .sppb?.details || []);
+                                document.getElementById('csDetailBox').innerHTML = renderDetailCs(res.cs
+                                    ?.details || []);
+                                document.getElementById('poDetailBox').innerHTML = renderDetailPo(res.po
+                                    ?.details || []);
+                                document.getElementById('receiptDetailBox').innerHTML =
+                                    renderDetailReceipt(
+                                        res.receipt?.details || []);
+
+                                // dropdown lists (support multiple)
+                                fillSelect('selCs', res.lists?.cs || [], res.selected?.cs_no || '');
+                                fillSelect('selPo', res.lists?.po || [], res.selected?.po_no || '');
+
+                                // receipt list default: filter by selected PO
+                                const poSelected = (res.selected?.po_no) || document.getElementById(
+                                        'selPo')
+                                    ?.value || '';
+                                const filteredReceipt = filterReceiptsByPo(poSelected);
+                                const receiptSelected = res.selected?.receipt_no || (filteredReceipt[0]
+                                    ?.doc || '');
+                                fillSelect('selReceipt', filteredReceipt, receiptSelected);
+
+                            },
+                            error: function(xhr) {
+                                setLoading(false);
+                                document.getElementById('sppbHeaderBox').innerHTML =
+                                    `<div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                        Failed to load tracking (HTTP ${xhr.status || ''})
+                                    </div>`;
+                            }
+                        });
+                    });
+
+                })(); // end IIFE
     </script>
 
 
@@ -1255,6 +1372,11 @@
             });
             $('#filterDepartment').on('change', function() {
                 deptFilter = this.value;
+                table.ajax.reload();
+            });
+
+            $('#filterStatus').on('change', function () {
+                statusFilter = this.value;
                 table.ajax.reload();
             });
 

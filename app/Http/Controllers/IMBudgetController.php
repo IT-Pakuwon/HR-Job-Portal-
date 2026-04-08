@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -230,9 +230,9 @@ class IMBudgetController extends Controller
 
 
 
-    
-    
-    public function generateIMBudget(Request $request) 
+
+
+    public function generateIMBudget(Request $request)
     {
         // --- Ambil CS header & detail ---
         $csid = $request->input('csid', 'CS25100015'); // default contoh
@@ -290,7 +290,7 @@ class IMBudgetController extends Controller
         $approvalCtl->loadLines($doctype, $cpnyid, $departementid);
 
         DB::beginTransaction();
-        try {         
+        try {
 
             $auto = $this->nextAutonbr(
                 $doctype,
@@ -303,7 +303,7 @@ class IMBudgetController extends Controller
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-           
+
             // === 1) HEADER IMBudget ===
             $header = new TrIMBudget();
             $header->imbudgetid               = $docid;
@@ -319,7 +319,7 @@ class IMBudgetController extends Controller
             $header->total_budget_requested   = 0;
             $header->status                   = 'H';
             $header->created_by               = $username;
-            $header->save();            
+            $header->save();
 
             // === 2) AGREGASI DETAIL CS → GROUPING (amount_expense)
             $rowAmount = function ($d) use ($toFloat) : float {
@@ -397,7 +397,7 @@ class IMBudgetController extends Controller
                     ->when($deptfin, fn($q) => $q->where('department_fin_id', $deptfin))
                     ->when($account, fn($q) => $q->where('account_id', $account))
                     ->when($actdescr, fn($q) => $q->where('activity_descr', $actdescr))
-                    ->when($activity,fn($q) => $q->where('activity_id', $activity));               
+                    ->when($activity,fn($q) => $q->where('activity_id', $activity));
 
                 $row = $q->first();
                 if (!$row) return 0.0;
@@ -480,7 +480,7 @@ class IMBudgetController extends Controller
             $header->total_budget_needed    = $sumNeeded;
             $header->save();
 
-            $eid = Hashids::encode($header->id);          
+            $eid = Hashids::encode($header->id);
 
             $status     = $header->status;
             $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed','H'=>'On Hold','X'=>'Cancelled'];
@@ -611,10 +611,10 @@ class IMBudgetController extends Controller
     }
 
 
-   
+
     public function editIMBudget($hash)
     {
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -676,10 +676,10 @@ class IMBudgetController extends Controller
             ];
         });
 
-        $cs = TrCS::where('csid', $imbudget->csid)           
+        $cs = TrCS::where('csid', $imbudget->csid)
             ->first();
-        $eidcs = Hashids::encode($cs->id);    
-             
+        $eidcs = Hashids::encode($cs->id);
+
 
         return view('pages.imbudgets.editimbudgets', compact(
             'imbudget','imbudgetdetail','usercpny','usercpny2','userdept','userdept2','hash','attachments','eidcs'
@@ -828,11 +828,11 @@ class IMBudgetController extends Controller
             if ($firstApprovalUsernames) {
                 $header->completed_by = $firstApprovalUsernames;
                 $header->completed_at = $dt;
-                $header->save();                
+                $header->save();
             }
 
             $csid = $header->csid;
-            $statusIm = 'P';           
+            $statusIm = 'P';
             $this->updateCSImBudgetStatus($csid, $statusIm);
 
             // 5) Attachment (opsional)
@@ -884,12 +884,12 @@ class IMBudgetController extends Controller
         }
     }
 
-      
- 
+
+
 
     public function showIMBudget($hash)
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -899,14 +899,14 @@ class IMBudgetController extends Controller
         abort_if(!$id, 404);
 
         // $imbudget = TrIMBudget::findOrFail($id);
-        $imbudget = TrIMBudget::with([           
+        $imbudget = TrIMBudget::with([
             'creator:username,name'
         ])
-        ->findOrFail($id);        
+        ->findOrFail($id);
 
         $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
-            ->get();        
-        
+            ->get();
+
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
             ->where('status', 'A')
@@ -943,7 +943,7 @@ class IMBudgetController extends Controller
                 \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
 
-            return (object) [                
+            return (object) [
                 'display_name' => $r->attachment_name,         // nama yang enak dibaca
                 'created_by'   => $r->created_by,
                 'created_at'   => $r->created_at,
@@ -969,16 +969,16 @@ class IMBudgetController extends Controller
         $docid      = null;
 
         if ($prefix == 'PB') {
-            $srcHeader  = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $imbudget->sppbjktid)->first();            
+            $srcHeader  = TrSPPB::with(['requestType', 'creator', 'purchaser'])->where('sppbid', $imbudget->sppbjktid)->first();
             $docid      = $srcHeader->sppbid;
         } elseif ($prefix == 'PJ') {
-            $srcHeader  = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $imbudget->sppbjktid)->first();            
+            $srcHeader  = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->where('sppjid', $imbudget->sppbjktid)->first();
             $docid      = $srcHeader->sppjid;
         } elseif ($prefix == 'PK') {
-            $srcHeader  = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $imbudget->sppbjktid)->first();            
+            $srcHeader  = TrSPPK::with(['requestType', 'creator', 'purchaser'])->where('sppkid', $imbudget->sppbjktid)->first();
             $docid      = $srcHeader->sppkid;
         } elseif ($prefix == 'PT') {
-            $srcHeader  = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $imbudget->sppbjktid)->first();            
+            $srcHeader  = TrSPPT::with(['requestType', 'creator', 'purchaser'])->where('spptid', $imbudget->sppbjktid)->first();
             $docid      = $srcHeader->spptid;
         } else {
             abort(422, 'Invalid doc type');
@@ -989,12 +989,12 @@ class IMBudgetController extends Controller
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $imbudget->created_by === $loginUsername;
-        
-       
+
+
         return view('pages.imbudgets.showimbudgets', compact('imbudget','attachments','imbudgetdetail','hash','canUpload','eid_cs','eid_sppbjkt','prefix','docid'));
     }
 
-    
+
 
     public function approveIMBudget(Request $request, $docid)
     {
@@ -1024,7 +1024,7 @@ class IMBudgetController extends Controller
                 TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'C']);
 
                 $csid = $imbudget->csid;
-                $statusIm = 'C';           
+                $statusIm = 'C';
                 $this->updateCSImBudgetStatus($csid, $statusIm);
 
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
@@ -1040,7 +1040,7 @@ class IMBudgetController extends Controller
                         'info'     => $imbudget->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
             },
@@ -1108,7 +1108,7 @@ class IMBudgetController extends Controller
                 $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
 
                 $csid = $imbudget->csid;
-                $statusIm = 'R';           
+                $statusIm = 'R';
                 $this->updateCSImBudgetStatus($csid, $statusIm);
 
                 // optional: tandai detail R
@@ -1127,7 +1127,7 @@ class IMBudgetController extends Controller
                         'info'     => $imbudget->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
 
@@ -1178,7 +1178,7 @@ class IMBudgetController extends Controller
                 $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
 
                 $csid = $imbudget->csid;
-                $statusIm = 'D';           
+                $statusIm = 'D';
                 $this->updateCSImBudgetStatus($csid, $statusIm);
 
                 // (opsional) DETAIL -> D
@@ -1219,13 +1219,122 @@ class IMBudgetController extends Controller
 
         return response()->json(['success'=>true,'message'=>'IMBudget revised successfully']);
     }
-    
-    public function tracking($hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
 
-        $imbudget = TrIMBudget::findOrFail($id);
+    // public function tracking($hash)
+    // {
+    //     $id = Hashids::decode($hash)[0] ?? null;
+    //     abort_if(!$id, 404);
+
+    //     $imbudget = TrIMBudget::findOrFail($id);
+
+    //     $getName = function (?string $username) {
+    //         if (!$username) return null;
+    //         $u = \App\Models\User::where('username', $username)->first();
+    //         return $u->name ?? $username;
+    //     };
+
+    //     $createdByName = $getName($imbudget->created_by ?? null);
+    //     $createdAt     = $imbudget->created_at ? \Carbon\Carbon::parse($imbudget->created_at)->format('Y-m-d H:i') : null;
+
+    //     $completedByName = $getName($imbudget->completed_by ?? null);
+    //     $completedAt     = $imbudget->completed_at ? \Carbon\Carbon::parse($imbudget->completed_at)->format('Y-m-d H:i') : null;
+
+    //     // kolom opsional, kalau tidak ada biarkan null
+    //     $rejectedByName  = $getName($imbudget->rejected_by ?? null);
+    //     $rejectedAt      = isset($imbudget->rejected_at) ? \Carbon\Carbon::parse($imbudget->rejected_at)->format('Y-m-d H:i') : null;
+
+    //     $revisedByName   = $getName($imbudget->revised_by ?? null);
+    //     $revisedAt       = isset($imbudget->revised_at) ? \Carbon\Carbon::parse($imbudget->revised_at)->format('Y-m-d H:i') : null;
+
+    //     $status = (string) ($imbudget->status ?? '');
+    //     $labelMap = [
+    //         'P' => 'Waiting approval',
+    //         'R' => 'Rejected',
+    //         'D' => 'Revise',
+    //         'C' => 'Completed',
+    //     ];
+    //     $statusLabel = $labelMap[$status] ?? $status;
+
+    //     // selalu mulai dari Submitted
+    //     $steps = [[
+    //         'key'          => 'submitted',
+    //         'title'        => 'IMBudget',
+    //         'status'       => 'C',              // dibuat = completed
+    //         'status_label' => 'Submitted',
+    //         'by'           => $createdByName,
+    //         'at'           => $createdAt,
+    //     ]];
+
+    //     switch ($status) {
+    //         case 'P':
+    //             // masih menunggu/berjalan → tampilkan Approval saja
+    //             $steps[] = [
+    //                 'key'          => 'approval',
+    //                 'title'        => 'Approval',
+    //                 'status'       => 'P',
+    //                 'status_label' => 'Waiting approval',
+    //                 'by'           => $completedByName,
+    //                 'at'           => $completedAt,
+    //             ];
+    //             break;
+
+    //         case 'R':
+    //             // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+    //             $steps[] = [
+    //                 'key'          => 'rejected',
+    //                 'title'        => 'Rejected',
+    //                 'status'       => 'R',
+    //                 'status_label' => 'Rejected',
+    //                 'by'           => $completedByName,
+    //                 'at'           => $completedAt,
+    //             ];
+    //             break;
+
+    //         case 'D':
+    //             // REVISE → Submitted → Revise
+    //             $steps[] = [
+    //                 'key'          => 'revise',
+    //                 'title'        => 'Revise',
+    //                 'status'       => 'D',
+    //                 'status_label' => 'Revise',
+    //                 'by'           => $completedByName,
+    //                 'at'           => $completedAt,
+    //             ];
+    //             break;
+
+    //         case 'C':
+    //             // SELESAI → bisa langsung Submitted → Completed
+    //             // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
+    //             // tambahkan step 'approval' sebelum 'completed')
+    //             $steps[] = [
+    //                 'key'          => 'completed',
+    //                 'title'        => 'Completed',
+    //                 'status'       => 'C',
+    //                 'status_label' => 'Completed',
+    //                 'by'           => $completedByName,
+    //                 'at'           => $completedAt,
+    //             ];
+    //             break;
+
+    //         default:
+    //             // status tidak dikenal → biarkan hanya Submitted
+    //             break;
+    //     }
+
+    //     return response()->json([
+    //         'doc'   => $imbudget->imbudgetid ?? (string)$imbudget->id,
+    //         'steps' => $steps,
+    //         'status'=> $status,
+    //         'status_label' => $statusLabel,
+    //     ]);
+    // }
+
+    public function tracking($id)
+    {
+        // ======================
+        // 1. GET DATA
+        // ======================
+        $imbudget = TrIMBudget::where('imbudgetid', $id)->firstOrFail();
 
         $getName = function (?string $username) {
             if (!$username) return null;
@@ -1233,99 +1342,100 @@ class IMBudgetController extends Controller
             return $u->name ?? $username;
         };
 
-        $createdByName = $getName($imbudget->created_by ?? null);
-        $createdAt     = $imbudget->created_at ? \Carbon\Carbon::parse($imbudget->created_at)->format('Y-m-d H:i') : null;
+        $steps = [];
 
-        $completedByName = $getName($imbudget->completed_by ?? null);
-        $completedAt     = $imbudget->completed_at ? \Carbon\Carbon::parse($imbudget->completed_at)->format('Y-m-d H:i') : null;
-
-        // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName  = $getName($imbudget->rejected_by ?? null);
-        $rejectedAt      = isset($imbudget->rejected_at) ? \Carbon\Carbon::parse($imbudget->rejected_at)->format('Y-m-d H:i') : null;
-
-        $revisedByName   = $getName($imbudget->revised_by ?? null);
-        $revisedAt       = isset($imbudget->revised_at) ? \Carbon\Carbon::parse($imbudget->revised_at)->format('Y-m-d H:i') : null;
-
-        $status = (string) ($imbudget->status ?? '');
-        $labelMap = [
-            'P' => 'Waiting approval',
-            'R' => 'Rejected',
-            'D' => 'Revise',
-            'C' => 'Completed',
-        ];
-        $statusLabel = $labelMap[$status] ?? $status;
-
-        // selalu mulai dari Submitted
-        $steps = [[
-            'key'          => 'submitted',
-            'title'        => 'IMBudget',
-            'status'       => 'C',              // dibuat = completed
+        // ======================
+        // 2. SUBMITTED
+        // ======================
+        $steps[] = [
+            'type' => 'header',
+            'title' => 'IMBudget',
+            'status' => 'C',
             'status_label' => 'Submitted',
-            'by'           => $createdByName,
-            'at'           => $createdAt,
-        ]];
+            'by' => $getName($imbudget->created_by),
+            'at' => optional($imbudget->created_at)->format('Y-m-d H:i'),
+        ];
 
-        switch ($status) {
-            case 'P':
-                // masih menunggu/berjalan → tampilkan Approval saja
+        // ======================
+        // 3. GET ALL APPROVALS
+        // ======================
+        $all = TrApproval::where('refnbr', $imbudget->imbudgetid)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at')
+            ->get();
+
+        // ======================
+        // 4. GROUP INTO CYCLES
+        // ======================
+        $groups = $all->groupBy(function ($a) {
+            return \Carbon\Carbon::parse($a->created_at)->format('Y-m-d H:i:s');
+        });
+
+        $hasMultipleCycle = $groups->count() > 1;
+        $cycleIndex = 1;
+
+        foreach ($groups as $group) {
+
+            // ✅ Only show cycle if more than 1
+            if ($hasMultipleCycle) {
                 $steps[] = [
-                    'key'          => 'approval',
-                    'title'        => 'Approval',
-                    'status'       => 'P',
-                    'status_label' => 'Waiting approval',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'type' => 'cycle',
+                    'title' => 'Cycle ' . $cycleIndex,
                 ];
-                break;
+            }
 
-            case 'R':
-                // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+            // sort by level
+            $sorted = $group->sortBy(fn($a) => (float)$a->aprv_leveling);
+
+            foreach ($sorted as $a) {
+
+                $map = match ($a->status) {
+                    'A' => ['label' => 'Approved', 'status' => 'C'],
+                    'P' => ['label' => 'Waiting Approval', 'status' => 'P'],
+                    'R' => ['label' => 'Rejected', 'status' => 'R'],
+                    'D' => ['label' => 'Revised', 'status' => 'D'],
+                    'X' => ['label' => 'Cancelled', 'status' => 'X'],
+                    default => ['label' => 'Pending', 'status' => '_']
+                };
+
                 $steps[] = [
-                    'key'          => 'rejected',
-                    'title'        => 'Rejected',
-                    'status'       => 'R',
-                    'status_label' => 'Rejected',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
+                    'type' => 'approval',
+                    'title' => 'Approval Lv ' . $a->aprv_leveling,
+                    'status' => $map['status'],
+                    'status_label' => $map['label'],
+                    'by' => $getName($a->aprv_username),
+                    'at' => $a->aprv_dateafter
+                        ? \Carbon\Carbon::parse($a->aprv_dateafter)->format('Y-m-d H:i')
+                        : null,
                 ];
-                break;
 
-            case 'D':
-                // REVISE → Submitted → Revise
-                $steps[] = [
-                    'key'          => 'revise',
-                    'title'        => 'Revise',
-                    'status'       => 'D',
-                    'status_label' => 'Revise',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
-                ];
-                break;
+                // stop if rejected inside a cycle
+                if ($a->status === 'R') break;
+            }
 
-            case 'C':
-                // SELESAI → bisa langsung Submitted → Completed
-                // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
-                // tambahkan step 'approval' sebelum 'completed')
-                $steps[] = [
-                    'key'          => 'completed',
-                    'title'        => 'Completed',
-                    'status'       => 'C',
-                    'status_label' => 'Completed',
-                    'by'           => $completedByName,
-                    'at'           => $completedAt,
-                ];
-                break;
-
-            default:
-                // status tidak dikenal → biarkan hanya Submitted
-                break;
+            $cycleIndex++;
         }
 
+        // ======================
+        // 5. FINAL STATUS
+        // ======================
+        if ($imbudget->status === 'C') {
+            $steps[] = [
+                'type' => 'footer',
+                'title' => 'Completed',
+                'status' => 'C',
+                'status_label' => 'Completed',
+                'by' => $getName($imbudget->completed_by),
+                'at' => optional($imbudget->completed_at)->format('Y-m-d H:i'),
+            ];
+        }
+
+        // ======================
+        // 6. RESPONSE
+        // ======================
         return response()->json([
-            'doc'   => $imbudget->imbudgetid ?? (string)$imbudget->id,
-            'steps' => $steps,
-            'status'=> $status,
-            'status_label' => $statusLabel,
+            'doc'   => $imbudget->imbudgetid,
+            'steps' => array_values($steps),
         ]);
     }
 
@@ -1340,7 +1450,7 @@ class IMBudgetController extends Controller
         }
 
         // Ambil IMBudget + relasi yang dibutuhkan
-        $imbudget = TrIMBudget::with([           
+        $imbudget = TrIMBudget::with([
                 'creator:username,name',
             ])
             ->findOrFail($id);
@@ -1352,7 +1462,7 @@ class IMBudgetController extends Controller
         // Approval list (non-cancelled)
         $approval = TrApproval::query()
             ->where('refnbr', $imbudget->imbudgetid)          // dulu: docid
-            ->where('status', '<>', 'X')           
+            ->where('status', '<>', 'X')
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
             ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
             ->get();
@@ -1432,7 +1542,7 @@ class IMBudgetController extends Controller
         }
 
         TrCS::where('csid', $csid)->update([
-            'status_imbudget' => $status,           
+            'status_imbudget' => $status,
         ]);
     }
 
@@ -1440,7 +1550,7 @@ class IMBudgetController extends Controller
 
 
 
-    
+
 
 
 

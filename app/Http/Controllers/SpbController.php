@@ -2199,115 +2199,219 @@ class SpbController extends Controller
     //     return response()->json(['canPerformAction' => $canPerformAction]);
     // }
 
+    // public function tracking($hash)
+    // {
+    //     $id = Hashids::decode($hash)[0] ?? null;
+    //     abort_if(!$id, 404);
+
+    //     $spb = TrSPB::findOrFail($id);
+
+    //     $getName = function (?string $username) {
+    //         if (!$username) {
+    //             return null;
+    //         }
+    //         $u = User::where('username', $username)->first();
+
+    //         return $u->name ?? $username;
+    //     };
+
+    //     $createdByName = $getName($spb->created_by ?? null);
+    //     $createdAt = $spb->created_at ? \Carbon\Carbon::parse($spb->created_at)->format('Y-m-d H:i') : null;
+
+    //     $completedByName = $getName($spb->completed_by ?? null);
+    //     $completedAt = $spb->completed_at ? \Carbon\Carbon::parse($spb->completed_at)->format('Y-m-d H:i') : null;
+
+    //     // kolom opsional, kalau tidak ada biarkan null
+    //     $rejectedByName = $getName($spb->rejected_by ?? null);
+    //     $rejectedAt = isset($spb->rejected_at) ? \Carbon\Carbon::parse($spb->rejected_at)->format('Y-m-d H:i') : null;
+
+    //     $revisedByName = $getName($spb->revised_by ?? null);
+    //     $revisedAt = isset($spb->revised_at) ? \Carbon\Carbon::parse($spb->revised_at)->format('Y-m-d H:i') : null;
+
+    //     $status = (string) ($spb->status ?? '');
+    //     $labelMap = [
+    //         'P' => 'Waiting approval',
+    //         'R' => 'Rejected',
+    //         'D' => 'Revise',
+    //         'C' => 'Completed',
+    //     ];
+    //     $statusLabel = $labelMap[$status] ?? $status;
+
+    //     // selalu mulai dari Submitted
+    //     $steps = [[
+    //         'key' => 'submitted',
+    //         'title' => 'SPB',
+    //         'status' => 'C',              // dibuat = completed
+    //         'status_label' => 'Submitted',
+    //         'by' => $createdByName,
+    //         'at' => $createdAt,
+    //     ]];
+
+    //     switch ($status) {
+    //         case 'P':
+    //             // masih menunggu/berjalan → tampilkan Approval saja
+    //             $steps[] = [
+    //                 'key' => 'approval',
+    //                 'title' => 'Approval',
+    //                 'status' => 'P',
+    //                 'status_label' => 'Waiting approval',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
+    //             ];
+    //             break;
+
+    //         case 'R':
+    //             // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+    //             $steps[] = [
+    //                 'key' => 'rejected',
+    //                 'title' => 'Rejected',
+    //                 'status' => 'R',
+    //                 'status_label' => 'Rejected',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
+    //             ];
+    //             break;
+
+    //         case 'D':
+    //             // REVISE → Submitted → Revise
+    //             $steps[] = [
+    //                 'key' => 'revise',
+    //                 'title' => 'Revise',
+    //                 'status' => 'D',
+    //                 'status_label' => 'Revise',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
+    //             ];
+    //             break;
+
+    //         case 'C':
+    //             // SELESAI → bisa langsung Submitted → Completed
+    //             // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
+    //             // tambahkan step 'approval' sebelum 'completed')
+    //             $steps[] = [
+    //                 'key' => 'completed',
+    //                 'title' => 'Completed',
+    //                 'status' => 'C',
+    //                 'status_label' => 'Completed',
+    //                 'by' => $completedByName,
+    //                 'at' => $completedAt,
+    //             ];
+    //             break;
+
+    //         default:
+    //             // status tidak dikenal → biarkan hanya Submitted
+    //             break;
+    //     }
+
+    //     return response()->json([
+    //         'doc' => $spb->spbid ?? (string) $spb->id,
+    //         'steps' => $steps,
+    //         'status' => $status,
+    //         'status_label' => $statusLabel,
+    //     ]);
+    // }
+
+
     public function tracking($hash)
     {
-        $id = Hashids::decode($hash)[0] ?? null;
+        $id = \Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $spb = TrSPB::findOrFail($id);
+        $spb = \App\Models\TrSPB::findOrFail($id);
 
         $getName = function (?string $username) {
-            if (!$username) {
-                return null;
-            }
-            $u = User::where('username', $username)->first();
-
+            if (!$username) return null;
+            $u = \App\Models\User::where('username', $username)->first();
             return $u->name ?? $username;
         };
 
-        $createdByName = $getName($spb->created_by ?? null);
-        $createdAt = $spb->created_at ? \Carbon\Carbon::parse($spb->created_at)->format('Y-m-d H:i') : null;
+        $steps = [];
 
-        $completedByName = $getName($spb->completed_by ?? null);
-        $completedAt = $spb->completed_at ? \Carbon\Carbon::parse($spb->completed_at)->format('Y-m-d H:i') : null;
-
-        // kolom opsional, kalau tidak ada biarkan null
-        $rejectedByName = $getName($spb->rejected_by ?? null);
-        $rejectedAt = isset($spb->rejected_at) ? \Carbon\Carbon::parse($spb->rejected_at)->format('Y-m-d H:i') : null;
-
-        $revisedByName = $getName($spb->revised_by ?? null);
-        $revisedAt = isset($spb->revised_at) ? \Carbon\Carbon::parse($spb->revised_at)->format('Y-m-d H:i') : null;
-
-        $status = (string) ($spb->status ?? '');
-        $labelMap = [
-            'P' => 'Waiting approval',
-            'R' => 'Rejected',
-            'D' => 'Revise',
-            'C' => 'Completed',
-        ];
-        $statusLabel = $labelMap[$status] ?? $status;
-
-        // selalu mulai dari Submitted
-        $steps = [[
-            'key' => 'submitted',
-            'title' => 'SPB',
-            'status' => 'C',              // dibuat = completed
+        // ======================
+        // SUBMITTED
+        // ======================
+        $steps[] = [
+            'type' => 'header',
+            'title' => 'SPB Submitted',
+            'status' => 'C',
             'status_label' => 'Submitted',
-            'by' => $createdByName,
-            'at' => $createdAt,
-        ]];
+            'by' => $getName($spb->created_by),
+            'at' => optional($spb->created_at)->format('Y-m-d H:i'),
+        ];
 
-        switch ($status) {
-            case 'P':
-                // masih menunggu/berjalan → tampilkan Approval saja
+        // ======================
+        // GET APPROVALS
+        // ======================
+        $all = \App\Models\TrApproval::where('refnbr', $spb->spbid)
+            ->where('status', '<>', 'X')
+            ->orderBy('created_at')
+            ->get();
+
+        // ======================
+        // GROUP INTO CYCLES
+        // ======================
+        $groups = $all->groupBy(function ($a) {
+            return \Carbon\Carbon::parse($a->created_at)->format('Y-m-d H:i:s');
+        });
+
+        $hasMultipleCycle = $groups->count() > 1;
+        $cycleIndex = 1;
+
+        foreach ($groups as $group) {
+
+            // ✅ ONLY SHOW CYCLE IF MORE THAN 1
+            if ($hasMultipleCycle) {
                 $steps[] = [
-                    'key' => 'approval',
-                    'title' => 'Approval',
-                    'status' => 'P',
-                    'status_label' => 'Waiting approval',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
+                    'type' => 'cycle',
+                    'title' => 'Cycle ' . $cycleIndex,
                 ];
-                break;
+            }
 
-            case 'R':
-                // DITOLAK → langsung Submitted → Rejected (tanpa Approval)
+            $sorted = $group->sortBy(fn($a) => (float)$a->aprv_leveling);
+
+            foreach ($sorted as $a) {
+
+                $map = match ($a->status) {
+                    'A' => ['label' => 'Approved', 'status' => 'C'],
+                    'P' => ['label' => 'Waiting Approval', 'status' => 'P'],
+                    'R' => ['label' => 'Rejected', 'status' => 'R'],
+                    'D' => ['label' => 'Revised', 'status' => 'D'],
+                    'X' => ['label' => 'Cancelled', 'status' => 'X'],
+                    default => ['label' => 'Pending', 'status' => '_']
+                };
+
                 $steps[] = [
-                    'key' => 'rejected',
-                    'title' => 'Rejected',
-                    'status' => 'R',
-                    'status_label' => 'Rejected',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
+                    'type' => 'approval',
+                    'title' => 'Approval Lv ' . $a->aprv_leveling,
+                    'status' => $map['status'],
+                    'status_label' => $map['label'],
+                    'by' => $getName($a->aprv_username),
+                    'at' => $a->aprv_dateafter
+                        ? \Carbon\Carbon::parse($a->aprv_dateafter)->format('Y-m-d H:i')
+                        : null,
                 ];
-                break;
+            }
 
-            case 'D':
-                // REVISE → Submitted → Revise
-                $steps[] = [
-                    'key' => 'revise',
-                    'title' => 'Revise',
-                    'status' => 'D',
-                    'status_label' => 'Revise',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
-                ];
-                break;
+            $cycleIndex++;
+        }
 
-            case 'C':
-                // SELESAI → bisa langsung Submitted → Completed
-                // (kalau kamu ingin menampilkan Approval yang sudah dilalui,
-                // tambahkan step 'approval' sebelum 'completed')
-                $steps[] = [
-                    'key' => 'completed',
-                    'title' => 'Completed',
-                    'status' => 'C',
-                    'status_label' => 'Completed',
-                    'by' => $completedByName,
-                    'at' => $completedAt,
-                ];
-                break;
-
-            default:
-                // status tidak dikenal → biarkan hanya Submitted
-                break;
+        // ======================
+        // FINAL STATUS
+        // ======================
+        if ($spb->status === 'C') {
+            $steps[] = [
+                'type' => 'footer',
+                'title' => 'Completed',
+                'status' => 'C',
+                'status_label' => 'Completed',
+                'by' => $getName($spb->completed_by),
+                'at' => optional($spb->completed_at)->format('Y-m-d H:i'),
+            ];
         }
 
         return response()->json([
-            'doc' => $spb->spbid ?? (string) $spb->id,
-            'steps' => $steps,
-            'status' => $status,
-            'status_label' => $statusLabel,
+            'doc' => $spb->spbid,
+            'steps' => array_values($steps),
         ]);
     }
 

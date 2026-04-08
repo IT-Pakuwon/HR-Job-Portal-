@@ -483,38 +483,113 @@
             }
 
             // ✅ ambil last approval dari header
-            const la = header.last_approval || null;
+            // const la = header.last_approval || null;
 
-            let lastApprovalHtml = '';
-            if (la) {
-                const st = String(la.status || '').toUpperCase();
-                const stText = (st === 'P') ? 'Pending Approval' : (st === 'A') ? 'Approved' : (st || '-');
+            // let lastApprovalHtml = '';
+            // if (la) {
+            //     const st = String(la.status || '').toUpperCase();
+            //     const stText = (st === 'P') ? 'Pending Approval' : (st === 'A') ? 'Approved' : (st || '-');
 
-                const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
-                const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null && la.aprv_leveling !== '') ?
-                    `Lvl ${esc(la.aprv_leveling)}` :
-                    '';
+            //     const who = (la.name ? esc(la.name) : '') || esc(la.username || '-');
+            //     const lvl = (la.aprv_leveling !== undefined && la.aprv_leveling !== null && la.aprv_leveling !== '') ?
+            //         `Lvl ${esc(la.aprv_leveling)}` :
+            //         '';
 
-                const dtb = la.date_before ? esc(la.date_before) : '';
-                const dta = la.date_after ? esc(la.date_after) : '';
+            //     const dtb = la.date_before ? esc(la.date_before) : '';
+            //     const dta = la.date_after ? esc(la.date_after) : '';
 
-                lastApprovalHtml = `
-                    <div class="sm:col-span-2 mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-700/40 dark:bg-indigo-900/20">
-                        <div class="flex items-center justify-between">
-                            <div class="font-semibold text-indigo-700 dark:text-indigo-300">Last Approval</div>
-                            <div class="text-xs text-indigo-700/80 dark:text-indigo-300/80">
-                                ${esc(stText)} ${lvl ? `• ${lvl}` : ''}
-                            </div>
-                        </div>
-                        <div class="mt-1 text-gray-700 dark:text-gray-200">
-                            <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
-                            ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
-                            ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
-                        </div>
-                    </div>
-                `;
+            //     lastApprovalHtml = `
+            //         <div class="sm:col-span-2 mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-700/40 dark:bg-indigo-900/20">
+            //             <div class="flex items-center justify-between">
+            //                 <div class="font-semibold text-indigo-700 dark:text-indigo-300">Last Approval</div>
+            //                 <div class="text-xs text-indigo-700/80 dark:text-indigo-300/80">
+            //                     ${esc(stText)} ${lvl ? `• ${lvl}` : ''}
+            //                 </div>
+            //             </div>
+            //             <div class="mt-1 text-gray-700 dark:text-gray-200">
+            //                 <div><span class="text-gray-500">By:</span> <span class="font-semibold">${who}</span></div>
+            //                 ${dtb ? `<div><span class="text-gray-500">Start:</span> ${dtb}</div>` : ''}
+            //                 ${dta ? `<div><span class="text-gray-500">Finish:</span> ${dta}</div>` : ''}
+            //             </div>
+            //         </div>
+            //     `;
+            // }
+  const approvals = header.approval_list || [];
+              let approvalHtml = '';
+
+
+                    if (approvals.length > 0) {
+
+                        approvalHtml = `
+                            <div class="sm:col-span-2 mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm">
+
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="font-semibold text-indigo-700">
+                                        Approval Flow
+                                    </div>
+                                    <div class="text-xs text-indigo-600">
+                                        ${approvals.filter(a => String(a.status).toUpperCase() === 'A').length}/${approvals.length} Approved
+                                    </div>
+                                </div>
+
+                                <div class="max-h-64 overflow-y-auto pr-1 space-y-2">
+        ${approvals.map(a => {
+
+            const st = String(a.status || '').toUpperCase();
+
+            let badge = '';
+            let color = '';
+            let dot = '';
+
+            if (st === 'A') {
+                badge = 'APPROVED';
+                color = 'text-green-700';
+                dot = 'bg-green-500';
+            } else if (st === 'P') {
+                badge = 'WAITING APPROVAL';
+                color = 'text-yellow-700 font-semibold';
+                dot = 'bg-yellow-500';
+            } else if (st === 'R') {
+                badge = 'REJECTED';
+                color = 'text-red-700';
+                dot = 'bg-red-500';
+            } else {
+                badge = 'WAITING';
+                color = 'text-gray-500';
+                dot = 'bg-gray-400';
             }
 
+         return `
+<div class="flex items-start gap-3 border-b pb-2 last:border-0">
+
+    <div class="mt-1 h-2 w-2 rounded-full ${dot}"></div>
+
+    <div class="flex-1">
+
+        <div class="flex justify-between items-center">
+            <div class="font-semibold ${color}">
+                Lvl ${a.level} - ${esc(a.name || a.username || '-')}
+            </div>
+
+            <div class="text-[10px] font-semibold px-2 py-0.5 rounded bg-white border">
+                ${badge}
+            </div>
+        </div>
+
+        <div class="text-xs text-gray-500">
+            ${a.date_before || ''}
+            ${a.date_after ? ' → ' + a.date_after : ''}
+        </div>
+
+    </div>
+
+</div>
+`;
+        }).join('')}
+    </div>
+</div>
+`;
+                    }
             box.innerHTML = `
                 <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
                     <div class="flex items-center justify-between gap-3">
@@ -548,7 +623,7 @@
                                                                                                     <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span>
                                                                                                 </div>` : ''}
 
-                        ${lastApprovalHtml}
+                        ${approvalHtml}
                     </div>
                 </div>
             `;

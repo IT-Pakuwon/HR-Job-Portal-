@@ -204,6 +204,10 @@ class ReportPurchasingController extends Controller
             $query->where('d.inventoryid', 'ilike', "%{$request->inventoryid}%");
         }
 
+        if ($request->filled('status')) {
+            $query->where('h.status', $request->status);
+        }
+
         return $query;
     }
 
@@ -311,8 +315,20 @@ class ReportPurchasingController extends Controller
                 ][$row->status] ?? $row->status;
             });
 
+        $statusList = [
+            // 'N' => 'New',
+            'P' => 'On Progress',
+            'C' => 'Completed',
+            'D' => 'Revised',
+            'R' => 'Rejected',
+            'X' => 'Cancelled',
+        ];
+
         return $table
             ->rawColumns(['status'])
+            ->with([
+                'status_list' => $statusList,
+            ])
             ->make(true);
     }
 

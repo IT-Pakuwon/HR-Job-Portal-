@@ -92,7 +92,7 @@ class SppbController extends Controller
                     ->count();
         // SPPB All List Count (P & C, all departments)
         $allListCount = TrSPPB::whereIn('cpny_id', $cpnyIds)
-            ->whereIn('status', ['P', 'C'])
+            // ->whereIn('status', ['P', 'C'])
             ->count();
 
         // WO → SPPB Count
@@ -186,7 +186,7 @@ class SppbController extends Controller
 
         if ($mode === 'all') {
             // only P & C
-            $base->whereIn('sppb.status', ['P', 'C']);
+            // $base->whereIn('sppb.status', ['P', 'C']);
 
             // department filter (dropdown)
             if (!empty($deptExtra)) {
@@ -288,22 +288,16 @@ class SppbController extends Controller
         $departments = [];
 
         if ($mode === 'all') {
-            $deptQuery = TrSPPB::from($baseTable.' as sppb')
-                ->whereIn('sppb.cpny_id', $cpnyIds)
-                ->whereIn('sppb.status', ['P', 'C']);
 
-            // apply department filter if selected
-            if (!empty($deptExtra)) {
-                $deptQuery->where('sppb.department_id', $deptExtra);
-            }
+            $deptQuery = TrSPPB::query()
+                ->whereIn('cpny_id', $cpnyIds);
 
             $departments = $deptQuery
-                ->select('sppb.department_id')
+                ->select('department_id')
                 ->distinct()
-                ->orderBy('sppb.department_id')
+                ->orderBy('department_id')
                 ->pluck('department_id');
         }
-
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
@@ -2190,6 +2184,7 @@ class SppbController extends Controller
                     'completed_at' => $fmt($sppb->completed_at),
                     'is_approved' => $approved($sppb),
                     'last_approval' => $lastApprSppb,
+                    'approval_list' => $this->getApprovalList($sppbNo),
                 ],
                 'details' => $sppbDetails,
             ],
@@ -2207,6 +2202,7 @@ class SppbController extends Controller
                     'completed_at' => $fmt($csHeader->completed_at),
                     'is_approved' => $approved($csHeader),
                     'last_approval' => $lastApprCs,
+                    'approval_list' => $this->getApprovalList($csHeader->csid),
                 ] : null,
                 'details' => $csDetails,
             ],
@@ -2240,6 +2236,7 @@ class SppbController extends Controller
                     'completed_at' => $fmt($receiptHeader->completed_at),
                     'is_approved' => $approved($receiptHeader),
                     'last_approval' => $lastApprReceipt,
+                    'approval_list' => $this->getApprovalList($receiptHeader->receiptnbr),
                 ] : null,
                 'details' => $receiptDetails,
             ],
@@ -2303,6 +2300,25 @@ class SppbController extends Controller
             ];
         };
 
+        $getApprovalList = function (string $refnbr) use ($fmt) {
+            return TrApproval::query()
+                ->where('refnbr', $refnbr)
+                ->where('status', '<>', 'X')
+                ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+                ->orderBy('id', 'asc')
+                ->get()
+                ->map(function ($row) use ($fmt) {
+                    return [
+                        'level' => $row->aprv_leveling,
+                        'status' => $row->status, // A / P / R / D
+                        'name' => $row->aprv_name,
+                        'username' => $row->aprv_username,
+                        'date_before' => $fmt($row->aprv_datebefore),
+                        'date_after' => $fmt($row->aprv_dateafter),
+                    ];
+                })
+                ->values();
+        };
         if ($type === 'cs') {
             $h = TrCS::where('csid', $doc)
                 ->where('sppbjktid', $sppbNo)
@@ -2328,6 +2344,7 @@ class SppbController extends Controller
 
                     // ✅ tambah ini
                     'last_approval' => $getLastApproval($h->csid),
+                    'approval_list' => $getApprovalList($h->csid),
                 ] : null,
                 'details' => $d,
             ]);
@@ -2359,6 +2376,7 @@ class SppbController extends Controller
 
                     // ✅ tambah ini
                     'last_approval' => $getLastApproval($h->ponbr),
+                    'approval_list' => $getApprovalList($h->ponbr),
                 ] : null,
                 'details' => $d,
             ]);
@@ -2389,6 +2407,7 @@ class SppbController extends Controller
 
                 // ✅ tambah ini
                 'last_approval' => $getLastApproval($h->receiptnbr),
+                'approval_list' => $getApprovalList($h->receiptnbr),
             ] : null,
             'details' => $d,
         ]);
@@ -2435,6 +2454,27 @@ class SppbController extends Controller
             'doctype' => $row->aprv_doctype,
             'condition' => $row->aprv_condition,
         ];
+    }
+
+    private function getApprovalList(string $refnbr)
+    {
+        return TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'level' => $row->aprv_leveling,
+                    'name' => $row->aprv_name,
+                    'username' => $row->aprv_username,
+                    'status' => $row->status, // P / A / R / D
+                    'date_before' => $row->aprv_datebefore,
+                    'date_after' => $row->aprv_dateafter,
+                ];
+            })
+            ->values();
     }
 
     public function tracking_xxx($hash)
