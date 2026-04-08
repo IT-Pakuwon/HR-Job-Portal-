@@ -3819,6 +3819,7 @@ class CanvassController extends Controller
             'vendors' => $vendors,
             'vendorCount' => $vendorCount,
             'budget_business_unit_id' => optional($csdetail->first())->budget_business_unit_id,
+            'sppbjktid' => $cs->sppbjktid,
         ];
 
         $pdf = \PDF::loadView('pages.canvass.pdf_cs', array_merge($data, [

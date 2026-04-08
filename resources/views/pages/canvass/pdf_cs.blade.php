@@ -191,11 +191,14 @@
 {{-- META --}}
 <table class="meta">
     <tr>
+                <td class="label">{{ $doc_type }} Date</td>
+        <td class="value">{{ $csdate }}</td>
+
         <td class="label">{{ $doc_type }} No</td>
         <td class="value">{{ $docid }}</td>
 
-        <td class="label">{{ $doc_type }} Date</td>
-        <td class="value">{{ $csdate }}</td>
+        <td class="label">SPPBJKT No</td>
+        <td class="value">{{ $sppbjktid }}</td>
 
         <td class="label">Business Unit</td>
         <td class="value">{{ $budget_business_unit_id }}</td>
@@ -221,7 +224,7 @@
 
     <tr>
         <td class="label">Note CS</td>
-        <td colspan="9" class="value">{!! nl2br(e($keperluan)) !!}</td>
+        <td colspan="13" class="value">{!! nl2br(e($keperluan)) !!}</td>
     </tr>
     {{-- <tr>
         <td class="label">Note CS</td>
