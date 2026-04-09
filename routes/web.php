@@ -1572,7 +1572,6 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/cs/{hash}/tracking', [ReportCanvassSheetController::class, 'tracking']);
-        });
 
     });
 
