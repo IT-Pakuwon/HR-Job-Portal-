@@ -393,6 +393,7 @@ class IMBudgetController extends Controller
                 $q = BudgetDetail::query()
                     ->where('perpost', $perpost)
                     ->where('cpny_id', $cpny)
+                    ->where('status', 'C')
                     ->when($bu,      fn($q) => $q->where('business_unit_id', $bu))
                     ->when($deptfin, fn($q) => $q->where('department_fin_id', $deptfin))
                     ->when($account, fn($q) => $q->where('account_id', $account))
