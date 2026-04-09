@@ -174,7 +174,11 @@
                                                 data-uom="{{ $row->uom }}"
                                                 data-lastprice="{{ (float) ($row->last_unitcost ?? 0) }}"
                                                 data-original_qty="{{ (float) $row->qty }}"
-                                                data-note="{{ $row->csnote_detail ?? '' }}">
+                                                data-note="{{ $row->csnote_detail ?? '' }}"
+                                                data-sppb_no="{{ $row->sppb_no ?? '' }}"
+                                                data-sppj_no="{{ $row->sppj_no ?? '' }}"
+                                                data-sppk_no="{{ $row->sppk_no ?? '' }}"
+                                                data-sppt_no="{{ $row->sppt_no ?? '' }}">
                                                 <td class="border px-3 py-2 align-top">
                                                     <div class="flex flex-col gap-1">
 
@@ -417,7 +421,7 @@
                                     </button>
 
                                     <!-- Submit Approval (conditional) -->
-                                    @if (in_array($doc, ['SPPB', 'SPPK']) || in_array($prefix2, ['PB', 'PK']))
+                                    {{-- @if (in_array($doc, ['SPPB', 'SPPK']) || in_array($prefix2, ['PB', 'PK']))
                                         <button type="submit" id="submitBtn"
                                             class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                             <span id="btnText">Submit Approval</span>
@@ -430,7 +434,7 @@
                                                 </path>
                                             </svg>
                                         </button>
-                                    @endif
+                                    @endif --}}
 
                                 </div>
 
@@ -1313,6 +1317,10 @@
                 const invDescr = $tr.data('inventory_descr') || '';
                 const lastPrice = Number($tr.data('lastprice') || 0);
                 const csNote = String($tr.find('.note-input').val() || '');
+                const sppbNo = $tr.data('sppb_no') || '';
+                const sppjNo = $tr.data('sppj_no') || '';
+                const sppkNo = $tr.data('sppk_no') || '';
+                const spptNo = $tr.data('sppt_no') || '';
 
                 const row = {
                     inventoryid: invId,
@@ -1321,6 +1329,10 @@
                     uom: uom,
                     inventory_last_price: round2(lastPrice),
                     csnote_detail: csNote,
+                    sppb_no: sppbNo,
+                    sppj_no: sppjNo,
+                    sppk_no: sppkNo,
+                    sppt_no: spptNo,
                     vendor: []
                 };
 
