@@ -152,7 +152,7 @@
         <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl">
 
             <div class="flex items-center justify-between border-b px-6 py-4">
-                <h3 class="text-sm font-semibold text-gray-800">
+                <h3 id="trackingTitle" class="text-sm font-semibold text-gray-800 dark:text-white">
                     CS Tracking
                 </h3>
                 <button id="closeTracking" class="text-gray-500 hover:text-black">
@@ -396,6 +396,14 @@ $(function(){
         $(document).on('click', '.btnTracking', function(){
 
             let id = $(this).data('id');
+            let row = $(this).closest('tr');
+            let csid = row.find('a').first().text().trim();
+
+            // set title
+            $('#trackingTitle').html(`
+                CS Tracking
+                <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">(${csid})</span>
+            `);
 
             $('#trackingModal').removeClass('hidden').addClass('flex');
 
@@ -432,31 +440,58 @@ $(function(){
 
                         const st = String(step.status || '').toUpperCase();
 
+                        // let dot = 'bg-gray-400';
+                        // let badge = 'Pending';
+                        // let badgeClass = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300';
+
+                        // if (st === 'C') {
+                        //     dot = 'bg-green-500';
+                        //     badge = 'Completed';
+                        //     badgeClass = 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400';
+                        // } else if (st === 'A') {
+                        //     dot = 'bg-blue-500';
+                        //     badge = 'Assigned';
+                        //     badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
+                        // } else if (st === 'S') {
+                        //     dot = 'bg-indigo-500';
+                        //     badge = 'Submitted';
+                        //     badgeClass = 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400';
+                        // } else if (st === 'P') {
+                        //     dot = 'bg-yellow-500';
+                        //     badge = 'In Progress';
+                        //     badgeClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400';
+                        // } else if (st === 'R') {
+                        //     dot = 'bg-red-500';
+                        //     badge = 'Rejected';
+                        //     badgeClass = 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400';
+                        // }
+
                         let dot = 'bg-gray-400';
-                        let badge = 'Pending';
                         let badgeClass = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300';
 
                         if (st === 'C') {
                             dot = 'bg-green-500';
-                            badge = 'Completed';
                             badgeClass = 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400';
-                        } else if (st === 'A') {
+                        }
+                        else if (st === 'A') {
                             dot = 'bg-blue-500';
-                            badge = 'Assigned';
                             badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
-                        } else if (st === 'S') {
+                        }
+                        else if (st === 'S') {
                             dot = 'bg-indigo-500';
-                            badge = 'Submitted';
                             badgeClass = 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400';
-                        } else if (st === 'P') {
+                        }
+                        else if (st === 'P') {
                             dot = 'bg-yellow-500';
-                            badge = 'In Progress';
                             badgeClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400';
-                        } else if (st === 'R') {
+                        }
+                        else if (st === 'R') {
                             dot = 'bg-red-500';
-                            badge = 'Rejected';
                             badgeClass = 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400';
                         }
+
+                        /* 🔥 USE BACKEND LABEL */
+                        const badge = step.status_label || 'Pending';
 
                         const name = step.by || '-';
                         const initials = name !== '-'

@@ -587,11 +587,17 @@ class ReportCanvassSheetController extends Controller
         */
         if ($cs->sppbjktid) {
 
-            $approvals = \App\Models\TrApproval::where('refnbr', $cs->sppbjktid)
-                ->where('status', '<>', 'X')
-                ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-                ->orderBy('created_at')
-                ->get();
+            // $approvals = \App\Models\TrApproval::where('refnbr', $cs->sppbjktid)
+            //     ->where('status', '<>', 'X')
+            //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            //     ->orderBy('created_at')
+            //     ->get();
+
+            $approvals = \App\Models\TrApproval::where('refnbr', $cs->csid)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('created_at')
+            ->get();
 
             foreach ($approvals as $a) {
 

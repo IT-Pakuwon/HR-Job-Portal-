@@ -1,9 +1,14 @@
 <x-app-layout>
+@php
+    $user = auth()->user();
+    $hasPurchAccess = $user->hasRole('PURCHACCESS');
+@endphp
+
 
     <div class="max-w-9xl mx-auto space-y-4 p-2">
 
         {{-- Report Selector --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2">
+      <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-1 {{ $hasPurchAccess ? 'md:grid-cols-2' : 'md:grid-cols-1' }}">
 
             {{-- CS DETAIL --}}
             <a href="#" data-report="cs"
@@ -28,6 +33,7 @@
 
             </a>
 
+            @if($hasPurchAccess)
             {{-- CS TRACKING --}}
             <a href="#" data-report="cs-tracking"
                 class="report-filter group block rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
@@ -50,6 +56,7 @@
                 </div>
 
             </a>
+            @endif
 
         </div>
 
@@ -60,9 +67,11 @@
                 @include('pages.report-cs.canvas-detail')
             </div>
 
+            @if($hasPurchAccess)
             <div id="report-cs-tracking" class="hidden">
                 @include('pages.report-cs.canvas-tracking')
             </div>
+            @endif
 
         </div>
 
