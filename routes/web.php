@@ -1550,11 +1550,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('report-cs')->group(function () {
+
         Route::get('/', [ReportCanvassSheetController::class, 'index'])
             ->name('reportcs');
 
         Route::get('/json', [ReportCanvassSheetController::class, 'json'])
             ->name('report.cs.json');
+
+        Route::get('/tracking/json', [ReportCanvassSheetController::class, 'trackingJson'])
+            ->name('report.cs.tracking.json');
 
         Route::get('/export', [ReportCanvassSheetController::class, 'export'])
             ->name('report.cs.export');
@@ -1562,6 +1566,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/view/detail', function () {
             return view('pages.report-cs.canvas-detail');
         });
+
+        Route::get('/view/tracking', function () {
+            return view('pages.report-cs.canvas-tracking');
+        });
+
+        Route::get('/cs/{hash}/tracking', [ReportCanvassSheetController::class, 'tracking']);
+        });
+
     });
 
     Route::prefix('report-operational')->group(function () {

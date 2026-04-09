@@ -9,12 +9,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;   // ← ADD THIS
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
-
+use Vinkla\Hashids\Facades\Hashids;
+use Carbon\CarbonPeriod;
+use App\Models\MsSPPBJKTCounting;
 class ReportCanvassSheetController extends Controller
 {
     public function index()
     {
-        return view('pages.report-cs.index');
+        $departments = MsDepartment::pluck('department_name', 'department_id');
+        return view('pages.report-cs.index', compact('departments'));
     }
 
     /*
@@ -293,6 +296,349 @@ class ReportCanvassSheetController extends Controller
             ->make(true);
     }
 
+    public function trackingJson(Request $request)
+    {
+        $query = DB::connection('pgsql')
+            ->table('tr_cs as h')
+
+            // ✅ JOIN ALL DOCUMENT TABLES
+            ->leftJoin('tr_sppb as b', 'b.sppbid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppj as j', 'j.sppjid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppk as k', 'k.sppkid', '=', 'h.sppbjktid')
+            ->leftJoin('tr_sppt as t', 't.spptid', '=', 'h.sppbjktid')
+
+            ->select([
+                'h.csid',
+                DB::raw('h.id as cs_pk'),
+
+                'h.sppbjktid',
+
+                DB::raw("
+                    CASE
+                        WHEN h.sppbjktid ILIKE 'PB%' THEN 'SPPB'
+                        WHEN h.sppbjktid ILIKE 'PJ%' THEN 'SPPJ'
+                        WHEN h.sppbjktid ILIKE 'PK%' THEN 'SPPK'
+                        WHEN h.sppbjktid ILIKE 'PT%' THEN 'SPPT'
+                        ELSE NULL
+                    END as doc_type
+                "),
+
+                DB::raw('h.sppbjktid as doc_eid'),
+
+                // ✅ REAL DOCUMENT ID (IMPORTANT)
+                DB::raw("
+                    COALESCE(b.id, j.id, k.id, t.id) as doc_id
+                "),
+
+                'h.csdate',
+                'h.cpny_id',
+                'h.department_id',
+                'h.created_by',
+                'h.user_peminta',
+                'h.csnote',
+                'h.assigndate',
+                'h.submitdate',
+                'h.status',
+
+                // DB::raw("
+                //     CONCAT(
+                //         DATE_PART('day', NOW() - h.assigndate),
+                //         ' / ',
+                //         DATE_PART('day', COALESCE(h.submitdate, NOW()) - h.assigndate)
+                //     ) as days
+                // ")
+
+
+            ]);
+
+        /*
+        |------------------------------------------
+        | FILTER
+        |------------------------------------------
+        */
+        if ($request->date_from) {
+            $query->whereDate('h.csdate', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('h.csdate', '<=', $request->date_to);
+        }
+
+        if ($request->csid) {
+            $query->where('h.csid', 'ilike', "%{$request->csid}%");
+        }
+
+        if ($request->sppbjkt) {
+            $query->where('h.sppbjktid', 'ilike', "%{$request->sppbjkt}%");
+        }
+
+        if ($request->status) {
+            $query->where('h.status', $request->status);
+        }
+
+        if ($request->department) {
+            $query->where('h.department_id', $request->department);
+        }
+
+        if ($request->requester) {
+            $query->where('h.user_peminta', 'ilike', "%{$request->requester}%");
+        }
+
+        if ($request->doc_type) {
+            $query->whereRaw("
+                CASE
+                    WHEN h.sppbjktid ILIKE 'PB%' THEN 'SPPB'
+                    WHEN h.sppbjktid ILIKE 'PJ%' THEN 'SPPJ'
+                    WHEN h.sppbjktid ILIKE 'PK%' THEN 'SPPK'
+                    WHEN h.sppbjktid ILIKE 'PT%' THEN 'SPPT'
+                END = ?
+            ", [$request->doc_type]);
+        }
+
+        // if ($request->overdue !== null && $request->overdue !== '') {
+        //     if ($request->overdue == 1) {
+        //         $query->whereRaw("DATE_PART('day', COALESCE(h.submitdate, NOW()) - h.csdate) > 7");
+        //     } else {
+        //         $query->whereRaw("DATE_PART('day', COALESCE(h.submitdate, NOW()) - h.csdate) <= 7");
+        //     }
+        // }
+        // ✅ USER SCOPE (KEEP YOUR EXISTING)
+        $query = $this->applyUserScope($query);
+
+        $users = User::pluck('name', 'username');
+        $departments = MsDepartment::pluck('department_name', 'department_id');
+
+        // return DataTables::of($query)
+       $rows = $query->get();
+
+        $countingMap = MsSPPBJKTCounting::pluck('doctype_counting', 'doctype')->toArray();
+
+        $countBusinessDays = function ($assignDate, $submitDate) {
+
+            if (!$assignDate || !$submitDate) return 0;
+
+            $start = \Carbon\Carbon::parse($assignDate)->addDay();
+            $end   = \Carbon\Carbon::parse($submitDate);
+
+            if ($end->lt($start)) return 0;
+
+            $days = 0;
+
+            foreach (CarbonPeriod::create($start, $end) as $d) {
+                if ($d->isSaturday() || $d->isSunday()) continue;
+                $days++;
+            }
+
+            return $days;
+        };
+
+        /*
+        |------------------------------------------
+        | 🔥 IMPORTANT: ADD THIS (YOU MISSED THIS)
+        |------------------------------------------
+        */
+        $rows->transform(function ($r) use ($countBusinessDays, $countingMap) {
+
+            $assign = $r->assigndate;
+            $submit = $r->submitdate ?? now();
+
+            $days = $countBusinessDays($assign, $submit);
+
+            $doctype = strtoupper(substr($r->sppbjktid, 0, 2));
+            $limit = $countingMap[$doctype] ?? 0;
+
+            $r->days = $days . ' / ' . $limit;
+            $r->is_overdue = $limit > 0 && $days > $limit;
+
+            return $r;
+        });
+
+    /*
+    |------------------------------------------
+    | ✅ THIS WAS MISSING
+    |------------------------------------------
+    */
+    return DataTables::of($rows)
+
+    ->editColumn('csdate', fn ($row) =>
+        $row->csdate ? Carbon::parse($row->csdate)->format('d-M-Y') : ''
+    )
+
+    ->editColumn('assigndate', fn ($row) =>
+        $row->assigndate ? Carbon::parse($row->assigndate)->format('d-M-Y') : ''
+    )
+
+    ->editColumn('submitdate', fn ($row) =>
+        $row->submitdate ? Carbon::parse($row->submitdate)->format('d-M-Y') : ''
+    )
+
+    ->addColumn('created_by_name', fn ($row) =>
+        $users[$row->created_by] ?? $row->created_by
+    )
+
+    ->addColumn('department_name', fn ($row) =>
+        $departments[$row->department_id] ?? ''
+    )
+
+    ->addColumn('cs_hash', fn ($row) =>
+        \Hashids::encode($row->cs_pk)
+    )
+
+    ->addColumn('doc_hash', fn ($row) =>
+        $row->doc_id ? \Hashids::encode($row->doc_id) : null
+    )
+
+    ->addColumn('status_label', function ($row) {
+        return match ($row->status) {
+            'D' => 'Revised',
+            'A' => 'Assigned',
+            'S' => 'Submitted',
+            'X' => 'Cancelled',
+            'P' => 'On Process',
+            'C' => 'Completed',
+            'R' => 'Rejected',
+            default => $row->status ?? '-',
+        };
+    })
+
+    ->addColumn('status_class', function ($row) {
+        return match ($row->status) {
+            'D' => 'bg-gray-100 text-gray-700',
+            'A' => 'bg-blue-100 text-blue-700',
+            'S' => 'bg-indigo-100 text-indigo-700',
+            'P' => 'bg-yellow-100 text-yellow-700',
+            'C' => 'bg-green-100 text-green-700',
+            'R' => 'bg-red-100 text-red-700',
+            default => 'bg-gray-100 text-gray-600',
+        };
+    })
+
+    // ✅ FIXED
+    ->addColumn('is_overdue', fn ($row) => $row->is_overdue)
+
+    ->make(true);
+    }
+
+    public function tracking($hash)
+    {
+        $id = \Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $cs = \App\Models\TrCS::findOrFail($id);
+
+        $getName = function (?string $username) {
+            if (!$username) return null;
+            $u = \App\Models\User::where('username', $username)->first();
+            return $u->name ?? $username;
+        };
+
+        $steps = [];
+
+        /*
+        |------------------------------------------
+        | 1. CREATED
+        |------------------------------------------
+        */
+        $steps[] = [
+            'key' => 'created',
+            'title' => 'CS Created',
+            'status' => 'C',
+            'status_label' => 'Created',
+            'by' => $getName($cs->created_by),
+            'at' => optional($cs->created_at)->format('Y-m-d H:i'),
+        ];
+
+        /*
+        |------------------------------------------
+        | 2. ASSIGNED
+        |------------------------------------------
+        */
+        if ($cs->assigndate) {
+            $steps[] = [
+                'key' => 'assigned',
+                'title' => 'Assigned',
+                'status' => 'A',
+                'status_label' => 'Assigned',
+                'by' => $getName($cs->created_by),
+                'at' => \Carbon\Carbon::parse($cs->assigndate)->format('Y-m-d H:i'),
+            ];
+        }
+
+        /*
+        |------------------------------------------
+        | 3. SUBMITTED
+        |------------------------------------------
+        */
+        if ($cs->submitdate) {
+            $steps[] = [
+                'key' => 'submitted',
+                'title' => 'Submitted',
+                'status' => 'S',
+                'status_label' => 'Submitted',
+                'by' => $getName($cs->created_by),
+                'at' => \Carbon\Carbon::parse($cs->submitdate)->format('Y-m-d H:i'),
+            ];
+        }
+
+        /*
+        |------------------------------------------
+        | 4. APPROVAL (FROM SPPBJKT)
+        |------------------------------------------
+        */
+        if ($cs->sppbjktid) {
+
+            $approvals = \App\Models\TrApproval::where('refnbr', $cs->sppbjktid)
+                ->where('status', '<>', 'X')
+                ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+                ->orderBy('created_at')
+                ->get();
+
+            foreach ($approvals as $a) {
+
+                // 🔥 IMPORTANT: DO NOT CHANGE STATUS (as you requested)
+                $steps[] = [
+                    'key' => 'approval_' . $a->id,
+                    'title' => 'Approval Lv ' . $a->aprv_leveling,
+                    'status' => $a->status, // 🔥 ORIGINAL
+                    'status_label' => match ($a->status) {
+                        'A' => 'Approved',
+                        'P' => 'Waiting Approval',
+                        'R' => 'Rejected',
+                        'D' => 'Revised',
+                        default => $a->status,
+                    },
+                    'by' => $getName($a->aprv_username),
+                    'at' => $a->aprv_dateafter
+                        ? \Carbon\Carbon::parse($a->aprv_dateafter)->format('Y-m-d H:i')
+                        : null,
+                ];
+
+                // stop if rejected
+                if ($a->status === 'R') break;
+            }
+        }
+
+        /*
+        |------------------------------------------
+        | 5. COMPLETED
+        |------------------------------------------
+        */
+        if ($cs->status === 'C') {
+            $steps[] = [
+                'key' => 'completed',
+                'title' => 'Completed',
+                'status' => 'C',
+                'status_label' => 'Completed',
+                'by' => $getName($cs->completed_by),
+                'at' => optional($cs->completed_at)->format('Y-m-d H:i'),
+            ];
+        }
+
+        return response()->json([
+            'doc' => $cs->csid,
+            'steps' => $steps,
+        ]);
+    }
     // public function export(Request $request)
     // {
     //     $rows = $this->applyFilters(
