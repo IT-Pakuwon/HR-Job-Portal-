@@ -72,7 +72,7 @@
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
             </div>
 
-            <div>
+            {{-- <div>
                 <label class="mb-1 block text-[11px] font-medium text-gray-500">
                     Status
                 </label>
@@ -87,8 +87,11 @@
                     <option value="R">Rejected</option>
                     <option value="X">Cancelled</option>
                 </select>
-            </div>
+            </div> --}}
+
             <div class="flex items-end gap-2 md:col-span-2">
+
+                {{-- <input type="hidden" id="f_status"> --}}
 
                 <button id="btnFilter"
                     class="rounded-lg bg-gray-900 px-4 py-2 text-sm text-white">
@@ -102,6 +105,72 @@
 
             </div>
 
+        </div>
+
+    </div>
+
+
+    <!-- STATUS PANEL -->
+    <div id="statusBar" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+
+        <!-- ALL -->
+        <div class="status-card group cursor-pointer bg-white border border-gray-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+            data-key="total">
+            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-100 text-lg">
+                📄
+            </div>
+            <div class="flex justify-between w-full">
+                <div class="text-sm text-gray-500">All</div>
+                <div class="text-lg font-bold text-gray-800 count">0</div>
+            </div>
+        </div>
+
+        <!-- PROCESS -->
+        <div class="status-card group cursor-pointer bg-yellow-50 border border-yellow-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+            data-key="process">
+            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-yellow-100 text-lg">
+                ⏳
+            </div>
+            <div class="flex justify-between w-full">
+                <div class="text-sm text-yellow-700">On Progress</div>
+                <div class="text-lg font-bold text-yellow-800 count">0</div>
+            </div>
+        </div>
+
+        <!-- REJECT -->
+        <div class="status-card group cursor-pointer bg-red-50 border border-red-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+            data-key="rejected">
+            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-red-100 text-lg">
+                ⛔
+            </div>
+            <div class="flex justify-between w-full">
+                <div class="text-sm text-red-600">Rejected</div>
+                <div class="text-lg font-bold text-red-700 count">0</div>
+            </div>
+        </div>
+
+        <!-- REVISED -->
+        <div class="status-card group cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+            data-key="revised">
+            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-200 text-lg">
+                ✏️
+            </div>
+            <div class="flex justify-between w-full">
+                <div class="text-sm text-gray-600">Revised</div>
+                <div class="text-lg font-bold text-gray-800 count">0</div>
+            </div>
+        </div>
+
+        <!-- COMPLETED -->
+        <div class="status-card group cursor-pointer bg-green-50 border border-green-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+            data-key="completed">
+            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-green-100 text-lg">
+                ✅
+            </div>
+            <div class="flex justify-between w-full">
+                <div class="text-sm text-green-600">Completed</div>
+                <div class="text-lg font-bold text-green-700 count">0</div>
+            </div>
         </div>
 
     </div>
@@ -174,6 +243,7 @@
 <script>
 $(function(){
 
+    let currentStatus = '';
     let table = $('#trackingTable').DataTable({
 
         processing: true,
@@ -184,16 +254,29 @@ $(function(){
         ajax: {
             url: "{{ route('report.cs.tracking.json') }}",
             data: function(d){
+
+                // ❌ HAPUS INI
+                // d.status = currentStatus;
+
+                // ✅ pake 1 source saja
+                d.status = currentStatus;
+
                 d.date_from = $('#f_date_from').val();
                 d.date_to   = $('#f_date_to').val();
                 d.csid      = $('#f_csid').val();
                 d.sppbjkt   = $('#f_sppbjkt').val();
-
-                // NEW FILTERS
-                d.status      = $('#f_status').val();
                 d.department  = $('#f_department').val();
                 d.requester   = $('#f_requester').val();
                 d.doc_type    = $('#f_doc_type').val();
+            },
+
+            dataSrc: function(json){
+
+                console.log(json); // 🔍 debug (optional)
+
+                updateStatusCards(json.summary); // ✅ FIX
+
+                return json.data;
             }
         },
 
@@ -308,16 +391,45 @@ $(function(){
         order: [[3,'desc']]
     });
 
+                // ✅ PINDAH KE SINI
+    $(document).on('click', '.status-card', function(){
+
+        let key = $(this).data('key');
+
+        $('.status-card').removeClass('ring-2 ring-indigo-500');
+        $(this).addClass('ring-2 ring-indigo-500');
+
+        let map = {
+            total: '',
+            process: 'P',
+            rejected: 'R',
+            revised: 'D',
+            completed: 'C'
+        };
+
+        currentStatus = map[key] || '';
+
+        table.ajax.reload(); // 🔥 pake instance yang sama
+    });
+
 
     $('#btnFilter').click(()=> table.ajax.reload());
 
     $('#btnReset').click(()=>{
         $('#f_date_from,#f_date_to,#f_csid,#f_sppbjkt').val('');
         table.ajax.reload();
+        });
     });
 
-});
 
+
+    function updateStatusCards(summary){
+
+        $('#statusBar .status-card').each(function(){
+            let key = $(this).data('key');
+            $(this).find('.count').text(summary[key] ?? 0);
+        });
+    }
 
 
 </script>

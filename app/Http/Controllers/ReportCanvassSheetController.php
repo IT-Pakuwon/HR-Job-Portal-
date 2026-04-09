@@ -351,11 +351,24 @@ class ReportCanvassSheetController extends Controller
 
             ]);
 
+
+        // $baseQuery = DB::connection('pgsql')
+        // ->table('tr_cs as h')
+
+        // ->leftJoin('tr_sppb as b', 'b.sppbid', '=', 'h.sppbjktid')
+        // ->leftJoin('tr_sppj as j', 'j.sppjid', '=', 'h.sppbjktid')
+        // ->leftJoin('tr_sppk as k', 'k.sppkid', '=', 'h.sppbjktid')
+        // ->leftJoin('tr_sppt as t', 't.spptid', '=', 'h.sppbjktid');
+
+
+
         /*
         |------------------------------------------
         | FILTER
         |------------------------------------------
         */
+
+
         if ($request->date_from) {
             $query->whereDate('h.csdate', '>=', $request->date_from);
         }
@@ -372,9 +385,9 @@ class ReportCanvassSheetController extends Controller
             $query->where('h.sppbjktid', 'ilike', "%{$request->sppbjkt}%");
         }
 
-        if ($request->status) {
-            $query->where('h.status', $request->status);
-        }
+        // if ($request->status) {
+        //     $query->where('h.status', $request->status);
+        // }
 
         if ($request->department) {
             $query->where('h.department_id', $request->department);
@@ -408,8 +421,22 @@ class ReportCanvassSheetController extends Controller
         $users = User::pluck('name', 'username');
         $departments = MsDepartment::pluck('department_name', 'department_id');
 
+        $summary = [
+            'total'     => (clone $query)->count(),
+            'process'   => (clone $query)->where('h.status', 'P')->count(),
+            'completed' => (clone $query)->where('h.status', 'C')->count(),
+            'rejected'  => (clone $query)->where('h.status', 'R')->count(),
+            'revised'   => (clone $query)->where('h.status', 'D')->count(),
+        ];
+
+        $status = $request->status;
+
+        if (!empty($status)) {
+            $query->where('h.status', $status);
+        }
+
         // return DataTables::of($query)
-       $rows = $query->get();
+        $rows = $query->get();
 
         $countingMap = MsSPPBJKTCounting::pluck('doctype_counting', 'doctype')->toArray();
 
@@ -432,11 +459,6 @@ class ReportCanvassSheetController extends Controller
             return $days;
         };
 
-        /*
-        |------------------------------------------
-        | 🔥 IMPORTANT: ADD THIS (YOU MISSED THIS)
-        |------------------------------------------
-        */
         $rows->transform(function ($r) use ($countBusinessDays, $countingMap) {
 
             $assign = $r->assigndate;
@@ -453,71 +475,67 @@ class ReportCanvassSheetController extends Controller
             return $r;
         });
 
-    /*
-    |------------------------------------------
-    | ✅ THIS WAS MISSING
-    |------------------------------------------
-    */
-    return DataTables::of($rows)
+        return DataTables::of($rows)
 
-    ->editColumn('csdate', fn ($row) =>
-        $row->csdate ? Carbon::parse($row->csdate)->format('d-M-Y') : ''
-    )
+        ->editColumn('csdate', fn ($row) =>
+            $row->csdate ? Carbon::parse($row->csdate)->format('d-M-Y') : ''
+        )
 
-    ->editColumn('assigndate', fn ($row) =>
-        $row->assigndate ? Carbon::parse($row->assigndate)->format('d-M-Y') : ''
-    )
+        ->editColumn('assigndate', fn ($row) =>
+            $row->assigndate ? Carbon::parse($row->assigndate)->format('d-M-Y') : ''
+        )
 
-    ->editColumn('submitdate', fn ($row) =>
-        $row->submitdate ? Carbon::parse($row->submitdate)->format('d-M-Y') : ''
-    )
+        ->editColumn('submitdate', fn ($row) =>
+            $row->submitdate ? Carbon::parse($row->submitdate)->format('d-M-Y') : ''
+        )
 
-    ->addColumn('created_by_name', fn ($row) =>
-        $users[$row->created_by] ?? $row->created_by
-    )
+        ->addColumn('created_by_name', fn ($row) =>
+            $users[$row->created_by] ?? $row->created_by
+        )
 
-    ->addColumn('department_name', fn ($row) =>
-        $departments[$row->department_id] ?? ''
-    )
+        ->addColumn('department_name', fn ($row) =>
+            $departments[$row->department_id] ?? ''
+        )
 
-    ->addColumn('cs_hash', fn ($row) =>
-        \Hashids::encode($row->cs_pk)
-    )
+        ->addColumn('cs_hash', fn ($row) =>
+            \Hashids::encode($row->cs_pk)
+        )
 
-    ->addColumn('doc_hash', fn ($row) =>
-        $row->doc_id ? \Hashids::encode($row->doc_id) : null
-    )
+        ->addColumn('doc_hash', fn ($row) =>
+            $row->doc_id ? \Hashids::encode($row->doc_id) : null
+        )
 
-    ->addColumn('status_label', function ($row) {
-        return match ($row->status) {
-            'D' => 'Revised',
-            'A' => 'Assigned',
-            'S' => 'Submitted',
-            'X' => 'Cancelled',
-            'P' => 'On Process',
-            'C' => 'Completed',
-            'R' => 'Rejected',
-            default => $row->status ?? '-',
-        };
-    })
+        ->addColumn('status_label', function ($row) {
+            return match ($row->status) {
+                'D' => 'Revised',
+                'A' => 'Assigned',
+                'S' => 'Submitted',
+                'X' => 'Cancelled',
+                'P' => 'On Process',
+                'C' => 'Completed',
+                'R' => 'Rejected',
+                default => $row->status ?? '-',
+            };
+        })
 
-    ->addColumn('status_class', function ($row) {
-        return match ($row->status) {
-            'D' => 'bg-gray-100 text-gray-700',
-            'A' => 'bg-blue-100 text-blue-700',
-            'S' => 'bg-indigo-100 text-indigo-700',
-            'P' => 'bg-yellow-100 text-yellow-700',
-            'C' => 'bg-green-100 text-green-700',
-            'R' => 'bg-red-100 text-red-700',
-            default => 'bg-gray-100 text-gray-600',
-        };
-    })
+        ->addColumn('status_class', function ($row) {
+            return match ($row->status) {
+                'D' => 'bg-gray-100 text-gray-700',
+                'A' => 'bg-blue-100 text-blue-700',
+                'S' => 'bg-indigo-100 text-indigo-700',
+                'P' => 'bg-yellow-100 text-yellow-700',
+                'C' => 'bg-green-100 text-green-700',
+                'R' => 'bg-red-100 text-red-700',
+                default => 'bg-gray-100 text-gray-600',
+            };
+        })
 
-    // ✅ FIXED
-    ->addColumn('is_overdue', fn ($row) => $row->is_overdue)
-
-    ->make(true);
+        // ✅ FIXED
+        ->addColumn('is_overdue', fn ($row) => $row->is_overdue)
+        ->with('summary', $summary)
+        ->make(true);
     }
+
 
     public function tracking($hash)
     {
