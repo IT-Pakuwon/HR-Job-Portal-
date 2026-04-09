@@ -786,6 +786,8 @@ Route::middleware(['auth'])->group(function () {
         // Detail & Print
         Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
         Route::get('/receipts/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
+        Route::get('/receipt/export/{id}', [ReceiptController::class, 'export'])
+        ->name('receipt.export');
         // Lookup sites / warehouse
     });
 

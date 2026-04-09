@@ -21,7 +21,7 @@ use App\Models\TrSPPT;
 use App\Models\TrCS;
 use Vinkla\Hashids\Facades\Hashids;
 use Mail;
-use Barryvdh\DomPDF\Facade\Pdf; 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\TrAttachmentController;
 use App\Models\TrAttachment;
 use Illuminate\Support\Str;
@@ -34,7 +34,8 @@ use setasign\Fpdf\Fpdf;
 use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
 use Illuminate\Support\Facades\Log;
-
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ReceiptDetailExport;
 class ReceiptController extends Controller
 {
 
@@ -108,7 +109,7 @@ class ReceiptController extends Controller
         ]);
     }
 
-    
+
     public function storeReceipt(Request $request)
     {
         // dd($request->all()); // Debugging: check request data
@@ -120,7 +121,7 @@ class ReceiptController extends Controller
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
 
-       
+
 
         $ponbr = trim((string)$request->input('ponbr', ''));
         if ($ponbr === '') {
@@ -148,7 +149,7 @@ class ReceiptController extends Controller
         }
 
         $detailNoteInput = (array) $request->input('detail_note', []);
-        
+
         $hasAnyQty = false;
         foreach ($qtyReceiptInput as $k => $v) {
             $qty = (float) str_replace(',', '.', (string)$v);
@@ -170,7 +171,7 @@ class ReceiptController extends Controller
 
         return DB::connection('pgsql')->transaction(function () use (
             $request, $username, $ponbr, $poDetails, $po, $qtyReceiptInput, $siteInput,
-            $doctype, $cpnyid, $deptid, $approvalCtl, $detailNoteInput   
+            $doctype, $cpnyid, $deptid, $approvalCtl, $detailNoteInput
         ) {
             $now   = \Carbon\Carbon::now();
             $dt        = Carbon::now();
@@ -209,7 +210,7 @@ class ReceiptController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $receiptnbr  = $doctype . $tglbln . sprintf("%04d", $urutan);            
+            $receiptnbr  = $doctype . $tglbln . sprintf("%04d", $urutan);
 
 
             $header = new TrReceipt();
@@ -392,8 +393,8 @@ class ReceiptController extends Controller
         // ===== Detail Receipt
         $rcpdetail = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
             ->orderBy('receipt_no')
-            ->get();      
-       
+            ->get();
+
         // ===== Link ke PO (opsional)
         $poUrl = null;
         if (!empty($rcp->ponbr)) {
@@ -406,7 +407,7 @@ class ReceiptController extends Controller
             }
         }
 
-       
+
         // ===== Link ke SPPB/J/K/T (opsional)
         $sppbUrl = null;
         $sppbjktid = (string)($rcp->sppbjktid ?? '');
@@ -422,7 +423,7 @@ class ReceiptController extends Controller
         if ($sppbjktid !== '' && isset($routeMap[$prefix])) {
             $docId = null;
 
-            if ($prefix === 'PB') {                
+            if ($prefix === 'PB') {
                 $docId = TrSPPB::where('sppbid', $sppbjktid)->value('id');
             } elseif ($prefix === 'PJ') {
                 $docId = TrSPPJ::where('sppjid', $sppbjktid)->value('id');
@@ -456,14 +457,30 @@ class ReceiptController extends Controller
 
         return view('pages.receipt.showreceipt', [
             'rcp'            => $rcp,
-            'rcpdetail'      => $rcpdetail,            
+            'rcpdetail'      => $rcpdetail,
             'hash'           => $hash,
             'eid_receiptnbr' => $eid_receiptnbr,
             'poUrl'          => $poUrl,
             'sppbUrl'        => $sppbUrl,
-            'csUrl'          => $csUrl,            
+            'csUrl'          => $csUrl,
             'canUpload'      => $canUpload,
         ]);
+    }
+
+
+    public function export($id)
+    {
+        $rcp = TrReceipt::findOrFail($id);
+
+        $data = DB::connection('pgsql')
+            ->table('tr_receipt_detail')
+            ->where('receiptnbr', $rcp->receiptnbr) // 🔥 fix here
+            ->get();
+
+        return Excel::download(
+            new ReceiptDetailExport($data),
+            'receipt_detail_' . $rcp->receiptnbr . '.xlsx' // 🔥 fix here
+        );
     }
 
     public function editReceipt($hash)
@@ -904,7 +921,7 @@ class ReceiptController extends Controller
 
         $receipt = TrReceipt::with('creator')->where('receiptnbr', $docid)->first();
         if (!$receipt) return response()->json(['success'=>false,'message'=>'Receipt not found'],404);
-        
+
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($receipt->id);
         $docUrl   = url('/showreceipt/' . $eid);
@@ -1127,7 +1144,7 @@ class ReceiptController extends Controller
                         'info'     => $receipt->keperluan,
                         'fullname' => $fullname,
                         'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'createdby'=> $fullname,
                     ]
                 );
 
@@ -1208,7 +1225,7 @@ class ReceiptController extends Controller
         return response()->json(['success'=>true,'message'=>'Receipt revised successfully']);
     }
 
-       
+
 
     public function uploadAttachments(Request $request, $poid)
     {
@@ -1275,7 +1292,7 @@ class ReceiptController extends Controller
             ], 500);
         }
     }
-   
+
     public function listAttachment_xxx($ponbr)
     {
         $rows = Attachment::where('docid', $ponbr)
@@ -1295,7 +1312,7 @@ class ReceiptController extends Controller
 
         return response()->json(['success'=>true, 'attachments'=>$rows]);
     }
-    
+
 
     public function removeAttachment($id)
     {
@@ -1309,7 +1326,7 @@ class ReceiptController extends Controller
         }
     }
 
- 
+
     // public function printReceipt(string $hash, Request $request)
     // {
     //     $id = Hashids::decode($hash)[0] ?? null;
@@ -1876,7 +1893,7 @@ class ReceiptController extends Controller
 
         DB::beginTransaction();
         try {
-            
+
             // $autonbr = Autonbr::lockForUpdate()
             //     ->where('doctype', $doctype)->where('year', $year)->where('month', $month)
             //     ->first();
@@ -1906,7 +1923,7 @@ class ReceiptController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $receiptnbr  = $doctype . $tglbln . sprintf("%04d", $urutan);           
+            $receiptnbr  = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             // === Header return (copy dari sumber)
             $hdr = new TrReceipt();
@@ -1977,7 +1994,7 @@ class ReceiptController extends Controller
                 $det->totalcost               = $srcDet->totalcost;
 
                 $det->receipttype             = $hdr->receipttype;
-              
+
                 // return qty
                 $det->qty_received            = 0;
                 $det->base_qty_received       = 0;
@@ -2029,7 +2046,7 @@ class ReceiptController extends Controller
                 ]);
                 throw $e; // biar konsisten & aman
             }
-           
+
 
             $ctx = ['ignore_nominal' => true];
 
@@ -2047,15 +2064,15 @@ class ReceiptController extends Controller
                 $hdr->completed_by = $firstApprovalUsernames;
                 $hdr->completed_at = $now; // <-- ganti $dt jadi $now
                 $hdr->save();
-            }   
-           
-            
+            }
+
+
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr'        => $receiptnbr,
                     'doctype'       => $doctype,
                     'cpnyid'        => $cpnyid,
-                    'departementid' => $deptid,                    
+                    'departementid' => $deptid,
                     'base_folder'   => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by'    => $user->username,
                 ];
@@ -2157,7 +2174,7 @@ class ReceiptController extends Controller
         ], 200);
     }
 
-   
+
     private function rollbackReceiptAndPo(int $receiptId, string $uname, string $targetStatus): array
     {
         return DB::connection('pgsql')->transaction(function () use ($receiptId, $uname, $targetStatus) {
@@ -2395,7 +2412,7 @@ class ReceiptController extends Controller
     }
 
 
-    
+
 
 
 }

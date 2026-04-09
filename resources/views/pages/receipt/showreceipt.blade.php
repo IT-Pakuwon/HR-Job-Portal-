@@ -480,8 +480,18 @@
             <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                 <header
                     class="flex items-center justify-between rounded-t-2xl border-b border-gray-200 bg-white px-6 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                    <h2 class="text-base font-semibold">📦 Receipt Detail</h2>
+                    <!-- Left -->
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-base font-semibold">📦 Receipt Detail</h2>
+
+                        <a href="{{ route('receipt.export', $rcp->id) }}"
+                        class="inline-flex items-center gap-1.5 rounded-md bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100">
+                            Export Excel
+                        </a>
+                    </div>
                 </header>
+
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-gray-700 dark:text-gray-200">
                         <thead class="sticky top-0 z-20 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
