@@ -175,6 +175,7 @@ class ReportWarehouseController extends Controller
                 'm.docid',
                 'm.doctype',
                 'm.refnbr',
+                'm.cpny_id',
 
                 'm.siteid',
 
@@ -209,14 +210,15 @@ class ReportWarehouseController extends Controller
     private function applyFilters($query, Request $request, $report = 'spb')
     {
 
-        if ($report === 'movement') {
-            return $query; // skip this filter for now
-        };
-
         $user = auth()->user();
         $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
 
-        $query->whereIn('h.cpny_id', $cpnyIds);
+        // Apply company filter correctly
+        if ($report === 'movement') {
+            $query->whereIn('x.cpny_id', $cpnyIds); // ✅ USE x
+        } else {
+            $query->whereIn('h.cpny_id', $cpnyIds);
+        }
 
         if ($report === 'issue') {
 
@@ -805,6 +807,12 @@ class ReportWarehouseController extends Controller
     {
         $query = DB::connection('pgsql')
             ->table('v_inventory_movement_detail');
+
+        $user = auth()->user();
+        $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+
+        $query->whereIn('cpny_id', $cpnyIds);
+
 
         // 🔍 FILTERS (same as UI)
         if ($request->date_from) {
