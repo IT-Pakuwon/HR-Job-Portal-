@@ -158,6 +158,47 @@ class ReportWarehouseController extends Controller
             ]);
     }
 
+    private function movementQuery()
+    {
+        return DB::connection('pgsql')
+            ->table('v_inventory_movement_detail as m')
+            ->select([
+
+                'm.inventoryid',
+                'm.inventory_descr',
+
+                'm.docdate',
+                DB::raw("TO_CHAR(m.docdate, 'MM-YYYY') as posting_month"),
+
+                'm.docid',
+                'm.doctype',
+                'm.refnbr',
+
+                'm.siteid',
+
+                DB::raw('CAST(m.qty AS NUMERIC) as qty'),
+
+                // IN
+                DB::raw("
+                    CASE
+                        WHEN m.doctype IN ('STTB','STTB_RETURN','ISSUE_RETURN')
+                        THEN CAST(m.qty AS NUMERIC)
+                        ELSE 0
+                    END as qty_in
+                "),
+
+                // OUT
+                DB::raw("
+                    CASE
+                        WHEN m.doctype IN ('ISSUE')
+                        THEN CAST(m.qty AS NUMERIC)
+                        ELSE 0
+                    END as qty_out
+                ")
+
+            ]);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Apply Filters
@@ -165,6 +206,11 @@ class ReportWarehouseController extends Controller
     */
     private function applyFilters($query, Request $request, $report = 'spb')
     {
+
+        if ($report === 'movement') {
+            return $query; // skip this filter for now
+        };
+
         $user = auth()->user();
         $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
 
@@ -180,6 +226,8 @@ class ReportWarehouseController extends Controller
 
             if ($request->inventoryid)
                 $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
+
+
 
         }
 
@@ -232,7 +280,47 @@ class ReportWarehouseController extends Controller
     {
         $report = $request->report ?? 'spb';
 
-        if ($report === 'issue') {
+       if ($report === 'movement') {
+
+            $base = $this->movementQuery();
+
+            // FILTER
+            if ($request->date_from)
+                $base->whereDate('m.docdate','>=',$request->date_from);
+
+            if ($request->date_to)
+                $base->whereDate('m.docdate','<=',$request->date_to);
+
+            if ($request->inventoryid)
+                $base->where('m.inventoryid','ilike',"%{$request->inventoryid}%");
+
+            if ($request->refnbr)
+                $base->where('m.refnbr','ilike',"%{$request->refnbr}%");
+
+            if ($request->doctype)
+                $base->where('m.doctype', $request->doctype);
+
+
+            // 🔥 CORE LOGIC (RUNNING STOCK)
+            $query = DB::connection('pgsql')
+                ->query()
+                ->fromSub($base, 'x')
+                ->selectRaw("
+                    x.*,
+
+                    SUM(qty_in - qty_out) OVER (
+                        PARTITION BY inventoryid
+                        ORDER BY x.docdate, x.docid
+                    ) as end_qty,
+
+                    SUM(qty_in - qty_out) OVER (
+                        PARTITION BY inventoryid
+                        ORDER BY x.docdate, x.docid
+                    ) - qty_in + qty_out as begin_qty
+                ");
+
+        }
+        elseif ($report === 'issue') {
             $query = $this->issueQuery();
         }
         elseif ($report === 'receipt') {
@@ -250,9 +338,14 @@ class ReportWarehouseController extends Controller
         $table = DataTables::of($query)
 
         ->addColumn('creator', function($row) use ($users, $report){
-            $username = $report === 'issue'
-                ? $row->issue_created_by
-                : $row->created_by;
+
+            if ($report === 'issue') {
+                $username = $row->issue_created_by ?? null;
+            } elseif ($report === 'movement') {
+                return ''; // ✅ no creator for movement
+            } else {
+                $username = $row->created_by ?? null;
+            }
 
             return $users[$username] ?? $username;
         })
@@ -272,8 +365,14 @@ class ReportWarehouseController extends Controller
             return $departments[$dept] ?? '';
         })
 
-        ->addColumn('business_unit_name', fn($row) =>
-            $businessUnits[$row->budget_business_unit_id] ?? '');
+        ->addColumn('business_unit_name', function ($row) use ($businessUnits, $report) {
+
+            if ($report === 'movement') {
+                return ''; // ✅ movement doesn't have BU
+            }
+
+            return $businessUnits[$row->budget_business_unit_id] ?? '';
+        });
 
         /*
         |--------------------------------------------------------------------------
@@ -336,8 +435,12 @@ class ReportWarehouseController extends Controller
                 return $departments[$row->issue_department] ?? '';
             })
 
+            // ->addColumn('business_unit_name', function ($row) use ($businessUnits) {
+            //     return $businessUnits[$row->budget_business_unit_id] ?? '';
+            // })
+
             ->addColumn('business_unit_name', function ($row) use ($businessUnits) {
-                return $businessUnits[$row->budget_business_unit_id] ?? '';
+                return $businessUnits[$row->budget_business_unit_id ?? ''] ?? '';
             })
 
             ->addColumn('spb_created_by', function ($row) use ($users) {
@@ -350,7 +453,7 @@ class ReportWarehouseController extends Controller
 
         }
 
-        if ($report === 'receipt') {
+       if ($report === 'receipt') {
 
             $table
 
@@ -370,13 +473,11 @@ class ReportWarehouseController extends Controller
 
             ->editColumn('receipttype', function ($row) {
 
-            return match ($row->receipttype) {
-
-                'RR' => 'Return',
-                'PR' => 'Purchase Receive',
-
-                default => $row->receipttype
-            };
+                return match ($row->receipttype) {
+                    'RR' => 'Return',
+                    'PR' => 'Purchase Receive',
+                    default => $row->receipttype
+                };
 
             })
 
@@ -386,9 +487,59 @@ class ReportWarehouseController extends Controller
 
         }
 
+        if ($report === 'movement') {
+
+            $table
+
+            ->editColumn('docdate', function ($row) {
+                return $row->docdate
+                    ? Carbon::parse($row->docdate)->format('d-M-Y')
+                    : '';
+            })
+
+            ->editColumn('qty_in', fn($row) =>
+                number_format($row->qty_in ?? 0,3))
+
+            ->editColumn('qty_out', fn($row) =>
+                number_format($row->qty_out ?? 0,3))
+
+            ->editColumn('begin_qty', fn($row) =>
+                number_format($row->begin_qty ?? 0,3))
+
+            ->editColumn('end_qty', fn($row) =>
+                number_format($row->end_qty ?? 0,3))
+
+            ->editColumn('doctype', function ($row) {
+
+                return match ($row->doctype) {
+                    'STTB' => 'Receipt',
+                    'STTB_RETURN' => 'Return Receipt',
+                    'ISSUE' => 'Issue',
+                    'ISSUE_RETURN' => 'Return Issue',
+                    default => $row->doctype
+                };
+
+            });
+
+        }
         return $table
             ->rawColumns($report === 'spb' ? ['spb_status','issue_status'] : [])
             ->make(true);
+    }
+
+    public function searchInventory(Request $request)
+    {
+        $q = $request->q;
+
+        return DB::connection('pgsql')
+            ->table('ms_inventory') // ⚠️ adjust if your table name different
+            ->select('inventoryid', 'inventory_descr')
+            ->when($q, function ($query) use ($q) {
+                $query->where('inventoryid', 'ilike', "%{$q}%")
+                    ->orWhere('inventory_descr', 'ilike', "%{$q}%");
+            })
+            ->limit(20)
+            ->get();
     }
     /*
     /*

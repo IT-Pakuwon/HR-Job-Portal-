@@ -1525,6 +1525,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/export', [ReportWarehouseController::class, 'export'])
             ->name('report.warehouse.export');
 
+        Route::get('/inventory/search', [ReportWarehouseController::class, 'searchInventory'])
+            ->name('inventory.search');
+
         Route::get('/view/{type}', function ($type) {
             if ($type == 'spb') {
                 return view('pages.report-warehouse.spb-detail');
