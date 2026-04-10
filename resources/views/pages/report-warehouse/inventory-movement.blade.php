@@ -282,20 +282,18 @@
         });
 
         /* EXPORT */
-        $('#mvExportBtn').click(function() {
+        $('#mvExportBtn').on('click', function () {
 
-            let params = new URLSearchParams({
-
-                report: 'movement',
+            const params = new URLSearchParams({
                 date_from: $('#mv_date_from').val(),
                 date_to: $('#mv_date_to').val(),
                 inventoryid: $('#mv_inventoryid').val(),
-                refnbr: $('#mv_refnbr').val()
-
+                refnbr: $('#mv_refnbr').val(),
+                doctype: $('#mv_doctype').val(),
             });
 
-            window.location = "{{ route('report.warehouse.export') }}?" + params.toString();
-
+            // redirect with query params
+            window.open(`/report-warehouse/export?${params.toString()}`, '_blank');
         });
 
     });

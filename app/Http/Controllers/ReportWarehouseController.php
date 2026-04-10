@@ -17,6 +17,8 @@ use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use App\Models\BusinessUnit;
 
+use App\Exports\InventoryMovementExport;
+
 class ReportWarehouseController extends Controller
 {
 
@@ -548,17 +550,26 @@ class ReportWarehouseController extends Controller
     |--------------------------------------------------------------------------
     */
 
-        public function export(Request $request)
+    public function export(Request $request)
     {
-        $report = $request->report ?? 'spb';
+        $report = $request->get('report', 'spb');
 
-        if ($report === 'issue') {
-            return $this->exportIssue($request);
-        } elseif ($report === 'receipt') {
-            return $this->exportReceipt($request);
+        switch ($report) {
+
+            case 'issue':
+                return $this->exportIssue($request);
+
+            case 'receipt':
+                return $this->exportReceipt($request);
+
+            case 'movement': // ✅ NEW (Inventory Movement)
+            case 'inventory': // optional alias
+                return $this->exportMovement($request);
+
+            case 'spb':
+            default:
+                return $this->exportSpb($request);
         }
-
-        return $this->exportSpb($request);
     }
 
     private function exportSpb(Request $request)
@@ -787,6 +798,43 @@ class ReportWarehouseController extends Controller
         return Excel::download(
             new \App\Exports\ArrayExport($rows),
             'warehouse_receipt_report.xlsx'
+        );
+    }
+
+    private function exportMovement(Request $request)
+    {
+        $query = DB::connection('pgsql')
+            ->table('v_inventory_movement_detail');
+
+        // 🔍 FILTERS (same as UI)
+        if ($request->date_from) {
+            $query->whereDate('trx_date', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('trx_date', '<=', $request->date_to);
+        }
+
+        if ($request->inventoryid) {
+            $query->where('inventoryid', $request->inventoryid);
+        }
+
+        if ($request->refnbr) {
+            $query->where('refnbr', 'ILIKE', '%' . $request->refnbr . '%');
+        }
+
+        if ($request->doctype) {
+            $query->where('trx_source', $request->doctype);
+        }
+
+        $data = $query
+            ->orderBy('inventoryid')
+            ->orderBy('trx_date')
+            ->get();
+
+        return Excel::download(
+            new InventoryMovementExport($data),
+            'inventory_movement_' . now()->format('Ymd_His') . '.xlsx'
         );
     }
     /*
