@@ -118,6 +118,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\TestEmailController;
+use App\Http\Controllers\RfpController;
 
 // use Illuminate\Support\Facades\Response;
 // use Illuminate\Support\Facades\File;
@@ -1133,6 +1134,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/eng/workscategory/store', [WorksCategoryController::class, 'store']);
     Route::post('/eng/workscategory/update', [WorksCategoryController::class, 'update'])->name('workscategory.update');
     Route::post('/eng/workscategory/delete/{id}', [WorksCategoryController::class, 'delete']);
+
+
+    Route::get('/rfp', [RfpController::class, 'index'])->name('rfp');
+    Route::get('/rfp/json', [RfpController::class, 'json'])->name('rfp.json');
+    Route::get('/showrfp/{hash}', [RfpController::class, 'showRfp']);
+    Route::get('/rfp/{id}/tracking', [RfpController::class, 'tracking'])->name('rfp.tracking');
+    Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printRfp'])->name('rfp.print');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
