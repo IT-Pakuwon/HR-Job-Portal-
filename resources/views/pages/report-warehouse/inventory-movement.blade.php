@@ -147,9 +147,10 @@
                         <th class="px-3 py-3 text-left">Inventory</th>
                         <th class="px-3 py-3 text-left">Description</th>
 
+                        <th class="px-3 py-3 text-right">Beginning</th>
                         <th class="px-3 py-3 text-right">Qty In</th>
                         <th class="px-3 py-3 text-right">Qty Out</th>
-                        <th class="px-3 py-3 text-right">Balance</th>
+                        <th class="px-3 py-3 text-right">Ending</th>
 
                         <th class="px-3 py-3 text-left">Warehouse</th>
 
@@ -210,6 +211,12 @@
                 { data: 'inventory_descr' },// 6
 
                 {
+                    data: 'begin_qty', // ✅ NEW
+                    className: 'text-right text-gray-700',
+                    render: formatNumber
+                },
+
+                {
                     data: 'qty_in',
                     className: 'text-right text-emerald-600',
                     render: formatNumber
@@ -226,6 +233,7 @@
                     className: 'text-right font-semibold text-indigo-600',
                     render: formatNumber
                 },
+
 
                 { data: 'siteid' }          // 10
 

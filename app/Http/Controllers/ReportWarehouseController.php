@@ -207,18 +207,90 @@ class ReportWarehouseController extends Controller
     | Apply Filters
     |--------------------------------------------------------------------------
     */
+    // private function applyFilters($query, Request $request, $report = 'spb')
+    // {
+
+    //     $user = auth()->user();
+    //     $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
+
+    //     // Apply company filter correctly
+    //     if ($report === 'movement') {
+    //         $query->whereIn('x.cpny_id', $cpnyIds); // ✅ USE x
+    //     } else {
+    //         $query->whereIn('h.cpny_id', $cpnyIds);
+    //     }
+
+    //     if ($report === 'issue') {
+
+    //         if ($request->date_from)
+    //             $query->whereDate('h.issuedate','>=',$request->date_from);
+
+    //         if ($request->date_to)
+    //             $query->whereDate('h.issuedate','<=',$request->date_to);
+
+    //         if ($request->inventoryid)
+    //             $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
+
+
+
+    //     }
+
+    //     elseif ($report === 'receipt') {
+
+    //         if ($request->date_from)
+    //             $query->whereDate('h.receiptdate','>=',$request->date_from);
+
+    //         if ($request->date_to)
+    //             $query->whereDate('h.receiptdate','<=',$request->date_to);
+
+    //         if ($request->receiptnbr)
+    //             $query->where('h.receiptnbr','ilike',"%{$request->receiptnbr}%");
+
+    //         if ($request->inventoryid)
+    //             $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
+
+    //     }
+
+    //     else { // SPB
+
+    //         if ($request->date_from)
+    //             $query->whereDate('h.spbdate','>=',$request->date_from);
+
+    //         if ($request->date_to)
+    //             $query->whereDate('h.spbdate','<=',$request->date_to);
+
+    //         if ($request->spbid)
+    //             $query->where('h.spbid','ilike',"%{$request->spbid}%");
+
+    //         if ($request->inventoryid)
+    //             $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
+
+    //         if ($request->spb_status)
+    //             $query->where('h.status',$request->spb_status);
+
+    //         if ($request->issue_status)
+    //             $query->where('h.status_issue',$request->issue_status);
+    //     }
+
+    //     return $query;
+    // }
+
+
     private function applyFilters($query, Request $request, $report = 'spb')
     {
-
         $user = auth()->user();
         $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
 
-        // Apply company filter correctly
+        // ✅ COMPANY FILTER
         if ($report === 'movement') {
-            $query->whereIn('x.cpny_id', $cpnyIds); // ✅ USE x
-        } else {
-            $query->whereIn('h.cpny_id', $cpnyIds);
+            return $query->whereIn('x.cpny_id', $cpnyIds); // STOP HERE
         }
+
+        // =========================
+        // BELOW ONLY FOR NON-MOVEMENT
+        // =========================
+
+        $query->whereIn('h.cpny_id', $cpnyIds);
 
         if ($report === 'issue') {
 
@@ -230,9 +302,6 @@ class ReportWarehouseController extends Controller
 
             if ($request->inventoryid)
                 $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
-
-
-
         }
 
         elseif ($report === 'receipt') {
@@ -243,12 +312,8 @@ class ReportWarehouseController extends Controller
             if ($request->date_to)
                 $query->whereDate('h.receiptdate','<=',$request->date_to);
 
-            if ($request->receiptnbr)
-                $query->where('h.receiptnbr','ilike',"%{$request->receiptnbr}%");
-
             if ($request->inventoryid)
                 $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
-
         }
 
         else { // SPB
@@ -259,22 +324,12 @@ class ReportWarehouseController extends Controller
             if ($request->date_to)
                 $query->whereDate('h.spbdate','<=',$request->date_to);
 
-            if ($request->spbid)
-                $query->where('h.spbid','ilike',"%{$request->spbid}%");
-
             if ($request->inventoryid)
                 $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
-
-            if ($request->spb_status)
-                $query->where('h.status',$request->spb_status);
-
-            if ($request->issue_status)
-                $query->where('h.status_issue',$request->issue_status);
         }
 
         return $query;
     }
-
     /*
     |--------------------------------------------------------------------------
     | Datatable
@@ -284,7 +339,26 @@ class ReportWarehouseController extends Controller
     {
         $report = $request->report ?? 'spb';
 
+
+
        if ($report === 'movement') {
+
+            $opening = DB::connection('pgsql')
+                ->table('v_inventory_movement_detail')
+                ->selectRaw("
+                    inventoryid,
+                    SUM(
+                        CASE
+                            WHEN doctype IN ('STTB','STTB_RETURN','ISSUE_RETURN') THEN qty
+                            WHEN doctype = 'ISSUE' THEN -qty
+                            ELSE 0
+                        END
+                    ) as opening_qty
+                ")
+                ->when($request->date_from, function ($q) use ($request) {
+                    $q->whereDate('docdate', '<', $request->date_from);
+                })
+                ->groupBy('inventoryid');
 
             $base = $this->movementQuery();
 
@@ -309,16 +383,25 @@ class ReportWarehouseController extends Controller
             $query = DB::connection('pgsql')
                 ->query()
                 ->fromSub($base, 'x')
+
+                ->leftJoinSub($opening, 'o', function ($join) {
+                    $join->on('x.inventoryid', '=', 'o.inventoryid');
+                })
+
                 ->selectRaw("
                     x.*,
 
+                    COALESCE(o.opening_qty, 0) as opening_qty,
+
+                    COALESCE(o.opening_qty, 0) +
                     SUM(qty_in - qty_out) OVER (
-                        PARTITION BY inventoryid
+                        PARTITION BY x.inventoryid
                         ORDER BY x.docdate, x.docid
                     ) as end_qty,
 
+                    COALESCE(o.opening_qty, 0) +
                     SUM(qty_in - qty_out) OVER (
-                        PARTITION BY inventoryid
+                        PARTITION BY x.inventoryid
                         ORDER BY x.docdate, x.docid
                     ) - qty_in + qty_out as begin_qty
                 ");
