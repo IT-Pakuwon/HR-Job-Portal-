@@ -1151,41 +1151,45 @@ class IMBudgetController extends Controller
         $user    = $request->user();
         $doctype = 'IM';
 
-        $imbudget = \App\Models\TrIMBudget::with('creator')->where('imbudgetid', $docid)->first();
-        if (!$imbudget) return response()->json(['success'=>false,'message'=>'IMBudget not found'],404);
-        $cpnyid = $imbudget->cpny_id;
+        $imbudget = \App\Models\TrIMBudget::with('creator')
+            ->where('imbudgetid', $docid)
+            ->first();
 
+        if (!$imbudget) {
+            return response()->json([
+                'success' => false,
+                'message' => 'IMBudget not found'
+            ], 404);
+        }
+
+        $cpnyid   = $imbudget->cpny_id;
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($imbudget->id);
         $docUrl   = url('/showimbudgets/' . $eid);
         $fullname = data_get($imbudget, 'creator.name') ?: $imbudget->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
-            $imbudget->imbudgetid,            // refnbr
-            $doctype,                 // PT
-            $user->username,          // actor
-            $user->name,              // actor
-            function (string $refnbr, \Carbon\Carbon $now) use ($imbudget, $fullname, $docUrl) {
-                // === HEADER IMBudget -> D ===
+            $imbudget->imbudgetid,
+            $doctype,
+            $user->username,
+            $user->name,
+            function (string $refnbr, \Carbon\Carbon $now) use ($imbudget, $fullname, $docUrl, $cpnyid) {
+                // HEADER IMBudget -> D
                 $imbudget->status       = 'D';
                 $imbudget->completed_by = auth()->user()->username;
                 $imbudget->completed_at = $now;
                 $imbudget->save();
 
                 $activity = 'Revise';
-                $docid = $imbudget->imbudgetid;
+                $docid    = $imbudget->imbudgetid;
                 $username = auth()->user()->username;
-                $doctype = 'IM';
+                $doctype  = 'IM';
 
-                $this->reserveBudget($doctype, $docid,$cpnyid, $activity, $username);
+                $this->reserveBudget($doctype, $docid, $cpnyid, $activity, $username);
 
                 $csid = $imbudget->csid;
                 $statusIm = 'D';
                 $this->updateCSImBudgetStatus($csid, $statusIm);
 
-                // (opsional) DETAIL -> D
-                // \App\Models\TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)->update(['status' => 'D']);
-
-                // === Email ke requester ===
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $imbudget->imbudgetid,
                     'IMBudget',
@@ -1193,32 +1197,24 @@ class IMBudgetController extends Controller
                     $imbudget->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
-                        'deptname' => $imbudget->department_id ?? $imbudget->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $imbudget->keperluan,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,   // <<< tambahkan ini
+                        'cpnyid'    => $imbudget->cpny_id ?? $imbudget->cpnyid ?? '',
+                        'deptname'  => $imbudget->department_id ?? $imbudget->departementid ?? '',
+                        'date'      => $now->toDateString(),
+                        'info'      => $imbudget->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
 
-
-                // === Simpan komentar (jika ada) ===
                 try {
                     app('App\Http\Controllers\SendCommentController')->sendmsg($imbudget->id, 'IM', request());
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
         );
 
-        if (!$result['ok']) {
-            return response()->json([
-                'success'=>false,
-                'message'=>$result['message'] ?? 'Revise failed'
-            ], 403);
-        }
-
-        return response()->json(['success'=>true,'message'=>'IMBudget revised successfully']);
+        return response()->json($result);
     }
 
     // public function tracking($hash)

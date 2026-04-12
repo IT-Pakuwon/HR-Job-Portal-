@@ -2583,6 +2583,532 @@ class CanvassController extends Controller
 
         $round2 = fn($n) => round((float) $n, 2);
 
+        // =========================================================
+        // HITUNG SELECTED PER SLOT DARI DETAIL (SUMBER YANG BENAR)
+        // =========================================================
+        $selectedBySlot = [];
+        for ($slot = 1; $slot <= 6; $slot++) {
+            $selectedBySlot[$slot] = [
+                'total' => 0.0,
+                'tax'   => 0.0,
+                'grand' => 0.0,
+            ];
+        }
+
+        foreach ($details as $d) {
+            $qty = (float) ($d['qty'] ?? 0);
+
+            foreach (($d['vendor'] ?? []) as $i => $vrow) {
+                $slot = $i + 1;
+                if ($slot > 6) {
+                    continue;
+                }
+
+                if (empty($vrow['selected'])) {
+                    continue;
+                }
+
+                $price = (float) ($vrow['price'] ?? 0);
+                $lineTotal = round($qty * $price, 2);
+
+                $selectedBySlot[$slot]['total'] += $lineTotal;
+            }
+        }
+
+        for ($slot = 1; $slot <= 6; $slot++) {
+            $v = $vendors[$slot - 1] ?? [];
+            $ppn = (float) ($v['ppn'] ?? 0);
+            $pph = (float) ($v['pph'] ?? 0);
+
+            $selectedTotal = round($selectedBySlot[$slot]['total'], 2);
+            $selectedTax   = round($selectedTotal * (($ppn + $pph) / 100), 2);
+            $selectedGrand = round($selectedTotal + $selectedTax, 2);
+
+            $selectedBySlot[$slot]['total'] = $selectedTotal;
+            $selectedBySlot[$slot]['tax']   = $selectedTax;
+            $selectedBySlot[$slot]['grand'] = $selectedGrand;
+        }
+
+        $docSelectedGrand = collect($selectedBySlot)->sum('grand');
+
+        // =========================================================
+        // AMBIL LAST PRICE
+        // =========================================================
+        $invIds = collect($details)
+            ->pluck('inventoryid')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $lastPriceMap = [];
+        if (!empty($invIds)) {
+            $rows = TrPoLastPrice::query()
+                ->select('inventoryid', 'unitcost', 'podate', 'created_at')
+                ->whereIn('inventoryid', $invIds)
+                ->whereNull('deleted_at')
+                ->orderByDesc('podate')
+                ->orderByDesc('created_at')
+                ->get()
+                ->groupBy('inventoryid');
+
+            foreach ($rows as $inventoryid => $items) {
+                $lastPriceMap[$inventoryid] = round((float) ($items->first()->unitcost ?? 0), 2);
+            }
+        }
+
+        $user = $request->user();
+        $username = $user->username ?? 'system';
+        $dt = \Carbon\Carbon::now();
+
+        $safeSet = function ($model, string $table, string $column, $value) {
+            if (Schema::connection('pgsql')->hasColumn($table, $column)) {
+                $model->{$column} = $value;
+            }
+        };
+
+        $doctype = 'CS';
+        $doc = strtoupper($request->input('doc'));
+        $srcId = $request->input('src_id');
+        $cpnyId = $request->input('cpny_id');
+        $deptId = $request->input('department_id');
+
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $cpnyId, $deptId);
+
+        \DB::connection('pgsql')->beginTransaction();
+
+        try {
+            /** @var TrCS $cs */
+            $cs = TrCS::on('pgsql')
+                ->lockForUpdate()
+                ->where('csid', $csid)
+                ->firstOrFail();
+
+            $csTable = $cs->getTable();
+            $prev_csid = $cs->prev_csid;
+
+            $makePlainKey = function ($inventoryid, $uom, $descr) {
+                return strtoupper(trim((string) ($inventoryid ?? ''))) . '|' .
+                    strtoupper(trim((string) ($uom ?? ''))) . '|' .
+                    strtoupper(trim((string) ($descr ?? '')));
+            };
+
+            $makeRefKey = function ($refNo, $inventoryid, $uom, $descr) use ($makePlainKey) {
+                return strtoupper(trim((string) ($refNo ?? ''))) . '|' . $makePlainKey($inventoryid, $uom, $descr);
+            };
+
+            // =========================================================
+            // 1. LOAD SOURCE HEADER + SOURCE DETAIL
+            // =========================================================
+            $srcHeader = null;
+            $srcDetails = collect();
+            $srcLineKey = null;
+
+            $srcIdPlain = $srcId;
+            if (!is_numeric($srcIdPlain)) {
+                $decoded = Hashids::decode((string) $srcIdPlain);
+                $srcIdPlain = $decoded[0] ?? null;
+            }
+
+            if (!$srcIdPlain) {
+                throw new \Exception("Invalid src_id (cannot decode/find id) for doc={$doc}");
+            }
+
+            switch ($doc) {
+                case 'SPPB':
+                    $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])->find($srcIdPlain);
+                    $srcLineKey = 'sppb_no';
+                    $srcDetails = $srcHeader
+                        ? TrSPPBdetail::where('sppbid', $srcHeader->sppbid)->orderBy($srcLineKey)->get()
+                        : collect();
+                    break;
+
+                case 'SPPJ':
+                    $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])->find($srcIdPlain);
+                    $srcLineKey = 'sppj_no';
+                    $srcDetails = $srcHeader
+                        ? TrSPPJdetail::where('sppjid', $srcHeader->sppjid)->orderBy($srcLineKey)->get()
+                        : collect();
+                    break;
+
+                case 'SPPK':
+                    $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])->find($srcIdPlain);
+                    $srcLineKey = 'sppk_no';
+                    $srcDetails = $srcHeader
+                        ? TrSPPKdetail::where('sppkid', $srcHeader->sppkid)->orderBy($srcLineKey)->get()
+                        : collect();
+                    break;
+
+                case 'SPPT':
+                    $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])->find($srcIdPlain);
+                    $srcLineKey = 'sppt_no';
+                    $srcDetails = $srcHeader
+                        ? TrSPPTdetail::where('spptid', $srcHeader->spptid)->orderBy($srcLineKey)->get()
+                        : collect();
+                    break;
+
+                default:
+                    throw new \Exception('Invalid doc type');
+            }
+
+            if (!$srcHeader) {
+                throw new \Exception("Source header not found for doc={$doc}, src_id={$srcIdPlain}");
+            }
+
+            $srcIndexByRef = [];
+            $srcGroupedByPlain = [];
+
+            foreach ($srcDetails as $sd) {
+                $lineRefNo = $srcLineKey ? ($sd->{$srcLineKey} ?? null) : null;
+                $plainKey = $makePlainKey($sd->inventoryid ?? null, $sd->uom ?? null, $sd->inventory_descr ?? null);
+                $refKey = $makeRefKey($lineRefNo, $sd->inventoryid ?? null, $sd->uom ?? null, $sd->inventory_descr ?? null);
+
+                $srcIndexByRef[$refKey] = $sd;
+                $srcGroupedByPlain[$plainKey][] = $sd;
+            }
+
+            // =========================================================
+            // 2. LOAD CURRENT CS DETAIL AS FALLBACK BEFORE DELETE
+            // =========================================================
+            $existingDetails = TrCSdetail::on('pgsql')
+                ->where('csid', $csid)
+                ->orderBy('cs_no')
+                ->get();
+
+            $prevDetIndexByRef = [];
+            $prevGroupedByPlain = [];
+
+            foreach ($existingDetails as $pd) {
+                $plainKey = $makePlainKey($pd->inventoryid ?? null, $pd->uom ?? null, $pd->inventory_descr ?? null);
+                $refKey = $makeRefKey($pd->sppbjkt_no ?? null, $pd->inventoryid ?? null, $pd->uom ?? null, $pd->inventory_descr ?? null);
+
+                $prevDetIndexByRef[$refKey] = $pd;
+                $prevGroupedByPlain[$plainKey][] = $pd;
+            }
+
+            $srcPlainUseCount = [];
+            $prevPlainUseCount = [];
+
+            // =========================================================
+            // 3. UPDATE HEADER
+            // =========================================================
+            $cs->sppbjktid = $request->input('sppbjktid');
+            $cs->cpny_id = $cpnyId;
+            $cs->bqid = $request->input('bqid') ?: ($srcHeader->bqid ?? $cs->bqid);
+            $cs->department_id = $deptId ?: ($srcHeader->department_id ?? $cs->department_id);
+            $cs->csnote = $request->input('csnote') ?: null;
+            $cs->assigndate = $request->input('assigndate') ?: null;
+
+            $safeSet($cs, $csTable, 'budget_perpost', $srcHeader->budget_perpost ?? $cs->budget_perpost ?? null);
+            $safeSet($cs, $csTable, 'woid', $srcHeader->woid ?? $cs->woid ?? null);
+            $safeSet($cs, $csTable, 'spbid', $srcHeader->spbid ?? $cs->spbid ?? null);
+
+            for ($slot = 1; $slot <= 6; ++$slot) {
+                $v = $vendors[$slot - 1] ?? [];
+
+                $vendorNote = $v['vendornote'] ?? null;
+                if ($vendorNote !== null) {
+                    $vendorNote = trim((string) $vendorNote);
+                    if ($vendorNote === '') {
+                        $vendorNote = null;
+                    }
+                    if ($vendorNote !== null) {
+                        $vendorNote = mb_substr($vendorNote, 0, 500);
+                    }
+                }
+
+                $safeSet($cs, $csTable, "vendorid{$slot}", $v['vendorid'] ?? null);
+                $safeSet($cs, $csTable, "vendorname{$slot}", $v['vendorname'] ?? null);
+                $safeSet($cs, $csTable, "vendoralamat{$slot}", $v['vendoralamat'] ?? null);
+                $safeSet($cs, $csTable, "vendortelp{$slot}", $v['vendortelp'] ?? null);
+                $safeSet($cs, $csTable, "vendorcp{$slot}", $v['vendorcp'] ?? null);
+                $safeSet($cs, $csTable, "vendortop{$slot}", $v['vendortop'] ?? null);
+                $safeSet($cs, $csTable, "vendornote{$slot}", $vendorNote);
+
+                $safeSet($cs, $csTable, "totalvendor{$slot}", $round2($v['total'] ?? 0));
+                $safeSet($cs, $csTable, "taxcodevendor{$slot}", $v['taxcode'] ?? null);
+                $safeSet($cs, $csTable, "ppnvendor{$slot}", $round2($v['ppn'] ?? 0));
+                $safeSet($cs, $csTable, "pphvendor{$slot}", $round2($v['pph'] ?? 0));
+                $safeSet($cs, $csTable, "taxvendor{$slot}", $round2($v['tax'] ?? 0));
+                $safeSet($cs, $csTable, "grandtotalvendor{$slot}", $round2($v['grand'] ?? 0));
+
+                // PAKAI HITUNGAN BACKEND
+                $safeSet($cs, $csTable, "totalselectedvendor{$slot}", $round2($selectedBySlot[$slot]['total'] ?? 0));
+                $safeSet($cs, $csTable, "taxselectedvendor{$slot}", $round2($selectedBySlot[$slot]['tax'] ?? 0));
+                $safeSet($cs, $csTable, "grandtotalselectedvendor{$slot}", $round2($selectedBySlot[$slot]['grand'] ?? 0));
+            }
+
+            if (Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
+                $cs->updated_by = $username;
+            }
+            $cs->save();
+
+            // =========================================================
+            // 4. DELETE OLD DETAIL THEN REBUILD
+            // =========================================================
+            TrCSdetail::on('pgsql')->where('csid', $csid)->delete();
+
+            $lineNo = 0;
+
+            foreach ($details as $d) {
+                ++$lineNo;
+
+                $requestRefNo =
+                    $d['sppb_no'] ??
+                    $d['sppj_no'] ??
+                    $d['sppk_no'] ??
+                    $d['sppt_no'] ??
+                    null;
+
+                $inventoryid = $d['inventoryid'] ?? null;
+                $inventoryDescr = $d['inventory_descr'] ?? null;
+                $uom = $d['uom'] ?? null;
+
+                $plainKey = $makePlainKey($inventoryid, $uom, $inventoryDescr);
+                $refKey = $makeRefKey($requestRefNo, $inventoryid, $uom, $inventoryDescr);
+
+                $src = $srcIndexByRef[$refKey] ?? null;
+                $prevDet = $prevDetIndexByRef[$refKey] ?? null;
+
+                if (!$src && isset($srcGroupedByPlain[$plainKey])) {
+                    $idx = $srcPlainUseCount[$plainKey] ?? 0;
+                    $src = $srcGroupedByPlain[$plainKey][$idx] ?? null;
+                    $srcPlainUseCount[$plainKey] = $idx + 1;
+                }
+
+                if (!$prevDet && isset($prevGroupedByPlain[$plainKey])) {
+                    $idxPrev = $prevPlainUseCount[$plainKey] ?? 0;
+                    $prevDet = $prevGroupedByPlain[$plainKey][$idxPrev] ?? null;
+                    $prevPlainUseCount[$plainKey] = $idxPrev + 1;
+                }
+
+                if ($src) {
+                    if (!empty($srcLineKey) && isset($src->{$srcLineKey})) {
+                        $srcRefNo = $src->{$srcLineKey};
+                    } elseif (isset($src->sppbjkt_no)) {
+                        $srcRefNo = $src->sppbjkt_no;
+                    } else {
+                        $srcRefNo = null;
+                    }
+                } else {
+                    $srcRefNo = null;
+                }
+
+                $finalQty = $round2($d['qty'] ?? ($src->qty ?? ($prevDet->qty ?? 0)));
+                $finalInventoryId = $d['inventoryid'] ?? ($src->inventoryid ?? ($prevDet->inventoryid ?? null));
+                $finalUom = $d['uom'] ?? ($src->uom ?? ($prevDet->uom ?? null));
+
+                $det = new TrCSdetail();
+                $det->setConnection('pgsql');
+
+                $det->csid = $csid;
+                $det->sppbjktid = $request->input('sppbjktid');
+                $det->cs_no = $lineNo;
+                $det->sppbjkt_no = $requestRefNo ?? $srcRefNo ?? ($prevDet->sppbjkt_no ?? null);
+
+                $det->inventory_type = $d['inventory_type'] ?? ($src->inventory_type ?? ($prevDet->inventory_type ?? null));
+                $det->inventoryid = $finalInventoryId;
+                $det->inventory_descr = $d['inventory_descr'] ?? ($src->inventory_descr ?? ($prevDet->inventory_descr ?? null));
+                $det->inventory_sub_type = $d['inventory_sub_type'] ?? ($src->inventory_sub_type ?? ($prevDet->inventory_sub_type ?? null));
+                $det->inventory_category = $d['inventory_category'] ?? ($src->inventory_category ?? ($prevDet->inventory_category ?? null));
+
+                $det->qty = $finalQty;
+                $det->uom = $finalUom;
+                $det->siteid = $d['siteid'] ?? ($src->siteid ?? ($prevDet->siteid ?? null));
+
+                $det->type_multiplier = $src->type_multiplier ?? ($prevDet->type_multiplier ?? null);
+                $det->base_multiplier = isset($src->base_multiplier)
+                    ? $round2($src->base_multiplier)
+                    : (isset($prevDet->base_multiplier) ? $round2($prevDet->base_multiplier) : null);
+
+                $det->base_qty = isset($src->base_qty)
+                    ? $round2($src->base_qty)
+                    : (isset($prevDet->base_qty) ? $round2($prevDet->base_qty) : null);
+
+                $det->base_uom = $src->base_uom ?? ($prevDet->base_uom ?? null);
+
+                $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? ($prevDet->inventory_last_price ?? 0);
+                $det->csnote_detail = $d['csnote_detail'] ?? ($src->note ?? ($prevDet->csnote_detail ?? null));
+
+                $det->location_id = $src->location_id ?? ($prevDet->location_id ?? null);
+                $det->sub_location_id = $src->sub_location_id ?? ($prevDet->sub_location_id ?? null);
+                $det->budget_perpost = $src->budget_perpost ?? ($prevDet->budget_perpost ?? null);
+                $det->budget_cpny_id = $cpnyId;
+                $det->budget_business_unit_id = $src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null);
+                $det->budget_department_fin_id = $src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null);
+                $det->budget_account_id = $src->budget_account_id ?? ($prevDet->budget_account_id ?? null);
+                $det->budget_activity_id = $src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null);
+                $det->budget_activity_descr = $src->budget_activity_descr ?? ($prevDet->budget_activity_descr ?? null);
+
+                for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); ++$i) {
+                    $slot = $i + 1;
+                    $vrow = $d['vendor'][$i];
+                    $vid = $vrow['vendorid'] ?? null;
+                    $price = $round2($vrow['price'] ?? 0);
+                    $total = $round2($vrow['total'] ?? 0);
+                    $sel = !empty($vrow['selected']);
+
+                    $det->{"vendorid{$slot}"} = $vid;
+                    $det->{"vendorprice{$slot}"} = $price;
+                    $det->{"vendortotalprice{$slot}"} = $total;
+                    $det->{"vendor{$slot}selected"} = (bool) $sel;
+                }
+
+                $det->status = 'H';
+                $det->created_by = $username;
+                $det->save();
+            }
+
+            // =========================================================
+            // 5. NEW ATTACHMENTS
+            // =========================================================
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr' => $cs->csid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $cpnyId,
+                    'departementid' => $deptId,
+                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'created_by' => $username,
+                ];
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploader->uploadInternal($meta, $files);
+                } catch (\Throwable $e) {
+                    \DB::connection('pgsql')->rollBack();
+
+                    return response()->json([
+                        'ok' => false,
+                        'message' => 'Gagal upload attachment: ' . $e->getMessage(),
+                    ], 500);
+                }
+            }
+
+            // =========================================================
+            // 6. SAVE / SUBMIT
+            // =========================================================
+            $action = strtolower($request->input('action', 'save'));
+            if (!in_array($action, ['save', 'submit'], true)) {
+                $action = 'save';
+            }
+
+            if ($action === 'submit') {
+                if (empty($prev_csid)) {
+                    $this->validateSubmitServerSide($details);
+                    $this->updateOrderedOnSource($details, $srcHeader, $srcDetails, $srcIndexByRef, $cpnyId);
+
+                    if ($cs->bqtype !== 'Kontrak') {
+                        $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
+                    }
+                } else {
+                    $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                }
+
+                $cs->status = 'P';
+                if (Schema::connection('pgsql')->hasColumn($csTable, 'submitdate')) {
+                    $cs->submitdate = $dt;
+                }
+                if (Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
+                    $cs->updated_by = $username;
+                }
+                $cs->save();
+
+                TrCSdetail::on('pgsql')->where('csid', $csid)->update(['status' => 'P']);
+
+                $ctx = [
+                    'ignore_nominal' => false,
+                    'grand_total' => (float) $docSelectedGrand,
+                ];
+
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $cs->csid,
+                    $doctype,
+                    $cpnyId,
+                    $deptId,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                if ($firstApprovalUsernames) {
+                    $cs->completed_by = $firstApprovalUsernames;
+                    $cs->completed_at = $dt;
+                    $cs->save();
+                }
+
+                $this->applyFastApproveForCS($cs->csid, $username, $dt);
+
+                $eid = Hashids::encode($cs->id);
+                $approvalCtl->notifyFirstApprover(
+                    $cs->csid,
+                    $doctype,
+                    $cs->status,
+                    'CS',
+                    url('/showcs/' . $eid),
+                    [
+                        'info' => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
+                        'createdby' => $cs->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            } else {
+                if (!$cs->status || $cs->status === 'H') {
+                    $cs->status = 'H';
+                    if (Schema::connection('pgsql')->hasColumn($csTable, 'updated_by')) {
+                        $cs->updated_by = $username;
+                    }
+                    $cs->save();
+                }
+            }
+
+            \DB::connection('pgsql')->commit();
+
+            return response()->json([
+                'ok' => true,
+                'message' => $action === 'submit'
+                    ? 'CS berhasil diupdate & diajukan'
+                    : 'CS berhasil diupdate',
+                'csid' => $cs->csid,
+                'grand_total' => $round2($docSelectedGrand),
+                'status' => $cs->status,
+                'submitdate' => optional($cs->submitdate)->toDateTimeString(),
+            ]);
+        } catch (\Throwable $e) {
+            \DB::connection('pgsql')->rollBack();
+            report($e);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Gagal update CS: ' . (config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
+            ], 500);
+        }
+    }
+
+    public function updateCS_zzz(Request $request, $csid)
+    {
+        $request->validate([
+            'doc' => 'required|string',
+            'src_id' => 'nullable',
+            'sppbjktid' => 'nullable|string',
+            'cpny_id' => 'required|string',
+            'department_id' => 'required|string',
+            'bqid' => 'nullable|string',
+            'user_peminta' => 'nullable|string',
+            'csnote' => 'nullable|string',
+            'assigndate' => 'nullable|string',
+            'vendors' => 'required|string',
+            'details' => 'required|string',
+            'action' => 'nullable|in:save,submit',
+        ]);
+
+        $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
+        $details = json_decode($request->input('details', '[]'), true) ?: [];
+
+        $round2 = fn($n) => round((float) $n, 2);
+
         $docSelectedGrand = collect($vendors)->sum(function ($v) use ($round2) {
             return $round2($v['selected_grand'] ?? 0);
         });

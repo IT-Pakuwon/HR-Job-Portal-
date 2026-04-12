@@ -672,21 +672,16 @@
                         reason: reviseReason
                     },
                     success: function(response) {
-                        if (response.success) {
-                            // alert("Task has been reviseed successfully.");
-
-                            // Update status di modal imbudget
+                        if (response.success || response.ok) {
                             $("#xstatus").text("Revised")
                                 .removeClass()
-                                .addClass(
-                                    "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none    -none font-semibold px-2 py-0.5 rounded"
-                                );
+                                .addClass("w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none font-semibold px-2 py-0.5 rounded");
+
                             $spinner.fadeOut();
                             toastr.success("IMBudget Revised successfully!");
-                            // window.location.href = "/imbudgets";
                             closeOrRedirect("/imbudgets");
                         } else {
-                            alert("Failed to revise imbudget.");
+                            alert(response.message || "Failed to revise imbudget.");
                         }
                     },
                     error: function(xhr) {

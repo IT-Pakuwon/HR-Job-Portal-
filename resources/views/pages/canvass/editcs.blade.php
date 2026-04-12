@@ -964,50 +964,107 @@
 
             /* ========== 7) Definisi fungsi GLOBAL ========== */
             // -> jangan pakai let/const supaya jadi binding global (dipakai file lain yang memanggil langsung)
+            // calcCellTotal = function($input) {
+            //     const $tr = $input.closest('tr');
+            //     const qty = parseQty($tr.find('.qty-input').val());
+            //     const price = parsePrice($input.val());
+            //     const total = qty * price;
+            //     $input.closest('td').find('.total-label').text(total.toLocaleString('id-ID'));
+            //     const vid = String($input.data('vendor'));
+            //     recalcSummaryVendor(vid);
+            // };
+
             calcCellTotal = function($input) {
                 const $tr = $input.closest('tr');
                 const qty = parseQty($tr.find('.qty-input').val());
                 const price = parsePrice($input.val());
                 const total = qty * price;
-                $input.closest('td').find('.total-label').text(total.toLocaleString('id-ID'));
+
+                $input.closest('td').find('.total-label').text(formatNumID(total));
+
                 const vid = String($input.data('vendor'));
                 recalcSummaryVendor(vid);
             };
 
+            // recalcSummaryVendor = function(vendorId) {
+            //     const key = String(vendorId);
+            //     let total = 0;
+
+            //     $(`input.price-input[data-vendor="${CSS.escape(key)}"]`).each(function() {
+            //         const price = parsePrice($(this).val());
+            //         const qty = parseQty($(this).closest('tr').find('.qty-input').val());
+            //         total += qty * price;
+            //     });
+
+            //     const $sumCell = $(`#td-sum-${CSS.escape(key)}`);
+            //     $sumCell.find('.sum-total').text((+total || 0).toLocaleString('id-ID'));
+
+            //     const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+            //     const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+            //     const grand = total * (1 + ppn + pph);
+            //     $sumCell.find('.sum-grand').text((+grand || 0).toLocaleString('id-ID'));
+
+            //     let selTotal = 0;
+            //     $('#cvBody tr').each(function() {
+            //         const picked = String($(this).find('input.pick-vendor:checked').val() || '');
+            //         if (picked === key) {
+            //             const lbl = $(this).find(`input.price-input[data-vendor="${CSS.escape(key)}"]`)
+            //                 .closest('td').find('.total-label');
+            //             selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+            //         }
+            //     });
+            //     // $sumCell.find('.sum-selected').text((+selTotal || 0).toLocaleString('id-ID'));
+            //     // tampilkan TERMASUK pajak (seperti Grand Total)
+            //     const selGrand = selTotal * (1 + ppn + pph);
+            //     const $sel = $sumCell.find('.sum-selected');
+            //     $sel.text((+selGrand || 0).toLocaleString('id-ID'));
+            //     // simpan raw (tanpa pajak) agar payload tidak double count
+            //     $sel.attr('data-raw', String(selTotal || 0));
+            // };
+
             recalcSummaryVendor = function(vendorId) {
                 const key = String(vendorId);
-                let total = 0;
-
-                $(`input.price-input[data-vendor="${CSS.escape(key)}"]`).each(function() {
-                    const price = parsePrice($(this).val());
-                    const qty = parseQty($(this).closest('tr').find('.qty-input').val());
-                    total += qty * price;
-                });
-
                 const $sumCell = $(`#td-sum-${CSS.escape(key)}`);
-                $sumCell.find('.sum-total').text((+total || 0).toLocaleString('id-ID'));
+                if (!$sumCell.length) return;
+
+                let total = 0;
+                let selBase = 0;
+
+                $('#cvBody tr').each(function() {
+                    const $tr = $(this);
+
+                    const qty = parseQty($tr.find('.qty-input').val());
+                    const $priceInput = $tr.find(`input.price-input[data-vendor="${CSS.escape(key)}"]`);
+                    if (!$priceInput.length) return;
+
+                    const price = parsePrice($priceInput.val());
+                    const lineTotal = qty * price;
+
+                    total += lineTotal;
+
+                    // update total label per cell
+                    $priceInput.closest('td').find('.total-label').text(formatNumID(lineTotal));
+
+                    const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+                    if (picked === key) {
+                        selBase += lineTotal;
+                    }
+                });
 
                 const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
                 const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
-                const grand = total * (1 + ppn + pph);
-                $sumCell.find('.sum-grand').text((+grand || 0).toLocaleString('id-ID'));
 
-                let selTotal = 0;
-                $('#cvBody tr').each(function() {
-                    const picked = String($(this).find('input.pick-vendor:checked').val() || '');
-                    if (picked === key) {
-                        const lbl = $(this).find(`input.price-input[data-vendor="${CSS.escape(key)}"]`)
-                            .closest('td').find('.total-label');
-                        selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
-                    }
-                });
-                // $sumCell.find('.sum-selected').text((+selTotal || 0).toLocaleString('id-ID'));
-                // tampilkan TERMASUK pajak (seperti Grand Total)
-                const selGrand = selTotal * (1 + ppn + pph);
-                const $sel = $sumCell.find('.sum-selected');
-                $sel.text((+selGrand || 0).toLocaleString('id-ID'));
-                // simpan raw (tanpa pajak) agar payload tidak double count
-                $sel.attr('data-raw', String(selTotal || 0));
+                const grand = total + (total * ppn) + (total * pph);
+                const selTax = selBase * ppn + selBase * pph;
+                const selGrand = selBase + selTax;
+
+                $sumCell.find('.sum-total').text(formatNumID(total));
+                $sumCell.find('.sum-grand').text(formatNumID(grand));
+
+                // tampilkan selected termasuk pajak
+                $sumCell.find('.sum-selected')
+                    .text(formatNumID(selGrand))
+                    .attr('data-raw', String(round2(selBase)));
             };
 
             /* ========== 8) Hapus kolom vendor ========== */
@@ -1395,18 +1452,34 @@
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
                 // const selTotal = numFromText($sum.find('.sum-selected').text());
+                // let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
+                // if (!selTotal) {
+                //     // fallback aman kalau attr belum ada (mis. data lama)
+                //     let tmp = 0;
+                //     $('#cvBody tr').each(function() {
+                //         const picked = String($(this).find('input.pick-vendor:checked').val() ||
+                //             '');
+                //         if (picked === vid) {
+                //             const lbl = $(this)
+                //                 .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
+                //                 .closest('td').find('.total-label');
+                //             tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                //         }
+                //     });
+                //     selTotal = tmp;
+                // }
+
                 let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
                 if (!selTotal) {
-                    // fallback aman kalau attr belum ada (mis. data lama)
                     let tmp = 0;
                     $('#cvBody tr').each(function() {
-                        const picked = String($(this).find('input.pick-vendor:checked').val() ||
-                            '');
+                        const picked = String($(this).find('input.pick-vendor:checked').val() || '');
                         if (picked === vid) {
-                            const lbl = $(this)
-                                .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
-                                .closest('td').find('.total-label');
-                            tmp += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
+                            const qty = parseQty($(this).find('.qty-input').val());
+                            const price = parsePrice(
+                                $(this).find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`).val()
+                            );
+                            tmp += qty * price;
                         }
                     });
                     selTotal = tmp;
@@ -1646,17 +1719,33 @@
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
 
+                // let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
+                // if (!selTotal) {
+                //     // fallback (untuk data lama)
+                //     let tmp = 0;
+                //     $('#cvBody tr').each(function() {
+                //         const picked = String($(this).find('.pick-vendor:checked').val() || '');
+                //         if (picked === vid) {
+                //             const lbl = $(this)
+                //                 .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
+                //                 .closest('td').find('.total-label');
+                //             tmp += Number((lbl.text() || '').replace(/[^0-9]/g, ''));
+                //         }
+                //     });
+                //     selTotal = tmp;
+                // }
+
                 let selTotal = Number($sum.find('.sum-selected').attr('data-raw') || 0);
                 if (!selTotal) {
-                    // fallback (untuk data lama)
                     let tmp = 0;
                     $('#cvBody tr').each(function() {
                         const picked = String($(this).find('.pick-vendor:checked').val() || '');
                         if (picked === vid) {
-                            const lbl = $(this)
-                                .find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`)
-                                .closest('td').find('.total-label');
-                            tmp += Number((lbl.text() || '').replace(/[^0-9]/g, ''));
+                            const qty = parseQty($(this).find('.qty-input').val());
+                            const price = parsePrice(
+                                $(this).find(`input.price-input[data-vendor="${CSS.escape(vid)}"]`).val()
+                            );
+                            tmp += qty * price;
                         }
                     });
                     selTotal = tmp;

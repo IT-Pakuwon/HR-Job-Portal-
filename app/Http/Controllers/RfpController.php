@@ -46,14 +46,12 @@ class RfpController extends Controller
             return redirect()->route('login');
         }
 
-        // Company multi
         if (is_string($user->cpny_id)) {
             $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
         } else {
             $cpnyIds = (array) $user->cpny_id;
         }
 
-        // Department multi
         if (is_string($user->department_id)) {
             $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
         } else {
@@ -64,15 +62,22 @@ class RfpController extends Controller
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds);
 
-        $all = (clone $baseQuery)->count();
+        $all        = (clone $baseQuery)->count();
         $onProgress = (clone $baseQuery)->where('status', 'P')->count();
-        $reject = (clone $baseQuery)->where('status', 'R')->count();
-        $revise = (clone $baseQuery)->where('status', 'D')->count();
-        $completed = (clone $baseQuery)->where('status', 'C')->count();
+        $reject     = (clone $baseQuery)->where('status', 'R')->count();
+        $revise     = (clone $baseQuery)->where('status', 'D')->count();
+        $completed  = (clone $baseQuery)->where('status', 'C')->count();
 
+        $hasRfpAllAccess = $user->hasRole('FINACCESS');
+        $hasApFinAccess = $user->hasRole('APFINACCESS');
+        $hasApTreAccess = $user->hasRole('APTREACCESS');
+       
         $rfpAll = 0;
-        if ($user->user_role === 'admin') {
-            $rfpAll = TrRfp::whereIn('status', ['P', 'C'])->count();
+        if ($hasRfpAllAccess) {
+            $rfpAll = TrRfp::query()
+                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('status', ['C'])
+                ->count();
         }
 
         return view('pages.rfp.rfp', compact(
@@ -81,7 +86,10 @@ class RfpController extends Controller
             'reject',
             'revise',
             'completed',
-            'rfpAll'
+            'rfpAll',
+            'hasRfpAllAccess',
+            'hasApFinAccess',
+            'hasApTreAccess'
         ));
     }
 
@@ -101,29 +109,31 @@ class RfpController extends Controller
             $deptIds = (array) $user->department_id;
         }
 
-        $draw = (int) $request->input('draw', 1);
-        $start = (int) $request->input('start', 0);
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
-        $scope = (string) $request->query('scope', '');
+        $scope  = (string) $request->query('scope', '');
 
         $baseTable = (new TrRfp())->getTable(); // tr_rfp
 
+        // mapping index order DataTables ke kolom DB
         $columns = [
-            0 => 'rfp.rfp_id',
-            1 => 'rfp.rfp_date',
-            2 => 'rfp.cpny_id',
-            3 => 'rfp.department_id',
-            4 => 'rfp.vendor_name',
-            5 => 'rfp.type_po',
-            6 => 'rfp.keperluan',
-            7 => 'rfp.rfp_amount',
-            8 => 'rfp.status',
-            9 => 'rfp.created_by',
+            1  => 'rfp.rfp_id',
+            2  => 'rfp.rfp_date',
+            3  => 'rfp.cpny_id',
+            4  => 'rfp.department_id',
+            5  => 'rfp.sppbjkt_id', // untuk kolom gabungan sppbjkt/cs
+            6  => 'rfp.ponbr',      // untuk kolom gabungan ponbr/kontrak
+            7  => 'rfp.ir_id',
+            8  => 'rfp.vendor_name',
+            9  => 'rfp.keperluan',
+            10 => 'rfp.rfp_amount',
+            11 => 'rfp.status',
         ];
 
-        $orderIdx = (int) $request->input('order.0.column', 1);
+        $orderIdx = (int) $request->input('order.0.column', 2);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
         $orderCol = $columns[$orderIdx] ?? 'rfp.rfp_date';
 
@@ -135,7 +145,7 @@ class RfpController extends Controller
             )
             ->when(
                 $scope === 'rfp_all',
-                fn ($q) => $q->whereIn('rfp.status', ['P', 'C'])
+                fn ($q) => $q->whereIn('rfp.status', ['C'])
             );
 
         if ($status !== '') {
@@ -149,8 +159,12 @@ class RfpController extends Controller
                 $q->where('rfp.rfp_id', 'ilike', "%{$search}%")
                     ->orWhere('rfp.cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('rfp.department_id', 'ilike', "%{$search}%")
+                    ->orWhere('rfp.sppbjkt_id', 'ilike', "%{$search}%")
+                    ->orWhere('rfp.cs_id', 'ilike', "%{$search}%")
+                    ->orWhere('rfp.ponbr', 'ilike', "%{$search}%")
+                    ->orWhere('rfp.kontrak_id', 'ilike', "%{$search}%")
+                    ->orWhere('rfp.ir_id', 'ilike', "%{$search}%")
                     ->orWhere('rfp.vendor_name', 'ilike', "%{$search}%")
-                    ->orWhere('rfp.type_po', 'ilike', "%{$search}%")
                     ->orWhere('rfp.keperluan', 'ilike', "%{$search}%")
                     ->orWhere('rfp.status', 'ilike', "%{$search}%")
                     ->orWhere('rfp.created_by', 'ilike', "%{$search}%");
@@ -160,35 +174,72 @@ class RfpController extends Controller
         $recordsFiltered = (clone $base)->count();
 
         $data = $base->select(
-                'rfp.id',
-                'rfp.rfp_id',
-                'rfp.rfp_date',
-                'rfp.cpny_id',
-                'rfp.department_id',
-                'rfp.vendor_name',
-                'rfp.type_po',
-                'rfp.keperluan',
-                'rfp.rfp_amount',
-                'rfp.status',
-                'rfp.created_by'
-            )
-            ->orderBy($orderCol, $orderDir)
-            ->orderBy('rfp.rfp_id', 'desc')
-            ->skip($start)
-            ->take($length)
-            ->get();
+            'rfp.id',
+            'rfp.rfp_id',
+            'rfp.rfp_date',
+            'rfp.cpny_id',
+            'rfp.department_id',
+            'rfp.sppbjkt_id',
+            'rfp.cs_id',
+            'rfp.ponbr',
+            'rfp.kontrak_id',
+            'rfp.ir_id',
+            'rfp.vendor_name',
+            'rfp.keperluan',
+            'rfp.rfp_amount',
+            'rfp.status',
+            'rfp.status_receive',
+            'rfp.user_receive',
+            'rfp.receive_date',
+            'rfp.status_payment',
+            'rfp.user_payment',
+            'rfp.payment_date',
+            'rfp.created_by'
+        )
+        ->orderBy($orderCol, $orderDir)
+        ->orderBy('rfp.rfp_id', 'desc')
+        ->skip($start)
+        ->take($length)
+        ->get();
 
         $data->transform(function ($row) {
+            $row->sppbjkt_cs = collect([$row->sppbjkt_id, $row->cs_id])
+                ->filter(fn ($v) => !empty($v))
+                ->implode(' - ');
+
+            $row->po_kontrak = collect([$row->ponbr, $row->kontrak_id])
+                ->filter(fn ($v) => !empty($v))
+                ->implode(' / ');
+
+            $statusReceive = strtoupper(trim((string) ($row->status_receive ?? 'P')));
+            $statusPayment = strtoupper(trim((string) ($row->status_payment ?? 'P')));
+
+            if ($statusReceive === 'P' && $statusPayment === 'P') {
+                $row->finance_flow_status_text = 'Waiting User';
+            } elseif ($statusReceive === 'C' && $statusPayment === 'P') {
+                $row->finance_flow_status_text = 'Finance Received';
+            } elseif ($statusReceive === 'C' && $statusPayment === 'C') {
+                $row->finance_flow_status_text = 'Treasury Received';
+            } else {
+                $row->finance_flow_status_text = 'Waiting User';
+            }
+
+            $row->action_state = ($statusReceive === 'C') ? 'treasury' : 'received';
+
+            $row->receive_button_text = !empty($row->user_receive) ? 'Rollback' : 'Update Received';
+            $row->treasury_button_text = !empty($row->user_payment) ? 'Rollback' : 'Update Treasury';
+
             $row->eid = Hashids::encode($row->id);
             unset($row->id);
+
             return $row;
         });
 
         return response()->json([
-            'draw' => $draw,
-            'recordsTotal' => $recordsTotal,
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data' => $data,
+            'data'            => $data,
         ]);
     }
 
@@ -436,6 +487,93 @@ class RfpController extends Controller
         ));
     }
 
+    public function updateReceived($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        if (!$user->hasRole('APFINACCESS')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update or rollback receive.'
+            ], 403);
+        }
+
+        $rfp = TrRfp::findOrFail($id);
+
+        if (!empty($rfp->user_receive)) {
+            $rfp->user_receive   = '';
+            $rfp->receive_date   = null;
+            $rfp->status_receive = 'P';
+            $rfp->updated_by     = $user->username ?? $user->name;
+            $rfp->updated_at     = now();
+            $rfp->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Receive rollback successfully.',
+            ]);
+        }
+
+        $rfp->user_receive   = $user->username ?? $user->name;
+        $rfp->receive_date   = now();
+        $rfp->status_receive = 'C';
+        $rfp->updated_by     = $user->username ?? $user->name;
+        $rfp->updated_at     = now();
+        $rfp->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Receive updated successfully.',
+        ]);
+    }
+
+    public function updateTreasury($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        if (!$user->hasRole('APTREACCESS')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update or rollback payment.'
+            ], 403);
+        }
+
+        $rfp = TrRfp::findOrFail($id);
+
+        if (!empty($rfp->user_payment)) {
+            $rfp->user_payment   = '';
+            $rfp->payment_date   = null;
+            $rfp->status_payment = 'P';
+            $rfp->updated_by     = $user->username ?? $user->name;
+            $rfp->updated_at     = now();
+            $rfp->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment rollback successfully.',
+            ]);
+        }
+
+        $rfp->user_payment   = $user->username ?? $user->name;
+        $rfp->payment_date   = now();
+        $rfp->status_payment = 'C';
+        $rfp->updated_by     = $user->username ?? $user->name;
+        $rfp->updated_at     = now();
+        $rfp->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment updated successfully.',
+        ]);
+    }
     public function approveWo(Request $request, $docid)
     {
         $user = $request->user();
