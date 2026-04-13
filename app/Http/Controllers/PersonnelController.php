@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Personnel;
@@ -111,16 +111,25 @@ class PersonnelController extends Controller
         return $q->whereIn('division_id', $divisionIds);
     }
 
- 
+
     public function index()
     {
         $user = Auth::user();
-       
+
+        $departments = DepartmentHR::where('status', 'A')
+        ->orderBy('department_name')
+        ->get();
+
         if (!$user) {
             return redirect()->route('login');
         }
 
-        $base = $this->personnelScopeForUser($user);
+        // 🔥 FIX: handle HCBP
+        if ($user->hasRole('HCBPACCESS')) {
+            $base = Personnel::whereIn('cpnyid', $this->userCpnyIds($user));
+        } else {
+            $base = $this->personnelScopeForUser($user);
+        }
 
         $counts = (clone $base)->selectRaw("
             COUNT(*) AS all,
@@ -136,8 +145,20 @@ class PersonnelController extends Controller
             'reject'     => (int) ($counts->reject ?? 0),
             'revise'     => (int) ($counts->revise ?? 0),
             'completed'  => (int) ($counts->completed ?? 0),
+            'departments' => $departments,
         ]);
     }
+
+    private function hasHcbpAccess($user): bool
+        {
+            return SysUserRole::query()
+                ->where('username', $user->username)
+                ->where('role_id', 'HCBPACCESS')
+                ->where(function ($q) {
+                    $q->whereNull('status')->orWhere('status', 'A');
+                })
+                ->exists();
+        }
 
     public function json(Request $request)
     {
@@ -146,7 +167,20 @@ class PersonnelController extends Controller
         $status = $request->has('status') ? $request->query('status') : 'P';
         $status = is_string($status) ? trim($status) : $status;
 
-        $query = $this->personnelScopeForUser($user);
+        // $query = $this->personnelScopeForUser($user);
+        if ($request->hcbp == 1 && $this->hasHcbpAccess($user)) {
+
+            // 🔥 HCBP MODE: semua dept dalam company
+            $cpnyIds = $this->userCpnyIds($user);
+
+            $query = Personnel::query()
+                ->whereIn('cpnyid', $cpnyIds);
+
+        } else {
+
+            // 🔒 NORMAL MODE (existing logic)
+            $query = $this->personnelScopeForUser($user);
+        }
 
         if ($status !== null && $status !== '' && strtolower((string)$status) !== 'all') {
             $query->where('status', $status);
@@ -177,7 +211,7 @@ class PersonnelController extends Controller
         return response()->json(['data' => $personnel]);
     }
 
-    
+
 
     public function createPersonnel()
     {
@@ -190,8 +224,8 @@ class PersonnelController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $companies = MsCompany::select('cpny_id')->get();       
-        $skillTags = MJobtag::select('id', 'job_tags')->get(); 
+        $companies = MsCompany::select('cpny_id')->get();
+        $skillTags = MJobtag::select('id', 'job_tags')->get();
         $division = Division::select('division_id','division_name')
             ->where('status', 'A')
             ->get();
@@ -218,7 +252,7 @@ class PersonnelController extends Controller
             ->orderBy('division_name')
             ->get();
 
-       
+
         return view('pages.personnels.createpersonnels', compact('companies','usercpny','usercpny2','userdept','userdept2','skillTags','division','subgradings','userdivison'));
     }
 
@@ -236,17 +270,17 @@ class PersonnelController extends Controller
         $companies = MsCompany::select('cpny_id')->get();
         $departements = MsDepartment::select('department_id')->get();
         $joblevel = JobLevel::select('title_level')->get();
-        $skillTags = MJobtag::select('id', 'job_tags')->get(); 
-       
+        $skillTags = MJobtag::select('id', 'job_tags')->get();
+
         return view('pages.personnels.createpersonnelsx', compact('companies','departements','joblevel','usercpny','usercpny2','userdept','userdept2','skillTags'));
     }
 
 
     public function storePersonnel(Request $request)
     {
-        // dd($request->all()); 
-      
-        
+        // dd($request->all());
+
+
         // Validasi input
         $request->validate([
             'cpnyid' => 'required|string',
@@ -265,10 +299,10 @@ class PersonnelController extends Controller
         ]);
 
         $positionCondition = strtolower($request->job_type . ' ' . $request->group_grade);
-        $doctype = 'PRF';           
+        $doctype = 'PRF';
         $user     = $request->user();
         $username = $user->username ?? 'system';
-        $fullname = $user->name ?? 'system';   
+        $fullname = $user->name ?? 'system';
         $dt        = \Carbon\Carbon::now();
         $year      = (int) $dt->year;
         $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
@@ -288,7 +322,7 @@ class PersonnelController extends Controller
                 });
             })
             ->count();
-           
+
         if ($count_approval === 0) {
             return response()->json([
                 'message' => 'Approval line belum di-setup untuk kombinasi ini (Normal/Condition). Please contact IT!'
@@ -296,7 +330,7 @@ class PersonnelController extends Controller
         }
 
         DB::beginTransaction();
-        try {           
+        try {
 
             // // Generate task ID
             // $autonbr = Autonbr::lockForUpdate()
@@ -322,8 +356,8 @@ class PersonnelController extends Controller
             // }
 
             // $tglbln = substr($year, 2) . $month;
-            // $docid = $doctype . $tglbln . sprintf("%03d", $urutan);      
-            
+            // $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -334,16 +368,16 @@ class PersonnelController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);  
-          
-            $title = StoDepartement::where('departement_id', $request->job_title)              
+            $docid  = $doctype . $tglbln . sprintf("%03d", $urutan);
+
+            $title = StoDepartement::where('departement_id', $request->job_title)
                 ->where('status', 'A')
                 ->first();
 
-            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)              
+            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
                 ->where('status', 'A')
                 ->first();
-                       
+
             $task = Personnel::create([
                 'docid' => $docid,
                 'cpnyid' => $request->cpnyid,
@@ -354,24 +388,24 @@ class PersonnelController extends Controller
                 'user' => $user->username,
                 'job_title' => $request->job_title,
                 'subgrade_id' => $request->subgrade_id,
-                'job_level' => $grading->subgrade_name,                
-                'immediate_superior' => $request->immediate_superior,                
+                'job_level' => $grading->subgrade_name,
+                'immediate_superior' => $request->immediate_superior,
                 'state_position' => $request->state_position,
                 'job_type' => $request->job_type,
                 'reason_vacancy' => $request->reason_vacancy,
                 'required' => $request->required,
                 'actual' => $request->actual,
-                'total_actual' => $request->total_actual,       
+                'total_actual' => $request->total_actual,
                 'education' => $request->education,
                 'education_jurusan' => $request->education_jurusan,
                 'experience_start' => $request->experience_start,
-                'experience_end' => $request->experience_end, 
-                'experience_position' => $request->experience_position,          
+                'experience_end' => $request->experience_end,
+                'experience_position' => $request->experience_position,
                 'created_user' => $user->username,
-                'status' => $request->status ?? 'P'                
+                'status' => $request->status ?? 'P'
             ]);
-          
-          
+
+
             $msApprovalLines = MsApproval::where('status', 'A')
                 ->where('aprv_cpnyid', $request->cpnyid)
                 ->where('aprv_departementid', $request->departementid)
@@ -418,11 +452,11 @@ class PersonnelController extends Controller
                         'no_job_responsiblities' => $index + 1, // Urutan dimulai dari 1
                         'job_responsibilities_descr' => $responsibility,
                         'created_user' => $user->username,
-                        'status' => 'P'                                               
+                        'status' => 'P'
                     ]);
                 }
             }
-            
+
             // Simpan Qualification
             if ($request->has('qualification')) {
                 foreach ($request->qualification as $index => $qualification) {
@@ -431,7 +465,7 @@ class PersonnelController extends Controller
                         'no_job_qualification' => $index + 1,
                         'job_qualification_descr' => $qualification,
                         'created_user' => $user->username,
-                        'status' => 'P'   
+                        'status' => 'P'
                     ]);
                 }
             }
@@ -461,7 +495,7 @@ class PersonnelController extends Controller
             }
 
 
-            // Simpan Attachments ke attachments          
+            // Simpan Attachments ke attachments
            // === Upload attachments ke GCS & simpan ke tr_attachment ===
             if ($request->hasFile('attachments')) {
                 $ymFolder = 'att-job-career/' .strtolower($doctype) . '/' . $year;
@@ -532,7 +566,7 @@ class PersonnelController extends Controller
                     }
                 }
             }
-                      
+
             $t_approval_next = TrApproval::where('refnbr', $docid)
                 ->where('status', 'P')
                 ->orderBy('aprv_leveling', 'ASC')
@@ -635,9 +669,9 @@ class PersonnelController extends Controller
 
 
 
-    public function editPersonnel_xxx($hash) 
+    public function editPersonnel_xxx($hash)
     {
-        $user = Auth::user();       
+        $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
@@ -656,7 +690,7 @@ class PersonnelController extends Controller
         $companies = MsCompany::select('cpny_id')->get();
         $departements = MsDepartment::select('department_id')->get();
         // $joblevel = JobLevel::select('title_level')->get();
-        $skillTags = MJobtag::select('id', 'job_tags')->get(); 
+        $skillTags = MJobtag::select('id', 'job_tags')->get();
         $division  = Division::select('division_id','division_name')->get();
 
         // ⬇⬇ GANTI: Attachment -> TrAttachment (pakai refnbr & kolom baru)
@@ -973,11 +1007,11 @@ class PersonnelController extends Controller
             ], 500);
         }
     }
-    
+
     public function updatePersonnel_xxx(Request $request, $id)
     {
-        // dd($request->all()); 
-        
+        // dd($request->all());
+
         // Validasi input
         $request->validate([
             'cpnyid' => 'required|string',
@@ -991,7 +1025,7 @@ class PersonnelController extends Controller
             'reason_vacancy' => 'required|string',
             'required' => 'required|integer|min:1',
             'actual' => 'required|integer|min:0',
-            'total_actual' => 'required|integer|min:0'            
+            'total_actual' => 'required|integer|min:0'
         ]);
 
         DB::beginTransaction();
@@ -1006,15 +1040,15 @@ class PersonnelController extends Controller
 
             $personnel = Personnel::findOrFail($id);
 
-            $title = StoDepartement::where('departement_id', $request->job_title)              
+            $title = StoDepartement::where('departement_id', $request->job_title)
                 ->where('status', 'A')
                 ->first();
 
-            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)              
+            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
                 ->where('status', 'A')
                 ->first();
-                       
-            $personnel -> update([              
+
+            $personnel -> update([
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
                 'date' => $datenow,
@@ -1022,19 +1056,19 @@ class PersonnelController extends Controller
                 'user' => $user->username,
                 'job_title' => $request->job_title,
                 'subgrade_id' => $request->subgrade_id,
-                'job_level' => $grading->subgrade_name,                
-                'immediate_superior' => $request->immediate_superior,                
+                'job_level' => $grading->subgrade_name,
+                'immediate_superior' => $request->immediate_superior,
                 'state_position' => $request->state_position,
                 'job_type' => $request->job_type,
                 'reason_vacancy' => $request->reason_vacancy,
                 'required' => $request->required,
                 'actual' => $request->actual,
-                'total_actual' => $request->total_actual,   
+                'total_actual' => $request->total_actual,
                 'education' => $request->education,
                 'experience_start' => $request->experience_start,
-                'experience_end' => $request->experience_end,             
+                'experience_end' => $request->experience_end,
                 'created_user' => $user->username,
-                'status' => $request->status ?? 'P'                
+                'status' => $request->status ?? 'P'
             ]);
 
             //read ms_approval
@@ -1046,7 +1080,7 @@ class PersonnelController extends Controller
 
             //insert trx_approval
             foreach ($m_approval as $mp) {
-                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
+                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null;
                 T_approval::create([
                     'docid' => $personnel->docid,
                     'aprvid' => $mp->aprvid,
@@ -1060,21 +1094,21 @@ class PersonnelController extends Controller
                     'status' => 'P',
                     'created_user' => $user->username
                 ]);
-            }            
+            }
 
             if ($request->has('responsibilities')) {
                 JobResponsiblities::where('docid', $personnel->docid)->delete();
-                foreach ($request->responsibilities as $index => $responsibility) {                    
+                foreach ($request->responsibilities as $index => $responsibility) {
                     JobResponsiblities::create([
                         'docid' => $personnel->docid,
                         'no_job_responsiblities' => $index + 1, // Urutan dimulai dari 1
                         'job_responsibilities_descr' => $responsibility,
                         'created_user' => $user->username,
-                        'status' => 'P'                                               
+                        'status' => 'P'
                     ]);
                 }
             }
-            
+
             // Simpan Qualification
             if ($request->has('qualification')) {
                 JobQualification::where('docid', $personnel->docid)->delete();
@@ -1084,28 +1118,28 @@ class PersonnelController extends Controller
                         'no_job_qualification' => $index + 1,
                         'job_qualification_descr' => $qualification,
                         'created_user' => $user->username,
-                        'status' => 'P'   
+                        'status' => 'P'
                     ]);
                 }
             }
 
-            // Simpan Attachments ke attachments          
+            // Simpan Attachments ke attachments
             if ($request->hasfile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $randomNumber = random_int(10000000, 99999999);
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
                     $attachfile = md5($randomNumber) . '-' . $originalName;
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
+                    $config['upload_path'] = $folder_attach;
                     if(!is_dir($folder_attach))
                     {
                         mkdir($folder_attach, 0777);
                     }
-                    
+
                     $folder_upload = $folder_attach;
                     // $folder_upload = public_path() . '/attachments';
                     $file->move($folder_upload, $attachfile);
@@ -1128,24 +1162,24 @@ class PersonnelController extends Controller
                 ->first();
 
             $eid = Hashids::encode($personnel->id);
-           
+
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
-                'deptname' => $t_approval_next->aprvdeptid,                
+                'deptname' => $t_approval_next->aprvdeptid,
                 'date' => $t_approval_next->aprvdatebefore,
-                'name' => $t_approval_next->created_user,                          
-                'info' => $request->job_title,           
+                'name' => $t_approval_next->created_user,
+                'info' => $request->job_title,
                 'url' => url('/showvpersonels' .'/' . $eid)
-    
+
             );
-    
+
             $multiapp = explode(',', $t_approval_next->aprvusername);
-    
+
             $email_it = User::whereIN('username', $multiapp)
                 ->where('status', 'A')
                 ->get();
-    
+
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Personnels');
@@ -1172,7 +1206,7 @@ class PersonnelController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
     }
- 
+
 
 
 
@@ -1281,10 +1315,10 @@ class PersonnelController extends Controller
 
 
 
-    
+
     // public function fetchComments($id)
     // {
-    
+
     //     $comments = T_Message::where('docid', $id)
     //         ->orderBy('created_at', 'desc')
     //         ->get();
@@ -1304,8 +1338,8 @@ class PersonnelController extends Controller
     //     $comment = new T_Message();
     //     $comment->docid = $id;
     //     $comment->doctype = 'PRF';
-    //     $comment->username = $user->username; 
-    //     $comment->name = $user->name; 
+    //     $comment->username = $user->username;
+    //     $comment->name = $user->name;
     //     $comment->message = $request->comment;
     //     $comment->status = 'A';
     //     $comment->created_at = now();
@@ -1540,19 +1574,19 @@ class PersonnelController extends Controller
 
     // public function approvePersonnel(Request $request, $docid)
     // {
-    //     $datestamp = Carbon::now()->toDateTimeString();       
+    //     $datestamp = Carbon::now()->toDateTimeString();
     //     $user = request()->user(); // Ambil user yang login
-        
-    //     $personnel = Personnel::where('docid', $docid)->first();   
+
+    //     $personnel = Personnel::where('docid', $docid)->first();
 
     //     if (!$personnel) {
     //         return response()->json(['success' => false, 'message' => 'Prf not found'], 404);
-    //     }        
+    //     }
 
     //     $count_approval = T_approval::where('docid', '=', $personnel->docid)
     //         ->where('status', '=', 'P')
     //         ->count();
-    
+
     //     // Cek apakah user memiliki akses untuk approve
     //     $t_approval = T_approval::where('docid', $personnel->docid)
     //         ->where('status', 'P')
@@ -1567,7 +1601,7 @@ class PersonnelController extends Controller
     //         $t_approval->aprvusername = $user->username;
     //         $t_approval->name = $user->name;
     //         $t_approval->save();
-    //     }   
+    //     }
 
     //     if ($count_approval == 1) {
     //         $personnel->status = 'C';
@@ -1589,16 +1623,16 @@ class PersonnelController extends Controller
     //         $t_approval_next->aprvdatebefore = $datestamp;
     //         $t_approval_next->save();
 
-    //         //send email 
+    //         //send email
     //         $data = array(
     //             'docid' => $t_approval_next->docid,
     //             'cpnyid' => $t_approval_next->aprvcpnyid,
-    //             'deptname' => $t_approval_next->aprvdeptid,               
+    //             'deptname' => $t_approval_next->aprvdeptid,
     //             'date' => $t_approval_next->aprvdatebefore,
     //             'name' => $t_approval_next->created_user,
-    //             'info' => $personnel->job_title,               
-    //             'url' => url('/showvpersonels' .'/' . $eid)  
-                
+    //             'info' => $personnel->job_title,
+    //             'url' => url('/showvpersonels' .'/' . $eid)
+
     //         );
 
     //         $multiapp = explode(',', $t_approval_next->aprvusername);
@@ -1621,14 +1655,14 @@ class PersonnelController extends Controller
 
     // public function rejectPersonnel(Request $request, $docid)
     // {
-        
-    //     // dd($request->all());         
-    //     $datestamp = Carbon::now()->toDateTimeString();       
+
+    //     // dd($request->all());
+    //     $datestamp = Carbon::now()->toDateTimeString();
     //     $user = request()->user(); // Ambil user yang login
 
-    //     $personnel = Personnel::where('docid', $docid)->first();  
-        
-        
+    //     $personnel = Personnel::where('docid', $docid)->first();
+
+
     //     if (!$personnel) {
     //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
     //     }
@@ -1643,13 +1677,13 @@ class PersonnelController extends Controller
     //         return response()->json(['success' => false, 'message' => "You Can't Rejected!"], 403);
     //     } else {
     //         $t_approval->status = 'R';
-    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->aprvdateafter = $datestamp;
     //         $t_approval->save();
 
     //         $personnel->status = 'R';
     //         $personnel->save();
-    //     }   
-                       
+    //     }
+
     //     $t_aprv_sisa = T_approval::where('docid', '=', $personnel->docid)
     //         ->where('status', '=', 'P')
     //         ->get();
@@ -1661,7 +1695,7 @@ class PersonnelController extends Controller
 
     //     $eid = Hashids::encode($personnel->id);
 
-    //     //send email 
+    //     //send email
     //     $data = array(
     //         'docid' => $t_approval->docid,
     //         'cpnyid' => $t_approval->aprvcpnyid,
@@ -1669,12 +1703,12 @@ class PersonnelController extends Controller
     //         // 'locationname' => $ms_site->site,
     //         'date' => $t_approval->aprvdatebefore,
     //         'name' => $t_approval->created_user,
-    //         'info' => $personnel->job_title,               
-    //         'url' => url('/showvpersonels' .'/' . $eid) 
+    //         'info' => $personnel->job_title,
+    //         'url' => url('/showvpersonels' .'/' . $eid)
 
     //     );
 
-       
+
     //     $email_it = User::where('username', $personnel->created_user)
     //             ->where('status', 'A')
     //             ->get();
@@ -1696,14 +1730,14 @@ class PersonnelController extends Controller
 
     // public function revisePersonnel(Request $request, $docid)
     // {
-        
-    //     // dd($request->all());         
-    //     $datestamp = Carbon::now()->toDateTimeString();       
+
+    //     // dd($request->all());
+    //     $datestamp = Carbon::now()->toDateTimeString();
     //     $user = request()->user(); // Ambil user yang login
 
-    //     $personnel = Personnel::where('docid', $docid)->first();  
-        
-        
+    //     $personnel = Personnel::where('docid', $docid)->first();
+
+
     //     if (!$personnel) {
     //         return response()->json(['success' => false, 'message' => 'Personnel not found'], 404);
     //     }
@@ -1718,13 +1752,13 @@ class PersonnelController extends Controller
     //         return response()->json(['success' => false, 'message' => "You Can't Revise!"], 403);
     //     } else {
     //         $t_approval->status = 'D';
-    //         $t_approval->aprvdateafter = $datestamp;           
+    //         $t_approval->aprvdateafter = $datestamp;
     //         $t_approval->save();
 
     //         $personnel->status = 'D';
     //         $personnel->save();
-    //     }   
-                       
+    //     }
+
     //     $t_aprv_sisa = T_approval::where('docid', '=', $personnel->docid)
     //         ->where('status', '=', 'P')
     //         ->get();
@@ -1735,7 +1769,7 @@ class PersonnelController extends Controller
     //     }
 
     //     $eid = Hashids::encode($personnel->id);
-    //     //send email 
+    //     //send email
     //     $data = array(
     //         'docid' => $t_approval->docid,
     //         'cpnyid' => $t_approval->aprvcpnyid,
@@ -1743,12 +1777,12 @@ class PersonnelController extends Controller
     //         // 'locationname' => $ms_site->site,
     //         'date' => $t_approval->aprvdatebefore,
     //         'name' => $t_approval->created_user,
-    //         'info' => $personnel->job_title,               
-    //         'url' => url('/showvpersonels' .'/' . $eid) 
+    //         'info' => $personnel->job_title,
+    //         'url' => url('/showvpersonels' .'/' . $eid)
 
     //     );
 
-       
+
     //     $email_it = User::where('username', $personnel->created_user)
     //             ->where('status', 'A')
     //             ->get();
@@ -1768,7 +1802,7 @@ class PersonnelController extends Controller
     //     return response()->json(['success' => true, 'message' => 'Personnel revise successfully']);
     // }
 
-    
+
 
     // public function checkApproval($id, $action)
     // {
@@ -1777,7 +1811,7 @@ class PersonnelController extends Controller
     //     // Query dasar untuk pengecekan
     //     $query = T_approval::where('docid', $id)
     //                 ->where('aprvusername', 'like', '%' . $user->username . '%')
-    //                 ->where('status', 'P');                 
+    //                 ->where('status', 'P');
 
     //     // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
     //     if (in_array($action, ['reject', 'revise','approve'])) {
@@ -1839,14 +1873,14 @@ class PersonnelController extends Controller
 
     public function insert_jobposting($id)
     {
-        
+
         DB::beginTransaction();
         try {
             $doctype = 'JOB';
             $datenow = Carbon::now()->format('Y-m-d');
             $dt = Carbon::now();
             $year = (int) $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);            
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $datestamp = Carbon::now()->toDateTimeString();
             $user = request()->user();
 
@@ -1876,13 +1910,13 @@ class PersonnelController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
 
-            // $personnel = Personnel::where('docid', $id)          
+            // $personnel = Personnel::where('docid', $id)
             //     ->first();
             $personnel = Personnel::with(['divisionRef'])
                 ->where('docid', $id)
                 ->first();
 
-                  
+
             $task = Jobposting::create([
                 'docid' => $docid,
                 'refid' => $personnel->docid,
@@ -1893,24 +1927,24 @@ class PersonnelController extends Controller
                 'date' => $datenow,
                 'job_title' => $personnel->job_title,
                 'subgrade_id' => $personnel->subgrade_id,
-                'job_level' => $personnel->job_level,                
-                'immediate_superior' => $personnel->immediate_superior,                
+                'job_level' => $personnel->job_level,
+                'immediate_superior' => $personnel->immediate_superior,
                 'state_position' => $personnel->state_position,
                 'job_type' => $personnel->job_type,
                 'reason_vacancy' => $personnel->reason_vacancy,
                 'required' => $personnel->required,
                 'actual' => $personnel->actual,
-                'total_actual' => $personnel->total_actual,       
+                'total_actual' => $personnel->total_actual,
                 'education' => $personnel->education,
                 'experience_start' => $personnel->experience_start,
-                'experience_end' => $personnel->experience_end,           
+                'experience_end' => $personnel->experience_end,
                 'created_user' => $user->username,
-                'status' =>'P'              
+                'status' =>'P'
             ]);
-           
-            $jobres = JobResponsiblities::where('docid', $id)          
+
+            $jobres = JobResponsiblities::where('docid', $id)
                 ->get();
-            
+
             foreach ($jobres as $jr) {
                 JobpostingResponsiblities::create([
                     'docid' => $docid,
@@ -1918,10 +1952,10 @@ class PersonnelController extends Controller
                     'no_job_responsiblities' => $jr->no_job_responsiblities,
                     'job_responsibilities_descr' => $jr->job_responsibilities_descr,
                     'created_user' => $jr->created_user,
-                    'status' => 'P'                                               
+                    'status' => 'P'
                 ]);
-            }   
-            
+            }
+
             if (!$personnel) {
                 throw new \RuntimeException('Personnel tidak ditemukan');
             }
@@ -1972,9 +2006,9 @@ class PersonnelController extends Controller
                 ]);
             }
 
-            $jobqua = JobQualification::where('docid', $id)          
+            $jobqua = JobQualification::where('docid', $id)
                 ->get();
-            
+
             foreach ($jobqua as $jq) {
                 JobpostingQualification::create([
                     'docid' => $docid,
@@ -1982,23 +2016,23 @@ class PersonnelController extends Controller
                     'no_job_qualification' => $jq->no_job_qualification,
                     'job_qualification_descr' => $jq->job_qualification_descr,
                     'created_user' => $jq->created_user,
-                    'status' => 'P'                                               
+                    'status' => 'P'
                 ]);
-            }          
+            }
 
-            $jobtag = TrJobtag::where('docid', $id)          
+            $jobtag = TrJobtag::where('docid', $id)
                 ->get();
-            
+
             foreach ($jobtag as $jt) {
                 Jobpostingtag::create([
                     'docid' => $docid,
                     'refid' => $jt->docid,
-                    'job_tags' => $jt->job_tags,                  
+                    'job_tags' => $jt->job_tags,
                     'created_user' => $jt->created_user,
-                    'status' => 'P'                                               
+                    'status' => 'P'
                 ]);
-            }          
-                      
+            }
+
             DB::commit();
             return response()->json(['success' => true, 'task' => $task]);
         } catch (\Exception $e) {
@@ -2010,10 +2044,10 @@ class PersonnelController extends Controller
     public function getSitesByCompany($cpnyid)
     {
         // $sites = Site::where('cpnyid', $cpnyid)
-        //     ->select('id', 'site')         
+        //     ->select('id', 'site')
         //     ->get();
 
-        // $sites = Site::select('id', 'site')         
+        // $sites = Site::select('id', 'site')
         //     ->get();
         $sites = CompanyAddress::where('status', 'A')
             ->whereNotNull('sitelocation')
@@ -2031,7 +2065,7 @@ class PersonnelController extends Controller
     {
         // Ambil ID departemen berdasarkan nama (misal "IT")
         $dept = StoDepartement::where('departement_name', $deptId)->first(['departement_id']);
-       
+
         if (!$dept) {
             abort(404, 'Departemen tidak ditemukan');
         }
@@ -2045,9 +2079,9 @@ class PersonnelController extends Controller
                     ->from('hr_ms_sto_departement as d1')
                     ->where('d1.parent_id', $dept->departement_id);
             })
-            ->select('d2.departement_id', 'd2.departement_name', 'e.id','d2.parent_id', 'e.employee_level')           
-            ->get();       
- 
+            ->select('d2.departement_id', 'd2.departement_name', 'e.id','d2.parent_id', 'e.employee_level')
+            ->get();
+
         return response()->json($departments);
     }
 
@@ -2168,21 +2202,21 @@ class PersonnelController extends Controller
 
     public function getParentJobInfo($parentId, $departementId,$deptId)
     {
-        
+
         // Ambil 1 orang selain VACANT di parent_id tsb
         $employee = DB::table('hr_ms_sto_employee as e')
             ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
-            ->where('d.departement_id', $parentId)           
+            ->where('d.departement_id', $parentId)
             ->select('e.employee_name', 'e.employee_level','d.subgrade_name')
             ->first();
         // dd($employee);
-        $jobprofile = DB::table('hr_ms_sto_job_profile')           
-            ->where('departement_id', $departementId)    
+        $jobprofile = DB::table('hr_ms_sto_job_profile')
+            ->where('departement_id', $departementId)
             ->get();
 
-        $jobspec = DB::table('hr_ms_sto_job_spec')           
-            ->where('departement_id', $departementId)    
-            ->first();       
+        $jobspec = DB::table('hr_ms_sto_job_spec')
+            ->where('departement_id', $departementId)
+            ->first();
 
         $actual = DB::table('hr_ms_sto_employee as e')
             ->where('e.departement_id', $departementId)
@@ -2192,7 +2226,7 @@ class PersonnelController extends Controller
 
 
         // $dept = StoDepartement::where('departement_name', $deptId)->first(['departement_id']);
-        
+
         // $actual = DB::table('hr_ms_sto_employee as e')
         //     ->join('hr_ms_sto_departement as d2', 'e.departement_id', '=', 'd2.departement_id')
         //     ->where('e.employee_name', '!=','VACANT')
@@ -2202,10 +2236,10 @@ class PersonnelController extends Controller
         //             ->from('hr_ms_sto_departement as d1')
         //             ->where('d1.parent_id', $departementId);
         //     })
-        //     ->select('d2.departement_id', 'd2.departement_name', 'e.id','d2.parent_id', 'e.employee_level')           
-        //     ->count(); 
+        //     ->select('d2.departement_id', 'd2.departement_name', 'e.id','d2.parent_id', 'e.employee_level')
+        //     ->count();
 
-                 
+
         return response()->json([
             'employee_name' => $employee->employee_name ?? 'Not Found',
             'employee_level' => $employee->subgrade_name ?? '',
@@ -2218,27 +2252,27 @@ class PersonnelController extends Controller
             'required' => 1,
             'total_actual' => $actual + 1,
         ]);
-        
+
     }
 
     public function getJobParentInfoEdit($parentId, $departementId,$deptId, Request $request)
     {
         $docid = $request->query('docid');
-        
+
         // Ambil 1 orang selain VACANT di parent_id tsb
         $employee = DB::table('hr_ms_sto_employee as e')
             ->join('hr_ms_sto_departement as d', 'e.departement_id', '=', 'd.departement_id')
-            ->where('d.departement_id', $parentId)           
+            ->where('d.departement_id', $parentId)
             ->select('e.employee_name', 'e.employee_level','d.subgrade_name')
             ->first();
         // dd($employee);
-        $jobprofile = DB::table('hr_ms_sto_job_profile')           
-            ->where('departement_id', $departementId)    
+        $jobprofile = DB::table('hr_ms_sto_job_profile')
+            ->where('departement_id', $departementId)
             ->get();
 
-        $jobspec = DB::table('hr_ms_sto_job_spec')           
-            ->where('departement_id', $departementId)    
-            ->first();       
+        $jobspec = DB::table('hr_ms_sto_job_spec')
+            ->where('departement_id', $departementId)
+            ->first();
 
         $actual = DB::table('hr_ms_sto_employee as e')
             ->where('e.departement_id', $departementId)
@@ -2246,15 +2280,15 @@ class PersonnelController extends Controller
             ->where('e.status', 'A')
             ->count();
 
-        $skill = DB::table('hr_trx_prf_job_qualification')           
-            ->where('docid', $docid)    
+        $skill = DB::table('hr_trx_prf_job_qualification')
+            ->where('docid', $docid)
             ->get();
 
-        $tags = DB::table('hr_trx_prf_job_tags')           
-            ->where('docid', $docid)    
+        $tags = DB::table('hr_trx_prf_job_tags')
+            ->where('docid', $docid)
             ->get();
 
-                     
+
         return response()->json([
             'employee_name' => $employee->employee_name ?? 'Not Found',
             'employee_level' => $employee->subgrade_name ?? '',
@@ -2269,10 +2303,10 @@ class PersonnelController extends Controller
             'required' => 1,
             'total_actual' => $actual + 1,
         ]);
-        
+
     }
 
-    
+
     public function viewAttachment($id)
     {
         $att = TrAttachment::where('id', $id)->where('status','A')->firstOrFail();
