@@ -376,31 +376,53 @@ class ReportWarehouseController extends Controller
             if ($request->doctype)
                 $base->where('m.doctype', $request->doctype);
 
+            // $ending = DB::connection('pgsql')
+            //     ->table('v_inventory_movement_detail as m')
+            //     ->selectRaw("
+            //         m.inventoryid,
+            //         m.siteid,
+            //         SUM(
+            //             CASE
+            //                 WHEN UPPER(m.doctype) IN ('STTB','ISSUE_RETURN') THEN m.qty
+            //                 WHEN UPPER(m.doctype) IN ('ISSUE','STTB_RETURN') THEN -m.qty
+            //                 ELSE 0
+            //             END
+            //         ) as ending_qty
+            //     ")
+            //     ->groupBy('m.inventoryid','m.siteid');
+
 
             $query = DB::connection('pgsql')
                 ->query()
                 ->fromSub($base, 'x')
+                // ->leftJoinSub($ending, 'e', function ($join) {
+                //     $join->on('x.inventoryid','=','e.inventoryid')
+                //         ->on('x.siteid','=','e.siteid');
+                // }
+                // )
 
-                ->selectRaw("
-                    x.*,
+            ->selectRaw("
+                x.*,
 
-                    -- 🔥 BACKWARD RUNNING TOTAL (reverse direction)
+                -- 🔥 running backward (assume ending = 0)
+                SUM(qty_out - qty_in) OVER (
+                    PARTITION BY x.inventoryid, x.siteid
+                    ORDER BY x.docdate DESC, x.docid DESC
+                ) as running_back,
+
+                -- 🔥 ENDING (after transaction)
+                SUM(qty_out - qty_in) OVER (
+                    PARTITION BY x.inventoryid, x.siteid
+                    ORDER BY x.docdate DESC, x.docid DESC
+                ) - (qty_out - qty_in) as end_qty,
+
+                -- 🔥 BEGINNING (before transaction)
+                (
                     SUM(qty_out - qty_in) OVER (
-                        PARTITION BY x.inventoryid
+                        PARTITION BY x.inventoryid, x.siteid
                         ORDER BY x.docdate DESC, x.docid DESC
-                    ) as running_back,
-
-                    -- BEGINNING = running
-                    SUM(qty_out - qty_in) OVER (
-                        PARTITION BY x.inventoryid
-                        ORDER BY x.docdate DESC, x.docid DESC
-                    ) as begin_qty,
-
-                    -- ENDING = next state
-                    SUM(qty_out - qty_in) OVER (
-                        PARTITION BY x.inventoryid
-                        ORDER BY x.docdate DESC, x.docid DESC
-                    ) - qty_out + qty_in as end_qty
+                    ) - (qty_out - qty_in)
+                ) + (qty_out - qty_in) as begin_qty
             ");
         }
         elseif ($report === 'issue') {
