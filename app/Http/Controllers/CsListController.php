@@ -247,6 +247,7 @@ class CsListController extends Controller
                     $csTable.'.assigndate',
                     $csTable.'.submitdate',
                     $csTable.'.status',
+                    $csTable.'.keperluan',
                     DB::raw("$prefixExpr AS sppbjkt_prefix"),
                     DB::raw("(CASE
                         WHEN $prefixExpr = 'PB' THEN (SELECT id FROM tr_sppb WHERE tr_sppb.sppbid = {$csTable}.sppbjktid LIMIT 1)

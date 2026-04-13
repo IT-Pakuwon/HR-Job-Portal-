@@ -123,10 +123,10 @@
                                 Department</th>
                             <th
                                 class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Created By</th>
+                                Purchaser  </th>
                             <th
                                 class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Note</th>
+                                Purpose</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Assign Date</th>
                             <th class="w-32 px-6 py-2 font-medium">
@@ -222,7 +222,11 @@
                     width: '28px',
                     className: 'dtr-control',
                     orderable: false
-                }],
+                },
+                {
+                targets: '_all',
+                className: 'text-left'
+            }],
                 order: [
                     [2, 'desc'],
                     [0, 'desc']
@@ -266,10 +270,55 @@
                         data: 'created_by',
                         className: 'text-left'
                     },
+                    // {
+                    //     data: 'csnote',
+                    //     className: 'text-left',
+                    //     defaultContent: '-',
+                    //     render: function (data) {
+                    //         if (!data) return '-';
+
+                    //         return `
+                    //             <div
+                    //                 title="${escapeHtml(data)}"
+                    //                 style="
+                    //                     max-width:220px;
+                    //                     white-space:nowrap;
+                    //                     overflow:hidden;
+                    //                     text-overflow:ellipsis;
+                    //                     cursor:help;
+                    //                     text-align:left;
+                    //                 "
+                    //             >
+                    //                 ${escapeHtml(data)}
+                    //             </div>
+                    //         `;
+                    //     }
+                    // },
                     {
-                        data: 'csnote',
-                        className: 'text-left',
-                        defaultContent: '-'
+                        data: 'keperluan',
+                        defaultContent: '-',
+                        createdCell: function(td) {
+                            td.style.setProperty('text-align', 'left', 'important'); // 💥 strongest override
+                        },
+                        render: function (data) {
+                            if (!data) return '-';
+
+                            return `
+                                <div
+                                    title="${escapeHtml(data)}"
+                                    style="
+                                        max-width:220px;
+                                        white-space:nowrap;
+                                        overflow:hidden;
+                                        text-overflow:ellipsis;
+                                        cursor:help;
+                                        text-align:left;
+                                    "
+                                >
+                                    ${escapeHtml(data)}
+                                </div>
+                            `;
+                        }
                     },
                     {
                         data: 'assigndate',
@@ -321,6 +370,17 @@
                 localStorage.setItem('csFilterCpny', cpnyId);
                 table.ajax.reload(null, true);
             });
+
+            function escapeHtml(text) {
+                return text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+
 
             function fmtDate(v) {
                 if (!v) return '';
