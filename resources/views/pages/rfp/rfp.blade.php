@@ -4,7 +4,7 @@
         $user = auth()->user();
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
 
-        $xlCols = 7;
+        $xlCols = 5;
         if ($hasRfpAllAccess) {
             $xlCols++;
         }
@@ -73,7 +73,7 @@
                         <p class="shrink-0 text-base font-extrabold">{{ $rfpAll ?? 0 }}</p>
                     </div>
                 </a>
-
+{{--
                 <a href="#" class="status-filter group block h-full" data-scope="finance_received">
                     <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md">
                         <div class="flex h-7 w-7 items-center justify-center">🏦</div>
@@ -92,7 +92,7 @@
                         </div>
                         <p class="text-base font-extrabold">{{ $treasuryReceived ?? 0 }}</p>
                     </div>
-                </a>
+                </a> --}}
             @endif
         </div>
 

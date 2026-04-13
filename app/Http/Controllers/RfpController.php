@@ -503,6 +503,35 @@ class RfpController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)->get();
         $userdept2 = Userdept::where('username', '=', $user->username)->first();
 
+        $rfpSteps = collect();
+
+        // 1. CREATED
+        $rfpSteps->push([
+            'order' => 1,
+            'description' => 'RFP Created',
+            'user' => $rfp->created_by,
+            'date' => $rfp->created_at,
+            'status' => 'Done',
+        ]);
+
+        // 2. FINANCE RECEIVED
+        $rfpSteps->push([
+            'order' => 2,
+            'description' => 'Finance Received',
+            'user' => $rfp->user_receive ?? '-',
+            'date' => $rfp->receive_date,
+            'status' => $rfp->status_receive === 'C' ? 'Done' : 'Pending',
+        ]);
+
+        // 3. TREASURY PAYMENT
+        $rfpSteps->push([
+            'order' => 3,
+            'description' => 'Treasury Payment',
+            'user' => $rfp->user_payment ?? '-',
+            'date' => $rfp->payment_date,
+            'status' => $rfp->status_payment === 'C' ? 'Done' : 'Pending',
+        ]);
+
         return view('pages.rfp.showrfp', compact(
             'rfp',
             'attachments',
@@ -514,7 +543,8 @@ class RfpController extends Controller
             'poUrl',
             'csUrl',
             'sppbjktUrl',
-            'typepayment'
+            'typepayment',
+            'rfpSteps'
         ));
     }
 

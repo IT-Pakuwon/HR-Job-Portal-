@@ -160,111 +160,179 @@
                 </div>
 
                 {{-- RIGHT CARD --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                    <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
-                        <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                            <nav class="flex flex-grow">
-                                <button @click="activeTab = 'attachment'"
-                                    :class="activeTab === 'attachment'
-                                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                                        : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                    Attachment
-                                </button>
-                                <button @click="activeTab = 'approval'"
-                                    :class="activeTab === 'approval'
-                                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                                        : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                    Approval Details
-                                </button>
-                                <button @click="activeTab = 'comments'"
-                                    :class="activeTab === 'comments'
-                                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                                        : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                                    class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
-                                    Comments
-                                </button>
-                            </nav>
-                        </header>
+                <div class="flex flex-1 flex-col gap-6">
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                        <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col overflow-y-auto">
+                            <header class="sticky top-0 z-10 flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
+                                <nav class="flex flex-grow">
+                                    <button @click="activeTab = 'attachment'"
+                                        :class="activeTab === 'attachment'
+                                            ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                                            : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                        Attachment
+                                    </button>
+                                    <button @click="activeTab = 'approval'"
+                                        :class="activeTab === 'approval'
+                                            ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                                            : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                        Approval Details
+                                    </button>
+                                    <button @click="activeTab = 'comments'"
+                                        :class="activeTab === 'comments'
+                                            ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                                            : 'border-b-2 border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                                        class="flex-1 px-4 py-2 text-center text-sm font-medium transition-colors duration-200">
+                                        Comments
+                                    </button>
+                                </nav>
+                            </header>
 
-                        <div class="flex flex-1 flex-col">
-                            <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                            <th class="p-3 text-left font-semibold">Level</th>
-                                            <th class="p-3 text-left font-semibold">Name</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                            <th class="p-3 text-left font-semibold">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="approval-table-body"></tbody>
-                                </table>
-                            </div>
+                            <div class="flex flex-1 flex-col">
+                                <div x-show="activeTab === 'approval'" class="flex-1 overflow-y-auto px-4">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                                <th class="p-3 text-left font-semibold">Level</th>
+                                                <th class="p-3 text-left font-semibold">Name</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                                <th class="p-3 text-left font-semibold">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="approval-table-body"></tbody>
+                                    </table>
+                                </div>
 
-                            <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
-                                <table class="w-full text-sm">
-                                    <thead class="text-gray-600 dark:text-gray-300">
-                                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                                            <th class="p-3 text-left font-semibold">Filename</th>
-                                            <th class="p-3 text-left font-semibold">Created By</th>
-                                            <th class="p-3 text-left font-semibold">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="rfpAttachmentTbody"></tbody>
-                                </table>
+                                <div x-show="activeTab === 'attachment'" class="flex-1 overflow-y-auto px-4">
+                                    <table class="w-full text-sm">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="rfpAttachmentTbody"></tbody>
+                                    </table>
 
-                                @if ($canUpload)
-                                    <div class="border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <form id="rfpAttachmentUploadForm" enctype="multipart/form-data">
-                                            @csrf
-                                            <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                                <div class="flex-1">
-                                                    <label for="rfpAttachFiles"
-                                                        class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                                        Upload Attachments
-                                                    </label>
-                                                    <div class="flex items-center gap-3">
-                                                        <input type="hidden" name="cpnyid" value="{{ $rfp->cpny_id }}">
-                                                        <input type="hidden" name="departementid" value="{{ $rfp->department_id }}">
-                                                        <input type="file" id="rfpAttachFiles" name="attachments[]" multiple
-                                                            class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
-                                                        <button type="button" id="btnUploadRfpAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
-                                                            Upload
-                                                        </button>
-                                                        <button type="button" id="btnResetRfpAttachment"
-                                                            class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                                                            Reset
-                                                        </button>
+                                    @if ($canUpload)
+                                        <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+                                            <form id="rfpAttachmentUploadForm" enctype="multipart/form-data">
+                                                @csrf
+                                                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                                    <div class="flex-1">
+                                                        <label for="rfpAttachFiles"
+                                                            class="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                                            Upload Attachments
+                                                        </label>
+                                                        <div class="flex items-center gap-3">
+                                                            <input type="hidden" name="cpnyid" value="{{ $rfp->cpny_id }}">
+                                                            <input type="hidden" name="departementid" value="{{ $rfp->department_id }}">
+                                                            <input type="file" id="rfpAttachFiles" name="attachments[]" multiple
+                                                                class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                                            <button type="button" id="btnUploadRfpAttachment"
+                                                                class="inline-flex h-[36px] items-center justify-center rounded-md bg-indigo-600 px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                                                                Upload
+                                                            </button>
+                                                            <button type="button" id="btnResetRfpAttachment"
+                                                                class="inline-flex h-[36px] items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                                                                Reset
+                                                            </button>
+                                                        </div>
+                                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                                            Max 10 files, PDF / Image preferred.
+                                                        </p>
                                                     </div>
-                                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                                        Max 10 files, PDF / Image preferred.
-                                                    </p>
                                                 </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </div>
 
-                            <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
-                                <div class="flex h-full flex-col">
-                                    <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
-                                        <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
-                                    </div>
-                                    <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
-                                        <input id="commentInput" type="text"
-                                            placeholder="Write a comment..."
-                                            class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
-                                        <button id="postCommentBtn" type="button"
-                                            class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700">
-                                            Post 🚀
-                                        </button>
+                                <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
+                                    <div class="flex h-full flex-col">
+                                        <div id="commentList" class="custom-scrollbar flex-1 flex-col space-y-4 overflow-y-auto p-4">
+                                            <p class="py-4 text-center italic text-gray-500">Loading comments...</p>
+                                        </div>
+                                        <div class="flex items-center gap-3 border-t border-gray-200 p-4 dark:border-gray-700">
+                                            <input id="commentInput" type="text"
+                                                placeholder="Write a comment..."
+                                                class="flex-1 rounded-lg bg-gray-100 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white">
+                                            <button id="postCommentBtn" type="button"
+                                                class="rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700">
+                                                Post 🚀
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                        <header class="flex items-center justify-between border-b px-6 py-2 bg-gray-50 dark:bg-gray-700">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                    RFP Progress Steps
+                                </h2>
+
+                                <span class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700">
+                                    Type: RFP Purchase
+                                </span>
+                            </div>
+                        </header>
+
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead class="border-b text-gray-600 dark:text-gray-300">
+                                    <tr>
+                                        <th class="p-2 text-left">Order</th>
+                                        <th class="p-2 text-left">Description</th>
+                                        <th class="p-2 text-left">User</th>
+                                        <th class="p-2 text-left">Date</th>
+                                        <th class="p-2 text-left">Status</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    @forelse ($rfpSteps as $step)
+                                        @php
+                                            $cls = match ($step['status']) {
+                                                'Done' => 'bg-green-100 text-green-700',
+                                                'Pending' => 'bg-yellow-100 text-yellow-700',
+                                                'Rejected' => 'bg-red-100 text-red-700',
+                                                'Revise' => 'bg-blue-100 text-blue-700',
+                                                default => 'bg-gray-100 text-gray-700'
+                                            };
+                                        @endphp
+
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td class="p-2">{{ $step['order'] }}</td>
+                                            <td class="p-2">{{ $step['description'] }}</td>
+                                            <td class="p-2">{{ $step['user'] }}</td>
+
+                                            <td class="p-2">
+                                                {{ $step['date']
+                                                    ? \Carbon\Carbon::parse($step['date'])->format('d M Y H:i')
+                                                    : '-' }}
+                                            </td>
+
+                                            <td class="p-2">
+                                                <span class="{{ $cls }} px-2 py-1 rounded-full text-xs font-semibold">
+                                                    {{ $step['status'] }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-gray-500 italic p-3">
+                                                No progress yet
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

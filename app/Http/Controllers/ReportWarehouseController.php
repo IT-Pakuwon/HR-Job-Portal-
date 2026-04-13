@@ -401,29 +401,27 @@ class ReportWarehouseController extends Controller
                 // }
                 // )
 
-            ->selectRaw("
-                x.*,
+->selectRaw("
+    x.*,
 
-                -- 🔥 running backward (assume ending = 0)
-                SUM(qty_out - qty_in) OVER (
-                    PARTITION BY x.inventoryid, x.siteid
-                    ORDER BY x.docdate DESC, x.docid DESC
-                ) as running_back,
+    -- 🔥 running backward
+    SUM(qty_out - qty_in) OVER (
+        PARTITION BY x.inventoryid, x.siteid
+        ORDER BY x.docdate DESC, x.docid DESC
+    ) as running_back,
 
-                -- 🔥 ENDING (after transaction)
-                SUM(qty_out - qty_in) OVER (
-                    PARTITION BY x.inventoryid, x.siteid
-                    ORDER BY x.docdate DESC, x.docid DESC
-                ) - (qty_out - qty_in) as end_qty,
+    -- 🔥 BEGINNING (before transaction)
+    SUM(qty_out - qty_in) OVER (
+        PARTITION BY x.inventoryid, x.siteid
+        ORDER BY x.docdate DESC, x.docid DESC
+    ) as begin_qty,
 
-                -- 🔥 BEGINNING (before transaction)
-                (
-                    SUM(qty_out - qty_in) OVER (
-                        PARTITION BY x.inventoryid, x.siteid
-                        ORDER BY x.docdate DESC, x.docid DESC
-                    ) - (qty_out - qty_in)
-                ) + (qty_out - qty_in) as begin_qty
-            ");
+    -- 🔥 ENDING (after transaction)
+    SUM(qty_out - qty_in) OVER (
+        PARTITION BY x.inventoryid, x.siteid
+        ORDER BY x.docdate DESC, x.docid DESC
+    ) - (qty_out - qty_in) as end_qty
+");
         }
         elseif ($report === 'issue') {
             $query = $this->issueQuery();
