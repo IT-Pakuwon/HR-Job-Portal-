@@ -112,9 +112,8 @@
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
                 <div class="flex flex-row items-center gap-2">
                     @if(auth()->user()->hasRole('HCBPACCESS'))
-                    <div class="flex gap-3 " id="hcbpFilters" style="display:none;">
+                    <div class="flex items-center gap-2" id="hcbpFilters" style="display:none;">
 
-                        {{-- STATUS --}}
                         <select id="filterStatus" class="border rounded px-3 py-2 text-sm">
                             <option value="">All Status</option>
                             <option value="P">On Progress</option>
@@ -123,13 +122,24 @@
                             <option value="C">Completed</option>
                         </select>
 
-                        {{-- DEPARTMENT --}}
                         <select id="filterDept" class="border rounded px-3 py-2 text-sm">
                             <option value="">All Department</option>
                             @foreach($departments ?? [] as $dept)
                                 <option value="{{ $dept->department_id }}">{{ $dept->department_name }}</option>
                             @endforeach
                         </select>
+
+                        {{-- APPLY --}}
+                        <button id="applyFilter"
+                            class="bg-indigo-600 text-white px-3 py-2 rounded text-sm hover:bg-indigo-700">
+                            Apply
+                        </button>
+
+                        {{-- RESET --}}
+                        <button id="resetFilter"
+                            class="bg-gray-500 text-white px-3 py-2 rounded text-sm hover:bg-gray-600">
+                            Reset
+                        </button>
 
                     </div>
                     @endif
@@ -434,6 +444,34 @@
 
                     newUrl += "?status=" + encodeURIComponent(selectedStatus ?? '');
                 }
+
+                personnelsTable.ajax.url(newUrl).load();
+            });
+
+            // 🔥 APPLY FILTER
+            $('#applyFilter').on('click', function() {
+
+                let status = $('#filterStatus').val();
+                let dept = $('#filterDept').val();
+
+                let newUrl = "{{ route('personnels.json') }}"
+                    + "?hcbp=1"
+                    + "&status=" + encodeURIComponent(status ?? '')
+                    + "&department=" + encodeURIComponent(dept ?? '');
+
+                console.log("APPLY URL:", newUrl); // debug
+
+                personnelsTable.ajax.url(newUrl).load();
+            });
+
+            $('#resetFilter').on('click', function() {
+
+                $('#filterStatus').val('');
+                $('#filterDept').val('');
+
+                let newUrl = "{{ route('personnels.json') }}?hcbp=1";
+
+                console.log("RESET URL:", newUrl);
 
                 personnelsTable.ajax.url(newUrl).load();
             });

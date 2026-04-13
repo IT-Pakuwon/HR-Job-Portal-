@@ -131,6 +131,8 @@ class PersonnelController extends Controller
             $base = $this->personnelScopeForUser($user);
         }
 
+
+
         $counts = (clone $base)->selectRaw("
             COUNT(*) AS all,
             SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) AS on_progress,
@@ -164,13 +166,10 @@ class PersonnelController extends Controller
     {
         $user = Auth::user();
 
-        $status = $request->has('status') ? $request->query('status') : 'P';
-        $status = is_string($status) ? trim($status) : $status;
+        $status = $request->query('status');
 
-        // $query = $this->personnelScopeForUser($user);
         if ($request->hcbp == 1 && $this->hasHcbpAccess($user)) {
 
-            // 🔥 HCBP MODE: semua dept dalam company
             $cpnyIds = $this->userCpnyIds($user);
 
             $query = Personnel::query()
@@ -178,20 +177,23 @@ class PersonnelController extends Controller
 
         } else {
 
-            // 🔒 NORMAL MODE (existing logic)
             $query = $this->personnelScopeForUser($user);
         }
 
-        if ($status !== null && $status !== '' && strtolower((string)$status) !== 'all') {
+        // ✅ STATUS FILTER (ONLY ONE)
+        if (!empty($status) && strtolower($status) !== 'all') {
             $query->where('status', $status);
         }
 
-        // $rows = $query->orderByDesc('id')->get();
+        // ✅ DEPARTMENT FILTER
+        if ($request->filled('department')) {
+            $query->where('departementid', $request->department);
+        }
+
         $rows = $query
             ->orderByDesc('created_at')
             ->orderByDesc('docid')
             ->get();
-
 
         $personnel = $rows->map(function ($row) {
             return [
@@ -210,7 +212,6 @@ class PersonnelController extends Controller
 
         return response()->json(['data' => $personnel]);
     }
-
 
 
     public function createPersonnel()
