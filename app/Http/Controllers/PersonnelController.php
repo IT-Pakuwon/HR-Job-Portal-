@@ -116,24 +116,21 @@ class PersonnelController extends Controller
     {
         $user = Auth::user();
 
-        $departments = DepartmentHR::where('status', 'A')
-        ->orderBy('department_name')
-        ->get();
-
         if (!$user) {
             return redirect()->route('login');
         }
 
-        // 🔥 FIX: handle HCBP
-        if ($user->hasRole('HCBPACCESS')) {
-            $base = Personnel::whereIn('cpnyid', $this->userCpnyIds($user));
-        } else {
-            $base = $this->personnelScopeForUser($user);
-        }
+        // 🔽 dropdown department (buat filter HCBP)
+        $departments = DepartmentHR::where('status', 'A')
+            ->orderBy('department_name')
+            ->get();
 
+        // =========================================================
+        // 🔥 BASE NORMAL (ALL CARD) → HARUS PAKAI SCOPE USER
+        // =========================================================
+        $baseUser = $this->personnelScopeForUser($user);
 
-
-        $counts = (clone $base)->selectRaw("
+        $counts = (clone $baseUser)->selectRaw("
             COUNT(*) AS all,
             SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) AS on_progress,
             SUM(CASE WHEN status = 'R' THEN 1 ELSE 0 END) AS reject,
@@ -141,13 +138,27 @@ class PersonnelController extends Controller
             SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) AS completed
         ")->first();
 
+        // =========================================================
+        // 🔥 HCBP ALL (SEPARATE COUNT)
+        // =========================================================
+        $hcbpAll = null;
+
+        if ($this->hasHcbpAccess($user)) {
+            $baseHcbp = Personnel::query()
+                ->whereIn('cpnyid', $this->userCpnyIds($user));
+
+            $hcbpAll = (clone $baseHcbp)->count();
+        }
+
+        // =========================================================
         return view('pages.personnels.personnels', [
             'all'        => (int) ($counts->all ?? 0),
             'onProgress' => (int) ($counts->on_progress ?? 0),
             'reject'     => (int) ($counts->reject ?? 0),
             'revise'     => (int) ($counts->revise ?? 0),
             'completed'  => (int) ($counts->completed ?? 0),
-            'departments' => $departments,
+            'hcbpAll'    => (int) ($hcbpAll ?? 0), // 🔥 tambahan
+            'departments'=> $departments,
         ]);
     }
 
