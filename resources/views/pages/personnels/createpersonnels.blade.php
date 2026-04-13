@@ -73,29 +73,47 @@
                             </summary>
                             <div class="pt-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
-                                    <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
-                                            Type</label>
-                                        <select name="job_type" id="job_type"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required>
-                                            <option value="" disabled>Select Job Type</option>
-                                            <option value="New">New</option>
-                                            <option value="Replacement">Replacement</option>
-                                        </select>
-                                    </div>
-                                    <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
-                                            Title</label>
-                                        {{-- <select name="job_title" id="job_title"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required>
-                                            <option value="">Select/option>
-                                        </select> --}}
-                                        <input type="text" name="job_title" id="job_title"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            required>
-                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                                        {{-- Job Type --}}
+                                        <div class="flex flex-col gap-2">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Job Type
+                                            </label>
+                                            <select name="job_type" id="job_type"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                required>
+                                                <option value="" disabled>Select Job Type</option>
+                                                <option value="New">New</option>
+                                                <option value="Replacement">Replacement</option>
+                                            </select>
+                                        </div>
+
+                                        {{-- Replacement --}}
+                                        <div id="replacementField" class="flex flex-col gap-2 opacity-0 pointer-events-none transition-all duration-200">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Replacement Name
+                                            </label>
+                                            <input type="text" name="replacement_name" id="replacement_name"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                placeholder="Enter employee name to be replaced">
+                                        </div>
+
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Job Title
+                                            </label>
+
+                                            <input type="text" name="job_title" id="job_title"
+                                                class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                                required>
+
+                                            {{-- NOTE --}}
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                * Hanya tuliskan nama job. Contoh: <b>Promotion</b> / <b>IT</b>. Tidak perlu level (Staff, Officer, dll).
+                                            </span>
+                                        </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
                                             Level</label>
@@ -123,7 +141,7 @@
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">State
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Superior
                                             Position</label>
                                         <input type="text" name="state_position" id="state_position"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
@@ -956,6 +974,34 @@
 
             // trigger saat pilihan berubah
             subgradeSelect.addEventListener("change", updateGroupGrade);
+        });
+
+        $(document).ready(function () {
+
+            function toggleReplacementField() {
+                let jobType = $('#job_type').val();
+
+                if (jobType === 'Replacement') {
+                  $('#replacementField')
+    .removeClass('opacity-0 pointer-events-none')
+    .addClass('opacity-100');
+                    $('#replacement_name').attr('required', true);
+                } else {
+                  $('#replacementField')
+    .addClass('opacity-0 pointer-events-none')
+    .removeClass('opacity-100');
+                    $('#replacement_name').val('');
+                    $('#replacement_name').removeAttr('required');
+                }
+            }
+
+            // trigger saat change
+            $('#job_type').on('change', function () {
+                toggleReplacementField();
+            });
+
+            // trigger saat load (kalau edit mode)
+            toggleReplacementField();
         });
     </script>
 

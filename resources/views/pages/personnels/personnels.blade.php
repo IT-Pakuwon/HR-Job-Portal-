@@ -87,9 +87,6 @@
                     <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                 </div>
             </a>
-
-
-
             @if($isHcbp)
             <a href="#" class="status-filter group block h-full" data-hcbp="1">
                 <div

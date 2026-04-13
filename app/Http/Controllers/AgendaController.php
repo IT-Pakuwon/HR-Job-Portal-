@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Agenda;
 use Illuminate\Support\Carbon;
@@ -34,7 +34,7 @@ use App\Services\ZoomApi;
 use App\Models\Viewtrxmeeting;
 use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
-use App\Models\TrApproval;  
+use App\Models\TrApproval;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Http\Controllers\Traits\HasAutonbr;
 
@@ -42,13 +42,13 @@ use App\Http\Controllers\Traits\HasAutonbr;
 class AgendaController extends Controller
 {
     use HasAutonbr;
-    protected $zoomApi;    
+    protected $zoomApi;
 
     public function __construct(ZoomApi $zoomApi)
     {
         $this->zoomApi = $zoomApi;
     }
-    
+
     public function index()
     {
         $username = auth()->user()->username;
@@ -67,7 +67,7 @@ class AgendaController extends Controller
         return view('pages.agendas.agendas', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
 
-   
+
     public function json(Request $request)
     {
         // $status = $request->query('status', 'P');
@@ -75,7 +75,7 @@ class AgendaController extends Controller
         $username = auth()->user()->username;
 
         $query = Agenda::query();
-        
+
         // $query->where('created_user', $username);
         $query->where(function ($q) use ($username) {
             $q->where('created_user', $username)
@@ -109,32 +109,32 @@ class AgendaController extends Controller
         $room = Roommeet::where('status','A')
             ->where('room_id','<>','p')
             ->get();
-        $accessories = Accesoriesroom::where('status','A')  
+        $accessories = Accesoriesroom::where('status','A')
             ->get();
-       
+
         return view('pages.agendas.createagendas', compact('usercpny','usercpny2','userdept','userdept2','userlist','room','accessories'));
     }
 
 
     public function storeAgenda(Request $request)
     {
-        // dd($request->all()); 
+        // dd($request->all());
 
         $roomId = $request->input('room_id');
         $accId = $request->input('acc_id');
-       
-        
+
+
         // Validasi input
         $request->validate([
             'cpnyid' => 'required|string',
-            'departementid' => 'required|string',           
-            'title' => 'required|string',           
+            'departementid' => 'required|string',
+            'title' => 'required|string',
             'startdate' => 'nullable|date',
-            'enddate' => 'nullable|date|after_or_equal:startdate',  
+            'enddate' => 'nullable|date|after_or_equal:startdate',
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
         ]);
 
-               
+
         DB::beginTransaction();
         try {
             $datenow = Carbon::now()->format('Y-m-d');
@@ -183,10 +183,10 @@ class AgendaController extends Controller
 
             $tglbln = substr((string)$year, 2) . $month;   // YYMM
             $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-          
-           
+
+
             // $userlist = User::where('status','A')
-            //     ->get(); 
+            //     ->get();
 
             // $participantlist = $request->input('participant');
             // if($participantlist <> null){
@@ -211,44 +211,44 @@ class AgendaController extends Controller
 
             // 3) Buat peta username => name dari collection $userlist (tanpa query ulang)
             $userMap = $userlist->pluck('name', 'username'); // contoh: ['benny' => 'Benny Benjamin', ...]
-                       
+
             $agenda = Agenda::create([
                 'docid' => $docid,
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
-                'agendadate' => $datenow,                               
-                'title' => $request->title,                
+                'agendadate' => $datenow,
+                'title' => $request->title,
                 'description' => $request->description,
                 'status' => $request->status ?? 'P',
                 'startdate' => $request->startdate,
-                'enddate' => $request->enddate,   
+                'enddate' => $request->enddate,
                 'reftype' => $request->reftype,
-                'site' => $request->site, 
-                'location' => $request->location,  
-                'location_address' => $request->location_address,    
+                'site' => $request->site,
+                'location' => $request->location,
+                'location_address' => $request->location_address,
                 'created_user' => $user->username,
                 'refid' => $request->refid,
-                // 'participant' => $userlist->appreance        
-                'participant'       => $participantCsv,      
+                // 'participant' => $userlist->appreance
+                'participant'       => $participantCsv,
             ]);
-            
-            // Simpan Attachments ke attachments          
+
+            // Simpan Attachments ke attachments
             // if ($request->hasfile('attachments')) {
             //     foreach ($request->file('attachments') as $file) {
             //         $randomNumber = random_int(10000000, 99999999);
             //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
             //         $originalName = str_replace('%', '', $file->getClientOriginalName());
             //         $attachfile = md5($randomNumber) . '-' . $originalName;
 
             //         //attach to folder
             //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;                   
+            //         $config['upload_path'] = $folder_attach;
             //         if(!is_dir($folder_attach))
             //         {
             //             mkdir($folder_attach, 0777);
             //         }
-                    
+
             //         $folder_upload = $folder_attach;
             //         // $folder_upload = public_path() . '/attachments';
             //         $file->move($folder_upload, $attachfile);
@@ -264,17 +264,17 @@ class AgendaController extends Controller
             //         $attach->save();
             //     }
             // }
-            
+
             $docidagenda = $docid;
 
-            if($roomId && $accId){               
+            if($roomId && $accId){
                 $this->insert_meeting($docidagenda, $user,$roomId,$accId);
-            }elseif($roomId){               
+            }elseif($roomId){
                 $this->insert_meeting($docidagenda, $user,$roomId,$accId);
-            }elseif($accId){                                
-                dd('zoom only');     
+            }elseif($accId){
+                dd('zoom only');
             }else{
-              
+
 
                 // if (!empty($participants)) {
                 //     $rows = [];
@@ -286,12 +286,12 @@ class AgendaController extends Controller
                 //             'aprvcpnyid'     => $request->cpnyid,        // <- pastikan tidak terbalik
                 //             'aprvdeptid'     => $request->departementid, // <-
                 //             'aprvusername'   => $uname,                                  // username
-                //             'name'           => $userMap->get($uname, $uname),           // NAMA LENGKAP                            
+                //             'name'           => $userMap->get($uname, $uname),           // NAMA LENGKAP
                 //             'aprvtotalday'   => 1,
                 //             // 'aprvdatebefore' => $datestamp,
                 //             'status'         => 'P',
                 //             'created_user'   => $user->username,
-                         
+
                 //         ];
                 //     }
                 //     T_approval::insert($rows); // lebih efisien daripada create() di-loop
@@ -331,7 +331,7 @@ class AgendaController extends Controller
 
                 $step3 = JobApplyStep::where('docid', $jobapply->docid)
                     ->where('status', 'P')
-                    ->where('step_order', 3)                    
+                    ->where('step_order', 3)
                     ->first();
 
                 if($step3){
@@ -343,29 +343,29 @@ class AgendaController extends Controller
 
                 $step4 = JobApplyStep::where('docid', $jobapply->docid)
                     ->where('status', 'A')
-                    ->where('step_order', 4)                    
+                    ->where('step_order', 4)
                     ->first();
 
                 if($step4){
                     $step5 = JobApplyStep::where('docid', $jobapply->docid)
                         ->where('status', 'P')
-                        ->where('step_order', 5)                    
+                        ->where('step_order', 5)
                         ->first();
 
-                       
+
                     if($step5){
-                       
+
                         $step5->status = 'A';
                         $step5->aprvuserdate = $datestamp;
                         $step5->aprvusername = $user->username;
                         $step5->save();
                     }else{
-                        
+
                     }
-                    
+
                 }
 
-                
+
 
                 // $t_approval_all = T_approval::where('docid', $docid)
                 //     ->where('status', 'P')
@@ -381,9 +381,9 @@ class AgendaController extends Controller
                 if (!$t_approval_all->isEmpty()) {
                     $id = $agenda->id;
                     $eid = Hashids::encode($jobapply->id);
-                
+
                     foreach ($t_approval_all as $approval) {
-                       
+
 
                         $data = [
                             'docid' => $approval->refnbr,
@@ -398,21 +398,24 @@ class AgendaController extends Controller
                             'job_title' => $jobposting->job_title . ' ' . $jobposting->job_level,
                             'url' => url('/showcareers') .'/'. $eid
                         ];
-                
+
                         $multiapp = explode(',', $approval->aprv_username);
-                
+
                         $email_it = User::whereIn('username', $multiapp)
                             ->where('status', 'A')
                             // ->whereNotNull('notification_email')
                             ->get();
 
                             $this->sendemail_interview($agenda, $user);
-                
+
                         foreach ($email_it as $emailsit) {
                             // Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                             Mail::send('emails.mailinterviewinternal', $data, function ($message) use ($data, $emailsit) {
-                                $message->to($emailsit->notification_email)->subject('Interview Candidate');
-                                $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                            $message->to($emailsit->notification_email)
+                                ->subject(
+                                    'Interview Schedule - ' . $data['full_name'] . ' (' . $data['job_title'] . ')'
+                                );
+                            $message->from('digitalserver@pakuwon.com', 'Pakuwon System');
                             });
                         }
                     }
@@ -440,23 +443,23 @@ class AgendaController extends Controller
             ->get();
         $userdept2 = Userdept::where('username', '=', $user->username)
             ->first();
-        $agenda = Agenda::findOrFail($id);        
-        $attachment = Attachment::where('docid', $agenda->docid)  
-            ->where('status','A')         
+        $agenda = Agenda::findOrFail($id);
+        $attachment = Attachment::where('docid', $agenda->docid)
+            ->where('status','A')
             ->get();
 
         $participantlist_user = explode(',', $agenda->participant);
         $userlist = User::where('status','A')
             ->get();
-        
+
 
         return view('pages.agendas.editagendas', compact('agenda', 'attachment','usercpny','usercpny2','userdept','userdept2','userlist','participantlist_user'));
     }
-    
+
     public function updateAgenda(Request $request, $id)
     {
-        // dd($request->all()); 
-        
+        // dd($request->all());
+
         // Validasi input
         $request->validate([
             'cpnyid' => 'required|string',
@@ -465,7 +468,7 @@ class AgendaController extends Controller
             'summary' => 'required|string',
             'description' => 'required|string',
             'startdate' => 'nullable|date',
-            'duedate' => 'nullable|date|after_or_equal:startdate',  
+            'duedate' => 'nullable|date|after_or_equal:startdate',
             'attachments.*' => 'file|max:2048' // Validasi file, max 2MB
         ]);
 
@@ -482,7 +485,7 @@ class AgendaController extends Controller
             $agenda = Agenda::findOrFail($id);
 
             $userlist = User::where('status','A')
-                ->get(); 
+                ->get();
 
             $participantlist = $request->input('participant');
             if($participantlist <> null){
@@ -490,20 +493,20 @@ class AgendaController extends Controller
             }else{
                 $userlist->appreance = '';
             }
-                       
-            $agenda -> update([              
+
+            $agenda -> update([
                 'cpnyid' => $request->cpnyid,
                 'departementid' => $request->departementid,
                 'agendadate' => $datenow,
                 'agendatype' => $request->agendatype,
-                'agendapriority' => $request->agendapriority,                
-                'summary' => $request->summary,                
+                'agendapriority' => $request->agendapriority,
+                'summary' => $request->summary,
                 'description' => $request->description,
                 'status' => $request->status ?? 'P',
                 'startdate' => $request->startdate,
-                'duedate' => $request->duedate,     
+                'duedate' => $request->duedate,
                 'created_user' => $user->username,
-                'participant' => $userlist->appreance             
+                'participant' => $userlist->appreance
             ]);
 
             //read ms_approval
@@ -515,7 +518,7 @@ class AgendaController extends Controller
 
             //insert trx_approval
             foreach ($m_approval as $mp) {
-                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null; 
+                $aprvdatebefore = ($mp->aprvid == 1) ? $datestamp : null;
                 T_approval::create([
                     'docid' => $agenda->docid,
                     'aprvid' => $mp->aprvid,
@@ -529,26 +532,26 @@ class AgendaController extends Controller
                     'status' => 'P',
                     'created_user' => $user->username
                 ]);
-            }            
-                     
+            }
 
-            // Simpan Attachments ke attachments          
+
+            // Simpan Attachments ke attachments
             if ($request->hasfile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $randomNumber = random_int(10000000, 99999999);
                     $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                   
+
                     $originalName = str_replace('%', '', $file->getClientOriginalName());
                     $attachfile = md5($randomNumber) . '-' . $originalName;
 
                     //attach to folder
                     $folder_attach = public_path() . '/attachments/'.$year;
-                    $config['upload_path'] = $folder_attach;                   
+                    $config['upload_path'] = $folder_attach;
                     if(!is_dir($folder_attach))
                     {
                         mkdir($folder_attach, 0777);
                     }
-                    
+
                     $folder_upload = $folder_attach;
                     // $folder_upload = public_path() . '/attachments';
                     $file->move($folder_upload, $attachfile);
@@ -569,30 +572,30 @@ class AgendaController extends Controller
                 ->where('status', 'P')
                 ->orderby('aprvid','ASC')
                 ->first();
-            
+
             $data = array(
                 'docid' => $t_approval_next->docid,
                 'cpnyid' => $t_approval_next->aprvcpnyid,
-                'deptname' => $t_approval_next->aprvdeptid,                
+                'deptname' => $t_approval_next->aprvdeptid,
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,
-                'info' => $request->summary,      
+                'info' => $request->summary,
                 'url' => url('/showagendas/') . $agenda->id
-    
+
             );
-    
+
             $multiapp = explode(',', $t_approval_next->aprvusername);
-    
+
             $email_it = User::whereIN('username', $multiapp)
                 ->where('status', 'A')
                 ->get();
-    
+
             foreach ($email_it as $emailsit) {
                 Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
                     $message->to($emailsit->notification_email)->subject($data['docid'] . ' - Waiting Approval Agendas');
                     $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
                 });
-            }     
+            }
 
             DB::commit();
             return response()->json(['success' => true, 'agenda' => $agenda]);
@@ -613,28 +616,28 @@ class AgendaController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to update attachment status', 'error' => $e->getMessage()], 500);
         }
     }
- 
+
 
     public function showAgenda($id)
-    {        
+    {
         $agenda = Agenda::findOrFail($id);
         $approval = T_approval::where('docid', $agenda->docid)
-            ->where('status','<>','X')      
+            ->where('status','<>','X')
             ->orderBy('created_at')
-            ->orderBy('aprvid')      
+            ->orderBy('aprvid')
             ->get();
 
-        $attachment = Attachment::where('docid', $agenda->docid)        
-            ->where('status','A')   
+        $attachment = Attachment::where('docid', $agenda->docid)
+            ->where('status','A')
             ->get();
-       
+
         return view('pages.agendas.showagendas', compact('agenda','approval','attachment'));
     }
 
-    
+
     public function fetchComments($id)
     {
-    
+
         $comments = T_Message::where('docid', $id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -654,8 +657,8 @@ class AgendaController extends Controller
         $comment = new T_Message();
         $comment->docid = $id;
         $comment->doctype = 'AGD';
-        $comment->username = $user->username; 
-        $comment->name = $user->name; 
+        $comment->username = $user->username;
+        $comment->name = $user->name;
         $comment->message = $request->comment;
         $comment->status = 'A';
         $comment->created_at = now();
@@ -670,19 +673,19 @@ class AgendaController extends Controller
 
     public function approveAgenda(Request $request, $docid)
     {
-        $datestamp = Carbon::now()->toDateTimeString();       
+        $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
-        
-        $agenda = Agenda::where('docid', $docid)->first();   
+
+        $agenda = Agenda::where('docid', $docid)->first();
 
         if (!$agenda) {
             return response()->json(['success' => false, 'message' => 'Prf not found'], 404);
-        }        
+        }
 
         $count_approval = T_approval::where('docid', '=', $agenda->docid)
             ->where('status', '=', 'P')
             ->count();
-    
+
         // Cek apakah user memiliki akses untuk approve
         $t_approval = T_approval::where('docid', $agenda->docid)
             ->where('status', 'P')
@@ -697,7 +700,7 @@ class AgendaController extends Controller
             $t_approval->aprvusername = $user->username;
             $t_approval->name = $user->name;
             $t_approval->save();
-        }   
+        }
 
         if ($count_approval == 1) {
             $agenda->status = 'C';
@@ -707,7 +710,7 @@ class AgendaController extends Controller
 
             $this->insert_JobApplySch($agenda, $user);
             $this->sendemail_interview($agenda, $user);
-            
+
         }
 
         $t_approval_next = T_approval::where('docid', $agenda->docid)
@@ -720,7 +723,7 @@ class AgendaController extends Controller
             $t_approval_next->aprvdatebefore = $datestamp;
             $t_approval_next->save();
 
-            //send email 
+            //send email
             // $data = array(
             //     'docid' => $t_approval_next->docid,
             //     'cpnyid' => $t_approval_next->aprvcpnyid,
@@ -728,7 +731,7 @@ class AgendaController extends Controller
             //     'locationname' => $ms_site->site,
             //     'date' => $t_approval_next->aprvdatebefore,
             //     'name' => $t_approval_next->created_user,
-            //     'info' => $vplrequest->request_remark,               
+            //     'info' => $vplrequest->request_remark,
             //     'url' => url('/showvplrequest_') . $id
 
             // );
@@ -756,22 +759,22 @@ class AgendaController extends Controller
         // dd($agenda);
         DB::beginTransaction();
         try {
-                          
-            $datestamp = Carbon::now()->toDateTimeString();             
+
+            $datestamp = Carbon::now()->toDateTimeString();
             $user = Auth::user();
-                        
+
             // $existing = JobApplySch::where('docid', $agenda->docid)
-            //     ->where('jobapply_id', $agenda->refid)                
+            //     ->where('jobapply_id', $agenda->refid)
             //     ->first();
-            
+
             // if ($existing) {
             //     return response()->json([
             //     'error' => true,
             //     'message' => 'You have already Job Schedule.'
             //     ], 409); // Conflict
-            // }      
-                   
-    
+            // }
+
+
             $jobapply = JobApply::where('docid', $agenda->refid)->first();
             $jobapplystep = JobApplyStep::where('docid', $jobapply->docid)
                 ->where('status','A')
@@ -782,20 +785,20 @@ class AgendaController extends Controller
                 'docid' => $agenda->docid,
                 'jobapply_id' => $agenda->refid,
                 'jobid' => $jobapply->jobid,
-                'applicant_id' => $jobapply->applicant_id,       
-                'step_id' => $jobapplystep->step_id,             
-                'title' => $agenda->title,                
+                'applicant_id' => $jobapply->applicant_id,
+                'step_id' => $jobapplystep->step_id,
+                'title' => $agenda->title,
                 'description' => $agenda->description,
                 'status' => 'P',
                 'startdate' => $agenda->startdate,
-                'enddate' => $agenda->enddate,   
-                'location' => $agenda->location,  
-                'location_address' => $agenda->location_address,  
-                'reftype' => $agenda->reftype,  
-                'created_user' => $user->username,               
-                'participant' => $agenda->participant             
-            ]);                      
-           
+                'enddate' => $agenda->enddate,
+                'location' => $agenda->location,
+                'location_address' => $agenda->location_address,
+                'reftype' => $agenda->reftype,
+                'created_user' => $user->username,
+                'participant' => $agenda->participant
+            ]);
+
             DB::commit();
             return response()->json(['success' => true, 'jobsch' => $jobsch]);
         } catch (\Exception $e) {
@@ -806,14 +809,14 @@ class AgendaController extends Controller
 
     public function rejectAgenda(Request $request, $docid)
     {
-        
-        // dd($request->all());         
-        $datestamp = Carbon::now()->toDateTimeString();       
+
+        // dd($request->all());
+        $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
 
-        $agenda = Agenda::where('docid', $docid)->first();  
-        
-        
+        $agenda = Agenda::where('docid', $docid)->first();
+
+
         if (!$agenda) {
             return response()->json(['success' => false, 'message' => 'Agenda not found'], 404);
         }
@@ -828,13 +831,13 @@ class AgendaController extends Controller
             return response()->json(['success' => false, 'message' => "You Can't Rejected!"], 403);
         } else {
             $t_approval->status = 'R';
-            $t_approval->aprvdateafter = $datestamp;           
+            $t_approval->aprvdateafter = $datestamp;
             $t_approval->save();
 
             $agenda->status = 'R';
             $agenda->save();
-        }   
-                       
+        }
+
         $t_aprv_sisa = T_approval::where('docid', '=', $agenda->docid)
             ->where('status', '=', 'P')
             ->get();
@@ -847,10 +850,10 @@ class AgendaController extends Controller
         // $data = array(
         //     'docid' => $t_approval->docid,
         //     'cpnyid' => $t_approval->aprvcpnyid,
-        //     'deptname' => $t_approval->aprvdeptid,           
+        //     'deptname' => $t_approval->aprvdeptid,
         //     'date' => $t_approval->aprvdatebefore,
         //     'name' => $t_approval->created_user,
-        //     'info' => $agenda->summary,            
+        //     'info' => $agenda->summary,
         //     // 'url' => url('/showvplrequest_') . $id
 
         // );
@@ -874,14 +877,14 @@ class AgendaController extends Controller
 
     public function reviseAgenda(Request $request, $docid)
     {
-        
-        // dd($request->all());         
-        $datestamp = Carbon::now()->toDateTimeString();       
+
+        // dd($request->all());
+        $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
 
-        $agenda = Agenda::where('docid', $docid)->first();  
-        
-        
+        $agenda = Agenda::where('docid', $docid)->first();
+
+
         if (!$agenda) {
             return response()->json(['success' => false, 'message' => 'Agenda not found'], 404);
         }
@@ -896,13 +899,13 @@ class AgendaController extends Controller
             return response()->json(['success' => false, 'message' => "You Can't Revise!"], 403);
         } else {
             $t_approval->status = 'D';
-            $t_approval->aprvdateafter = $datestamp;           
+            $t_approval->aprvdateafter = $datestamp;
             $t_approval->save();
 
             $agenda->status = 'D';
             $agenda->save();
-        }   
-                       
+        }
+
         $t_aprv_sisa = T_approval::where('docid', '=', $agenda->docid)
             ->where('status', '=', 'P')
             ->get();
@@ -915,10 +918,10 @@ class AgendaController extends Controller
         // $data = array(
         //     'docid' => $t_approval->docid,
         //     'cpnyid' => $t_approval->aprvcpnyid,
-        //     'deptname' => $t_approval->aprvdeptid,           
+        //     'deptname' => $t_approval->aprvdeptid,
         //     'date' => $t_approval->aprvdatebefore,
         //     'name' => $t_approval->created_user,
-        //     'info' => $agenda->summary,            
+        //     'info' => $agenda->summary,
         //     // 'url' => url('/showvplrequest_') . $id
 
         // );
@@ -948,7 +951,7 @@ class AgendaController extends Controller
         // Query dasar untuk pengecekan
         $query = T_approval::where('docid', $id)
                     ->where('aprvusername', 'like', '%' . $user->username . '%')
-                    ->where('status', 'P');                 
+                    ->where('status', 'P');
 
         // Jika aksi adalah reject atau revise, pastikan aprvdatebefore tidak null
         if (in_array($action, ['reject', 'revise','approve'])) {
@@ -969,15 +972,15 @@ class AgendaController extends Controller
             return response()->json(['error' => 'Date parameter is required'], 400);
         }
         $username = auth()->user()->username;
-       
-        // $agendas = Agenda::whereDate('startdate', $date)           
+
+        // $agendas = Agenda::whereDate('startdate', $date)
         //     ->where(function ($query) use ($username) {
         //         $query->where('created_user', $username)
         //             ->orWhereRaw("CONCAT(',', participant, ',') LIKE ?", ["%,$username,%"]);
         //     })
         //     ->orderBy('startdate', 'asc')
         //     ->get();
-            
+
         // Ambil docid dari trx_approval di database mysql2
         $docids = DB::connection('mysql2')
             ->table('trx_approval')
@@ -1017,7 +1020,7 @@ class AgendaController extends Controller
         $username = auth()->user()->username;
 
         // $agendas = Agenda::whereYear('startdate', $year)
-        //     ->whereMonth('startdate', $month)           
+        //     ->whereMonth('startdate', $month)
         //     ->where(function ($query) use ($username) {
         //         $query->where('created_user', $username)
         //             ->orWhereRaw("CONCAT(',', participant, ',') LIKE ?", ["%,$username,%"]);
@@ -1037,7 +1040,7 @@ class AgendaController extends Controller
             ->where(function ($query) use ($username, $docids) {
                 $query->where('created_user', $username)
                     ->orWhereIn('docid', $docids);
-            })           
+            })
             ->get();
 
         return response()->json($agendas);
@@ -1123,18 +1126,18 @@ class AgendaController extends Controller
 
     public function insert_meeting($docidagenda, $user,$roomId,$accId)
     {
-        // dd($roomId.'-'.$accId);         
+        // dd($roomId.'-'.$accId);
 
         // if($accId){
-            $accessories = Accesoriesroom::where('status','A')  
+            $accessories = Accesoriesroom::where('status','A')
                 ->where('room_id',$roomId)
                 ->orderby('id','ASC')
                 ->first();
         // }
 
-        $agenda = Agenda::where('docid',$docidagenda)             
+        $agenda = Agenda::where('docid',$docidagenda)
             ->first();
-                   
+
         DB::beginTransaction();
         try {
             $datenow = Carbon::now()->format('Y-m-d');
@@ -1181,29 +1184,29 @@ class AgendaController extends Controller
 
             // Gabungkan menjadi string email dengan koma
             $participantEmails = implode(',', $participants);
-                                      
+
             $meeting = Meeting::create([
                 'docid' => $docid,
                 'cpnyid' => $agenda->cpnyid,
                 'deptname' => $agenda->departementid,
                 'locationname' => '',
                 'date' => $datenow,
-                'user' => $user->username,                        
+                'user' => $user->username,
                 'status' => 'P',
                 'start' => $agenda->startdate,
-                'end' => $agenda->enddate, 
-                'title' => $agenda->title,  
+                'end' => $agenda->enddate,
+                'title' => $agenda->title,
                 'descr' => $agenda->description,
-                'participant' => '', 
+                'participant' => '',
                 'participantlist' => $participantEmails,
                 'acc_id' => $accessories->id,
-                'room_id' => $roomId, 
-                'checked' => '',     
+                'room_id' => $roomId,
+                'checked' => '',
                 'created_user' => $user->name,
-                'site' => '',   
-                'checkin' => 'N',  
-                'checkout' => 'N',    
-                'fullbooked'=> 'N',      
+                'site' => '',
+                'checkin' => 'N',
+                'checkout' => 'N',
+                'fullbooked'=> 'N',
                 'cpnyid_site' => ''
             ]);
 
@@ -1221,12 +1224,12 @@ class AgendaController extends Controller
                 'status' => 'A',
                 'created_user' => $user->name
             ]);
-                              
+
             $agenda->refid = $docid;
-            $agenda->save();        
+            $agenda->save();
 
             $id = $meeting->id;
-            if($accId){                
+            if($accId){
                 $this->create_zoom_id($docid);
                 $this->send_email_all($id);
             }
@@ -1245,22 +1248,22 @@ class AgendaController extends Controller
         // $start_time = $start_datetime;
         $meeting = Meeting::where('docid', $docid)->first();
 
-        $dateTimeObject1 = date_create($meeting->start); 
-        $dateTimeObject2 = date_create($meeting->end); 
-            
+        $dateTimeObject1 = date_create($meeting->start);
+        $dateTimeObject2 = date_create($meeting->end);
+
         // Calculating the difference between DateTime Objects
-        $interval = date_diff($dateTimeObject1, $dateTimeObject2);         
+        $interval = date_diff($dateTimeObject1, $dateTimeObject2);
         $min = $interval->days * 24 * 60;
         $min += $interval->h * 60;
-        $min += $interval->i;  
-        
+        $min += $interval->i;
+
 
         $accessories = Accesoriesroom::where('status','A')
             ->where('id',$meeting->acc_id)
             ->first();
         $user_idzoom = $accessories->user_idzoom;
-         
-                
+
+
         $data = [
             'topic' => $meeting->title,
             'type' => 2,
@@ -1272,35 +1275,35 @@ class AgendaController extends Controller
                 'waiting_room' => false
             ]
         ];
-                
-        $api_zoom = $this->zoomApi->createMeeting($data,$user_idzoom);        
+
+        $api_zoom = $this->zoomApi->createMeeting($data,$user_idzoom);
         $getinvitation = $this->zoomApi->getinvitation($api_zoom->id);
 
         $meeting->zoom_id = $api_zoom->id;
-        $meeting->info_zoom = $getinvitation['invitation'];        
+        $meeting->info_zoom = $getinvitation['invitation'];
         $meeting->save();
-         
-        
+
+
     }
 
     public function send_email_all(int $id)
     // public function send_email_all()
     {
         // $id=8092;
-        $meeting = Viewtrxmeeting::find($id);  
-           
-        $date_start = Carbon::createFromFormat("Y-m-d H:i:s", $meeting->start)->setTimezone('UTC');      
+        $meeting = Viewtrxmeeting::find($id);
+
+        $date_start = Carbon::createFromFormat("Y-m-d H:i:s", $meeting->start)->setTimezone('UTC');
         $start_datetime = $date_start->format("Ymd\THis\Z");
-        
+
         $date_end = Carbon::createFromFormat("Y-m-d H:i:s", $meeting->end)->setTimezone('UTC');
         $end_datetime = $date_end->format("Ymd\THis\Z");
 
-        $date_startx = Carbon::createFromFormat("Y-m-d H:i:s", $meeting->start);      
+        $date_startx = Carbon::createFromFormat("Y-m-d H:i:s", $meeting->start);
         $start_x = $date_startx->format("l, d F Y | h:i A");
-        
+
         $date_endx = Carbon::createFromFormat("Y-m-d H:i:s", $meeting->end);
         $end_x = $date_endx->format("l, d F Y | h:i A");
-        
+
         $filename = "invite.ics";
         $gen_ics = Calendar::create($meeting->title)
             ->event(Event::create($meeting->title)
@@ -1312,7 +1315,7 @@ class AgendaController extends Controller
         $info_zoom = preg_replace('#\b(http|ftp)(s)?\://([^ \s\t\r\n]+?)([\s\t\r\n])+#smui', '<a href="$1$2://$3" target="_blank">$1$2://$3</a>$4', $meeting->info_zoom);
         // echo nl2br($test);
         $descr = preg_replace('#\b(http|ftp)(s)?\://([^ \s\t\r\n]+?)([\s\t\r\n])+#smui', '<a href="$1$2://$3" target="_blank">$1$2://$3</a>$4', $meeting->descr);
-        
+
         $email_to = User::where('username', $meeting->user)
             ->where('status', 'A')
             ->first();
@@ -1321,14 +1324,14 @@ class AgendaController extends Controller
             $subject = 'Cancel Schedule Meeting Room';
         }else{
             $subject = 'Schedule Meeting Room';
-        }    
-                   
+        }
+
         $data = array(
             'docid' => $meeting->docid,
             'cpnyid' => $meeting->cpnyid,
             'deptname' => $meeting->deptname,
             'locationname' => $meeting->locationname,
-            'info' => $meeting->title,               
+            'info' => $meeting->title,
             'date' => $meeting->date,
             'name' => $meeting->user,
             'descr' => nl2br($descr),
@@ -1339,34 +1342,34 @@ class AgendaController extends Controller
             'endx'=> $end_x,
             'zoom'=> $meeting->acc_name,
             'info_zoom'=> nl2br($info_zoom),
-            'email' => $email_to->notification_email,                      
+            'email' => $email_to->notification_email,
             'url' => url('/showmeeting_') . $meeting->id,
             'emailcc' => explode(',', $meeting->participantlist.','.$email_to->notification_email),
             'gen_ics'=> $gen_ics,
             'subject'=> $subject,
         );
-        
-        $multiapp = explode(',', $meeting->participantlist);       
-        // dd($multiapp);        
+
+        $multiapp = explode(',', $meeting->participantlist);
+        // dd($multiapp);
         $email_bcc = User::where('status', 'A')
-            ->whereIN('notification_email', $multiapp)            
-            ->get();  
-        // dd($email_bcc);    
+            ->whereIN('notification_email', $multiapp)
+            ->get();
+        // dd($email_bcc);
         $emailbcc = [];
         foreach ($email_bcc as $email_part) {
             foreach (explode(',', $email_part->email_bcc) as $value) {
                 $emailbcc[] = trim($value);
             }
-        }     
-                 
-        Mail::send('emails.mailmeeting', $data, function ($message) use ($data) {  
-            $message->to($data['emailcc'])->subject($data['docid'] . ' - '.$data['subject']);                               
-            $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');                
+        }
+
+        Mail::send('emails.mailmeeting', $data, function ($message) use ($data) {
+            $message->to($data['emailcc'])->subject($data['docid'] . ' - '.$data['subject']);
+            $message->from('digitalserver@pakuwon.com', 'Pakuwon Smart System');
             $message->attachData($data['gen_ics'], 'invite.ics', [
                 'mime' => 'text/calendar;charset=UTF-8;method=REQUEST',
             ]);
         });
-       
+
     }
 
     public function getBySite($site)

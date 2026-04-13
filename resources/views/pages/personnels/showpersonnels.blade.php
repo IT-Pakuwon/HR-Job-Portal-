@@ -47,6 +47,9 @@
                             </span> {{-- Iconic color for the ID icon --}}
                             {{ $personnel->docid }}
                         </h1>
+
+
+
                         @php
                             // Define the status text
                             $statusText = match ($personnel->status) {
@@ -116,6 +119,18 @@
                             </span>
                         </div>
 
+
+                        {{-- Created User --}}
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-user class="h-5 w-5 text-gray-400" />
+                                <span>Created By</span>
+                            </div>
+                            <span class="{{ $value }}">
+                                {{ ucwords(strtolower($personnel->created_user ?? '-')) }}
+                            </span>
+                        </div>
+
                         {{-- Job Title --}}
                         <div class="{{ $row }}">
                             <div class="{{ $label }}">
@@ -124,6 +139,20 @@
                             </div>
                             <span class="{{ $value }}">
                                 {{ ucwords(strtolower(optional($personnel)->job_title)) }}
+                            </span>
+                        </div>
+
+
+                        <div class="{{ $row }}">
+                            <div class="{{ $label }}">
+                                <x-heroicon-o-user-group class="h-5 w-5 text-gray-400" />
+                                <span>Superior & Position</span>
+                            </div>
+
+                            <span class="{{ $value }}">
+                                {{ ucwords(strtolower(optional($personnel)->immediate_superior)) ?? '-' }}
+                                <span class="text-gray-400">•</span>
+                                {{ ucwords(strtolower(optional($personnel)->state_position)) ?? '-' }}
                             </span>
                         </div>
 
@@ -138,16 +167,6 @@
                             </span>
                         </div>
 
-                        {{-- Immediate Superior --}}
-                        <div class="{{ $row }}">
-                            <div class="{{ $label }}">
-                                <x-heroicon-o-user-group class="h-5 w-5 text-gray-400" />
-                                <span>Immediate Superior</span>
-                            </div>
-                            <span class="{{ $value }}">
-                                {{ ucwords(strtolower(optional($personnel)->immediate_superior)) }}
-                            </span>
-                        </div>
 
                         {{-- Job Level --}}
                         <div class="{{ $row }}">
@@ -160,16 +179,6 @@
                             </span>
                         </div>
 
-                        {{-- State Position --}}
-                        <div class="{{ $row }}">
-                            <div class="{{ $label }}">
-                                <x-heroicon-o-map-pin class="h-5 w-5 text-gray-400" />
-                                <span>State Position</span>
-                            </div>
-                            <span class="{{ $value }}">
-                                {{ ucwords(strtolower(optional($personnel)->state_position)) }}
-                            </span>
-                        </div>
 
                         {{-- Reason for Vacancy --}}
                         <div class="col-span-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
@@ -620,7 +629,7 @@
 
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class=" text-sm  font-semibold">${comment.username} 
+                                        <p class=" text-sm  font-semibold">${comment.username}
                                             <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -813,7 +822,7 @@
 
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let docid = "{{ $personnel->docid }}"; // Ambil Task ID dari modal        
+            let docid = "{{ $personnel->docid }}"; // Ambil Task ID dari modal
             approvePersonnel(docid);
         });
 
@@ -891,7 +900,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -959,7 +968,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
