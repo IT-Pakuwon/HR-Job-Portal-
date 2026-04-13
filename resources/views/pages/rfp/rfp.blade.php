@@ -4,7 +4,7 @@
         $user = auth()->user();
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
 
-        $xlCols = 5;
+        $xlCols = 7;
         if ($hasRfpAllAccess) {
             $xlCols++;
         }
@@ -73,12 +73,32 @@
                         <p class="shrink-0 text-base font-extrabold">{{ $rfpAll ?? 0 }}</p>
                     </div>
                 </a>
+
+                <a href="#" class="status-filter group block h-full" data-scope="finance_received">
+                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md">
+                        <div class="flex h-7 w-7 items-center justify-center">🏦</div>
+                        <div class="flex flex-col leading-tight">
+                            <p class="text-sm font-medium">Finance Received</p>
+                        </div>
+                        <p class="text-base font-extrabold">{{ $financeReceived ?? 0 }}</p>
+                    </div>
+                </a>
+
+                <a href="#" class="status-filter group block h-full" data-scope="treasury_received">
+                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 hover:-translate-y-1 hover:bg-green-100 hover:shadow-md">
+                        <div class="flex h-7 w-7 items-center justify-center">💰</div>
+                        <div class="flex flex-col leading-tight">
+                            <p class="text-sm font-medium">Treasury Received</p>
+                        </div>
+                        <p class="text-base font-extrabold">{{ $treasuryReceived ?? 0 }}</p>
+                    </div>
+                </a>
             @endif
         </div>
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request For Payment</h1>               
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request For Payment</h1>
             </div>
 
             <div class="rounded-base relative overflow-x-auto">
@@ -132,7 +152,7 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-  
+
     <script>
         let scopeFilter = '';
         var currentUser = "{{ auth()->user()->username }}";

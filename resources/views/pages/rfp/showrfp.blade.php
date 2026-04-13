@@ -51,10 +51,21 @@
                             };
                         @endphp
 
-                        <span id="xstatus"
-                            class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold">
-                            {{ $statusText }}
-                        </span>
+                        <div class="flex items-center gap-3">
+
+                            <span id="xstatus"
+                                class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold">
+                                {{ $statusText }}
+                            </span>
+
+                            <a href="{{ url('/pdf_rfp') }}/{{ $hash }}" target="_blank">
+                                    <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
+                            </a>
+
+                        </div>
                     </header>
 
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-2">
@@ -130,18 +141,18 @@
 
                         <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                             <div class="flex items-center gap-2 text-gray-500">
-                                <span>Purpose</span>
+                                <span class="text-sm font-medium">Purpose</span>
                             </div>
-                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300">
+                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-sm">
                                 {{ $rfp->keperluan ?: '-' }}
                             </span>
                         </div>
 
                         <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                             <div class="flex items-center gap-2 text-gray-500">
-                                <span>IR Note</span>
+                                <span class="text-sm font-medium">IR Note</span>
                             </div>
-                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300">
+                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-sm">
                                 {{ $rfp->ir_note ?: '-' }}
                             </span>
                         </div>
@@ -649,12 +660,12 @@
                 allRows.forEach(at => {
                     const fileName = at.name || at.display_name || '(no name)';
                     const createdBy = at.created_user ?? at.created_by ?? '-';
-                    const dateStr = at.created_at 
-                        ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') 
+                    const dateStr = at.created_at
+                        ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss')
                         : '-';
 
                     // 🔥 beda tampilan staging vs normal
-                    const badge = at.is_staging 
+                    const badge = at.is_staging
                         ? ``
                         : '';
 
@@ -686,7 +697,7 @@
                     })
                     .fail(() => toastr.error('Failed to load attachments.'));
             }
-            
+
 
             refreshAttachments();
 

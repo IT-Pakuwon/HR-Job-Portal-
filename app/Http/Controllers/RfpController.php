@@ -71,7 +71,7 @@ class RfpController extends Controller
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
         $hasApFinAccess = $user->hasRole('APFINACCESS');
         $hasApTreAccess = $user->hasRole('APTREACCESS');
-       
+
         $rfpAll = 0;
         if ($hasRfpAllAccess) {
             $rfpAll = TrRfp::query()
@@ -79,6 +79,21 @@ class RfpController extends Controller
                 ->whereIn('status', ['C'])
                 ->count();
         }
+
+        $financeReceived = (clone $baseQuery)
+            ->where('status', 'C')
+            ->where('status_receive', 'C')
+            ->where(function($q){
+                $q->whereNull('status_payment')
+                ->orWhere('status_payment', 'P');
+            })
+            ->count();
+
+        $treasuryReceived = (clone $baseQuery)
+            ->where('status', 'C')
+            ->where('status_receive', 'C')
+            ->where('status_payment', 'C')
+            ->count();
 
         return view('pages.rfp.rfp', compact(
             'all',
@@ -89,7 +104,9 @@ class RfpController extends Controller
             'rfpAll',
             'hasRfpAllAccess',
             'hasApFinAccess',
-            'hasApTreAccess'
+            'hasApTreAccess',
+            'financeReceived',
+            'treasuryReceived'
         ));
     }
 
@@ -143,6 +160,20 @@ class RfpController extends Controller
                 $scope !== 'rfp_all',
                 fn ($q) => $q->whereIn('rfp.department_id', $deptIds)
             )
+            ->when($scope === 'finance_received', function ($q) {
+                $q->where('rfp.status', 'C')
+                ->where('rfp.status_receive', 'C')
+                ->where(function ($q2) {
+                    $q2->whereNull('rfp.status_payment')
+                        ->orWhere('rfp.status_payment', 'P');
+                });
+            })
+
+            ->when($scope === 'treasury_received', function ($q) {
+                $q->where('rfp.status', 'C')
+                ->where('rfp.status_receive', 'C')
+                ->where('rfp.status_payment', 'C');
+            })
             ->when(
                 $scope === 'rfp_all',
                 fn ($q) => $q->whereIn('rfp.status', ['C'])
@@ -292,7 +323,7 @@ class RfpController extends Controller
             $period = (string) ($rfp->period_payment ?? '');
 
             if (strlen($period) >= 7) {
-                $typepayment = 'Payment Periode ' 
+                $typepayment = 'Payment Periode '
                     . substr($period, 5, 2) . '-' . substr($period, 0, 4);
             } else {
                 $typepayment = 'Payment Periode -';
@@ -438,7 +469,7 @@ class RfpController extends Controller
                 'folder'       => $r->folder,
                 'filename'     => $r->filename,
                 'extention'    => $r->extention,
-                'size'         => $r->filesize,                
+                'size'         => $r->filesize,
             ];
         });
 
@@ -475,7 +506,7 @@ class RfpController extends Controller
         return view('pages.rfp.showrfp', compact(
             'rfp',
             'attachments',
-            'stagingAttachments', 
+            'stagingAttachments',
             'hash',
             'canUpload',
             'userdept',
@@ -1418,7 +1449,7 @@ class RfpController extends Controller
         ]);
     }
 
-    public function printWo(Request $request, $hash)
+    public function printPdfRfp($hash)
     {
         $id = \Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -1427,97 +1458,96 @@ class RfpController extends Controller
             return redirect()->route('login');
         }
 
-        $wo = TrRfp::with([
-            'worktype',      // MsWorktype
-            'subworktype',   // MsSubworktype
-            'location',      // MsLocation
-            'sublocation',   // MsSubLocation
-            'creator:username,name',
-        ])->findOrFail($id);
+        $rfp = TrRfp::with(['creator:username,name'])->findOrFail($id);
 
-        // $approval = TrApproval::query()
-        //     ->where('refnbr', $wo->woid)          // dulu: docid
-        //     ->where('status', '<>', 'X')
-        //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
-        //     ->orderBy('created_at', 'ASC')            // tie-breaker kalau leveling sama
-        //     ->get();
-        $refnbr = $wo->woid;
-        $apprTable = (new TrApproval())->getTable(); // "tr_approval"
-
-        $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)
+        // =========================
+        // APPROVAL
+        // =========================
+        $approval = TrApproval::where('refnbr', $rfp->rfp_id)
             ->where('status', '<>', 'X')
-            ->reorder()
-            ->orderBy('created_at', 'asc')
-            ->orderBy('aprv_leveling', 'asc')
-            ->orderBy('id', 'asc')
-            ->get([
-                'aprv_leveling',
-                'aprv_name',
-                'aprv_datebefore',
-                'aprv_dateafter',
-                'status',
-                'aprv_type',
-                'aprv_condition',
-            ]);
+            ->orderBy('aprv_leveling')
+            ->get();
 
+        // =========================
+        // FORMAT DATE
+        // =========================
+        $rfp->rfp_date_fmt = optional($rfp->rfp_date)->format('d M Y');
+        $rfp->receive_date_fmt = optional($rfp->receive_date)->format('d M Y H:i');
+        $rfp->payment_date_fmt = optional($rfp->payment_date)->format('d M Y H:i');
+
+        // =========================
+        // TERBILANG
+        // =========================
+        $rfp->terbilang = trim($this->terbilang((int)$rfp->rfp_amount)) . ' Rupiah';
+
+        // =========================
+        // STATUS DOC (FOR COLOR)
+        // =========================
+        $status_doc = match ($rfp->status) {
+            'P' => 'Waiting Approval',
+            'R' => 'Rejected',
+            'D' => 'Revised',
+            'C' => 'Completed',
+            default => 'Unknown',
+        };
+
+        // =========================
+        // APPROVAL COUNT
+        // =========================
         $approve_count = $approval->count();
 
-        $company = MsCompany::where('cpny_id', $wo->cpny_id)->first();
+        // =========================
+        // CREATED INFO
+        // =========================
+        $created_by_name = $rfp->creator->name ?? null;
+        $created_by_username = $rfp->created_by;
+        $req_date_fmt = optional($rfp->created_at)->format('d M Y H:i');
+        $company = MsCompany::where('cpny_id', $rfp->cpny_id)->first();
+        $cpny_name = $company->cpny_name ?? '';
 
-        // mapping status
-        $status_map = [
-            'R' => 'Rejected',
-            'C' => 'Completed',
-            'D' => 'Hold',
-            'X' => 'Cancel',
-            'P' => 'On Progress',
-        ];
-        $status_doc = $status_map[$wo->status] ?? 'On Progress';
-
-        // pilih varian tampilan
-        $variant = $request->query('variant', 'default'); // default | tenant
-        $view = $variant === 'tenant'
-            ? 'pages.wos.pdf_wos_tenant'
-            : 'pages.wos.pdf_wos';
-
-        $data = [
-            'title' => $variant === 'tenant' ? 'Work Order (Tenant)' : 'Work Order (WO)',
-            'doc_type' => 'WO',
-            'docid' => $wo->woid,
-            'department_id' => $wo->department_id,
-            'cpnyname' => optional($company)->cpny_name,
-            'cpnyid' => $wo->cpny_id,
-            'created_by_username' => $wo->created_by,
-            'created_by_name' => ucwords(strtolower(optional($wo->creator)->name)),
-            'created_at_fmt' => optional($wo->created_at)->format('d F Y'),
-            'req_date_fmt' => optional($wo->created_at)->format('d M Y H:i'),
-            'wodate' => \Carbon\Carbon::parse($wo->wodate)->format('d F Y'),
-            'keperluan' => $wo->keperluan,
-            'status_doc' => $status_doc,
-            'budget_use' => $wo->budget_use,
-            // info tambahan yang sering dipakai di template
-            'wotype' => $wo->wotype,                      // disimpan string category_name
-            'worequest' => $wo->worequest,                   // disimpan string category_name
-            'worktype_name' => optional($wo->worktype)->worktype_name,
-            'subworktype_name' => optional($wo->subworktype)->subworktype_name,
-            'location_name' => optional($wo->location)->location_name,
-            'sub_location_name' => optional($wo->sublocation)->sub_location_name,
-            'picrequester' => $wo->picrequester,
-            'biaya_wo' => number_format($wo->biaya_wo, 0, ',', '.'),
-        ];
-
-        $pdf = \PDF::loadView($view, array_merge($data, [
+        // =========================
+        // LOAD PDF
+        // =========================
+        $pdf = \PDF::loadView('pages.rfp.pdf_rfp', [
+            'rfp' => $rfp,
             'approval' => $approval,
+            'status_doc' => $status_doc,
             'approve_count' => $approve_count,
-        ]));
+            'created_by_name' => $created_by_name,
+            'created_by_username' => $created_by_username,
+            'req_date_fmt' => $req_date_fmt,
+            'cpny_name' => $cpny_name,
+        ]);
 
-        // Portrait jika <= 5 approver, else landscape
-        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+        $pdf->setPaper('A4', 'portrait');
 
-        $suffix = $variant === 'tenant' ? '_tenant' : '';
+        return $pdf->stream("RFP_{$rfp->rfp_id}.pdf");
+    }
 
-        return $pdf->stream("pdf_wos{$suffix}_{$wo->woid}.pdf");
+    private function terbilang($angka)
+    {
+        $angka = abs($angka);
+        $huruf = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+
+        if ($angka < 12) {
+            return " " . $huruf[$angka];
+        } elseif ($angka < 20) {
+            return $this->terbilang($angka - 10) . " Belas";
+        } elseif ($angka < 100) {
+            return $this->terbilang($angka / 10) . " Puluh" . $this->terbilang($angka % 10);
+        } elseif ($angka < 200) {
+            return " Seratus" . $this->terbilang($angka - 100);
+        } elseif ($angka < 1000) {
+            return $this->terbilang($angka / 100) . " Ratus" . $this->terbilang($angka % 100);
+        } elseif ($angka < 2000) {
+            return " Seribu" . $this->terbilang($angka - 1000);
+        } elseif ($angka < 1000000) {
+            return $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
+        } elseif ($angka < 1000000000) {
+            return $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+        } else {
+            return "Terlalu Besar";
+        }
     }
 
     public function woJobs()
