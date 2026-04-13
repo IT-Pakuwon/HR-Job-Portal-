@@ -307,6 +307,9 @@
     });
 
     function formatNumber(data) {
-        return data ? parseFloat(data).toLocaleString() : '';
+        if (!data) return '';
+
+        // remove comma BEFORE parsing
+        return Number(data.toString().replace(/,/g, '')).toLocaleString();
     }
 </script>

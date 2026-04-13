@@ -180,12 +180,11 @@ class ReportWarehouseController extends Controller
                 'm.siteid',
 
                 DB::raw('CAST(m.qty AS NUMERIC) as qty'),
-
                 // IN
                 DB::raw("
                     CASE
-                        WHEN m.doctype IN ('STTB','STTB_RETURN','ISSUE_RETURN')
-                        THEN CAST(m.qty AS NUMERIC)
+                        WHEN UPPER(m.doctype) IN ('STTB','ISSUE_RETURN')
+                        THEN m.qty::NUMERIC
                         ELSE 0
                     END as qty_in
                 "),
@@ -193,12 +192,11 @@ class ReportWarehouseController extends Controller
                 // OUT
                 DB::raw("
                     CASE
-                        WHEN m.doctype IN ('ISSUE')
-                        THEN CAST(m.qty AS NUMERIC)
+                        WHEN UPPER(m.doctype) IN ('ISSUE','STTB_RETURN')
+                        THEN m.qty::NUMERIC
                         ELSE 0
                     END as qty_out
                 ")
-
             ]);
     }
 
@@ -379,33 +377,31 @@ class ReportWarehouseController extends Controller
                 $base->where('m.doctype', $request->doctype);
 
 
-            // 🔥 CORE LOGIC (RUNNING STOCK)
             $query = DB::connection('pgsql')
                 ->query()
                 ->fromSub($base, 'x')
 
-                ->leftJoinSub($opening, 'o', function ($join) {
-                    $join->on('x.inventoryid', '=', 'o.inventoryid');
-                })
-
                 ->selectRaw("
                     x.*,
 
-                    COALESCE(o.opening_qty, 0) as opening_qty,
-
-                    COALESCE(o.opening_qty, 0) +
-                    SUM(qty_in - qty_out) OVER (
+                    -- 🔥 BACKWARD RUNNING TOTAL (reverse direction)
+                    SUM(qty_out - qty_in) OVER (
                         PARTITION BY x.inventoryid
-                        ORDER BY x.docdate, x.docid
-                    ) as end_qty,
+                        ORDER BY x.docdate DESC, x.docid DESC
+                    ) as running_back,
 
-                    COALESCE(o.opening_qty, 0) +
-                    SUM(qty_in - qty_out) OVER (
+                    -- BEGINNING = running
+                    SUM(qty_out - qty_in) OVER (
                         PARTITION BY x.inventoryid
-                        ORDER BY x.docdate, x.docid
-                    ) - qty_in + qty_out as begin_qty
-                ");
+                        ORDER BY x.docdate DESC, x.docid DESC
+                    ) as begin_qty,
 
+                    -- ENDING = next state
+                    SUM(qty_out - qty_in) OVER (
+                        PARTITION BY x.inventoryid
+                        ORDER BY x.docdate DESC, x.docid DESC
+                    ) - qty_out + qty_in as end_qty
+            ");
         }
         elseif ($report === 'issue') {
             $query = $this->issueQuery();
