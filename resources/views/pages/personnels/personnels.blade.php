@@ -101,7 +101,7 @@
                         <p class="break-words text-sm font-medium">HCBP All</p>
                     </div>
 
-                    <p class="shrink-0 text-base font-bold">{{ $all }}</p>
+                    <p class="shrink-0 text-base font-bold">{{ $hcbpAll }}</p>
                 </div>
             </a>
             @endif
