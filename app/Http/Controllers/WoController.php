@@ -2292,7 +2292,7 @@ class WoController extends Controller
         $flag = filter_var($req->input('flag_sppbjkt'), FILTER_VALIDATE_BOOLEAN)
                 || $req->input('flag_sppbjkt') == 1;
 
-        $wo->flag_sppbjkt = $flag ? 'Y' : 'N';
+        $wo->flag_sppbjkt = $req->has('flag_sppbjkt') && $req->flag_sppbjkt == 1 ? 'Y' : 'N';
 
         $wo->save();
 
