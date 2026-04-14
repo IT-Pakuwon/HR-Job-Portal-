@@ -17,13 +17,40 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class IFCAAPIPOController extends Controller
 {
+    public function filters()
+    {
+        $companies = BusinessUnit::query()
+            ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
+            ->whereNotNull('cpny_id')
+            ->where('cpny_id', '<>', '')
+            ->distinct()
+            ->orderBy('cpny_id')
+            ->pluck('cpny_id')
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'companies' => $companies,
+                'statuses'  => ['H', 'D', 'P', 'C'],
+                'per_pages' => [25, 50, 100],
+            ],
+        ]);
+    }
+
     public function list(Request $request)
     {
         $from = $request->query('from');
         $to   = $request->query('to');
+
+        $company = trim((string) $request->query('company', ''));
+        $status  = strtoupper(trim((string) $request->query('status', '')));
+        $perPage = (int) $request->query('per_page', 25);
+        $page    = max((int) $request->query('page', 1), 1);
 
         if (!$from || !$to) {
             return response()->json([
@@ -33,32 +60,88 @@ class IFCAAPIPOController extends Controller
             ], 422);
         }
 
+        if (!in_array($perPage, [25, 50, 100])) {
+            $perPage = 25;
+        }
+
+        if ($status !== '' && !in_array($status, ['H', 'D', 'P', 'C'])) {
+            $status = '';
+        }
+
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
 
-        $srcRows = ViewStagingPO::query()
+        $srcQuery = ViewStagingPO::query()
             ->select([
                 'cpny_id',
                 'order_no',
                 DB::raw('MIN(order_date) as order_date'),
-                DB::raw('MIN(supplier_cd) as supplier_cd'),
+                DB::raw('MIN(department_id) as department_id'),
+                DB::raw('MIN(budget_cpny_id) as budget_cpny_id'),
+                DB::raw('MIN(budget_business_unit_id) as budget_business_unit_id'),
             ])
-            ->whereBetween('order_date', [$fromDt, $toDt])
+            ->whereBetween('order_date', [$fromDt, $toDt]);
+
+        if ($company !== '') {
+            $srcQuery->where('cpny_id', $company);
+        }
+
+        $srcRows = $srcQuery
             ->groupBy('cpny_id', 'order_no')
             ->orderByDesc(DB::raw('MIN(order_date)'))
-            ->limit(100)
+            ->orderByDesc('order_no')
             ->get();
 
         if ($srcRows->isEmpty()) {
-            return response()->json(['ok' => true, 'data' => []]);
+            return response()->json([
+                'ok' => true,
+                'data' => [],
+                'summary' => [
+                    'H' => 0,
+                    'D' => 0,
+                    'P' => 0,
+                    'C' => 0,
+                    'ready' => 0,
+                ],
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page'    => 1,
+                    'per_page'     => $perPage,
+                    'total'        => 0,
+                    'from'         => 0,
+                    'to'           => 0,
+                ],
+            ]);
         }
 
         $keys = $srcRows
-            ->map(fn($r) => (string)$r->cpny_id . '||' . (string)$r->order_no)
+            ->map(fn($r) => (string) $r->cpny_id . '||' . (string) $r->order_no)
             ->values()
             ->all();
 
-        // ✅ tambah MAX(integration_type)
+        $businessUnitKeys = $srcRows
+            ->map(function ($r) {
+                return (string)($r->budget_cpny_id ?? '') . '||' . (string)($r->budget_business_unit_id ?? '');
+            })
+            ->filter(fn($k) => $k !== '||')
+            ->unique()
+            ->values()
+            ->all();
+
+        $businessUnitMap = collect();
+        if (!empty($businessUnitKeys)) {
+            $businessUnitMap = BusinessUnit::query()
+                ->select([
+                    'cpny_id',
+                    'business_unit_id',
+                    'integration_type',
+                ])
+                ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
+                ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $businessUnitKeys)
+                ->get()
+                ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->business_unit_id);
+        }
+
         $stagingAgg = StagingIfcaPoApprove::query()
             ->select([
                 'cpny_id',
@@ -70,6 +153,7 @@ class IFCAAPIPOController extends Controller
                 DB::raw("MAX(updated_at) as last_update"),
                 DB::raw("MAX(process_note) as process_note"),
                 DB::raw("MAX(integration_type) as integration_type"),
+                DB::raw("MAX(entity_cd) as entity_cd"),
             ])
             ->whereIn(DB::raw("(cpny_id || '||' || order_no)"), $keys)
             ->groupBy('cpny_id', 'order_no')
@@ -86,7 +170,9 @@ class IFCAAPIPOController extends Controller
         $logMap = [];
         foreach ($logRows as $lg) {
             $ref = (string)$lg->refnbr;
-            if (isset($logMap[$ref])) continue;
+            if (isset($logMap[$ref])) {
+                continue;
+            }
 
             $msg = '';
             $raw = $lg->payload_response;
@@ -99,12 +185,12 @@ class IFCAAPIPOController extends Controller
             }
 
             $logMap[$ref] = [
-                'message' => $msg,
+                'message'     => $msg,
                 'last_update' => optional($lg->created_at)->format('Y-m-d H:i:s'),
             ];
         }
 
-        $rows = $srcRows->map(function ($r) use ($stagingAgg, $logMap) {
+        $rows = $srcRows->map(function ($r) use ($stagingAgg, $logMap, $businessUnitMap) {
             $cpny = (string)$r->cpny_id;
             $ord  = (string)$r->order_no;
             $key  = $cpny . '||' . $ord;
@@ -114,56 +200,103 @@ class IFCAAPIPOController extends Controller
             $stage = 'H';
             $note  = '';
             $last  = '';
-            $it    = ''; // integration_type
+            $entityCd = '';
 
             if ($st) {
-                $cnt   = (int)$st->cnt;
-                $cntC  = (int)$st->cnt_c;
-                $cntP  = (int)$st->cnt_p;
-                $cntD  = (int)$st->cnt_d;
+                $cnt  = (int)$st->cnt;
+                $cntC = (int)$st->cnt_c;
+                $cntP = (int)$st->cnt_p;
+                $cntD = (int)$st->cnt_d;
 
-                if ($cnt > 0 && $cntC === $cnt) $stage = 'C';
-                else if ($cnt > 0 && $cntP === $cnt) $stage = 'P';
-                else if ($cnt > 0 && $cntD === $cnt) $stage = 'D';
-                else $stage = 'D';
+                if ($cnt > 0 && $cntC === $cnt) {
+                    $stage = 'C';
+                } elseif ($cnt > 0 && $cntP === $cnt) {
+                    $stage = 'P';
+                } elseif ($cnt > 0 && $cntD === $cnt) {
+                    $stage = 'D';
+                } else {
+                    $stage = 'D';
+                }
 
-                $note = (string)($st->process_note ?? '');
-                $last = optional($st->last_update)->format('Y-m-d H:i:s') ?? '';
-                $it   = strtoupper((string)($st->integration_type ?? ''));
+                $note     = (string)($st->process_note ?? '');
+                $last     = $st->last_update ? Carbon::parse($st->last_update)->format('Y-m-d H:i:s') : '';
+                $entityCd = (string)($st->entity_cd ?? '');
             }
 
-            $respMsg = '';
+            $buKey = (string)($r->budget_cpny_id ?? '') . '||' . (string)($r->budget_business_unit_id ?? '');
+            $bu = $businessUnitMap->get($buKey);
+            $integrationType = strtoupper((string)($bu->integration_type ?? ''));
+
+            $respMsg  = '';
             $respLast = '';
 
             if ($stage === 'D') {
-                $respMsg = $note;
+                $respMsg  = $note;
                 $respLast = $last;
-            } else if ($stage === 'P' || $stage === 'C') {
-                $respMsg = $logMap[$key]['message'] ?? $note ?? '';
-                $respLast = $logMap[$key]['last_update'] ?? $last ?? '';
+            } elseif ($stage === 'P' || $stage === 'C') {
+                $respMsg  = $logMap[$key]['message'] ?? ($note ?? '');
+                $respLast = $logMap[$key]['last_update'] ?? ($last ?? '');
             }
 
-            // ✅ stage_label: P-IFCA / P-SOLOMON
-            $stageLabel = $stage;
+            $statusLabel = $stage;
             if ($stage === 'P') {
-                $stageLabel = 'P' . ($it !== '' ? ('-' . $it) : '');
+                $statusLabel = 'P' . ($integrationType !== '' ? ('-' . $integrationType) : '');
             }
 
             return [
-                'key' => $key,
-                'cpny_id' => $cpny,
-                'order_no' => $ord,
-                'order_date' => Carbon::parse($r->order_date)->format('Y-m-d H:i:s'),
-                'supplier_cd' => (string)($r->supplier_cd ?? ''),
-                'stage_status' => $stage,
-                'stage_label'  => $stageLabel,
-                'integration_type' => $it,
+                'key'              => $key,
+                'cpny_id'          => $cpny,
+                'entity_cd'        => in_array($stage, ['D', 'P', 'C']) ? $entityCd : '',
+                'order_no'         => $ord,
+                'order_date'       => $r->order_date ? Carbon::parse($r->order_date)->format('Y-m-d') : '',
+                'department_id'    => (string)($r->department_id ?? ''),
+                'integration_type' => $integrationType,
+                'stage_status'     => $stage,
+                'stage_label'      => $statusLabel,
                 'payload_response' => $respMsg,
-                'last_update' => $respLast,
+                'last_update'      => $respLast,
             ];
         })->values();
 
-        return response()->json(['ok' => true, 'data' => $rows]);
+        if ($status !== '') {
+            $rows = $rows->filter(fn($r) => strtoupper((string)($r['stage_status'] ?? '')) === $status)->values();
+        }
+
+        $summary = [
+            'H' => $rows->where('stage_status', 'H')->count(),
+            'D' => $rows->where('stage_status', 'D')->count(),
+            'P' => $rows->where('stage_status', 'P')->count(),
+            'C' => $rows->where('stage_status', 'C')->count(),
+        ];
+
+        $summary['ready'] = $rows->filter(function ($r) {
+            $st = (string)($r['stage_status'] ?? '');
+            $it = strtoupper((string)($r['integration_type'] ?? ''));
+            return $st === 'H' || ($st === 'P' && $it === 'IFCA');
+        })->count();
+
+        $total = $rows->count();
+        $lastPage = max((int) ceil($total / $perPage), 1);
+        $page = min($page, $lastPage);
+
+        $items = $rows->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $fromRow = $total > 0 ? (($page - 1) * $perPage) + 1 : 0;
+        $toRow   = min($page * $perPage, $total);
+
+        return response()->json([
+            'ok' => true,
+            'data' => $items,
+            'summary' => $summary,
+            'meta' => [
+                'current_page' => $page,
+                'last_page'    => $lastPage,
+                'per_page'     => $perPage,
+                'total'        => $total,
+                'from'         => $fromRow,
+                'to'           => $toRow,
+            ],
+        ]);
     }
 
     public function process(Request $request)
