@@ -365,7 +365,7 @@ class ReportPurchasingController extends Controller
             'sppb'
         );
 
-        $query = $this->applyUserScope($query);
+        $query = $this->applyUserScope($query,  'sppb');
 
         $rows = $query->get();
 
@@ -429,7 +429,7 @@ class ReportPurchasingController extends Controller
             'sppj'
         );
 
-        $query = $this->applyUserScope($query);
+        $query = $this->applyUserScope($query,  'sppj');
 
         $rows = $query->get();
 
@@ -495,7 +495,7 @@ class ReportPurchasingController extends Controller
             'sppk'
         );
 
-        $query = $this->applyUserScope($query);
+        $query = $this->applyUserScope($query,  'sppk');
 
         $rows = $query->get();
 
@@ -561,7 +561,7 @@ class ReportPurchasingController extends Controller
             'sppt'
         );
 
-        $query = $this->applyUserScope($query);
+        $query = $this->applyUserScope($query,  'sppt');
 
         $rows = $query->get();
 
