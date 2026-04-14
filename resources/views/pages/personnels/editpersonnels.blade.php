@@ -89,18 +89,34 @@
 
                             <div class="pt-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+                                    <div id="jobTypeWrapper" class="grid grid-cols-1 md:grid-cols-1 gap-6 md:col-span-2">
+
+                                    {{-- Job Type --}}
                                     <div class="flex flex-col gap-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
-                                            Type</label>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Job Type
+                                        </label>
                                         <select name="job_type" id="job_type"
                                             class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                             required>
                                             <option value="" disabled>Select Job Type</option>
                                             <option value="New" @selected(old('job_type', $personnel->job_type) === 'New')>New</option>
-                                            <option value="Replacement" @selected(old('job_type', $personnel->job_type) === 'Replacement')>Replacement
-                                            </option>
+                                            <option value="Replacement" @selected(old('job_type', $personnel->job_type) === 'Replacement')>Replacement</option>
                                         </select>
                                     </div>
+
+                                    {{-- Replacement --}}
+                                    <div id="replacementField" class="hidden flex-col gap-2">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Replacement Name
+                                        </label>
+                                        <input type="text" name="replacement_name" id="replacement_name"
+                                            value="{{ old('replacement_name', $personnel->replacement_name ?? '') }}"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                            placeholder="Enter employee name to be replaced">
+                                    </div>
+
+                                </div>
 
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job
@@ -723,6 +739,45 @@
                         console.error(xhr.responseText);
                     }
                 });
+            });
+
+            $(document).ready(function () {
+
+                function toggleReplacementField() {
+                    let jobType = $('#job_type').val();
+
+                    if (jobType === 'Replacement') {
+
+                        $('#jobTypeWrapper')
+                            .removeClass('md:grid-cols-1')
+                            .addClass('md:grid-cols-2');
+
+                        $('#replacementField')
+                            .removeClass('hidden')
+                            .addClass('flex');
+
+                        $('#replacement_name').attr('required', true);
+
+                    } else {
+
+                        $('#jobTypeWrapper')
+                            .removeClass('md:grid-cols-2')
+                            .addClass('md:grid-cols-1');
+
+                        $('#replacementField')
+                            .addClass('hidden')
+                            .removeClass('flex');
+
+                        $('#replacement_name').val('');
+                        $('#replacement_name').removeAttr('required');
+                    }
+                }
+
+                $('#job_type').on('change', toggleReplacementField);
+
+                // 🔥 IMPORTANT (EDIT MODE)
+                toggleReplacementField();
+
             });
 
             // ========= RESPONSIBILITIES add/remove like create (hide delete if 1) =========

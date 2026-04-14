@@ -73,7 +73,7 @@
                             </summary>
                             <div class="pt-6">
                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                 <div id="jobTypeWrapper" class="grid grid-cols-1 gap-6">
 
                                         {{-- Job Type --}}
                                         <div class="flex flex-col gap-2">
@@ -90,7 +90,7 @@
                                         </div>
 
                                         {{-- Replacement --}}
-                                        <div id="replacementField" class="flex flex-col gap-2 opacity-0 pointer-events-none transition-all duration-200">
+                                        <div id="replacementField" class="hidden flex-col gap-2">
                                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                 Replacement Name
                                             </label>
@@ -982,27 +982,40 @@
                 let jobType = $('#job_type').val();
 
                 if (jobType === 'Replacement') {
-                  $('#replacementField')
-    .removeClass('opacity-0 pointer-events-none')
-    .addClass('opacity-100');
+
+                    $('#jobTypeWrapper')
+                        .removeClass('md:grid-cols-1')
+                        .addClass('md:grid-cols-2');
+
+                    $('#replacementField')
+                        .removeClass('hidden')
+                        .addClass('flex');
+
                     $('#replacement_name').attr('required', true);
+
                 } else {
-                  $('#replacementField')
-    .addClass('opacity-0 pointer-events-none')
-    .removeClass('opacity-100');
+
+                    $('#jobTypeWrapper')
+                        .removeClass('md:grid-cols-2')
+                        .addClass('md:grid-cols-1');
+
+                    $('#replacementField')
+                        .addClass('hidden')
+                        .removeClass('flex');
+
                     $('#replacement_name').val('');
                     $('#replacement_name').removeAttr('required');
                 }
             }
 
-            // trigger saat change
-            $('#job_type').on('change', function () {
-                toggleReplacementField();
-            });
+            // 👉 trigger saat change
+            $('#job_type').on('change', toggleReplacementField);
 
-            // trigger saat load (kalau edit mode)
+            // 👉 trigger saat pertama load
             toggleReplacementField();
+
         });
+
     </script>
 
     <script>

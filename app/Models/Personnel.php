@@ -11,7 +11,7 @@ class Personnel extends Model
     protected $table = "hr_trx_prf";
     // protected $primaryKey = 'id';
     protected $fillable = [
-        'docid',        
+        'docid',
         'cpnyid',
         'departementid',
         'division_id',
@@ -20,9 +20,10 @@ class Personnel extends Model
         'user',
         'job_title',
         'subgrade_id',
-        'job_level',        
+        'job_level',
         'immediate_superior',
         'state_position',
+        'immediate_replacement',
         'job_type',
         'name_job',
         'reason_vacancy',
@@ -32,9 +33,9 @@ class Personnel extends Model
         'total_actual',
         'education',
         'education_jurusan',
-        'experience_start',   
-        'experience_end',   
-        'experience_position',       
+        'experience_start',
+        'experience_end',
+        'experience_position',
         'created_user',
         'created_at',
         'updated_user',
@@ -44,7 +45,7 @@ class Personnel extends Model
         'refid',
         'completed_user',
         'created_user',
-        'cpnyid_site'        
+        'cpnyid_site'
     ];
 
     public function departement()
