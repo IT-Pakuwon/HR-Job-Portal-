@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -30,10 +30,10 @@ class JobpostingController extends Controller
         $reject = Jobposting::where('status', 'R')->count();
         $revise = Jobposting::where('status', 'D')->count();
         $completed = Jobposting::where('status', 'C')->count();
-       
+
         return view('pages.jobpostings.jobpostings', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
     }
-    
+
     public function json(Request $request)
     {
         // $status = $request->query('status', 'P');
@@ -49,27 +49,44 @@ class JobpostingController extends Controller
 
         return response()->json(['data' => $jobposting]);
     }
-    
+
     public function showJobposting($id)
-    {        
+    {
         $jobposting = Jobposting::findOrFail($id);
         $approval = T_approval::where('docid', $jobposting->docid)
-            ->where('status','<>','X')      
+            ->where('status','<>','X')
             ->orderBy('created_at')
-            ->orderBy('aprvid')      
+            ->orderBy('aprvid')
             ->get();
 
-        $jobres = JobpostingResponsiblities::where('docid', $jobposting->docid)           
+        $jobres = JobpostingResponsiblities::where('docid', $jobposting->docid)
             ->get();
-        $jobqua = JobpostingQualification::where('docid', $jobposting->docid)           
+        $jobqua = JobpostingQualification::where('docid', $jobposting->docid)
             ->get();
-        $attachment = Attachment::where('docid', $jobposting->docid)    
-            ->where('status','A')        
+        $attachment = Attachment::where('docid', $jobposting->docid)
+            ->where('status','A')
             ->get();
-       
+
         return view('pages.jobpostings.showjobpostings', compact('jobposting','jobres','jobqua','approval','attachment'));
     }
 
-    
+    public function list()
+    {
+        return DB::connection('mysql3')
+            ->table('hr_trx_jobposting as jp')
+            ->select(
+                'jp.docid',
+                DB::raw("
+                    CONCAT(
+                        IFNULL(jp.name_job, IFNULL(jp.job_title,'-')),
+                        ' (Lvl ', IFNULL(jp.job_level,'-'), ')',
+                        ' • Dept:', IFNULL(jp.departementid,'-'),
+                        ' • Company :', IFNULL(jp.cpnyid,'-')
+                    ) as job_name
+                ")
+            )
+            ->where('jp.status', 'P')
+            ->get();
+    }
 
 }

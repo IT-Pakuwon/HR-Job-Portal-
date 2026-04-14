@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Autonbr;
@@ -26,31 +26,44 @@ class JobapplicantController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user(); // atau $request->user()
+        $user = auth()->user();
 
         if (!$user) {
-            // Session habis / belum login
             return $request->expectsJson()
                 ? response()->json(['message' => 'Your session has expired. Please sign in again.'], 401)
                 : redirect()->route('login')->with('error', 'Your session has expired. Please sign in again.');
         }
 
-        // Ambil jumlah total pelamar dari viewtrxcareer     
-        $all = ViewCareer::count();
-        $unchecked = ViewCareer::where('is_read', 'N')->count();
-        $checked = ViewCareer::where('is_read', 'Y')->whereIn('status', ['H', 'P'])->count();
-        $reject = ViewCareer::where('status', 'R')->count();       
-        $approved = ViewCareer::where('status', 'C')->count();
+        // 🔥 BASE QUERY (exclude X)
+        $base = ViewCareer::where('status', '!=', 'X');
+
+        $all = (clone $base)->count();
+
+        $unchecked = (clone $base)
+            ->where('is_read', 'N')
+            ->count();
+
+        $checked = (clone $base)
+            ->where('is_read', 'Y')
+            ->whereIn('status', ['H', 'P'])
+            ->count();
+
+        $reject = (clone $base)
+            ->where('status', 'R')
+            ->count();
+
+        $approved = (clone $base)
+            ->where('status', 'C')
+            ->count();
 
         return view('pages.careers.jobapplicant', compact('all', 'unchecked', 'checked', 'reject', 'approved'));
     }
-    
     public function json(Request $request)
     {
         $jobTLExact = trim((string) $request->input('job_tl_exact', ''));
         $status     = $request->query('status');
         $cpnyid     = $request->query('cpnyid');
-        
+
 
         $start      = (int) $request->input('start', 0);
         $length     = (int) $request->input('length', 10);
@@ -75,7 +88,8 @@ class JobapplicantController extends Controller
         // Base query
         $base = DB::connection('mysql3')
             ->table('viewtrxcareer as vc')
-            ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid');
+            ->leftJoin('viewtrxcareer_scoring as vs', 'vc.docid', '=', 'vs.docid')
+             ->where('vc.status', '!=', 'X');
 
         // Filter "tetap" (status, cpnyid) – ini memang bagian dari dataset
         if (!empty($status)) {
@@ -91,7 +105,7 @@ class JobapplicantController extends Controller
             $base->where('vc.cpnyid', $cpnyid);
         }
 
-        
+
         // Total sebelum global/column search
         $recordsTotal = (clone $base)->count();
 
@@ -228,7 +242,7 @@ class JobapplicantController extends Controller
             ->pluck('vc.prev_apply_step')
             ->values();
 
-                
+
         return response()->json([
             'draw'            => intval($request->input('draw')),
             'recordsTotal'    => $recordsTotal,
@@ -307,30 +321,30 @@ class JobapplicantController extends Controller
                 DB::raw('IFNULL(vs.total_tags, 0) as total_tags'),
                 DB::raw('IFNULL(vs.matched_count, 0) as matched_count'),
                 DB::raw('IFNULL(vs.match_score_percentage, 0) as match_score_percentage')
-            )            
+            )
             ->get();
 
         // dd($applicants);
         return response()->json(['data' => $applicants]);
     }
-        
+
     public function showJobposting($id)
-    {        
+    {
         $jobposting = Jobposting::findOrFail($id);
         $approval = T_approval::where('docid', $jobposting->docid)
-            ->where('status','<>','X')      
+            ->where('status','<>','X')
             ->orderBy('created_at')
-            ->orderBy('aprvid')      
+            ->orderBy('aprvid')
             ->get();
 
-        $jobres = JobpostingResponsiblities::where('docid', $jobposting->docid)           
+        $jobres = JobpostingResponsiblities::where('docid', $jobposting->docid)
             ->get();
-        $jobqua = JobpostingQualification::where('docid', $jobposting->docid)           
+        $jobqua = JobpostingQualification::where('docid', $jobposting->docid)
             ->get();
-        $attachment = Attachment::where('docid', $jobposting->docid)    
-            ->where('status','A')        
+        $attachment = Attachment::where('docid', $jobposting->docid)
+            ->where('status','A')
             ->get();
-       
+
         return view('pages.jobpostings.showjobpostings', compact('jobposting','jobres','jobqua','approval','attachment'));
     }
 
@@ -349,6 +363,6 @@ class JobapplicantController extends Controller
     }
 
 
-    
+
 
 }

@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Jobposting extends Model
 {
     protected $connection = 'mysql3';
-    protected $table = "hr_trx_jobposting";   
-    protected $fillable = [  
+    protected $table = "hr_trx_jobposting";
+    protected $fillable = [
         'docid',
         'refid',
         'cpnyid',
@@ -38,6 +38,7 @@ class Jobposting extends Model
         'created_user',
         'updated_user',
         'completed_user'
+
 
     ];
 }

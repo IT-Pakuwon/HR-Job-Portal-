@@ -184,7 +184,7 @@
                             <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Job Posting Status
                             </th>
-                                                        <th scope="col" class="w-32 px-6 py-2 font-medium">
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Action
                             </th>
                         </tr>

@@ -374,6 +374,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json');
     Route::get('/showjobpostings/{id}', [JobpostingController::class, 'showJobposting']);
+    Route::get('/jobposting/list', [JobpostingController::class, 'list'])->name('jobposting.list');
+    // Route::post('/applicant/mapping', [ApplicantController::class, 'storeMapping'])->name('applicant.mapping.store');
+    Route::post('/applicant/mapping', [SelfRegisterApplicantController::class, 'storeMapping'])
+        ->name('applicant.mapping.store');
+    Route::post('/applicant/mapping/rollback', [SelfRegisterApplicantController::class, 'rollbackMapping'])
+    ->name('applicant.mapping.rollback');
+
 
     Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');

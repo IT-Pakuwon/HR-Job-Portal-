@@ -2,6 +2,21 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
+
+    <style>
+        .select2-container {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .select2-selection__rendered {
+            display: block !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+    </style>
     <div class="max-w-9xl mx-auto p-2">
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -53,12 +68,80 @@
                             <th scope="col" class="w-32 px-4 py-3 text-center">
                                 Last Working
                             </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                                Action
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>
                 </table>
+            </div>
+        </div>
+        <!-- Mapping Modal -->
+        <div id="mappingModal"
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+
+            <div
+                class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0"
+                id="mappingModalContent">
+
+                <!-- Header -->
+                <div class="mb-5 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">
+                            Mapping Applicant
+                        </h2>
+                        <p class="text-sm text-gray-500">
+                            Assign candidate to job posting
+                        </p>
+                    </div>
+
+                    <button id="closeMappingModal"
+                        class="text-gray-400 hover:text-gray-600 text-lg">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Hidden -->
+                <input type="hidden" id="mapApplicantId">
+
+                <!-- Mapping Row -->
+              <div class="mb-8 flex items-center gap-4 w-full">
+
+                    <!-- DOC ID -->
+                    <div
+                        class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner">
+                        <span id="mapDocId">DOCID</span>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="text-gray-400 text-2xl">→</div>
+
+                    <!-- Select -->
+                    <div class="flex-1 min-w-0">
+                        <select id="jobPostingSelect"
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm
+                                focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500
+                                hover:border-gray-400 transition">
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-2">
+                    <button id="closeMappingModalBtn"
+                        class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700">
+                        Cancel
+                    </button>
+
+                    <button id="saveMapping"
+                        class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow">
+                        Save Mapping
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -116,6 +199,10 @@
                     index: 8,
                     type: 'text',
                     placeholder: 'Company'
+                },
+                {
+                    targets: 9,
+                    responsivePriority: 1
                 },
             ];
 
@@ -263,6 +350,57 @@
                         data: 'company_name',
                         name: 'company_name'
                     }, // 8
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+
+                            // ✅ SUDAH MAPPED
+                            if (row.jobposting_docid) {
+                                return `
+                                    <div class="flex flex-col items-center gap-3 py-2">
+
+                                        <!-- STATUS -->
+                                        <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-700">
+                                            ✓ Mapped
+                                        </span>
+
+                                        <!-- JOB INFO -->
+                                        <div class="text-center leading-tight">
+                                            <div class="text-sm font-semibold text-gray-800">
+                                                ${row.job_name || '-'}
+                                            </div>
+                                            <div class="text-xs text-gray-500 mt-1">
+                                                ${row.jobposting_docid}
+                                            </div>
+                                        </div>
+
+                                        <!-- ACTION -->
+                                        <button
+                                            class="rollback-btn text-sm font-medium text-red-500 hover:text-red-600 hover:underline transition"
+                                            data-id="${row.eid}" data-job="${row.jobposting_docid}">
+                                            Undo Mapping
+                                        </button>
+                                    </div>
+                                `;
+                            }
+
+                            // ❌ BELUM MAPPED
+                            return `
+                                <div class="flex justify-center py-3">
+                                    <button
+                                        class="map-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg shadow hover:bg-indigo-700 hover:shadow-md transition"
+
+                                        data-id="${row.eid}"
+                                        data-docid="${row.docid}">
+                                        + Map Candidate
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    },
                 ],
 
                 rowCallback: function(row, data) {
@@ -270,6 +408,32 @@
                     if (data.status === 'R') $(row).css('color', '#dc2626');
                     else $(row).css('color', 'black');
                 }
+            });
+
+            $(document).on('click', '.rollback-btn', function () {
+
+                let applicantId = $(this).data('id');
+                let jobId = $(this).data('job'); // 🔥 TAMBAH
+
+                if (!confirm('Undo mapping?')) return;
+
+                $.ajax({
+                    url: "{{ route('applicant.mapping.rollback') }}",
+                    type: "POST",
+                    data: {
+                        applicant_id: applicantId,
+                        jobposting_docid: jobId, // 🔥 WAJIB
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function () {
+                        alert('Mapping removed!');
+                        $('#applicantsTable').DataTable().ajax.reload();
+                    },
+                    error: function (err) {
+                        console.log(err);
+                        alert('Rollback failed!');
+                    }
+                });
             });
 
             // reset filters
@@ -285,6 +449,147 @@
                 $(this).addClass('active');
                 currentStatus = $(this).data('status') || '';
                 applicantTable.ajax.reload();
+            });
+
+            // ==============================
+            // OPEN MODAL
+            // ==============================
+            $(document).on('click', '.map-btn', function () {
+                let applicantId = $(this).data('id');
+                let docId = $(this).data('docid');
+
+                $('#mapApplicantId').val(applicantId);
+                $('#mapDocId').text(docId);
+
+                loadJobPostings();
+
+                $('#mappingModal').removeClass('hidden').addClass('flex');
+
+                setTimeout(() => {
+                    $('#mappingModalContent')
+                        .removeClass('scale-95 opacity-0')
+                        .addClass('scale-100 opacity-100');
+                }, 10);
+            });
+
+
+            // ==============================
+            // CLOSE MODAL (FIXED ❗)
+            // ==============================
+            function closeModal() {
+                $('#mappingModalContent')
+                    .removeClass('scale-100 opacity-100')
+                    .addClass('scale-95 opacity-0');
+
+                setTimeout(() => {
+                    $('#mappingModal').addClass('hidden').removeClass('flex');
+                }, 200);
+            }
+
+            $('#closeMappingModal, #closeMappingModalBtn').on('click', closeModal);
+
+
+            // ==============================
+            // LOAD JOB POSTING
+            // ==============================
+            function loadJobPostings() {
+                $.ajax({
+                    url: "{{ route('jobposting.list') }}",
+                    type: "GET",
+                    success: function (res) {
+                        let $select = $('#jobPostingSelect');
+
+                        $select.empty().append(`<option value="">Select Job Posting</option>`);
+
+                        res.forEach(item => {
+                            $select.append(`
+                                <option value="${item.docid}">
+                                    ${item.docid} - ${item.job_name}
+                                </option>
+                            `);
+                        });
+
+                        // 🔥 INIT HERE
+                        initSelect2();
+                    }
+                });
+            }
+
+            function initSelect2() {
+                $('#jobPostingSelect').select2({
+                    dropdownParent: $('#mappingModal'),
+                    placeholder: "🔍 Search Job Posting...",
+                    width: '100%',
+                    allowClear: true,
+                    templateResult: formatJob,
+                    templateSelection: formatJobSelection
+                });
+            }
+
+            function formatJob(data) {
+                if (!data.id) return data.text;
+
+                let text = data.text;
+
+                // split docid + info
+                let [doc, info] = text.split(' - ');
+
+                return $(`
+                    <div class="py-2 px-1">
+                        <div style="font-size:14px; font-weight:600; color:#111827;">
+                            ${info || '-'}
+                        </div>
+                        <div style="font-size:12px; color:#6b7280; margin-top:2px;">
+                            ${doc}
+                        </div>
+                    </div>
+                `);
+            }
+
+            function formatJobSelection(data) {
+                if (!data.id) return data.text;
+
+                let [doc, info] = data.text.split(' - ');
+
+                return `${doc} - ${info}`;
+            }
+
+            $('#jobPostingSelect').select2({
+                dropdownParent: $('#mappingModal'),
+                width: '100%',
+                placeholder: "🔍 Search job...",
+            });
+            // ==============================
+            // SAVE MAPPING
+            // ==============================
+            $('#saveMapping').on('click', function () {
+                let applicantId = $('#mapApplicantId').val();
+                let jobPostingId = $('#jobPostingSelect').val();
+
+                if (!jobPostingId) {
+                    alert('Please select job posting');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('applicant.mapping.store') }}",
+                    type: "POST",
+                    data: {
+                        applicant_id: applicantId,
+                       jobposting_docid: jobPostingId,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function () {
+                        alert('Mapping saved!');
+
+                        closeModal();
+
+                        $('#applicantsTable').DataTable().ajax.reload();
+                    },
+                    error: function () {
+                        alert('Failed to save mapping');
+                    }
+                });
             });
         });
     </script>

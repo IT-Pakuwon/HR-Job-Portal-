@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\User;
@@ -39,7 +39,7 @@ class SelfRegisterApplicantController extends Controller
 
         $q = DB::connection('mysql3')->table('viewselfregister');
 
-        $all      = (clone $q)->count();       
+        $all      = (clone $q)->count();
 
         return view('pages.selfregister.selfapplicant', compact('all'));
     }
@@ -66,7 +66,17 @@ class SelfRegisterApplicantController extends Controller
                 'status'         => 'vc.status',
             ];
 
-        $base = DB::connection('mysql3')->table('viewselfregister as vc');
+        $base = DB::connection('mysql3')
+        ->table('viewselfregister as vc')
+
+        ->leftJoin('hr_trx_selfposting as sp', 'vc.docid', '=', 'sp.docid')
+
+        ->leftJoin('hr_trx_job_apply as map', function ($join) {
+            $join->on('vc.docid', '=', 'map.docid') // 🔥 pakai SLF
+                ->where('map.status', '!=', 'X');
+        })
+
+        ->leftJoin('hr_trx_jobposting as jp', 'map.jobid', '=', 'jp.docid'); // 🔥 FIX
 
         // Filter status card
         if (!empty($status)) {
@@ -127,6 +137,9 @@ class SelfRegisterApplicantController extends Controller
                 'vc.weight',
                 'vc.company_name',
                 'vc.status',
+                'map.jobid as jobposting_docid',
+                'jp.job_title',
+                'jp.job_level'
             ])
             ->orderBy($orderBy, $orderDir)
             ->get();
@@ -143,6 +156,10 @@ class SelfRegisterApplicantController extends Controller
                 'weight'         => $r->weight,
                 'company_name'   => $r->company_name,
                 'status'         => $r->status,
+                'jobposting_docid' => $r->jobposting_docid,
+                'job_name' => $r->job_title
+                    ? $r->job_title . ' (Lvl ' . $r->job_level . ')'
+                    : null,
             ];
         });
 
@@ -159,7 +176,7 @@ class SelfRegisterApplicantController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
@@ -177,7 +194,7 @@ class SelfRegisterApplicantController extends Controller
         $applicant_sw = ApplicantSW::where('applicant_id', $career->applicant_id)->get();
         $applicant_skill = ApplicantSkill::where('applicant_id', $career->applicant_id)->get();
 
-        $year = now()->year;       
+        $year = now()->year;
         $config = config('filesystems.disks.gcs');
         // Pastikan StorageClient di-import dan digunakan dengan benar
         $storage = new StorageClient([
@@ -203,7 +220,7 @@ class SelfRegisterApplicantController extends Controller
             $cv = $object->signedUrl($expiration);
         }
 
-    
+
         return view('pages.selfregister.showapplicant', compact(
             'hash','career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working','applicant_language','applicant_course','applicant_sw',
             'applicant_skill','year','photo','cv','coverletter'
@@ -211,8 +228,280 @@ class SelfRegisterApplicantController extends Controller
 
     }
 
-    
+    // public function storeMapping(Request $request)
+    // {
+    //     $decoded = Hashids::decode($request->applicant_id);
+    //     $id = $decoded[0] ?? null;
 
-    
+    //     if (!$id) {
+    //         return response()->json(['error' => 'Invalid ID'], 400);
+    //     }
+
+    //     // ambil SLF docid dari view
+    //     $self = DB::connection('mysql3')
+    //         ->table('viewselfregister')
+    //         ->where('id', $id)
+    //         ->first();
+
+    //     if (!$self) {
+    //         return response()->json(['error' => 'Self register not found'], 404);
+    //     }
+
+    //     // 🔥 ambil applicant_id dari selfposting
+    //     $posting = DB::connection('mysql3')
+    //         ->table('hr_trx_selfposting')
+    //         ->where('docid', $self->docid)
+    //         ->first();
+
+    //     if (!$posting) {
+    //         return response()->json(['error' => 'Self posting not found'], 404);
+    //     }
+
+    //     DB::connection('mysql3')->table('hr_trx_job_apply')->updateOrInsert(
+    //         [
+    //             'applicant_id' => $posting->applicant_id,
+    //             'jobid'        => $request->jobposting_docid
+    //         ],
+    //         [
+    //             'docid'      => $self->docid,
+    //             'apply_date' => now(),
+    //             'status'     => 'H',
+    //             'apply_step' => 'JOAPHC',
+    //             'prev_apply_step' => 'JOAPHC',
+
+    //             // 🔥 TAMBAHAN
+    //             'created_user' => auth()->user()->username ?? 'system',
+    //             'updated_user' => auth()->user()->username ?? 'system',
+    //             'is_read'      => 'N',
+
+    //             'created_at' => now(),
+    //             'updated_at' => now()
+    //         ]
+    //     );
+    //     return response()->json(['success' => true]);
+    // }
+
+    public function storeMapping(Request $request)
+    {
+        DB::connection('mysql3')->beginTransaction();
+
+        try {
+            $decoded = Hashids::decode($request->applicant_id);
+            $id = $decoded[0] ?? null;
+
+            if (!$id) {
+                return response()->json(['error' => 'Invalid ID'], 400);
+            }
+
+            $self = DB::connection('mysql3')
+                ->table('viewselfregister')
+                ->where('id', $id)
+                ->first();
+
+            if (!$self) {
+                return response()->json(['error' => 'Self register not found'], 404);
+            }
+
+            $posting = DB::connection('mysql3')
+                ->table('hr_trx_selfposting')
+                ->where('docid', $self->docid)
+                ->first();
+
+            if (!$posting) {
+                return response()->json(['error' => 'Self posting not found'], 404);
+            }
+
+            // 🔥 PREVENT DOUBLE MAPPING
+            $exists = DB::connection('mysql3')
+                ->table('hr_trx_job_apply')
+                ->where('docid', $self->docid)
+                ->where('status', '!=', 'X')
+                ->exists();
+
+            if ($exists) {
+                return response()->json(['error' => 'Already mapped'], 400);
+            }
+
+            // 🔥 CREATE JOB APPLY (pakai SLF sebagai docid)
+            DB::connection('mysql3')->table('hr_trx_job_apply')->insert([
+                'docid'        => $self->docid, // ✅ SLF
+                'jobid'        => $request->jobposting_docid,
+                'applicant_id' => $posting->applicant_id,
+
+                'apply_date'   => now(),
+                'apply_step'   => 'JOAPHC',
+                'prev_apply_step' => 'JOAPHC',
+
+                'is_read'      => 'N',
+                'status'       => 'H',
+
+                'created_user' => auth()->user()->username ?? 'system',
+                'updated_user' => auth()->user()->username ?? 'system', // ✅ tambah
+                'created_at'   => now(),
+                'updated_at'   => now(), // ✅ tambah
+            ]);
+
+            // 🔥 CREATE JOB APPLY STEP (INI YANG BARU)
+            $steps = DB::connection('mysql3')
+                ->table('hr_ms_job_step')
+                ->orderBy('step_order', 'ASC')
+                ->get();
+
+            foreach ($steps as $step) {
+                DB::connection('mysql3')->table('hr_trx_job_apply_step')->insert([
+                    'docid'        => $self->docid, // tetap SLF
+                    'jobid'        => $request->jobposting_docid,
+                    'applicant_id' => $posting->applicant_id,
+
+                    'step_id'      => $step->step_id,
+                    'step_order'   => $step->step_order,
+                    'type'         => $step->type,
+                    'step_pic'     => $step->step_pic,
+                    'step_approve' => $step->step_approve,
+
+                    'status'       => 'P',
+
+                    'created_user' => auth()->user()->username ?? 'system',
+                    'created_at'   => now()
+                ]);
+            }
+
+            DB::connection('mysql3')
+                ->table('hr_trx_selfposting')
+                ->where('docid', $self->docid)
+                ->update([
+                    'status' => 'M',
+                    'updated_user' => auth()->user()->username ?? 'system',
+                    'updated_at' => now()
+            ]);
+            DB::connection('mysql3')->commit();
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            DB::connection('mysql3')->rollBack();
+
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // public function rollbackMapping(Request $request)
+    // {
+    //     if (!$request->jobposting_docid) {
+    //         return response()->json(['error' => 'Job ID missing'], 400);
+    //     }
+
+    //     $decoded = Hashids::decode($request->applicant_id);
+    //     $id = $decoded[0] ?? null;
+
+    //     if (!$id) {
+    //         return response()->json(['error' => 'Invalid ID'], 400);
+    //     }
+
+    //     $self = DB::connection('mysql3')
+    //         ->table('viewselfregister')
+    //         ->where('id', $id)
+    //         ->first();
+
+    //     if (!$self) {
+    //         return response()->json(['error' => 'Self not found'], 404);
+    //     }
+
+    //     $posting = DB::connection('mysql3')
+    //         ->table('hr_trx_selfposting')
+    //         ->where('docid', $self->docid)
+    //         ->first();
+
+    //     if (!$posting) {
+    //         return response()->json(['error' => 'Posting not found'], 404);
+    //     }
+
+    //     DB::connection('mysql3')
+    //         ->table('hr_trx_job_apply')
+    //         ->where('applicant_id', $posting->applicant_id)
+    //         ->where('jobid', $request->jobposting_docid)
+    //         ->update([
+    //             'status' => 'X',
+    //             'updated_user' => auth()->user()->username ?? 'system', // 🔥 TAMBAH
+    //             'updated_at' => now()
+    //     ]);
+    //     return response()->json(['success' => true]);
+    // }
+
+    public function rollbackMapping(Request $request)
+    {
+        DB::connection('mysql3')->beginTransaction();
+
+        try {
+            if (!$request->jobposting_docid) {
+                return response()->json(['error' => 'Job ID missing'], 400);
+            }
+
+            $decoded = Hashids::decode($request->applicant_id);
+            $id = $decoded[0] ?? null;
+
+            if (!$id) {
+                return response()->json(['error' => 'Invalid ID'], 400);
+            }
+
+            $self = DB::connection('mysql3')
+                ->table('viewselfregister')
+                ->where('id', $id)
+                ->first();
+
+            if (!$self) {
+                return response()->json(['error' => 'Self not found'], 404);
+            }
+
+            $posting = DB::connection('mysql3')
+                ->table('hr_trx_selfposting')
+                ->where('docid', $self->docid)
+                ->first();
+
+            if (!$posting) {
+                return response()->json(['error' => 'Posting not found'], 404);
+            }
+
+            // 🔥 STEP → SOFT DELETE
+            DB::connection('mysql3')
+                ->table('hr_trx_job_apply_step')
+                ->where('docid', $self->docid)
+                ->where('jobid', $request->jobposting_docid)
+               ->update([
+                    'status' => 'X',
+                    'updated_user' => auth()->user()->username ?? 'system',
+                    'updated_at' => now()
+                ]);
+
+            // 🔥 APPLY → SOFT DELETE
+            DB::connection('mysql3')
+                ->table('hr_trx_job_apply')
+                ->where('docid', $self->docid)
+                ->where('jobid', $request->jobposting_docid)
+                ->update([
+                    'status' => 'X',
+                    'updated_user' => auth()->user()->username ?? 'system',
+                    'updated_at' => now()
+                ]);
+
+
+            DB::connection('mysql3')->commit();
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            DB::connection('mysql3')->rollBack();
+
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 
 }
