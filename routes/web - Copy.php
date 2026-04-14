@@ -1139,8 +1139,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rfp', [RfpController::class, 'index'])->name('rfp');
     Route::get('/rfp/json', [RfpController::class, 'json'])->name('rfp.json');
     Route::get('/showrfp/{hash}', [RfpController::class, 'showRfp']);
-    Route::post('/rfp/{hash}/received', [RfpController::class, 'updateReceived'])->name('rfp.received');
-    Route::post('/rfp/{hash}/treasury', [RfpController::class, 'updateTreasury'])->name('rfp.treasury');
     Route::get('/rfp/{id}/tracking', [RfpController::class, 'tracking'])->name('rfp.tracking');
     Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printRfp'])->name('rfp.print');
 
