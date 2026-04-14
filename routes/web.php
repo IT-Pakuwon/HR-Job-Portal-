@@ -264,6 +264,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
     Route::get('/attachments/view/{id}', [PersonnelController::class, 'viewAttachment'])->name('attachments.view');
     Route::get('/hr/departments', [PersonnelController::class, 'byDivision'])->name('hr.departments');
+    Route::post('/jobposting/toggle-status', [PersonnelController::class, 'toggleJobPostingStatus']);
 
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/json', [ProjectTaskController::class, 'json'])->name('tasks.json');

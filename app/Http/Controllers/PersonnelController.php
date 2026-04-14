@@ -43,6 +43,7 @@ use App\Models\SysUserRole;
 use App\Models\DepartmentHR;
 use App\Models\Userdivision;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\GroupAccspecific;
 
 
 class PersonnelController extends Controller
@@ -176,6 +177,7 @@ class PersonnelController extends Controller
     public function json(Request $request)
     {
         $user = Auth::user();
+        $username = auth()->user()->username;
 
         $status = $request->query('status');
 
@@ -206,7 +208,22 @@ class PersonnelController extends Controller
             ->orderByDesc('docid')
             ->get();
 
-        $personnel = $rows->map(function ($row) {
+        $refids = $rows->pluck('docid')->toArray();
+
+        $jobpostingMap = Jobposting::whereIn('refid', $refids)
+            ->get()
+            ->keyBy('refid');
+
+        $hasPostingAccess = GroupAccspecific::where('username', $username)
+            ->where('group_access_id', 'POSTING')
+            ->where('status', 'A') // optional kalau ada status aktif
+            ->exists();
+
+
+        $personnel = $rows->map(function ($row) use ($jobpostingMap, $hasPostingAccess) {
+
+            $jobposting = $jobpostingMap[$row->docid] ?? 'Not Posted';
+
             return [
                 'eid'            => Hashids::encode($row->id),
                 'docid'          => $row->docid,
@@ -218,6 +235,10 @@ class PersonnelController extends Controller
                 'job_level'      => $row->job_level,
                 'created_user'   => $row->created_user,
                 'status'         => $row->status,
+
+                // 🔥 FIX HERE
+                'jobposting_status' => $jobposting->status ?? null,
+                'can_toggle' => $hasPostingAccess,
             ];
         });
 
@@ -2389,8 +2410,30 @@ class PersonnelController extends Controller
         return response()->json($departments, 200);
     }
 
+    public function toggleJobPostingStatus(Request $request)
+    {
+        $username = auth()->user()->username;
 
+        $hasAccess = GroupAccspecific::where('username', $username)
+            ->where('group_access_id', 'POSTING')
+            ->where('status', 'A')
+            ->exists();
 
+        if (!$hasAccess) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $job = Jobposting::where('refid', $request->docid)->first();
+
+        if (!$job) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        $job->status = $request->status;
+        $job->save();
+
+        return response()->json(['success' => true]);
+    }
 
 
 }

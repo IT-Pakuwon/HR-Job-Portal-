@@ -6,10 +6,11 @@
         $user = auth()->user();
 
         $hasWoAllAccess = $user->user_role === 'admin';
+        $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
 
         $xlCols = 5;
 
-        if ($hasWoAllAccess) {
+        if ($hasWoAllAccess || $hasAllList) {
             $xlCols++; // WO All
         }
     @endphp

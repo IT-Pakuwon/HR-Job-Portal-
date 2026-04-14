@@ -135,12 +135,15 @@
                         <div class="{{ $row }}">
                             <div class="{{ $label }}">
                                 <x-heroicon-o-identification class="h-5 w-5 text-gray-400" />
-                                <span>Job Title</span>
+                                <span>Job Title & Level</span>
                             </div>
                             <span class="{{ $value }}">
-                                {{ ucwords(strtolower(optional($personnel)->job_title)) }}
+                                {{ ucwords(strtolower(optional($personnel)->job_title)) ?? '-' }}
+                                <span class="text-gray-400"></span>
+                                {{ ucwords(strtolower(optional($personnel)->job_level)) ?? '-' }}
                             </span>
                         </div>
+
 
 
                         <div class="{{ $row }}">
@@ -162,22 +165,21 @@
                                 <x-heroicon-o-briefcase class="h-5 w-5 text-gray-400" />
                                 <span>Job Type</span>
                             </div>
-                            <span class="{{ $value }}">
+                            {{-- <span class="{{ $value }}">
                                 {{ ucwords(strtolower(optional($personnel)->job_type)) }}
-                            </span>
-                        </div>
+                            </span> --}}
 
-
-                        {{-- Job Level --}}
-                        <div class="{{ $row }}">
-                            <div class="{{ $label }}">
-                                <x-heroicon-o-arrow-trending-up class="h-5 w-5 text-gray-400" />
-                                <span>Job Level</span>
-                            </div>
                             <span class="{{ $value }}">
-                                {{ ucwords(strtolower(optional($personnel)->job_level)) }}
+                                {{ ucwords(strtolower(optional($personnel)->job_type)) ?? '-' }}
+
+                                @if(optional($personnel)->job_type === 'Replacement' && !empty($personnel->immediate_replacement))
+                                    <span class="text-gray-400"> • </span>
+                                    {{ ucwords(strtolower($personnel->immediate_replacement)) }}
+                                @endif
                             </span>
                         </div>
+
+
 
 
                         {{-- Reason for Vacancy --}}

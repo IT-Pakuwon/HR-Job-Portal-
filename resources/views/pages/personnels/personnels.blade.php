@@ -181,6 +181,12 @@
                             <th scope="col" class="w-32 px-6 py-2 font-medium">
                                 Status
                             </th>
+                            <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                Job Posting Status
+                            </th>
+                                                        <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                Action
+                            </th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -193,6 +199,17 @@
     <script>
         var currentUser = "{{ auth()->user()->username }}";
         $(document).ready(function() {
+            function toggleActionColumn(table, data) {
+
+                let hasToggle = data.some(r =>
+                    r.can_toggle &&
+                    r.jobposting_status &&
+                    r.status === 'C'
+                );
+
+                table.column(11).visible(hasToggle);
+            }
+
             // Hanya inisialisasi tabel personnelsTable
             let personnelsTable = $('#personnelsTable').DataTable({
                 ajax: "{{ route('personnels.json') }}?status=P",
@@ -215,6 +232,7 @@
                     className: 'dtr-control',
                     orderable: false
                 }],
+
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{
                         extend: 'excelHtml5',
@@ -241,6 +259,20 @@
                         }
                     }
                 ],
+
+                // 🔥 INIT
+                initComplete: function(settings, json) {
+                    let table = this.api();
+                    toggleActionColumn(table, json.data);
+                },
+
+                // 🔥 RELOAD / FILTER / DRAW
+                drawCallback: function(settings) {
+                    let table = this.api();
+                    let data = table.rows().data().toArray();
+                    toggleActionColumn(table, data);
+                },
+
 
 
                 // order: [1, 'asc'],
@@ -389,9 +421,133 @@
 
                             return `<span class="${badgeClass}">${statusText}</span>`;
                         }
+                    },
+                    {
+                        data: 'jobposting_status',
+                        render: function(data) {
+
+                            let text = '';
+                            let cls = '';
+
+                            if (!data) {
+                                text = 'Not Posted';
+                                cls = 'bg-gray-200 text-gray-700';
+                            } else if (data === 'P') {
+                                text = 'Posted';
+                                cls = 'bg-blue-200 text-blue-800';
+                            } else if (data === 'C') {
+                                text = 'Closed';
+                                cls = 'bg-green-200 text-green-800';
+                            } else {
+                                text = data;
+                                cls = 'bg-gray-200 text-gray-700';
+                            }
+
+                            return `<span class="px-2 py-1 rounded ${cls}">${text}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function(data, type, row) {
+
+                            // ❌ tidak punya akses
+                            if (!row.can_toggle) {
+                                return `<span class="text-gray-300 text-xs">-</span>`;
+                            }
+
+                            // ❌ belum ada jobposting
+                            if (!row.jobposting_status) {
+                                return `<span class="text-gray-400 text-sm">-</span>`;
+                            }
+
+                            // ❌ optional: hanya kalau PRF completed
+                            if (row.status !== 'C') {
+                                return `<span class="text-gray-300 text-xs">-</span>`;
+                            }
+
+                            // ✅ BUTTON
+                            if (row.jobposting_status === 'P') {
+                                return `
+                                    <button
+                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg
+                                        bg-red-50 text-red-600 border border-red-200
+                                        hover:bg-red-100 hover:border-red-300 transition-all duration-200"
+                                        data-docid="${row.docid}"
+                                        data-status="P"
+                                    >
+                                        <i class="fas fa-lock text-[10px]"></i>
+                                        Close
+                                    </button>
+                                `;
+                            }
+
+                            if (row.jobposting_status === 'C') {
+                                return `
+                                    <button
+                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg
+                                        bg-green-50 text-green-600 border border-green-200
+                                        hover:bg-green-100 hover:border-green-300 transition-all duration-200"
+                                        data-docid="${row.docid}"
+                                        data-status="C"
+                                    >
+                                        <i class="fas fa-lock-open text-[10px]"></i>
+                                        Reopen
+                                    </button>
+                                `;
+                            }
+
+                            return '';
+                        }
                     }
                 ]
             });
+
+            $('#personnelsTable').on('click', '.toggle-status', function() {
+
+                    let btn = $(this);
+                    let docid = btn.data('docid');
+                    let status = btn.data('status');
+
+                    let newStatus = (status === 'P') ? 'C' : 'P';
+                    let actionText = newStatus === 'C' ? 'close' : 'reopen';
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: `You are about to ${actionText} this job posting.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: newStatus === 'C' ? '#dc2626' : '#16a34a',
+                        confirmButtonText: `Yes, ${actionText} it!`
+                    }).then((result) => {
+
+                        if (!result.isConfirmed) return;
+
+                        btn.prop('disabled', true).html('Processing...');
+
+                        $.post('/jobposting/toggle-status', {
+                            docid,
+                            status: newStatus,
+                            _token: '{{ csrf_token() }}'
+                        })
+                        .done(() => {
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                timer: 1200,
+                                showConfirmButton: false
+                            });
+
+                            personnelsTable.ajax.reload(null, false);
+                        })
+                        .fail(() => {
+
+                            Swal.fire('Failed', 'Something went wrong', 'error');
+                            btn.prop('disabled', false);
+                        });
+                    });
+                });
 
             // Event listener untuk klik pada baris grup (collapse/expand) untuk personnelsTable
             $('#personnelsTable tbody').on('click', 'tr.group-row', function() {
