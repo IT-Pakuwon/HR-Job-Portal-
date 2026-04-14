@@ -264,7 +264,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
     Route::get('/attachments/view/{id}', [PersonnelController::class, 'viewAttachment'])->name('attachments.view');
     Route::get('/hr/departments', [PersonnelController::class, 'byDivision'])->name('hr.departments');
-    Route::post('/jobposting/toggle-status', [PersonnelController::class, 'toggleJobPostingStatus']);
 
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/json', [ProjectTaskController::class, 'json'])->name('tasks.json');
@@ -374,13 +373,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jobpostings', [JobpostingController::class, 'index'])->name('jobpostings');
     Route::get('/jobpostings/json', [JobpostingController::class, 'json'])->name('jobpostings.json');
     Route::get('/showjobpostings/{id}', [JobpostingController::class, 'showJobposting']);
-    Route::get('/jobposting/list', [JobpostingController::class, 'list'])->name('jobposting.list');
-    // Route::post('/applicant/mapping', [ApplicantController::class, 'storeMapping'])->name('applicant.mapping.store');
-    Route::post('/applicant/mapping', [SelfRegisterApplicantController::class, 'storeMapping'])
-        ->name('applicant.mapping.store');
-    Route::post('/applicant/mapping/rollback', [SelfRegisterApplicantController::class, 'rollbackMapping'])
-    ->name('applicant.mapping.rollback');
-
 
     Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
@@ -1147,11 +1139,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rfp', [RfpController::class, 'index'])->name('rfp');
     Route::get('/rfp/json', [RfpController::class, 'json'])->name('rfp.json');
     Route::get('/showrfp/{hash}', [RfpController::class, 'showRfp']);
-    Route::post('/rfp/{hash}/received', [RfpController::class, 'updateReceived'])->name('rfp.received');
-    Route::post('/rfp/{hash}/treasury', [RfpController::class, 'updateTreasury'])->name('rfp.treasury');
     Route::get('/rfp/{id}/tracking', [RfpController::class, 'tracking'])->name('rfp.tracking');
-    // Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printRfp'])->name('rfp.print');
-    Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printPdfRfp'])->name('rfp.print.pdf');
+    Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printRfp'])->name('rfp.print');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
