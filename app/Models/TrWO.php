@@ -84,4 +84,5 @@ class TrWO extends Model
     {
         return $this->hasMany(TrSPPT::class, 'woid', 'woid');
     }
+   
 }

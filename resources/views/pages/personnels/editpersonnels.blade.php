@@ -51,13 +51,29 @@
                             </div>
 
                             {{-- Department (AJAX loaded like create) --}}
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     name="departementid" id="departementid" required>
                                     <option value="" disabled selected>Select Department</option>
+                                </select>
+                            </div> --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
+                                <select
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    name="departementid" id="departementid" required>
+                                    <option value="" disabled {{ old('departementid', $personnel->departementid ?? '') ? '' : 'selected' }}>
+                                        Select Department
+                                    </option>
+                                    @foreach ($departments as $dept)
+                                        <option value="{{ $dept->department_id }}"
+                                            {{ (string) old('departementid', $personnel->departementid ?? '') === (string) $dept->department_id ? 'selected' : '' }}>
+                                            {{ $dept->department_name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -603,44 +619,86 @@
             subgradeSelect.addEventListener("change", updateGroupGrade);
 
             // ========= DIVISION -> DEPT (AJAX like create) =========
-            const currentDeptId = @json($personnel->departementid);
+            // const currentDeptId = @json($personnel->departementid);
+
+            // function resetDept(message = 'Select Department') {
+            //     $('#departementid').empty().append(`<option value="" disabled selected>${message}</option>`);
+            //     $('#departementid').val(null).trigger('change');
+            // }
+
+            // function loadDepartments(divisionId, selectedDeptId = null) {
+            //     resetDept('Loading...');
+            //     $.ajax({
+            //         url: `/hr/departments`,
+            //         type: 'GET',
+            //         dataType: 'json',
+            //         data: {
+            //             division_id: divisionId
+            //         },
+            //         success: function(rows) {
+            //             resetDept('Select Department');
+
+            //             if (rows && rows.length) {
+            //                 rows.forEach(r => {
+            //                     $('#departementid').append(
+            //                         `<option value="${r.department_id}">${r.department_name}</option>`
+            //                     );
+            //                 });
+
+            //                 if (selectedDeptId) {
+            //                     $('#departementid').val(String(selectedDeptId)).trigger('change');
+            //                 }
+            //             } else {
+            //                 resetDept('No department found');
+            //             }
+            //         },
+            //         error: function() {
+            //             resetDept('Error loading department');
+            //         }
+            //     });
+            // }
+
+            const currentDeptId = @json(old('departementid', $personnel->departementid ?? ''));
 
             function resetDept(message = 'Select Department') {
-                $('#departementid').empty().append(`<option value="" disabled selected>${message}</option>`);
-                $('#departementid').val(null).trigger('change');
+                $('#departementid').html(`<option value="" disabled selected>${message}</option>`);
             }
 
             function loadDepartments(divisionId, selectedDeptId = null) {
-                resetDept('Loading...');
                 $.ajax({
                     url: `/hr/departments`,
                     type: 'GET',
                     dataType: 'json',
-                    data: {
-                        division_id: divisionId
-                    },
+                    data: { division_id: divisionId },
                     success: function(rows) {
-                        resetDept('Select Department');
+                        let html = `<option value="" disabled>Select Department</option>`;
 
                         if (rows && rows.length) {
                             rows.forEach(r => {
-                                $('#departementid').append(
-                                    `<option value="${r.department_id}">${r.department_name}</option>`
-                                );
+                                const selected = String(r.department_id) === String(selectedDeptId) ? 'selected' : '';
+                                html += `<option value="${r.department_id}" ${selected}>${r.department_name}</option>`;
                             });
-
-                            if (selectedDeptId) {
-                                $('#departementid').val(String(selectedDeptId)).trigger('change');
-                            }
+                            $('#departementid').html(html).trigger('change.select2');
                         } else {
                             resetDept('No department found');
+                            $('#departementid').trigger('change.select2');
                         }
                     },
                     error: function() {
                         resetDept('Error loading department');
+                        $('#departementid').trigger('change.select2');
                     }
                 });
             }
+
+            $('#division_id').on('change', function() {
+                const divisionId = $(this).val();
+                if (!divisionId) {
+                    resetDept();
+                    return;
+                }
+                loadDepartments(divisionId, null);
+            });
 
             $('#division_id').on('change', function() {
                 const divisionId = $(this).val();

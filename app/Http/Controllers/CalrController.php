@@ -851,9 +851,15 @@ class CalrController extends Controller
                 break;
         }
 
+        if ($calr->rfca_type === 'RFP') {
+            $doctype ='CALR - RFP';
+        } else {
+            $doctype ='CALR';
+        }
+
         $data = [
             'title'               => 'CASH ADVANCE LIQUIDATION REPORT',
-            'doc_type'            => 'CALR',
+            'doc_type'            => $doctype,
             'docid'               => $calr->calrid,
             'department_id'       => $calr->department_id,
             'cpny_id'             => $company->cpny_id,

@@ -1866,14 +1866,14 @@ class MasterController extends Controller
             ]);
         }
 
-        $woQuery = TrWo::query()
+        $woQuery = TrWO::query()
             ->where('status', 'C') 
             ->where('flag_sppbjkt', true)           
             ->where('cpny_id', $cpnyid)
             ->where('status_pekerjaan', 'P')
             // ->where('department_id', $deptid);
             ->where('pic_department', $deptid);
-            // ->when($perpost, fn($q) => $q->where('perpost', $perpost)); // kalau TrWo punya perpost
+            // ->when($perpost, fn($q) => $q->where('perpost', $perpost)); // kalau TrWO punya perpost
 
         if ($search !== '') {
             $woQuery->where(function ($q) use ($search) {

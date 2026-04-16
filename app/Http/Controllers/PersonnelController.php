@@ -660,6 +660,89 @@ class PersonnelController extends Controller
         $companies = MsCompany::select('cpny_id')->get();
         $skillTags = MJobtag::select('id', 'job_tags')->get();
 
+        $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
+            ->where('status', 'A')
+            ->orderBy('grade_id', 'ASC')
+            ->get();
+
+        // division user-based
+        $userDivisionIds = Userdivision::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('division_id')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        // pastikan division milik personnel ikut terbaca saat edit
+        if (!empty($personnel->division_id) && !in_array($personnel->division_id, $userDivisionIds)) {
+            $userDivisionIds[] = $personnel->division_id;
+        }
+
+        $division = Division::query()
+            ->select('division_id', 'division_name')
+            ->where('status', 'A')
+            ->whereIn('division_id', $personnel->division_id)
+            ->orderBy('division_name')
+            ->get();
+
+        // load department berdasarkan division milik personnel
+        $departments = MsDepartment::query()
+            ->select('department_id', 'department_name', 'department_hr_id')
+            ->where('status', 'A')
+            ->where('department_hr_id', $personnel->division_id)
+            ->orderBy('department_name')
+            ->get();
+
+        $attachment = TrAttachment::where('refnbr', $personnel->docid)
+            ->where('status', 'A')
+            ->orderByDesc('attachment_date')
+            ->get(['id', 'attachment_name', 'filename', 'folder', 'extention', 'created_by', 'attachment_date']);
+
+        $jobres = JobResponsiblities::where('docid', $personnel->docid)->get();
+        $jobqua = JobQualification::where('docid', $personnel->docid)->get();
+
+        $selectedTags = TrJobtag::where('docid', $personnel->docid)
+            ->pluck('job_tags')
+            ->toArray();
+
+        return view('pages.personnels.editpersonnels', compact(
+            'companies',
+            'usercpny',
+            'usercpny2',
+            'userdept',
+            'userdept2',
+            'skillTags',
+            'division',
+            'departments',
+            'personnel',
+            'attachment',
+            'subgradings',
+            'jobres',
+            'jobqua',
+            'selectedTags',
+            'hash'
+        ));
+    }
+
+    public function editPersonnel_zzz($hash)
+    {
+        $user = Auth::user();
+        if (!$user) return redirect()->route('login');
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $personnel = Personnel::findOrFail($id);
+
+        $usercpny  = Usercpny::where('username', $user->username)->get();
+        $usercpny2 = Usercpny::where('username', $user->username)->first();
+        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept2 = Userdept::where('username', $user->username)->first();
+
+        $companies = MsCompany::select('cpny_id')->get();
+        $skillTags = MJobtag::select('id', 'job_tags')->get();
+
         // subgradings sama seperti create (ambil group_grade)
         $subgradings = StoSubGrading::select('subgrade_id','subgrade_name','group_grade')
             ->where('status', 'A')
@@ -830,19 +913,7 @@ class PersonnelController extends Controller
 
             // ===== Rebuild Approval Lines (hapus pending lama, build ulang dari master) =====
             // Ambil baris approval: Normal + Condition yang cocok dengan group_grade
-            // $msApproval = MsApproval::where('aprv_doctype', $doctype)
-            //     ->where('aprv_cpnyid', $request->cpnyid)
-            //     ->where('aprv_departementid', $request->departementid)
-            //     ->where('status', 'A')
-            //     ->where(function ($q) use ($groupGrade) {
-            //         $q->where('aprv_type', 'Normal')
-            //         ->orWhere(function ($q2) use ($groupGrade) {
-            //             $q2->where('aprv_type', 'Condition')
-            //                 ->where('aprv_condition', $groupGrade);
-            //         });
-            //     })
-            //     ->orderBy('aprv_leveling', 'asc')
-            //     ->get();
+     
             $msApproval = MsApproval::where('aprv_doctype', $doctype)
                 ->where('aprv_cpnyid', $request->cpnyid)
                 ->where('aprv_departementid', $request->departementid)
@@ -1297,6 +1368,11 @@ class PersonnelController extends Controller
             }
         }
 
+        $canEdit = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'EDIT')
+            ->where('status', 'A')
+            ->exists();
+
         return view('pages.personnels.showpersonnels', [
             'personnel'  => $personnel,
             'jobres'     => $jobres,
@@ -1304,6 +1380,7 @@ class PersonnelController extends Controller
             'approval'   => $approval,
             'attachment' => $attachments,
             'jobtag'     => $jobtag,
+            'canEdit'    => $canEdit
         ]);
     }
 

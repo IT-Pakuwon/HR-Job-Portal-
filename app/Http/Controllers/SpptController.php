@@ -3097,6 +3097,7 @@ class SpptController extends Controller
             'subLocation:sub_location_id,sub_location_name',
         ])
             ->where('spptid', $sppt->spptid)
+            ->orderBy('sppt_no', 'ASC')
             ->get();
 
         $refnbr = $sppt->spptid;

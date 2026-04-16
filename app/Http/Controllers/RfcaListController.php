@@ -840,9 +840,15 @@ class RfcaListController extends Controller
                 break;
         }
 
+        if ($rfca->rfca_type === 'RFP') {
+            $doctype ='RFCA - RFP';
+        } else {
+            $doctype ='RFCA - CALR';
+        }
+
         $data = [
             'title'               => 'REQUEST FOR CASH ADVANCE',
-            'doc_type'            => 'RFCA',
+            'doc_type'            => $doctype,
             'docid'               => $rfca->rfcaid,
             'department_id'       => $rfca->department_id,
             'cpny_id'             => $company->cpny_id,
