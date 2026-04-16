@@ -2436,7 +2436,7 @@ class SpbController extends Controller
         $spbdetail = TrSPBdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name',
-        ])->where('spbid', $spb->spbid)->get();
+        ])->where('spbid', $spb->spbid)->orderBy('spb_no', 'ASC')->get();
 
         $refnbr = $spb->spbid;
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"

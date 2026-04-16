@@ -392,7 +392,7 @@ class ReceiptController extends Controller
 
         // ===== Detail Receipt
         $rcpdetail = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
-            ->orderBy('receipt_no')
+            ->orderBy('receipt_no', 'asc')
             ->get();
 
         // ===== Link ke PO (opsional)
@@ -1397,7 +1397,7 @@ class ReceiptController extends Controller
             ->first();
 
         $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
-            ->orderBy('receipt_no')
+            ->orderBy('receipt_no', 'asc')
             ->get();
 
         $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();

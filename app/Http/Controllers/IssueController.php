@@ -364,7 +364,7 @@ class IssueController extends Controller
 
         // ===== Detail Issue (berdasarkan issueid)
         $issdetail = TrIssuedetail::where('issueid', $iss->issueid)
-            ->orderBy('issue_no')
+            ->orderBy('issue_no', 'asc')
             ->get();
 
 
@@ -854,7 +854,7 @@ class IssueController extends Controller
 
         // Detail issue (barang yang dikeluarkan)
         $issdetails = TrIssuedetail::where('issueid', $iss->issueid)
-            ->orderBy('issue_no')
+            ->orderBy('issue_no', 'asc')
             ->get();
 
         // Company (untuk header)

@@ -2528,6 +2528,7 @@ class SppjController extends Controller
             'subLocation:sub_location_id,sub_location_name',
         ])
             ->where('sppjid', $sppj->sppjid)
+            ->orderBy('sppj_no', 'ASC')
             ->get();
 
         $refnbr = $sppj->sppjid;

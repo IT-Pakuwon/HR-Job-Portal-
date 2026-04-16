@@ -2484,6 +2484,7 @@ class SppkController extends Controller
             'subLocation:sub_location_id,sub_location_name',
         ])
             ->where('sppkid', $sppk->sppkid)
+            ->orderBy('sppk_no', 'ASC')
             ->get();
 
         $refnbr = $sppk->sppkid;

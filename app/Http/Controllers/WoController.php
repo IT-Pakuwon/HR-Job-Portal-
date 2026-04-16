@@ -576,8 +576,7 @@ class WoController extends Controller
             'creator:username,name',
             'spbs',
             'sppbs',
-            'sppjs',
-            'sppks',
+            'sppjs',            
             'sppts',
         ])->findOrFail($id);
 
