@@ -119,10 +119,9 @@
     <div class="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between">
         <div class="text-xs text-gray-500">
             <span class="font-semibold">Legend:</span>
-            H = belum ada di staging,
-            P = ready / retry kirim API,
+            H = semua bisa dicentang,
+            P = hanya IFCA yang bisa dicentang,
             C = completed.
-            H/P yang bisa diproses hanya Integration Type = IFCA.
         </div>
 
         <div id="grnPagination" class="flex flex-wrap items-center gap-2"></div>
@@ -184,6 +183,25 @@
         return 'bg-gray-100 text-gray-700';
     }
 
+    // RULE FINAL:
+    // H + IFCA ✅
+    // H + SOLOMON ✅
+    // H + kosong ✅
+    // P + IFCA ✅
+    // P + SOLOMON ❌
+    // P + kosong ❌
+    // C ❌
+    function isRowSelectableGRN(stage, it) {
+        stage = String(stage || '').toUpperCase();
+        it = String(it || '').toUpperCase();
+
+        if (stage === 'C') return false;
+        if (stage === 'H') return true;
+        if (stage === 'P' && it === 'IFCA') return true;
+
+        return false;
+    }
+
     function syncChkAllStateGRN() {
         const enabled = Array.from(grnTbody.querySelectorAll('.grnRowChk:not(:disabled)'));
         if (enabled.length === 0) {
@@ -218,14 +236,18 @@
         grnTbody.innerHTML = rows.map(r => {
             const stage = String(r.stage_status ?? 'H').toUpperCase();
             const it = String(r.integration_type ?? '').trim().toUpperCase();
+            const selectable = isRowSelectableGRN(stage, it);
+            const disabled = !selectable;
 
-            const disabled = (stage === 'C' || it !== 'IFCA');
             const trClass = disabled ? 'bg-gray-50 text-gray-400' : 'hover:bg-gray-50';
             const checkboxClass = disabled ? 'opacity-40 cursor-not-allowed' : '';
 
             let title = '';
-            if (stage === 'C') title = 'Sudah completed (C). Tidak bisa diproses.';
-            else if (it !== 'IFCA') title = 'Hanya Integration Type IFCA yang bisa diproses di screen ini.';
+            if (stage === 'C') {
+                title = 'Sudah completed (C). Tidak bisa diproses.';
+            } else if (stage === 'P' && it !== 'IFCA') {
+                title = 'Status P hanya bisa dicentang jika Integration Type = IFCA.';
+            }
 
             return `
                 <tr class="${trClass}">
@@ -354,7 +376,7 @@
             const stage = String(chk.dataset.stage ?? '').toUpperCase();
             const it = String(chk.dataset.it ?? '').toUpperCase();
 
-            chk.disabled = (stage === 'C' || it !== 'IFCA');
+            chk.disabled = !isRowSelectableGRN(stage, it);
             if (chk.disabled) chk.checked = false;
         });
 
@@ -441,7 +463,7 @@
             setInfoGRN(
                 grnInfo,
                 'ok',
-                `Loaded ${meta.total ?? 0} GRN. Ready(H/P-IFCA): ${summary.ready ?? 0}. Pending(P): ${summary.P ?? 0}. Completed(C): ${summary.C ?? 0}.`
+                `Loaded ${meta.total ?? 0} GRN. Ready(H + P-IFCA): ${summary.ready ?? 0}. Pending(P): ${summary.P ?? 0}. Completed(C): ${summary.C ?? 0}.`
             );
         } catch (e) {
             renderRowsGRN([]);
@@ -492,12 +514,12 @@
             .filter(chk => {
                 const stage = String(chk.dataset.stage ?? '').toUpperCase();
                 const it = String(chk.dataset.it ?? '').toUpperCase();
-                return (stage === 'H' || stage === 'P') && it === 'IFCA';
+                return isRowSelectableGRN(stage, it);
             })
             .map(chk => chk.value);
 
         if (ids.length === 0) {
-            setInfoGRN(grnInfo, 'warn', 'Pilih minimal 1 GRN status H atau P dengan Integration Type IFCA untuk diproses.');
+            setInfoGRN(grnInfo, 'warn', 'Pilih minimal 1 GRN yang valid untuk diproses.');
             return;
         }
 
