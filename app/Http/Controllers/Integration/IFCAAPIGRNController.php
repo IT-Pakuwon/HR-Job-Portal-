@@ -55,18 +55,17 @@ class IFCAAPIGRNController extends Controller
             ], 422);
         }
 
-        if (!in_array($perPage, [25, 50, 100])) {
+        if (!in_array($perPage, [25, 50, 100], true)) {
             $perPage = 25;
         }
 
-        if ($status !== '' && !in_array($status, ['H', 'P', 'C'])) {
+        if ($status !== '' && !in_array($status, ['H', 'P', 'C'], true)) {
             $status = '';
         }
 
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
 
-        // source GRN dari view
         $srcQuery = ViewStagingGRN::query()
             ->select([
                 'cpny_id',
@@ -115,9 +114,7 @@ class IFCAAPIGRNController extends Controller
             ->all();
 
         $businessUnitKeys = $srcRows
-            ->map(function ($r) {
-                return (string)($r->cpny_id ?? '') . '||' . (string)($r->business_unit_id ?? '');
-            })
+            ->map(fn($r) => (string)($r->cpny_id ?? '') . '||' . (string)($r->business_unit_id ?? ''))
             ->filter(fn($k) => $k !== '||')
             ->unique()
             ->values()
@@ -229,7 +226,7 @@ class IFCAAPIGRNController extends Controller
                 'key'              => $key,
                 'integration_type' => $integrationType,
                 'cpny_id'          => $cpny,
-                'entity_cd'        => in_array($stage, ['P', 'C']) ? $entityCd : '',
+                'entity_cd'        => in_array($stage, ['P', 'C'], true) ? $entityCd : '',
                 'grn_no'           => $grn,
                 'grn_date'         => $r->grn_date ? Carbon::parse($r->grn_date)->format('Y-m-d') : '',
                 'order_no'         => (string)($r->order_no ?? ''),
@@ -251,11 +248,11 @@ class IFCAAPIGRNController extends Controller
             'C' => $rows->where('stage_status', 'C')->count(),
         ];
 
-        // hanya H/P yang integration_type IFCA yang boleh diproses di screen ini
+        // H semua boleh dipilih, P hanya IFCA
         $summary['ready'] = $rows->filter(function ($r) {
             $st = (string)($r['stage_status'] ?? '');
             $it = strtoupper((string)($r['integration_type'] ?? ''));
-            return in_array($st, ['H', 'P']) && $it === 'IFCA';
+            return $st === 'H' || ($st === 'P' && $it === 'IFCA');
         })->count();
 
         $total = $rows->count();
@@ -315,7 +312,7 @@ class IFCAAPIGRNController extends Controller
 
         $keys = array_values(array_unique(array_map(fn($p) => (string)$p['key'], $pairs)));
 
-        // ambil integration_type dari source view + business unit
+        // source header untuk integration type
         $srcHeaders = ViewStagingGRN::query()
             ->select([
                 'cpny_id',
@@ -336,8 +333,13 @@ class IFCAAPIGRNController extends Controller
         $buTypeMap = collect();
         if (!empty($buKeys)) {
             $buTypeMap = BusinessUnit::query()
-                ->select(['cpny_id', 'business_unit_id', 'integration_type'])
-                ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
+                ->select([
+                    'cpny_id',
+                    'business_unit_id',
+                    'integration_type',
+                    'ifca_entity_cd',
+                    'solomon_cpny_id',
+                ])
                 ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $buKeys)
                 ->get()
                 ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->business_unit_id);
@@ -345,7 +347,7 @@ class IFCAAPIGRNController extends Controller
 
         $integrationMap = [];
         foreach ($srcHeaders as $hdr) {
-            $key = (string)$hdr->cpny_id . '||' . (string)$hdr->grn_no;
+            $key   = (string)$hdr->cpny_id . '||' . (string)$hdr->grn_no;
             $buKey = (string)$hdr->cpny_id . '||' . (string)$hdr->business_unit_id;
             $integrationMap[$key] = strtoupper((string)($buTypeMap[$buKey]->integration_type ?? ''));
         }
@@ -368,6 +370,7 @@ class IFCAAPIGRNController extends Controller
         $sentFailP    = 0;
         $skippedC     = 0;
 
+        // STEP A: H -> P (semua H boleh)
         $stagingConn = (new StagingIfcaPoGrn)->getConnectionName();
         DB::connection($stagingConn)->beginTransaction();
 
@@ -376,11 +379,6 @@ class IFCAAPIGRNController extends Controller
                 $cpny = (string)$p['cpny_id'];
                 $grn  = (string)$p['grn_no'];
                 $key  = (string)$p['key'];
-
-                // hanya IFCA yg diproses di screen ini
-                if (($integrationMap[$key] ?? '') !== 'IFCA') {
-                    continue;
-                }
 
                 $st = $stMap->get($key);
 
@@ -420,18 +418,35 @@ class IFCAAPIGRNController extends Controller
                     ->values()
                     ->all();
 
-                $buMap = [];
+                $buRows = collect();
                 if (!empty($buIds)) {
-                    $buMap = BusinessUnit::query()
+                    $buRows = BusinessUnit::query()
+                        ->select([
+                            'cpny_id',
+                            'business_unit_id',
+                            'ifca_entity_cd',
+                            'solomon_cpny_id',
+                            'integration_type',
+                        ])
                         ->where('cpny_id', $cpny)
                         ->whereIn('business_unit_id', $buIds)
-                        ->pluck('ifca_entity_cd', 'business_unit_id')
-                        ->toArray();
+                        ->get()
+                        ->keyBy('business_unit_id');
                 }
 
                 foreach ($lines as $ln) {
                     $buId = trim((string)($ln->business_unit_id ?? ''));
-                    $entityCd = trim((string)($buMap[$buId] ?? ''));
+                    $bu   = $buRows->get($buId);
+
+                    $integrationType = strtoupper(trim((string)($bu->integration_type ?? '')));
+
+                    if ($integrationType === 'IFCA') {
+                        $entityCd = trim((string)($bu->ifca_entity_cd ?? ''));
+                    } elseif ($integrationType === 'SOLOMON') {
+                        $entityCd = trim((string)($bu->solomon_cpny_id ?? ''));
+                    } else {
+                        $entityCd = '';
+                    }
 
                     if ($entityCd === '') {
                         $entityCd = (string)($ln->cpny_id ?? '');
@@ -486,15 +501,12 @@ class IFCAAPIGRNController extends Controller
             ], 500);
         }
 
+        // STEP B: P -> C hanya IFCA
         $sendPairs = [];
         foreach ($pairs as $p) {
             $cpny = (string)$p['cpny_id'];
             $grn  = (string)$p['grn_no'];
             $key  = (string)$p['key'];
-
-            if (($integrationMap[$key] ?? '') !== 'IFCA') {
-                continue;
-            }
 
             $cntAll = StagingIfcaPoGrn::query()
                 ->where('cpny_id', $cpny)
@@ -514,6 +526,10 @@ class IFCAAPIGRNController extends Controller
                 }
             }
 
+            if (($integrationMap[$key] ?? '') !== 'IFCA') {
+                continue;
+            }
+
             $lines = StagingIfcaPoGrn::query()
                 ->where('cpny_id', $cpny)
                 ->where('grn_no', $grn)
@@ -531,10 +547,10 @@ class IFCAAPIGRNController extends Controller
         if (empty($sendPairs)) {
             return response()->json([
                 'ok' => true,
-                'inserted_H_to_P' => $insertedHtoP,
+                'inserted_H_to_P'     => $insertedHtoP,
                 'sent_success_P_to_C' => $sentOkPtoC,
                 'sent_failed_still_P' => $sentFailP,
-                'skipped_C' => $skippedC,
+                'skipped_C'           => $skippedC,
             ]);
         }
 
@@ -601,10 +617,10 @@ class IFCAAPIGRNController extends Controller
 
         return response()->json([
             'ok' => true,
-            'inserted_H_to_P' => $insertedHtoP,
+            'inserted_H_to_P'     => $insertedHtoP,
             'sent_success_P_to_C' => $sentOkPtoC,
             'sent_failed_still_P' => $sentFailP,
-            'skipped_C' => $skippedC,
+            'skipped_C'           => $skippedC,
         ]);
     }
 
@@ -675,7 +691,9 @@ class IFCAAPIGRNController extends Controller
     private function getIfcaToken(string $usernameForLog): string
     {
         $url = $this->buildUrl('api.token.url');
-        if ($url === '') throw new \RuntimeException('Setting api.token.url kosong');
+        if ($url === '') {
+            throw new \RuntimeException('Setting api.token.url kosong');
+        }
 
         $payload = [
             'email' => $this->getSettingStr('api.token.username'),
@@ -698,11 +716,16 @@ class IFCAAPIGRNController extends Controller
             'created_by'       => $usernameForLog,
         ]);
 
-        if (!$resp->successful()) throw new \RuntimeException("Token API failed ({$resp->status()})");
+        if (!$resp->successful()) {
+            throw new \RuntimeException("Token API failed ({$resp->status()})");
+        }
 
         $json = $resp->json();
         $token = $json['accessToken'] ?? null;
-        if (!$token) throw new \RuntimeException('Token tidak ditemukan di response');
+
+        if (!$token) {
+            throw new \RuntimeException('Token tidak ditemukan di response');
+        }
 
         return (string)$token;
     }
@@ -710,25 +733,27 @@ class IFCAAPIGRNController extends Controller
     private function sendPoGrnAPI($lines, string $token, string $usernameForLog, string $refKey): array
     {
         $url = $this->buildUrl('api.PR.url');
-        if ($url === '') throw new \RuntimeException('Setting api.PR.url kosong');
+        if ($url === '') {
+            throw new \RuntimeException('Setting api.PR.url kosong');
+        }
 
         $settingName = $this->getSettingName('api.PR.url', 'IFCA PO GRN');
 
         $payload = $lines->map(function ($r) {
             return [
-                "entity_cd"    => (string)$r->entity_cd,
-                "grn_no"       => (string)$r->grn_no,
-                "grn_date"     => $r->grn_date ? Carbon::parse($r->grn_date)->format('Y-m-d') : "",
-                "supplier_cd"  => (string)$r->supplier_cd,
-                "reference_no" => (string)$r->reference_no,
-                "order_no"     => (string)$r->order_no,
-                "total_record" => (int)$r->total_record,
-                "order_line"   => (int)$r->order_line,
-                "item_cd"      => (string)$r->item_cd,
-                "uom_cd"       => (string)$r->uom_cd,
-                "rec_qty"      => (float)$r->rec_qty,
-                "process_flag" => "N",
-                "create_date"  => Carbon::parse($r->create_date ?? now())->toISOString(),
+                'entity_cd'    => (string)$r->entity_cd,
+                'grn_no'       => (string)$r->grn_no,
+                'grn_date'     => $r->grn_date ? Carbon::parse($r->grn_date)->format('Y-m-d') : '',
+                'supplier_cd'  => (string)$r->supplier_cd,
+                'reference_no' => (string)$r->reference_no,
+                'order_no'     => (string)$r->order_no,
+                'total_record' => (int)$r->total_record,
+                'order_line'   => (int)$r->order_line,
+                'item_cd'      => (string)$r->item_cd,
+                'uom_cd'       => (string)$r->uom_cd,
+                'rec_qty'      => (float)$r->rec_qty,
+                'process_flag' => 'N',
+                'create_date'  => Carbon::parse($r->create_date ?? now())->toISOString(),
             ];
         })->values()->all();
 
@@ -736,7 +761,7 @@ class IFCAAPIGRNController extends Controller
             $resp = Http::timeout(60)
                 ->acceptJson()
                 ->asJson()
-                ->withHeaders(['Authorization' => 'Bearer '.$token])
+                ->withHeaders(['Authorization' => 'Bearer ' . $token])
                 ->post($url, $payload);
 
             $body = $resp->body();
@@ -753,8 +778,8 @@ class IFCAAPIGRNController extends Controller
             ]);
 
             return [
-                'ok' => $resp->successful(),
-                'http_status' => $resp->status(),
+                'ok'            => $resp->successful(),
+                'http_status'   => $resp->status(),
                 'response_body' => $body,
             ];
         } catch (\Throwable $e) {
@@ -770,8 +795,8 @@ class IFCAAPIGRNController extends Controller
             ]);
 
             return [
-                'ok' => false,
-                'http_status' => null,
+                'ok'            => false,
+                'http_status'   => null,
                 'response_body' => $e->getMessage(),
             ];
         }
@@ -779,9 +804,11 @@ class IFCAAPIGRNController extends Controller
 
     private function s(?string $v, int $max): string
     {
-        $v = (string)($v ?? '');
-        $v = trim($v);
-        if ($v === '') return '';
+        $v = trim((string)($v ?? ''));
+        if ($v === '') {
+            return '';
+        }
+
         return mb_substr($v, 0, $max);
     }
 }
