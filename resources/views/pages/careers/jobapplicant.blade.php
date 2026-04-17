@@ -324,8 +324,8 @@
                     title: 'Score'
                 },
                 {
-                    data: 'prev_apply_step',
-                    name: 'prev_apply_step',
+                    data: 'apply_step',
+                    name: 'apply_step',
                     type: 'select',
                     title: 'Step'
                 },
@@ -550,7 +550,7 @@
                     }
                 },
                 order: [
-                    [0, 'desc']
+                    [2, 'desc']
                 ],
                 columns: [{
                         width: '28px',
@@ -603,8 +603,8 @@
                         className: 'small-col'
                     },
                     {
-                        data: 'prev_apply_step',
-                        name: 'prev_apply_step',
+                        data: 'apply_step',
+                        name: 'apply_step',
                         render: function(data) {
                             const label = stepLabelMap[data] || data;
                             return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>`;
@@ -651,10 +651,11 @@
             });
 
             applicantTable.on('xhr.dt', function(e, settings, json) {
+                console.log('XHR:', json);
 
-                console.log('XHR:', json); // 🔥 debug
-
-                if (!json.steps || !json.steps.length) return;
+                if (!json || !Array.isArray(json.steps) || !json.steps.length) {
+                    return;
+                }
 
                 const $stepFilter = $('#filterStep');
 
@@ -662,9 +663,7 @@
 
                 json.steps.forEach(step => {
                     const label = stepLabelMap[step] || step;
-                    $stepFilter.append(
-                        `<option value="${step}">${label}</option>`
-                    );
+                    $stepFilter.append(`<option value="${step}">${label}</option>`);
                 });
             });
 

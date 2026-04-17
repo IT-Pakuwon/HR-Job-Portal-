@@ -308,25 +308,51 @@ class CareerController extends Controller
         $sign = SignPayroll::where('docid', $career->docid)->orderby('aprvid','ASC')->get(); 
 
         $onboarding = Tronboarding::where('jobapply_id', $career->docid)->first();
-
+        // dd($career->subgrade_id);
         $canAccessPayroll = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'PAYROLL')
             ->where('parameter_access_id', $career->subgrade_id)
             ->where('status', 'A')
             ->exists();
-
+        // dd($canAccessPayroll);
         $canAccessAssessment = GroupAccspecific::where('username', $user->username)            
+            ->where('status', 'A')
+            ->exists();
+
+        $canAccessChecklist = GroupAccspecific::where('username', $user->username)      
+            ->where('group_access_id', 'CHECKLIST')      
+            ->where('status', 'A')
+            ->exists();
+
+        $canAccessInterviewUser = GroupAccspecific::where('username', $user->username)      
+            ->where('group_access_id', 'INTERVIEWUSER')      
+            ->where('status', 'A')
+            ->exists();
+
+        $canAccessInterviewHC = GroupAccspecific::where('username', $user->username)      
+            ->where('group_access_id', 'INTERVIEWHC')      
+            ->where('status', 'A')
+            ->exists();       
+
+        $canAccessJoin = GroupAccspecific::where('username', $user->username)      
+            ->where('group_access_id', 'JOIN')      
+            ->where('status', 'A')
+            ->exists();
+
+        $canAccessSchedule = GroupAccspecific::where('username', $user->username)      
+            ->where('group_access_id', 'SCHEDULE')      
             ->where('status', 'A')
             ->exists();
 
         // tampilkan tab "Schedule" hanya jika ada step pada dokumen ini
         // yang statusnya masih pending dan jenis step-nya memang "schedule"
-        $currentStep = JobApplyStep::where('docid', $career->docid)
-            ->where('status', 'P')
-            ->orderBy('step_order', 'ASC')
-            ->first();
+        // $currentStep = JobApplyStep::where('docid', $career->docid)
+        //     ->where('status', 'P')
+        //     ->orderBy('step_order', 'ASC')
+        //     ->first();
 
-        $stepsSchedule = [3, 5]; // sesuaikan kebutuhanmu
-        $canAccessSchedule = $currentStep && in_array($currentStep->step_order, $stepsSchedule, true);
+        // $stepsSchedule = [3, 5]; // sesuaikan kebutuhanmu
+        // $canAccessSchedule = $currentStep && in_array($currentStep->step_order, $stepsSchedule, true);
 
         $companyaddress = CompanyAddress::whereNotNull('site')
             ->where('status', 'A')
@@ -337,7 +363,9 @@ class CareerController extends Controller
             'career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
             'applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
             'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','user','datenow',
-            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist','typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment','canAccessSchedule','companyaddress'
+            'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist',
+            'typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment','canAccessSchedule','companyaddress',
+            'canAccessChecklist','canAccessInterviewUser','canAccessInterviewHC','canAccessPayroll','canAccessJoin'
         ));
     }
 

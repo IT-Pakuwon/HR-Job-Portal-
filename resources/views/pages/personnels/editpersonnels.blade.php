@@ -39,11 +39,11 @@
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>
                                 <select
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    name="division" id="division_id" required>
+                                    name="division_id" id="division_id" required>
                                     <option value="" disabled>Select Division</option>
                                     @foreach ($division as $p)
                                         <option value="{{ $p->division_id }}"
-                                            {{ (string) $p->division_id === (string) $personnel->division_id ? 'selected' : '' }}>
+                                            {{ (string) old('division_id', $personnel->division_id ?? '') === (string) $p->division_id ? 'selected' : '' }}>
                                             {{ $p->division_name }}
                                         </option>
                                     @endforeach
@@ -662,6 +662,7 @@
 
             function resetDept(message = 'Select Department') {
                 $('#departementid').html(`<option value="" disabled selected>${message}</option>`);
+                $('#departementid').trigger('change.select2');
             }
 
             function loadDepartments(divisionId, selectedDeptId = null) {
@@ -674,19 +675,18 @@
                         let html = `<option value="" disabled>Select Department</option>`;
 
                         if (rows && rows.length) {
-                            rows.forEach(r => {
+                            rows.forEach(function(r) {
                                 const selected = String(r.department_id) === String(selectedDeptId) ? 'selected' : '';
                                 html += `<option value="${r.department_id}" ${selected}>${r.department_name}</option>`;
                             });
+
                             $('#departementid').html(html).trigger('change.select2');
                         } else {
                             resetDept('No department found');
-                            $('#departementid').trigger('change.select2');
                         }
                     },
                     error: function() {
                         resetDept('Error loading department');
-                        $('#departementid').trigger('change.select2');
                     }
                 });
             }
@@ -697,21 +697,9 @@
                     resetDept();
                     return;
                 }
+
                 loadDepartments(divisionId, null);
             });
-
-            $('#division_id').on('change', function() {
-                const divisionId = $(this).val();
-                if (!divisionId) return resetDept();
-                loadDepartments(divisionId, null);
-            });
-
-            // init load dept based on selected division + preselect dept
-            if ($('#division_id').val()) {
-                loadDepartments($('#division_id').val(), currentDeptId);
-            } else {
-                resetDept();
-            }
 
             // ========= COMPANY -> SITE (AJAX like create) =========
             const currentSiteValue = @json($personnel->locationname); // samakan dengan yang kamu simpan (id/site)

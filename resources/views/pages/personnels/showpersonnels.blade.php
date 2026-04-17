@@ -4,7 +4,7 @@
 
 
             <div class="flex gap-3">
-                @if($canEdit)
+                @if($canEdit && $personnel->status == 'P')
                     <a href="{{ url('editpersonnels/' . \Vinkla\Hashids\Facades\Hashids::encode($personnel->id)) }}"
                     class="inline-flex items-center gap-1 rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                         
