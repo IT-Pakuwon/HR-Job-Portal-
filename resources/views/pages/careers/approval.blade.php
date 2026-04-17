@@ -28,7 +28,7 @@
                 class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Step
             </button>
-            {{-- @if ($canAccessSchedule) --}}
+            @if ($canAccessSchedule)
             <button @click="subtab = 'schedule'"
                 :class="subtab === 'schedule'
                     ?
@@ -37,7 +37,8 @@
                 class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Schedule
             </button>
-            {{-- @endif --}}
+            @endif
+            @if ($canAccessChecklist)
             <button @click="subtab = 'checklist'"
                 :class="subtab === 'checklist' ?
                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
@@ -45,7 +46,8 @@
                 class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Checklist
             </button>
-            @if ($canAccessAssessment)
+            @endif
+            @if ($canAccessInterviewHC)
                 <button @click="subtab = 'assessment'"
                     :class="subtab === 'assessment' ?
                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
@@ -54,6 +56,7 @@
                     Form Interview HC
                 </button>
             @endif
+            @if ($canAccessInterviewUser)
             <button @click="subtab = 'assessmentuser'"
                 :class="subtab === 'assessmentuser' ?
                     'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
@@ -61,6 +64,7 @@
                 class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                 Form Interview User
             </button>
+            @endif
             @if ($canAccessPayroll)
                 <button @click="subtab = 'payroll'"
                     :class="subtab === 'payroll' ?
@@ -70,7 +74,7 @@
                     Payroll
                 </button>
             @endif
-            @if ($canAccessAssessment)
+            @if ($canAccessJoin)
                 <button @click="subtab = 'join'"
                     :class="subtab === 'join' ?
                         'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :

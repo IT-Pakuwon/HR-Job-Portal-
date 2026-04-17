@@ -645,9 +645,12 @@ class PersonnelController extends Controller
     public function editPersonnel($hash)
     {
         $user = Auth::user();
-        if (!$user) return redirect()->route('login');
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
-        $id = Hashids::decode($hash)[0] ?? null;
+        $decoded = Hashids::decode($hash);
+        $id = $decoded[0] ?? null;
         abort_if(!$id, 404);
 
         $personnel = Personnel::findOrFail($id);
@@ -674,7 +677,7 @@ class PersonnelController extends Controller
             ->values()
             ->toArray();
 
-        // pastikan division milik personnel ikut terbaca saat edit
+        // pastikan division milik personnel ikut masuk dropdown edit
         if (!empty($personnel->division_id) && !in_array($personnel->division_id, $userDivisionIds)) {
             $userDivisionIds[] = $personnel->division_id;
         }
@@ -682,15 +685,15 @@ class PersonnelController extends Controller
         $division = Division::query()
             ->select('division_id', 'division_name')
             ->where('status', 'A')
-            ->whereIn('division_id', $personnel->division_id)
+            ->whereIn('division_id', $userDivisionIds)
             ->orderBy('division_name')
             ->get();
 
-        // load department berdasarkan division milik personnel
-        $departments = MsDepartment::query()
-            ->select('department_id', 'department_name', 'department_hr_id')
+        // department berdasarkan division personnel yang sedang diedit
+        $departments = DepartmentHR::query()
+            ->select('department_id', 'department_name', 'division_id')
             ->where('status', 'A')
-            ->where('department_hr_id', $personnel->division_id)
+            ->where('division_id', $personnel->division_id)
             ->orderBy('department_name')
             ->get();
 
@@ -935,26 +938,33 @@ class PersonnelController extends Controller
                 ], 422);
             }
 
-            // Hapus pending lama agar tidak dobel
-            TrApproval::where('refnbr', $docid)->where('status', 'P')->delete();
+            $canEdit = GroupAccspecific::where('username', $user->username)
+                ->where('group_access_id', 'EDIT')
+                ->where('status', 'A')
+                ->exists();
 
-            // Sisipkan approval baru
-            foreach ($msApproval as $row) {
-                $isFirstLevel = ((int)$row->aprv_leveling === (int)$msApproval->min('aprv_leveling'));
-                TrApproval::create([
-                    'refnbr'             => $docid,
-                    'aprv_leveling'      => $row->aprv_leveling,
-                    'aprv_doctype'       => $row->aprv_doctype,
-                    'aprv_cpnyid'        => $row->aprv_cpnyid,
-                    'aprv_departementid' => $row->aprv_departementid,
-                    'aprv_username'      => $row->aprv_username,
-                    'aprv_name'          => $row->aprv_name,
-                    'aprv_datebefore'    => $isFirstLevel ? $datestamp : null,
-                    'aprv_type'          => $row->aprv_type,        // Normal / Condition
-                    'aprv_condition'     => $row->aprv_condition,   // Staff / Manager (jika ada)
-                    'status'             => 'P',
-                    'created_by'         => $user->username,
-                ]);
+            if (!$canEdit) {
+                // Hapus pending lama agar tidak dobel
+                TrApproval::where('refnbr', $docid)->where('status', 'P')->delete();
+
+                // Sisipkan approval baru
+                foreach ($msApproval as $row) {
+                    $isFirstLevel = ((int)$row->aprv_leveling === (int)$msApproval->min('aprv_leveling'));
+                    TrApproval::create([
+                        'refnbr'             => $docid,
+                        'aprv_leveling'      => $row->aprv_leveling,
+                        'aprv_doctype'       => $row->aprv_doctype,
+                        'aprv_cpnyid'        => $row->aprv_cpnyid,
+                        'aprv_departementid' => $row->aprv_departementid,
+                        'aprv_username'      => $row->aprv_username,
+                        'aprv_name'          => $row->aprv_name,
+                        'aprv_datebefore'    => $isFirstLevel ? $datestamp : null,
+                        'aprv_type'          => $row->aprv_type,        // Normal / Condition
+                        'aprv_condition'     => $row->aprv_condition,   // Staff / Manager (jika ada)
+                        'status'             => 'P',
+                        'created_by'         => $user->username,
+                    ]);
+                }
             }
 
             // ===== Rebuild Responsibilities =====
@@ -1076,29 +1086,31 @@ class PersonnelController extends Controller
 
             $eid = Hashids::encode($personnel->id);
 
-            if ($next) {
-                // jika multi user dipisah comma
-                $usernames = array_map('trim', explode(',', $next->aprv_username));
-                $emailTargets = User::whereIn('username', $usernames)
-                    ->where('status', 'A')
-                    ->get();
+            if (!$canEdit) {
+                if ($next) {
+                    // jika multi user dipisah comma
+                    $usernames = array_map('trim', explode(',', $next->aprv_username));
+                    $emailTargets = User::whereIn('username', $usernames)
+                        ->where('status', 'A')
+                        ->get();
 
-                $mailData = [
-                    'docid'   => $next->refnbr,
-                    'cpnyid'  => $next->aprv_cpnyid,
-                    'deptname'=> $next->aprv_departementid,
-                    'date'    => $next->aprv_datebefore,
-                    'name'    => $user->username,
-                    'info'    => $request->job_title,
-                    'url'     => url('/showvpersonels/' . $eid),
-                ];
+                    $mailData = [
+                        'docid'   => $next->refnbr,
+                        'cpnyid'  => $next->aprv_cpnyid,
+                        'deptname'=> $next->aprv_departementid,
+                        'date'    => $next->aprv_datebefore,
+                        'name'    => $user->username,
+                        'info'    => $request->job_title,
+                        'url'     => url('/showpersonels/' . $eid),
+                    ];
 
-                foreach ($emailTargets as $recipient) {
-                    Mail::send('emails.mailapprove', $mailData, function ($message) use ($mailData, $recipient) {
-                        $message->to($recipient->notification_email)
-                            ->subject($mailData['docid'] . ' - Waiting Approval Personnel')
-                            ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-                    });
+                    foreach ($emailTargets as $recipient) {
+                        Mail::send('emails.mailapprove', $mailData, function ($message) use ($mailData, $recipient) {
+                            $message->to($recipient->notification_email)
+                                ->subject($mailData['docid'] . ' - Waiting Approval Personnel')
+                                ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                        });
+                    }
                 }
             }
 
@@ -1331,8 +1343,8 @@ class PersonnelController extends Controller
         // === Approval pakai TrApproval (refnbr & aprv_leveling) ===
         $approval = TrApproval::where('refnbr', $personnel->docid)
             ->where('status', '<>', 'X')
-            ->orderBy('aprv_leveling')
             ->orderBy('created_at')
+            ->orderBy('aprv_leveling')            
             ->get();
 
         // === Detail lain tetap ===

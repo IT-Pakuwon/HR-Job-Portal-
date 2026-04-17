@@ -9,29 +9,20 @@
                     <input type="hidden" name="sppbjktid" value="{{ $refnbr }}">
                     <input type="hidden" name="cpny_id" value="{{ $header->cpny_id }}">
                     <input type="hidden" name="department_id" value="{{ $header->department_id }}">
-                    {{-- <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}"> --}}
                     <input type="hidden" name="bqid" value="{{ $bqid ?? ($header->bqid ?? '') }}">
                     <input type="hidden" name="woid" value="{{ $header->woid ?? '' }}">
                     <input type="hidden" name="spbid" value="{{ $header->spbid ?? '' }}">
                     <input type="hidden" name="keperluan" value="{{ $header->keperluan ?? '' }}">
-                    {{-- <input type="hidden" name="bqtype" value="{{ $header->bqtype ?? '' }}"> --}}
                     <input type="hidden" name="bqtype" value="{{ $bqtype ?? ($header->bqtype ?? '') }}">
-                    {{-- <input type="hidden" name="budget_perpost" value="{{ $header->budget_perpost ?? '' }}"> --}}
                     <input type="hidden" name="budget_perpost"
                         value="{{ $budget_perpost ?? ($header->budget_perpost ?? '') }}">
-                    {{-- <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}"> --}}
-                    {{-- <input type="hidden" name="user_peminta" value="{{ $header->created_by }}"> --}}
                     <input type="hidden" name="user_peminta"
                         value="{{ $user_peminta ?? ($header->created_by ?? '') }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
-                    {{-- <input type="hidden" name="prev_csid" value="{{ $poHeader->csid ?? '' }}"> --}}
                     <input type="hidden" name="prev_csid" value="{{ $prev_csid ?? ($poHeader->csid ?? '') }}">
 
-                    <!-- Create CS Header -->
                     <div
                         class="flex w-full flex-col gap-4 rounded-2xl bg-white px-8 py-6 text-xs shadow-sm dark:bg-gray-900">
-
-                        <!-- Header -->
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="font-bold text-gray-800 dark:text-white">
                                 @if ($doc === 'PO')
@@ -49,11 +40,7 @@
                             $valueClass = 'text-gray-600 dark:text-gray-400';
                         @endphp
 
-                        <!-- ===================== -->
-                        <!-- ROW 1 : BASIC INFO    -->
-                        <!-- ===================== -->
                         <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2 lg:grid-cols-3">
-
                             <div>
                                 <span class="{{ $labelClass }}">SPPB/J/K/T ID:</span>
                                 @if (!empty($sourceShowUrl))
@@ -96,21 +83,12 @@
                                     <span class="{{ $valueClass }}">{{ $header->bqid }}</span>
                                 </div>
                             @endif
-
                         </div>
 
-                        <!-- Divider -->
                         <div class="border-t border-gray-100 dark:border-gray-800"></div>
 
-                        <!-- ===================== -->
-                        <!-- ROW 2 : LEFT - RIGHT  -->
-                        <!-- ===================== -->
                         <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
-
-                            <!-- LEFT SIDE -->
                             <div class="flex flex-col gap-4">
-
-                                <!-- Vendor -->
                                 <div class="flex flex-col gap-2">
                                     <span class="{{ $labelClass }}">Vendor:</span>
 
@@ -124,7 +102,6 @@
                                     </span>
                                 </div>
 
-                                <!-- Purpose -->
                                 <div class="flex w-full flex-col gap-2">
                                     <span class="{{ $labelClass }}">Purpose:</span>
 
@@ -132,22 +109,17 @@
                                         {{ $header->keperluan }}
                                     </div>
                                 </div>
-
                             </div>
 
-                            <!-- RIGHT SIDE -->
                             <div class="flex flex-col gap-2">
                                 <span class="{{ $labelClass }}">Note CS:</span>
 
                                 <textarea name="csnote" id="csnote"
                                     class="min-h-[180px] w-full rounded-md border border-gray-300 bg-white p-4 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"></textarea>
                             </div>
-
                         </div>
-
                     </div>
 
-                    <!-- CS Detail -->
                     <div class="flex w-full flex-col rounded-xl bg-white shadow-md dark:bg-gray-800">
                         <div class="p-4">
                             <div
@@ -164,7 +136,6 @@
                                             <th class="w-20 border px-3 py-2 text-center">UOM</th>
                                             <th class="w-40 border px-3 py-2 text-center">Note</th>
                                             <th class="w-32 border px-3 py-2 text-center">Last Price</th>
-
                                         </tr>
                                     </thead>
                                     <tbody id="cvBody">
@@ -181,13 +152,10 @@
                                                 data-sppt_no="{{ $row->sppt_no ?? '' }}">
                                                 <td class="border px-3 py-2 align-top">
                                                     <div class="flex flex-col gap-1">
-
-                                                        {{-- Main Description --}}
                                                         <span class="font-medium text-gray-800 dark:text-gray-100">
                                                             {{ $row->inventory_descr ?? '-' }}
                                                         </span>
 
-                                                        {{-- Subtype + Category --}}
                                                         @if (!empty($row->inventory_sub_type) || !empty($row->inventory_category))
                                                             <div class="text-xs text-gray-400">
                                                                 {{ $row->inventory_sub_type ?? '-' }}
@@ -199,7 +167,7 @@
                                                         @endif
                                                     </div>
                                                 </td>
-                                                {{-- <td class="border px-3 py-2">{{ $row->inventory_descr }}</td> --}}
+
                                                 <td class="border px-3 py-2 text-center">
                                                     <input type="text"
                                                         class="qty-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
@@ -208,14 +176,14 @@
                                                         aria-label="Qty">
                                                 </td>
 
-
                                                 <td class="border px-3 py-2 text-center">{{ $row->uom }}</td>
-                                                {{-- <td class="border px-3 py-2 text-center">{{ $row->csnote_detail }}</td> --}}
+
                                                 <td class="border px-3 py-2 text-center">
                                                     <textarea
                                                         class="note-input w-full resize-none rounded-md border border-gray-400 px-2 py-1 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                                                         rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
                                                 </td>
+
                                                 <td class="border px-3 py-2 text-right font-semibold">
                                                     {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
                                                     <button type="button"
@@ -234,7 +202,6 @@
                                             <td colspan="5" class="border px-3 py-2 text-right font-semibold">
                                                 Summary
                                             </td>
-                                            {{-- vendor cells via JS --}}
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -251,7 +218,6 @@
                                 <div class="flex flex-col">
                                     <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Last Price
                                         History</h3>
-                                    {{-- <div id="lpTitle" class="text-xs text-gray-500 dark:text-gray-300"></div> --}}
                                     <h3 id="lpTitle" class="text-xs font-semibold text-gray-800 dark:text-gray-100">
                                     </h3>
                                 </div>
@@ -279,7 +245,6 @@
                                         </thead>
                                         <tbody id="lpBody"
                                             class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                                            <!-- rows by JS -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -291,10 +256,7 @@
                         </div>
                     </div>
 
-
-                    <!-- Attachments -->
                     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <!-- Existing Attachments -->
                         <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
@@ -343,17 +305,12 @@
                             @endif
                         </div>
 
-
-
-                        <!-- New Attachments -->
                         <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                            <!-- Attachments Header -->
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
                                 <h3 class="text-xs font-bold text-gray-800 dark:text-white">Attachments CS</h3>
                             </div>
 
-                            <!-- Attachments Container -->
                             <div class="flex flex-col pt-6" id="attachmentsContainer">
                                 <div class="attachment-row flex items-center gap-2">
                                     <input type="file" name="attachments[]"
@@ -365,7 +322,6 @@
                                 </div>
                             </div>
 
-                            <!-- Add Attachment Button -->
                             <button type="button" id="addAttachment"
                                 class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
@@ -377,12 +333,10 @@
                                 Add Attachment
                             </button>
 
-                            <!-- Action Buttons -->
                             <div
                                 class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
                                 <button id="backBtn" onclick="history.back()"
                                     class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
-
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -391,22 +345,6 @@
                                     <span>Back</span>
                                 </button>
 
-                                {{-- <!-- Cancel Button -->
-                                <div class="flex justify-start">
-                                            <button id="cancelBtn"
-                                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"> md:w-auto">
-                                        <span id="cancelText">Cancel</span>
-                                        <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                            </path>
-                                        </svg>
-                                    </button>
-                                </div> --}}
-
-                                <!-- Save Button -->
                                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                     <button type="button" id="saveBtn"
                                         class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
@@ -420,31 +358,25 @@
                                         </svg>
                                     </button>
 
-                                    <!-- Submit Approval (conditional) -->
-                                    {{-- @if (in_array($doc, ['SPPB', 'SPPK']) || in_array($prefix2, ['PB', 'PK']))
-                                        <button type="submit" id="submitBtn"
-                                            class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                            <span id="btnText">Submit Approval</span>
-                                            <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                                </path>
-                                            </svg>
-                                        </button>
-                                    @endif --}}
-
+                                    {{-- jika dipakai lagi nanti --}}
+                                    {{-- <button type="submit" id="submitBtn"
+                                        class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <span id="btnText">Submit Approval</span>
+                                        <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button> --}}
                                 </div>
-
                             </div>
-
                         </div>
                 </form>
             </div>
 
-            <!-- TAX PICKER MODAL -->
             <div id="taxModal" class="fixed inset-0 z-[3000] hidden">
                 <div id="taxModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
                 <div
@@ -474,21 +406,18 @@
                                 </thead>
                                 <tbody id="taxTableBody"
                                     class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                                    <!-- rows by JS -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- /TAX PICKER MODAL -->
 
             <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
                 CS Created Successfully!
             </div>
         </div>
     </div>
-
 
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
@@ -507,7 +436,6 @@
                 (text || 'Processing') +
                 '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
             );
-            // pastikan tampil (tetap bisa fadeIn)
             $ov.stop(true, true).fadeIn(120);
         }
 
@@ -516,28 +444,23 @@
         }
     </script>
 
-
     <script>
-        // ===== Attachment =====
         $(document).ready(function() {
-            // Fungsi Tambah Attachment
             $('#addAttachment').click(function() {
                 $('#attachmentsContainer').append(`
-            <div class="attachment-row flex items-center gap-2">
-                <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
-                    <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
-            </div>
-        `);
+                    <div class="attachment-row flex items-center gap-2">
+                        <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                        <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                    </div>
+                `);
                 toggleDeleteButton();
             });
 
-            // Fungsi Hapus Attachment
             $(document).on('click', '.removeAttachment', function() {
                 $(this).closest('.attachment-row').remove();
                 toggleDeleteButton();
             });
 
-            // Fungsi untuk Menampilkan atau Menyembunyikan Tombol Delete
             function toggleDeleteButton() {
                 if ($('.attachment-row').length > 1) {
                     $('.removeAttachment').removeClass('hidden');
@@ -549,412 +472,395 @@
     </script>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        $(function() {
-            /* ===============================
-            1) Ambil master vendor -> <select>
-            ================================ */
-            $('#vendorSelect').empty().append('<option></option>');
+        function parseQty(val) {
+            if (typeof val !== 'string') val = String(val ?? '');
+            val = val.trim();
+            val = val.replace(/[^0-9.,]/g, '');
 
-            let vendorMaster = []; // cache
-            $.getJSON('/vendorscs', function(data) { // route API Anda
-                vendorMaster = data || [];
-                vendorMaster.forEach(v =>
-                    $('#vendorSelect').append(new Option(v.vendor_name, v.id))
-                );
+            const lastComma = val.lastIndexOf(',');
+            const lastDot = val.lastIndexOf('.');
+            const decimalSep = (lastComma > lastDot) ? ',' : '.';
+
+            if (decimalSep === ',') {
+                val = val.replace(/\./g, '');
+                val = val.replace(',', '.');
+            } else {
+                val = val.replace(/,/g, '');
+            }
+
+            const n = parseFloat(val);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function formatQty2(val) {
+            const n = isNaN(val) ? 0 : Number(val);
+            return n.toFixed(2).replace('.', ',');
+        }
+
+        function parsePrice(val) {
+            if (typeof val !== 'string') val = String(val ?? '');
+            val = val.trim();
+            val = val.replace(/[^0-9.,]/g, '');
+
+            const lastComma = val.lastIndexOf(',');
+            const lastDot = val.lastIndexOf('.');
+            const decimalSep = (lastComma > lastDot) ? ',' : '.';
+
+            if (decimalSep === ',') {
+                val = val.replace(/\./g, '').replace(',', '.');
+            } else {
+                val = val.replace(/,/g, '');
+            }
+
+            const n = parseFloat(val);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function formatPrice2(n) {
+            const num = isNaN(n) ? 0 : Number(n);
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        function formatNumID(n) {
+            n = Number(n || 0);
+            return n.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function numFromText(text) {
+            if (!text) return 0;
+
+            return parseFloat(
+                String(text)
+                .trim()
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .replace(/[^0-9.-]/g, '')
+            ) || 0;
+        }
+
+        function round2(n) {
+            return Math.round((+n + Number.EPSILON) * 100) / 100;
+        }
+    </script>
+
+    <script>
+        let vendorMaster = [];
+        let vendorCount = 0;
+        let vendorInstanceSeq = 0;
+
+        function nextVendorColKey() {
+            vendorInstanceSeq++;
+            return 'vcol_' + vendorInstanceSeq;
+        }
+
+        function formatNum(n) {
+            return (+n || 0).toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getVendorColumns() {
+            return $('#cvTable thead th[id^="th-vendor-"]');
+        }
+
+        function recalcSummaryVendor(colKey) {
+            colKey = String(colKey);
+
+            const $sumCell = $(`#td-sum-${colKey}`);
+            if (!$sumCell.length) return;
+
+            let total = 0;
+            let selBase = 0;
+
+            $('#cvBody tr').each(function() {
+                const $tr = $(this);
+                const qty = parseQty($tr.find('.qty-input').val());
+                const $priceInput = $tr.find(`input.price-input[data-col-key="${colKey}"]`);
+                if (!$priceInput.length) return;
+
+                const price = parsePrice($priceInput.val());
+                const lineTotal = qty * price;
+
+                total += lineTotal;
+
+                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+                if (picked === colKey) {
+                    selBase += lineTotal;
+                }
+
+                $priceInput.closest('td').find('.total-label').text(formatNum(lineTotal));
             });
 
-            /* ===============================
-            2) Init Select2
-            ================================ */
-            $('#vendorSelect').select2({
-                width: '100%', // full width
-                theme: 'default', // default Select2 theme
-                placeholder: "Select",
-                allowClear: true
+            $sumCell.find('.sum-total').text(formatNum(total));
+
+            const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+            const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+
+            const grand = total + (total * ppn) + (total * pph);
+            const selGrand = selBase + (selBase * ppn) + (selBase * pph);
+
+            $sumCell.find('.sum-grand').text(formatNum(grand));
+            $sumCell.find('.sum-selected').text(formatNum(selGrand));
+            $sumCell.find('.sum-selected-base').text(String(selBase));
+        }
+
+        function recalcAllVendors() {
+            getVendorColumns().each(function() {
+                const colKey = String($(this).data('col-key'));
+                recalcSummaryVendor(colKey);
             });
+        }
 
-            /* ===============================
-            3) Tombol Add Vendor -> buka Select2
-            ================================ */
-            $('#btnAddVendor').on('click', function() {
-                $('#vendorSelect').val(null).trigger('change');
-                $('#vendorSelect').select2('open');
-            });
+        window.calcCellTotal = function($input) {
+            const $tr = $input.closest('tr');
+            const qty = parseQty($tr.find('.qty-input').val());
+            const price = parsePrice($input.val());
+            const total = qty * price;
 
-            /* ===============================
-            4) Saat vendor dipilih -> tambah kolom
-            ================================ */
-            let vendorCount = 0;
+            $input.closest('td').find('.total-label').text(formatNum(total));
+            recalcSummaryVendor(String($input.data('col-key')));
+        };
 
-            //vendor TOP
+        function addHeader(colKey, v) {
             const TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
-            // siapkan HTML option sekali saja
             const TOPS_OPTIONS_HTML =
                 '<option value="" disabled selected>Select TOP</option>' +
                 TOPS.map(t => `<option value="${_.escape(String(t.id))}">${_.escape(t.name)}</option>`).join('');
 
+            const safeColKey = _.escape(String(colKey));
+            const safeVendorId = _.escape(String(v.id));
+            const safeVendorCode = _.escape(String(v.vendor_id ?? ''));
+            const safeVendorName = _.escape(String(v.vendor_name ?? ''));
+            const safeVendorAddr = _.escape(String(v.vendor_addr1 ?? ''));
+            const safeVendorPhone = _.escape(String(v.phone_number ?? ''));
+            const safeVendorCp = _.escape(String(v.contact_person ?? ''));
+
+            const duplicateNo = $(`#cvTable thead th[data-vendor-id="${String(v.id)}"]`).length + 1;
+            const displayName = `${safeVendorName} (${duplicateNo})`;
+
+            const $th = $(`
+                <th id="th-vendor-${safeColKey}"
+                    class="relative border px-3 py-2 align-top
+                        w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
+                    data-col-key="${safeColKey}"
+                    data-vendor-id="${safeVendorId}"
+                    data-vendor-code="${safeVendorCode}"
+                    data-vendor-name="${safeVendorName}"
+                    data-vendor-addr="${safeVendorAddr}"
+                    data-vendor-phone="${safeVendorPhone}"
+                    data-vendor-cp="${safeVendorCp}">
+                    <div class="flex flex-col text-left text-xs">
+                        <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
+                            <span>${displayName}</span>
+
+                            <div class="relative group inline-block">
+                                <div class="flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-gray-700 text-[10px] dark:bg-gray-700 dark:text-gray-200 cursor-default">
+                                    i
+                                </div>
+
+                                <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2
+                                            w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs
+                                            text-gray-200 shadow-lg opacity-0 invisible
+                                            group-hover:opacity-100 group-hover:visible transition-opacity duration-200">
+                                    <div class="font-semibold text-white mb-1">${safeVendorName}</div>
+                                    <div class="space-y-1 text-gray-300 leading-4">
+                                        <div>✉️ ${safeVendorCp || '-'}</div>
+                                        <div>☎️ ${safeVendorPhone || '-'}</div>
+                                        <div>🏠 ${safeVendorAddr || '-'}</div>
+                                    </div>
+                                    <div class="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
+                            <select name="cara_bayar_${safeColKey}"
+                                class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1
+                                    text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring
+                                    focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                ${TOPS_OPTIONS_HTML}
+                            </select>
+                        </div>
+
+                        <div class="mt-2">
+                            <textarea id="vendornote_${safeColKey}" name="vendornote_${safeColKey}"
+                                class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
+                                    focus:border-indigo-500 focus:ring focus:ring-indigo-500/50
+                                    dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                rows="2" placeholder="Vendor Note"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="button"
+                        class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700"
+                        data-col-key="${safeColKey}">
+                        ✕
+                    </button>
+                </th>
+            `);
+
+            $('#cvTable thead tr').append($th);
+
+            const $sumTd = $(`
+                <td id="td-sum-${safeColKey}" class="border px-3 py-2 text-xs align-top" data-col-key="${safeColKey}">
+                    <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
+                        <div><span class="font-semibold">Total:</span> <span class="sum-total">0,00</span></div>
+
+                        <div class="flex justify-between gap-2">
+                            <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPN</span>
+                                <input type="number"
+                                    class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                    value="11.00" step="0.01" min="0">
+                                <button type="button"
+                                    class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                    data-for="ppn" data-col-key="${safeColKey}" title="Pilih PPN">
+                                    🔍
+                                </button>
+                                <input type="hidden" class="sum-ppn-id" value="PPN11">
+                            </div>
+
+                            <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
+                                <input type="number"
+                                    class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                    value="0" step="0.01" min="0">
+                                <button type="button"
+                                    class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                    data-for="pph" data-col-key="${safeColKey}" title="Pilih PPh">
+                                    🔍
+                                </button>
+                                <input type="hidden" class="sum-pph-id" value="">
+                            </div>
+                        </div>
+
+                        <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0,00</span></div>
+                        <div><span class="font-semibold">G.Total Selected:</span> <span class="sum-selected">0,00</span><span class="sum-selected-base hidden">0</span></div>
+                    </div>
+                </td>
+            `);
+
+            $('#summaryRow').append($sumTd);
+
+            $sumTd.find('.sum-ppn, .sum-pph').on('input', function() {
+                recalcSummaryVendor(colKey);
+            });
+        }
+
+        function addPriceCells(colKey) {
+            $('#cvBody tr').each(function(rowIdx) {
+                const $input = $(`
+                    <input
+                        type="text"
+                        class="price-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                        data-row="${rowIdx}" data-col-key="${colKey}"
+                        value="0" inputmode="decimal" autocomplete="off" placeholder="0">
+                `);
+
+                const $td = $(`
+                    <td class="border px-3 py-2">
+                        <div class="flex flex-col items-center gap-0.5 w-full"></div>
+                    </td>
+                `);
+
+                const $total = $(`<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0,00</small>`);
+                const $radio = $(`
+                    <div class="flex justify-center mt-0.5">
+                        <input type="radio" name="selected_vendor_${rowIdx}" value="${colKey}"
+                            class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                    </div>
+                `);
+
+                $td.find('div').append($input, $total, $radio);
+                $(this).append($td);
+
+                $input.on('input', function() {
+                    window.calcCellTotal($(this));
+                });
+            });
+
+            setTimeout(() => recalcSummaryVendor(colKey), 0);
+        }
+
+        $(function() {
+            $('#vendorSelect').empty().append('<option></option>');
+
+            $.getJSON('/vendorscs', function(data) {
+                vendorMaster = data || [];
+                vendorMaster.forEach(v => {
+                    $('#vendorSelect').append(new Option(v.vendor_name, v.id));
+                });
+            });
+
+            $('#vendorSelect').select2({
+                width: '100%',
+                theme: 'default',
+                placeholder: "Select",
+                allowClear: true
+            });
+
             $('#vendorSelect').on('select2:select', function(e) {
-                const id = Number(e.params.data.id);
-                const vendor = vendorMaster.find(v => Number(v.id) === id);
+                const vendorId = String(e.params.data.id);
+                const vendor = vendorMaster.find(v => String(v.id) === vendorId);
                 if (!vendor) return;
 
-                // LIMIT 6: hitung kolom vendor yang sudah ada
-                const currentCount = $('#cvTable thead th[id^="th-vendor-"]').length;
+                const currentCount = getVendorColumns().length;
                 if (currentCount >= 6) {
                     toastr.warning('Maksimal 6 vendor.');
                     $(this).val(null).trigger('change');
                     return;
                 }
 
-                // Cegah duplikat
-                if ($('#th-vendor-' + id).length) {
-                    alert('Vendor sudah ada');
-                    $(this).val(null).trigger('change');
-                    // return;
-                }
+                const colKey = nextVendorColKey();
 
-                addHeader(id, vendor);
-                addPriceCells(id);
+                addHeader(colKey, vendor);
+                addPriceCells(colKey);
 
                 vendorCount++;
                 $('#emptyMsg').toggle(vendorCount === 0);
-                $(this).val(null).trigger('change'); // reset Select2
+                $(this).val(null).trigger('change');
+                recalcSummaryVendor(colKey);
             });
 
-            /* ===============================
-            5) Tambah header vendor + ringkasan per-vendor
-            ================================ */
-            function addHeader(id, v) {
-                const colWidth = '20rem';
-                const $th = $(`
-        <th id="th-vendor-${id}"
-            class="relative border px-3 py-2 align-top
-                w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
-            data-vendor-id="${_.escape(v.id)}"
-            data-vendor-code="${_.escape(v.vendor_id)}"
-            data-vendor-name="${_.escape(v.vendor_name)}"
-            data-vendor-addr="${_.escape(v.vendor_addr1 ?? '')}"
-            data-vendor-phone="${_.escape(v.phone_number ?? '')}"
-            data-vendor-cp="${_.escape(v.contact_person ?? '')}"
-        >
-                <!-- Vendor Card -->
-                <div class="flex flex-col text-left text-xs">
-
-                    <!-- VENDOR NAME + INFO ICON -->
-                    <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
-                        <span>${v.vendor_name}</span>
-
-                        <!-- INFO ICON -->
-                        <div class="relative group inline-block">
-                                    <div class="flex h-4 w-4 items-center justify-center
-                                                rounded-full bg-gray-200 text-gray-700 text-[10px]
-                                                dark:bg-gray-700 dark:text-gray-200 cursor-default">
-                                        i
-                                    </div>
-
-                            <!-- TOOLTIP -->
-                            <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2
-                                        w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs
-                                        text-gray-200 shadow-lg opacity-0 invisible
-                                        group-hover:opacity-100 group-hover:visible
-                                        transition-opacity duration-200">
-
-                                <div class="font-semibold text-white mb-1">${v.vendor_name}</div>
-
-                                <div class="space-y-1 text-gray-300 leading-4">
-                                    <div>✉️ ${v.contact_person || '-'}</div>
-                                    <div>☎️ ${v.phone_number || '-'}</div>
-                                    <div>🏠 ${v.vendor_addr1 || '-'}</div>
-                                </div>
-
-                                <!-- Arrow -->
-                                <div class="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Payment Term -->
-                    <div class="flex items-center gap-2 mt-2">
-                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
-                        <select name="cara_bayar_${id}"
-                            class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1
-                                text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring
-                                focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                            ${TOPS_OPTIONS_HTML}
-                        </select>
-                    </div>
-                    <!-- Vendor Note -->
-                    <div class="mt-2">
-                        <textarea
-                         id="vendornote_${id}"
-                            name="vendornote_${id}"
-                            class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
-                                focus:border-indigo-500 focus:ring focus:ring-indigo-500/50
-                                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                            rows="2"
-                            placeholder="Vendor Note"></textarea>
-                    </div>
-                </div>
-
-                        <!-- Delete Button -->
-                <button type="button"
-                    class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center
-                        rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700"
-                    data-id="${id}">
-                    ✕
-                </button>
-                    </th>
-                `);
-                $('#cvTable thead tr').append($th);
-
-                const $sumTd = $(`
-                    <td id="td-sum-${id}"
-                        class="border px-3 py-2 text-xs align-top"
-                        style="width:${colWidth}; max-width:${colWidth};">
-
-                        <!-- Summary Card -->
-                        <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
-
-                            <div><span class="font-semibold">Total:</span> <span class="sum-total">0</span></div>
-
-                            <!-- Taxes Side by Side -->
-                            <div class="flex justify-between gap-2">
-                                <!-- PPN -->
-                                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                                   <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">
-    PPN
-</span>
-
-                                    <input type="number"
-                                        class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                                        value="11.00" step="0.01" min="0">
-                                    <button type="button"
-                                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
-                                        data-for="ppn" data-vendor="${id}" title="Pilih PPN">
-                                        🔍
-                                    </button>
-                                    <input type="hidden" class="sum-ppn-id" value="PPN11">
-                                </div>
-
-                                <!-- PPh -->
-                                <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
-                                    <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
-                                    <input type="number"
-                                        class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
-                                        value="0" step="0.01" min="0">
-                                    <button type="button"
-                                        class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
-                                        data-for="pph" data-vendor="${id}" title="Pilih PPh">
-                                        🔍
-                                    </button>
-                                    <input type="hidden" class="sum-pph-id" value="">
-                                </div>
-                            </div>
-
-                            <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0</span></div>
-                            <div><span class="font-semibold">G.Total Selected:</span><span class="sum-selected">0</span><span class="sum-selected-base hidden">0</span></div>
-                        </div>
-                    </td>
-                `);
-                $('#summaryRow').append($sumTd);
-
-
-                // Recalc saat PPN/PPh per-vendor berubah
-                $sumTd.find('.sum-ppn, .sum-pph').on('input', function() {
-                    recalcSummaryVendor(id);
-                });
-            }
-
-            /* ===============================
-            6) Tambah cell harga untuk tiap baris (vendor baru)
-            ================================ */
-            function addPriceCells(id) {
-                $('#cvBody tr').each(function(rowIdx) {
-
-                    const $input = $(`
-                        <input
-                            type="text"
-                            class="price-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                            data-row="${rowIdx}" data-vendor="${id}"
-                            value="0" inputmode="decimal" autocomplete="off" placeholder="0">
-                    `);
-
-                    const $td = $(`
-                        <td class="border px-3 py-2">
-                            <div class="flex flex-col items-center gap-0.5 w-full"></div>
-                        </td>
-                    `);
-
-                    const $total = $(
-                        `<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0,00</small>`
-                    );
-                    const $radio = $(`
-                        <div class="flex justify-center mt-0.5">
-                            <input type="radio" name="selected_vendor_${rowIdx}" value="${id}"
-                                class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                        </div>
-                    `);
-
-                    $td.find('div').append($input, $total, $radio);
-                    $(this).append($td);
-
-                    $input.on('input', function() {
-                        window.calcCellTotal($(this));
-                    });
-                });
-
-                setTimeout(() => recalcSummaryVendor(String(id)), 0);
-            }
-
-
-            function calcCellTotal($input) {
-                const $tr = $input.closest('tr');
-                const qty = parseQty($tr.find('.qty-input').val()); // sudah kamu buat sebelumnya
-                const price = parsePrice($input.val());
-                const total = qty * price;
-
-                $input.next('.total-label').text(total.toLocaleString('id-ID'));
-                recalcSummaryVendor(Number($input.data('vendor')));
-            }
-
-            // Expose ke global agar bisa dipanggil dari event lain
-            window.calcCellTotal = function($input) {
-                const $tr = $input.closest('tr');
-                const qty = parseQty($tr.find('.qty-input').val());
-                const price = parsePrice($input.val());
-                const total = qty * price;
-
-                $input.closest('td').find('.total-label').text(formatNum(total));
-
-                recalcSummaryVendor(String($input.data('vendor')));
-            };
-
-
-            /* ===============================
-            7) Hapus kolom vendor
-            ================================ */
             $(document).on('click', '.btn-del', function() {
-                const id = $(this).data('id');
-                const $header = $('#th-vendor-' + id);
+                const colKey = String($(this).data('col-key'));
+                const $header = $('#th-vendor-' + colKey);
                 const colIdx = $header.index();
 
                 $header.remove();
-                $('#td-sum-' + id).remove();
+                $('#td-sum-' + colKey).remove();
+
                 $('#cvBody tr').each(function() {
                     $(this).children('td').eq(colIdx).remove();
                 });
 
                 vendorCount--;
                 $('#emptyMsg').toggle(vendorCount === 0);
-            });
-
-            // total selected berubah saat radio dipilih
-            $(document).on('change', '.pick-vendor', function() {
-                // const vid = Number($(this).val());
-                // recalcSummaryVendor(vid);
                 recalcAllVendors();
             });
 
-            // ===== Helper format =====
-            window.formatNum = function(n) {
-                return (+n || 0).toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            };
-
-            // ===== Ringkasan per-vendor =====
-            // window.recalcSummaryVendor = function(vendorId) {
-            //     let total = 0;
-            //     $(`input.price-input[data-vendor="${vendorId}"]`).each(function() {
-            //         const price = parsePrice($(this).val());
-            //         const qty = parseQty($(this).closest('tr').find('.qty-input').val());
-            //         total += qty * price;
-            //     });
-
-            //     const $sumCell = $(`#td-sum-${vendorId}`);
-            //     $sumCell.find('.sum-total').text(formatNum(total));
-
-            //     const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
-            //     const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
-            //     const grand = total * (1 + ppn + pph);
-            //     $sumCell.find('.sum-grand').text(formatNum(grand));
-
-            //     // let selTotal = 0;
-            //     let selBase = 0;
-            //     $('#cvBody tr').each(function() {
-            //         const picked = $(this).find('input.pick-vendor:checked').val();
-            //         if (Number(picked) === vendorId) {
-            //             // const lbl = $(this).find(`input.price-input[data-vendor="${vendorId}"]`).next(
-            //             //     '.total-label');
-            //             // selTotal += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
-            //             const lbl = $(this).find(`input.price-input[data-vendor="${vendorId}"]`)
-            //            .closest('td')
-            //            .find('.total-label');
-            //             selBase += Number((lbl.text() || '0').replace(/[^0-9]/g, ''));
-            //         }
-            //     });
-            //     // $sumCell.find('.sum-selected').text(formatNum(selTotal));
-            //     const selGrand = selBase * (1 + ppn + pph);
-            //     $sumCell.find('.sum-selected').text(formatNum(selGrand));
-            //     $sumCell.find('.sum-selected-base').text(String(selBase));
-            // }
-
-            window.recalcSummaryVendor = function(vendorId) {
-                vendorId = String(vendorId);
-
-                const $sumCell = $(`#td-sum-${vendorId}`);
-                if (!$sumCell.length) return;
-
-                let total = 0;
-                let selBase = 0;
-
-                $('#cvBody tr').each(function() {
-                    const $tr = $(this);
-
-                    const qty = parseQty($tr.find('.qty-input').val());
-                    const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
-                    const price = parsePrice($priceInput.val());
-                    const lineTotal = qty * price;
-
-                    total += lineTotal;
-
-                    const picked = String($tr.find('input.pick-vendor:checked').val() || '');
-                    if (picked === vendorId) {
-                        selBase += lineTotal;
-                    }
-
-                    // update total-label per cell sekalian
-                    $priceInput.closest('td').find('.total-label').text(formatNum(lineTotal));
-                });
-
-                $sumCell.find('.sum-total').text(formatNum(total));
-
-                const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
-                const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
-
-                const grand = total + (total * ppn) + (total * pph);
-                const selTax = selBase * ppn + selBase * pph;
-                const selGrand = selBase + selTax;
-
-                $sumCell.find('.sum-grand').text(formatNum(grand));
-                $sumCell.find('.sum-selected').text(formatNum(selGrand));
-                // $sumCell.find('.sum-selected-base').text(selBase.toFixed(2));
-                $sumCell.find('.sum-selected-base').text(String(selBase));
-            };
-
+            $(document).on('change', '.pick-vendor', function() {
+                recalcAllVendors();
+            });
         });
     </script>
 
     <script>
-        // Izinkan: digit, koma, titik, dan tombol kontrol
         $(document).on('keypress', '.qty-input', function(e) {
             const code = e.which || e.keyCode;
-            // kontrol: backspace, tab, enter, delete, panah
             if ([8, 9, 13, 37, 38, 39, 40, 46].includes(code)) return;
 
             const ch = String.fromCharCode(code);
@@ -964,16 +870,12 @@
             }
 
             const v = $(this).val() || '';
-            // cegah lebih dari satu pemisah desimal total (koma/titik)
             if ((ch === ',' || ch === '.') && /[.,]/.test(v)) {
                 e.preventDefault();
             }
         });
 
-
-        // Sanitasi saat user mengetik (hapus karakter asing)
         $(document).on('input', '.qty-input', function() {
-            // sanitasi yang sudah kamu punya...
             let v = $(this).val() || '';
             v = v.replace(/[^0-9.,]/g, '');
             const firstSepIdx = v.search(/[.,]/);
@@ -984,105 +886,28 @@
             }
             $(this).val(v);
 
-            // 🔁 hitung ulang semua price di baris ini
             const $row = $(this).closest('tr');
             $row.find('input.price-input').each(function() {
-                // calcCellTotal($(this));
                 window.calcCellTotal($(this));
             });
         });
 
-
-
-        // Pada blur → format ke 2 desimal dengan koma
         $(document).on('blur', '.qty-input', function() {
             const num = parseQty($(this).val());
             $(this).val(formatQty2(num));
-            // trigger recalculation baris yang terkait (pakai harga yang sudah ada)
+
             const $row = $(this).closest('tr');
-            // Jika ada input harga di baris ini, recal semua vendor di baris
             $row.find('input.price-input').each(function() {
-                // calcCellTotal($(this));
                 window.calcCellTotal($(this));
             });
         });
     </script>
-    <script>
-        // Ubah "1.234,56" / "1234,56" / "1234.56" → 1234.56 (Number)
-        function parseQty(val) {
-            if (typeof val !== 'string') val = String(val ?? '');
-            val = val.trim();
-
-            // Buang semua selain digit dan pemisah . atau ,
-            val = val.replace(/[^0-9.,]/g, '');
-
-            // Jika ada kedua pemisah, ambil yang terakhir sebagai desimal
-            const lastComma = val.lastIndexOf(',');
-            const lastDot = val.lastIndexOf('.');
-            let decimalSep = (lastComma > lastDot) ? ',' : '.';
-
-            // Hilangkan pemisah ribuan (apa pun sebelum decimalSep)
-            if (decimalSep === ',') {
-                val = val.replace(/\./g, ''); // titik jadi ribuan → buang
-                val = val.replace(',', '.'); // koma desimal → titik
-            } else {
-                val = val.replace(/,/g, ''); // koma ribuan → buang
-                // titik sudah desimal → biarkan
-            }
-
-            const n = parseFloat(val);
-            return isNaN(n) ? 0 : n;
-        }
-
-        // Tampilkan Number → "xx,yy" (2 desimal, koma)
-        function formatQty2(val) {
-            const n = isNaN(val) ? 0 : Number(val);
-            return n.toFixed(2).replace('.', ',');
-        }
-    </script>
 
     <script>
-        // Parse string "1.234,56" / "1,234.56" → Number 1234.56
-        function parsePrice(val) {
-            if (typeof val !== 'string') val = String(val ?? '');
-            val = val.trim();
-
-            // buang karakter non digit/pemisah
-            val = val.replace(/[^0-9.,]/g, '');
-
-            // tentukan pemisah desimal dengan posisi terakhir
-            const lastComma = val.lastIndexOf(',');
-            const lastDot = val.lastIndexOf('.');
-            const decimalSep = (lastComma > lastDot) ? ',' : '.';
-
-            if (decimalSep === ',') {
-                // titik = ribuan → buang; koma = desimal → ganti titik
-                val = val.replace(/\./g, '').replace(',', '.');
-            } else {
-                // koma = ribuan → buang; titik = desimal → biarkan
-                val = val.replace(/,/g, '');
-            }
-
-            const n = parseFloat(val);
-            return isNaN(n) ? 0 : n;
-        }
-
-        // Format Number → "1.234,56" (2 desimal, locale id-ID)
-        function formatPrice2(n) {
-            const num = isNaN(n) ? 0 : Number(n);
-            return new Intl.NumberFormat('id-ID', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(num);
-        }
-    </script>
-
-    <script>
-        // keypress: batasi karakter
         $(document).on('keypress', '.price-input', function(e) {
             const code = e.which || e.keyCode;
-            // kontrol
             if ([8, 9, 13, 37, 38, 39, 40, 46].includes(code)) return;
+
             const ch = String.fromCharCode(code);
             if (!/[0-9.,]/.test(ch)) {
                 e.preventDefault();
@@ -1091,11 +916,10 @@
 
             const v = $(this).val() || '';
             if ((ch === ',' || ch === '.') && /[.,]/.test(v)) {
-                e.preventDefault(); // hanya boleh satu pemisah
+                e.preventDefault();
             }
         });
 
-        // input: sanitasi agar hanya 1 pemisah
         $(document).on('input', '.price-input', function() {
             let v = $(this).val() || '';
             v = v.replace(/[^0-9.,]/g, '');
@@ -1108,26 +932,23 @@
             $(this).val(v);
         });
 
-        // blur: format 2 desimal + ribuan
         $(document).on('blur', '.price-input', function() {
             const num = parsePrice($(this).val());
-            $(this).val(formatPrice2(num)); // contoh: 1234.5 → 1.234,50
-            // hitung ulang total sel
-            calcCellTotal($(this));
+            $(this).val(formatPrice2(num));
+            window.calcCellTotal($(this));
         });
     </script>
 
     <script>
         $(function() {
-            // ======== TAX PICKER =========
-            let taxCache = null; // cache data pajak
-            let taxTarget = null; // jQuery input target (sum-ppn/sum-pph)
-            let taxTargetVendorId = null; // vendor id terkait
-            let taxTargetType = null; // 'ppn' | 'pph'
+            let taxCache = null;
+            let taxTarget = null;
+            let taxTargetColKey = null;
+            let taxTargetType = null;
 
-            function openTaxModal($input, vendorId, type) {
+            function openTaxModal($input, colKey, type) {
                 taxTarget = $input;
-                taxTargetVendorId = vendorId;
+                taxTargetColKey = colKey;
                 taxTargetType = type;
 
                 const $modal = $('#taxModal');
@@ -1142,14 +963,13 @@
                     renderTaxTable(taxCache);
                 }
 
-                // fokus ke search
                 setTimeout(() => $('#taxSearch').trigger('focus'), 50);
             }
 
             function closeTaxModal() {
                 $('#taxModal').addClass('hidden');
                 taxTarget = null;
-                taxTargetVendorId = null;
+                taxTargetColKey = null;
                 taxTargetType = null;
             }
 
@@ -1159,115 +979,85 @@
 
                 rows.forEach(r => {
                     const tr = $(`
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td class="px-3 py-2 text-xs">${r.taxid ?? ''}</td>
-                <td class="px-3 py-2 text-xs">${Number(r.taxrate ?? 0).toFixed(2)}</td>
-                <td class="px-3 py-2 text-xs">${r.descr ?? ''}</td>
-                <td class="px-3 py-2 text-right">
-                    <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
-                            data-taxid="${r.taxid}" data-taxrate="${r.taxrate}">
-                    Choose
-                    </button>
-                </td>
-                </tr>
-            `);
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-3 py-2 text-xs">${r.taxid ?? ''}</td>
+                            <td class="px-3 py-2 text-xs">${Number(r.taxrate ?? 0).toFixed(2)}</td>
+                            <td class="px-3 py-2 text-xs">${r.descr ?? ''}</td>
+                            <td class="px-3 py-2 text-right">
+                                <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
+                                        data-taxid="${r.taxid}" data-taxrate="${r.taxrate}">
+                                    Choose
+                                </button>
+                            </td>
+                        </tr>
+                    `);
                     $tbody.append(tr);
                 });
             }
 
-            // Buka modal saat klik kaca pembesar
             $(document).on('click', '.btn-pick-tax', function() {
-                const vendorId = String($(this).data('vendor'));
-                const type = String($(this).data('for')); // 'ppn' | 'pph'
-                const $cell = $(`#td-sum-${vendorId}`);
+                const colKey = String($(this).data('col-key'));
+                const type = String($(this).data('for'));
+                const $cell = $(`#td-sum-${colKey}`);
                 const $input = (type === 'ppn') ? $cell.find('.sum-ppn') : $cell.find('.sum-pph');
 
-                openTaxModal($input, vendorId, type);
+                openTaxModal($input, colKey, type);
             });
 
-            // Tutup modal
             $('#taxModalClose, #taxModalOverlay').on('click', closeTaxModal);
+
             $(document).on('keydown', function(e) {
                 if (e.key === 'Escape') closeTaxModal();
             });
 
-            // Cari (filter simpel di client)
             $('#taxSearch').on('input', function() {
                 const q = ($(this).val() || '').toLowerCase();
                 if (!taxCache) return;
+
                 const filtered = taxCache.filter(r => {
                     const s1 = String(r.taxid ?? '').toLowerCase();
                     const s2 = String(r.descr ?? '').toLowerCase();
                     const s3 = String(r.taxrate ?? '').toLowerCase();
                     return s1.includes(q) || s2.includes(q) || s3.includes(q);
                 });
+
                 renderTaxTable(filtered);
             });
 
-            // Pilih pajak → isi ke input, set hidden taxid, recalc
             $(document).on('click', '.btn-choose-tax', function() {
                 if (!taxTarget) return;
 
                 const taxid = $(this).data('taxid');
                 const rate = Number($(this).data('taxrate') || 0);
 
-                // set nilai persentase
-                taxTarget.val(rate.toFixed(2)); // 2 desimal (tanpa pemisah), misal 11.00
+                taxTarget.val(rate.toFixed(2));
 
-                // simpan taxid di hidden input sesuai type
-                const $cell = $(`#td-sum-${taxTargetVendorId}`);
+                const $cell = $(`#td-sum-${taxTargetColKey}`);
                 if (taxTargetType === 'ppn') {
                     $cell.find('.sum-ppn-id').val(taxid);
                 } else {
                     $cell.find('.sum-pph-id').val(taxid);
                 }
 
-                // trigger recalc untuk vendor terkait
-                recalcSummaryVendor(String(taxTargetVendorId));
-
+                recalcSummaryVendor(String(taxTargetColKey));
                 closeTaxModal();
             });
         });
     </script>
+
     <script>
-        $('#saveBtn').on('click', function(e) {
-            e.preventDefault();
-
-            // ==== VALIDASI: minimal 1 vendor kolom ====
-            const $vendorCols = $('#cvTable thead th[id^="th-vendor-"]');
-            if ($vendorCols.length === 0) {
-                toastr.error('Pilih minimal 1 vendor.');
-                return;
-            }
-
-            // ==== VALIDASI: total per-vendor tidak semuanya 0 ====
-            let allVendorTotalsZero = true;
-            $vendorCols.each(function() {
-                const vid = String($(this).data('vendor-id'));
-                const total = numFromText($(`#td-sum-${vid} .sum-total`).text());
-                if (total > 0) allVendorTotalsZero = false;
-            });
-            if (allVendorTotalsZero) {
-                toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
-                return;
-            }
-
-            if (!validateQtyLimit()) {
-                toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
-                return;
-            }
-
-            if (!validatePaymentTerms()) return;
-
-            // Kumpulkan vendor summary (urut sesuai posisi kolom)
+        function collectVendorsPayload() {
             const vendors = [];
-            $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
-                if (vendors.length >= 6) return; // hard limit 6
+
+            getVendorColumns().each(function(i) {
+                if (vendors.length >= 6) return;
+
                 const $th = $(this);
+                const colKey = String($th.data('col-key'));
                 const vid = String($th.data('vendor-id'));
                 const vcode = String($th.data('vendor-code'));
+                const $sum = $(`#td-sum-${colKey}`);
 
-                const $sum = $(`#td-sum-${vid}`);
                 const total = numFromText($sum.find('.sum-total').text());
                 const ppn = Number($sum.find('.sum-ppn').val() || 0);
                 const pph = Number($sum.find('.sum-pph').val() || 0);
@@ -1275,14 +1065,13 @@
                 const pphId = $sum.find('.sum-pph-id').val() || '';
                 const tax = total * (ppn / 100) + total * (pph / 100);
                 const grand = total + tax;
-                // const selTotal = numFromText($sum.find('.sum-selected').text());
-                // const selTax = selTotal * (ppn / 100) + selTotal * (pph / 100);
-                // const selGrand = selTotal + selTax;
+
                 const selBase = numFromText($sum.find('.sum-selected-base').text());
                 const selTax = selBase * (ppn / 100) + selBase * (pph / 100);
                 const selGrand = selBase + selTax;
 
                 vendors.push({
+                    col_key: colKey,
                     id: vid,
                     vendorid: vcode,
                     vendorname: String($th.data('vendor-name') || ''),
@@ -1290,25 +1079,25 @@
                     vendortelp: String($th.data('vendor-phone') || ''),
                     vendorcp: String($th.data('vendor-cp') || ''),
                     vendortop: $th.find('select.cara-bayar').val() || '',
-                    // vendornote: String($th.find('textarea.vendornote').val() || ''),
-                    vendornote: String($(`#vendornote_${vid}`).val() || ''),
-
+                    vendornote: String($(`#vendornote_${colKey}`).val() || ''),
                     total: round2(total),
                     ppn: round2(ppn),
                     pph: round2(pph),
                     taxcode: [ppnId, pphId].filter(Boolean).join('+'),
                     tax: round2(tax),
                     grand: round2(grand),
-
-                    // selected_total: round2(selTotal),
                     selected_total: round2(selBase),
                     selected_tax: round2(selTax),
                     selected_grand: round2(selGrand),
                 });
             });
 
-            // Kumpulkan detail baris
+            return vendors;
+        }
+
+        function collectDetailsPayload() {
             const details = [];
+
             $('#cvBody tr').each(function(rowIdx) {
                 const $tr = $(this);
                 const qty = parseQty($tr.find('.qty-input').val());
@@ -1336,29 +1125,69 @@
                     vendor: []
                 };
 
-                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+                const pickedColKey = String($tr.find('input.pick-vendor:checked').val() || '');
 
-                $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
+                getVendorColumns().each(function(i) {
                     if (i >= 6) return;
-                    const vendorId = String($(this).data('vendor-id'));
-                    const vendorIdCode = String($(this).data('vendor-code'));
-                    const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
+
+                    const $th = $(this);
+                    const colKey = String($th.data('col-key'));
+                    const vendorId = String($th.data('vendor-id'));
+                    const vendorIdCode = String($th.data('vendor-code'));
+
+                    const $priceInput = $tr.find(`input.price-input[data-col-key="${colKey}"]`);
                     const price = parsePrice($priceInput.val());
                     const total = qty * price;
 
                     row.vendor.push({
+                        col_key: colKey,
                         id: vendorId,
                         vendorid: vendorIdCode,
                         price: round2(price),
                         total: round2(total),
-                        selected: vendorId === picked
+                        selected: colKey === pickedColKey
                     });
                 });
 
                 details.push(row);
             });
 
-            // FormData dari form yang benar
+            return details;
+        }
+    </script>
+
+    <script>
+        $('#saveBtn').on('click', function(e) {
+            e.preventDefault();
+
+            const $vendorCols = getVendorColumns();
+            if ($vendorCols.length === 0) {
+                toastr.error('Pilih minimal 1 vendor.');
+                return;
+            }
+
+            let allVendorTotalsZero = true;
+            $vendorCols.each(function() {
+                const colKey = String($(this).data('col-key'));
+                const total = numFromText($(`#td-sum-${colKey} .sum-total`).text());
+                if (total > 0) allVendorTotalsZero = false;
+            });
+
+            if (allVendorTotalsZero) {
+                toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
+                return;
+            }
+
+            if (!validateQtyLimit()) {
+                toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
+                return;
+            }
+
+            if (!validatePaymentTerms()) return;
+
+            const vendors = collectVendorsPayload();
+            const details = collectDetailsPayload();
+
             const fd = new FormData(document.getElementById('csForm'));
             fd.append('vendors', JSON.stringify(vendors));
             fd.append('details', JSON.stringify(details));
@@ -1375,7 +1204,6 @@
                     hideOverlay();
                     toastr.success('CS berhasil disimpan.');
                     window.location.href = "/csjobs";
-                    // window.location.href = res.redirect ?? window.location.href;
                 },
                 error: function(xhr) {
                     hideOverlay();
@@ -1385,40 +1213,13 @@
                 }
             });
         });
-
-
-        // helpers number
-        // function numFromText(t) {
-        //     t = String(t || '');
-        //     t = t.replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
-        //     const n = parseFloat(t);
-        //     return isNaN(n) ? 0 : n;
-        // }
-        function numFromText(text) {
-            if (!text) return 0;
-
-            return parseFloat(
-                String(text)
-                .trim()
-                .replace(/\./g, '')
-                .replace(',', '.')
-                .replace(/[^0-9.-]/g, '')
-            ) || 0;
-        }
-
-        function round2(n) {
-            return Math.round((+n + Number.EPSILON) * 100) / 100;
-        }
     </script>
 
     <script>
         $('#submitBtn').on('click', function(e) {
             e.preventDefault();
 
-            // ==========================================
-            //  VALIDASI FRONTEND
-            // ==========================================
-            const $vendorCols = $('#cvTable thead th[id^="th-vendor-"]');
+            const $vendorCols = getVendorColumns();
             if ($vendorCols.length === 0) {
                 toastr.error('Pilih minimal 1 vendor.');
                 return;
@@ -1426,8 +1227,8 @@
 
             let allVendorTotalsZero = true;
             $vendorCols.each(function() {
-                const vid = String($(this).data('vendor-id'));
-                const total = numFromText($(`#td-sum-${vid} .sum-total`).text());
+                const colKey = String($(this).data('col-key'));
+                const total = numFromText($(`#td-sum-${colKey} .sum-total`).text());
                 if (total > 0) allVendorTotalsZero = false;
             });
 
@@ -1448,8 +1249,6 @@
 
             if (!validatePaymentTerms()) return;
 
-
-            // VALIDASI: harga ada tapi vendor tidak dipilih
             let rowWithoutVendor = false;
             $('#cvBody tr').each(function() {
                 let hasPrice = false;
@@ -1472,107 +1271,12 @@
                 return;
             }
 
-            // ==========================================
-            //  KUMPULKAN VENDOR
-            // ==========================================
-            const vendors = [];
-            $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
-                if (vendors.length >= 6) return;
+            const vendors = collectVendorsPayload();
+            const details = collectDetailsPayload();
 
-                const $th = $(this);
-                const vid = String($th.data('vendor-id'));
-                const vcode = String($th.data('vendor-code'));
-                const $sum = $(`#td-sum-${vid}`);
-
-                const total = numFromText($sum.find('.sum-total').text());
-                const ppn = Number($sum.find('.sum-ppn').val() || 0);
-                const pph = Number($sum.find('.sum-pph').val() || 0);
-                const ppnId = $sum.find('.sum-ppn-id').val() || '';
-                const pphId = $sum.find('.sum-pph-id').val() || '';
-
-                const tax = total * (ppn / 100) + total * (pph / 100);
-                const grand = total + tax;
-
-                const selBase = numFromText($sum.find('.sum-selected-base').text());
-                const selTax = selBase * (ppn / 100) + selBase * (pph / 100);
-                const selGrand = selBase + selTax;
-
-                vendors.push({
-                    id: vid,
-                    vendorid: vcode,
-                    vendorname: String($th.data('vendor-name') || ''),
-                    vendoralamat: String($th.data('vendor-addr') || ''),
-                    vendortelp: String($th.data('vendor-phone') || ''),
-                    vendorcp: String($th.data('vendor-cp') || ''),
-                    vendortop: $th.find('select.cara-bayar').val() || '',
-                    vendornote: String($th.find('textarea.vendornote').val() || ''),
-
-                    total: round2(total),
-                    ppn: round2(ppn),
-                    pph: round2(pph),
-                    taxcode: [ppnId, pphId].filter(Boolean).join('+'),
-                    tax: round2(tax),
-                    grand: round2(grand),
-
-                    selected_total: round2(selBase),
-                    selected_tax: round2(selTax),
-                    selected_grand: round2(selGrand),
-                });
-            });
-
-            // ==========================================
-            //  KUMPULKAN DETAIL
-            // ==========================================
-            const details = [];
-            $('#cvBody tr').each(function(rowIdx) {
-                const $tr = $(this);
-                const qty = parseQty($tr.find('.qty-input').val());
-                const uom = $tr.data('uom') || '';
-                const invId = $tr.data('inventoryid') || '';
-                const invDescr = $tr.data('inventory_descr') || '';
-                const lastPrice = Number($tr.data('lastprice') || 0);
-                const csNote = String($tr.find('.note-input').val() || '');
-
-                const row = {
-                    inventoryid: invId,
-                    inventory_descr: invDescr,
-                    qty: round2(qty),
-                    uom: uom,
-                    inventory_last_price: round2(lastPrice),
-                    csnote_detail: csNote,
-                    vendor: []
-                };
-
-                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
-
-                $('#cvTable thead th[id^="th-vendor-"]').each(function(i) {
-                    if (i >= 6) return;
-
-                    const vendorId = String($(this).data('vendor-id'));
-                    const vendorIdCode = String($(this).data('vendor-code'));
-
-                    const $priceInput = $tr.find(`input.price-input[data-vendor="${vendorId}"]`);
-                    const price = parsePrice($priceInput.val());
-                    const total = qty * price;
-
-                    row.vendor.push({
-                        id: vendorId,
-                        vendorid: vendorIdCode,
-                        price: round2(price),
-                        total: round2(total),
-                        selected: vendorId === picked
-                    });
-                });
-
-                details.push(row);
-            });
-
-            // ==========================================
-            // 1) CEK QTY DULU KE BACKEND
-            // ==========================================
             const doc = $('input[name="doc"]').val();
             const srcId = $('input[name="src_id"]').val();
-            console.log('Checking qty for doc', doc, 'src_id', srcId, details);
+
             showOverlay('Validating qty');
 
             $.ajax({
@@ -1585,11 +1289,6 @@
                     details: JSON.stringify(details),
                 },
                 success: function(res) {
-
-                    // ==========================================
-                    // 2) JIKA LOL0S CEK QTY → SUBMIT CS
-                    // ==========================================
-
                     const fd = new FormData(document.getElementById('csForm'));
                     fd.append('vendors', JSON.stringify(vendors));
                     fd.append('details', JSON.stringify(details));
@@ -1623,7 +1322,6 @@
                     const msg = res.message || 'Qty tidak valid.';
                     toastr.error(msg);
 
-                    // highlight baris salah
                     if (Array.isArray(res.errors)) {
                         res.errors.forEach(function(err) {
                             $('#cvBody tr').eq(err.row_index).addClass('bg-red-100');
@@ -1631,34 +1329,19 @@
                     }
                 }
             });
-
         });
-
-        // Helpers
-        // function numFromText(t) {
-        //     t = String(t || '').replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '');
-        //     const n = parseFloat(t);
-        //     return isNaN(n) ? 0 : n;
-        // }
-
-        // function round2(n) {
-        //     return Math.round((+n + Number.EPSILON) * 100) / 100;
-        // }
     </script>
 
-
     <script>
-        // validasi: qty edit tidak boleh > qty awal
         function validateQtyLimit() {
             let ok = true;
 
             $('#cvBody tr').each(function() {
                 const $tr = $(this);
-                const max = Number($tr.data('original_qty')); // qty awal dari server
+                const max = Number($tr.data('original_qty'));
                 const $inp = $tr.find('.qty-input');
                 const cur = parseQty($inp.val());
 
-                // reset state
                 $inp.removeClass('is-invalid');
                 $tr.find('.qty-error').remove();
 
@@ -1674,7 +1357,6 @@
             return ok;
         }
 
-        // saat user keluar dari field qty → auto-koreksi ke max jika melebihi
         $(document).on('blur', '.qty-input', function() {
             const $tr = $(this).closest('tr');
             const max = Number($tr.data('original_qty'));
@@ -1682,16 +1364,13 @@
 
             if (isFinite(max) && curN > max) {
                 $(this).addClass('is-invalid');
-                // tampilkan/refresh pesan error
                 $tr.find('.qty-error').remove();
                 $('<div class="error-feedback qty-error">Qty dikembalikan ke maksimum: ' + formatQty2(max) +
                         '.</div>')
                     .insertAfter($(this));
 
-                // kembalikan ke max dan format
                 $(this).val(formatQty2(max));
 
-                // trigger hitung ulang total per vendor di baris ini
                 const $row = $tr;
                 $row.find('input.price-input').each(function() {
                     window.calcCellTotal($(this));
@@ -1702,20 +1381,11 @@
             }
         });
     </script>
-    <script>
-        function recalcAllVendors() {
-            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
-                const vid = String($(this).data('vendor-id'));
-                recalcSummaryVendor(vid);
-            });
-        }
-    </script>
 
     <script>
         function validatePaymentTerms() {
             let ok = true;
 
-            // reset state lama
             $('#cvTable thead th[id^="th-vendor-"] select.cara-bayar').removeClass('is-invalid');
 
             $('#cvTable thead th[id^="th-vendor-"]').each(function() {
@@ -1725,17 +1395,14 @@
 
                 if (!val) {
                     ok = false;
-                    $top.addClass('is-invalid'); // tampilkan border merah
-                    // scroll ke kolom vendor yang belum diisi
+                    $top.addClass('is-invalid');
                     const th = $th.get(0);
                     if (th && th.scrollIntoView) th.scrollIntoView({
                         behavior: 'smooth',
                         block: 'nearest',
                         inline: 'center'
                     });
-                    // fokuskan ke select agar langsung bisa dipilih
                     setTimeout(() => $top.trigger('focus'), 150);
-                    // break dari .each
                     return false;
                 }
             });
@@ -1746,21 +1413,12 @@
             return ok;
         }
 
-        // hilangkan merah ketika user memilih nilai
         $(document).on('change', 'select.cara-bayar', function() {
             if ($(this).val()) $(this).removeClass('is-invalid');
         });
     </script>
 
     <script>
-        function formatNumID(n) {
-            n = Number(n || 0);
-            return n.toLocaleString('id-ID', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-
         function openLastPriceModal() {
             $('#lastPriceModal').removeClass('hidden');
         }
@@ -1773,7 +1431,6 @@
             $('#lpTitle').text('');
         }
 
-        // $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', closeLastPriceModal);
         $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1784,56 +1441,6 @@
             if (e.key === 'Escape') closeLastPriceModal();
         });
 
-        // $(document).on('click', '.btn-lastprice', function(){
-        //     const inventoryid = String($(this).data('inventoryid') || '');
-        //     const inventorydescr = String($(this).data('inventorydescr') || '');
-
-        //     if(!inventoryid){
-        //         toastr.error('Inventory ID kosong.');
-        //         return;
-        //     }
-
-        //     $('#lpTitle').text(inventoryid + (inventorydescr ? (' — ' + inventorydescr) : ''));
-        //     $('#lpBody').empty();
-        //     $('#lpEmpty').addClass('hidden');
-        //     $('#lpLoading').removeClass('hidden');
-
-        //     openLastPriceModal();
-
-        //     $.ajax({
-        //         url: "{{ route('cs.lastprice.history.entry') }}",
-        //         method: "GET",
-        //         data: { inventoryid },
-        //         success: function(res){
-        //             $('#lpLoading').addClass('hidden');
-
-        //             const rows = (res && res.data) ? res.data : [];
-        //             if(!rows.length){
-        //                 $('#lpEmpty').removeClass('hidden');
-        //                 return;
-        //             }
-
-        //             rows.forEach(r => {
-        //                 const tr = `
-    //                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-    //                         <td class="px-3 py-2">${r.ponbr ?? ''}</td>
-    //                         <td class="px-3 py-2">${r.podate ?? ''}</td>
-    //                         <td class="px-3 py-2">${r.csid ?? ''}</td>
-    //                         <td class="px-3 py-2">${r.vendorname ?? ''}</td>
-    //                         <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
-    //                         <td class="px-3 py-2">${r.purchaser ?? ''}</td>
-    //                     </tr>
-    //                 `;
-        //                 $('#lpBody').append(tr);
-        //             });
-        //         },
-        //         error: function(xhr){
-        //             $('#lpLoading').addClass('hidden');
-        //             const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal ambil history.';
-        //             toastr.error(msg);
-        //         }
-        //     });
-        // });
         $(document).on('click', '.btn-lastprice', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1896,27 +1503,21 @@
         });
 
         document.getElementById('csForm').addEventListener('keydown', function(e) {
-
-            // Only handle Enter
             if (e.key !== 'Enter') return;
 
             const tag = e.target.tagName;
             const type = (e.target.type || '').toLowerCase();
 
-            // ✅ Allow normal Enter inside textarea
             if (tag === 'TEXTAREA') return;
-
-            // ✅ Allow Enter for file inputs
             if (type === 'file') return;
 
-            // Otherwise → move to next field
             e.preventDefault();
 
             const inputs = Array.from(
                 this.querySelectorAll('input, select, textarea')
             ).filter(el =>
                 !el.disabled &&
-                el.offsetParent !== null // skip hidden
+                el.offsetParent !== null
             );
 
             const index = inputs.indexOf(document.activeElement);
@@ -1927,15 +1528,6 @@
         });
     </script>
 
-
-
-
-
-
-    <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>
-
 </x-app-layout>
