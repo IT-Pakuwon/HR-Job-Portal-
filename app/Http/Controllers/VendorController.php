@@ -12,7 +12,10 @@ class VendorController extends Controller
 {
     public function index()
     {
-        return view('pages.vendor.vendor');
+        $user = Auth::user();
+        $isAdmin = $this->isAdmin($user);
+
+        return view('pages.vendor.vendor', compact('user', 'isAdmin'));
     }
 
     public function json()
@@ -42,6 +45,13 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
+        if (!$this->isAdmin(Auth::user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Hanya admin yang dapat menambah vendor.'
+            ], 403);
+        }
+
         $request->validate([
             'vendor_id'        => 'required|string|max:50|unique:pgsql.ms_vendor,vendor_id',
             'vendor_name'      => 'required|string|max:200',
@@ -82,12 +92,14 @@ class VendorController extends Controller
             ]);
 
             DB::commit();
+
             return response()->json([
                 'success' => true,
                 'vendor'  => $vendor
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'error'   => 'Gagal menyimpan vendor',
                 'message' => $e->getMessage(),
@@ -97,6 +109,13 @@ class VendorController extends Controller
 
     public function edit($id)
     {
+        if (!$this->isAdmin(Auth::user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Hanya admin yang dapat mengakses edit vendor.'
+            ], 403);
+        }
+
         $vendor = MsVendor::findOrFail($id);
 
         return response()->json([
@@ -120,6 +139,13 @@ class VendorController extends Controller
 
     public function update(Request $request, $id)
     {
+        if (!$this->isAdmin(Auth::user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Hanya admin yang dapat mengubah vendor.'
+            ], 403);
+        }
+
         $vendor = MsVendor::findOrFail($id);
 
         $request->validate([
@@ -161,9 +187,11 @@ class VendorController extends Controller
             ]);
 
             DB::commit();
+
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'error'   => 'Gagal update vendor',
                 'message' => $e->getMessage(),
@@ -173,6 +201,13 @@ class VendorController extends Controller
 
     public function toggleStatus(Request $request, $id)
     {
+        if (!$this->isAdmin(Auth::user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Hanya admin yang dapat mengubah status vendor.'
+            ], 403);
+        }
+
         $vendor = MsVendor::findOrFail($id);
         $newStatus = $request->status;
 
@@ -190,6 +225,13 @@ class VendorController extends Controller
 
     public function syncVendor(Request $request)
     {
+        if (!$this->isAdmin(Auth::user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Hanya admin yang dapat melakukan sync vendor.'
+            ], 403);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -214,6 +256,7 @@ class VendorController extends Controller
 
             if ($sourceVendors->isEmpty()) {
                 DB::rollBack();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Data vendor dari ViewVendorVMS tidak ditemukan.'
@@ -242,18 +285,11 @@ class VendorController extends Controller
                     'vendor_addr2'    => $this->limitText($row->address2, 255),
                     'email'           => $this->limitText($firstEmail, 150),
                     'contact_person'  => $this->limitText($row->attention, 150),
-
-                    // jangan isi gabungan panjang
                     'phone_number'    => $this->limitText($phone1, 50),
-
                     'npwp'            => $this->limitText($row->npwp, 100),
-
-                    // simpan email utama saja supaya tidak melebihi limit
                     'contact_email'   => $this->limitText($firstEmail, 150),
-
                     'contact_number1' => $this->limitText($phone1, 50),
                     'contact_number2' => $this->limitText($phone2, 50),
-
                     'fax_no'          => null,
                     'post_cd'         => $this->limitText($row->postal_code, 20),
                     'status'          => strtoupper(trim((string) ($row->Statuss ?? 'A'))) === 'A' ? 'A' : 'X',
@@ -294,6 +330,11 @@ class VendorController extends Controller
                 'message' => 'Gagal sync vendor: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function isAdmin($user): bool
+    {
+        return $user && strtolower((string) $user->user_role) === 'admin';
     }
 
     private function limitText($value, int $max)

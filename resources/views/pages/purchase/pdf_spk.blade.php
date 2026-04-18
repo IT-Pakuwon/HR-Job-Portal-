@@ -289,15 +289,15 @@
         <table>
             <tr>
                 <td style="width:160px;">Nama</td>
-                <td>: {{ \Illuminate\Support\Str::title($po->spkvendor) }}</td>
+                <td>: {{ ($po->spkvendor) }}</td>
             </tr>
             <tr>
                 <td>Jabatan</td>
-                <td>: {{ \Illuminate\Support\Str::title($po->spkvendorjabatan) }}</td>
+                <td>: {{ ($po->spkvendorjabatan) }}</td>
             </tr>
             <tr>
                 <td>Perusahaan</td>
-                <td>: {{ \Illuminate\Support\Str::title($po->vendorname) }}</td>
+                <td>: {{ ($po->vendorname) }}</td>
             </tr>
             <tr>
                 <td>Alamat</td>
@@ -1430,9 +1430,9 @@
                 <td>
                     <div style="border-bottom:1px solid #000; width:240px; margin:0 auto;"></div>
                     <div style="margin-top:4px;">
-                        {{ \Illuminate\Support\Str::title($po->spkvendor ?? '-') }}
+                        {{ ($po->spkvendor ?? '-') }}
                         <br>
-                        {{ \Illuminate\Support\Str::title($po->spkvendorjabatan ?? '-') }}
+                        {{ ($po->spkvendorjabatan ?? '-') }}
                     </div>
                 </td>
             </tr>
