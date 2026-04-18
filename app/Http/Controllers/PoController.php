@@ -1280,26 +1280,7 @@ class PoController extends Controller
             ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')->get();
 
-        // $dpp       = $po->totalamt;
-        // $ppn       = $po->taxamt;
-        // $grand     = $po->grandtotalamt;
-        // $terbilang = ucfirst($this->terbilang($grand)) . ' rupiah';
-        // $company   = MsCompany::where('cpny_id', $po->cpny_id)->first();
-
-        // $purchaser = ucwords(strtolower($authUser->name ?? 'System'));
-
-        // $viewData = [
-        //     'po'        => $po,
-        //     'podetail'  => $podetail,
-        //     'dpp'       => $dpp,
-        //     'ppn'       => $ppn,
-        //     'grand'     => $grand,
-        //     'terbilang' => $terbilang,
-        //     'company'   => $company,
-        //     'now'       => Carbon::now(),
-        //     'purchaser' => $purchaser,
-        // ];
-
+        
         // =========================
         // COMPANY
         // =========================
@@ -1447,22 +1428,7 @@ class PoController extends Controller
                 ->values()
                 ->all();
         }
-        // $ccFromTable = MsEmailCcRule::query()
-        //     ->where('status', 'A')
-        //     ->where('cpny_id', $po->cpny_id)
-        //     // ->where('department_id', $po->department_id) // pastikan kolom PO = department_id
-        //     ->pluck('email')
-        //     ->map(fn($e) => trim((string)$e))
-        //     ->filter(fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
-        //     ->values()
-        //     ->all();
-
-        // // CC dari request (kalau ada)
-        // $ccFromRequest = $norm($data['cc'] ?? []);
-
-        // // merge + unique
-        // $cc  = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest)));
-
+  
         // CC dari request (kalau ada)
         $ccFromRequest = $norm($data['cc'] ?? []);
 
@@ -1470,8 +1436,20 @@ class PoController extends Controller
         $fromEmail = $data['from']; // ini pasti email valid karena sudah validate 'from' => email
         $ccFromSender = filter_var($fromEmail, FILTER_VALIDATE_EMAIL) ? [$fromEmail] : [];
 
+        //cc user peminta
+        $pemintaEmail = optional(
+            User::where('username', $po->user_peminta)->first()
+        )->notification_email;
+
+        $ccFromPeminta = [];
+
+        if (!empty($pemintaEmail)) {
+            $ccFromPeminta[] = strtolower(trim($pemintaEmail));
+        }
+
+       
         // merge + unique
-        $cc = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest, $ccFromSender)));
+        $cc = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest, $ccFromSender,$ccFromPeminta)));
 
         // optional: jangan sampai from masuk juga ke TO (biar ga double)
         $cc = array_values(array_diff($cc, $to));
@@ -1517,36 +1495,7 @@ class PoController extends Controller
             } catch (\Throwable $e) {
                 \Log::warning('GCS download failed', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
-        }
-
-        // ===== generate PDF (bagian kamu tetap) =====
-        // $view = $po->potype === 'PO' ? 'pages.purchase.pdf_po' : 'pages.purchase.pdf_spk';
-        // $pdf  = PDF::loadView($view, $viewData)->setPaper('A4', 'portrait');
-
-        // $dompdf = $pdf->getDomPDF();
-        // $dompdf->render();
-
-        // $canvas  = $dompdf->get_canvas();
-        // $w       = $canvas->get_width();
-        // $h       = $canvas->get_height();
-
-        // $metrics = $dompdf->getFontMetrics();
-        // $font    = $metrics->get_font('sans-serif', 'normal');
-        // $size    = 9;
-
-        // $now       = $viewData['now'];
-        // $leftTxt   = "Created by: {$purchaser}, Sent by: {$purchaser}, On: " . $now->format('d/m/Y H:i');
-        // $rightTpl  = "Page {PAGE_NUM} of {PAGE_COUNT}";
-        // $rightW    = $metrics->getTextWidth($rightTpl, $font, $size);
-
-        // $y = $h - 28;
-        // $x = $canvas->get_width() - $w - 75;
-
-        // $canvas->page_text(20, $y, $leftTxt, $font, $size, [0,0,0]);
-        // $canvas->page_text($w - $x - $rightW - 20, $y, $rightTpl, $font, $size, [0,0,0]);
-
-        // $pdfBinary = $dompdf->output();
-        // $pdfName   = ($po->potype === 'PO' ? 'PO' : 'SPK') . "_{$po->ponbr}.pdf";
+        }       
 
         $potype = strtoupper((string) ($po->potype ?? ''));
 

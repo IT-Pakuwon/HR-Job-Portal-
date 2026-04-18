@@ -155,20 +155,18 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::post('/login', [AuthController::class, 'login']);
-
 Route::middleware('auth:sanctum')->group(function () {
-    // Route::apiResource('vendors', MsVendorController::class);
-    Route::post('/vendors', [MsVendorController::class, 'store']);
 
     Route::get('/google/calendar/status', [GoogleCalendarApiController::class, 'status']);
     Route::get('/google/calendar/events', [GoogleCalendarApiController::class, 'events']);
     Route::post('/google/calendar/event', [GoogleCalendarApiController::class, 'createEvent']);
 
     Route::post('/tasks', [TaskController::class, 'store']);
-    Route::put('/tasks/{id}', [TaskController::class, 'update']);
+    Route::put('/tasks/{id}', [TaskController::class, 'update']); 
     Route::post('/tasks/{id}/move', [TaskController::class, 'move']);
+
     Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
+
 });
 
 Route::get('/analytics/po', PoAnalyticsController::class);

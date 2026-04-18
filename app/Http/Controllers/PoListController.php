@@ -140,12 +140,21 @@ class PoListController extends Controller
         if ($search !== '') {
             $base->where(function ($q) use ($search, $poTable) {
                 $q->where("$poTable.ponbr", 'ilike', "%{$search}%")
+                    ->orWhere("$poTable.csid", 'ilike', "%{$search}%")
+                    ->orWhere("$poTable.potype", 'ilike', "%{$search}%")
                     ->orWhere("$poTable.vendorname", 'ilike', "%{$search}%")
                     ->orWhere("$poTable.created_by", 'ilike', "%{$search}%")
                     ->orWhere("$poTable.keperluan", 'ilike', "%{$search}%")
-                    ->orWhereRaw("CAST($poTable.cpny_id AS TEXT) ILIKE ?", ["%{$search}%"]) // ✅ NEW
+                    ->orWhereRaw("CAST($poTable.cpny_id AS TEXT) ILIKE ?", ["%{$search}%"])
+
+                    // format database lama
                     ->orWhereRaw("TO_CHAR($poTable.podate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("TO_CHAR($poTable.podeliverydate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+
+                    // format tampilan view: contoh 16/4/2026
+                    ->orWhereRaw("TO_CHAR($poTable.podate,'FMDD/FMMM/YYYY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR($poTable.podeliverydate,'FMDD/FMMM/YYYY') ILIKE ?", ["%{$search}%"])
+
                     ->orWhereRaw("CAST($poTable.totalamt AS TEXT) ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("CAST($poTable.taxamt AS TEXT) ILIKE ?", ["%{$search}%"])
                     ->orWhereRaw("CAST($poTable.grandtotalamt AS TEXT) ILIKE ?", ["%{$search}%"]);
