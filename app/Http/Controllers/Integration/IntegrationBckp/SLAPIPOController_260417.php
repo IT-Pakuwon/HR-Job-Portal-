@@ -29,12 +29,12 @@ class SLAPIPOController extends Controller
             ->orderBy('cpny_id')
             ->pluck('cpny_id')
             ->values();
-    
+
         return response()->json([
             'ok' => true,
             'data' => [
                 'companies' => $companies,
-                'statuses'  => ['P', 'C'],
+                'statuses'  => ['H', 'D', 'P', 'C'],
                 'per_pages' => [25, 50, 100],
             ],
         ]);
@@ -44,12 +44,12 @@ class SLAPIPOController extends Controller
     {
         $from = $request->query('from');
         $to   = $request->query('to');
-    
+
         $company = strtoupper(trim((string) $request->query('company', '')));
         $status  = strtoupper(trim((string) $request->query('status', '')));
         $perPage = (int) $request->query('per_page', 25);
         $page    = max((int) $request->query('page', 1), 1);
-    
+
         if (!$from || !$to) {
             return response()->json([
                 'ok'      => false,
@@ -57,16 +57,15 @@ class SLAPIPOController extends Controller
                 'data'    => [],
             ], 422);
         }
-    
+
         if (!in_array($perPage, [25, 50, 100], true)) {
             $perPage = 25;
         }
-    
-        // sekarang hanya valid P dan C
-        if ($status !== '' && !in_array($status, ['P', 'C'], true)) {
+
+        if ($status !== '' && !in_array($status, ['H', 'D', 'P', 'C'], true)) {
             $status = '';
         }
-    
+
         try {
             $fromDt = Carbon::parse($from)->startOfDay();
             $toDt   = Carbon::parse($to)->endOfDay();
@@ -77,7 +76,7 @@ class SLAPIPOController extends Controller
                 'data'    => [],
             ], 422);
         }
-    
+
         if ($toDt->lt($fromDt)) {
             return response()->json([
                 'ok'      => false,
@@ -85,36 +84,34 @@ class SLAPIPOController extends Controller
                 'data'    => [],
             ], 422);
         }
-    
-        /**
-         * SOURCE UTAMA TETAP DARI ViewStagingPO
-         */
+
         $srcQuery = ViewStagingPO::query()
             ->select([
                 'cpny_id',
                 'order_no',
                 DB::raw('MIN(order_date) as order_date'),
-                DB::raw('MIN(department_id) as department_id'),
-                DB::raw('MIN(budget_cpny_id) as budget_cpny_id'),
-                DB::raw('MIN(budget_business_unit_id) as budget_business_unit_id'),
+                DB::raw('MIN(supplier_cd) as supplier_cd'),
+                DB::raw('MIN(created_at) as created_at'),
             ])
             ->whereBetween('order_date', [$fromDt, $toDt]);
-    
+
         if ($company !== '') {
             $srcQuery->where('cpny_id', $company);
         }
-    
+
         $srcRows = $srcQuery
             ->groupBy('cpny_id', 'order_no')
             ->orderByDesc(DB::raw('MIN(order_date)'))
             ->orderByDesc('order_no')
             ->get();
-    
+
         if ($srcRows->isEmpty()) {
             return response()->json([
                 'ok' => true,
                 'data' => [],
                 'summary' => [
+                    'H' => 0,
+                    'D' => 0,
                     'P' => 0,
                     'C' => 0,
                     'total' => 0,
@@ -129,136 +126,114 @@ class SLAPIPOController extends Controller
                 ],
             ]);
         }
-    
+
         $keys = $srcRows
             ->map(fn ($r) => (string) $r->cpny_id . '||' . (string) $r->order_no)
             ->values()
             ->all();
-    
-        /**
-         * JOIN ke staging_ifca_po_approve
-         * filter integration_type = SOLOMON
-         * dan hanya status P/C
-         */
+
         $stagingAgg = StagingIfcaPoApprove::query()
             ->select([
                 'cpny_id',
                 'order_no',
-                DB::raw("MAX(entity_cd) as entity_cd"),
-                DB::raw("MAX(status) as stage_status"),
-                DB::raw("MAX(process_note) as process_note"),
-                DB::raw("MAX(updated_at) as last_update"),
-                DB::raw("COUNT(*) as cnt"),
+                DB::raw('COUNT(*) as cnt'),
                 DB::raw("SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) as cnt_c"),
                 DB::raw("SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) as cnt_p"),
+                DB::raw("SUM(CASE WHEN status = 'D' THEN 1 ELSE 0 END) as cnt_d"),
+                DB::raw("MAX(updated_at) as last_update"),
             ])
             ->where('integration_type', 'SOLOMON')
-            ->whereIn('status', ['P', 'C'])
             ->whereIn(DB::raw("(cpny_id || '||' || order_no)"), $keys)
             ->groupBy('cpny_id', 'order_no')
             ->get()
             ->keyBy(fn ($r) => (string) $r->cpny_id . '||' . (string) $r->order_no);
-    
-        /**
-         * mapping integration_type dari ms_business_unit
-         */
-        $businessUnitKeys = $srcRows
-            ->map(function ($r) {
-                return (string) ($r->budget_cpny_id ?? '') . '||' . (string) ($r->budget_business_unit_id ?? '');
-            })
-            ->filter(fn ($k) => $k !== '||')
-            ->unique()
-            ->values()
-            ->all();
-    
-        $businessUnitMap = collect();
-    
-        if (!empty($businessUnitKeys)) {
-            $businessUnitMap = BusinessUnit::query()
-                ->select([
-                    'cpny_id',
-                    'business_unit_id',
-                    'integration_type',
-                ])
-                ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
-                ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $businessUnitKeys)
-                ->get()
-                ->keyBy(fn ($r) => (string) $r->cpny_id . '||' . (string) $r->business_unit_id);
-        }
-    
-        /**
-         * FINAL ROWS
-         * flow tetap: dari ViewStagingPO
-         * tapi hanya tampilkan row yang punya staging SOLOMON status P/C
-         */
-        $rows = $srcRows->map(function ($r) use ($stagingAgg, $businessUnitMap) {
+
+        $solomonHdr = ViewStagingSLPo::query()
+            ->select([
+                DB::raw('cpnyid as cpny_id'),
+                DB::raw('csid as order_no'),
+                DB::raw('MIN(crtd_datetime) as created_at'),
+            ])
+            ->whereIn(DB::raw("(cpnyid || '||' || csid)"), $keys)
+            ->groupBy('cpnyid', 'csid')
+            ->get()
+            ->keyBy(fn ($r) => (string) $r->cpny_id . '||' . (string) $r->order_no);
+
+        $rows = $srcRows->map(function ($r) use ($stagingAgg, $solomonHdr) {
             $cpny = (string) $r->cpny_id;
             $ord  = (string) $r->order_no;
             $key  = $cpny . '||' . $ord;
-    
+
+            if (!$solomonHdr->has($key)) {
+                return null;
+            }
+
             $st = $stagingAgg->get($key);
-    
-            // TIDAK ADA staging SOLOMON P/C => jangan tampil
-            if (!$st) {
-                return null;
-            }
-    
-            $cnt  = (int) ($st->cnt ?? 0);
-            $cntC = (int) ($st->cnt_c ?? 0);
-            $cntP = (int) ($st->cnt_p ?? 0);
-    
-            $stage = '';
-    
-            if ($cnt > 0 && $cntC === $cnt) {
-                $stage = 'C';
-            } elseif ($cnt > 0 && $cntP === $cnt) {
-                $stage = 'P';
-            } else {
-                // selain full P / full C, skip
-                return null;
-            }
-    
-            $buKey = (string) ($r->budget_cpny_id ?? '') . '||' . (string) ($r->budget_business_unit_id ?? '');
-            $bu = $businessUnitMap->get($buKey);
-    
-            return [
-                'key'              => $key,
-                'integration_type' => strtoupper((string) ($bu->integration_type ?? '')),
-                'cpny_id'          => $cpny,
-                'entity_cd'        => (string) ($st->entity_cd ?? ''),
-                'order_no'         => $ord,
-                'order_date'       => $r->order_date ? Carbon::parse($r->order_date)->format('Y-m-d') : '',
-                'department_id'    => (string) ($r->department_id ?? ''),
-                'stage_status'     => $stage,
-                'payload_response' => (string) ($st->process_note ?? ''),
-                'last_update'      => $st->last_update
+
+            $stage = 'H';
+            $last  = null;
+
+            if ($st) {
+                $cnt  = (int) $st->cnt;
+                $cntC = (int) $st->cnt_c;
+                $cntP = (int) $st->cnt_p;
+                $cntD = (int) $st->cnt_d;
+
+                if ($cnt > 0 && $cntC === $cnt) {
+                    $stage = 'C';
+                } elseif ($cnt > 0 && $cntP === $cnt) {
+                    $stage = 'P';
+                } elseif ($cnt > 0 && $cntD > 0) {
+                    $stage = 'D';
+                } else {
+                    $stage = 'D';
+                }
+
+                $last = $st->last_update
                     ? Carbon::parse($st->last_update)->format('Y-m-d H:i:s')
-                    : '',
+                    : null;
+            }
+
+            $createdAt = $solomonHdr[$key]->created_at
+                ?? $r->created_at
+                ?? null;
+
+            return [
+                'key'          => $key,
+                'cpny_id'      => $cpny,
+                'order_no'     => $ord,
+                'order_date'   => $r->order_date ? Carbon::parse($r->order_date)->format('Y-m-d H:i:s') : '',
+                'supplier_cd'  => (string) ($r->supplier_cd ?? ''),
+                'created_at'   => $createdAt ? Carbon::parse($createdAt)->format('Y-m-d H:i:s') : '',
+                'stage_status' => $stage,
+                'last_update'  => $last,
             ];
         })
         ->filter()
         ->values();
-    
+
         if ($status !== '') {
             $rows = $rows->where('stage_status', $status)->values();
         }
-    
+
         $summary = [
+            'H' => $rows->where('stage_status', 'H')->count(),
+            'D' => $rows->where('stage_status', 'D')->count(),
             'P' => $rows->where('stage_status', 'P')->count(),
             'C' => $rows->where('stage_status', 'C')->count(),
             'total' => $rows->count(),
         ];
-    
+
         $items = $rows->forPage($page, $perPage)->values();
-    
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+
+        $paginator = new LengthAwarePaginator(
             $items,
             $rows->count(),
             $perPage,
             $page,
             ['path' => $request->url(), 'query' => $request->query()]
         );
-    
+
         return response()->json([
             'ok' => true,
             'data' => $items->values(),

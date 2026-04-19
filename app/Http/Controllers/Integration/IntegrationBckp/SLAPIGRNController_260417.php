@@ -6,10 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
-use App\Models\BusinessUnit;
-use App\Models\ViewStagingGRN;
 use App\Models\ViewStagingSLGrn;
 use App\Models\ViewStagingSLGrnDt;
 use App\Models\SLGRNHdr;
@@ -19,260 +16,177 @@ use App\Models\StagingIfcaPoGrn;
 class SLAPIGRNController extends Controller
 {
     /**
-     * FILTER MASTER
-     * route('integration.ifcaintegration.grnsolomon.filters')
-     */
-    public function filters()
-    {
-        $companies = BusinessUnit::query()
-            ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
-            ->whereNotNull('cpny_id')
-            ->where('cpny_id', '<>', '')
-            ->distinct()
-            ->orderBy('cpny_id')
-            ->pluck('cpny_id')
-            ->values();
-    
-        return response()->json([
-            'ok' => true,
-            'data' => [
-                'companies' => $companies,
-                'statuses'  => ['P', 'C'],
-                'per_pages' => [25, 50, 100],
-            ],
-        ]);
-    }
-
-    /**
      * LIST (AJAX JSON) - GRN Solomon
+     * route('integration.ifcaintegration.grnsolomon.list')
      */
     public function list(Request $request)
     {
-        $from = $request->query('from');
-        $to   = $request->query('to');
-    
-        $company = trim((string) $request->query('company', ''));
-        $status  = strtoupper(trim((string) $request->query('status', '')));
-        $perPage = (int) $request->query('per_page', 25);
-        $page    = max((int) $request->query('page', 1), 1);
-    
+        $fromStr = trim((string) $request->query('from', $request->query('start_date', '')));
+        $toStr   = trim((string) $request->query('to', $request->query('end_date', '')));
+
+        if ($fromStr === '' || $toStr === '') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Start Date dan End Date wajib diisi.',
+                'data' => [],
+            ], 422);
+        }
+
+        $parseDate = function (string $s): ?Carbon {
+            $s = trim($s);
+            if ($s === '') {
+                return null;
+            }
+
+            try {
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) {
+                    return Carbon::createFromFormat('Y-m-d', $s);
+                }
+
+                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $s)) {
+                    return Carbon::createFromFormat('d/m/Y', $s);
+                }
+
+                return Carbon::parse($s);
+            } catch (\Throwable $e) {
+                return null;
+            }
+        };
+
+        $from = $parseDate($fromStr);
+        $to   = $parseDate($toStr);
+
         if (!$from || !$to) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Start date dan end date wajib diisi',
+                'message' => 'Format tanggal tidak valid. Gunakan dd/mm/yyyy atau yyyy-mm-dd.',
                 'data' => [],
             ], 422);
         }
-    
-        try {
-            $fromDt = Carbon::parse($from)->startOfDay();
-            $toDt   = Carbon::parse($to)->endOfDay();
-        } catch (\Throwable $e) {
+
+        if ($to->lt($from)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Format tanggal tidak valid',
+                'message' => 'End Date harus >= Start Date.',
                 'data' => [],
             ], 422);
         }
-    
-        if ($toDt->lt($fromDt)) {
+
+        if ($from->diffInDays($to) > 31) {
             return response()->json([
                 'ok' => false,
-                'message' => 'End date harus lebih besar atau sama dengan start date',
+                'message' => 'Range tanggal maksimal 31 hari.',
                 'data' => [],
             ], 422);
         }
-    
-        if (!in_array($perPage, [25, 50, 100], true)) {
-            $perPage = 25;
-        }
-    
-        if ($status !== '' && !in_array($status, ['P', 'C'], true)) {
-            $status = '';
-        }
-    
-        // Source utama: ViewStagingGRN
-        $srcQuery = ViewStagingGRN::query()
-            ->select([
-                'cpny_id',
-                'grn_no',
-                DB::raw('MIN(grn_date) as grn_date'),
-                DB::raw('MIN(order_no) as order_no'),
-                DB::raw('MIN(department_id) as department_id'),
-                DB::raw('MIN(business_unit_id) as business_unit_id'),
-                DB::raw('MIN(created_at) as created_at'),
-            ])
-            ->whereBetween('grn_date', [$fromDt, $toDt]);
-    
-        if ($company !== '') {
-            $srcQuery->where('cpny_id', $company);
-        }
-    
-        $srcRows = $srcQuery
-            ->groupBy('cpny_id', 'grn_no')
-            ->orderByDesc(DB::raw('MIN(grn_date)'))
-            ->orderByDesc('grn_no')
+
+        $srcRows = ViewStagingSLGrn::query()
+            ->whereBetween('receiptdate', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->orderByDesc('receiptdate')
+            ->orderByDesc('crtd_datetime')
+            ->limit(100)
             ->get();
-    
+
         if ($srcRows->isEmpty()) {
             return response()->json([
                 'ok' => true,
                 'data' => [],
-                'summary' => [
-                    'P' => 0,
-                    'C' => 0,
-                    'ready' => 0,
-                ],
-                'meta' => [
-                    'current_page' => 1,
-                    'last_page'    => 1,
-                    'per_page'     => $perPage,
-                    'total'        => 0,
-                    'from'         => 0,
-                    'to'           => 0,
-                ],
             ]);
         }
-    
-        $grnKeys = $srcRows
-            ->map(function ($r) {
-                return (string) $r->cpny_id . '||' . (string) $r->grn_no;
-            })
-            ->values()
-            ->all();
-    
-        $businessUnitKeys = $srcRows
-            ->map(function ($r) {
-                return (string) ($r->cpny_id ?? '') . '||' . (string) ($r->business_unit_id ?? '');
-            })
-            ->filter(function ($x) {
-                return $x !== '||';
-            })
-            ->unique()
-            ->values()
-            ->all();
-    
-        // Mapping BusinessUnit => integration_type
-        $businessUnitMap = collect();
-        if (!empty($businessUnitKeys)) {
-            $businessUnitMap = BusinessUnit::query()
-                ->select([
-                    'cpny_id',
-                    'business_unit_id',
-                    'integration_type',
-                ])
-                ->whereIn('integration_type', ['SOLOMON', 'IFCA'])
-                ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $businessUnitKeys)
-                ->get()
-                ->keyBy(function ($r) {
-                    return (string) $r->cpny_id . '||' . (string) $r->business_unit_id;
-                });
-        }
-    
-        // Ambil dari staging hanya status P/C + entity_cd
-        $stagingAgg = collect();
-        if (!empty($grnKeys)) {
-            $stagingAgg = StagingIfcaPoGrn::query()
-                ->select([
-                    'cpny_id',
-                    'grn_no',
-                    DB::raw('COUNT(*) as cnt'),
-                    DB::raw("SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) as cnt_c"),
-                    DB::raw("SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) as cnt_p"),
-                    DB::raw("MAX(updated_at) as last_update"),
-                    DB::raw("MAX(entity_cd) as entity_cd"),
-                ])
-                ->whereIn(DB::raw("(cpny_id || '||' || grn_no)"), $grnKeys)
-                ->whereIn('status', ['P', 'C'])
-                ->groupBy('cpny_id', 'grn_no')
-                ->get()
-                ->keyBy(function ($r) {
-                    return (string) $r->cpny_id . '||' . (string) $r->grn_no;
-                });
-        }
-    
-        $rows = $srcRows->map(function ($r) use ($stagingAgg, $businessUnitMap) {
-            $cpny = (string) $r->cpny_id;
-            $grn  = (string) $r->grn_no;
-            $key  = $cpny . '||' . $grn;
-    
-            $st = $stagingAgg->get($key);
-    
-            // hanya tampilkan jika ada staging status P / C
-            if (!$st) {
-                return null;
-            }
-    
-            $cnt  = (int) ($st->cnt ?? 0);
-            $cntC = (int) ($st->cnt_c ?? 0);
-            $cntP = (int) ($st->cnt_p ?? 0);
-    
-            $stage = null;
-            if ($cnt > 0 && $cntC === $cnt) {
-                $stage = 'C';
-            } elseif ($cnt > 0 && $cntP > 0) {
-                $stage = 'P';
-            }
-    
-            if (!$stage) {
-                return null;
-            }
-    
-            $buKey = (string) ($r->cpny_id ?? '') . '||' . (string) ($r->business_unit_id ?? '');
-            $bu = $businessUnitMap->get($buKey);
-    
-            $integrationType = strtoupper((string) ($bu->integration_type ?? ''));
-    
+
+        $pairs = $srcRows->map(function ($r) {
             return [
-                'key'              => $key,
-                'integration_type' => $integrationType !== '' ? $integrationType : '-',
-                'cpny_id'          => $cpny,
-                'entity_cd'        => (string) ($st->entity_cd ?? ''),
-                'grn_no'           => $grn,
-                'grn_date'         => $r->grn_date ? Carbon::parse($r->grn_date)->format('Y-m-d') : '',
-                'po_no'            => (string) ($r->order_no ?? ''),
-                'department_id'    => (string) ($r->department_id ?? ''),
-                'created_at'       => $r->created_at ? Carbon::parse($r->created_at)->format('Y-m-d H:i:s') : '',
-                'stage_status'     => $stage,
-                'stage_label'      => $stage,
-                'last_update'      => $st->last_update ? Carbon::parse($st->last_update)->format('Y-m-d H:i:s') : '',
+                'cpny_id' => (string) $r->cpny_id,
+                'grn_no'  => (string) $r->receiptnbr,
             ];
-        })->filter()->values();
-    
-        if ($status !== '') {
-            $rows = $rows->filter(function ($r) use ($status) {
-                return strtoupper((string) ($r['stage_status'] ?? '')) === $status;
-            })->values();
+        })->unique(function ($x) {
+            return $x['cpny_id'] . '||' . $x['grn_no'];
+        })->values();
+
+        $stgRows = StagingIfcaPoGrn::query()
+            ->whereIn('status', ['P', 'D', 'C'])
+            ->where(function ($q) use ($pairs) {
+                foreach ($pairs as $p) {
+                    $q->orWhere(function ($qq) use ($p) {
+                        $qq->where('cpny_id', $p['cpny_id'])
+                           ->where('grn_no', $p['grn_no']);
+                    });
+                }
+            })
+            ->get();
+
+        $agg = [];
+        foreach ($stgRows as $s) {
+            $grnNo = (string) ($s->grn_no ?? '');
+            $key = (string) $s->cpny_id . '||' . $grnNo;
+
+            if (!isset($agg[$key])) {
+                $agg[$key] = [
+                    'cnt' => 0,
+                    'cnt_c' => 0,
+                    'cnt_p' => 0,
+                    'cnt_d' => 0,
+                    'last_update' => null,
+                ];
+            }
+
+            $agg[$key]['cnt']++;
+
+            $st = strtoupper((string) $s->status);
+            if ($st === 'C') {
+                $agg[$key]['cnt_c']++;
+            } elseif ($st === 'D') {
+                $agg[$key]['cnt_d']++;
+            } elseif ($st === 'P') {
+                $agg[$key]['cnt_p']++;
+            }
+
+            $upd = $s->updated_at ?? null;
+            if ($upd && (!$agg[$key]['last_update'] || Carbon::parse($upd)->gt(Carbon::parse($agg[$key]['last_update'])))) {
+                $agg[$key]['last_update'] = $upd;
+            }
         }
-    
-        $summary = [
-            'P' => $rows->where('stage_status', 'P')->count(),
-            'C' => $rows->where('stage_status', 'C')->count(),
-        ];
-    
-        $summary['ready'] = $summary['P'];
-    
-        $total = $rows->count();
-        $lastPage = max((int) ceil($total / $perPage), 1);
-        $page = min($page, $lastPage);
-    
-        $items = $rows->slice(($page - 1) * $perPage, $perPage)->values();
-    
-        $fromRow = $total > 0 ? (($page - 1) * $perPage) + 1 : 0;
-        $toRow   = min($page * $perPage, $total);
-    
+
+        $data = $srcRows->map(function ($r) use ($agg) {
+            $key = (string) $r->cpny_id . '||' . (string) $r->receiptnbr;
+            $a = $agg[$key] ?? null;
+
+            $stage = 'P';
+            if ($a) {
+                if ((int) $a['cnt'] > 0 && (int) $a['cnt_c'] === (int) $a['cnt']) {
+                    $stage = 'C';
+                } elseif ((int) $a['cnt_d'] > 0) {
+                    $stage = 'D';
+                } else {
+                    $stage = 'P';
+                }
+            }
+
+            return [
+                'key'          => $key,
+                'cpny_id'      => (string) $r->cpny_id,
+                'grn_no'       => (string) $r->receiptnbr,
+                'grn_date'     => $r->receiptdate ? Carbon::parse($r->receiptdate)->format('Y-m-d H:i:s') : '',
+                'po_no'        => (string) ($r->ponbr ?? ''),
+                'supplier_cd'  => (string) ($r->vendname ?: ($r->vendid ?? '')),
+                'created_at'   => $r->crtd_datetime ? Carbon::parse($r->crtd_datetime)->format('Y-m-d H:i:s') : '',
+                'stage_status' => $stage,
+                'last_update'  => !empty($a['last_update'])
+                    ? Carbon::parse($a['last_update'])->format('Y-m-d H:i:s')
+                    : null,
+
+                // optional alias supaya aman bila blade lama masih baca nama lama
+                'receipt_no'    => (string) $r->receiptnbr,
+                'receipt_date'  => $r->receiptdate ? Carbon::parse($r->receiptdate)->format('Y-m-d H:i:s') : '',
+                'vendor_id'     => (string) ($r->vendid ?? ''),
+                'vendor_name'   => (string) ($r->vendname ?? ''),
+                'crtd_datetime' => $r->crtd_datetime ? Carbon::parse($r->crtd_datetime)->format('Y-m-d H:i:s') : '',
+            ];
+        })->values();
+
         return response()->json([
             'ok' => true,
-            'data' => $items,
-            'summary' => $summary,
-            'meta' => [
-                'current_page' => $page,
-                'last_page'    => $lastPage,
-                'per_page'     => $perPage,
-                'total'        => $total,
-                'from'         => $fromRow,
-                'to'           => $toRow,
-            ],
+            'data' => $data,
         ]);
     }
 
@@ -326,6 +240,7 @@ class SLAPIGRNController extends Controller
 
             try {
                 $stillP = StagingIfcaPoGrn::query()
+                    // ->where('integration_type', 'SOLOMON')
                     ->where('cpny_id', $cpnyId)
                     ->where('grn_no', $receiptNo)
                     ->where('status', 'P')
@@ -405,6 +320,7 @@ class SLAPIGRNController extends Controller
                     }
 
                     foreach ($dts as $dt) {
+                        // $dtCpny = $dt->cpnyid ?? $dt->cpny_id ?? null;
                         $dtPayload = [
                             'AcumCrtdBy'    => $dt->acumcrtdby,
                             'AcumCrtdOn'    => $dt->acumcrtdon,
@@ -461,6 +377,7 @@ class SLAPIGRNController extends Controller
                 });
 
                 StagingIfcaPoGrn::query()
+                    // ->where('integration_type', 'SOLOMON')
                     ->where('cpny_id', $cpnyId)
                     ->where('grn_no', $receiptNo)
                     ->where('status', 'P')
