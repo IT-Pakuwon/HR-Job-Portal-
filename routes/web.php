@@ -1689,18 +1689,21 @@ Route::middleware(['auth'])->group(function () {
         // ✅ module: ISSUE API endpoints (Solomon)
         Route::prefix('ifcaintegration/issuesolomon')->name('ifcaintegration.issuesolomon.')->group(function () {
             Route::get('list', [SLAPIIssueController::class, 'list'])->name('list');
+            Route::get('filters', [SLAPIIssueController::class, 'filters'])->name('filters');
             Route::post('process', [SLAPIIssueController::class, 'process'])->name('process');
         });
 
         // ✅ module: GRN Solomon
         Route::prefix('ifcaintegration/grnsolomon')->name('ifcaintegration.grnsolomon.')->group(function () {
             Route::get('list', [SLAPIGRNController::class, 'list'])->name('list');
+            Route::get('/filters', [SLAPIGRNController::class, 'filters'])->name('filters');
             Route::post('process', [SLAPIGRNController::class, 'process'])->name('process');
         });
 
         // ✅ module: PO Solomon
         Route::prefix('ifcaintegration/posolomon')->name('ifcaintegration.posolomon.')->group(function () {
             Route::get('list', [SLAPIPOController::class, 'list'])->name('list');
+            Route::get('/filters', [SLAPIPOController::class, 'filters'])->name('filters');
             Route::post('process', [SLAPIPOController::class, 'process'])->name('process');
         });
     });
