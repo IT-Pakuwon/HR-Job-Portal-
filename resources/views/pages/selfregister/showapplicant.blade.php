@@ -375,39 +375,95 @@
                                                 </div>
                                             </div>
 
-                                            <hr class="mx-6 dark:border-gray-500">
-
+                                            <header
+                                                class="flex items-center px-6 py-2">
+                                                    <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
+                                                        Detail
+                                                        Information</h2>
+                                            </header>
                                             <div class="p-4">
-                                                <div x-show="isOpen" x-transition.opacity>
-                                                    <div class="overflow-x-auto">
-                                                        <label class="text-sm font-semibold">Reference
-                                                            Information</label>
-                                                        <table
-                                                            class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
-                                                            <thead
-                                                                class="bg-gray-100 text-center text-gray-700 dark:bg-gray-800 dark:text-gray-700">
-                                                                <tr>
-                                                                    <th class="border px-4 py-2">Name</th>
-                                                                    <th class="border px-4 py-2">Division</th>
-                                                                    <th class="border px-4 py-2">Contact</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody class="text-gray-700 dark:text-gray-300">
-                                                                <tr
-                                                                    class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                                    <td class="border px-4 py-2">
-                                                                        {{ $applicant->reference_name }}</td>
-                                                                    <td class="border px-4 py-2">
-                                                                        {{ $applicant->reference_division }}</td>
-                                                                    <td class="border px-4 py-2">
-                                                                        {{ $applicant->reference_contact_number }}</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
+                                                <div class="overflow-x-auto">
+                                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
+                                                        <div class="grid grid-cols-2 gap-4">
+
+                                                            <div
+                                                                class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                <i
+                                                                    class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                <div>
+                                                                    <span class="text-sm text-gray-500 dark:text-gray-400">Last
+                                                                        Salary</span>
+                                                                    <p
+                                                                        class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                        {{-- Rp. {{ $applicant->existing_last_thp }} --}}
+                                                                        Rp.
+                                                                        {{ isset($applicant->existing_last_thp) ? number_format((int) $applicant->existing_last_thp, 0, ',', '.') : '-' }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                                <i
+                                                                    class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                <div>
+                                                                    <span class="text-sm text-gray-500 dark:text-gray-400">Expected
+                                                                        Salary</span>
+                                                                    <p
+                                                                        class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                        {{-- Rp. {{ $applicant->expected_thp }} --}}
+                                                                        Rp.
+                                                                        {{ isset($applicant->expected_thp) ? number_format((int) $applicant->expected_thp, 0, ',', '.') : '-' }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="grid grid-cols-1 gap-4">
+                                                            <div
+                                                                class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                                <i
+                                                                    class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                <div>
+                                                                    <span
+                                                                        class="text-sm text-gray-500 dark:text-gray-400">Expectations</span>
+                                                                    <p
+                                                                        class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                        {{-- {{ $applicant->expectations }} --}}
+                                                                        Rp.
+                                                                        {{ isset($applicant->expectations) ? number_format((int) $applicant->expectations, 0, ',', '.') : '-' }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="flex gap-4 w-full justify-between">
+                                                                <div
+                                                                    class="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                                    <i
+                                                                        class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                    <div>
+                                                                        <span class="text-sm text-gray-500 dark:text-gray-400">Career
+                                                                            Achievement</span>
+                                                                        <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            {{ $applicant->applicant_achievement ?? '-' }}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div
+                                                                    class="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                                    <i
+                                                                        class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                                    <div>
+                                                                        <span class="text-sm text-gray-500 dark:text-gray-400">Job Information
+                                                                        </span>
+                                                                        <p
+                                                                            class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                            {{ $applicant->source_information }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-
                                         </div>
                                     </div>
                                 </div>
@@ -520,35 +576,62 @@
                                                 x-transition:leave="transition ease-in duration-200"
                                                 x-transition:leave-start="opacity-100 translate-y-0"
                                                 x-transition:leave-end="opacity-0 translate-y-2">
-                                                <table
-                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
-                                                    <thead
-                                                        class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                                <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
                                                         <tr>
-                                                            <th class="border px-4 py-2">Name</th>
+                                                            <th class="border px-4 py-2">Company</th>
                                                             <th class="border px-4 py-2">Job Title</th>
                                                             <th class="border px-4 py-2">Start</th>
                                                             <th class="border px-4 py-2">End</th>
+                                                            <th class="border px-4 py-2">Still Working</th> <!-- ✅ ADD -->
                                                             <th class="border px-4 py-2">Superior Name</th>
                                                             <th class="border px-4 py-2">Reason For Leaving</th>
                                                         </tr>
                                                     </thead>
+
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_working as $working)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->company_name }}</td>
-                                                                <td class="border px-4 py-2">{{ $working->job_title }}
+                                                                    {{ $working->company_name }}
                                                                 </td>
+
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->start_date }}</td>
-                                                                <td class="border px-4 py-2">{{ $working->end_date }}
+                                                                    {{ $working->job_title }}
                                                                 </td>
+
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->superior_name }}</td>
+                                                                    {{ $working->start_date }}
+                                                                </td>
+
+                                                                <!-- ✅ END DATE -->
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->reason_for_leaving }}</td>
+                                                                    {{ $working->end_date ?? '-' }}
+                                                                </td>
+
+                                                                <!-- ✅ STILL WORKING -->
+                                                                <td class="border px-4 py-2 text-center">
+                                                                    @if ($working->is_current)
+                                                                        <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                                                                            Yes
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+                                                                            No
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
+
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->superior_name ?? '-' }}
+                                                                </td>
+
+                                                                <!-- ✅ REASON -->
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->reason_for_leaving ?? '-' }}
+                                                                </td>
+
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
@@ -965,37 +1048,90 @@
 
                                             <hr class="my-4 dark:border-gray-500">
 
-                                            <div class="overflow-x-auto">
-                                                <label class="text-sm font-semibold">Attachment</label>
-                                                <table
-                                                    class="my-4 min-w-full border border-gray-300 text-sm dark:border-gray-700">
-                                                    <thead
-                                                        class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
-                                                        <tr>
-                                                            <th class="border px-4 py-2">Name</th>
-                                                            <th class="border px-4 py-2">File</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody class="text-gray-700 dark:text-gray-300">
-                                                        <tr
-                                                            class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
-                                                            <td class="border px-4 py-2">CV</td>
-                                                            <td class="border px-4 py-2">
-                                                                📁
-                                                                @if ($cv)
-                                                                    <a href="{{ $cv }}" target="_blank"
-                                                                        class="text-blue-600 hover:underline">
-                                                                        Download CV
-                                                                    </a>
-                                                                @else
-                                                                    <span class="italic text-gray-400">No CV</span>
-                                                                @endif
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                            <div class="p-4">
+                                                <div class="overflow-x-auto">
 
+                                                    <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                                        Attachment
+                                                    </label>
+
+                                                    <table class="mt-4 min-w-full text-sm border-separate border-spacing-y-2">
+
+                                                        <thead class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                                            <tr>
+                                                                <th class="px-4 py-2 text-left">Document</th>
+                                                                <th class="px-4 py-2 text-left">File</th>
+                                                            </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            <tr class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
+
+                                                                <td class="px-4 py-3 font-medium">
+                                                                    CV
+                                                                </td>
+
+                                                                <td class="px-4 py-3">
+                                                                    @if ($cv)
+                                                                        <a href="{{ $cv }}" target="_blank"
+                                                                            class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+
+                                                                            📄 Download CV
+                                                                        </a>
+                                                                    @else
+                                                                        <span class="text-gray-400 italic">
+                                                                            No file uploaded
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
+
+                                                            </tr>
+                                                        </tbody>
+
+                                                    </table>
+
+                                                </div>
+                                            </div>
+                                            <div class="p-4">
+                                                <div class="overflow-x-auto">
+                                                    <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                                        Reference Information
+                                                    </label>
+
+                                                    <table class="mt-4 min-w-full text-sm border-separate border-spacing-y-2">
+
+                                                        <thead class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                                            <tr>
+                                                                <th class="px-4 py-2 text-left">Name</th>
+                                                                <th class="px-4 py-2 text-left">Division</th>
+                                                                <th class="px-4 py-2 text-left">Contact</th>
+                                                            </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            <tr class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
+
+                                                                <td class="px-4 py-3 font-medium">
+                                                                    {{ $applicant->reference_name ?? '-' }}
+                                                                </td>
+
+                                                                <td class="px-4 py-3 text-gray-500">
+                                                                    {{ $applicant->reference_division ?? '-' }}
+                                                                </td>
+
+                                                                <td class="px-4 py-3">
+                                                                    <span class="text-indigo-600 font-medium">
+                                                                        {{ $applicant->reference_contact_number ?? '-' }}
+                                                                    </span>
+                                                                </td>
+
+                                                            </tr>
+                                                        </tbody>
+
+                                                    </table>
+
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 

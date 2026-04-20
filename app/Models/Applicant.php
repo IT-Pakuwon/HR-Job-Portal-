@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Applicant extends Model
 {
     protected $connection = 'mysql3';
-    protected $table = "hr_ms_applicant";
-   
-    protected $fillable = [     
+    protected $table = 'hr_ms_applicant';
+
+    protected $fillable = [
         'applicant_id',
-        'full_name',       
+        'full_name',
         'nick_name',
         'birth_place',
         'date_of_birth',
@@ -24,6 +23,7 @@ class Applicant extends Model
         'ktp_id',
         'citizenship',
         'id_address',
+        'idem_address',
         'domicile_address',
         'domicile_city',
         'phone_number',
@@ -35,6 +35,7 @@ class Applicant extends Model
         'sosmed_instagram_account',
         'sosmed_x_account',
         'sosmed_linkedin_account',
+        'source_information',
         'urgent_contact_name',
         'urgent_phone',
         'urgent_contact_relation',
@@ -55,10 +56,13 @@ class Applicant extends Model
         'upload_coverletter',
         'upload_photo',
         'status',
-        'created_user',     
-        'updated_user',     
-        'completed_user'      
-        
+        'created_user',
+        'updated_user',
+        'completed_user',
     ];
-    
+
+    public function driverLicenses()
+    {
+        return $this->hasMany(ApplicantDriverLicense::class, 'applicant_id', 'applicant_id');
+    }
 }

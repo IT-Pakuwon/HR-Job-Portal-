@@ -373,56 +373,91 @@
                             {{-- Work Experienced --}}
                             <div x-data="{ isOpen: true }" class="pb-4">
                                 <div class="overflow-hidden rounded-xl bg-white shadow-sm dark:bg-gray-800">
+
                                     <!-- Header -->
                                     <header
                                         class="flex items-center justify-between border-b border-gray-300/10 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                                        <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Work
-                                            Experience</h2>
+                                        <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
+                                            Work Experience
+                                        </h2>
+
                                         <button @click="isOpen = !isOpen"
                                             class="flex items-center text-gray-500 focus:outline-none dark:text-gray-200">
                                             <span x-text="isOpen ? 'Closed' : 'See Details'"></span>
                                         </button>
                                     </header>
-                                    <!-- Tabel -->
+
+                                    <!-- Table -->
                                     <div class="p-4">
                                         <div x-show="isOpen" x-transition.opacity>
                                             <div class="overflow-x-auto">
-                                                <table
-                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
-                                                    <thead
-                                                        class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+
+                                                <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                         <tr>
-                                                            <th class="border px-4 py-2">Name</th>
+                                                            <th class="border px-4 py-2">Company</th>
                                                             <th class="border px-4 py-2">Job Title</th>
                                                             <th class="border px-4 py-2">Start</th>
                                                             <th class="border px-4 py-2">End</th>
+                                                            <th class="border px-4 py-2">Still Working</th> <!-- ✅ NEW -->
                                                             <th class="border px-4 py-2">Superior Name</th>
-                                                            <th class="border px-4 py-2">Reason For Leaving </th>
+                                                            <th class="border px-4 py-2">Reason For Leaving</th>
                                                         </tr>
                                                     </thead>
+
                                                     <tbody class="text-gray-700 dark:text-gray-300">
                                                         @foreach ($applicant_working as $working)
-                                                            <tr
-                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->company_name }}</td>
-                                                                <td class="border px-4 py-2">{{ $working->job_title }}
+                                                                    {{ $working->company_name }}
                                                                 </td>
+
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->start_date }}</td>
-                                                                <td class="border px-4 py-2">{{ $working->end_date }}
+                                                                    {{ $working->job_title }}
                                                                 </td>
+
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->superior_name }}</td>
+                                                                    {{ $working->start_date }}
+                                                                </td>
+
+                                                                <!-- ✅ END DATE LOGIC -->
                                                                 <td class="border px-4 py-2">
-                                                                    {{ $working->reason_for_leaving }}</td>
+                                                                    {{ $working->is_current ? 'Present' : ($working->end_date ?? '-') }}
+                                                                </td>
+
+                                                                <!-- ✅ STILL WORKING -->
+                                                                <td class="border px-4 py-2 text-center">
+                                                                    @if ($working->is_current)
+                                                                        <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                                                                            Yes
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+                                                                            No
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
+
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->superior_name ?? '-' }}
+                                                                </td>
+
+                                                                <!-- ✅ REASON -->
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->reason_for_leaving ?? '-' }}
+                                                                </td>
+
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
+
                                                 </table>
+
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                             {{-- Skill --}}
