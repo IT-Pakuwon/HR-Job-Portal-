@@ -668,6 +668,94 @@ class PersonnelController extends Controller
             ->orderBy('grade_id', 'ASC')
             ->get();
 
+        $userDivisionIds = Userdivision::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('division_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        if (!empty($personnel->division_id) && !in_array($personnel->division_id, $userDivisionIds)) {
+            $userDivisionIds[] = $personnel->division_id;
+        }
+
+        $division = Division::query()
+            ->select('division_id', 'division_name')
+            ->where('status', 'A')
+            ->when(!empty($userDivisionIds), function ($q) use ($userDivisionIds) {
+                $q->whereIn('division_id', $userDivisionIds);
+            })
+            ->orderBy('division_name')
+            ->get();
+
+        $departments = DepartmentHR::query()
+            ->select('department_id', 'department_name', 'division_id')
+            ->where('status', 'A')
+            ->where('division_id', $personnel->division_id)
+            ->orderBy('department_name')
+            ->get();
+
+        $attachment = TrAttachment::where('refnbr', $personnel->docid)
+            ->where('status', 'A')
+            ->orderByDesc('attachment_date')
+            ->get(['id', 'attachment_name', 'filename', 'folder', 'extention', 'created_by', 'attachment_date']);
+
+        $jobres = JobResponsiblities::where('docid', $personnel->docid)->get() ?? collect();
+        $jobqua = JobQualification::where('docid', $personnel->docid)->get() ?? collect();
+
+        $selectedTags = TrJobtag::where('docid', $personnel->docid)
+            ->pluck('job_tags')
+            ->filter()
+            ->values()
+            ->toArray();
+
+        return view('pages.personnels.editpersonnels', [
+            'companies'    => $companies,
+            'usercpny'     => $usercpny,
+            'usercpny2'    => $usercpny2,
+            'userdept'     => $userdept,
+            'userdept2'    => $userdept2,
+            'skillTags'    => $skillTags,
+            'division'     => $division,
+            'departments'  => $departments,
+            'personnel'    => $personnel,
+            'attachment'   => $attachment,
+            'subgradings'  => $subgradings,
+            'jobres'       => collect($jobres),
+            'jobqua'       => collect($jobqua),
+            'selectedTags' => is_array($selectedTags) ? $selectedTags : [],
+            'hash'         => $hash,
+        ]);
+    }
+
+    public function editPersonnel_vvv($hash)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $decoded = Hashids::decode($hash);
+        $id = $decoded[0] ?? null;
+        abort_if(!$id, 404);
+
+        $personnel = Personnel::findOrFail($id);
+
+        $usercpny  = Usercpny::where('username', $user->username)->get();
+        $usercpny2 = Usercpny::where('username', $user->username)->first();
+        $userdept  = Userdept::where('username', $user->username)->get();
+        $userdept2 = Userdept::where('username', $user->username)->first();
+
+        $companies = MsCompany::select('cpny_id')->get();
+        $skillTags = MJobtag::select('id', 'job_tags')->get();
+
+        $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
+            ->where('status', 'A')
+            ->orderBy('grade_id', 'ASC')
+            ->get();
+
         // division user-based
         $userDivisionIds = Userdivision::query()
             ->where('username', $user->username)

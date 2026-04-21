@@ -237,8 +237,10 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="responsibilitiesTable">
-                                                @php $res = $jobres ?? collect(); @endphp
-                                                @if ($res->count() === 0)
+                                                {{-- @php $res = $jobres ?? collect(); @endphp
+                                                @if ($res->count() === 0) --}}
+                                                @php $res = collect($jobres ?? []); @endphp
+                                                @if ($res->isEmpty())
                                                     <tr class="responsibilities-row">
                                                         <td class="border p-3 text-center">1</td>
                                                         <td class="border p-3">
@@ -353,8 +355,10 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="qualificationTable">
-                                                @php $qua = $jobqua ?? collect(); @endphp
-                                                @if ($qua->count() === 0)
+                                                {{-- @php $qua = $jobqua ?? collect(); @endphp
+                                                @if ($qua->count() === 0) --}}
+                                                @php $qua = collect($jobqua ?? []); @endphp
+                                                @if ($qua->isEmpty())
                                                     <tr class="qualification-row">
                                                         <td class="border p-3 text-center">1</td>
                                                         <td class="border p-3">

@@ -661,7 +661,18 @@
         };
 
         function addHeader(colKey, v, preload = {}) {
-            const TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
+            // const TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
+            // const TOPS_OPTIONS_HTML =
+            //     '<option value="" disabled selected>Select TOP</option>' +
+            //     TOPS.map(t => `<option value="${_.escape(String(t.id))}">${_.escape(t.name)}</option>`).join('');
+            const RAW_TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
+
+            const TOPS = Array.from(
+                new Map(
+                    (RAW_TOPS || []).map(t => [String(t.id), t])
+                ).values()
+            );
+
             const TOPS_OPTIONS_HTML =
                 '<option value="" disabled selected>Select TOP</option>' +
                 TOPS.map(t => `<option value="${_.escape(String(t.id))}">${_.escape(t.name)}</option>`).join('');

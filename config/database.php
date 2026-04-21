@@ -175,6 +175,58 @@ return [
             'sslmode' => 'prefer',
         ],
 
+        'pgsql5' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HOST_5', '127.0.0.1'),
+            'port' => env('DB_PGSQL_PORT_5', '5432'),
+            'database' => env('DB_PGSQL_DATABASE_5', 'forge'),
+            'username' => env('DB_PGSQL_USERNAME_5', 'forge'),
+            'password' => env('DB_PGSQL_PASSWORD_5', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
+        'pgsql6' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HOST_6', '127.0.0.1'),
+            'port' => env('DB_PGSQL_PORT_6', '5432'),
+            'database' => env('DB_PGSQL_DATABASE_6', 'forge'),
+            'username' => env('DB_PGSQL_USERNAME_6', 'forge'),
+            'password' => env('DB_PGSQL_PASSWORD_6', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
+        'pgsql7' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HOST_7', '127.0.0.1'),
+            'port' => env('DB_PGSQL_PORT_7', '5432'),
+            'database' => env('DB_PGSQL_DATABASE_7', 'forge'),
+            'username' => env('DB_PGSQL_USERNAME_7', 'forge'),
+            'password' => env('DB_PGSQL_PASSWORD_7', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
+        'pgsql8' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HOST_8', '127.0.0.1'),
+            'port' => env('DB_PGSQL_PORT_8', '5432'),
+            'database' => env('DB_PGSQL_DATABASE_8', 'forge'),
+            'username' => env('DB_PGSQL_USERNAME_8', 'forge'),
+            'password' => env('DB_PGSQL_PASSWORD_8', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
       
         // config/database.php
 

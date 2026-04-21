@@ -119,6 +119,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\RfpController;
+use App\Http\Controllers\MeetingController;
+
 
 // use Illuminate\Support\Facades\Response;
 // use Illuminate\Support\Facades\File;
@@ -1152,6 +1154,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rfp/{id}/tracking', [RfpController::class, 'tracking'])->name('rfp.tracking');
     // Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printRfp'])->name('rfp.print');
     Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printPdfRfp'])->name('rfp.print.pdf');
+
+    Route::get('/meeting', [MeetingController::class, 'index'])->name('meeting');
+    Route::get('/inforoom_{id}', [MeetingController::class, 'getRoom']);
+    Route::get('/infoacc_{id}', [MeetingController::class, 'getAccessories']);
+    Route::post('/savemeeting', [MeetingController::class, 'store'])->name('meeting.store');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
