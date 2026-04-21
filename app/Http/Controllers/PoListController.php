@@ -41,14 +41,17 @@ class PoListController extends Controller
         $user = Auth::user();
         $u = $user->username ?? '';
 
-        $tab = strtolower((string) $req->query('tab', 'my'));      // my | all
-        $status = strtoupper(trim((string) $req->query('status', ''))); // H/P/O/C/X/D atau kosong
-        $company = strtoupper(trim((string) $req->query('company', ''))); // optional
-        $creator = trim((string) $req->query('creator', ''));           // optional
+        // ✅ GET PARAMS (ONLY DEFINE ONCE)
+        $tab = strtolower((string) $req->query('tab', 'my')); // my | all
+        $status = strtoupper(trim((string) $req->query('status', '')));
+        $company = strtoupper(trim((string) $req->query('company', '')));
+        $creator = trim((string) $req->query('creator', ''));
 
-        // company list user
+        // ===== company list user =====
         $cpnyRaw = $user->cpny_id ?? '';
-        $cpnyList = $cpnyRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw)))) : [];
+        $cpnyList = $cpnyRaw !== ''
+            ? array_values(array_filter(array_map('trim', explode(',', $cpnyRaw))))
+            : [];
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
@@ -56,50 +59,33 @@ class PoListController extends Controller
 
         $base = TrPO::query();
 
-        // ===== filter company user (selalu) =====
+        // ===== filter company user =====
         if (!empty($cpnyList)) {
             $base->whereIn('cpny_id', $cpnyList);
         }
 
-        // ===== filter company dropdown (optional) =====
-        if ($company !== '') {
-            // safety: hanya boleh pilih company yang ada di cpnyList
-            if (in_array($company, $cpnyList, true)) {
-                $base->where('cpny_id', $company);
-            }
+        // ===== filter company dropdown =====
+        if ($company !== '' && in_array($company, $cpnyList, true)) {
+            $base->where('cpny_id', $company);
         }
 
-        // ===== tab behavior =====
+        // ===== TAB filter =====
         if ($tab === 'my') {
-            // creator filter: non-fin selalu dirinya sendiri
-            if (!$isFinanceAccess) {
-                $base->where('created_by', $u);
-            } else {
-                // finance boleh filter creator (kalau diisi)
-                if ($creator !== '') {
-                    $base->where('created_by', $creator);
-                }
-            }
+            // ⚠️ IMPORTANT: use username (NOT id)
+            $base->where('created_by', $user->username);
+        }
 
-            // status filter (My PO saja) -> default ALL status
-            if ($status !== '') {
-                $allowed = ['H', 'P', 'O', 'C', 'X', 'D'];
-                if (in_array($status, $allowed, true)) {
-                    $base->where('status', $status);
-                }
+        // ===== STATUS filter =====
+        if ($status !== '') {
+            if ($status === 'P_T') {
+                $base->where('status', 'P')
+                     ->where('send_email', true);
+            } elseif ($status === 'P_F') {
+                $base->where('status', 'P')
+                     ->where('send_email', false);
+            } else {
+                $base->where('status', $status);
             }
-        } else {
-            // all tab: tidak filter creator
-            // (status tidak wajib, tapi kalau mau tetap boleh dipakai)
-            // kalau kamu ingin status filter TIDAK berlaku di All, comment block bawah.
-            /*
-            if ($status !== '') {
-                $allowed = ['H','P','O','C','X','D'];
-                if (in_array($status, $allowed, true)) {
-                    $base->where('status', $status);
-                }
-            }
-            */
         }
 
         return $this->buildJsonTrPO($req, $base);
@@ -118,17 +104,19 @@ class PoListController extends Controller
         // Urutan kolom sesuai permintaan
         $columns = [
             0 => "$poTable.ponbr",
-            1 => "$poTable.podate",
-            2 => "$poTable.cpny_id",
-            3 => "$poTable.potype",
-            4 => "$poTable.vendorname",
-            5 => "$poTable.podeliverydate",
-            6 => "$poTable.keperluan",
-            7 => "$poTable.totalamt",
-            8 => "$poTable.taxamt",
-            9 => "$poTable.grandtotalamt",
-            10 => "$poTable.created_by",
-            11 => "$poTable.status",
+            1 => "$poTable.csid",
+            2 => "$poTable.sppbjktid",
+            3 => "$poTable.podate",
+            4 => "$poTable.cpny_id",
+            5 => "$poTable.potype",
+            6 => "$poTable.vendorname",
+            7 => "$poTable.podeliverydate",
+            8 => "$poTable.keperluan",
+            9 => "$poTable.totalamt",
+            10 => "$poTable.taxamt",
+            11 => "$poTable.grandtotalamt",
+            12 => "$poTable.created_by",
+            13 => "$poTable.status",
         ];
 
         // $orderIdx = (int) $req->input('order.0.column', 1);
@@ -167,7 +155,8 @@ class PoListController extends Controller
         $rows = $base->select(
             "$poTable.id",
             "$poTable.ponbr",
-            "$poTable.csid",          // ✅ NEW
+            "$poTable.csid",
+            "$poTable.sppbjktid",
             "$poTable.podate",
             "$poTable.cpny_id",          // ✅ NEW
             "$poTable.potype",
@@ -178,7 +167,8 @@ class PoListController extends Controller
             "$poTable.taxamt",
             "$poTable.grandtotalamt",
             "$poTable.created_by",
-            "$poTable.status"
+            "$poTable.status",
+            "$poTable.send_email"
         )
         ->orderBy($orderCol, $orderDir)
         ->orderBy("$poTable.ponbr", 'desc')
@@ -201,8 +191,13 @@ class PoListController extends Controller
                     $statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
                     break;
                 case 'P':
-                    $statusText = 'Purchase';
-                    $statusClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300 border-yellow-200';
+                    if ($r->send_email === false) {
+                        $statusText = 'Purchase - Unsend Email';
+                        $statusClass = 'bg-orange-100 text-orange-700 border-orange-200';
+                    } else {
+                        $statusText = 'Purchase';
+                        $statusClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300 border-yellow-200';
+                    }
                     break;
                 case 'O':
                     $statusText = 'Partial';

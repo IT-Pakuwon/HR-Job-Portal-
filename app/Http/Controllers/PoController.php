@@ -586,42 +586,77 @@ class PoController extends Controller
         abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
         $id = $decoded[0];
 
-        // $po = TrPO::where('ponbr', $ponbr)->firstOrFail();
         $po = TrPO::findOrFail($id);
-
 
         $data = $req->validate([
             'reason' => ['required','string']
         ]);
 
-        $po->status     = 'X';
-        $po->updated_by = Auth::user()->username ?? 'system';
-        $po->updated_at = Carbon::now();
+        DB::beginTransaction();
 
-        // simpan reason ke ponote (append)
-        $stamp = Carbon::now()->format('d/m/Y H:i');
-        $who   = Auth::user()->username ?? 'user';
-        $reasonLine = "CANCEL: ".$data['reason'];
-        $po->save();
+        try {
 
-        $fakeReq = new \Illuminate\Http\Request([
-            'docid'  => $po->ponbr,
-            'reason' => $reasonLine,
-        ]);
+            // ✅ Hitung total qty received
+            $totalReceived = TrPOdetail::where('ponbr', $po->ponbr)
+                ->where('budget_cpny_id', $po->cpny_id)
+                ->sum(DB::raw('COALESCE(qty_received,0)'));
 
-        app('App\Http\Controllers\SendCommentController')
+            // ✅ Tentukan status berdasarkan receipt
+            if ($totalReceived > 0) {
+                $po->status = 'C'; // Completed
+                $action = 'Completed';
+                $message = 'Status diubah menjadi Completed (C).';
+            } else {
+                $po->status = 'X'; // Closed (no receipt)
+                $action = 'Cancel';
+                $message = 'Status diubah menjadi Cancel (X).';
+            }
+
+            // ✅ Update info
+            $po->updated_by = Auth::user()->username ?? 'system';
+            $po->updated_at = Carbon::now();
+
+            // ✅ Simpan reason ke note (optional append)
+            $stamp = Carbon::now()->format('d/m/Y H:i');
+            $who   = Auth::user()->username ?? 'user';
+            $reasonLine = "[{$stamp}] {$who} - CANCEL: ".$data['reason'];
+
+            // kalau mau append ke ponote:
+            // $po->ponote = trim(($po->ponote ?? '') . "\n" . $reasonLine);
+
+            $po->save();
+
+            // ✅ Kirim comment
+            $fakeReq = new \Illuminate\Http\Request([
+                'docid'  => $po->ponbr,
+                'reason' => $reasonLine,
+            ]);
+
+            app('App\Http\Controllers\SendCommentController')
                 ->sendmsg($po->ponbr, 'PO', $fakeReq);
 
-        // Used budget via SP (Cancel)
-        DB::connection('pgsql')->statement(
-            'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
-            ['PO', $po->ponbr, $po->cpny_id,'Cancel', Auth::user()->username]
-        );
+            // ✅ Update budget via SP
+            DB::connection('pgsql')->statement(
+                'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
+                ['PO', $po->ponbr, $po->cpny_id, $action, Auth::user()->username]
+            );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Status diubah menjadi CANCEL (X).'
-        ]);
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function uploadAttachments(Request $request, $hash)
@@ -1280,7 +1315,7 @@ class PoController extends Controller
             ->where('budget_cpny_id', $po->cpny_id)
             ->orderBy('cs_no')->get();
 
-        
+
         // =========================
         // COMPANY
         // =========================
@@ -1428,7 +1463,7 @@ class PoController extends Controller
                 ->values()
                 ->all();
         }
-  
+
         // CC dari request (kalau ada)
         $ccFromRequest = $norm($data['cc'] ?? []);
 
@@ -1447,7 +1482,7 @@ class PoController extends Controller
             $ccFromPeminta[] = strtolower(trim($pemintaEmail));
         }
 
-       
+
         // merge + unique
         $cc = array_values(array_unique(array_merge($ccFromTable, $ccFromRequest, $ccFromSender,$ccFromPeminta)));
 
@@ -1495,7 +1530,7 @@ class PoController extends Controller
             } catch (\Throwable $e) {
                 \Log::warning('GCS download failed', ['path' => $objectPath, 'error' => $e->getMessage()]);
             }
-        }       
+        }
 
         $potype = strtoupper((string) ($po->potype ?? ''));
 

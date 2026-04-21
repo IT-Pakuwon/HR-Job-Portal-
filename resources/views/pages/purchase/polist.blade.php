@@ -39,15 +39,19 @@
                         </select>
                     </div>
 
-
-                    {{-- Status (HANYA My PO) --}}
                     <div class="flex items-center gap-2" id="wrapStatus" style="display:none;">
                         <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Status</label>
+
                         <select id="filterStatus"
-                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+                                dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+
                             <option value="">All</option>
                             <option value="H">Unsend</option>
-                            <option value="P">Purchase</option>
+
+                            <option value="P_T">Purchase</option>
+                            <option value="P_F">Purchase - Unsend Email</option>
+
                             <option value="O">Partial</option>
                             <option value="C">Completed</option>
                             <option value="X">Canceled</option>
@@ -71,7 +75,9 @@
                             <th
                                 class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 PO Nbr</th>
+
                             <th class="w-32 px-6 py-2 font-medium">CS Number</th>
+                            <th class="w-32 px-6 py-2 font-medium">SPPBJKT Number</th>
                             <th class="w-32 px-6 py-2 font-medium">PO Date</th>
                             <th class="w-32 px-6 py-2 font-medium">Company</th>
                             <th class="w-32 px-6 py-2 font-medium">PO Type</th>
@@ -131,15 +137,24 @@
                         'bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600'
                     );
 
+                // if (tab === 'my') {
+                //     $('#wrapStatus').show();
+                //     $title.text('Purchase Order - My PO');
+                // } else {
+                //     $('#wrapStatus').hide();
+                //     $('#filterStatus').val('');
+                //     $title.text('Purchase Order - All PO');
+                // }
+
+                $('#wrapStatus').show(); // always show
+
                 if (tab === 'my') {
-                    $('#wrapStatus').show();
                     $title.text('Purchase Order - My PO');
                 } else {
-                    $('#wrapStatus').hide();
-                    $('#filterStatus').val('');
                     $title.text('Purchase Order - All PO');
                 }
             }
+
 
 
             function fmtDate(v) {
@@ -242,6 +257,11 @@
                     },
                     {
                         data: 'csid',
+                        className: 'text-left',
+                        render: (v) => v ?? '-'
+                    },
+                    {
+                        data: 'sppbjktid',
                         className: 'text-left',
                         render: (v) => v ?? '-'
                     },

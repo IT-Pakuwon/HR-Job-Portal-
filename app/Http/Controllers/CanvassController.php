@@ -1567,7 +1567,6 @@ class CanvassController extends Controller
 
                 // $prevLoc = (!empty($prev_csid) && isset($prevLocIndex[$matchKey])) ? $prevLocIndex[$matchKey] : null;
 
-     
                 $requestRefNo =
                     $d['sppb_no'] ??
                     $d['sppj_no'] ??
@@ -1600,7 +1599,7 @@ class CanvassController extends Controller
                 $det->csid = $csid;
                 $det->sppbjktid = $request->input('sppbjktid');
                 $det->cs_no = $lineNo;
-                $det->sppbjkt_no = $requestRefNo ?? $srcRefNo;                
+                $det->sppbjkt_no = $requestRefNo ?? $srcRefNo;
 
                 // inventory fields (payload > sumber)
                 $det->inventory_type = $d['inventory_type'] ?? ($src->inventory_type ?? null);
@@ -1641,8 +1640,6 @@ class CanvassController extends Controller
                 $det->budget_account_id = $src->budget_account_id ?? null;
                 $det->budget_activity_id = $src->budget_activity_id ?? null;
                 $det->budget_activity_descr = $src->budget_activity_descr ?? null;
-
-
 
                 // harga vendor + akumulasi selected
                 // $selectedGrandThisRow = 0.0;
@@ -1912,7 +1909,7 @@ class CanvassController extends Controller
         // Jangan percaya selected_total dari payload header
         // ==============================
         $selectedSummary = [];
-        for ($i = 1; $i <= 6; $i++) {
+        for ($i = 1; $i <= 6; ++$i) {
             $selectedSummary[$i] = [
                 'selected_total' => 0.0,
                 'selected_tax' => 0.0,
@@ -2024,9 +2021,9 @@ class CanvassController extends Controller
                         $lineRefNo = $sd->sppt_no ?? null;
                     }
 
-                    $key = strtoupper(trim($lineRefNo ?? '')) . '|' .
-                        strtoupper(trim($sd->inventoryid ?? '')) . '|' .
-                        strtoupper(trim($sd->uom ?? '')) . '|' .
+                    $key = strtoupper(trim($lineRefNo ?? '')).'|'.
+                        strtoupper(trim($sd->inventoryid ?? '')).'|'.
+                        strtoupper(trim($sd->uom ?? '')).'|'.
                         strtoupper(trim($sd->inventory_descr ?? ''));
 
                     $srcIndex[$key] = $sd;
@@ -2042,9 +2039,9 @@ class CanvassController extends Controller
                     ->get();
 
                 foreach ($prevDetails as $pd) {
-                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')) . '|' .
-                        strtoupper(trim($pd->inventoryid ?? '')) . '|' .
-                        strtoupper(trim($pd->uom ?? '')) . '|' .
+                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')).'|'.
+                        strtoupper(trim($pd->inventoryid ?? '')).'|'.
+                        strtoupper(trim($pd->uom ?? '')).'|'.
                         strtoupper(trim($pd->inventory_descr ?? ''));
 
                     $prevDetIndex[$key] = $pd;
@@ -2056,9 +2053,9 @@ class CanvassController extends Controller
                     ->get();
 
                 foreach ($prevDetails2 as $pd) {
-                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')) . '|' .
-                        strtoupper(trim($pd->inventoryid ?? '')) . '|' .
-                        strtoupper(trim($pd->uom ?? '')) . '|' .
+                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')).'|'.
+                        strtoupper(trim($pd->inventoryid ?? '')).'|'.
+                        strtoupper(trim($pd->uom ?? '')).'|'.
                         strtoupper(trim($pd->inventory_descr ?? ''));
 
                     $prevLocIndex[$key] = $pd;
@@ -2074,8 +2071,8 @@ class CanvassController extends Controller
             );
 
             $urutan = (int) $auto['next'];
-            $tglbln = substr((string) $year, 2) . $month;
-            $csid = $doctype . $tglbln . sprintf('%04d', $urutan);
+            $tglbln = substr((string) $year, 2).$month;
+            $csid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             $prevCS = null;
             if (!empty($prev_csid)) {
@@ -2174,9 +2171,9 @@ class CanvassController extends Controller
                     $d['sppt_no'] ??
                     null;
 
-                $matchKey = strtoupper(trim($requestRefNo ?? '')) . '|' .
-                    strtoupper(trim($d['inventoryid'] ?? '')) . '|' .
-                    strtoupper(trim($d['uom'] ?? '')) . '|' .
+                $matchKey = strtoupper(trim($requestRefNo ?? '')).'|'.
+                    strtoupper(trim($d['inventoryid'] ?? '')).'|'.
+                    strtoupper(trim($d['uom'] ?? '')).'|'.
                     strtoupper(trim($d['inventory_descr'] ?? ''));
 
                 $src = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
@@ -2244,7 +2241,7 @@ class CanvassController extends Controller
                 $det->budget_activity_id = $src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null);
                 $det->budget_activity_descr = $src->budget_activity_descr ?? ($prevDet->budget_activity_descr ?? null);
 
-                for ($slot = 1; $slot <= 6; $slot++) {
+                for ($slot = 1; $slot <= 6; ++$slot) {
                     $det->{"vendorid{$slot}"} = null;
                     $det->{"vendorprice{$slot}"} = 0;
                     $det->{"vendortotalprice{$slot}"} = 0;
@@ -2280,7 +2277,7 @@ class CanvassController extends Controller
                     'doctype' => $doctype,
                     'cpnyid' => $cpnyId,
                     'departementid' => $deptId,
-                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];
 
@@ -2294,7 +2291,7 @@ class CanvassController extends Controller
 
                     return response()->json([
                         'message' => 'Failed to create CS',
-                        'error' => 'Gagal upload attachment: ' . $e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -2347,7 +2344,7 @@ class CanvassController extends Controller
         $year = (int) $dt->year;
         $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
-        $round2 = fn($n) => round((float) $n, 2);
+        $round2 = fn ($n) => round((float) $n, 2);
 
         $safeSet = function ($model, string $table, string $column, $value) {
             if (Schema::connection('pgsql')->hasColumn($table, $column)) {
@@ -2430,9 +2427,9 @@ class CanvassController extends Controller
                         $lineRefNo = $sd->sppt_no ?? null;
                     }
 
-                    $key = strtoupper(trim($lineRefNo ?? '')) . '|' .
-                        strtoupper(trim($sd->inventoryid ?? '')) . '|' .
-                        strtoupper(trim($sd->uom ?? '')) . '|' .
+                    $key = strtoupper(trim($lineRefNo ?? '')).'|'.
+                        strtoupper(trim($sd->inventoryid ?? '')).'|'.
+                        strtoupper(trim($sd->uom ?? '')).'|'.
                         strtoupper(trim($sd->inventory_descr ?? ''));
 
                     $srcIndex[$key] = $sd;
@@ -2448,9 +2445,9 @@ class CanvassController extends Controller
                     ->get();
 
                 foreach ($prevDetails as $pd) {
-                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')) . '|' .
-                        strtoupper(trim($pd->inventoryid ?? '')) . '|' .
-                        strtoupper(trim($pd->uom ?? '')) . '|' .
+                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')).'|'.
+                        strtoupper(trim($pd->inventoryid ?? '')).'|'.
+                        strtoupper(trim($pd->uom ?? '')).'|'.
                         strtoupper(trim($pd->inventory_descr ?? ''));
 
                     $prevDetIndex[$key] = $pd;
@@ -2462,9 +2459,9 @@ class CanvassController extends Controller
                     ->get();
 
                 foreach ($prevDetails2 as $pd) {
-                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')) . '|' .
-                        strtoupper(trim($pd->inventoryid ?? '')) . '|' .
-                        strtoupper(trim($pd->uom ?? '')) . '|' .
+                    $key = strtoupper(trim($pd->sppbjkt_no ?? '')).'|'.
+                        strtoupper(trim($pd->inventoryid ?? '')).'|'.
+                        strtoupper(trim($pd->uom ?? '')).'|'.
                         strtoupper(trim($pd->inventory_descr ?? ''));
 
                     $prevLocIndex[$key] = $pd;
@@ -2481,8 +2478,8 @@ class CanvassController extends Controller
             );
 
             $urutan = (int) $auto['next'];
-            $tglbln = substr((string) $year, 2) . $month;
-            $csid = $doctype . $tglbln . sprintf('%04d', $urutan);
+            $tglbln = substr((string) $year, 2).$month;
+            $csid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             $prevCS = null;
             if (!empty($prev_csid)) {
@@ -2575,9 +2572,9 @@ class CanvassController extends Controller
                     $d['sppt_no'] ??
                     null;
 
-                $matchKey = strtoupper(trim($requestRefNo ?? '')) . '|' .
-                    strtoupper(trim($d['inventoryid'] ?? '')) . '|' .
-                    strtoupper(trim($d['uom'] ?? '')) . '|' .
+                $matchKey = strtoupper(trim($requestRefNo ?? '')).'|'.
+                    strtoupper(trim($d['inventoryid'] ?? '')).'|'.
+                    strtoupper(trim($d['uom'] ?? '')).'|'.
                     strtoupper(trim($d['inventory_descr'] ?? ''));
 
                 $src = $srcIndex[$matchKey] ?? ($srcDetails[$lineNo - 1] ?? null);
@@ -2646,7 +2643,7 @@ class CanvassController extends Controller
                 $det->budget_activity_descr = $src->budget_activity_descr ?? ($prevDet->budget_activity_descr ?? null);
 
                 // Siapkan default slot vendor kosong
-                for ($slot = 1; $slot <= 6; $slot++) {
+                for ($slot = 1; $slot <= 6; ++$slot) {
                     $det->{"vendorid{$slot}"} = null;
                     $det->{"vendorprice{$slot}"} = 0;
                     $det->{"vendortotalprice{$slot}"} = 0;
@@ -2686,7 +2683,7 @@ class CanvassController extends Controller
                     'doctype' => $doctype,
                     'cpnyid' => $cpnyId,
                     'departementid' => $deptId,
-                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $user->username,
                 ];
 
@@ -2700,7 +2697,7 @@ class CanvassController extends Controller
 
                     return response()->json([
                         'message' => 'Failed to create CS',
-                        'error' => 'Gagal upload attachment: ' . $e->getMessage(),
+                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -2820,7 +2817,7 @@ class CanvassController extends Controller
                     //     strtoupper(trim($sd->uom ?? '')).'|'.
                     //     strtoupper(trim($sd->inventory_descr ?? ''));
                     // $srcIndex[$key] = $sd;
-                     $lineRefNo = null;
+                    $lineRefNo = null;
 
                     if ($doc === 'SPPB') {
                         $lineRefNo = $sd->sppb_no ?? null;
@@ -2838,7 +2835,7 @@ class CanvassController extends Controller
                         strtoupper(trim($sd->inventory_descr ?? ''));
 
                     $srcIndex[$key] = $sd;
-                    }
+                }
             } else {
                 // Kalau BUKAN revisi dan doc bukan SPPB/J/K/T → tolak
                 // if (empty($prev_csid)) {
@@ -3148,7 +3145,7 @@ class CanvassController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404, 'CS not found.');
 
-        /** @var \App\Models\TrCS $cs */
+        /** @var TrCS $cs */
         $cs = TrCS::with(['creator'])
             ->where('id', $id)
             ->firstOrFail();
@@ -3228,7 +3225,7 @@ class CanvassController extends Controller
             ->all();
 
         if (!empty($invIds)) {
-            $rows = \App\Models\TrPoLastPrice::query()
+            $rows = TrPoLastPrice::query()
                 ->select('inventoryid', 'unitcost', 'podate', 'created_at')
                 ->whereIn('inventoryid', $invIds)
                 ->whereNull('deleted_at')
@@ -3244,9 +3241,9 @@ class CanvassController extends Controller
 
         $items = $items->map(function ($row) use ($lastPriceMap) {
             $row->last_unitcost = $lastPriceMap[$row->inventoryid] ?? 0;
+
             return $row;
         });
-            
 
         // =========================================================
         // HELPER AMBIL ATTACHMENT GCS
@@ -3289,12 +3286,12 @@ class CanvassController extends Controller
                 });
             }
 
-            if (!\Illuminate\Support\Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
                 $keyFilePath = base_path($keyFilePath);
             }
 
             try {
-                $storage = new \Google\Cloud\Storage\StorageClient([
+                $storage = new StorageClient([
                     'projectId' => $projectId,
                     'keyFilePath' => $keyFilePath,
                 ]);
@@ -3323,7 +3320,7 @@ class CanvassController extends Controller
             return $rows->map(function ($r) use ($bucket) {
                 $folder = trim((string) ($r->folder ?? ''), '/');
                 $filename = ltrim((string) ($r->filename ?? ''), '/');
-                $objectPath = $folder !== '' ? ($folder . '/' . $filename) : $filename;
+                $objectPath = $folder !== '' ? ($folder.'/'.$filename) : $filename;
 
                 $signedUrl = null;
 
@@ -3390,7 +3387,7 @@ class CanvassController extends Controller
         // =========================================================
         $vendorsUsed = [];
 
-        for ($i = 1; $i <= 6; $i++) {
+        for ($i = 1; $i <= 6; ++$i) {
             $vendorCode = $cs->{"vendorid{$i}"} ?? null;
             if (!$vendorCode) {
                 continue;
@@ -3399,8 +3396,8 @@ class CanvassController extends Controller
             $vendorName = $cs->{"vendorname{$i}"} ?? '';
             $vendorAddr = $cs->{"vendoralamat{$i}"} ?? '';
             $vendorTelp = $cs->{"vendortelp{$i}"} ?? '';
-            $vendorCp   = $cs->{"vendorcp{$i}"} ?? '';
-            $vendorTop  = $cs->{"vendortop{$i}"} ?? '';
+            $vendorCp = $cs->{"vendorcp{$i}"} ?? '';
+            $vendorTop = $cs->{"vendortop{$i}"} ?? '';
             $vendorNote = $cs->{"vendornote{$i}"} ?? '';
 
             $taxcode = trim((string) ($cs->{"taxcodevendor{$i}"} ?? ''));
@@ -3418,14 +3415,14 @@ class CanvassController extends Controller
             }
 
             $duplicateNo = 1;
-            for ($j = 1; $j < $i; $j++) {
+            for ($j = 1; $j < $i; ++$j) {
                 if (($cs->{"vendorid{$j}"} ?? null) === $vendorCode) {
-                    $duplicateNo++;
+                    ++$duplicateNo;
                 }
             }
 
             $vendorsUsed[] = [
-                'col_key' => 'vcol_' . $i,
+                'col_key' => 'vcol_'.$i,
                 'duplicate_no' => $duplicateNo,
 
                 'id' => $vendorCode,
@@ -3465,13 +3462,13 @@ class CanvassController extends Controller
         foreach ($items as $rowIdx => $row) {
             $detailVendorMatrix[$rowIdx] = [];
 
-            for ($i = 1; $i <= 6; $i++) {
+            for ($i = 1; $i <= 6; ++$i) {
                 $vendorCode = $row->{"vendorid{$i}"} ?? null;
                 if (!$vendorCode) {
                     continue;
                 }
 
-                $colKey = 'vcol_' . $i;
+                $colKey = 'vcol_'.$i;
 
                 $detailVendorMatrix[$rowIdx][$colKey] = [
                     'price' => (float) ($row->{"vendorprice{$i}"} ?? 0),
@@ -3481,7 +3478,7 @@ class CanvassController extends Controller
             }
         }
 
-       // =========================================================
+        // =========================================================
         // CS VENDOR TOTALS
         // KEMBALIKAN KE LOGIKA LAMA: pakai totalvendor{i}
         // =========================================================
@@ -3547,6 +3544,7 @@ class CanvassController extends Controller
             'eid'
         ));
     }
+
     public function editCS_xxx(string $eid)
     {
         $user = Auth::user();
@@ -3913,7 +3911,7 @@ class CanvassController extends Controller
         // Pastikan maksimal 6 slot dan urut sesuai kolom di view
         $vendors = array_values(array_slice($vendors, 0, 6));
 
-        $round2 = fn($n) => round((float) $n, 2);
+        $round2 = fn ($n) => round((float) $n, 2);
 
         // =========================================================
         // MAP col_key -> slot vendor (1..6)
@@ -3933,10 +3931,10 @@ class CanvassController extends Controller
         // HITUNG SELECTED PER SLOT DARI DETAIL (BERDASARKAN col_key)
         // =========================================================
         $selectedBySlot = [];
-        for ($slot = 1; $slot <= 6; $slot++) {
+        for ($slot = 1; $slot <= 6; ++$slot) {
             $selectedBySlot[$slot] = [
                 'total' => 0.0,
-                'tax'   => 0.0,
+                'tax' => 0.0,
                 'grand' => 0.0,
             ];
         }
@@ -3962,17 +3960,17 @@ class CanvassController extends Controller
             }
         }
 
-        for ($slot = 1; $slot <= 6; $slot++) {
+        for ($slot = 1; $slot <= 6; ++$slot) {
             $v = $vendors[$slot - 1] ?? [];
             $ppn = (float) ($v['ppn'] ?? 0);
             $pph = (float) ($v['pph'] ?? 0);
 
             $selectedTotal = round($selectedBySlot[$slot]['total'], 2);
-            $selectedTax   = round($selectedTotal * (($ppn + $pph) / 100), 2);
+            $selectedTax = round($selectedTotal * (($ppn + $pph) / 100), 2);
             $selectedGrand = round($selectedTotal + $selectedTax, 2);
 
             $selectedBySlot[$slot]['total'] = $selectedTotal;
-            $selectedBySlot[$slot]['tax']   = $selectedTax;
+            $selectedBySlot[$slot]['tax'] = $selectedTax;
             $selectedBySlot[$slot]['grand'] = $selectedGrand;
         }
 
@@ -4036,13 +4034,13 @@ class CanvassController extends Controller
             $prev_csid = $cs->prev_csid;
 
             $makePlainKey = function ($inventoryid, $uom, $descr) {
-                return strtoupper(trim((string) ($inventoryid ?? ''))) . '|' .
-                    strtoupper(trim((string) ($uom ?? ''))) . '|' .
+                return strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                    strtoupper(trim((string) ($uom ?? ''))).'|'.
                     strtoupper(trim((string) ($descr ?? '')));
             };
 
             $makeRefKey = function ($refNo, $inventoryid, $uom, $descr) use ($makePlainKey) {
-                return strtoupper(trim((string) ($refNo ?? ''))) . '|' . $makePlainKey($inventoryid, $uom, $descr);
+                return strtoupper(trim((string) ($refNo ?? ''))).'|'.$makePlainKey($inventoryid, $uom, $descr);
             };
 
             // =========================================================
@@ -4354,7 +4352,7 @@ class CanvassController extends Controller
                     'doctype' => $doctype,
                     'cpnyid' => $cpnyId,
                     'departementid' => $deptId,
-                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
                 $files = (array) $request->file('attachments');
@@ -4367,7 +4365,7 @@ class CanvassController extends Controller
 
                     return response()->json([
                         'ok' => false,
-                        'message' => 'Gagal upload attachment: ' . $e->getMessage(),
+                        'message' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -4432,7 +4430,7 @@ class CanvassController extends Controller
                     $doctype,
                     $cs->status,
                     'CS',
-                    url('/showcs/' . $eid),
+                    url('/showcs/'.$eid),
                     [
                         'info' => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
                         'createdby' => $cs->created_by,
@@ -4467,7 +4465,7 @@ class CanvassController extends Controller
 
             return response()->json([
                 'ok' => false,
-                'message' => 'Gagal update CS: ' . (config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
+                'message' => 'Gagal update CS: '.(config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
             ], 500);
         }
     }
@@ -4492,16 +4490,16 @@ class CanvassController extends Controller
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
 
-        $round2 = fn($n) => round((float) $n, 2);
+        $round2 = fn ($n) => round((float) $n, 2);
 
         // =========================================================
         // HITUNG SELECTED PER SLOT DARI DETAIL (SUMBER YANG BENAR)
         // =========================================================
         $selectedBySlot = [];
-        for ($slot = 1; $slot <= 6; $slot++) {
+        for ($slot = 1; $slot <= 6; ++$slot) {
             $selectedBySlot[$slot] = [
                 'total' => 0.0,
-                'tax'   => 0.0,
+                'tax' => 0.0,
                 'grand' => 0.0,
             ];
         }
@@ -4526,17 +4524,17 @@ class CanvassController extends Controller
             }
         }
 
-        for ($slot = 1; $slot <= 6; $slot++) {
+        for ($slot = 1; $slot <= 6; ++$slot) {
             $v = $vendors[$slot - 1] ?? [];
             $ppn = (float) ($v['ppn'] ?? 0);
             $pph = (float) ($v['pph'] ?? 0);
 
             $selectedTotal = round($selectedBySlot[$slot]['total'], 2);
-            $selectedTax   = round($selectedTotal * (($ppn + $pph) / 100), 2);
+            $selectedTax = round($selectedTotal * (($ppn + $pph) / 100), 2);
             $selectedGrand = round($selectedTotal + $selectedTax, 2);
 
             $selectedBySlot[$slot]['total'] = $selectedTotal;
-            $selectedBySlot[$slot]['tax']   = $selectedTax;
+            $selectedBySlot[$slot]['tax'] = $selectedTax;
             $selectedBySlot[$slot]['grand'] = $selectedGrand;
         }
 
@@ -4600,13 +4598,13 @@ class CanvassController extends Controller
             $prev_csid = $cs->prev_csid;
 
             $makePlainKey = function ($inventoryid, $uom, $descr) {
-                return strtoupper(trim((string) ($inventoryid ?? ''))) . '|' .
-                    strtoupper(trim((string) ($uom ?? ''))) . '|' .
+                return strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                    strtoupper(trim((string) ($uom ?? ''))).'|'.
                     strtoupper(trim((string) ($descr ?? '')));
             };
 
             $makeRefKey = function ($refNo, $inventoryid, $uom, $descr) use ($makePlainKey) {
-                return strtoupper(trim((string) ($refNo ?? ''))) . '|' . $makePlainKey($inventoryid, $uom, $descr);
+                return strtoupper(trim((string) ($refNo ?? ''))).'|'.$makePlainKey($inventoryid, $uom, $descr);
             };
 
             // =========================================================
@@ -4880,7 +4878,7 @@ class CanvassController extends Controller
                     'doctype' => $doctype,
                     'cpnyid' => $cpnyId,
                     'departementid' => $deptId,
-                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
                 $files = (array) $request->file('attachments');
@@ -4893,7 +4891,7 @@ class CanvassController extends Controller
 
                     return response()->json([
                         'ok' => false,
-                        'message' => 'Gagal upload attachment: ' . $e->getMessage(),
+                        'message' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -4958,7 +4956,7 @@ class CanvassController extends Controller
                     $doctype,
                     $cs->status,
                     'CS',
-                    url('/showcs/' . $eid),
+                    url('/showcs/'.$eid),
                     [
                         'info' => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
                         'createdby' => $cs->created_by,
@@ -4993,7 +4991,7 @@ class CanvassController extends Controller
 
             return response()->json([
                 'ok' => false,
-                'message' => 'Gagal update CS: ' . (config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
+                'message' => 'Gagal update CS: '.(config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
             ], 500);
         }
     }
@@ -5018,7 +5016,7 @@ class CanvassController extends Controller
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
 
-        $round2 = fn($n) => round((float) $n, 2);
+        $round2 = fn ($n) => round((float) $n, 2);
 
         $docSelectedGrand = collect($vendors)->sum(function ($v) use ($round2) {
             return $round2($v['selected_grand'] ?? 0);
@@ -5079,13 +5077,13 @@ class CanvassController extends Controller
             $prev_csid = $cs->prev_csid;
 
             $makePlainKey = function ($inventoryid, $uom, $descr) {
-                return strtoupper(trim((string) ($inventoryid ?? ''))) . '|' .
-                    strtoupper(trim((string) ($uom ?? ''))) . '|' .
+                return strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                    strtoupper(trim((string) ($uom ?? ''))).'|'.
                     strtoupper(trim((string) ($descr ?? '')));
             };
 
             $makeRefKey = function ($refNo, $inventoryid, $uom, $descr) use ($makePlainKey) {
-                return strtoupper(trim((string) ($refNo ?? ''))) . '|' . $makePlainKey($inventoryid, $uom, $descr);
+                return strtoupper(trim((string) ($refNo ?? ''))).'|'.$makePlainKey($inventoryid, $uom, $descr);
             };
 
             // =========================================================
@@ -5364,7 +5362,7 @@ class CanvassController extends Controller
                     'doctype' => $doctype,
                     'cpnyid' => $cpnyId,
                     'departementid' => $deptId,
-                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
                     'created_by' => $username,
                 ];
                 $files = (array) $request->file('attachments');
@@ -5377,7 +5375,7 @@ class CanvassController extends Controller
 
                     return response()->json([
                         'ok' => false,
-                        'message' => 'Gagal upload attachment: ' . $e->getMessage(),
+                        'message' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
             }
@@ -5442,7 +5440,7 @@ class CanvassController extends Controller
                     $doctype,
                     $cs->status,
                     'CS',
-                    url('/showcs/' . $eid),
+                    url('/showcs/'.$eid),
                     [
                         'info' => $cs->csnote ?: ($srcHeader->keperluan ?? ''),
                         'createdby' => $cs->created_by,
@@ -5477,7 +5475,7 @@ class CanvassController extends Controller
 
             return response()->json([
                 'ok' => false,
-                'message' => 'Gagal update CS: ' . (config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
+                'message' => 'Gagal update CS: '.(config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan'),
             ], 500);
         }
     }
@@ -5500,7 +5498,7 @@ class CanvassController extends Controller
             'details' => 'required|string', // JSON array
             'action' => 'nullable|in:save,submit',
         ]);
-   
+
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
 
@@ -5618,7 +5616,7 @@ class CanvassController extends Controller
                 default:
                     abort(422, 'Invalid doc type');
             }
-  
+
             $srcIndex = [];
             foreach ($srcDetails as $sd) {
                 $lineRefNo = null;
@@ -5718,10 +5716,9 @@ class CanvassController extends Controller
             TrCSdetail::on('pgsql')->where('csid', $csid)->delete();
 
             $lineNo = 0;
-        
 
             foreach ($details as $d) {
-                ++$lineNo;  
+                ++$lineNo;
 
                 $requestRefNo =
                     $d['sppb_no'] ??
@@ -5793,7 +5790,7 @@ class CanvassController extends Controller
                 $det->budget_account_id = $src->budget_account_id ?? ($prevDet->budget_account_id ?? null);
                 $det->budget_activity_id = $src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null);
                 $det->budget_activity_descr = $src->budget_activity_descr ?? ($prevDet->budget_activity_descr ?? null);
-              
+
                 for ($i = 0; $i < min(count($d['vendor'] ?? []), 6); ++$i) {
                     $slot = $i + 1;
                     $vrow = $d['vendor'][$i];
@@ -5815,7 +5812,6 @@ class CanvassController extends Controller
                 $det->save();
             }
 
-     
             $cs->save();
 
             // 10) Attachments BARU
@@ -6159,9 +6155,11 @@ class CanvassController extends Controller
             $eid_imbudget = $imbudget ? Hashids::encode($imbudget->id) : null;
         }
 
+        $tops = \App\Models\MsTop::pluck('top_name', 'topid');
         // ---- susun vendor header: maksimal 6 kolom ----
         $vendors = [];
         for ($i = 1; $i <= 6; ++$i) {
+            $topid = trim($cs->{'vendortop'.$i} ?? '');
             $vid = $cs->{"vendorid{$i}"} ?? null;
             if (!$vid) {
                 continue;
@@ -6173,7 +6171,10 @@ class CanvassController extends Controller
                 'vendoralamat' => $cs->{"vendoralamat{$i}"} ?? '',
                 'vendortelp' => $cs->{"vendortelp{$i}"} ?? '',
                 'vendorcp' => $cs->{"vendorcp{$i}"} ?? '',
-                'vendortop' => $cs->{"vendortop{$i}"} ?? '',
+
+                'vendortop' => $topid,
+                'vendortop_name' => $tops[$topid] ?? $topid,
+
                 'vendornote' => $cs->{"vendornote{$i}"} ?? '',
                 'ppn' => (float) ($cs->{"ppnvendor{$i}"} ?? 11.00),
                 'pph' => (float) ($cs->{"pphvendor{$i}"} ?? 0.00),
@@ -7391,13 +7392,13 @@ class CanvassController extends Controller
         }
 
         $makePlainKey = function ($inventoryid, $uom, $descr) {
-            return strtoupper(trim((string) ($inventoryid ?? ''))) . '|' .
-                strtoupper(trim((string) ($uom ?? ''))) . '|' .
+            return strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                strtoupper(trim((string) ($uom ?? ''))).'|'.
                 strtoupper(trim((string) ($descr ?? '')));
         };
 
         $makeRefKey = function ($refNo, $inventoryid, $uom, $descr) use ($makePlainKey) {
-            return strtoupper(trim((string) ($refNo ?? ''))) . '|' . $makePlainKey($inventoryid, $uom, $descr);
+            return strtoupper(trim((string) ($refNo ?? ''))).'|'.$makePlainKey($inventoryid, $uom, $descr);
         };
 
         // fallback group by plain key
@@ -7482,7 +7483,7 @@ class CanvassController extends Controller
             $srcDet->save();
 
             $addedTotalOrdered += $orderedQty;
-            $updatedLineCount++;
+            ++$updatedLineCount;
         }
 
         // kalau tidak ada satupun line yang ter-update, kasih error supaya ketahuan

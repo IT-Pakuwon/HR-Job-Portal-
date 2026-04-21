@@ -181,11 +181,11 @@
                     <input id="templateType" type="text" value="{{ $template }}" readonly
                         style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;">
                 </div> --}}
-                
+
             </div>
 
             <!-- ===== FROM / TO ===== -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">         
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div style="grid-column: span 2;">
                     <label style="font-size:12px;color:#6b7280;">Send Email To :</label>
                     <input id="toInput"
@@ -259,7 +259,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    {{-- 
+    {{--
     <script>
         const toTagify = new Tagify(document.querySelector('#toInput'), {
             delimiters: ", ",
@@ -481,7 +481,7 @@
         const EMAIL_RE = /^[\w.!#$%&'*+\/=?^`{|}~-]+@[\w-]+(\.[\w-]+)+$/;
 
             const toTagify = new Tagify(document.querySelector('#toInput'), {
-                delimiters: ",| ",
+                delimiters: ",| |;",
                 pattern: EMAIL_RE,
                 addTagOnBlur: true,
                 transformTag(tag) {
@@ -490,7 +490,7 @@
             });
 
             const ccTagify = new Tagify(document.querySelector('#ccInput'), {
-                delimiters: ",| ",
+                delimiters: ",| |;",
                 pattern: EMAIL_RE,
                 addTagOnBlur: true,
                 transformTag(tag) {
@@ -499,7 +499,7 @@
             });
 
             const bccTagify = new Tagify(document.querySelector('#bccInput'), {
-                delimiters: ",| ",
+                delimiters: ",| |;",
                 pattern: EMAIL_RE,
                 addTagOnBlur: true,
                 transformTag(tag) {

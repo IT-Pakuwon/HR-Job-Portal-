@@ -423,10 +423,10 @@
                                                     {{ $v['vendorname'] }}
                                                 </div>
 
-                                                @if ($v['vendortop'])
+                                                @if (!empty($v['vendortop_name']))
                                                     <div class="text-sm text-gray-600 dark:text-gray-300">
                                                         Payment Term:
-                                                        <span class="font-semibold">{{ $v['vendortop'] }}</span>
+                                                        <span class="font-semibold">{{ $v['vendortop_name'] }}</span>
                                                     </div>
                                                 @endif
 
@@ -530,14 +530,123 @@
                                                         </td>
 
                                                         {{-- Budget Department --}}
-                                                        <td class="w-32 px-3 py-2 align-top">
+                                                        {{-- <td class="w-32 px-3 py-2 align-top">
                                                             {{ $row->budget_department_fin_id ?? '-' }} -
                                                             {{ $row->budget_account_id ?? '-' }}
                                                             <br>
                                                             <strong>
                                                                 Business Unit : {{ $row->budget_business_unit_id }}
                                                             </strong>
+                                                        </td> --}}
+
+                                                        <td class="w-32 px-3 py-2 align-top">
+
+                                                            <div class="group relative inline-block cursor-help">
+
+                                                                @php
+                                                                    $budgetData = $row->budget_data;
+
+                                                                    $budget = (float) ($budgetData->totalbudget ?? 0);
+                                                                    $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                                    $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                                    $used = (float) ($budgetData->total_used ?? 0);
+
+                                                                    $totalBudget = $budget + $additional;
+                                                                    $available = $totalBudget - $reserved - $used;
+                                                                @endphp
+
+                                                                <div class="budget-trigger"
+                                                                    data-budget="{{ $budget }}"
+                                                                    data-additional="{{ $additional }}"
+                                                                    data-reserved="{{ $reserved }}"
+                                                                    data-used="{{ $used }}"
+                                                                    data-available="{{ $available }}"
+                                                                    data-desc="{{ $row->budget_activity_descr }}"
+                                                                    data-account="{{ $row->budget_account_id }}"
+                                                                    data-coa="{{ optional($row->budget_data)->account_descr }}"
+                                                                    data-bu="{{ $row->budget_business_unit_id }}">
+
+                                                                    <div class="flex flex-wrap items-start gap-2 text-sm leading-tight">
+
+                                                                        {{-- Department --}}
+                                                                        @if (!empty($row->budget_department_fin_id))
+                                                                            <span class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                                                                                {{ $row->budget_department_fin_id }}
+                                                                            </span>
+                                                                        @endif
+
+                                                                        {{-- Business Unit --}}
+                                                                        @if (!empty($row->budget_business_unit_id))
+                                                                            <span class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
+                                                                                {{ $row->budget_business_unit_id }}
+                                                                            </span>
+                                                                        @endif
+
+                                                                        {{-- Account --}}
+                                                                        <span class="font-semibold text-gray-700">
+                                                                            {{ $row->budget_account_id ?? '-' }}
+                                                                        </span>
+
+                                                                        <span class="text-gray-400">•</span>
+
+                                                                        {{-- Activity --}}
+                                                                        <span class="max-w-[200px] whitespace-normal break-words text-gray-500">
+                                                                            {{ $row->budget_activity_descr ?? '-' }}
+                                                                        </span>
+
+                                                                    </div>
+                                                                </div>
+
+                                                                <div id="budgetTooltip"
+                                                                class="fixed hidden z-[9999] w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-xl text-sm">
+
+                                                                <!-- HEADER -->
+                                                                <div class="mb-2 border-b pb-2">
+                                                                    <div id="ttDesc" class="font-semibold text-gray-800"></div>
+                                                                    <div class="text-xs text-gray-500">
+                                                                        <span id="ttAccount"></span> •
+                                                                        <span id="ttCoa"></span>
+                                                                    </div>
+                                                                    <div class="text-xs text-gray-400">
+                                                                        BU: <span id="ttBU"></span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- BODY -->
+                                                                <div class="space-y-1 text-sm">
+
+                                                                    <div class="flex justify-between">
+                                                                        <span>Budget</span>
+                                                                        <span id="ttBudget"></span>
+                                                                    </div>
+
+                                                                    <div class="flex justify-between">
+                                                                        <span>Additional</span>
+                                                                        <span id="ttAdditional"></span>
+                                                                    </div>
+
+                                                                    <div class="flex justify-between">
+                                                                        <span>Reserved</span>
+                                                                        <span id="ttReserved"></span>
+                                                                    </div>
+
+                                                                    <div class="flex justify-between">
+                                                                        <span>Used</span>
+                                                                        <span id="ttUsed"></span>
+                                                                    </div>
+
+                                                                    <div class="flex justify-between font-semibold border-t pt-2">
+                                                                        <span>Available</span>
+                                                                        <span id="ttAvailable"></span>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+
+                                                            </div>
+
                                                         </td>
+
                                                         <td class="w-32 px-3 py-2 align-top">
                                                             {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
                                                             <button type="button"
@@ -1540,6 +1649,112 @@
         }
     </script>
 
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const tooltip = document.getElementById("budgetTooltip");
+
+        if (!tooltip) return;
+
+        // FORMAT NUMBER (IDR style)
+        function formatNumber(num) {
+            return Number(num || 0).toLocaleString("id-ID");
+        }
+
+        // SHOW TOOLTIP
+        function showTooltip(el, e) {
+
+            const data = el.dataset;
+
+            // Header
+            document.getElementById("ttDesc").innerText = data.desc || "-";
+            document.getElementById("ttAccount").innerText = data.account || "-";
+            document.getElementById("ttCoa").innerText = data.coa || "-";
+            document.getElementById("ttBU").innerText = data.bu || "-";
+
+            // Numbers
+            const budget = Number(data.budget || 0);
+            const additional = Number(data.additional || 0);
+            const reserved = Number(data.reserved || 0);
+            const used = Number(data.used || 0);
+            const available = Number(data.available || 0);
+
+            document.getElementById("ttBudget").innerText = formatNumber(budget);
+            document.getElementById("ttAdditional").innerText = formatNumber(additional);
+            document.getElementById("ttReserved").innerText = formatNumber(reserved);
+            document.getElementById("ttUsed").innerText = formatNumber(used);
+
+            const availableEl = document.getElementById("ttAvailable");
+            availableEl.innerText = formatNumber(available);
+
+            // COLOR LOGIC
+            availableEl.classList.remove("text-emerald-500", "text-red-500");
+
+            if (available < 0) {
+                availableEl.classList.add("text-red-500");
+            } else {
+                availableEl.classList.add("text-emerald-500");
+            }
+
+            tooltip.classList.remove("hidden");
+            moveTooltip(e);
+        }
+
+        // MOVE TOOLTIP
+        function moveTooltip(e) {
+
+            const padding = 16;
+            const tooltipWidth = tooltip.offsetWidth;
+            const tooltipHeight = tooltip.offsetHeight;
+
+            let left = e.pageX + 15;
+            let top = e.pageY + 15;
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // Prevent overflow RIGHT
+            if (left + tooltipWidth + padding > viewportWidth) {
+                left = e.pageX - tooltipWidth - 15;
+            }
+
+            // Prevent overflow BOTTOM
+            if (top + tooltipHeight + padding > viewportHeight) {
+                top = e.pageY - tooltipHeight - 15;
+            }
+
+            tooltip.style.left = left + "px";
+            tooltip.style.top = top + "px";
+        }
+
+        // HIDE TOOLTIP
+        function hideTooltip() {
+            tooltip.classList.add("hidden");
+        }
+
+        // EVENT DELEGATION (IMPORTANT for dynamic tables)
+        document.addEventListener("mouseover", function (e) {
+            const el = e.target.closest(".budget-trigger");
+            if (!el) return;
+
+            showTooltip(el, e);
+        });
+
+        document.addEventListener("mousemove", function (e) {
+            const el = e.target.closest(".budget-trigger");
+            if (!el) return;
+
+            moveTooltip(e);
+        });
+
+        document.addEventListener("mouseout", function (e) {
+            if (!e.target.closest(".budget-trigger")) return;
+
+            hideTooltip();
+        });
+
+    });
+    </script>
 
 
 
