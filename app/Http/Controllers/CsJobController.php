@@ -829,6 +829,9 @@ class CsJobController extends Controller
                         'status' => 'D',
                         'updated_by' => $user->username,
                         'updated_at' => Carbon::now(),
+                        'assignby' => null,
+                        'assignpurchasing' => null,
+                        'assigndate' => null,
                     ]);
                     $header = TrSPPB::where('sppbid', $docNo)->first();
                     $doc_type  = 'PB';      
@@ -842,6 +845,9 @@ class CsJobController extends Controller
                         'status' => 'D',
                         'updated_by' => $user->username,
                         'updated_at' => Carbon::now(),
+                        'assignby' => null,
+                        'assignpurchasing' => null,
+                        'assigndate' => null,
                     ]);
                     $header = TrSPPJ::where('sppjid', $docNo)->first();
                     $doc_type ='PJ';
@@ -854,6 +860,9 @@ class CsJobController extends Controller
                         'status' => 'D',
                         'updated_by' => $user->username,
                         'updated_at' => Carbon::now(),
+                        'assignby' => null,
+                        'assignpurchasing' => null,
+                        'assigndate' => null,
                     ]);
                     $header = TrSPPK::where('sppkid', $docNo)->first();
                     $doc_type ='PK';
@@ -866,6 +875,9 @@ class CsJobController extends Controller
                         'status' => 'D',
                         'updated_by' => $user->username,
                         'updated_at' => Carbon::now(),
+                        'assignby' => null,
+                        'assignpurchasing' => null,
+                        'assigndate' => null,
                     ]);
                     $header = TrSPPT::where('spptid', $docNo)->first();
                     $doc_type ='PT';

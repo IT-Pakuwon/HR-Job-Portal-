@@ -49,9 +49,9 @@ class SyncUsersDasToPg extends Command
                     ];
 
                     // hanya update notification_email jika bukan environment demo
-                    if (!app()->environment('demo')) {
-                        $data['notification_email'] = $src->email;
-                    }
+                    // if (!app()->environment('demo')) {
+                    //     $data['notification_email'] = $src->email;
+                    // }
 
                     User::query()->updateOrCreate(
                         ['username' => $src->username],

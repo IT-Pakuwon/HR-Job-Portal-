@@ -61,6 +61,7 @@ class PoController extends Controller
         // Detail PO
         $podetail = TrPOdetail::where('ponbr', $po->ponbr)
             ->where('budget_cpny_id', $po->cpny_id)
+            ->where('qty', '>', 0)
             ->orderBy('cs_no')
             ->get();
 

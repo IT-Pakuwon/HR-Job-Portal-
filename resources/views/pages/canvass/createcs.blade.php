@@ -181,7 +181,7 @@
                                                 <td class="border px-3 py-2 text-center">
                                                     <textarea
                                                         class="note-input w-full resize-none rounded-md border border-gray-400 px-2 py-1 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
-                                                        rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
+                                                        rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->note ?? '' }}</textarea>
                                                 </td>
 
                                                 <td class="border px-3 py-2 text-right font-semibold">
