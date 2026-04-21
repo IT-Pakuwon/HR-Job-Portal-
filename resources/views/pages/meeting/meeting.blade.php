@@ -297,12 +297,21 @@
                             start: @json(\Carbon\Carbon::parse($showmeeting->start_meeting_time)->format('Y-m-d H:i:s')),
                             end: @json(\Carbon\Carbon::parse($showmeeting->end_meeting_time)->format('Y-m-d H:i:s')),
                             title: @json(trim(($showmeeting->user_peminta ? $showmeeting->user_peminta . ' - ' : '') . $showmeeting->meeting_title)),
+                            url: "{{ url('/showmeeting/' . \Vinkla\Hashids\Facades\Hashids::encode($showmeeting->id)) }}"
                         },
                     @endforeach
                 ],
 
                 selectOverlap: function(event) {
                     return event.rendering === 'background';
+                },
+
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault(); // supaya tidak reload default
+
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                    }
                 },
 
                 select: function(info) {

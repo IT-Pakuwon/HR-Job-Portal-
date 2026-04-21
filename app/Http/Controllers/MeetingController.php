@@ -13,7 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Vinkla\Hashids\Facades\Hashids;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class MeetingController extends Controller
 {
@@ -93,7 +94,7 @@ class MeetingController extends Controller
         return response()->json($accessories);
     }
 
-    public function store(Request $request)
+    public function storeMeeting(Request $request)
     {
         try {
             $request->validate([
@@ -210,6 +211,36 @@ class MeetingController extends Controller
             ]);
 
             DB::connection('pgsql5')->commit();
+
+            // kalau acc_id ada -> coba create Teams meeting
+            if (!empty($meeting->acc_id)) {
+                $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
+
+                if (!empty($teamsResult['success'])) {
+                    $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? null;
+                    $meeting->msteams_join_url = $teamsResult['msteams_join_url'] ?? null;
+
+                    // optional, kalau response mengandung ini bisa sekalian disimpan
+                    if (!empty($teamsResult['msteams_passcode'])) {
+                        $meeting->msteams_passcode = $teamsResult['msteams_passcode'];
+                    }
+
+                    if (!empty($teamsResult['msteams_meetingid'])) {
+                        $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'];
+                    }
+
+                    $meeting->updated_by = $authUser->username ?? $username;
+                    $meeting->updated_at = now();
+                    $meeting->save();
+                } else {
+                    Log::warning('Teams meeting was not created', [
+                        'meeting_id' => $meeting->id,
+                        'docid' => $meeting->docid,
+                        'reason' => $teamsResult['message'] ?? 'Unknown error',
+                    ]);
+                }
+            }
+
 
             // CC email dari requester
             $ccEmail = User::query()
@@ -575,5 +606,187 @@ class MeetingController extends Controller
         abort_if(!$meeting, 404);
 
         return view('pages.meeting.showmeeting', compact('meeting', 'hash'));
+    }
+
+    protected function createTeamsMeetingFromAccessory($meeting): array
+    {
+        // pecah acc_id jadi array
+        $accIds = collect(explode(',', (string) $meeting->acc_id))
+            ->map(fn($x) => trim($x))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (empty($accIds)) {
+            return [
+                'success' => false,
+                'message' => 'Accessory meeting kosong.',
+            ];
+        }
+
+        $accessory = MsMeetingAccessories::on('pgsql5')
+            ->whereIn('acc_id', $accIds)
+            ->whereNotNull('userid_msteams')
+            ->first();
+
+        if (!$accessory) {
+            return [
+                'success' => false,
+                'message' => 'Accessory tidak ditemukan / userid_msteams kosong.',
+            ];
+        }
+
+        return $this->createMicrosoftTeamsMeeting(
+            userId: $accessory->userid_msteams,
+            subject: $meeting->meeting_title ?: ('Meeting ' . $meeting->docid),
+            startDateTime: $meeting->start_meeting_time,
+            endDateTime: $meeting->end_meeting_time,
+            description: $meeting->meeting_descr,
+            externalId: $meeting->docid
+        );
+    }
+
+    protected function createMicrosoftTeamsMeeting(
+        string $userId,
+        string $subject,
+        string $startDateTime,
+        string $endDateTime,
+        ?string $description = null,
+        ?string $externalId = null
+    ): array {
+        try {
+            $token = $this->getMicrosoftGraphToken();
+
+            $tz = config('app.timezone', env('APP_TIMEZONE', 'Asia/Jakarta'));
+
+            // $start = Carbon::parse($startDateTime, $tz)->utc()->format('Y-m-d\TH:i:s\Z');
+            // $end   = Carbon::parse($endDateTime, $tz)->utc()->format('Y-m-d\TH:i:s\Z');
+
+            $url = 'https://graph.microsoft.com/v1.0/users/' . rawurlencode($userId) . '/events?sendUpdates=all';
+
+            $payload = [
+                'subject' => $subject,
+                'body' => [
+                    'contentType' => 'HTML',
+                    'content' => $description ?? '',
+                ],
+                'start' => [
+                    'dateTime' => Carbon::parse($startDateTime, $tz)->format('Y-m-d\TH:i:s'),
+                    'timeZone' => $tz,
+                ],
+                'end' => [
+                    'dateTime' => Carbon::parse($endDateTime, $tz)->format('Y-m-d\TH:i:s'),
+                    'timeZone' => $tz,
+                ],
+                'isOnlineMeeting' => true,
+                'onlineMeetingProvider' => 'teamsForBusiness',
+            ];
+
+            // $url = 'https://graph.microsoft.com/v1.0/users/' . urlencode($userId) . '/onlineMeetings';
+
+            // $payload = [
+            //     'subject' => $subject,
+            //     'startDateTime' => $start,
+            //     'endDateTime' => $end,
+            // ];
+
+            // if (!empty($description)) {
+            //     $payload['participants'] = [
+            //         'organizer' => [
+            //             'identity' => [
+            //                 'user' => [
+            //                     'id' => $userId,
+            //                 ],
+            //             ],
+            //         ],
+            //     ];
+            // }
+
+            $response = Http::withToken($token)
+                ->acceptJson()
+                ->contentType('application/json')
+                ->timeout(45)
+                ->post($url, $payload);
+
+            if (!$response->successful()) {
+                Log::error('MS Graph create online meeting failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'payload' => $payload,
+                    'userId' => $userId,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Failed to create Teams meeting: ' . $response->body(),
+                ];
+            }
+
+            $json = $response->json();
+
+            return [
+                'success' => true,
+                'msteams_event_id' => $json['id'] ?? null,
+                'msteams_join_url' => data_get($json, 'onlineMeeting.joinUrl')
+                    ?: ($json['onlineMeetingUrl'] ?? null),
+                'msteams_passcode' => data_get($json, 'onlineMeeting.joinMeetingIdSettings.passcode'),
+                'msteams_meetingid' => data_get($json, 'onlineMeeting.joinMeetingIdSettings.joinMeetingId')
+                    ?: data_get($json, 'onlineMeeting.conferenceId'),
+                'raw' => $json,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('createMicrosoftTeamsMeeting exception', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
+    }
+
+    protected function getMicrosoftGraphToken(): string
+    {
+        $tenantId = config('services.ms_graph.tenant_id');
+        $clientId = config('services.ms_graph.client_id');
+        $clientSecret = config('services.ms_graph.client_secret');
+        $scope = config('services.ms_graph.scope');
+
+        if (!$tenantId || !$clientId || !$clientSecret) {
+            Log::error('MS Graph config incomplete', [
+                'tenant_filled' => !empty($tenantId),
+                'client_filled' => !empty($clientId),
+                'secret_filled' => !empty($clientSecret),
+            ]);
+
+            throw new \Exception('Microsoft Graph environment variables are incomplete.');
+        }
+
+        $tokenUrl = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token";
+
+        $response = Http::asForm()->timeout(30)->post($tokenUrl, [
+            'grant_type' => 'client_credentials',
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            'scope' => $scope,
+        ]);
+
+        if (!$response->successful()) {
+            Log::error('MS Graph token request failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw new \Exception('Failed to get Microsoft Graph access token.');
+        }
+
+        $accessToken = $response->json('access_token');
+
+        if (!$accessToken) {
+            throw new \Exception('Microsoft Graph access token is empty.');
+        }
+
+        return $accessToken;
     }
 }

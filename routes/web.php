@@ -1158,7 +1158,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/meeting', [MeetingController::class, 'index'])->name('meeting');
     Route::get('/inforoom_{id}', [MeetingController::class, 'getRoom']);
     Route::get('/infoacc_{id}', [MeetingController::class, 'getAccessories']);
-    Route::post('/savemeeting', [MeetingController::class, 'store'])->name('meeting.store');
+    Route::post('/savemeeting', [MeetingController::class, 'storeMeeting'])->name('meeting.store');
     Route::get('/meetinglist', [MeetingController::class, 'MeetingList'])->name('meetinglist');
     Route::get('/meetinglist/json', [MeetingController::class, 'json'])->name('meetinglist.json');
     Route::get('/showmeeting/{hash}', [MeetingController::class, 'showMeeting'])->name('meeting.show');

@@ -562,7 +562,7 @@
                             </label>
 
                             {{-- CALR RFP hanya untuk PJ & PT --}}
-                            @if (in_array($docPrefix, ['PK', 'PJ', 'PT']))
+                            {{-- @if (in_array($docPrefix, ['PK', 'PJ', 'PT'])) --}}
                                 <label
                                     class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">
                                     <input type="radio" name="rfca_type_choice" value="RFP"
@@ -574,7 +574,7 @@
                                         </div>
                                     </div>
                                 </label>
-                            @endif
+                            {{-- @endif --}}
 
                         </div>
 

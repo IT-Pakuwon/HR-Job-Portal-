@@ -37,4 +37,11 @@ return [
     'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'ms_graph' => [
+        'tenant_id' => env('MS_TENANT_ID'),
+        'client_id' => env('MS_CLIENT_ID'),
+        'client_secret' => env('MS_CLIENT_SECRET'),
+        'scope' => env('MS_GRAPH_SCOPE', 'https://graph.microsoft.com/.default'),
+    ],
+
 ];
