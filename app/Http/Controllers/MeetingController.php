@@ -7,7 +7,8 @@ use App\Models\MsMeetingAccessories;
 use App\Models\MsMeetingRoom;
 use App\Models\TrMeeting;
 use App\Models\User;
-use App\Models\Usercpny;
+use App\Models\MsDasSetting;
+use App\Models\SysUserRole;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+
 
 class MeetingController extends Controller
 {
@@ -32,21 +34,15 @@ class MeetingController extends Controller
         $dayEnd   = $date->copy()->endOfDay();
 
         $rooms = MsMeetingRoom::query()
+            ->where('status', 'A')
             ->orderBy('room_name')
             ->get();
 
         $meetings = TrMeeting::query()
-            ->where(function ($q) use ($dayStart, $dayEnd) {
-                $q->whereBetween('start_meeting_time', [$dayStart, $dayEnd])
-                    ->orWhereBetween('end_meeting_time', [$dayStart, $dayEnd])
-                    ->orWhere(function ($qq) use ($dayStart, $dayEnd) {
-                        $qq->where('start_meeting_time', '<=', $dayStart)
-                            ->where('end_meeting_time', '>=', $dayEnd);
-                    });
-            })
+            ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
             ->orderBy('room_id')
             ->orderBy('start_meeting_time')
-            ->get();
+            ->get();          
 
         $users = User::query()
             ->where('status', 'A')
@@ -61,9 +57,21 @@ class MeetingController extends Controller
             })
             ->values();
 
-        $dateblock = now()->format('Y-m-d');
+        // $dateblock = now()->format('Y-m-d');
+        $date_block = MsDasSetting::query()
+            ->where('status','A')
+            ->first();
+
+        $dateblock = date("Y-m-d", strtotime($date_block->setting_value_string));
+
         $user = auth()->user();
 
+        $roleIds = SysUserRole::where('username', $user->username)
+            ->where('status', 'A')
+            ->where('role_id', 'CSACCESS')
+            ->pluck('role_id');
+
+           
         return view('pages.meeting.meeting', [
             'selectedDate' => $date,
             'rooms'        => $rooms,
@@ -71,6 +79,70 @@ class MeetingController extends Controller
             'users'        => $users,
             'dateblock'    => $dateblock,
             'user'         => $user,
+            'hasCsAccess'  => $roleIds->isNotEmpty(),
+        ]);
+    }
+
+    public function MeetingTeams(Request $request)
+    {
+        $selectedDate = $request->get('date', now()->format('Y-m-d'));
+
+        try {
+            $date = Carbon::parse($selectedDate)->startOfDay();
+        } catch (\Throwable $e) {
+            $date = now()->startOfDay();
+        }
+
+        $dayStart = $date->copy()->startOfDay();
+        $dayEnd   = $date->copy()->endOfDay();
+
+        $rooms = MsMeetingRoom::query()
+            ->whereIn('status', ['T', 'Z'])
+            ->orderBy('room_name')
+            ->get();
+
+        $meetings = TrMeeting::query()
+            ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
+            ->orderBy('room_id')
+            ->orderBy('start_meeting_time')
+            ->get();          
+
+        $users = User::query()
+            ->where('status', 'A')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($user) {
+                $user->meeting_email = $user->notification_email ?: $user->email;
+                return $user;
+            })
+            ->filter(function ($user) {
+                return !empty($user->meeting_email);
+            })
+            ->values();
+
+        // $dateblock = now()->format('Y-m-d');
+        $date_block = MsDasSetting::query()
+            ->where('status','A')
+            ->first();
+
+        $dateblock = date("Y-m-d", strtotime($date_block->setting_value_string));
+
+        $user = auth()->user();
+
+        $roleIds = SysUserRole::where('username', $user->username)
+            ->where('status', 'A')
+            ->where('role_id', 'CSACCESS')
+            ->pluck('role_id');
+
+           
+        return view('pages.meeting.meetingteams', [
+            'selectedDate' => $date,
+            'rooms'        => $rooms,
+            'meetings'     => $meetings,
+            'users'        => $users,
+            'dateblock'    => $dateblock,
+            'user'         => $user,
+            'hasCsAccess'  => $roleIds->isNotEmpty(),
         ]);
     }
 
@@ -104,7 +176,9 @@ class MeetingController extends Controller
                 'descr'                      => ['required', 'string'],
                 'acc_id'                     => ['nullable', 'array'],
                 'acc_id.*'                   => ['nullable', 'string'],
-                'participant'                => ['nullable', 'string', 'max:50'],
+                // 'participant'                => ['nullable', 'string', 'max:50'],
+                'participant' => ['required', 'numeric', 'min:1'],
+                'username' => ['required', 'array', 'min:1'],
                 'username'                   => ['nullable', 'array'],
                 'username.*'                 => ['nullable', 'string'],
                 'external_participant'       => ['nullable', 'string', 'max:255'],
@@ -210,6 +284,10 @@ class MeetingController extends Controller
                 'updated_at'                => now(),
             ]);
 
+            $room = MsMeetingRoom::query()
+                ->where('room_id', $meeting->room_id)
+                ->value('room_name');
+
             DB::connection('pgsql5')->commit();
 
             // kalau acc_id ada -> coba create Teams meeting
@@ -262,10 +340,11 @@ class MeetingController extends Controller
                     'meeting_date' => $meeting->meeting_date,
                     'start_time'   => Carbon::parse($meeting->start_meeting_time)->format('d-m-Y H:i'),
                     'end_time'     => Carbon::parse($meeting->end_meeting_time)->format('d-m-Y H:i'),
-                    'room_id'      => $meeting->room_id,
+                    'room_id'      => $room,
                     'requester'    => $meeting->user_peminta,
                     'participant'  => $meeting->total_participant,
                     'external_participant' => $meeting->external_participant,
+                    'msteams_join_url' => $meeting->msteams_join_url,
                 ];
 
                 \Mail::send([], [], function ($message) use ($toEmails, $ccEmail, $mailData) {
@@ -281,6 +360,14 @@ class MeetingController extends Controller
                             <tr><td><strong>Requester</strong></td><td>: ' . e($mailData['requester']) . '</td></tr>
                             <tr><td><strong>Total Participant</strong></td><td>: ' . e($mailData['participant']) . '</td></tr>
                             <tr><td><strong>External Participant</strong></td><td>: ' . e($mailData['external_participant']) . '</td></tr>
+                            <tr>
+                                <td><strong>Teams Join URL</strong></td>
+                                <td>: ' . (!empty($mailData['msteams_join_url'])
+                                    ? '<a href="' . e($mailData['msteams_join_url']) . '" target="_blank" style="color:#2563eb;text-decoration:underline;">'
+                                        . e($mailData['msteams_join_url']) .
+                                    '</a>'
+                                    : '-') . '</td>
+                            </tr>
                         </table>
                     ';
 
@@ -312,19 +399,17 @@ class MeetingController extends Controller
         }
     }
 
-    public function store_xxx(Request $request)
+    public function storeTeams(Request $request)
     {
         try {
             $request->validate([
-                'datetimes'    => ['required', 'string'],
-                'room_id'      => ['required', 'string', 'max:50'],
-                'title'        => ['required', 'string', 'max:255'],
-                'descr'        => ['required', 'string'],
-                'acc_id'       => ['nullable', 'array'],
-                'acc_id.*'     => ['nullable', 'string'],
-                'participant'  => ['nullable', 'string', 'max:50'],
-                'username'     => ['nullable', 'array'],
-                'username.*'   => ['nullable', 'string'],
+                'datetimes'                  => ['required', 'string'],
+                'room_id'                    => ['required', 'string', 'max:50'],
+                'title'                      => ['required', 'string', 'max:255'],
+                'descr'                      => ['required', 'string'],
+                'acc_id'                     => ['nullable', 'array'],
+                'acc_id.*'                   => ['nullable', 'string'],               
+              
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -365,22 +450,18 @@ class MeetingController extends Controller
         $year     = $startMeeting->format('Y');
         $month    = $startMeeting->format('m');
 
-        $cpnyid = explode(',', $authUser->cpny_id);
-            $firstcpnyid = trim($cpnyid[0]); 
+        $cpnyid = explode(',', (string) $authUser->cpny_id);
+        $firstcpnyid = trim($cpnyid[0] ?? '');
 
-        $department = explode(',', $authUser->department_id);
-            $firstDepartment = trim($department[0]); 
+        $department = explode(',', (string) $authUser->department_id);
+        $firstDepartment = trim($department[0] ?? '');
 
-        $emailList = collect($request->username ?? [])
-            ->filter()
-            ->map(function ($item) {
-                $parts = explode('|', $item, 2);
-                return $parts[1] ?? $parts[0] ?? null;
-            })
-            ->filter()
-            ->unique()
-            ->values()
-            ->implode(',');
+        $internalEmails = collect([
+            'rikiparahat@pakuwon.com',
+            // 'miftahulfahri@pakuwon.com',
+        ]);
+
+        $emailList = $internalEmails->implode(',');        
 
         $accList = collect($request->acc_id ?? [])
             ->filter()
@@ -396,15 +477,13 @@ class MeetingController extends Controller
             $meeting = TrMeeting::create([
                 'docid'                     => $docid,
                 'meeting_date'              => $startMeeting->format('Y-m-d'),
-                'cpny_id'                   => $firstcpnyid ?? null,
-                'department_id'             => $firstDepartment ?? null,
+                'cpny_id'                   => $firstcpnyid ?: null,
+                'department_id'             => $firstDepartment ?: null,
                 'user_peminta'              => $username,
                 'start_meeting_time'        => $startMeeting->format('Y-m-d H:i:s'),
                 'end_meeting_time'          => $endMeeting->format('Y-m-d H:i:s'),
                 'meeting_title'             => $request->title,
-                'meeting_descr'             => $request->descr,
-                'total_participant'         => $request->participant,
-                'participant_list'          => $emailList,
+                'meeting_descr'             => $request->descr,             
                 'room_id'                   => $request->room_id,
                 'acc_id'                    => $accList,
                 'status'                    => 'P',
@@ -414,7 +493,59 @@ class MeetingController extends Controller
                 'updated_at'                => now(),
             ]);
 
-            DB::connection('pgsql5')->commit();
+           $room = MsMeetingRoom::query()
+            ->where('room_id', $meeting->room_id)
+            ->value('room_name');
+
+
+            DB::connection('pgsql5')->commit();            
+
+            // CC email dari requester
+            $ccEmail = User::query()
+                ->where('username', $username)
+                ->value('notification_email');
+
+            // Gabungkan email TO dari internal + external
+            $toEmails = $internalEmails;
+
+            if ($toEmails->isNotEmpty()) {
+                $mailData = [
+                    'docid'        => $meeting->docid,
+                    'title'        => $meeting->meeting_title,
+                    'description'  => $meeting->meeting_descr,
+                    'meeting_date' => $meeting->meeting_date,
+                    'start_time'   => Carbon::parse($meeting->start_meeting_time)->format('d-m-Y H:i'),
+                    'end_time'     => Carbon::parse($meeting->end_meeting_time)->format('d-m-Y H:i'),
+                    'room_id'      => $room,
+                    'requester'    => $meeting->user_peminta,
+                    'participant'  => $meeting->total_participant,
+                    'external_participant' => $meeting->external_participant,
+                    'msteams_join_url' => $meeting->msteams_join_url,
+                ];
+
+                \Mail::send([], [], function ($message) use ($toEmails, $ccEmail, $mailData) {
+                    $htmlBody = '
+                        <h3>Request ' . e($mailData['room_id']) . '</h3>
+                        <table cellpadding="6" cellspacing="0" border="0">
+                            <tr><td><strong>Doc ID</strong></td><td>: ' . e($mailData['docid']) . '</td></tr>
+                            <tr><td><strong>Title</strong></td><td>: ' . e($mailData['title']) . '</td></tr>
+                            <tr><td><strong>Description</strong></td><td>: ' . e($mailData['description']) . '</td></tr>
+                            <tr><td><strong>Start</strong></td><td>: ' . e($mailData['start_time']) . '</td></tr>
+                            <tr><td><strong>End</strong></td><td>: ' . e($mailData['end_time']) . '</td></tr>
+                            <tr><td><strong>Room</strong></td><td>: ' . e($mailData['room_id']) . '</td></tr>
+                            <tr><td><strong>Requester</strong></td><td>: ' . e($mailData['requester']) . '</td></tr>                           
+                        </table>
+                    ';
+
+                    $message->to($toEmails->all())
+                        ->subject('Request ' . $mailData['room_id'] . ' - ' . $mailData['title'])
+                        ->html($htmlBody);
+
+                    if (!empty($ccEmail)) {
+                        $message->cc($ccEmail);
+                    }
+                });
+            }
 
             return response()->json([
                 'success' => true,
@@ -433,51 +564,8 @@ class MeetingController extends Controller
             ], 500);
         }
     }
-
-  
-    protected function generateMeetingDocId($year, $month, $username)
-    {
-        $doctype = 'MTR';
-
-        DB::connection('pgsql2')->beginTransaction();
-
-        try {
-            $auto = Autonbr::query()
-                ->where('doctype', $doctype)
-                ->where('year', $year)
-                ->where('month', $month)
-                ->lockForUpdate()
-                ->first();
-
-            if (!$auto) {
-                $auto = Autonbr::create([
-                    'doctype'       => $doctype,
-                    'doctype_descr' => 'Meeting Request',
-                    'year'          => $year,
-                    'month'         => $month,
-                    'number'        => 0,
-                    'status'        => 'A',
-                    'created_by'    => $username,
-                    'updated_by'    => $username,
-                ]);
-            }
-
-            $nextNumber = ((int) $auto->number) + 1;
-
-            $auto->update([
-                'number'     => $nextNumber,
-                'updated_by' => $username,
-            ]);
-
-            DB::connection('pgsql2')->commit();
-
-            $tglbln = substr((string) $year, 2) . $month; // YYMM
-            return $doctype . $tglbln . sprintf('%04d', $nextNumber);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql2')->rollBack();
-            throw $e;
-        }
-    }
+   
+    
 
     public function MeetingList()
     {
@@ -580,11 +668,111 @@ class MeetingController extends Controller
         ]);
     }
 
+     public function TeamsList()
+    {
+        return view('pages.meeting.teamslist');
+    }
+
+    public function jsonTeams(Request $request)
+    {
+        $columns = [
+            0 => 'tm.docid',
+            1 => 'tm.user_peminta',
+            2 => 'tm.start_meeting_time',
+            3 => 'tm.end_meeting_time',
+            4 => 'tm.meeting_title',
+            5 => 'tm.meeting_descr',
+            6 => 'mr.room_name',
+            7 => 'ma.acc_name',
+        ];
+
+        $baseQuery = DB::connection('pgsql5')
+            ->table('tr_meeting as tm')
+            ->leftJoin('ms_meeting_room as mr', 'tm.room_id', '=', 'mr.room_id')
+            ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id');
+
+        $totalData = (clone $baseQuery)->count('tm.id');
+        $totalFiltered = $totalData;
+
+        $limit = (int) $request->input('length', 10);
+        $start = (int) $request->input('start', 0);
+        $orderIndex = $request->input('order.0.column', 2);
+        $order = $columns[$orderIndex] ?? 'tm.start_meeting_time';
+        $dir = $request->input('order.0.dir', 'desc');
+        $search = $request->input('search.value');
+
+        $query = (clone $baseQuery)
+            ->select([
+                'tm.id',
+                'tm.docid',
+                'tm.user_peminta',
+                'tm.start_meeting_time',
+                'tm.end_meeting_time',
+                'tm.meeting_title',
+                'tm.meeting_descr',
+                'tm.room_id',
+                'tm.acc_id',
+                'tm.status',
+                'mr.room_name',
+                'ma.acc_name',
+            ]);
+
+        if (!empty($search)) {
+            $search = strtolower($search);
+
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw("LOWER(COALESCE(tm.docid, '')) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("LOWER(COALESCE(tm.user_peminta, '')) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("LOWER(COALESCE(tm.meeting_title, '')) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("LOWER(COALESCE(tm.meeting_descr, '')) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("LOWER(COALESCE(mr.room_name, '')) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("LOWER(COALESCE(ma.acc_name, '')) LIKE ?", ["%{$search}%"]);
+            });
+
+            $totalFiltered = (clone $query)->count('tm.id');
+        }
+
+        $meetings = $query
+            ->orderBy($order, $dir)
+            ->offset($start)
+            ->limit($limit)
+            ->get();
+
+        $data = [];
+        $no = $start + 1;
+
+        foreach ($meetings as $row) {
+            $data[] = [
+                'no' => $no++,
+                'docid' => $row->docid ?? '-',
+                'user_peminta' => $row->user_peminta ?? '-',
+                'start_meeting_time' => $row->start_meeting_time
+                    ? date('Y-m-d H:i:s', strtotime($row->start_meeting_time))
+                    : '-',
+                'end_meeting_time' => $row->end_meeting_time
+                    ? date('Y-m-d H:i:s', strtotime($row->end_meeting_time))
+                    : '-',
+                'meeting_title' => $row->meeting_title ?? '-',
+                'meeting_descr' => $row->meeting_descr ?? '-',
+                'room_name' => $row->room_name ?? '-',
+                'acc_name' => $row->acc_name ?? '-',
+                'status' => $row->status ?? '-',
+                'hash' => Hashids::encode($row->id),
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($request->input('draw')),
+            'recordsTotal' => intval($totalData),
+            'recordsFiltered' => intval($totalFiltered),
+            'data' => $data,
+        ]);
+    }
+
     public function showMeeting($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
-    
 
         $user = auth()->user();
         if (!$user) {
@@ -594,18 +782,262 @@ class MeetingController extends Controller
         $meeting = DB::connection('pgsql5')
             ->table('tr_meeting as tm')
             ->leftJoin('ms_meeting_room as mr', 'tm.room_id', '=', 'mr.room_id')
-            ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id')
             ->select([
                 'tm.*',
                 'mr.room_name',
-                'ma.acc_name',
             ])
             ->where('tm.id', $id)
             ->first();
 
         abort_if(!$meeting, 404);
 
-        return view('pages.meeting.showmeeting', compact('meeting', 'hash'));
+        $users = User::query()
+            ->where('status', 'A')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($user) {
+                $user->meeting_email = $user->notification_email ?: $user->email;
+                return $user;
+            })
+            ->filter(function ($user) {
+                return !empty($user->meeting_email);
+            })
+            ->values();
+
+        $accessories = MsMeetingAccessories::query()
+            ->where('room_id', $meeting->room_id)
+            ->where('status', 'A')
+            ->orderBy('acc_name')
+            ->get(['acc_id', 'acc_name']);
+
+        $accNames = [];
+        if (!empty($meeting->acc_id)) {
+            $accIds = collect(explode(',', (string) $meeting->acc_id))
+                ->map(fn($x) => trim($x))
+                ->filter()
+                ->values()
+                ->all();
+
+            if (!empty($accIds)) {
+                $accNames = MsMeetingAccessories::query()
+                    ->whereIn('acc_id', $accIds)
+                    ->orderBy('acc_name')
+                    ->pluck('acc_name')
+                    ->all();
+            }
+        }
+
+        $meeting->acc_name = !empty($accNames) ? implode(', ', $accNames) : '-';
+
+        $rooms = MsMeetingRoom::query()
+            ->where('status', 'A')
+            ->orderBy('room_name')
+            ->get(['room_id', 'room_name']);
+
+        return view('pages.meeting.showmeeting', compact('meeting', 'hash', 'users', 'accessories', 'rooms'));
+    }
+
+    public function updateMeeting(Request $request, $id)
+    {
+        // dd($request->all(), $id);
+        // $id = Hashids::decode($id)[0] ?? null;
+        // abort_if(!$id, 404);
+
+        $meeting = TrMeeting::on('pgsql5')->find($id);
+        abort_if(!$meeting, 404);
+
+        $oldStart = $meeting->start_meeting_time;
+        $oldEnd   = $meeting->end_meeting_time;
+        $oldRoom  = $meeting->room_id;
+
+        try {
+            $request->validate([
+                'datetimes'                  => ['required', 'string'],
+                'room_id'                    => ['required', 'string', 'max:50'],
+                'title'                      => ['required', 'string', 'max:255'],
+                'descr'                      => ['required', 'string'],
+                'acc_id'                     => ['nullable', 'array'],
+                'acc_id.*'                   => ['nullable', 'string'],
+                'participant'                => ['nullable', 'string', 'max:50'],
+                'username'                   => ['nullable', 'array'],
+                'username.*'                 => ['nullable', 'string'],
+                'external_participant'       => ['nullable', 'string', 'max:255'],
+                'participant_external_list'  => ['nullable', 'string'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors'  => $e->errors(),
+            ], 422);
+        }
+
+        [$startRaw, $endRaw] = array_pad(explode(' - ', $request->datetimes), 2, null);
+
+        if (!$startRaw || !$endRaw) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format Start - End tidak valid.',
+            ], 422);
+        }
+
+        try {
+            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
+            $endMeeting   = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanggal meeting tidak valid.',
+            ], 422);
+        }
+
+        if ($endMeeting->lessThanOrEqualTo($startMeeting)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'End time harus lebih besar dari start time.',
+            ], 422);
+        }
+
+        $authUser = auth()->user();
+        $username = $authUser->username ?? 'SYSTEM';
+
+        $internalEmails = collect($request->username ?? [])
+            ->filter()
+            ->map(function ($item) {
+                $parts = explode('|', $item, 2);
+                return trim($parts[1] ?? $parts[0] ?? '');
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        $externalEmails = collect(explode(',', (string) $request->participant_external_list))
+            ->map(fn($item) => trim($item))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $emailList = $internalEmails->implode(',');
+        $externalEmailList = $externalEmails->implode(',');
+
+        $accList = collect($request->acc_id ?? [])
+            ->filter()
+            ->unique()
+            ->values()
+            ->implode(',');
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $meeting->meeting_date              = $startMeeting->format('Y-m-d');
+            $meeting->start_meeting_time        = $startMeeting->format('Y-m-d H:i:s');
+            $meeting->end_meeting_time          = $endMeeting->format('Y-m-d H:i:s');
+            $meeting->meeting_title             = $request->title;
+            $meeting->meeting_descr             = $request->descr;
+            $meeting->external_participant      = $request->external_participant;
+            $meeting->total_participant         = $request->participant;
+            $meeting->participant_list          = $emailList;
+            $meeting->participant_external_list = $externalEmailList;
+            $meeting->room_id                   = $request->room_id;
+            $meeting->acc_id                    = $accList;
+            $meeting->updated_by                = $username;
+            $meeting->updated_at                = now();
+            $meeting->save();
+
+            $scheduleOrRoomChanged =
+                (string) $oldStart !== (string) $meeting->start_meeting_time ||
+                (string) $oldEnd   !== (string) $meeting->end_meeting_time ||
+                (string) $oldRoom  !== (string) $meeting->room_id;
+
+            if ($scheduleOrRoomChanged && !empty($meeting->acc_id)) {
+                $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
+
+                if (!empty($teamsResult['success'])) {
+                    $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? $meeting->msteams_event_id;
+                    $meeting->msteams_join_url = $teamsResult['msteams_join_url'] ?? $meeting->msteams_join_url;
+                    $meeting->msteams_passcode = $teamsResult['msteams_passcode'] ?? $meeting->msteams_passcode;
+                    $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'] ?? $meeting->msteams_meetingid;
+                    $meeting->updated_by = $username;
+                    $meeting->updated_at = now();
+                    $meeting->save();
+                } else {
+                    Log::warning('Teams meeting was not updated after meeting edit', [
+                        'meeting_id' => $meeting->id,
+                        'docid' => $meeting->docid,
+                        'reason' => $teamsResult['message'] ?? 'Unknown error',
+                    ]);
+                }
+            }
+
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Meeting berhasil diupdate.',
+                'data' => [
+                    'id'    => $meeting->id,
+                    'docid' => $meeting->docid,
+                    'hash'  => Hashids::encode($meeting->id),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            Log::error('updateMeeting exception', [
+                'meeting_id' => $id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal update meeting: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    protected function generateMeetingDocId($year, $month, $username)
+    {
+        $doctype = 'MTR';
+
+        DB::connection('pgsql2')->beginTransaction();
+
+        try {
+            $auto = Autonbr::query()
+                ->where('doctype', $doctype)
+                ->where('year', $year)
+                ->where('month', $month)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$auto) {
+                $auto = Autonbr::create([
+                    'doctype'       => $doctype,
+                    'doctype_descr' => 'Meeting Request',
+                    'year'          => $year,
+                    'month'         => $month,
+                    'number'        => 0,
+                    'status'        => 'A',
+                    'created_by'    => $username,
+                    'updated_by'    => $username,
+                ]);
+            }
+
+            $nextNumber = ((int) $auto->number) + 1;
+
+            $auto->update([
+                'number'     => $nextNumber,
+                'updated_by' => $username,
+            ]);
+
+            DB::connection('pgsql2')->commit();
+
+            $tglbln = substr((string) $year, 2) . $month; // YYMM
+            return $doctype . $tglbln . sprintf('%04d', $nextNumber);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql2')->rollBack();
+            throw $e;
+        }
     }
 
     protected function createTeamsMeetingFromAccessory($meeting): array

@@ -1162,6 +1162,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/meetinglist', [MeetingController::class, 'MeetingList'])->name('meetinglist');
     Route::get('/meetinglist/json', [MeetingController::class, 'json'])->name('meetinglist.json');
     Route::get('/showmeeting/{hash}', [MeetingController::class, 'showMeeting'])->name('meeting.show');
+    Route::put('/updatemeeting/{id}', [MeetingController::class, 'updateMeeting'])->name('updatemeeting');
+    Route::get('/meetingteams', [MeetingController::class, 'MeetingTeams'])->name('meetingteams');
+    Route::post('/saveteams', [MeetingController::class, 'storeTeams'])->name('teams.store');
+
+    Route::get('/teamslist', [MeetingController::class, 'TeamsList'])->name('teamslist');
+    Route::get('/teamslist/json', [MeetingController::class, 'jsonTeams'])->name('teamslist.json');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');

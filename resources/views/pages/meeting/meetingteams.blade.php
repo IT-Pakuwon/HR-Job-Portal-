@@ -1,4 +1,11 @@
 <x-app-layout>
+    <style>
+      
+
+        .fc .fc-timeline-slot-lane {
+            height: 120px !important;
+        }
+    </style>
     <div class="max-w-9xl mx-auto w-full p-2">
         @if (session('success'))
             <div class="mb-4 rounded-lg border border-green-300 bg-green-100 px-4 py-3 text-sm text-green-800">
@@ -26,9 +33,9 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ url('/meetingteams') }}"
+                    <a href="{{ url('/meeting') }}"
                         class="inline-flex items-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">
-                        Request Teams/Zoom
+                        Request Meeting
                     </a>
 
                     <a href="{{ url('/meetinglist') }}"
@@ -38,7 +45,7 @@
 
                     <a href="{{ url('/list_zoom') }}"
                         class="inline-flex items-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600">
-                        List Teams/Zoom Meeting
+                        List Teams Meeting
                     </a>
                 </div>
             </div>
@@ -61,7 +68,7 @@
                     </button>
                 </div>
 
-                <form id="meetingForm" action="{{ url('/savemeeting') }}" method="post">
+                <form id="meetingForm" action="{{ url('/saveteams') }}" method="post">
                     @csrf
 
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -111,65 +118,7 @@
                                 class="meeting-multi w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                 multiple>
                             </select>
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                Participant
-                            </label>
-                            <input type="number" id="participant" name="participant"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                placeholder="Number Of Participant"
-                                min="1"
-                                required>
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                Email To
-                            </label>
-                            <select id="username" name="username[]"
-                                class="meeting-multi w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                multiple required>
-                                @foreach ($users as $u)
-                                    <option value="{{ $u->username }}|{{ $u->meeting_email }}">
-                                        {{ $u->name }} ({{ $u->meeting_email }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-white">
-                                <input type="checkbox" id="is_external_participant"
-                                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                External Participant
-                            </label>
-                        </div>
-
-                        <div id="externalParticipantSection" class="hidden md:col-span-2">
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                        External Participant
-                                    </label>
-                                    <input type="text" id="external_participant" name="external_participant"
-                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                        placeholder="Nama external participant">
-                                </div>
-
-                                <div>
-                                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                        Email External
-                                    </label>
-                                    <input type="text" id="participant_external_list" name="participant_external_list"
-                                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                        placeholder="email1@mail.com,email2@mail.com">
-                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                        Pisahkan beberapa email dengan koma.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        </div>                                               
                     </div>
 
                     <div class="mt-6 flex justify-end gap-2">
@@ -235,16 +184,7 @@
                 if (accTom) {
                     accTom.clear();
                     accTom.clearOptions();
-                }
-
-                if (userTom) {
-                    userTom.clear();
-                }
-
-                $('#external_participant').val('');
-                $('#participant_external_list').val('');
-                $('#is_external_participant').prop('checked', false);
-                $('#externalParticipantSection').addClass('hidden');
+                }             
 
                 resetSubmitState();
             }
@@ -304,9 +244,10 @@
                     @endforeach
                 ],
 
-                selectOverlap: function(event) {
-                    return event.rendering === 'background';
-                },
+                // selectOverlap: function(event) {
+                //     return event.rendering === 'background';
+                // },
+                selectOverlap: true,
 
                 eventClick: function(info) {
                     info.jsEvent.preventDefault(); // supaya tidak reload default
@@ -385,29 +326,7 @@
                 e.preventDefault();
 
                 const $form = $(this);
-                const formData = $form.serialize();
-                const participant = $('#participant').val();
-                const users = $('#username').val();
-
-                 if (!participant || participant <= 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Validation',
-                        text: 'Participant harus diisi dan berupa angka lebih dari 0'
-                    });
-                    return false;
-                }
-
-                if (!users || users.length === 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Validation',
-                        text: 'Email To wajib diisi minimal 1'
-                    });
-                    return false;
-                }
+                const formData = $form.serialize();               
 
                 $('#submitBtn').prop('disabled', true);
                 $('#submitText').text('Loading...');
@@ -450,42 +369,15 @@
                     }
                 });
             });
-
-            const externalCheckbox = document.getElementById('is_external_participant');
-            const externalSection = document.getElementById('externalParticipantSection');
-
-            function toggleExternalParticipant() {
-                if (externalCheckbox.checked) {
-                    externalSection.classList.remove('hidden');
-                } else {
-                    externalSection.classList.add('hidden');
-                    $('#external_participant').val('');
-                    $('#participant_external_list').val('');
-                }
-            }
-
-            externalCheckbox.addEventListener('change', toggleExternalParticipant);
-            toggleExternalParticipant();
-
+       
 
         });
     </script>
 
     <script>
         let accTom = null;
-        let userTom = null;
-
-        function initTomSelect() {
-            if (!userTom) {
-                userTom = new TomSelect('#username', {
-                    plugins: ['remove_button'],
-                    create: false,
-                    persist: false,
-                    maxOptions: 1000,
-                    placeholder: 'Select email recipients',
-                    searchField: ['text', 'value']
-                });
-            }
+       
+        function initTomSelect() {           
 
             if (!accTom) {
                 accTom = new TomSelect('#acc_id', {
@@ -501,157 +393,5 @@
             initTomSelect();
         });
     </script>
-
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            const modal = document.getElementById('schedule-show');
-            const closeModalBtn = document.getElementById('closeScheduleModal');
-            const cancelModalBtn = document.getElementById('cancelScheduleModal');
-
-            function openModal() {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-
-            function closeModal() {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-
-            closeModalBtn.addEventListener('click', closeModal);
-            cancelModalBtn.addEventListener('click', closeModal);
-
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
-                now: new Date(),
-                scrollTime: '08:00:00',
-                editable: false,
-                selectable: true,
-                aspectRatio: 1.6,
-                headerToolbar: {
-                    left: 'today prev,next',
-                    center: 'title',
-                    right: 'resourceTimelineDay,resourceTimelineThreeDays,timeGridWeek,dayGridMonth,listWeek'
-                },
-                initialView: 'resourceTimelineDay',
-                views: {
-                    resourceTimelineThreeDays: {
-                        type: 'resourceTimeline',
-                        duration: { days: 3 },
-                        buttonText: '3 days'
-                    }
-                },
-                resourceAreaHeaderContent: 'Rooms',
-
-                resources: [
-                    @foreach ($rooms as $showroom)
-                        {
-                            id: @json($showroom->room_id),
-                            title: @json($showroom->room_name),
-                            eventColor: @json($showroom->eventcolor ?: '#2563eb')
-                        },
-                    @endforeach
-                ],
-
-                events: [
-                    @foreach ($meetings as $showmeeting)
-                        {
-                            id: @json($showmeeting->id),
-                            resourceId: @json($showmeeting->room_id),
-                            start: @json(\Carbon\Carbon::parse($showmeeting->start_meeting_time)->format('Y-m-d H:i:s')),
-                            end: @json(\Carbon\Carbon::parse($showmeeting->end_meeting_time)->format('Y-m-d H:i:s')),
-                            title: @json(trim(($showmeeting->user_peminta ? $showmeeting->user_peminta . ' - ' : '') . $showmeeting->meeting_title)),
-                        },
-                    @endforeach
-                ],
-
-                selectOverlap: function(event) {
-                    return event.rendering === 'background';
-                },
-
-                select: function(info) {
-                    var addstart = moment(info.startStr).format('YYYY-MM-DD hh:mm A');
-                    var addend = moment(info.endStr).format('YYYY-MM-DD hh:mm A');
-                    var adddate = moment(info.endStr).format('YYYY-MM-DD');
-
-                    var dateblock = @json($dateblock);
-                    var usergroups = @json($user->groups ?? '');
-                    var id = info.resource ? info.resource.id : null;
-                    var roomTitle = info.resource ? info.resource.title : '';
-
-                    $('#datetimes').val(addstart + ' - ' + addend);
-                    $('#room_id').val(id);
-                    $('#room_id_display').empty().append('<option value="' + id + '">' + roomTitle + '</option>');
-
-                    $.ajax({
-                        url: 'infoacc_' + id,
-                        type: 'get',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (accTom) {
-                                accTom.clear();
-                                accTom.clearOptions();
-
-                                $.each(response, function(key, value) {
-                                    accTom.addOption({
-                                        value: key,
-                                        text: value
-                                    });
-                                });
-
-                                accTom.refreshOptions(false);
-                            }
-                        }
-                    });
-
-                    if (adddate > dateblock) {
-                        alert('Cannot Create !');
-                    } else if (usergroups != '15' && (id == 'd' || id == 'h')) {
-                        alert('Unable to book this room, Please contact Reception !');
-                    } else {
-                        openModal();
-                    }
-                }
-            });
-
-            calendar.render();
-
-            $('#meetingForm').on('submit', function() {
-                $('#submitBtn').prop('disabled', true);
-                $('#submitText').text('Loading...');
-                $('#loadingSpinner').removeClass('hidden');
-            });
-        });
-    </script>
-    <script>
-        let accTom = null;
-        let userTom = null;
-
-        function initTomSelect() {
-            if (!userTom) {
-                userTom = new TomSelect('#username', {
-                    plugins: ['remove_button'],
-                    create: false,
-                    persist: false,
-                    maxOptions: 1000,
-                    placeholder: 'Select email recipients',
-                    searchField: ['text', 'value']
-                });
-            }
-
-            if (!accTom) {
-                accTom = new TomSelect('#acc_id', {
-                    plugins: ['remove_button'],
-                    create: false,
-                    persist: false,
-                    placeholder: 'Select accessories'
-                });
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            initTomSelect();
-        });
-    </script> --}}
+   
 </x-app-layout>

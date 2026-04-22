@@ -258,7 +258,7 @@ class AcumVmsStagingController extends Controller
                                 'podate'           => $po->podate,
                                 'vendor_id'        => $po->vendorid,
                                 'vendorname'       => $po->vendorname,
-                                'purchaser'        => $po->user_peminta,
+                                'purchaser'        => $po->created_by,
                                 'material_service' => $materialService,
                                 'totalamt'         => $po->totalamt,
                                 'taxcodeid'        => $po->taxcodeid,
