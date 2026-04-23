@@ -198,6 +198,7 @@
     </div>
     <script>
         var currentUser = "{{ auth()->user()->username }}";
+        var personnelsTable;
         $(document).ready(function() {
             function toggleActionColumn(table, data) {
 
@@ -211,7 +212,7 @@
             }
 
             // Hanya inisialisasi tabel personnelsTable
-            let personnelsTable = $('#personnelsTable').DataTable({
+            personnelsTable = $('#personnelsTable').DataTable({
                 ajax: "{{ route('personnels.json') }}?status=P",
                 processing: true,
                 serverSide: false,
@@ -775,7 +776,7 @@
                     showConfirmButton: false
                 });
 
-                personnelsTable.ajax.reload(null, false);
+                personnelsTable.ajax.reload(null, true);
             })
             .fail(() => {
                 Swal.fire('Failed', 'Something went wrong', 'error');

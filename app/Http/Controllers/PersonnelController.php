@@ -2589,6 +2589,14 @@ class PersonnelController extends Controller
 
     public function toggleJobPostingStatus(Request $request)
     {
+        // 1. VALIDATE
+        $request->validate([
+            'docid' => 'required',
+            'status' => 'required|in:P,C,H,X',
+            'reason' => 'nullable|string|required_if:status,H'
+        ]);
+
+        // 2. CHECK ACCESS
         $username = auth()->user()->username;
 
         $hasAccess = GroupAccspecific::where('username', $username)
@@ -2600,28 +2608,26 @@ class PersonnelController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // 3. FIND DATA
         $job = Jobposting::where('refid', $request->docid)->first();
 
         if (!$job) {
             return response()->json(['message' => 'Not found'], 404);
         }
 
-        // ✅ UPDATE STATUS
+        // 4. UPDATE
         $job->status = $request->status;
 
-        // ✅ SAVE REASON ONLY WHEN HOLD
         if ($request->status === 'H') {
             $job->reason = $request->reason;
-        }
-
-        // (optional) clear reason kalau bukan hold
-        if ($request->status !== 'H') {
+        } else {
             $job->reason = null;
         }
 
         $job->updated_user = $username;
         $job->save();
 
+        // 5. RESPONSE
         return response()->json(['success' => true]);
     }
 
