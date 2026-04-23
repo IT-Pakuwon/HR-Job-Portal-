@@ -429,7 +429,7 @@
                             let text = '';
                             let cls = '';
 
-                            if (!data) {
+                           if (!data) {
                                 text = 'Not Posted';
                                 cls = 'bg-gray-200 text-gray-700';
                             } else if (data === 'P') {
@@ -438,11 +438,16 @@
                             } else if (data === 'C') {
                                 text = 'Closed';
                                 cls = 'bg-green-200 text-green-800';
+                            } else if (data === 'X') {
+                                text = 'Cancelled'; // ✅ ADD THIS
+                                cls = 'bg-red-200 text-red-800';
+                            } else if (data === 'H') {
+                                text = "Hold";
+                                cls = 'bg-yellow-200 text-yellow-800';
                             } else {
                                 text = data;
                                 cls = 'bg-gray-200 text-gray-700';
                             }
-
                             return `<span class="px-2 py-1 rounded ${cls}">${text}</span>`;
                         }
                     },
@@ -451,103 +456,216 @@
                         orderable: false,
                         render: function(data, type, row) {
 
-                            // ❌ tidak punya akses
-                            if (!row.can_toggle) {
-                                return `<span class="text-gray-300 text-xs">-</span>`;
-                            }
+                            if (!row.can_toggle) return `<span class="text-gray-300 text-xs">-</span>`;
+                            if (!row.jobposting_status) return `<span class="text-gray-400 text-sm">-</span>`;
+                            if (row.status !== 'C') return `<span class="text-gray-300 text-xs">-</span>`;
 
-                            // ❌ belum ada jobposting
-                            if (!row.jobposting_status) {
-                                return `<span class="text-gray-400 text-sm">-</span>`;
-                            }
+                            let buttons = `<div class="flex items-center gap-2 justify-end">`;
 
-                            // ❌ optional: hanya kalau PRF completed
-                            if (row.status !== 'C') {
-                                return `<span class="text-gray-300 text-xs">-</span>`;
-                            }
-
-                            // ✅ BUTTON
+                            // 🔵 POSTED → can Close + Cancel
                             if (row.jobposting_status === 'P') {
-                                return `
+                                buttons += `
                                     <button
-                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg
-                                        bg-red-50 text-red-600 border border-red-200
-                                        hover:bg-red-100 hover:border-red-300 transition-all duration-200"
+                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
+                                        bg-red-100 text-red-700 hover:bg-red-200 transition"
                                         data-docid="${row.docid}"
                                         data-status="P"
                                     >
-                                        <i class="fas fa-lock text-[10px]"></i>
-                                        Close
+                                        🔒 Close
                                     </button>
                                 `;
-                            }
 
-                            if (row.jobposting_status === 'C') {
-                                return `
+                                buttons += `
                                     <button
-                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg
-                                        bg-green-50 text-green-600 border border-green-200
-                                        hover:bg-green-100 hover:border-green-300 transition-all duration-200"
+                                        class="cancel-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
+                                        bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
                                         data-docid="${row.docid}"
-                                        data-status="C"
                                     >
-                                        <i class="fas fa-lock-open text-[10px]"></i>
-                                        Reopen
+                                        ✖ Cancel
                                     </button>
                                 `;
                             }
 
-                            return '';
+                            // 🟢 CLOSED → can Reopen + Cancel
+                            if (row.jobposting_status === 'C') {
+                                buttons += `
+                                <button
+                                    class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
+                                    bg-green-100 text-green-700 hover:bg-green-200 transition"
+                                    data-docid="${row.docid}"
+                                    data-status="C"
+                                >
+                                    🔓 Reopen
+                                </button>
+                                `;
+
+                                buttons += `
+                                    <button
+                                        class="cancel-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
+                                        bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+                                        data-docid="${row.docid}"
+                                    >
+                                        ✖ Cancel
+                                    </button>
+                                `;
+                            }
+
+                            if (row.jobposting_status === 'H') {
+                                buttons += `
+                                    <button
+                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
+                                        bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                                        data-docid="${row.docid}"
+                                        data-status="H"
+                                    >
+                                        🔄 Open
+                                    </button>
+                                `;
+                            }
+
+                            // ❌ CANCELLED → no action
+                            if (row.jobposting_status === 'X') {
+                                return `<span class="text-red-500 text-xs font-semibold">Cancelled</span>`;
+                            }
+
+                            buttons += `</div>`;
+                            return buttons;
                         }
                     }
                 ]
             });
 
-            $('#personnelsTable').on('click', '.toggle-status', function() {
+                $('#personnelsTable').on('click', '.toggle-status', function() {
 
                     let btn = $(this);
                     let docid = btn.data('docid');
-                    let status = btn.data('status');
+                    let currentStatus = btn.data('status');
 
-                    let newStatus = (status === 'P') ? 'C' : 'P';
-                    let actionText = newStatus === 'C' ? 'close' : 'reopen';
+                    let title = '';
+                    let text = '';
+                    let showHoldClose = false;
+
+                    // 🔥 Decide popup based on current status
+                    if (currentStatus === 'P') {
+                        title = 'Select Action';
+                        text = 'Do you want to HOLD or CLOSE this job posting?';
+                        showHoldClose = true;
+                    } else if (currentStatus === 'C') {
+                        title = 'Reopen Job Posting';
+                        text = 'Do you want to reopen this job posting?';
+                    } else if (currentStatus === 'H') {
+                        title = 'Open Job Posting';
+                        text = 'Do you want to post this job again?';
+                    }
 
                     Swal.fire({
-                        title: 'Are you sure?',
-                        text: `You are about to ${actionText} this job posting.`,
-                        icon: 'warning',
+                        title,
+                        text,
+                        icon: 'question',
                         showCancelButton: true,
-                        confirmButtonColor: newStatus === 'C' ? '#dc2626' : '#16a34a',
-                        confirmButtonText: `Yes, ${actionText} it!`
+                        showDenyButton: showHoldClose,
+
+                        confirmButtonText: showHoldClose ? 'Close' : 'Yes',
+                        denyButtonText: 'Hold',
+                        cancelButtonText: 'Cancel',
+
+                        confirmButtonColor: '#dc2626',
+                        denyButtonColor: '#f59e0b'
                     }).then((result) => {
 
-                        if (!result.isConfirmed) return;
+                        // 🔴 CLOSE
+                        if (showHoldClose && result.isConfirmed) {
+                            processStatus(docid, 'C', 'Closed', btn);
+                        }
 
-                        btn.prop('disabled', true).html('Processing...');
-
-                        $.post('/jobposting/toggle-status', {
-                            docid,
-                            status: newStatus,
-                            _token: '{{ csrf_token() }}'
-                        })
-                        .done(() => {
+                        // 🟡 HOLD → NEED REASON
+                        else if (showHoldClose && result.isDenied) {
 
                             Swal.fire({
-                                icon: 'success',
-                                title: 'Success',
-                                timer: 1200,
-                                showConfirmButton: false
+                                title: 'Reason for Hold',
+                                input: 'textarea',
+                                inputPlaceholder: 'Enter reason...',
+                                inputAttributes: {
+                                    'aria-label': 'Reason'
+                                },
+                                showCancelButton: true,
+                                confirmButtonText: 'Submit',
+                                confirmButtonColor: '#f59e0b',
+                                preConfirm: (value) => {
+                                    if (!value) {
+                                        Swal.showValidationMessage('Reason is required');
+                                    }
+                                    return value;
+                                }
+                            }).then((res) => {
+
+                                if (!res.isConfirmed) return;
+
+                                let reason = res.value;
+
+                                processStatus(docid, 'H', 'Put on Hold', btn, reason);
                             });
+                        }
 
-                            personnelsTable.ajax.reload(null, false);
-                        })
-                        .fail(() => {
+                        // 🔵 REOPEN / OPEN
+                        else {
+                            if (!result.isConfirmed) return;
 
-                            Swal.fire('Failed', 'Something went wrong', 'error');
-                            btn.prop('disabled', false);
-                        });
+                            let status = null;
+                            let successText = '';
+
+                            if (currentStatus === 'C') {
+                                status = 'P';
+                                successText = 'Reopened';
+                            } else if (currentStatus === 'H') {
+                                status = 'P';
+                                successText = 'Opened';
+                            }
+
+                            processStatus(docid, status, successText, btn);
+                        }
                     });
                 });
+
+                $('#personnelsTable').on('click', '.cancel-status', function () {
+
+                let btn = $(this);
+                let docid = btn.data('docid');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You are about to cancel this job posting.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, cancel it!'
+                }).then((result) => {
+
+                    if (!result.isConfirmed) return;
+
+                    btn.prop('disabled', true).html('Processing...');
+
+                    $.post('/jobposting/toggle-status', {
+                        docid,
+                        status: 'X', // 🔥 CANCELLED
+                        _token: '{{ csrf_token() }}'
+                    })
+                    .done(() => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Cancelled',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                        personnelsTable.ajax.reload(null, false);
+                    })
+                    .fail(() => {
+                        Swal.fire('Failed', 'Something went wrong', 'error');
+                        btn.prop('disabled', false);
+                    });
+                });
+            });
 
             // Event listener untuk klik pada baris grup (collapse/expand) untuk personnelsTable
             $('#personnelsTable tbody').on('click', 'tr.group-row', function() {
@@ -640,6 +758,29 @@
                 });
             });
         });
+
+       function processStatus(docid, status, successText, reason = null) {
+
+            $.post('/jobposting/toggle-status', {
+                docid,
+                status,
+                reason, // ✅ SEND REASON
+                _token: '{{ csrf_token() }}'
+            })
+            .done(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: successText,
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+
+                personnelsTable.ajax.reload(null, false);
+            })
+            .fail(() => {
+                Swal.fire('Failed', 'Something went wrong', 'error');
+            });
+        }
     </script>
 
 </x-app-layout>
