@@ -439,11 +439,19 @@
                                 text = 'Closed';
                                 cls = 'bg-green-200 text-green-800';
                             } else if (data === 'X') {
+<<<<<<< Updated upstream
                                 text = 'Cancelled'; // ✅ ADD THIS
                                 cls = 'bg-red-200 text-red-800';
                             } else if (data === 'H') {
                                 text = "Hold";
                                 cls = 'bg-yellow-200 text-yellow-800';
+=======
+                                text = 'Cancelled';
+                                cls = 'bg-red-200 text-red-800';
+                            } else if (data === 'H') {
+                                text = 'Hold';
+                                cls = 'bg-orange-200 text-orange-800';
+>>>>>>> Stashed changes
                             } else {
                                 text = data;
                                 cls = 'bg-gray-200 text-gray-700';
