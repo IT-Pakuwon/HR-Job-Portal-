@@ -162,14 +162,14 @@
                     <div class="px-4 py-[8px]">
                         @php
                             $fields = [
-                                [
-                                    'icon' => 'calendar-days',
-                                    'label' => 'Kontrak Date',
-                                    'value' =>
-                                        optional($kontrak->kontrakdate)->format('d M Y') ??
-                                        ($kontrak->kontrakdate ? \Carbon\Carbon::parse($kontrak->kontrakdate)->format('d M Y') : '-'),
-                                    'is_raw' => false,
-                                ],
+                                // [
+                                //     'icon' => 'calendar-days',
+                                //     'label' => 'Kontrak Date',
+                                //     'value' =>
+                                //         optional($kontrak->kontrakdate)->format('d M Y') ??
+                                //         ($kontrak->kontrakdate ? \Carbon\Carbon::parse($kontrak->kontrakdate)->format('d M Y') : '-'),
+                                //     'is_raw' => false,
+                                // ],
                                 ['icon' => 'building-office', 'label' => 'Company', 'value' => $kontrak->cpny_id, 'is_raw' => false],
                                 ['icon' => 'squares-2x2', 'label' => 'Department', 'value' => $kontrak->department_id, 'is_raw' => false],
                                 ['icon' => 'user-circle', 'label' => 'Requester', 'value' => ucwords(strtolower($kontrak->user_peminta ?? '-')), 'is_raw' => false],
@@ -177,7 +177,7 @@
                                 ['icon' => 'document-duplicate', 'label' => 'CS ID', 'value' => $csDisplay, 'is_raw' => true],
                                 ['icon' => 'identification', 'label' => 'Vendor ID', 'value' => $kontrak->vendorid, 'is_raw' => false],
                                 ['icon' => 'building-storefront', 'label' => 'Vendor', 'value' => $kontrak->vendorname, 'is_raw' => false],
-                                ['icon' => 'tag', 'label' => 'Kontrak Type', 'value' => $kontrak->kontraktype ?? '-', 'is_raw' => false],
+                                // ['icon' => 'tag', 'label' => 'Kontrak Type', 'value' => $kontrak->kontraktype ?? '-', 'is_raw' => false],
                                 ['icon' => 'tag', 'label' => 'Kontrak Category', 'value' => $kontrak->kontrakcategory ?? '-', 'is_raw' => false],
                                 ['icon' => 'document', 'label' => 'No SK', 'value' => $kontrak->nosk ?? '-', 'is_raw' => false],
                                 ['icon' => 'document-check', 'label' => 'No PK Legal', 'value' => $kontrak->nopklegal ?? '-', 'is_raw' => false],

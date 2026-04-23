@@ -410,7 +410,7 @@
 
                     <!-- Right -->
                     <div class="flex items-center gap-3">
-                        @if($status !== 'R')
+                        @if($sppt->status !== 'R')
                         <a href="{{ $hasBq ? url('/showbqsppts/' . $bqIdx) : url('/createbqsppt/' . $spptId) }}"
                             class="{{ $hasBq
                                 ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'

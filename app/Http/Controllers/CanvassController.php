@@ -6835,13 +6835,43 @@ class CanvassController extends Controller
         }
 
         // --- susun daftar vendor dinamis dari kolom vendor1..vendor6 di header CS
+        // $vendors = [];
+        // for ($i = 1; $i <= 6; ++$i) {
+        //     $idCol = "vendorid{$i}";
+        //     $nameCol = "vendorname{$i}";
+        //     if (!filled($cs->{$idCol}) && !filled($cs->{$nameCol})) {
+        //         continue;
+        //     }
+
+        //     $vendors[] = [
+        //         'idx' => $i,
+        //         'id' => $cs->{$idCol},
+        //         'name' => $cs->{$nameCol},
+        //         'addr' => $cs->{"vendoralamat{$i}"} ?? null,
+        //         'cp' => $cs->{"vendorcp{$i}"} ?? null,
+        //         'telp' => $cs->{"vendortelp{$i}"} ?? null,
+        //         'top' => $cs->{"vendortop{$i}"} ?? null,
+        //         // ringkasan
+        //         'total' => (float) ($cs->{"totalvendor{$i}"} ?? 0),
+        //         'tax' => (float) ($cs->{"taxvendor{$i}"} ?? 0),
+        //         'grand' => (float) ($cs->{"grandtotalvendor{$i}"} ?? 0),
+        //         'grandselected' => (float) ($cs->{"grandtotalselectedvendor{$i}"} ?? 0),
+        //     ];
+        // }
+        $tops = \App\Models\MsTop::pluck('top_name', 'topid');
+
         $vendors = [];
         for ($i = 1; $i <= 6; ++$i) {
             $idCol = "vendorid{$i}";
             $nameCol = "vendorname{$i}";
+            $topCol = "vendortop{$i}";
+
             if (!filled($cs->{$idCol}) && !filled($cs->{$nameCol})) {
                 continue;
             }
+
+            $topId = $cs->{$topCol} ?? null;
+            $topName = $topId ? ($tops[$topId] ?? $topId) : null;
 
             $vendors[] = [
                 'idx' => $i,
@@ -6850,7 +6880,10 @@ class CanvassController extends Controller
                 'addr' => $cs->{"vendoralamat{$i}"} ?? null,
                 'cp' => $cs->{"vendorcp{$i}"} ?? null,
                 'telp' => $cs->{"vendortelp{$i}"} ?? null,
-                'top' => $cs->{"vendortop{$i}"} ?? null,
+
+                // ✅ INI YANG DIUBAH
+                'top' => $topName,
+
                 // ringkasan
                 'total' => (float) ($cs->{"totalvendor{$i}"} ?? 0),
                 'tax' => (float) ($cs->{"taxvendor{$i}"} ?? 0),
@@ -8387,7 +8420,7 @@ class CanvassController extends Controller
         return 'KO'.$yy.$mm.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
     }
 
-    private function makeNoSk(string $cpnyId, Carbon $now): string
+    private function makeNoSk_xxx(string $cpnyId, Carbon $now): string
     {
         // contoh format (aku rapikan dikit): 024/SK/AW/II/2025
         $roman = $this->monthToRoman((int) $now->format('n'));
@@ -8402,6 +8435,45 @@ class CanvassController extends Controller
             .'/SK'
             .'/'.$roman
             .'/'.$year;
+    }
+
+    private function makeNoSk(string $cpnyId, Carbon $now, $details): string
+    {
+        $roman = $this->monthToRoman((int) $now->format('n'));
+        $year  = $now->format('Y');
+
+        $details = collect($details);
+
+        $businessUnits = $details
+            ->pluck('budget_business_unit_id')
+            ->filter(fn ($val) => !is_null($val) && trim((string) $val) !== '')
+            ->map(fn ($val) => strtoupper(trim((string) $val)))
+            ->unique()
+            ->values();
+
+        if ($businessUnits->count() > 1) {
+            Log::warning('Multiple budget_business_unit_id found when generating No SK', [
+                'cpny_id' => $cpnyId,
+                'business_units' => $businessUnits->toArray(),
+            ]);
+        }
+
+        $bussunit = $businessUnits->first() ?? '-';
+
+        $seq = $this->nextAutoNumber(
+            'SK',
+            (int) $now->format('Y'),
+            (int) $now->format('n'),
+            3
+        );
+
+        return str_pad((string) $seq, 3, '0', STR_PAD_LEFT)
+            . '/PROC'
+            . '/' . strtoupper(trim($cpnyId))
+            . '-' . $bussunit
+            . '/SK'
+            . '/' . $roman
+            . '/' . $year;
     }
 
     private function generateKontrakFromCS(TrCS $cs, $user): void
@@ -8459,7 +8531,9 @@ class CanvassController extends Controller
 
                 // Generate nomor
                 $kontrakId = $this->makeKontrakId($now);     // KO26010001
-                $noSk = $this->makeNoSk($cpny, $now);   // SK/024/AW/X/2025
+                // $noSk = $this->makeNoSk($cpny, $now);   // SK/024/AW/X/2025
+                $noSk = $this->makeNoSk($cpny, $now, $rows);
+
 
                 // ===== KONTRAK HEADER =====
                 $k = new TrKontrak();

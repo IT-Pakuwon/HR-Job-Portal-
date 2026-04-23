@@ -169,14 +169,14 @@
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-2">
                         @php
                             $fields = [
-                                [
-                                    'icon' => 'calendar-days',
-                                    'label' => 'Kontrak Date',
-                                    'value' =>
-                                        optional($kontrak->kontrakdate)->format('d M Y') ??
-                                        ($kontrak->kontrakdate ?? '-'),
-                                    'is_raw' => false,
-                                ],
+                                // [
+                                //     'icon' => 'calendar-days',
+                                //     'label' => 'Kontrak Date',
+                                //     'value' =>
+                                //         optional($kontrak->kontrakdate)->format('d M Y') ??
+                                //         ($kontrak->kontrakdate ?? '-'),
+                                //     'is_raw' => false,
+                                // ],
                                 [
                                     'icon' => 'building-office',
                                     'label' => 'Company',
@@ -264,7 +264,7 @@
                             {{-- ROW 1: Kontrak Type + Kontrak Category --}}
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {{-- Kontrak Type --}}
-                                <div>
+                                {{-- <div>
                                     <label
                                         class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kontrak
                                         Type</label>
@@ -285,9 +285,26 @@
                                             {{ $kontrak->kontraktype ?? '-' }}
                                         </div>
                                     @endif
-                                </div>
+                                </div> --}}
 
                                 {{-- Kontrak Category --}}
+                                {{-- No SK --}}
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        No SK
+                                    </label>
+
+                                    @if ($isHold)
+                                        <input type="text" id="nosk" name="nosk" readonly
+                                            value="{{ old('nosk', $kontrak->nosk ?? '') }}"
+                                            placeholder="Input No SK..."
+                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                    @else
+                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                                            {{ $kontrak->nosk ?? '-' }}
+                                        </div>
+                                    @endif
+                                </div>
                                 <div>
                                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Kontrak Category
@@ -345,7 +362,7 @@
                             {{-- ROW 2: Kontrak Date + No SK --}}
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {{-- Kontrak Date --}}
-                                <div>
+                                {{-- <div>
                                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Kontrak Date
                                     </label>
@@ -359,25 +376,9 @@
                                             {{ optional($kontrak->kontrakdate)->format('d M Y') ?? ($kontrak->kontrakdate ?? '-') }}
                                         </div>
                                     @endif
-                                </div>
+                                </div> --}}
 
-                                {{-- No SK --}}
-                                <div>
-                                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        No SK
-                                    </label>
-
-                                    @if ($isHold)
-                                        <input type="text" id="nosk" name="nosk"
-                                            value="{{ old('nosk', $kontrak->nosk ?? '') }}"
-                                            placeholder="Input No SK..."
-                                            class="w-full rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                    @else
-                                        <div class="rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                                            {{ $kontrak->nosk ?? '-' }}
-                                        </div>
-                                    @endif
-                                </div>
+                                
                             </div>
 
                             {{-- ROW 3: Start Date + End Date --}}
