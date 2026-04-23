@@ -1180,7 +1180,7 @@ const approvals = header.approval_list || [];
                     statusFilter = '';
                     deptFilter = '';
 
-                    $('#pageTitle').text('SPPB All List');
+                    $('#pageTitle').text('SPPT All List');
 
                     $('#createBtn').css('display', 'none');
                     $('#allFilters').removeClass('hidden');

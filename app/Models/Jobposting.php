@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Jobposting extends Model
 {
     protected $connection = 'mysql3';
-    protected $table = "hr_trx_jobposting";
+    protected $table = 'hr_trx_jobposting';
     protected $fillable = [
         'docid',
         'refid',
@@ -34,11 +33,10 @@ class Jobposting extends Model
         'experience_start',
         'experience_end',
         'expected_employment_date',
+        'reason',
         'status',
         'created_user',
         'updated_user',
-        'completed_user'
-
-
+        'completed_user',
     ];
 }

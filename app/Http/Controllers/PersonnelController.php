@@ -1004,7 +1004,7 @@ class PersonnelController extends Controller
 
             // ===== Rebuild Approval Lines (hapus pending lama, build ulang dari master) =====
             // Ambil baris approval: Normal + Condition yang cocok dengan group_grade
-     
+
             $msApproval = MsApproval::where('aprv_doctype', $doctype)
                 ->where('aprv_cpnyid', $request->cpnyid)
                 ->where('aprv_departementid', $request->departementid)
@@ -1432,7 +1432,7 @@ class PersonnelController extends Controller
         $approval = TrApproval::where('refnbr', $personnel->docid)
             ->where('status', '<>', 'X')
             ->orderBy('created_at')
-            ->orderBy('aprv_leveling')            
+            ->orderBy('aprv_leveling')
             ->get();
 
         // === Detail lain tetap ===
@@ -2606,11 +2606,23 @@ class PersonnelController extends Controller
             return response()->json(['message' => 'Not found'], 404);
         }
 
+        // ✅ UPDATE STATUS
         $job->status = $request->status;
+
+        // ✅ SAVE REASON ONLY WHEN HOLD
+        if ($request->status === 'H') {
+            $job->reason = $request->reason;
+        }
+
+        // (optional) clear reason kalau bukan hold
+        if ($request->status !== 'H') {
+            $job->reason = null;
+        }
+
+        $job->updated_user = $username;
         $job->save();
 
         return response()->json(['success' => true]);
     }
-
 
 }

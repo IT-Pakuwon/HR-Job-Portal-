@@ -465,13 +465,17 @@
                     <div class="flex items-center gap-3">
 
                         @if ($hasBq || $canUpload)
-                            <a href="{{ $hasBq ? $urlShow : $urlCreate }}" target="_blank"
-                                class="{{ $hasBq
-                                    ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
-                                    : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }} inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2">
+                            @if($status !== 'R')
+                                <a href="{{ $hasBq ? $urlShow : $urlCreate }}" target="_blank"
+                                    class="{{ $hasBq
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500' }}
+                                    inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white
+                                    focus:outline-none focus:ring-2 focus:ring-offset-2">
 
-                                {{ $hasBq ? $bqId : 'Create BQ' }}
-                            </a>
+                                    {{ $hasBq ? $bqId : 'Create BQ' }}
+                                </a>
+                            @endif
                         @endif
 
                         @if ($akses_cc)
