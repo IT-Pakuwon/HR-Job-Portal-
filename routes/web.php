@@ -1155,6 +1155,10 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printRfp'])->name('rfp.print');
     Route::get('/pdf_rfp/{hash}', [RfpController::class, 'printPdfRfp'])->name('rfp.print.pdf');
 
+    Route::post('/rfp/{id}/approve', [RfpController::class, 'approveRfp']);
+    Route::post('/rfp/{id}/reject', [RfpController::class, 'rejectRfp']);
+    Route::post('/rfp/{id}/revise', [RfpController::class, 'reviseRfp']);
+
     Route::get('/meeting', [MeetingController::class, 'index'])->name('meeting');
     Route::get('/inforoom_{id}', [MeetingController::class, 'getRoom']);
     Route::get('/infoacc_{id}', [MeetingController::class, 'getAccessories']);

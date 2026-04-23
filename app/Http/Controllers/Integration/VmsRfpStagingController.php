@@ -253,7 +253,8 @@ class VmsRfpStagingController extends Controller
                 $row->potaxamount   = $po->taxamt;
                 $row->poamount      = $po->grandtotalamt;
                 $row->status        = 1;
-                $row->updated_user  = 'SYSTEM';
+                $row->created_user  = $po->user_peminta;
+                $row->updated_user  = $po->user_peminta;
                 $row->updated_at    = now();
                 $row->save();
 
@@ -332,14 +333,14 @@ class VmsRfpStagingController extends Controller
                     'rfp_amount'           => $row->rfpamount,
                     'ir_note'              => $row->irnote,
                     'status'               => 'P',
-                    'created_by'           => 'SYSTEM',
+                    'created_by'           => $row->created_user ?: 'SYSTEM',
                     'created_at'           => now(),
-                    'updated_by'           => 'SYSTEM',
+                    'updated_by'           => $row->created_user ?: 'SYSTEM',
                     'updated_at'           => now(),
                 ]);
 
                 $row->status       = 2;
-                $row->updated_user = 'SYSTEM';
+                $row->updated_user = $row->created_user ?: 'SYSTEM';
                 $row->updated_at   = now();
                 $row->save();
 

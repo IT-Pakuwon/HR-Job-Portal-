@@ -465,7 +465,7 @@
                     <div class="flex items-center gap-3">
 
                         @if ($hasBq || $canUpload)
-                            @if($status !== 'R')
+                            @if($sppj->status !== 'R')
                                 <a href="{{ $hasBq ? $urlShow : $urlCreate }}" target="_blank"
                                     class="{{ $hasBq
                                         ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'

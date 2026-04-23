@@ -542,7 +542,7 @@ class KontrakController extends Controller
         }
 
         $v = Validator::make($request->all(), [
-            'kontraktype'     => 'required|in:New,Adjustment',
+            // 'kontraktype'     => 'required|in:New,Adjustment',
             'kontrakcategory' => [
                 'required',
                 'string',
@@ -558,7 +558,7 @@ class KontrakController extends Controller
                     }
                 },
             ],
-            'kontrakdate'     => 'required|date',
+            // 'kontrakdate'     => 'required|date',
             'startdate'       => 'required|date',
             'enddate'         => 'required|date|after_or_equal:startdate',           
             'kontraknote'     => 'nullable|string|max:5000',
@@ -579,9 +579,9 @@ class KontrakController extends Controller
 
         $now = Carbon::now();
 
-        $kontrak->kontraktype     = $request->kontraktype;
+        // $kontrak->kontraktype     = $request->kontraktype;
         $kontrak->kontrakcategory = $request->kontrakcategory;
-        $kontrak->kontrakdate     = $request->kontrakdate;
+        $kontrak->kontrakdate     = $now;
         $kontrak->startdate       = $request->startdate;
         $kontrak->enddate         = $request->enddate;
         $kontrak->nosk            = $request->nosk;

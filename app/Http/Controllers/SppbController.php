@@ -1492,8 +1492,26 @@ class SppbController extends Controller
                 $sppb->completed_at = $now;
                 $sppb->save();
 
-                // optional: tandai detail R
-                // \App\Models\TrSPPBdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'R']);
+                // =========================
+                // 🔥 PANGGIL UPDATE SPB
+                // =========================
+                try {
+                    $spbId = $sppb->spbid;
+
+                    if ($spbId) {
+                        $this->updateSPBQtySPPB(
+                            $spbId,
+                            $sppb->sppbid,
+                            auth()->user()->username
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error('Update SPB after reject SPPB failed', [
+                        'sppbid' => $sppb->sppbid,
+                        'spbid' => $sppb->spbid,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $sppb->sppbid,
@@ -2737,5 +2755,44 @@ class SppbController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function updateSPBQtySPPB(string $spbId, ?string $sppbId = null, ?string $username = null): void
+    {
+        $username = $username ?? auth()->user()->username ?? 'system';
+
+        DB::connection('pgsql')->transaction(function () use ($spbId, $sppbId, $username) {
+            $spb = TrSPB::where('spbid', $spbId)->lockForUpdate()->first();
+
+            if (!$spb) {
+                return;
+            }
+
+            $detailQuery = TrSPBdetail::where('spbid', $spbId)->lockForUpdate();
+
+            if (!empty($sppbId)) {
+                $detailQuery->where('sppbid', $sppbId);
+            }
+
+            $details = $detailQuery->get();
+
+            foreach ($details as $detail) {
+                $detail->sppbid = null;
+                $detail->sppb_qty = 0;
+                $detail->base_sppb_qty = 0;
+                $detail->updated_by = $username;
+                $detail->updated_at = now();
+                $detail->save();
+            }
+
+            $totalSppbQty = TrSPBdetail::where('spbid', $spbId)->sum('sppb_qty');
+
+            $spb->sppbid = null;
+            $spb->status_sppb = 'Open';
+            $spb->totalsppbqty = $totalSppbQty ?? 0;
+            $spb->updated_by = $username;
+            $spb->updated_at = now();
+            $spb->save();
+        });
     }
 }
