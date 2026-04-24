@@ -413,6 +413,8 @@ class SLAPIIssueController extends Controller
                         'User06'           => $hdr->user06,
                         'User07'           => $hdr->user07,
                         'User08'           => $hdr->user08,
+                        'WOID'             => $hdr->woid,
+                        'TotalRecord'      => (float) ($hdr->total_record ?? 0),
                         'Process_Flag'     => 0,
                         'Created_DateTime' => now(),
                         'Process_DateTime' => null,
