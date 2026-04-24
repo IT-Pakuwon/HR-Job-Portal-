@@ -120,6 +120,9 @@ use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\RfpController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\VoucherTaxiController;
+use App\Http\Controllers\BookingCarController;
+
 
 
 // use Illuminate\Support\Facades\Response;
@@ -1172,6 +1175,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/teamslist', [MeetingController::class, 'TeamsList'])->name('teamslist');
     Route::get('/teamslist/json', [MeetingController::class, 'jsonTeams'])->name('teamslist.json');
+
+    Route::get('/vouchertaxi', [VoucherTaxiController::class, 'index'])->name('vouchertaxi');
+    Route::get('/vouchertaxi/json', [VoucherTaxiController::class, 'json'])->name('vouchertaxi.json');
+
+    Route::get('/bookingcar', [BookingCarController::class, 'index'])->name('bookingcar');
+    Route::get('/bookingcar/json', [BookingCarController::class, 'json'])->name('bookingcar.json');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');
