@@ -350,4 +350,25 @@
     background: #6366f1 !important;
     color: #ffffff !important;
 }
+
+/* WEEK VIEW CLEAN */
+.fc-timeGridWeek-view .fc-event {
+    border-radius: 8px !important;
+    padding: 2px 4px !important;
+    font-size: 11px !important;
+    box-shadow: none !important;
+}
+
+/* REMOVE INNER PADDING */
+.fc-timeGridWeek-view .fc-event-main {
+    padding: 0 !important;
+}
+
+/* LESS HEIGHT */
+.fc-timeGridWeek-view .fc-timegrid-event {
+    min-height: 18px !important;
+}
+.fc-event {
+    opacity: 1 !important;
+}
 </style>

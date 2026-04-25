@@ -440,6 +440,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css"/>
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
 
 <script>
     window.editMeetingId = null;
@@ -508,34 +511,138 @@
 
 
             events: '/calendar-json',
-            eventContent: function(arg) {
-                const title = arg.event.title;
-                const user = arg.event.extendedProps.user;
-                const room = arg.event.extendedProps.room;
-                const type = arg.event.extendedProps.type;
-                const isTeams = arg.event.extendedProps.isTeams;
+            // eventContent: function(arg) {
+            //     const title = arg.event.title;
+            //     const user = arg.event.extendedProps.user;
+            //     const room = arg.event.extendedProps.room;
+            //     const type = arg.event.extendedProps.type;
+            //     const isTeams = arg.event.extendedProps.isTeams;
 
+            //     return {
+            //         html: `
+            //         <div class="fc-event-custom">
+
+            //             <div class="fc-event-title">
+            //                 ${user ? user + ' - ' : ''}${title}
+            //             </div>
+
+            //             <div class="fc-event-room">
+            //                 📍 ${room || '-'}
+            //             </div>
+
+            //             <div class="fc-event-meta">
+            //                 ${type === 'external' ? 'External' : 'Internal'} •
+            //                 ${isTeams ? 'Teams' : 'No Teams'}
+            //             </div>
+
+            //         </div>
+            //     `
+            //     };
+            // },
+
+            eventContent: function(arg) {
+            const title = arg.event.title;
+            const user = arg.event.extendedProps.user;
+            const room = arg.event.extendedProps.room;
+            const type = arg.event.extendedProps.type;
+            const isTeams = arg.event.extendedProps.isTeams;
+
+            const viewType = arg.view.type;
+
+            // =========================
+            // ✅ WEEK & MONTH (MINIMAL)
+            // =========================
+            if (viewType === 'timeGridWeek') {
                 return {
                     html: `
-                    <div class="fc-event-custom">
+                        <div class="px-1 leading-tight">
 
-                        <div class="fc-event-title">
-                            ${user ? user + ' - ' : ''}${title}
+                            <div class="font-medium text-[11px] truncate">
+                                ${title}
+                            </div>
+
+                            <div class="text-[10px] opacity-80 truncate">
+                                ${user || ''}
+                            </div>
+
                         </div>
-
-                        <div class="fc-event-room">
-                            📍 ${room || '-'}
-                        </div>
-
-                        <div class="fc-event-meta">
-                            ${type === 'external' ? 'External' : 'Internal'} •
-                            ${isTeams ? 'Teams' : 'No Teams'}
-                        </div>
-
-                    </div>
-                `
+                    `
                 };
-            },
+            }
+
+            // =========================
+            // ✅ TIMELINE / DAY (FULL)
+            // =========================
+            return {
+                html: `
+                <div class="fc-event-custom">
+
+                    <div class="fc-event-title">
+                        ${user ? user + ' - ' : ''}${title}
+                    </div>
+
+                    <div class="fc-event-room">
+                        📍 ${room || '-'}
+                    </div>
+
+                    <div class="fc-event-meta">
+                        ${type === 'external' ? 'External' : 'Internal'} •
+                        ${isTeams ? 'Teams' : 'No Teams'}
+                    </div>
+
+                </div>
+                `
+            };
+        },
+
+            eventDidMount: function(info) {
+
+            const p = info.event.extendedProps;
+
+            const start = moment(info.event.start).format('DD MMM YYYY HH:mm');
+            const end = info.event.end
+                ? moment(info.event.end).format('HH:mm')
+                : '-';
+
+            let status = '';
+
+            if (p.status === 'X') {
+                status = '❌ Cancelled';
+            } else if (!p.teams_url) {
+                status = '🎥 No Teams/Zoom';
+            } else {
+                status = p.isTeams ? '💬 Teams Ready' : '🎥 Zoom Ready';
+            }
+
+            const html = `
+                <div class="text-xs space-y-2">
+
+                    <div class="font-semibold text-gray-900">
+                        ${info.event.title}
+                    </div>
+
+                    <div class="text-gray-500">
+                        ${start} → ${end}
+                    </div>
+
+                    <div>📍 ${p.room || '-'}</div>
+                    <div>👤 ${p.user || '-'}</div>
+
+                    <div class="text-[11px] px-2 py-1 rounded bg-gray-100 inline-block">
+                        ${status}
+                    </div>
+
+                </div>
+            `;
+
+            tippy(info.el, {
+                content: html,
+                allowHTML: true,
+                theme: 'light-border',
+                placement: 'top',
+                animation: 'scale',
+            });
+        },
 
 
             eventClick: function(info) {
